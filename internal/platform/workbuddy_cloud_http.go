@@ -42,6 +42,9 @@ func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, acto
 		writeError(w, &APIError{503, workBuddyUnavailable, workBuddyUnavailable, nil})
 		return true
 	}
+	if s.workBuddyCloudHistorySharingHTTP(w, r, actor, scope, boundProject, parts, c) {
+		return true
+	}
 	if s.workBuddyCloudCollaborationHTTP(w, r, actor, scope, boundProject, parts, c) {
 		return true
 	}

@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [明确共享云观察](../contracts/workbuddy-cloud-history-sharing.md) · [架构与AI SOP](architecture/workbuddy-cloud-history-sharing.md) · [交互](design/workbuddy-cloud-history-sharing.md) · [限定验证](quality/workbuddy-cloud-history-sharing-verification.md) · [摘要](quality/workbuddy-cloud-history-sharing-summary.json)：T-WORKBUDDY-HISTORY-SHARE-165把所选私有观察明确复制到任务讨论，保留精确来源和当前任务权限；原11项真实App／HTTP检查及中英代表图按当时输入保留；后补跨页选择缓存，以1条当前组件浏览器场景单独核实，原操作恢复不重复消息或通知，夹具和收尾异常分别留证。
+
 - [原云任务会话加载](../contracts/workbuddy-cloud-collaboration.md) · [架构与AI SOP](architecture/workbuddy-cloud-collaboration.md) · [限定验证](quality/workbuddy-cloud-collaboration-verification.md) · [摘要](quality/workbuddy-cloud-collaboration-summary.json)：T-WORKBUDDY-CLOUD-COLLAB-164贯通明确连接、当前授权私有存档、原请求恢复及本地分页；13项真实App／HTTP检查、中英1366／390界面已复核，受控SDK不代表真实厂商或完整人工协作。
 
 - [云任务状态与暂停交互](../contracts/workbuddy-cloud-status-ui.md) · [限定验证](quality/workbuddy-cloud-status-verification.md) · [摘要](quality/workbuddy-cloud-status-summary.json)：T-WORKBUDDY-CLOUD-UI-163让供应方状态、原观察时间和安全失败提示默认可见，平台暂停独立表达；29项定向及3组组件浏览器验证，中英代表图已复核，无新增动作或轮询。

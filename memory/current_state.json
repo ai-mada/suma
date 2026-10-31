@@ -1,5 +1,53 @@
 {
   "project": "suma",
+  "workbuddy_history_sharing": {
+    "stage": "T-WORKBUDDY-HISTORY-SHARE-165",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_local_sharing_verified_with_preserved_fixture_and_teardown_failures",
+    "contract": "contracts/workbuddy-cloud-history-sharing.md",
+    "architecture": "docs/architecture/workbuddy-cloud-history-sharing.md",
+    "design": "docs/design/workbuddy-cloud-history-sharing.md",
+    "report": "docs/quality/workbuddy-cloud-history-sharing-verification.md",
+    "summary": "docs/quality/workbuddy-cloud-history-sharing-summary.json",
+    "source_sha256": "b47c861296c03c63a41bf1372a50b256900e6eb1f8642c56a9561d3b86ba30f0",
+    "implementation": "Explicit bounded terminal observation selection and exact same-project task preview; current owner share is one immutable human copy with safe source, follower notification, activity and original receipt in one transaction. Current task readers gain only the published copy. Original metadata-only recovery remains outside private-source guards.",
+    "verification": "25 distinct Go (13new/12old) and41 Web (15model/12controller/14selection); latest types0 b32ada and7823 paired keys/0 hardcodes. Earlier2review findings and later pagination P2 were each precisely fixed, independently rechecked and selectively tested. No old suites repeated.",
+    "actual": "Original11 real App/HTTP/SQLite checks retain pre-pagination inputs, source b47 and sealed18 artifacts.4same-body/key transports recovered1message/1source/1notice via final normal201 and exactDetail200, journal0; viewer private404 and original run/task unchanged. Later pagination uses1separate current-component browser case with55synthetic entries/GET5/POST0, not a12th business journey.",
+    "closeout": "First fixture setup failed before App with no snapshot;2test-host compiles and3fixture/cache source corrections preserved. Main driver and continuation helper both exit1; functional11 and final read-only audit0 separately recorded. Native/Vite/Go close normally, all exact PIDs/ports absent; only the verified owned inspector CLI required force-stop. Private consistent backup retained; original temp paths cleaned.",
+    "visual": "Root independently viewed CN1366x960 final saved feedback (sidebar partly visible) and EN390x844 dark shared-source card; not full preview/all-theme acceptance.",
+    "remaining": "Real vendor, complete cloud input/permission/stop, global cross-window recovery, other database/OS, physical multihost, scale, installers and production remain.",
+    "ledger_unchanged": "Full31/P0-P7 retained;58limited/34pending/92total",
+    "full_platform_complete": false,
+    "source_scope": "source_sha256 identifies the original11 HTTP execution inputs only; later two-file pagination fix and its independent component proof are recorded below.",
+    "post_actual_fix": {
+      "reason": "Page2 selection disappeared from the current first-page refresh window; selecting another entry emitted undefined and could crash the sharing controller.",
+      "files": [
+        {
+          "path": "apps/web/src/WorkBuddyCloudCollaboration.tsx",
+          "sha256_before": "8e7317e11b2c07fde86fd38d957f36e361eb5111c2d9bac4ae80f2f98b16f01c",
+          "sha256_after": "b0f9f13bde21159323c2d3f80bd2fcb36f13ed9f228957532ceb77113a616e48"
+        },
+        {
+          "path": "apps/web/src/CloudHistorySharingSelection.test.tsx",
+          "sha256_before": "2390d8a7b477109ea69d20c5f457db21e4c497e2d4344f503af09f8902e23a54",
+          "sha256_after": "ba2cda1419a9bb7d8f4ca19336cb6a37d8ed28f66ee9c4ca56cb630ec5f97417"
+        }
+      ],
+      "new_regression": "RED1/GREEN1,13 old skipped; prior40 not repeated",
+      "current_web_distinct": 41,
+      "latest_types_exit": 0,
+      "latest_types_tool": "b32ada",
+      "component_browser_cases": 1,
+      "component_source_sha256": "8f44ab8c19278d8261fc3f51ca566d11596d16f3f8242a8db3b5f6686f0016da",
+      "component_manifest_sha256": "a9c92c4711a432844490c8a86091c23fceef6e8a57b23be4d360afbed5f4b05e",
+      "old_actual_artifacts_unchanged": true,
+      "component_close_normal": true
+    },
+    "ui_followups": [
+      "区分常规8项上限说明与达到上限时的取消选择指引；当前属于不影响功能的提示文案改进。"
+    ]
+  },
   "workbuddy_cloud_collaboration": {
     "stage": "T-WORKBUDDY-CLOUD-COLLAB-164",
     "version": "1.0.0",

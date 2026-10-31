@@ -16,7 +16,7 @@ T-WORKBUDDY-CLOUD-COLLAB-164；产品1.0.0；2026-10-31。状态：原会话显�
 
 外部调用前、每次持久采集和最终发布重新核对当前资格。旧资格不能因票据仍可用而延续。锁外网络I/O，事务内收齐当前用户／组织／项目锁、核来源并写快照；不持数据库锁等待网络。
 
-存档GET要求当前真人项目read、准确原提交owner及同一来源。没有当前项目访问权或来源不符即拒绝并让界面清除正文；只知道快照ID不赋权。存档是已有项目资料，不自动要求旧机器仍在线，也不以存档重建OAuth资格。其他成员不能自动继承本人云会话访问权；团队共享需要另行授权合同。
+存档GET要求当前真人项目read、准确原提交owner及同一来源。没有当前项目访问权或来源不符即拒绝并让界面清除正文；只知道快照ID不赋权。存档是已有项目资料，不自动要求旧机器仍在线，也不以存档重建OAuth资格。其他成员不能自动继承本人云会话访问权；所选观察复制到任务讨论沿[独立共享合同](workbuddy-cloud-history-sharing.md)明确目标与副本范围，本存档仍不自动开放给团队。
 
 `CloudCollaborationSource`闭合字段：`project_id,run_id,node_id,submission_id,submission_version,task_id,node_spec_sha256,request_sha256`。来源由服务端还原，客户端不得填task_id、URL、Prompt、ticket或任意packet。submission_version保留加载起点；后续仅观察更新版本且同一身份／摘要不变，不使已经保存的快照无故失效。新加载开始核对准确当前submission_version，发布仍重新核身份、摘要与当前资格。
 

@@ -159,5 +159,8 @@ func (s *Service) taskConversationMessageMetadataTx(ctx context.Context, tx *sql
 	if err = s.taskConversationMentionsMetadataTx(ctx, tx, tenant, project, task, items); err != nil {
 		return err
 	}
-	return s.taskConversationKnowledgeMetadataTx(ctx, tx, tenant, project, task, items)
+	if err = s.taskConversationKnowledgeMetadataTx(ctx, tx, tenant, project, task, items); err != nil {
+		return err
+	}
+	return s.taskConversationCloudObservationMetadataTx(ctx, tx, tenant, project, task, items)
 }

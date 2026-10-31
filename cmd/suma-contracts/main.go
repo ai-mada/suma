@@ -152,6 +152,9 @@ func generate() (map[string]any, string) {
 	for _, v := range workBuddyCloudCollaborationModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range workBuddyCloudHistorySharingModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range schedulingModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -432,6 +435,7 @@ func generate() (map[string]any, string) {
 	workBuddyConnectionContracts(add, api)
 	workBuddyCloudContracts(add, api)
 	workBuddyCloudCollaborationContracts(add, api)
+	workBuddyCloudHistorySharingContracts(add, api)
 	interactiveDevelopmentContracts(add, api)
 	dispatchRecommendationContracts(add, api)
 	usageAccountingContracts(add, api)

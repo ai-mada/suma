@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-WORKBUDDY-HISTORY-SHARE-165沿原M11–M20协作方向推进明确观察共享，复用速码已有讨论、当前权限、关注通知和原操作回执事务，独立实现、无新增Multica源码或依赖。[合同](../../contracts/workbuddy-cloud-history-sharing.md)、[架构](../architecture/workbuddy-cloud-history-sharing.md)及[25项Go／41项Web／11项原实际及1项独立组件限定证据](../quality/workbuddy-cloud-history-sharing-verification.md)记录范围。所选内容成为明确发布的human副本，原私有会话不共享；完整供应方协作与平台目标继续实施，58／34／92不变。
+
 T-WORKBUDDY-CLOUD-COLLAB-164沿原工具／节点工作区增加准确原会话显式加载与私有存档，复用现有固定ACP SDK、本人授权与原任务事实；独立实现，无新增Multica源码复制。[合同](../../contracts/workbuddy-cloud-collaboration.md)、[架构](../architecture/workbuddy-cloud-collaboration.md)及[13项真实App／HTTP限定证据](../quality/workbuddy-cloud-collaboration-verification.md)分别记录能力与边界。输入／权限／取消／实时协作及完整M11–M20继续实施，不将一次加载推断为完整供应方产品或平台完成，58／34／92不变。
 
 T-WORKBUDDY-CLOUD-UI-163沿原云任务工作区补齐默认可见观察与独立平台暂停，原未知／失联／停止等优先级不变。[合同](../../contracts/workbuddy-cloud-status-ui.md)与[29项定向／3组组件及代表图证据](../quality/workbuddy-cloud-status-verification.md)限定其范围。独立实现，无新增上游源码、动作或轮询，不外推完整M11–M20／供应方产品或平台完成，58／34／92不变。

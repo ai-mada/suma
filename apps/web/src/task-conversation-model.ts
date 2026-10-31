@@ -2,6 +2,7 @@ import type {TaskConversationMessage, TaskConversationMessageDetail, TaskConvers
 import type {WriteRecoveryRequest} from './write-action';
 import {validMentionResourceIDs} from './task-conversation-mentions-model';
 import {sameKnowledgePins, validConversationKnowledge, validKnowledgePins} from './task-conversation-knowledge-model';
+import {validCloudHistorySharedObservation} from './cloud-history-shared-observation-model';
 
 const object = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -29,7 +30,8 @@ const messageKeys = ['id', 'sequence', 'task_version', 'body', 'author_id',
   'reply_id', 'reply_to_sequence', 'execution_run_id'];
 
 export function validConversationMessage(value: unknown): value is TaskConversationMessage {
-  if (!object(value) || !keys(value, [...messageKeys, ...(Object.hasOwn(value, 'mentions') ? ['mentions'] : []), ...(Object.hasOwn(value, 'knowledge') ? ['knowledge'] : [])])) return false;
+  if (!object(value) || !keys(value, [...messageKeys, ...(Object.hasOwn(value, 'mentions') ? ['mentions'] : []), ...(Object.hasOwn(value, 'knowledge') ? ['knowledge'] : []), ...(Object.hasOwn(value, 'cloud_observation') ? ['cloud_observation'] : [])])) return false;
+  if (Object.hasOwn(value,'cloud_observation') && (value.actor_kind!=='human'||!validCloudHistorySharedObservation(value.cloud_observation))) return false;
   if (Object.hasOwn(value, 'knowledge') && !validConversationKnowledge(value.knowledge)) return false;
   if (Object.hasOwn(value, 'mentions')) {
     if (!Array.isArray(value.mentions) || !value.mentions.length || value.mentions.length > 20 || value.actor_kind === 'assistant') return false;

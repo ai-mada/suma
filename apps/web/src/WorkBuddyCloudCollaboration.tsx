@@ -1,15 +1,17 @@
 import {useEffect,useId,useRef,useState} from 'react';
 import {FileText,MessagesSquare,RefreshCw} from 'lucide-react';
-import type {CloudCollaborationSource,CloudCollaborationView,CloudHistoryLoad,CloudHistoryPage} from '../../../packages/contracts/src';
+import type {CloudCollaborationSource,CloudCollaborationView,CloudHistoryLoad,CloudHistoryPage,CloudHistoryEntry} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi,useApiView} from './api-context';
 import {formatDateTime,formatNumber,tr,useLocale} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {useWriteAction} from './write-action';
 import {collaborationIdentity,collaborationPath,historyLoadPath,historyPagePath,readCloudCollaboration,readCloudHistoryPage,readCloudHistoryReceipt,validCloudHistoryRequest} from './workbuddy-cloud-collaboration-model';
+import {eligibleHistoryEntry} from './cloud-history-sharing-model';
+import type {CloudHistoryShareSelection} from './CloudHistorySharing';
 import './WorkBuddyCloudCollaboration.css';
 
-type Props={source:CloudCollaborationSource;revision?:number;disabled?:boolean};
+type Props={source:CloudCollaborationSource;revision?:number;disabled?:boolean;shareReset?:number;onShareSelection?:(selection?:CloudHistoryShareSelection)=>void};
 type Meta={owner:ApiCaller;value?:CloudCollaborationView;loading:boolean;failed:boolean;denied:boolean};
 type Page={owner:ApiCaller;value:CloudHistoryPage};
 const t=(key:string,values?:Record<string,unknown>)=>tr('workbuddy-cloud-collaboration.'+key,values);
@@ -23,9 +25,11 @@ export function WorkBuddyCloudCollaboration(props:Props){
  return <CollaborationController key={JSON.stringify([view?.userID,view?.organizationID,identity])} {...props}/>;
 }
 
-function CollaborationController({source,revision,disabled=false}:Props){
+function CollaborationController({source,revision,disabled=false,onShareSelection,shareReset}:Props){
  useLocale();const id=useId(),api=useApi(),identity=useApiView();
  const [meta,setMeta]=useState<Meta>(),[page,setPage]=useState<Page>(),[selected,setSelected]=useState<string>(),[receipt,setReceipt]=useState<CloudHistoryLoad>(),[pageLoading,setPageLoading]=useState(false),[pageFailed,setPageFailed]=useState(false);
+ const [shareSequences,setShareSequences]=useState<number[]>([]),shareCallback=useRef(onShareSelection);shareCallback.current=onShareSelection;
+ const shareEntries=useRef<{loadID:string;version:number;items:CloudHistoryEntry[]}|undefined>(undefined);
  const alive=useRef(true),owner=useRef(api),sourceRef=useRef(source),metaRef=useRef<Meta|undefined>(undefined),pageRef=useRef<Page|undefined>(undefined),selectedRef=useRef('');
  const metaEpoch=useRef(0),pageEpoch=useRef(0),metaAbort=useRef<AbortController|undefined>(undefined),pageAbort=useRef<AbortController|undefined>(undefined),pageBusy=useRef(false),commandBusy=useRef(false);
  owner.current=api;sourceRef.current=source;metaRef.current=meta?.owner===api?meta:undefined;pageRef.current=page?.owner===api?page:undefined;
@@ -39,8 +43,9 @@ function CollaborationController({source,revision,disabled=false}:Props){
   ++metaEpoch.current;++pageEpoch.current;metaAbort.current?.abort();pageAbort.current?.abort();pageBusy.current=false;
   metaRef.current={owner:api,loading:false,failed:false,denied:true};pageRef.current=undefined;
   setMeta(metaRef.current);setPage(undefined);setSelected(undefined);setReceipt(undefined);setPageLoading(false);setPageFailed(false);
+  shareEntries.current=undefined;setShareSequences([]);shareCallback.current?.();
  };
- useEffect(()=>{alive.current=true;return()=>{alive.current=false;++metaEpoch.current;++pageEpoch.current;metaAbort.current?.abort();pageAbort.current?.abort();};},[]);
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;++metaEpoch.current;++pageEpoch.current;metaAbort.current?.abort();pageAbort.current?.abort();shareEntries.current=undefined;shareCallback.current?.();};},[]);
  useEffect(()=>{if(action.errorStatus&&[401,403,404].includes(action.errorStatus))clearProtected();},[action.errorStatus]);
  const headers=()=>({'X-Suma-Expected-User':identity?.userID||'','X-Suma-Expected-Organization':identity?.organizationID||''});
  const readView=async()=>{
@@ -98,6 +103,18 @@ function CollaborationController({source,revision,disabled=false}:Props){
  const visiblePage=pageRef.current?.value.load.id===selectedID?pageRef.current.value:undefined;
  // Overdue may change without a load revision; prefer the fresh head at equal versions.
  const shownLoad=visiblePage&&(!selectedLoad||visiblePage.load.version>selectedLoad.version)?visiblePage.load:selectedLoad||visiblePage?.load,latest=view?.latest_load;
+ useEffect(()=>{shareEntries.current=undefined;setShareSequences([]);shareCallback.current?.();},[shownLoad?.id,shownLoad?.version,shareReset]);
+ const toggleShare=(sequence:number)=>{
+  if(!shownLoad||!visiblePage||!onShareSelection)return;
+  const entry=visiblePage.items.find(item=>item.sequence===sequence);if(!eligibleHistoryEntry(shownLoad,entry))return;
+  const sequences=shareSequences.includes(sequence)?shareSequences.filter(value=>value!==sequence):shareSequences.length<8?[...shareSequences,sequence].sort((a,b)=>a-b):shareSequences;
+  // A local refresh replaces the page window, not the immutable selection.
+  // Keep only selected entries in memory, bound to this exact load revision.
+  const retained=shareEntries.current?.loadID===shownLoad.id&&shareEntries.current.version===shownLoad.version?shareEntries.current.items:[],available=new Map([...retained,...visiblePage.items].map(item=>[item.sequence,item]));
+  const entries:CloudHistoryEntry[]=[];for(const value of sequences){const item=available.get(value);if(!eligibleHistoryEntry(shownLoad,item))return;entries.push(item);}
+  shareEntries.current=entries.length?{loadID:shownLoad.id,version:shownLoad.version,items:entries}:undefined;
+  setShareSequences(sequences);shareCallback.current?.(sequences.length?{load:shownLoad,sequences,entries}:undefined);
+ };
  const canLoad=!!view?.allowed_actions.includes('load_history')&&!disabled&&!current?.loading&&!current?.failed&&!action.busy&&!action.conflict&&!action.pending&&!action.persistenceBlocked&&view.version<2147483647&&currentSource.submission_version<2147483647;
  const state=(value:CloudHistoryLoad)=>t(value.overdue?'state_overdue':'state_'+value.state);
  const loadSummary=(value:CloudHistoryLoad)=> <div className="cloud-collaboration-attempt"><strong>{state(value)}</strong><span>{t('started')} <time dateTime={value.started_at}>{date(value.started_at)}</time></span>{value.finished_at&&<span>{t('finished')} <time dateTime={value.finished_at}>{date(value.finished_at)}</time></span>}{value.error_code&&<p>{t('error_'+value.error_code)}</p>}{value.overdue&&<p>{t('overdue_hint')}</p>}</div>;
@@ -116,7 +133,8 @@ function CollaborationController({source,revision,disabled=false}:Props){
    {shownLoad&&<div className="cloud-collaboration-history" aria-labelledby={id+'-history'}><h4 id={id+'-history'}>{t('saved_observation')}</h4><p className="cloud-collaboration-hint">{state(shownLoad)} · <time dateTime={shownLoad.finished_at||shownLoad.started_at}>{date(shownLoad.finished_at||shownLoad.started_at)}</time></p>
     {pageLoading&&<p role="status">{t('reading_entries')}</p>}{pageFailed&&<p role="alert">{t('page_failed')}</p>}
     {visiblePage&&visiblePage.items.length===0&&!pageLoading&&<p>{t(shownLoad.state==='loaded'?'empty_load':'no_saved_entries')}</p>}
-    {visiblePage&&<><ol className="cloud-collaboration-entries" role="list">{visiblePage.items.map(entry=><li key={entry.sequence} value={entry.sequence}><span className="cloud-collaboration-kind">{t('kind_'+entry.kind)}</span>{entry.kind==='unsupported'?<p>{t('unsupported')}</p>:<pre tabIndex={entry.text&&entry.text.length>1000?0:undefined} aria-label={t('entry_text')}>{entry.text||t('empty_text')}</pre>}</li>)}</ol><div className="cloud-collaboration-paging"><span>{t('stored_count',{shown:formatNumber(visiblePage.items.length),total:formatNumber(visiblePage.total)})}</span>{visiblePage.has_more&&<button type="button" disabled={pageLoading} onClick={()=>void readPage(selectedID,true)} data-collaboration-action="more">{t('more_saved')}</button>}</div></>}
+    {onShareSelection&&<p className="cloud-collaboration-hint">{tr('workbuddy-history-sharing.selection_limit')}</p>}
+    {visiblePage&&<><ol className="cloud-collaboration-entries" role="list">{visiblePage.items.map(entry=><li key={entry.sequence} value={entry.sequence}><span className="cloud-collaboration-kind">{t('kind_'+entry.kind)}</span>{onShareSelection&&eligibleHistoryEntry(shownLoad,entry)&&<label className="cloud-history-select-entry"><input type="checkbox" data-history-share-select={entry.sequence} checked={shareSequences.includes(entry.sequence)} disabled={!shareSequences.includes(entry.sequence)&&shareSequences.length>=8} onChange={()=>toggleShare(entry.sequence)}/><span>{tr('workbuddy-history-sharing.select_entry',{sequence:formatNumber(entry.sequence)})}</span></label>}{entry.kind==='unsupported'?<p>{t('unsupported')}</p>:<pre tabIndex={entry.text&&entry.text.length>1000?0:undefined} aria-label={t('entry_text')}>{entry.text||t('empty_text')}</pre>}</li>)}</ol><div className="cloud-collaboration-paging"><span>{t('stored_count',{shown:formatNumber(visiblePage.items.length),total:formatNumber(visiblePage.total)})}</span>{visiblePage.has_more&&<button type="button" disabled={pageLoading} onClick={()=>void readPage(selectedID,true)} data-collaboration-action="more">{t('more_saved')}</button>}</div></>}
     <details className="cloud-collaboration-source"><summary><FileText size={15} aria-hidden="true"/>{t('technical_source')}</summary><dl><div><dt>{t('load_id')}</dt><dd><code>{shownLoad.id}</code></dd></div><div><dt>{t('task_id')}</dt><dd><code>{shownLoad.source.task_id}</code></dd></div><div><dt>{t('deadline')}</dt><dd><time dateTime={shownLoad.deadline_at}>{date(shownLoad.deadline_at)}</time></dd></div><div><dt>{t('source_version')}</dt><dd>{formatNumber(shownLoad.source.submission_version)}</dd></div></dl></details>
    </div>}
   </>}

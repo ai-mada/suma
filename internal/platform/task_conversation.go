@@ -145,6 +145,30 @@ func (s *Service) AppendTaskConversation(ctx context.Context, actor Actor, proje
 		}
 		return out, auth.assertTx(auth.tx, auth.target, purposeProjectWrite)
 	}
+	out, err = s.appendTaskConversationMessageTx(ctx, actor, auth, project, req)
+	if err != nil {
+		return TaskConversationMessage{}, err
+	}
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
+		return TaskConversationMessage{}, err
+	}
+	if err = auth.assertTx(auth.tx, auth.target, purposeProjectWrite); err != nil {
+		return TaskConversationMessage{}, err
+	}
+	return out, auth.tx.Commit()
+}
+
+// appendTaskConversationMessageTx owns the one message/sequence/notification
+// implementation. The caller owns the current authority, operation receipt,
+// additional provenance, final assertion and commit, so a shared observation
+// cannot publish a message before its source relation is saved atomically.
+func (s *Service) appendTaskConversationMessageTx(ctx context.Context, actor Actor, auth *authorizedCommand, project string, req TaskConversationAppendRequest) (out TaskConversationMessage, err error) {
+	if auth == nil || !taskConversationActor(actor) || req.ProjectID != project || !validTaskConversationAppend(req) {
+		return out, invalid(taskConversationInvalid)
+	}
+	if err = assertProjectCommand(auth.tx, auth, project); err != nil {
+		return out, err
+	}
 	task, err := s.getRecordTx(ctx, auth, project, "tasks", req.TaskID)
 	if err != nil {
 		return out, err
@@ -202,16 +226,10 @@ func (s *Service) AppendTaskConversation(ctx context.Context, actor Actor, proje
 	if err = s.projectTaskSubscriptionMessageTx(ctx, auth, project, task.ID, out.ID); err != nil {
 		return TaskConversationMessage{}, err
 	}
-	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
-		return TaskConversationMessage{}, err
-	}
 	// A fixed activity title keeps user message text out of general activity and
 	// telemetry streams; the task-authorized conversation is its sole read path.
 	if err = s.commandActivity(ctx, auth, "task_conversation.posted", task.ID, "Task conversation message"); err != nil {
 		return TaskConversationMessage{}, err
 	}
-	if err = auth.assertTx(auth.tx, auth.target, purposeProjectWrite); err != nil {
-		return TaskConversationMessage{}, err
-	}
-	return out, auth.tx.Commit()
+	return out, nil
 }

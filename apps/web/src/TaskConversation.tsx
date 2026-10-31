@@ -16,6 +16,7 @@ import {knowledgeSelectionKey} from './task-conversation-knowledge-model';
 import type {KnowledgeReference} from './knowledge-model';
 import {TaskConversationReply} from './TaskConversationReply';
 import {TaskSubscriptionControl} from './TaskSubscriptionControl';
+import {CloudHistorySharedSource} from './CloudHistorySharedSource';
 import './TaskConversation.css';
 
 type Props = {session: Session; project: string; taskId: string; refresh: number; accessBlocked: boolean;
@@ -136,6 +137,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
         <span className="task-conversation-actor">{t('actor.' + message.actor_kind)}</span>
         <time dateTime={message.created_at}>{formatDateTime(message.created_at, {dateStyle: 'short', timeStyle: 'short'})}</time></header>
         <p className="task-conversation-message-text">{message.body}</p>
+        {message.cloud_observation&&<CloudHistorySharedSource source={message.cloud_observation}/>}
         {!!message.mentions?.length && <div className="task-conversation-recorded-mentions"><small>{mt('recorded')}</small><ul aria-label={mt('recorded')}>{message.mentions.map(mention => <li key={mention.resource_id}>{mention.name_at_post || mention.resource_id}</li>)}</ul></div>}
         <RecordedConversationKnowledge project={project} items={message.knowledge} refresh={refresh + accessRetry} onAccessDenied={directoryDenied}/>
         <details><summary>{t('basis')}</summary><div className="task-conversation-basis">

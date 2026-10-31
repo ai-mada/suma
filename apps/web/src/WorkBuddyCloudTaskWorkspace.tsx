@@ -1,5 +1,6 @@
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import {WorkBuddyCloudCollaboration} from './WorkBuddyCloudCollaboration';
+import {CloudHistorySharing,type CloudHistoryShareSelection} from './CloudHistorySharing';
 import type {CloudNodeView,WorkBuddyConnection} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi,useApiView} from './api-context';
@@ -25,6 +26,8 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
  const scope:CloudTaskScope={project,runID,nodeID,userID:view?.userID||'',organizationID:view?.organizationID||''};
  const scopeKey=JSON.stringify([scope.userID,scope.organizationID,project,runID,nodeID]);
  const [snapshot,setSnapshot]=useState<Snapshot>(),[classification,setClassification]=useState(0),[parentRefreshFailed,setParentRefreshFailed]=useState(false);
+ const [shareSelection,setShareSelection]=useState<CloudHistoryShareSelection>(),[shareReset,setShareReset]=useState(0);
+ const clearShareSelection=useCallback(()=>{setShareSelection(undefined);setShareReset(value=>value+1);},[]);
  const alive=useRef(true),epoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),activeCaller=useRef(caller),current=useRef<Snapshot|undefined>(undefined),commandBusy=useRef(false);
  const waiting=useRef<((result:WorkBuddyCloudActionResult)=>void)|undefined>(undefined);
  const readFlight=useRef<Promise<ReadResult>|undefined>(undefined),readOwner=useRef<ApiCaller|undefined>(undefined),readQueued=useRef(false);
@@ -35,6 +38,7 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
  const store=(value:Snapshot)=>{current.current=value;setSnapshot(value);};
  const deny=()=>{
   ++epoch.current;controller.current?.abort();
+  clearShareSelection();
   store({caller,reading:false,denied:true,sourceFailed:false,connectionFailed:false});
  };
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;++epoch.current;controller.current?.abort();waiting.current?.({kind:'unknown'});waiting.current=undefined;};},[]);
@@ -156,6 +160,7 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
   {!denied&&current.current?.connectionFailed&&node&&<p className="cloud-task-hint" role="status">{t('connection_read_failed')}</p>}
   {!denied&&<WriteNotice action={action}/>}
   <WorkBuddyCloudTaskPanel model={model} onDelegate={delegate} onRevoke={revoke} onRefresh={observe} onReload={reload} onReconcile={reconcile}/>
-  {!denied&&node?.submission?.state==='task_known'&&node.submission.task&&<WorkBuddyCloudCollaboration source={{project_id:project,run_id:runID,node_id:nodeID,submission_id:node.submission.id,submission_version:node.submission.version,task_id:node.submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256}} revision={revision} disabled={!!current.current?.reading||!!current.current?.sourceFailed}/>}
+  {!denied&&node?.submission?.state==='task_known'&&node.submission.task&&<WorkBuddyCloudCollaboration source={{project_id:project,run_id:runID,node_id:nodeID,submission_id:node.submission.id,submission_version:node.submission.version,task_id:node.submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256}} revision={revision} disabled={!!current.current?.reading||!!current.current?.sourceFailed} onShareSelection={setShareSelection} shareReset={shareReset}/>}
+  <CloudHistorySharing project={project} runID={runID} nodeID={nodeID} selection={shareSelection} onClearSelection={clearShareSelection}/>
  </div>;
 }

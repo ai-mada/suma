@@ -1597,6 +1597,56 @@ export interface CloudHistoryPage {
   next_after: number;
   has_more: boolean;
 }
+export interface CloudHistorySharePreview {
+  project_id: string;
+  task_id: string;
+  task_title: string;
+  task_version: number;
+  load_id: string;
+  load_version: number;
+  load_state: string;
+  coverage: string;
+  source: CloudCollaborationSource;
+  entries: (CloudHistoryEntry)[];
+  body: string;
+  body_sha256: string;
+  selection_sha256: string;
+  preview_sha256: string;
+  sharing_scope: string;
+}
+export interface CloudHistorySharePreviewRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  expected_load_version: number;
+  sequences: (number)[];
+}
+export interface CloudHistoryShareRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  expected_load_version: number;
+  sequences: (number)[];
+  preview_sha256: string;
+  idempotency_key: string;
+}
+export interface CloudHistorySharedEntry {
+  sequence: number;
+  kind: string;
+  text_sha256: string;
+}
+export interface CloudHistorySharedObservation {
+  load_id: string;
+  load_version: number;
+  load_state: string;
+  coverage: string;
+  source_run_id: string;
+  source_node_id: string;
+  source_submission_id: string;
+  entries: (CloudHistorySharedEntry)[];
+  body_sha256: string;
+  selection_sha256: string;
+}
 export interface CloudLookupRequest {
   project_id: string;
   delegation_id: string;
@@ -5565,6 +5615,7 @@ export interface TaskConversationMessage {
   execution_run_id: string;
   mentions?: (TaskConversationMention)[];
   knowledge?: (TaskConversationKnowledgeReference)[];
+  cloud_observation?: CloudHistorySharedObservation;
 }
 export interface TaskConversationMessageDetail {
   project_id: string;

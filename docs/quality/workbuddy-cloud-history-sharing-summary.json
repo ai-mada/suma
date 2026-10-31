@@ -1,0 +1,516 @@
+{
+  "schema_version": 1,
+  "stage": "T-WORKBUDDY-HISTORY-SHARE-165",
+  "product_version": "1.0.0",
+  "date": "2026-10-31",
+  "base_commit": "d96666983bc3fa444c026b3fe8c9cab67d60407f",
+  "status": "scoped_local_functionally_verified_with_fixture_failures_and_same_environment_continuation",
+  "full_platform_complete": false,
+  "scope_ledger": {
+    "explicit_requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "changed_by_this_stage": false
+  },
+  "documents": {
+    "contract": "contracts/workbuddy-cloud-history-sharing.md",
+    "architecture": "docs/architecture/workbuddy-cloud-history-sharing.md",
+    "design": "docs/design/workbuddy-cloud-history-sharing.md",
+    "verification": "docs/quality/workbuddy-cloud-history-sharing-verification.md"
+  },
+  "scoped_checks": {
+    "go": {
+      "status": "passed_scoped_cuts",
+      "distinct_total": 25,
+      "distinct_new": 13,
+      "distinct_old": 12,
+      "new_platform": 9,
+      "new_dto": 3,
+      "old_append_mentions_knowledge_follow": 10,
+      "final_public_contract": {
+        "passed": 3,
+        "new": 1,
+        "old": 2,
+        "initial_new_case_overlaps_final": true
+      },
+      "late_http_recheck": {
+        "existing_case_repeated": true,
+        "assertions": [
+          "zh-CN 400",
+          "en-US 400",
+          "zh-CN 409",
+          "en-US 409"
+        ],
+        "success_log": ".cache/workbuddy-history-share-165/backend-http-errors-registered.jsonl",
+        "full_new_scope_repeated": false,
+        "adds_distinct_test_count": 0
+      },
+      "opt_in_actual_host_in_initial_scope": "skipped_by_unset_gate_not_actual_acceptance",
+      "whole_go_suite_run": false
+    },
+    "web": {
+      "status": "passed_scoped_cuts",
+      "distinct_total": 41,
+      "model": 15,
+      "controller": 12,
+      "selection": 14,
+      "initial_distinct": 38,
+      "later_p2_red": 2,
+      "later_p2_green": 2,
+      "unaffected_controller_skipped_not_rerun": 10,
+      "post_actual_pagination_red": 1,
+      "post_actual_pagination_green": 1,
+      "unaffected_selection_skipped_not_rerun": 13,
+      "previous40_not_repeated": true,
+      "whole_web_suite_run": false,
+      "full_web_build_run": false
+    },
+    "typescript": {
+      "final_exit_code": 0,
+      "final_tool_chunk": "b32ada",
+      "final_start_tool_chunk": "fb8b7e",
+      "pre_pagination_tool_chunk": "233c8d",
+      "pre_pagination_start_tool_chunk": "cac97a",
+      "initial_tool_chunk": "6fb534",
+      "initial_not_counted_as_another_final_check": true,
+      "initial_before_two_review_fixes": true
+    },
+    "internationalization": {
+      "exit_code": 0,
+      "paired_keys": 7823,
+      "production_hardcodes": 0,
+      "tool_chunk": "4cad55",
+      "executions": 1,
+      "locale_inputs_unchanged_in_two_ui_fixes": true,
+      "all_surfaces_complete": false
+    },
+    "public_contract": {
+      "initial_generation_tool_chunk": "97f483",
+      "final_generation_tool_chunk": "455c72",
+      "final_reason": "Two safe error sourceAliases were registered after earlier failures; generation repeated to retain the correction.",
+      "declared_models": 796,
+      "openapi_schemas": 797,
+      "paths": 375,
+      "existing_paths_changed": 0,
+      "existing_schemas_changed": [
+        "TaskConversationMessage"
+      ],
+      "existing_schema_change": "Optional nonnull cloud_observation only",
+      "new_schemas": [
+        "CloudHistorySharePreview",
+        "CloudHistorySharePreviewRequest",
+        "CloudHistoryShareRequest",
+        "CloudHistorySharedEntry",
+        "CloudHistorySharedObservation"
+      ],
+      "new_post_paths": [
+        "/workbuddy-cloud-history-loads/{id}/share-preview",
+        "/workbuddy-cloud-history-loads/{id}/shares"
+      ]
+    }
+  },
+  "review": {
+    "initial_independent_backend_and_ui_read": "Did not identify the later two P2 findings; no blanket coverage claim.",
+    "author_review_p2": [
+      "Pending plus invalidated selection exposed the previous private preview in the pre-passive frame.",
+      "Pending Modal could not be closed."
+    ],
+    "fix_scope": "Two affected files; real RED2 then targeted GREEN2; ten unaffected controller cases skipped and not rerun.",
+    "root_independent_rereview": "Both original P2 findings closed; later pagination P2 separately fixed and independently closed.",
+    "post_actual_pagination_p2": "After the original11 checks, author found select51 then refresh_first50 then select2 could pass undefined and crash. Exactly two files changed; new RED1/GREEN1, old13 selection cases skipped. Current component-browser case is separate from original11.",
+    "earlier_failures_preserved": true,
+    "backend_http_failure_sequence": [
+      "Generic error code failed the required safe 400/409 contract.",
+      "Explicit codes were present but localization sourceAliases were not yet registered.",
+      "The existing HTTP case finally passed four locale/status assertions after registration."
+    ],
+    "historical_log_names_are_not_pass_evidence": true
+  },
+  "actual": {
+    "status": "scoped_local_functionally_verified",
+    "historical_input_scope": "Original pre-pagination40 Web inputs; original11 App/HTTP checks, safe18, source81 b47c861296c03c63a41bf1372a50b256900e6eb1f8642c56a9561d3b86ba30f0 and two images are unchanged history, not post-fix full-App execution.",
+    "unaffected_nonpagination_scenarios_reuse": "Limited reuse only; three related scenarios did not exercise pagination. No claim of re-running the original11 on current input.",
+    "functional_checks": {
+      "distinct": 11,
+      "passed": 11,
+      "primary_before_fixture_failure": 4,
+      "same_live_environment_continuation": 7,
+      "prior_checks_repeated": 0,
+      "model_clone_actualPreview_diagnostics_counted": false
+    },
+    "source_gate": {
+      "files": 81,
+      "initial_sha256": "cda9d84e5700b352e1d07eb337d1bc8e978fde1ecd546351031f1db7351dffdc",
+      "final_sha256": "b47c861296c03c63a41bf1372a50b256900e6eb1f8642c56a9561d3b86ba30f0",
+      "authorized_fixture_cache_changes": 3,
+      "unchanged_inputs": 78,
+      "product_implementation_changes_for_actual_fix": 0,
+      "final81_unchanged_during_actual": true,
+      "changed_paths": [
+        "internal/platform/workbuddy_cloud_history_sharing_actual_test.go",
+        ".cache/workbuddy-history-share-165/actual/run-verify.ps1",
+        ".cache/workbuddy-history-share-165/actual/verify.cjs"
+      ],
+      "additional_continuation_helpers": {
+        "files": 14,
+        "record": "dist/quality/workbuddy-history-share-165/continuation-inputs.json",
+        "sha256": "b3544735090977f7c99aec6e9165fb18d4f9ef2dc31df65c5358ea8cd415778d",
+        "included_in81": false
+      },
+      "scope": "Bounded feature/integration/fixture inputs, not whole repository or all compiled package sources."
+    },
+    "sdk_preparation": {
+      "status": "two_distinct_isolated_seeds_recorded",
+      "attempt1": {
+        "controlled_create_invocations": 1,
+        "controlled_sdk_load_invocations": 1,
+        "exact_sdk_counter_retained": false,
+        "setup_http_status": 400,
+        "cause": "Owned follow setup omitted project_id query; not product failure.",
+        "app": 0,
+        "preview": 0,
+        "share": 0,
+        "go_host_exit": 1,
+        "go_host_seconds": 0.41,
+        "outer_powershell_exit": 0,
+        "node_exit": null,
+        "node_exit_unconfirmed": true,
+        "vite_or_browser_started": false,
+        "descriptor_or_snapshot_created": false,
+        "original_temporary_data_absent": true,
+        "preserved_archive_files": 21,
+        "preserved_archive_sha256": "877370ff66d19e551d65c816dde260a1447f6f6395b6555fa370ba3e8970ff23"
+      },
+      "attempt2": {
+        "new_isolated_seed_not_attempt1_operation_recovery": true,
+        "controlled_provider_creates": 1,
+        "controlled_sdk_load_invocations": 1,
+        "all_subsequent_checks_use_same_database_load_windows_metadata_key": true
+      },
+      "counters_separate_from_gui_deltas": true
+    },
+    "gui_journey": {
+      "status": "11_distinct_scoped_checks_passed",
+      "selected_sequences": [
+        1,
+        2
+      ],
+      "unsupported_disabled": true,
+      "automatic_first_task": false,
+      "preview_formal_writes": 0,
+      "coverage": "unverified",
+      "sharing_scope": "project_task_readers",
+      "consent_default": false,
+      "share_http_transports": 4,
+      "distinct_share_operations": 1,
+      "same_original_raw_metadata_and_key": true,
+      "transport_results": [
+        {
+          "transport": 1,
+          "upstream_status": 201,
+          "browser_delivery": "planned_abort_after_commit"
+        },
+        {
+          "transport": 2,
+          "browser_status": 0,
+          "delivery": "fixture_fetch_fulfill_valid_json"
+        },
+        {
+          "transport": 3,
+          "browser_status": 0,
+          "delivery": "fixture_fetch_fulfill_valid_json_same_key"
+        },
+        {
+          "transport": 4,
+          "browser_status": 201,
+          "delivery": "normal_browser_post_after_only_fixture_route_unregistered"
+        }
+      ],
+      "recovery": {
+        "lost_browser_reply_recovered_original_request": true,
+        "no_new_key_or_blind_share": true,
+        "public_Page_unroute_only": true,
+        "product_or_private_data_changed_by_route_removal": false,
+        "normal_browser_share_status": 201,
+        "message_detail_status": 200,
+        "saved": true,
+        "pending": false,
+        "journal_count": 0,
+        "status0_and_normal201_response_body_sha256": "291614a02e83468176357ad52e6a1d0e651e398f38317fd870f324af3efdf00c"
+      },
+      "human_messages": 1,
+      "safe_source_relations": 1,
+      "subscriber_notifications": 1,
+      "reader_follower_links": 1,
+      "notification_unread": 1,
+      "reader_mark_read_commands": 0,
+      "reader_other_writes": 0,
+      "reader_shared_copy_allowed": true,
+      "reader_private_load_http_status": 404,
+      "provider_call_delta": 0,
+      "model_call_delta": 0,
+      "run_delta": 0,
+      "task_and_run_unchanged": true,
+      "refresh_exact_message": true,
+      "run_state": "running",
+      "node_state": "waiting",
+      "node_reason": "cloud.observation_unconfirmed",
+      "run_version": 3,
+      "attempt": 1,
+      "fence": 1,
+      "target_task_version": 1
+    },
+    "interaction": {
+      "status": "representative_final_states_reviewed_by_root",
+      "zh_CN_1366": {
+        "width": 1366,
+        "height": 960,
+        "theme": "light",
+        "client_width": 1349,
+        "scroll_width": 1349,
+        "success_sidebar": "partly_visible",
+        "image_sha256": "666e4c9fe3939c634753a4e01c1603f698e074db975a8ecbdd228acbf23b8eff"
+      },
+      "en_US_390": {
+        "width": 390,
+        "height": 844,
+        "theme": "dark",
+        "client_width": 373,
+        "scroll_width": 373,
+        "source_coverage_access_statement": "readable",
+        "image_sha256": "90f33b7222a4cb7d8d8853c1c71f46af76ca07ea98c17467ac9a95b1ca9c94c7"
+      },
+      "idle_keyboard": {
+        "focus_confirmed": true,
+        "source_details_enter_open_close": true,
+        "target_height_px": 44
+      },
+      "console_issues": null,
+      "console_scope": "No aggregate console claim in supplied safe final receipts.",
+      "full_preview_capture_or_device_theme_matrix": false
+    },
+    "runtime": {
+      "host": "Local Windows opt-in test host plus original apps/web on-demand Vite and two native windows",
+      "test_host_compilations": 2,
+      "compile_exits": [
+        0,
+        0
+      ],
+      "first_binary_sha256": "a9a20aa6791e36d2f4dbda4e8e45fbdd2cb6e5142dff4183e8e68ccb39c57e75",
+      "second_binary_sha256": "8bda8df5d3d48faf7d6f708200ddd2087329bf07802c8a5cc1b61aea98dfe3c2",
+      "prior_go25_web40_type_i18n_repeated": false,
+      "full_web_build": false,
+      "primary_driver_node_exit": 1,
+      "primary_driver_outer_exit": 1,
+      "primary_driver_functional_checks": 4,
+      "primary_driver_failure": "Timeout waiting for MessageDetail after fixture-fulfilled status0 response.",
+      "continuation_helper_exit": 1,
+      "continuation_helper_functional_checks": 7,
+      "continuation_failure": "After checks and images, close-wait called unavailable Browser.waitForEvent; original close marker already written.",
+      "final_filesystem_only_validation_exit": 0,
+      "one_clean_end_to_end_exit0": false,
+      "native_windows_closed": true,
+      "native_before_quit_and_will_quit": true,
+      "native_exit": 0,
+      "vite_exit": 0,
+      "go_exit": 0,
+      "force_stop_used": true,
+      "primary_runtimes_forced": false,
+      "force_stop_scope": {
+        "pid": 147324,
+        "executable": "C:/Program Files/nodejs/node.exe",
+        "created_utc": "2026-10-31T00:39:24.2723340Z",
+        "command": "inspect -p 162052",
+        "reason": "Only verified owned official inspector CLI blocked inspector.close; target driver, app, Go and Vite not force-stopped."
+      },
+      "recorded_exact_pids_absent": true,
+      "ports_without_listeners": [
+        9229,
+        43993,
+        43994
+      ],
+      "private_snapshot": {
+        "retained_in_private_ignored_directory": true,
+        "included_in_safe_delivery": false,
+        "bytes": 2850816,
+        "sha256": "759d88dfd068fac1988473107ebee2d0edb82908b205681f1e56dcb14aa33e5b",
+        "method": "Parameterized VACUUM INTO after HTTP close before helper cleanup",
+        "original_database_and_temp_absent": true
+      }
+    },
+    "safe_delivery": {
+      "directory": "dist/quality/workbuddy-history-share-165",
+      "listed_files": 18,
+      "manifest_sha256": "674d25b5708b364d747afc03f81fbb5b221698af5cc9cb5fe7c0eb7d208b46e1",
+      "actual_summary_sha256": "4049153974fe6b49ac0a5a650d31ce6ac585eaa46e3cd6140def1f473dec1c0d",
+      "validation_receipt_sha256": "cfd47a8852104680a2eccbb910005c8cca811d7a317ea25430f1d572cc1fc49a",
+      "excluded": [
+        "private database and snapshot payload",
+        "cookies",
+        "raw keys and metadata request body",
+        "private preview text",
+        "raw Inspector streams and heap"
+      ]
+    },
+    "note": "11 distinct scoped checks are supported by primary4 plus same-live continuation7. Preparation seeds are distinct. Driver/helper exit1 and fixture response failures remain recorded; final filesystem audit0 is separate, not another GUI journey."
+  },
+  "post_actual_fix": {
+    "reason": "Selected page-two text was missing from the refreshed first-page window; selecting another entry could emit undefined and crash.",
+    "files": [
+      {
+        "path": "apps/web/src/WorkBuddyCloudCollaboration.tsx",
+        "sha256_before": "8e7317e11b2c07fde86fd38d957f36e361eb5111c2d9bac4ae80f2f98b16f01c",
+        "sha256_after": "b0f9f13bde21159323c2d3f80bd2fcb36f13ed9f228957532ceb77113a616e48"
+      },
+      {
+        "path": "apps/web/src/CloudHistorySharingSelection.test.tsx",
+        "sha256_before": "2390d8a7b477109ea69d20c5f457db21e4c497e2d4344f503af09f8902e23a54",
+        "sha256_after": "ba2cda1419a9bb7d8f4ca19336cb6a37d8ed28f66ee9c4ca56cb630ec5f97417"
+      }
+    ],
+    "retention_boundary": "At most8 selected original entries in protected ephemeral memory for the same load id/version; reset/privacy boundaries clear them; no body in journal.",
+    "new_regression": {
+      "red": 1,
+      "green": 1,
+      "old_selection_skipped_not_rerun": 13
+    },
+    "independent_review": "closed",
+    "current_web_evidence": ".cache/workbuddy-history-share-165/web-evidence.json",
+    "current_web_evidence_sha256": "fb64126b577f1573102f56b787d36c5f13d086bcc5e546406cb3bd78e1997306",
+    "before_pagination_web_evidence": ".cache/workbuddy-history-share-165/web-evidence-before-pagination.json",
+    "before_pagination_web_evidence_sha256": "b9a39bc528968c25cf7d9f90bfcb14c77d5be09ae2ca80fe3eec166e27e5b7d2",
+    "original11_safe18_source81_images_overwritten": false,
+    "go25_previous_web40_i18n_repeated": false,
+    "latest_typescript_exit": 0,
+    "latest_typescript_tool_chunk": "b32ada"
+  },
+  "component_browser_case": {
+    "status": "one_independent_current_component_case_passed",
+    "functional_cases": 1,
+    "passed": 1,
+    "added_to_original11_business_journeys": false,
+    "interaction": "More -> select51 -> Read saved first50 -> select2",
+    "boundary": "Actual current Collaboration component/context/CSS with synthetic terminal55-entry load and controlled in-page GET responses; no Go/business API/account/Provider/SDK/model/Runner/database/newRun.",
+    "result": {
+      "sequences": [
+        2,
+        51
+      ],
+      "both_exact_original_texts": true,
+      "selection_invalid": false,
+      "undefined_entries": 0,
+      "controlled_get": 5,
+      "post": 0,
+      "browser_non_get": 0,
+      "page_errors": 0
+    },
+    "attempt1": {
+      "bundler": "Existing direct esbuild",
+      "build_exit": 0,
+      "verify_exit": 1,
+      "node_exit": 1,
+      "functional_cases": 0,
+      "cause": "import.meta.glob lacked Vite transformation; original warning/pageerror/timeout retained.",
+      "native_exit": 0,
+      "server_exit": 0,
+      "preserved_archive_hashed_files": 58
+    },
+    "attempt2": {
+      "bundler": "Installed Vite6.1.0 single-fixture library/iife; not fullApp build",
+      "build_exit": 0,
+      "verify_exit": 0,
+      "node_exit": 0,
+      "native_exit": 0,
+      "server_exit": 0,
+      "functional_cases": 1
+    },
+    "source": {
+      "gate_files": 29,
+      "cache_build_file_changes": 1,
+      "other_inputs_unchanged": 28,
+      "sha256": "8f44ab8c19278d8261fc3f51ca566d11596d16f3f8242a8db3b5f6686f0016da",
+      "actual_module_files": 1860,
+      "actual_module_source_sha256": "ead8081e842e247e00fdba4ab3b548b189aecd6577d4feb58f9be043098e8978",
+      "metafile_sha256": "679b99f29bdca2cf726277d0ea7b11f4fa6d5989dbc54d2ede601a9404d693ae",
+      "included_in_original81": false
+    },
+    "close": {
+      "page_closed": true,
+      "native_exit": 0,
+      "server_exit": 0,
+      "node_exit": 0,
+      "wrapper_exit": 0,
+      "exact_pids_absent": 8,
+      "port43997_no_listener": true,
+      "force_stop_used": false
+    },
+    "root_visual_review": {
+      "width": 1366,
+      "height": 960,
+      "selected2_and51_retained": true,
+      "image_sha256": "aa98502f1e3986cc9d49f5ca5a7152912127ebd586aa28491879717c201bb613",
+      "full_app_or_theme_device_matrix": false
+    },
+    "safe_delivery": {
+      "directory": "dist/quality/workbuddy-history-share-165/pagination",
+      "listed_files": 15,
+      "manifest_sha256": "a9c92c4711a432844490c8a86091c23fceef6e8a57b23be4d360afbed5f4b05e",
+      "summary_sha256": "8ec88961cfbc4ab09f8d62471e838bc05e08a870ab2708cd6ad496bcaf9c0587",
+      "receipt_sha256": "31c680f96508804d4565d986f5e7c4540d7c35e676ff65b15bd21eac81687bb8",
+      "old18_manifest_unchanged": true
+    },
+    "full_web_builds": 0,
+    "go_builds": 0,
+    "unit_suites_types_i18n_repeated_by_component_fixture": false
+  },
+  "evidence_receipts": [
+    {
+      "path": ".cache/workbuddy-history-share-165/backend-evidence.json",
+      "bytes": 9447,
+      "sha256_at_draft": "b8f7aef2841528ca19d38de87298e67afb72d1b1da74b544650f2a51eb9c0cad"
+    },
+    {
+      "path": ".cache/workbuddy-history-share-165/web-evidence-before-pagination.json",
+      "bytes": 6373,
+      "sha256_at_draft": "b9a39bc528968c25cf7d9f90bfcb14c77d5be09ae2ca80fe3eec166e27e5b7d2",
+      "scope": "Historical40 Web inputs used for original11 App/HTTP checks; current41 evidence is separately pinned in post_actual_fix."
+    },
+    {
+      "path": ".cache/workbuddy-history-share-165/root-evidence.json",
+      "bytes": 13242,
+      "sha256_at_draft": "e81487f898abdd134e4ea3b37ebde04e8d34db1fad03f8339ddb13828032a2cf",
+      "root_public_and_append_stdout": "Nonempty real logs with test events; stderr may correctly be empty."
+    },
+    {
+      "path": ".cache/workbuddy-history-share-165/public-contract-drift.json",
+      "bytes": 408,
+      "sha256_at_draft": "725c746d1483d26a03c1fd7513d5246f4fafaa9ecd84c15bd36d4c1e23b00513"
+    }
+  ],
+  "not_verified": [
+    "Whole-platform or whole-Web test suites and full Web build",
+    "Real vendor account/model efficacy",
+    "Physical multihost, other databases/operating systems or production",
+    "Full preview capture, full device/theme/accessibility matrix",
+    "All31 requirements, all P0-P7 phases, or complete platform acceptance"
+  ],
+  "final_document_check": {
+    "status": "passed_once_after_closeout",
+    "command": "node scripts/check-docs.mjs",
+    "exit_code": 0,
+    "tool_chunk": "29d725",
+    "markdown_files": 481,
+    "api_paths": 375,
+    "schema_references": 3464,
+    "post_check_changes": "Only documented late pagination fix/current41/type evidence and a separate component proof were added after29d725; no new Markdown links, paths or schema references. Original481/375/3464 results reused."
+  },
+  "git_completion_claimed": false,
+  "document_author_actions": {
+    "only_quality_pair_written": true,
+    "tests_or_instances_run": false,
+    "git_operations": false,
+    "canonical_or_source_or_cache_changed": false
+  }
+}

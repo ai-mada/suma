@@ -1,5 +1,7 @@
 package platform
 
+import wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
+
 // TaskConversationMessage is an immutable collaboration note, not an execution
 // instruction. Its author and original task context are captured by the server.
 type TaskConversationMessage struct {
@@ -19,6 +21,7 @@ type TaskConversationMessage struct {
 	ExecutionRunID     string                               `json:"execution_run_id"`
 	Mentions           []TaskConversationMention            `json:"mentions,omitempty"`
 	Knowledge          []TaskConversationKnowledgeReference `json:"knowledge,omitempty"`
+	CloudObservation   *wc.CloudHistorySharedObservation    `json:"cloud_observation,omitempty" wire:"nonnull"`
 }
 
 // TaskConversationPage returns the latest bounded window in chronological

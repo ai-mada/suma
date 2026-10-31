@@ -7533,6 +7533,336 @@
         ],
         "type": "object"
       },
+      "CloudHistorySharePreview": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 32000
+          },
+          "body_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "coverage": {
+            "const": "unverified",
+            "readOnly": true,
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/CloudHistoryEntry"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "readOnly": true,
+            "type": "array"
+          },
+          "load_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "load_state": {
+            "enum": [
+              "loaded",
+              "interrupted",
+              "limited",
+              "rejected"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "load_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "preview_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "selection_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "sharing_scope": {
+            "const": "project_task_readers",
+            "readOnly": true,
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CloudCollaborationSource",
+            "readOnly": true
+          },
+          "task_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_title": {
+            "maxLength": 500,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 500
+          },
+          "task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "task_title",
+          "task_version",
+          "load_id",
+          "load_version",
+          "load_state",
+          "coverage",
+          "source",
+          "entries",
+          "body",
+          "body_sha256",
+          "selection_sha256",
+          "preview_sha256",
+          "sharing_scope"
+        ],
+        "type": "object"
+      },
+      "CloudHistorySharePreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_load_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sequences": {
+            "description": "Strictly increasing local sequences in the exact terminal load.",
+            "items": {
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "task_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "expected_task_version",
+          "expected_load_version",
+          "sequences"
+        ],
+        "type": "object"
+      },
+      "CloudHistoryShareRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_load_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "preview_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sequences": {
+            "description": "Strictly increasing local sequences in the exact terminal load.",
+            "items": {
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "task_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "expected_task_version",
+          "expected_load_version",
+          "sequences",
+          "preview_sha256",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CloudHistorySharedEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "user_text",
+              "assistant_text",
+              "tool_summary",
+              "plan_summary"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "sequence": {
+            "maximum": 500,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "text_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "sequence",
+          "kind",
+          "text_sha256"
+        ],
+        "type": "object"
+      },
+      "CloudHistorySharedObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "body_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "coverage": {
+            "const": "unverified",
+            "readOnly": true,
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/CloudHistorySharedEntry"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "readOnly": true,
+            "type": "array"
+          },
+          "load_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "load_state": {
+            "enum": [
+              "loaded",
+              "interrupted",
+              "limited",
+              "rejected"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "load_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "selection_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_submission_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "load_id",
+          "load_version",
+          "load_state",
+          "coverage",
+          "source_run_id",
+          "source_node_id",
+          "source_submission_id",
+          "entries",
+          "body_sha256",
+          "selection_sha256"
+        ],
+        "type": "object"
+      },
       "CloudLookupRequest": {
         "additionalProperties": false,
         "properties": {
@@ -27773,6 +28103,11 @@
           "body": {
             "readOnly": true,
             "type": "string"
+          },
+          "cloud_observation": {
+            "$ref": "#/components/schemas/CloudHistorySharedObservation",
+            "description": "Explicitly shared immutable copy under target-task read authority. Source IDs do not grant owner-private load access; message run_id remains target task context.",
+            "readOnly": true
           },
           "created_at": {
             "readOnly": true,
@@ -121824,6 +122159,636 @@
         "x-no-external-effects": true,
         "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/workbuddy-cloud-history-loads/{id}/share-preview": {
+      "post": {
+        "description": "Current human owner explicitly shares selected terminal observations into a same-project human task discussion. Exact source, target version and preview are checked server-side. The resulting copy follows current target-task read authority. No provider call, model, task transition or acceptance is caused. Preview writes no message, provenance, receipt or notification. Private preview text must not enter browser recovery storage.",
+        "operationId": "post_workbuddy-cloud-history-loads_id_share-preview",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudHistorySharePreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudHistorySharePreview"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Exact source/load or target is absent or not visible to this principal.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Task, terminal load, source or preview changed; a new share requires a new preview. Original operations recover the same message.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-no-external-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/workbuddy-cloud-history-loads/{id}/shares": {
+      "post": {
+        "description": "Current human owner explicitly shares selected terminal observations into a same-project human task discussion. Exact source, target version and preview are checked server-side. The resulting copy follows current target-task read authority. No provider call, model, task transition or acceptance is caused.",
+        "operationId": "post_workbuddy-cloud-history-loads_id_shares",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudHistoryShareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskConversationMessage"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Exact source/load or target is absent or not visible to this principal.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Task, terminal load, source or preview changed; a new share requires a new preview. Original operations recover the same message.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-idempotency": "Current target-task write authority and original metadata request recover the same immutable message before new source/task qualification; message, provenance, notifications, activity and receipt commit in one transaction.",
+        "x-max-request-body-bytes": 65536,
+        "x-no-external-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/workbuddy-cloud-nodes": {
