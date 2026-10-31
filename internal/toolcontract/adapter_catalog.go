@@ -95,7 +95,12 @@ func AdapterCatalog() []AdapterDescriptor {
 	rows = append(rows, adapterDescriptor("workbuddy-cloud", "WorkBuddy", "cloud_api", "suma_to_tool", "implemented", "manual_guide", "", "", "contracts/workbuddy-cloud-runner.md", []string{"task_start"}, []string{"workbuddy_not_codebuddy", "cloud_fixed_delegation_required", "cloud_start_only", "cloud_delivery_not_verified", "cloud_budget_not_enforced"}))
 	for _, entry := range []struct{ id, product, kind string }{{"cursor-cli", "Cursor", "cli"}, {"claude-code-sdk", "Claude Code", "sdk"}, {"qoder-acp", "Qoder", "sdk"}} {
 		limits := []string{"no_execution_adapter"}
-		rows = append(rows, adapterDescriptor(entry.id, entry.product, entry.kind, "suma_to_tool", "planned", "manual_guide", "", "", "docs/integrations/development-tool-matrix.md", nil, limits))
+		source := "docs/integrations/development-tool-matrix.md"
+		if entry.id == "cursor-cli" {
+			// Passive connection guidance does not publish a dispatchable protocol.
+			source = "contracts/cursor-connection.md"
+		}
+		rows = append(rows, adapterDescriptor(entry.id, entry.product, entry.kind, "suma_to_tool", "planned", "manual_guide", "", "", source, nil, limits))
 	}
 	for i := range rows {
 		refineAdapterSources(&rows[i])

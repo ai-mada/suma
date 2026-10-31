@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-CURSOR-CONNECTION-166参考当前Multica `e8ae72c9dfc1b4474b61a9087f51b33cbee6a048` 的统一工具发现思路，复用速码既有Go helper、当前桌面授权、闭合IPC和快捷接入；没有复制新版Cursor源码或新增依赖。[合同](../../contracts/cursor-connection.md)、[架构](../architecture/cursor-connection.md)与[验证范围](../quality/cursor-connection-verification.md)明确区分编辑器／Agent候选／派发能力。本片连接核验已限定完成，Cursor真实执行仍须闭合版本／依赖、配置发现、文件与Git隔离后交付；未增加范围完成数，完整31／P0–P7／58／34／92不变。
+
 T-WORKBUDDY-HISTORY-SHARE-165沿原M11–M20协作方向推进明确观察共享，复用速码已有讨论、当前权限、关注通知和原操作回执事务，独立实现、无新增Multica源码或依赖。[合同](../../contracts/workbuddy-cloud-history-sharing.md)、[架构](../architecture/workbuddy-cloud-history-sharing.md)及[25项Go／41项Web／11项原实际及1项独立组件限定证据](../quality/workbuddy-cloud-history-sharing-verification.md)记录范围。所选内容成为明确发布的human副本，原私有会话不共享；完整供应方协作与平台目标继续实施，58／34／92不变。
 
 T-WORKBUDDY-CLOUD-COLLAB-164沿原工具／节点工作区增加准确原会话显式加载与私有存档，复用现有固定ACP SDK、本人授权与原任务事实；独立实现，无新增Multica源码复制。[合同](../../contracts/workbuddy-cloud-collaboration.md)、[架构](../architecture/workbuddy-cloud-collaboration.md)及[13项真实App／HTTP限定证据](../quality/workbuddy-cloud-collaboration-verification.md)分别记录能力与边界。输入／权限／取消／实时协作及完整M11–M20继续实施，不将一次加载推断为完整供应方产品或平台完成，58／34／92不变。

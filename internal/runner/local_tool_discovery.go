@@ -44,6 +44,7 @@ func localToolDirectory() []localToolDirectoryEntry {
 		{"codebuddy-cli", "CodeBuddy Code", "codebuddy", "@tencent-ai/codebuddy-code", CommandSpec{Adapter: "codebuddy", Protocol: "codebuddy-jsonl-v1", Input: "goal", Args: []string{"-p", "--input-format", "text", "--output-format", "stream-json", "--verbose", "--permission-mode", "acceptEdits"}}},
 		{"dsh-multica", "DeepSeek Harness / dsh", "dsh", "@deepseek-ai/dsh", CommandSpec{Adapter: "harness", Protocol: "dsh-multica-jsonl-v1", Input: "dsh-jsonl", Args: []string{"--profile", "multica", "--stdio"}}},
 		{"claude-code-cli", "Claude Code", "claude", "@anthropic-ai/claude-code", claudePreset()},
+		{id: "cursor-cli", product: "Cursor"},
 	}
 }
 
@@ -107,6 +108,10 @@ func discoverInstalledTools(ctx context.Context, adapterID string, paths []strin
 	for index, entry := range entries {
 		go func(index int, entry localToolDirectoryEntry) {
 			defer func() { done <- struct{}{} }()
+			if entry.id == "cursor-cli" {
+				result.Items[index] = discoverLocalCursor(ctx, paths)
+				return
+			}
 			item := InstalledToolDiscoveryItem{AdapterID: entry.id, Product: entry.product, ReasonCode: "not_installed"}
 			spec, installed, reason := resolveLocalTool(entry, paths)
 			item.Installed, item.ReasonCode = installed, reason

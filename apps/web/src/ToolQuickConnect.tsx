@@ -3,7 +3,7 @@ import {ArrowRight,CheckCircle2,Monitor,RefreshCw,Server,ShieldCheck} from 'luci
 import {useApi,useApiView} from './api-context';
 import {readAdapterCatalog,type AdapterDescriptor,type AdapterCatalogPage} from './AdapterConnections';
 import {parseToolDiscovery,type ToolDiscoveryView} from './tool-discovery-model';
-import {localDiscoveryAdapters,matchingQuickTools,quickConnectAdapters,quickConnectWorkers,readInstalledToolDiscovery,validQuickConnectReceipt,type InstalledToolFact} from './tool-quick-connect-model';
+import {isCursorConnectionGuide,localDiscoveryAdapters,matchingQuickTools,quickConnectAdapters,quickConnectWorkers,readInstalledToolDiscovery,validQuickConnectReceipt,type InstalledToolFact} from './tool-quick-connect-model';
 import {tr,useLocale,UiError} from './i18n';
 import {ErrorNotice,Field,Loading} from './ui';
 import {toolError,type ToolAction} from './tool-hooks';
@@ -11,6 +11,7 @@ import type {IdentityRead,SharedIdentityRead} from './execution-pools/ToolIdenti
 import type {ToolProfile} from './tool-model';
 import {DesktopToolConnector} from './DesktopToolConnector';
 import {desktopToolBridge,validDesktopToolScope} from './desktop-tool-connector-model';
+import {CursorConnectionGuide} from './CursorConnectionGuide';
 import './ToolQuickConnect.css';
 
 const t=(key:string,params?:Record<string,unknown>)=>tr('tool-quick-connect.'+key,params);
@@ -28,15 +29,15 @@ function QuickConnectScope(props:ToolQuickConnectProps){
   }).catch(error=>{if(active&&!controller.signal.aborted)setCatalog({caller:api,revision,error});});
   return()=>{active=false;controller.abort();};
  },[api,props.project,revision]);
- const current=catalog?.caller===api&&catalog.revision===revision?catalog:undefined,adapters=current?.page?quickConnectAdapters(current.page.items):[],adapter=adapters.find(item=>item.id===selected),blocked=props.action.busy||!!props.action.pending;
+ const current=catalog?.caller===api&&catalog.revision===revision?catalog:undefined,ordinary=current?.page?quickConnectAdapters(current.page.items):[],guide=current?.page?.items.find(isCursorConnectionGuide),adapters=guide?[...ordinary,guide]:ordinary,adapter=adapters.find(item=>item.id===selected),cursorGuide=!!adapter&&isCursorConnectionGuide(adapter),blocked=props.action.busy||!!props.action.pending;
  return <div className="tool-quick-connect">
-  <p className="tool-quick-intro">{t('intro')}</p>
+  {!cursorGuide&&<p className="tool-quick-intro">{t('intro')}</p>}
   {!current?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={()=>setRevision(value=>value+1)}/>:<>
-   <Field label={t('tool')}><select data-quick-tool value={adapter?.id||''} disabled={blocked} onChange={event=>setSelected(event.target.value)} aria-describedby={id}><option value="">{t('choose_tool')}</option>{adapters.map(item=><option key={item.id} value={item.id}>{item.product} · {item.entrypoint_kind==='app_server'?t('app_server'):item.entrypoint_kind.toUpperCase()}</option>)}</select></Field>
-   <p id={id} className="tool-quick-muted">{t('catalog_hint')}</p>
-   {adapter&&<QuickToolConfiguration {...props} key={adapter.id} adapter={adapter}/>}
+   <Field label={t('tool')}><select data-quick-tool value={adapter?.id||''} disabled={blocked} onChange={event=>setSelected(event.target.value)} aria-describedby={cursorGuide?undefined:id}><option value="">{t('choose_tool')}</option>{adapters.map(item=><option key={item.id} value={item.id}>{isCursorConnectionGuide(item)?tr('cursor-connection.title'):<>{item.product} · {item.entrypoint_kind==='app_server'?t('app_server'):item.entrypoint_kind.toUpperCase()}</>}</option>)}</select></Field>
+   {!cursorGuide&&<p id={id} className="tool-quick-muted">{guide?tr('cursor-connection.picker_hint'):t('catalog_hint')}</p>}
+   {adapter&&(cursorGuide?<CursorConnectionGuide key={adapter.id} project={props.project} disabled={blocked}/>:<QuickToolConfiguration {...props} key={adapter.id} adapter={adapter}/>)}
   </>}
-  <div className="tool-quick-secondary"><button data-quick-advanced type="button" className="text-button" disabled={blocked} onClick={()=>props.onAdvanced(adapter)}>{t('advanced')}</button></div>
+  {!cursorGuide&&<div className="tool-quick-secondary"><button data-quick-advanced type="button" className="text-button" disabled={blocked} onClick={()=>props.onAdvanced(adapter)}>{t('advanced')}</button></div>}
  </div>;
 }
 type InventorySnapshot={key:string;view?:ToolDiscoveryView;deadline:number;error?:unknown};

@@ -1,5 +1,24 @@
 {
   "project": "suma",
+  "cursor_connection": {
+    "stage": "T-CURSOR-CONNECTION-166",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_passive_connection_verified",
+    "contract": "contracts/cursor-connection.md",
+    "architecture": "docs/architecture/cursor-connection.md",
+    "design": "docs/design/cursor-connection.md",
+    "report": "docs/quality/cursor-connection-verification.md",
+    "summary": "docs/quality/cursor-connection-summary.json",
+    "verification": "65 distinct automated top-level checks:18Go/13desktop/34Web; once TSC0 and7853paired keys/0hardcodes. Late Windows namespace fix used1newcase only; old15 and actualGo not repeated.",
+    "actual": "Once Cursor-only Go helper0 returned scan_incomplete; no candidate execution. One component build0; initial module EPERM verify1/0cases retained, resumed same out with authorized local runtime access to3cases/2images, all exits0 and6PIDs/port absent, noforce. Controlled bridge/catalog, not actual IPC/vendor/fullApp.",
+    "implementation": "Passive current-PATH Cursor candidate detection, closed desktop facts and bilingual connection guidance; no candidate spawn, install, login, model, registration or task dispatch.",
+    "execution_adapter": "planned",
+    "reference_pin": "e8ae72c9dfc1b4474b61a9087f51b33cbee6a048",
+    "remaining": "Real Cursor execution requires reviewed package/dependency identity, automatic configuration isolation, actual filesystem/Git boundaries, model/budget and original execution-chain acceptance; full31/P0-P7 remains active.",
+    "ledger_unchanged": "Full31/P0-P7 retained;58limited/34pending/92total",
+    "full_platform_complete": false
+  },
   "workbuddy_history_sharing": {
     "stage": "T-WORKBUDDY-HISTORY-SHARE-165",
     "version": "1.0.0",

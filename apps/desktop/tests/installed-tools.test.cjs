@@ -37,6 +37,26 @@ test('bounded malformed or cross-tool child output never becomes an installation
 test('report validator keeps install, launch support and dispatch readiness separate',()=>{
  const unavailable={protocol:'suma-installed-tools-v1',items:[{adapter_id:'codex-jsonl',product:'Codex',installed:false,launch_supported:false,reason_code:'not_installed'}]};assert.ok(validInstalledToolReport(unavailable,'codex-jsonl'));assert.equal(validInstalledToolReport({...unavailable,available:true},'codex-jsonl'),undefined);
 });
+
+const cursorReport=(reason,extra={})=>({protocol:'suma-installed-tools-v1',items:[{adapter_id:'cursor-cli',product:'Cursor',installed:['cursor_agent_unverified','cursor_launcher_unsupported'].includes(reason),launch_supported:false,reason_code:reason,...extra}]});
+test('Cursor passive observations remain closed and cannot acquire executable authority',()=>{
+ for(const reason of ['not_installed','cursor_editor_only','cursor_scan_incomplete','cursor_agent_unverified','cursor_launcher_unsupported']){
+  const candidate=reason.endsWith('_unverified')||reason==='cursor_launcher_unsupported',value=cursorReport(reason,candidate?{executable:process.execPath}:{});
+  assert.deepEqual(validInstalledToolReport(value,'cursor-cli'),value);
+  for(const extra of [{launch_supported:true},{version:'2026.10.22-27dcf5f'},{command:{}},{installed:!candidate},{available:true},{reason_code:'workspace_required'},{executable:candidate?'relative/agent':process.execPath}]){
+   assert.equal(validInstalledToolReport({protocol:value.protocol,items:[{...value.items[0],...extra}]},'cursor-cli'),undefined,reason+' '+JSON.stringify(extra));
+  }
+ }
+ assert.equal(validInstalledToolReport(cursorReport('cursor_agent_unverified'),'cursor-cli'),undefined);
+ assert.equal(validInstalledToolReport(cursorReport('not_installed'),'codex-jsonl'),undefined);
+ const other=report();other.items[0].reason_code='cursor_agent_unverified';assert.equal(validInstalledToolReport(other,'codex-jsonl'),undefined);
+});
+test('Cursor checks reuse current-project authorization without forwarding command or credentials',async()=>{
+ const h=harness(),pending=h.controller.discover(h.event,{...request,adapter_id:'cursor-cli'});await tick();
+ assert.equal(h.children.length,1);assert.equal(h.children[0].args.at(-1),'cursor-cli');
+ h.complete(cursorReport('cursor_editor_only'));const result=await pending;
+ assert.equal(result.status,'observed');assert.equal(result.report.items[0].installed,false);assert.equal(result.report.items[0].launch_supported,false);assert.equal(result.report.items[0].command,undefined);assert.equal(h.calls.length,6);await h.controller.dispose();
+});
 test('shutdown waits for child close rather than treating a sent signal as proof',async()=>{
  const h=harness(),pending=h.controller.discover(h.event,request);await tick();const child=h.children[0].child;child.kill=()=>true;let settled=false;const disposal=h.controller.dispose().then(()=>settled=true);await tick();assert.equal(settled,false);h.complete();assert.equal((await pending).status,'failed');await disposal;assert.equal(settled,true);
 });

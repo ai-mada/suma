@@ -3,8 +3,9 @@ const {spawn:spawnChild}=require('node:child_process');
 const path=require('node:path');
 
 const CHANNEL='suma:discover-installed-tools';
-const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code'});
+const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code','cursor-cli':'Cursor'});
 const REASONS=new Set(['not_installed','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
+const CURSOR_REASONS=new Set(['not_installed','cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete']);
 const ID=/^[a-f0-9]{32}$/;
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,keys)=>plain(value)&&Object.keys(value).sort().join(',')===[...keys].sort().join(',');
@@ -16,8 +17,17 @@ const failure=code=>({status:'failed',code});
 function validInstalledToolReport(value,adapterID){
  if(!exact(value,['protocol','items'])||value.protocol!=='suma-installed-tools-v1'||!Array.isArray(value.items)||value.items.length!==1)return;
  const row=value.items[0];
- if(!plain(row)||Object.keys(row).some(key=>!['adapter_id','product','installed','launch_supported','executable','version','reason_code','command'].includes(key))||row.adapter_id!==adapterID||row.product!==PRODUCTS[adapterID]||typeof row.installed!=='boolean'||typeof row.launch_supported!=='boolean'||!REASONS.has(row.reason_code))return;
+ if(!plain(row)||Object.keys(row).some(key=>!['adapter_id','product','installed','launch_supported','executable','version','reason_code','command'].includes(key))||row.adapter_id!==adapterID||row.product!==PRODUCTS[adapterID]||typeof row.installed!=='boolean'||typeof row.launch_supported!=='boolean')return;
  if(row.executable!==undefined&&(!text(row.executable,4096)||!path.isAbsolute(row.executable)))return;
+ // Cursor currently exposes passive file observations only. Even a well-formed
+ // executable is not vendor identity, a verified protocol or dispatch authority.
+ // Reject command/version fields rather than silently downgrading a contradictory
+ // report into an apparently trusted connection fact.
+ if(adapterID==='cursor-cli'){
+  if(!CURSOR_REASONS.has(row.reason_code)||row.launch_supported!==false||Object.hasOwn(row,'command')||Object.hasOwn(row,'version'))return;
+  const candidate=row.reason_code==='cursor_agent_unverified'||row.reason_code==='cursor_launcher_unsupported';
+  if(row.installed!==candidate||candidate!==Object.hasOwn(row,'executable')||candidate&&!row.executable)return;
+ }else if(!REASONS.has(row.reason_code))return;
  if(row.version!==undefined&&(!text(row.version,256)||/[\u2028\u2029]/u.test(row.version)))return;
  if(row.launch_supported&&(!row.installed||row.reason_code!=='workspace_required'||!row.executable||!row.version)||row.reason_code==='not_installed'&&row.installed||row.reason_code==='workspace_required'&&!row.launch_supported)return;
  const item={adapter_id:row.adapter_id,product:row.product,installed:row.installed,launch_supported:row.launch_supported,reason_code:row.reason_code};

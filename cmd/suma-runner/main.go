@@ -36,7 +36,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	allow := app.Bool("allow-exec", false, "允许执行本地允许列表中的命令", "enable execution of local allowlisted commands")
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
 	discoverInstalled := app.Bool("discover-installed-tools", false, "只读检测本机已安装的开发工具，不读取执行凭据或启动任务", "read-only detection of installed developer tools; no worker credentials or tasks")
-	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica or claude-code-cli; empty selects all")
+	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli、cursor-cli（仅被动文件检查）；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica, claude-code-cli or cursor-cli (passive files only); empty selects all")
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
 	if stop, code := app.Parse(args, version); stop {
 		return code

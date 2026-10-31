@@ -103,6 +103,21 @@ func TestAdapterCatalogDoesNotInventResumeBillingOrInteractiveCLI(t *testing.T) 
 		}
 	}
 }
+
+func TestCursorConnectionGuidanceDoesNotAdmitExecution(t *testing.T) {
+	d := catalogEntry(t, "cursor-cli")
+	if d.Implementation != "planned" || d.SetupKind != "manual_guide" || d.Adapter != "" || d.Protocol != "" || len(d.SourceRefs) != 1 || d.SourceRefs[0] != "contracts/cursor-connection.md" {
+		t.Fatal("passive detection changed execution admission", d)
+	}
+	for _, c := range d.Capabilities {
+		if c.Support == "supported" {
+			t.Fatal("passive connection invented capability", c)
+		}
+	}
+	if _, err := DescribeAdapterProfile(Profile{CommandID: "cursor", Adapter: "cursor", Protocol: "cursor-jsonl-v1"}); err == nil {
+		t.Fatal("unreviewed Cursor profile became executable")
+	}
+}
 func TestAdapterProfileProjectionRejectsUnknownAndNarrowsCapabilities(t *testing.T) {
 	_, e := DescribeAdapterProfile(Profile{CommandID: "x", Adapter: "workbuddy", Protocol: "codebuddy-jsonl-v1"})
 	if e == nil {
