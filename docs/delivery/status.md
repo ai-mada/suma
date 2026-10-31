@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-DELIVERY-KNOWLEDGE-172：[合同](../../contracts/delivery-knowledge.md)、[架构与AI SOP](../architecture/delivery-knowledge.md)、[交互](../design/delivery-knowledge.md)及[验证](../quality/delivery-knowledge-verification.md)／[摘要](../quality/delivery-knowledge-summary.json)。正式验收来源固定Review、运行、测试及候选依据，复用知识提案、人工草稿、发布、目录及后续上下文；保留原操作恢复和来源漂移保护。23Go／20Web不同顶层、7单列子例、类型及8181对词条通过。一次Go／UI构建及6项真实授权HTTP／生产组件只读检查通过，17GET／0POST／17表不变、正常退出及两中英代表局部图留证；后补两项英文数量文案不重跑业务。真实模型、下一Codex执行、物理多机／其他数据库、完整App和31／P0–P7／58／34／92继续交付，171显式UI停止缺口保留。
+
 T-ACP-QUICK-CONNECT-171：[合同](../../contracts/acp-quick-connect.md)、[架构与AI SOP](../architecture/acp-quick-connect.md)、[交互](../design/acp-quick-connect.md)及[限定证据](../quality/acp-quick-connect-verification.md)。明确原生检测、无Prompt实际模型、原托管连接和准确新库存／暂停登记／独立启用已接通；49定向顶层、8137对语言、6关键实际检查与两代表局部图留证。三个驱动1保留：初始busy产品问题已修，空数组与最后窄屏导航为夹具问题；显式UI停止未验，真实app-close Worker停止0。Go4／UI2／probe2，0Prompt／vendor，原18产物与21项其他工作受保护。真实厂商、完整旅程及31／P0–P7／58／34／92继续交付。
 
 T-ACP-RUNTIME-170：[合同](../../contracts/acp-cli-execution.md)、[架构与AI SOP](../architecture/acp-cli-execution.md)、[交互](../design/acp-cli-execution.md)、[接入](../integrations/acp-cli-execution.md)及[证据](../quality/acp-runtime-verification.md)。成熟ACP stdio／固定Qoder策略、真实模型配置ACK、private／Pool一次权限和当前授权、原Worker／候选／独立质量已接通。36Go／24Web不同顶层、全Web类型、8087对语言及8项真实同机Server／SQLite／双Worker／受控CLI／生产组件通过；3项P2及原夹具失败留证，未重复旧绿。1正式Run／1候选、不同Worker同提交JUnit1/1，task仍in_progress且待人工验收；2Go／1组件构建、正常排空、私有快照、两代表视口。真实Qoder／账号／模型、OS沙箱、强制预算、包装器／发现、物理多机及完整31／P0–P7／58／34／92仍待交付或独立验收。

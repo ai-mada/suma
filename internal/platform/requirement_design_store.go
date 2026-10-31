@@ -40,7 +40,13 @@ func (s *Service) designAggregateTx(ctx context.Context, auth *authorizedCommand
 	if err = assertProjectRead(auth, project); err != nil {
 		return
 	}
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT version,latest_revision,published_revision,state,last_adoption_id FROM suma_requirement_designs WHERE tenant_id=? AND project_id=? AND requirement_id=?`), auth.target.tenantID, project, requirement).Scan(&out.Version, &out.Latest, &out.Published, &out.State, &out.LastAdoption)
+	return s.designAggregateReadTx(ctx, auth.tx, auth.target.tenantID, project, requirement, false)
+}
+
+// Fact readers require an already-authorized outer transaction. They do not
+// manufacture an Actor or turn a historical publisher into a current grant.
+func (s *Service) designAggregateReadTx(ctx context.Context, tx *sql.Tx, tenant, project, requirement string, current bool) (out designAggregate, err error) {
+	err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT version,latest_revision,published_revision,state,last_adoption_id FROM suma_requirement_designs WHERE tenant_id=? AND project_id=? AND requirement_id=?`, current)), tenant, project, requirement).Scan(&out.Version, &out.Latest, &out.Published, &out.State, &out.LastAdoption)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
@@ -50,8 +56,11 @@ func (s *Service) designRevisionTx(ctx context.Context, auth *authorizedCommand,
 	if err = assertProjectRead(auth, project); err != nil {
 		return
 	}
+	return s.designRevisionReadTx(ctx, auth.tx, auth.target.tenantID, project, requirement, revision, false)
+}
+func (s *Service) designRevisionReadTx(ctx context.Context, tx *sql.Tx, tenant, project, requirement string, revision int, current bool) (out RequirementDesignRevision, err error) {
 	var raw string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT snapshot FROM suma_requirement_design_revisions WHERE tenant_id=? AND project_id=? AND requirement_id=? AND revision=?`), auth.target.tenantID, project, requirement, revision).Scan(&raw)
+	err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT snapshot FROM suma_requirement_design_revisions WHERE tenant_id=? AND project_id=? AND requirement_id=? AND revision=?`, current)), tenant, project, requirement, revision).Scan(&raw)
 	if err != nil {
 		return
 	}
@@ -67,8 +76,11 @@ func (s *Service) designAdoptionTx(ctx context.Context, auth *authorizedCommand,
 	if err = assertProjectRead(auth, project); err != nil {
 		return
 	}
+	return s.designAdoptionReadTx(ctx, auth.tx, auth.target.tenantID, project, requirement, id, false)
+}
+func (s *Service) designAdoptionReadTx(ctx context.Context, tx *sql.Tx, tenant, project, requirement, id string, current bool) (out RequirementDesignAdoption, err error) {
 	var raw string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT snapshot FROM suma_requirement_design_adoptions WHERE tenant_id=? AND project_id=? AND requirement_id=? AND id=?`), auth.target.tenantID, project, requirement, id).Scan(&raw)
+	err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT snapshot FROM suma_requirement_design_adoptions WHERE tenant_id=? AND project_id=? AND requirement_id=? AND id=?`, current)), tenant, project, requirement, id).Scan(&raw)
 	if err != nil {
 		return
 	}

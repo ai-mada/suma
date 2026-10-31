@@ -16,20 +16,24 @@ func (s *Service) checkTaskRequirementDesignRunTx(ctx context.Context, auth *aut
 	if err := assertProjectRead(auth, project); err != nil {
 		return err
 	}
-	current, err := s.resolveTaskRequirementDesignTx(auth.ctx, auth, project, taskID)
-	if err != nil || current == nil {
+	return s.checkTaskRequirementDesignRunReadTx(ctx, auth.tx, auth.target.tenantID, project, taskID, runID, requireStarted, false)
+}
+
+func (s *Service) checkTaskRequirementDesignRunReadTx(ctx context.Context, tx *sql.Tx, tenant, project, taskID, runID string, requireStarted, current bool) error {
+	design, err := s.resolveTaskRequirementDesignReadTx(ctx, tx, tenant, project, taskID, current)
+	if err != nil || design == nil {
 		return err
 	}
 	var raw, state string
-	if err = auth.tx.QueryRowContext(auth.ctx, s.q(`SELECT payload,state FROM suma_task_dispatch_plans WHERE tenant_id=? AND project_id=? AND run_id=?`), auth.target.tenantID, project, runID).Scan(&raw, &state); err != nil {
+	if err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT payload,state FROM suma_task_dispatch_plans WHERE tenant_id=? AND project_id=? AND run_id=?`, current)), tenant, project, runID).Scan(&raw, &state); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			cloud, found, e := s.workBuddyTaskDispatchRunSourceTx(ctx, auth.tx, auth.target.tenantID, project, runID)
+			cloud, found, e := s.workBuddyTaskDispatchRunSourceTx(ctx, tx, tenant, project, runID)
 			if e != nil {
 				return e
 			}
 			if found {
 				allowed := cloud.State == "started" || !requireStarted && cloud.State == "ready"
-				if cloud.TaskID != taskID || cloud.Context.Design == nil || digest(stringify(current)) != digest(stringify(cloud.Context.Design)) || !allowed {
+				if cloud.TaskID != taskID || cloud.Context.Design == nil || digest(stringify(design)) != digest(stringify(cloud.Context.Design)) || !allowed {
 					return conflict("执行的需求设计依据已失效，需要重新派发")
 				}
 				return nil
@@ -37,14 +41,14 @@ func (s *Service) checkTaskRequirementDesignRunTx(ctx context.Context, auth *aut
 			// A trusted composition is also a real code-producing task run. Its
 			// immutable domain binding is written in the same Core transaction
 			// before BindRunTx; arbitrary workflow config cannot supply this proof.
-			r, found, e := s.candidateCompositionExecutionRecordTx(ctx, auth.tx, auth.target.tenantID, project, runID)
+			r, found, e := s.candidateCompositionExecutionRecordTx(ctx, tx, tenant, project, runID)
 			if e != nil {
 				return e
 			}
-			if found && r.Execution != nil && ccmp.ValidateCandidateCompositionExecution(*r.Execution) == nil && r.Plan.TaskID == taskID && r.Plan.RunID == runID && r.Execution.PlanID == r.Plan.ID && r.Execution.PlanVersion == r.Plan.Version && r.Plan.Context.Design != nil && digest(stringify(current)) == digest(stringify(r.Plan.Context.Design)) {
+			if found && r.Execution != nil && ccmp.ValidateCandidateCompositionExecution(*r.Execution) == nil && r.Plan.TaskID == taskID && r.Plan.RunID == runID && r.Execution.PlanID == r.Plan.ID && r.Execution.PlanVersion == r.Plan.Version && r.Plan.Context.Design != nil && digest(stringify(design)) == digest(stringify(r.Plan.Context.Design)) {
 				if requireStarted {
 					var actual string
-					if e = auth.tx.QueryRowContext(ctx, s.q(`SELECT run_id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, project, taskID).Scan(&actual); e != nil {
+					if e = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT run_id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, current)), tenant, project, taskID).Scan(&actual); e != nil {
 						return e
 					}
 					if actual != runID {
@@ -62,7 +66,7 @@ func (s *Service) checkTaskRequirementDesignRunTx(ctx context.Context, auth *aut
 		return err
 	}
 	allowedState := state == "started" || !requireStarted && state == "ready"
-	if plan.TaskID != taskID || plan.RunID != runID || plan.Context.Design == nil || digest(stringify(current)) != digest(stringify(plan.Context.Design)) || !allowedState {
+	if plan.TaskID != taskID || plan.RunID != runID || plan.Context.Design == nil || digest(stringify(design)) != digest(stringify(plan.Context.Design)) || !allowedState {
 		return conflict("执行的需求设计依据已失效，需要重新派发")
 	}
 	return nil

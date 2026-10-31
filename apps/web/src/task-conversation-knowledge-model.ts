@@ -1,6 +1,7 @@
 import type {ProjectKnowledgeContextItem, ProjectKnowledgeRevisionDetail, TaskConversationKnowledgeReference} from '../../../packages/contracts/src';
 import type {KnowledgeReference, KnowledgeRevision, KnowledgeSummary} from './knowledge-model';
 import {publishedKnowledgeReference} from './knowledge-model';
+import {validProjectKnowledgeSource,validProjectKnowledgeContextSource} from './delivery-knowledge-model';
 
 export const conversationKnowledgeLimit = 16;
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -38,8 +39,10 @@ export function currentKnowledgePin(value: unknown, project: string, pin: Knowle
   if (!validKnowledgeSummary(value, project) || value.id !== pin.id) return false;
   try { return sameKnowledgePin(publishedKnowledgeReference(value, project), pin); } catch { return false; }
 }
-const source = (value: unknown, quote: boolean) => object(value) && ['documents', 'requirements', 'tasks', 'issues'].includes(String(value.kind)) &&
-  id(value.id) && positive(value.version) && text(value.title) && hash(value.sha256) && (!quote || text(value.quote));
+const source = (value: unknown, quote: boolean) => object(value) && (value.kind==='accepted_delivery'?
+  (quote?validProjectKnowledgeSource(value):validProjectKnowledgeContextSource(value)):
+  !Object.hasOwn(value,'delivery')&&!Object.hasOwn(value,'basis_sha256')&&['documents', 'requirements', 'tasks', 'issues'].includes(String(value.kind)) &&
+  id(value.id) && positive(value.version) && text(value.title) && hash(value.sha256) && (!quote || text(value.quote)));
 const revision = (value: unknown): value is KnowledgeRevision => object(value) && closed(value, ['revision', 'based_on_revision', 'state', 'kind', 'title', 'summary', 'content', 'sha256', 'sources', 'method', 'created_by', 'created_at']) &&
   positive(value.revision) && integer(value.based_on_revision) && value.based_on_revision < value.revision &&
   ['draft', 'published', 'retired'].includes(String(value.state)) && kind(value.kind) && text(value.title) && text(value.summary) && text(value.content) && hash(value.sha256) &&

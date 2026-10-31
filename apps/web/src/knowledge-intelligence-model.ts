@@ -1,7 +1,7 @@
 import type {KnowledgeIntelligenceOutput,ProjectKnowledgeSourceInput,ToolProfile} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
 export const intelligenceKinds=['memory','spec','skill'] as const;
-export const intelligenceSources=['documents','tasks','requirements','issues'] as const;
+export const intelligenceSources=['documents','tasks','requirements','issues','accepted_delivery'] as const;
 export const intelligenceStates=['running','ready','failed','reconciling','adopted','dismissed'];
 export const intelligenceID=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value);
 export const intelligenceText=(value:unknown,max:number,empty=false):value is string=>typeof value==='string'&&(empty||!!value.trim())&&new TextEncoder().encode(value).length<=max;
@@ -17,7 +17,8 @@ export function intelligenceProposal(raw:string,sourceCount=8):KnowledgeIntellig
  const value=intelligenceEditableProposal(raw);if(!value||!intelligenceText(value.title,200)||!intelligenceText(value.summary,1000,true)||!intelligenceText(value.content,16000)||!intelligenceText(value.rationale,8000)||!value.source_indices.length||value.source_indices.length>8||new Set(value.source_indices).size!==value.source_indices.length||value.source_indices.some(index=>index<0||index>=sourceCount))return;return value;
 }
 export function intelligenceSource(value:unknown):value is ProjectKnowledgeSourceInput{
- return object(value)&&Object.keys(value).every(key=>['kind','id','version','quote'].includes(key))&&intelligenceSources.includes(value.kind as typeof intelligenceSources[number])&&intelligenceID(value.id)&&positive(value.version)&&(value.quote===undefined||intelligenceText(value.quote,16000,true));
+ return object(value)&&Object.keys(value).every(key=>['kind','id','version','quote','basis_sha256'].includes(key))&&intelligenceSources.includes(value.kind as typeof intelligenceSources[number])&&intelligenceID(value.id)&&positive(value.version)&&(value.quote===undefined||intelligenceText(value.quote,16000,true))&&
+  (value.kind==='accepted_delivery'?typeof value.basis_sha256==='string'&&/^[a-f0-9]{64}$/.test(value.basis_sha256):value.basis_sha256===undefined||value.basis_sha256==='');
 }
 export function intelligenceRecovery(request:WriteRecoveryRequest,project:string){
  const b=request.body;if(request.method!=='POST'||b.project_id!==project)return false;

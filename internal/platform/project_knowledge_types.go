@@ -15,25 +15,30 @@ type ProjectKnowledgeSourceInput struct {
 	ID      string `json:"id"`
 	Version int    `json:"version"`
 	Quote   string `json:"quote,omitempty"`
+	// Accepted deliveries must match the explicitly previewed server basis;
+	// ordinary record sources cannot carry this field or submit their own proof.
+	BasisSHA256 string `json:"basis_sha256,omitempty"`
 }
 
 type ProjectKnowledgeSource struct {
-	Kind    string `json:"kind"`
-	ID      string `json:"id"`
-	Version int    `json:"version"`
-	Title   string `json:"title"`
-	Quote   string `json:"quote"`
-	SHA256  string `json:"sha256"`
+	Kind     string                  `json:"kind"`
+	ID       string                  `json:"id"`
+	Version  int                     `json:"version"`
+	Title    string                  `json:"title"`
+	Quote    string                  `json:"quote"`
+	SHA256   string                  `json:"sha256"`
+	Delivery *DeliveryKnowledgeBasis `json:"delivery,omitempty" wire:"nonnull"`
 }
 
 // Consumption keeps source provenance without repeating each verbatim quote.
 // Full review evidence remains in immutable ProjectKnowledgeRevision.Sources.
 type ProjectKnowledgeContextSource struct {
-	Kind    string `json:"kind"`
-	ID      string `json:"id"`
-	Version int    `json:"version"`
-	Title   string `json:"title"`
-	SHA256  string `json:"sha256"`
+	Kind     string                  `json:"kind"`
+	ID       string                  `json:"id"`
+	Version  int                     `json:"version"`
+	Title    string                  `json:"title"`
+	SHA256   string                  `json:"sha256"`
+	Delivery *DeliveryKnowledgeBasis `json:"delivery,omitempty" wire:"nonnull"`
 }
 
 type ProjectKnowledgeContextItem struct {

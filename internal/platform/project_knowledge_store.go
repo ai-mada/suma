@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
 // Aggregates contain pointers and CAS state only. Every draft edit, publish and
@@ -36,7 +38,7 @@ func knowledgeState(state string) bool {
 	return state == "draft" || state == "published" || state == "retired"
 }
 func knowledgeSourceKind(kind string) bool {
-	return kind == "documents" || kind == "requirements" || kind == "tasks" || kind == "issues"
+	return knowledgeRecordSourceKind(kind) || kind == "accepted_delivery"
 }
 func knowledgeText(value string, max int) bool {
 	return utf8.ValidString(value) && len(value) <= max && !strings.ContainsRune(value, 0)
@@ -137,6 +139,9 @@ func (s *Service) knowledgeSourceRecordsTx(ctx context.Context, auth *authorized
 		if !knowledgeSourceKind(ref.Kind) {
 			return nil, invalid("知识来源类型无效")
 		}
+		if ref.Kind == "accepted_delivery" {
+			continue
+		}
 		if groups[ref.Kind] == nil {
 			groups[ref.Kind] = map[string]bool{}
 		}
@@ -181,6 +186,9 @@ func (s *Service) knowledgeSourceRecordsTx(ctx context.Context, auth *authorized
 	return records, nil
 }
 func knowledgeSourceCurrent(ref ProjectKnowledgeSource, records map[string]Record) bool {
+	if !knowledgeRecordSourceKind(ref.Kind) || ref.Delivery != nil {
+		return false
+	}
 	r, ok := records[knowledgeSourceKey(ref.Kind, ref.ID)]
 	if !ok || r.Status == "archived" || r.Status == "deleted" || r.Version != ref.Version {
 		return false
@@ -199,17 +207,23 @@ func (s *Service) knowledgeEligibilityTx(ctx context.Context, auth *authorizedCo
 	if err != nil {
 		return err
 	}
+	current, err := s.knowledgeSourcesCurrentTx(ctx, auth.tx, auth.target.tenantID, project, refs, records, true)
+	if err != nil {
+		return err
+	}
+	offset := 0
 	for i := range items {
 		if items[i].Published == nil {
 			continue
 		}
-		for _, ref := range items[i].Published.Sources {
-			if !knowledgeSourceCurrent(ref, records) {
+		for j := range items[i].Published.Sources {
+			if !current[offset+j] {
 				items[i].Eligibility = "source_changed"
 				items[i].PublishedEligible = false
 				break
 			}
 		}
+		offset += len(items[i].Published.Sources)
 	}
 	return nil
 }
@@ -224,6 +238,9 @@ func (s *Service) resolveKnowledgeSourcesTx(ctx context.Context, auth *authorize
 		if !knowledgeSourceKind(in.Kind) || in.ID == "" || len(in.ID) > 64 || in.Version < 1 || in.Version > 2147483646 || !knowledgeText(in.Quote, 16000) || seen[key] {
 			return nil, invalid("知识来源需要唯一的同项目类型、标识及版本")
 		}
+		if in.Kind == "accepted_delivery" && !toolcontract.ValidDigest(in.BasisSHA256) || in.Kind != "accepted_delivery" && in.BasisSHA256 != "" {
+			return nil, invalid("知识来源需要唯一的同项目类型、标识及版本")
+		}
 		seen[key] = true
 		refs = append(refs, ProjectKnowledgeSource{Kind: in.Kind, ID: in.ID, Version: in.Version, Quote: in.Quote})
 	}
@@ -232,6 +249,25 @@ func (s *Service) resolveKnowledgeSourcesTx(ctx context.Context, auth *authorize
 		return nil, err
 	}
 	for i := range refs {
+		if refs[i].Kind == "accepted_delivery" {
+			actual, e := s.resolveDeliveryKnowledgeSourceTx(ctx, auth.tx, auth.target.tenantID, project, refs[i].ID, true)
+			if e != nil {
+				return nil, e
+			}
+			if actual.Kind != "accepted_delivery" || actual.ID != refs[i].ID || actual.Version != refs[i].Version || actual.Delivery == nil || actual.Delivery.SHA256 != input[i].BasisSHA256 {
+				return nil, conflict("知识来源已变化或不可访问，请重新选择")
+			}
+			quote := refs[i].Quote
+			if quote == "" {
+				quote = actual.Quote
+			}
+			if quote == "" || !knowledgeText(quote, 16000) || !strings.Contains(actual.Quote, quote) {
+				return nil, invalid("引用必须属于来源正文且不超过16000字节，不会自动截断")
+			}
+			refs[i] = actual
+			refs[i].Quote = quote
+			continue
+		}
 		r, ok := records[knowledgeSourceKey(refs[i].Kind, refs[i].ID)]
 		if !ok || r.Status == "archived" || r.Status == "deleted" || r.Version != refs[i].Version {
 			return nil, conflict("知识来源已变化或不可访问，请重新选择")
@@ -474,7 +510,7 @@ func (s *Service) ProjectKnowledgeRevisions(ctx context.Context, actor Actor, pr
 func knowledgeContextSources(sources []ProjectKnowledgeSource) []ProjectKnowledgeContextSource {
 	out := []ProjectKnowledgeContextSource{}
 	for _, source := range sources {
-		out = append(out, ProjectKnowledgeContextSource{Kind: source.Kind, ID: source.ID, Version: source.Version, Title: source.Title, SHA256: source.SHA256})
+		out = append(out, ProjectKnowledgeContextSource{Kind: source.Kind, ID: source.ID, Version: source.Version, Title: source.Title, SHA256: source.SHA256, Delivery: source.Delivery})
 	}
 	return out
 }

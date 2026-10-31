@@ -233,8 +233,12 @@ func (s *Service) CommandProjectKnowledge(ctx context.Context, actor Actor, proj
 			if e != nil {
 				return ProjectKnowledgeDetail{}, e
 			}
-			for _, source := range revision.Sources {
-				if !knowledgeSourceCurrent(source, records) {
+			states, e := s.knowledgeSourcesCurrentTx(ctx, auth.tx, auth.target.tenantID, project, revision.Sources, records, true)
+			if e != nil {
+				return ProjectKnowledgeDetail{}, e
+			}
+			for _, sourceCurrent := range states {
+				if !sourceCurrent {
 					return current, conflict("知识来源已变化或不可访问，请重新选择")
 				}
 			}

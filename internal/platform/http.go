@@ -578,6 +578,18 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.requirementTraceabilityHTTP(w, r, actor, scope, project, parts) {
 		return
 	}
+	if len(parts) == 3 && parts[0] == "tasks" && parts[2] == "delivery-knowledge-source" {
+		if scope != "" && scope != "api" {
+			writeError(w, forbidden())
+			return
+		}
+		if r.Method != http.MethodGet {
+			writeError(w, missing())
+			return
+		}
+		s.deliveryKnowledgeSourceHTTP(w, r, actor, project, parts[1])
+		return
+	}
 	if s.taskDeliveryHTTP(w, r, actor, scope, project, parts) {
 		return
 	}

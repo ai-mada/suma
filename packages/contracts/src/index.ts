@@ -1948,6 +1948,44 @@ export interface CreateRequest {
   prompt: string;
   name?: string;
 }
+export interface DeliveryKnowledgeBasis {
+  protocol: string;
+  task: ReleaseTaskBasis;
+  run_version: number;
+  tests: (DeliveryKnowledgeTestEvidence)[];
+  candidates: (DeliveryKnowledgeCandidateEvidence)[];
+  sha256: string;
+}
+export interface DeliveryKnowledgeCandidateEvidence {
+  kind: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  head_commit: string;
+  evidence_sha256: string;
+  transfer_id?: string;
+  bundle_sha256?: string;
+}
+export interface DeliveryKnowledgeSourceView {
+  project_id: string;
+  source: ProjectKnowledgeSource;
+}
+export interface DeliveryKnowledgeTestEvidence {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  result_sha256: string;
+  plan_id?: string;
+  plan_revision?: number;
+  plan_sha256?: string;
+  report_id?: string;
+  report_sha256?: string;
+  source_commit?: string;
+}
 export interface DeploymentAuthorizationGrant {
   authorization_id: string;
   operation_id: string;
@@ -4046,6 +4084,7 @@ export interface ProjectKnowledgeContextSource {
   version: number;
   title: string;
   sha256: string;
+  delivery?: DeliveryKnowledgeBasis;
 }
 export interface ProjectKnowledgeDetail {
   model_adoption?: KnowledgeIntelligenceAdoption | null;
@@ -4119,12 +4158,14 @@ export interface ProjectKnowledgeSource {
   title: string;
   quote: string;
   sha256: string;
+  delivery?: DeliveryKnowledgeBasis;
 }
 export interface ProjectKnowledgeSourceInput {
   kind: string;
   id: string;
   version: number;
   quote?: string;
+  basis_sha256?: string;
 }
 export interface ProjectKnowledgeSummary {
   id: string;

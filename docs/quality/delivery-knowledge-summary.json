@@ -1,0 +1,144 @@
+{
+  "stage": "T-DELIVERY-KNOWLEDGE-172",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "status": "scoped_source_business_contract_and_readonly_visual_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "focused": {
+    "distinct_top_level": 43,
+    "new": 37,
+    "affected_existing": 6,
+    "go": 23,
+    "web": 20,
+    "subcases_separate": 7,
+    "old_full_suites_rerun": 0
+  },
+  "types": {
+    "full_web_exit": 0,
+    "affected_file_semantic_exit": 0,
+    "affected_files": 4,
+    "original_wrong_directory_preflight_retained": true
+  },
+  "i18n": {
+    "paired_keys": 8181,
+    "hardcodes": 0,
+    "copy_only_delta": "Two English count labels changed after original checks; unchanged keys/interpolation, no business/build/GUI rerun; original screenshots retained."
+  },
+  "contracts": {
+    "declared_models": 833,
+    "schemas": 834,
+    "paths": 392,
+    "generator_focused_exit": 0
+  },
+  "actual": {
+    "scope": "Isolated real authenticated HTTP and production components, controlled normal formal-review fixture; readonly GUI, not full App or vendor execution.",
+    "source_inputs": 97,
+    "aggregate_input_sha256": "7b45d9686ad896e99d75ef2af9370440071b5996699e063c87f29bea0ce154de",
+    "gate_file_sha256": "f19b43c454069aa1b95a6fd0c9bac8e6ffdf9e4ffb898812f2ef04b0f72e65a0",
+    "original_summary_sha256": "812a34e75707b857d6c3e1e78fcf768918671c16cfca32b2270cc25c18aeec8c",
+    "go_compiles": 1,
+    "component_builds": 1,
+    "journey_runs": 1,
+    "passed_checks": 6,
+    "checks": [
+      {
+        "name": "collapsed_task_does_not_read_delivery_source",
+        "passed": true
+      },
+      {
+        "name": "formal_task_action_uses_production_navigation_and_real_source_get",
+        "passed": true
+      },
+      {
+        "name": "source_refresh_preserves_exact_basis_and_complete_global_css",
+        "passed": true
+      },
+      {
+        "name": "english_direct_locator_preserves_source_and_requires_explicit_model_profile",
+        "passed": true
+      },
+      {
+        "name": "narrow_keyboard_focus_and_real_task_return",
+        "passed": true
+      },
+      {
+        "name": "readonly_business_and_normal_lifecycle",
+        "passed": true
+      }
+    ],
+    "gets": 17,
+    "post_attempts": 0,
+    "business_tables_unchanged": true,
+    "business_tables": 17,
+    "setup_runs": 1,
+    "setup_reports": 1,
+    "setup_formal_reviews": 1,
+    "gui_new_runs": 0,
+    "model_executions": 0,
+    "cli_executions": 0,
+    "external_requests": 0,
+    "page_errors": 0,
+    "console_errors": 0,
+    "observed_processes_ended": 10,
+    "normal_exit": true,
+    "force_stop_used": false,
+    "port_released": true,
+    "images": [
+      {
+        "file": "delivery-source-cn-1366.png",
+        "width": 1366,
+        "height": 960,
+        "sha256": "c682fed008365e8e7dd1bf438aa190e6166625e5f619bfd8194703ee5e29eb60",
+        "scope": "Chinese local component viewport, formal source card, not full App"
+      },
+      {
+        "file": "delivery-source-en-390.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "686563b212905d5b8589750d785814f02fbe20528b07dd30caab0441e217181e",
+        "scope": "English narrow local source card viewport with actual keyboard focus, not full App"
+      }
+    ],
+    "private_snapshot": {
+      "bytes": 2961408,
+      "sha256": "1afdf9a51f8a8c2f1c6e693dabc49135f986ba7256906654aa0371de7ed909ab",
+      "published": false
+    }
+  },
+  "local_artifacts": {
+    "directory": "dist/quality/delivery-knowledge-172",
+    "manifest_sha256": "f62026c24217843ccf94ce58471d9ae260ced24b8e246543e7dc4d55253aa737",
+    "files": 4,
+    "git_included": false
+  },
+  "references": {
+    "helixharness": "44ffc536f73d8af525b4795ad10384c516898576",
+    "multica": "e8ae72c9dfc1b4474b61a9087f51b33cbee6a048",
+    "upstream_source_copied": 0
+  },
+  "preserved_failures": [
+    "Fixed-toolchain environment and initial missing-source RED records retained.",
+    "Concurrent compile environment failures retained; successful unchanged checks reused.",
+    "Initial root incremental semantic preflight guessed an incorrect directory; corrected manifest-derived files pass.",
+    "Two Web integration P2 fixes separately verified; original records retained."
+  ],
+  "remaining": [
+    "Real vendor/model and subsequent Codex CLI execution.",
+    "Physical multi-host, OceanBase/PostgreSQL, full App/theme/device, installers, scale and production.",
+    "Complete original31/P0-P7 platform and prior171 explicit GUI stop gap."
+  ],
+  "documentation": {
+    "markdown_documents": 503,
+    "api_paths": 392,
+    "schema_references": 3612,
+    "exit_code": 0
+  }
+}

@@ -11,9 +11,12 @@ import { knowledgeKinds, knowledgeSourceInputs, knowledgeSourceLabel, type Knowl
 import { CatalogAdoptionFacts, ModelAdoptionFacts, KnowledgeRevisionFacts } from '../KnowledgeFacts';
 import {KnowledgeIntelligence} from '../KnowledgeIntelligence';
 import {catalogHref} from '../skill-catalog-model';
+import type {ProjectKnowledgeSource} from '../../../../packages/contracts/src';
+import {deliveryKnowledgeSourceInput,validDeliveryKnowledgeSourceView} from '../delivery-knowledge-model';
 import '../knowledge.css';
 type Props = {
     intelligenceId?: string;
+    deliveryTaskId?: string;
     project: string;
     session: Session;
     selected: string;
@@ -31,10 +34,11 @@ type Decision = {
     action: 'publish' | 'retire';
     entry: KnowledgeDetail;
 };
+type CurrentKnowledgeSource = {kind:'record';value:RecordItem}|{kind:'accepted_delivery';value:ProjectKnowledgeSource};
 const sourceKinds: KnowledgeSourceKind[] = ['documents', 'requirements', 'tasks', 'issues'];
 const objectPath = (id: string) => '/project-knowledge/' + encodeURIComponent(id);
 function canLeave() { return window.dispatchEvent(new Event('suma:navigate', { cancelable: true })); }
-export function KnowledgeWorkspace({ intelligenceId, project, session, selected, filters, onFilter, onSelect, refresh, onRefresh }: Props) {
+export function KnowledgeWorkspace({ intelligenceId, deliveryTaskId, project, session, selected, filters, onFilter, onSelect, refresh, onRefresh }: Props) {
     useLocale();
     const api = useApi(), [tick, setTick] = useState(0), [search, setSearch] = useState(filters.q), [editor, setEditor] = useState<Editor>(), [decision, setDecision] = useState<Decision>(), [confirmation, setConfirmation] = useState(false), [needsRead, setNeedsRead] = useState(false), [view, setView] = useState<'latest' | 'published'>('latest');
     const action = useWriteAction({ scope: session.user.id + ':' + session.organization.id + ':' + project, storage: toolSessionStorage(), validateRequest: request => request.body.project_id === project && ((request.path === '/project-knowledge' || request.path === '/project-knowledge/extractions') && request.method === 'POST' || /^\/project-knowledge\/[A-Za-z0-9_-]+$/.test(request.path) && request.method === 'PATCH' || /^\/project-knowledge\/[A-Za-z0-9_-]+\/commands$/.test(request.path) && request.method === 'POST') }), entries = useKnowledgeEntries(project, filters, refresh + tick), detail = useToolRead<KnowledgeDetail>(selected ? objectPath(selected) + query(project) : '', refresh + tick);
@@ -68,7 +72,7 @@ export function KnowledgeWorkspace({ intelligenceId, project, session, selected,
     }
     function changeSelection(id: string) { if (!blocked && canLeave())
         onSelect(id); }
-    return <><KnowledgeIntelligence key={session.user.id+':'+session.organization.id+':'+project} session={session} project={project} refresh={refresh} onChanged={onRefresh} analysisId={intelligenceId}/><div className="knowledge-workspace" data-detail={!!selected}>
+    return <><KnowledgeIntelligence key={session.user.id+':'+session.organization.id+':'+project} session={session} project={project} refresh={refresh} onChanged={onRefresh} analysisId={intelligenceId} deliveryTaskId={deliveryTaskId}/><div className="knowledge-workspace" data-detail={!!selected}>
   {!editor && !decision && (action.error || action.pending) && <div className="knowledge-recovery"><WriteNotice action={action}/>{action.pending && <><p>{t('knowledge.recovery_title')}</p><p>{String(action.pending.body.title || (action.pending.body.action === 'publish' ? t('knowledge.publish') : action.pending.body.action === 'retire' ? t('knowledge.retire') : ''))}</p><details><summary>{t('knowledge.recovery_details')}</summary><code>{action.pending.path} · {action.pending.idempotency_key}</code>{typeof action.pending.body.content === 'string' && <pre className="knowledge-content">{action.pending.body.content}</pre>}</details><button className="primary" disabled={action.busy} onClick={() => void write(action.pending!.path, action.pending!.body, action.pending!.method)}>{t('knowledge.restore')}</button></>}</div>}
   <section className="panel knowledge-list" aria-label={t('knowledge.title')}>
    <div className="panel-heading"><div><h2>{t('knowledge.title')}</h2><p>{t('knowledge.description')}</p></div><BookOpen size={22}/></div>
@@ -120,7 +124,7 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
     onClose: () => void;
     onSave: (path: string, body: Record<string, unknown>, method?: string) => Promise<void>;
 }) {
-    const api = useApi(), entry = editor.entry, [kind, setKind] = useState<KnowledgeKind>(entry?.kind || 'memory'), [title, setTitle] = useState(entry?.latest.title || ''), [summary, setSummary] = useState(entry?.latest.summary || ''), [content, setContent] = useState(entry?.latest.content || ''), [baseVersion, setBaseVersion] = useState(entry?.version || 0), [dirty, setDirty] = useState(false), [discard, setDiscard] = useState(false), [guardError, setGuardError] = useState<unknown>(''), [sourceKind, setSourceKind] = useState<KnowledgeSourceKind>('documents'), [sourceID, setSourceID] = useState(''), [quote, setQuote] = useState(''), [serverContent, setServerContent] = useState<string>(), [fixedSources, setFixedSources] = useState<KnowledgeSourceInput[]>(entry ? knowledgeSourceInputs(entry.latest.sources) : []), [currentSources, setCurrentSources] = useState<Record<string, RecordItem>>({}), [sourceBusy, setSourceBusy] = useState('');
+    const api = useApi(), entry = editor.entry, [kind, setKind] = useState<KnowledgeKind>(entry?.kind || 'memory'), [title, setTitle] = useState(entry?.latest.title || ''), [summary, setSummary] = useState(entry?.latest.summary || ''), [content, setContent] = useState(entry?.latest.content || ''), [baseVersion, setBaseVersion] = useState(entry?.version || 0), [dirty, setDirty] = useState(false), [discard, setDiscard] = useState(false), [guardError, setGuardError] = useState<unknown>(''), [sourceKind, setSourceKind] = useState<KnowledgeSourceKind>('documents'), [sourceID, setSourceID] = useState(''), [quote, setQuote] = useState(''), [serverContent, setServerContent] = useState<string>(), [fixedSources, setFixedSources] = useState<KnowledgeSourceInput[]>(entry ? knowledgeSourceInputs(entry.latest.sources) : []), [currentSources, setCurrentSources] = useState<Record<string, CurrentKnowledgeSource>>({}), [sourceBusy, setSourceBusy] = useState('');
     const extracting = editor.mode === 'extract', sources = useToolList<RecordItem>(project, sourceKind), blocked = action.busy || !!action.pending;
     const selected = sources.items?.find(source => source.id === sourceID);
     useLeaveGuard(dirty, setGuardError);
@@ -147,6 +151,27 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
         const body = { project_id: project, kind, title, summary, sources: fixed, ...(!extracting ? { content, expected_version: baseVersion } : {}) };
         await onSave(extracting ? '/project-knowledge/extractions' : entry ? objectPath(entry.id) : '/project-knowledge', body, entry ? 'PATCH' : undefined);
     }
+    async function readCurrentSource(source:KnowledgeSourceInput,key:string) {
+        setSourceBusy(key);setGuardError('');
+        try {
+            let current:CurrentKnowledgeSource;
+            if(source.kind==='accepted_delivery'){
+                setCurrentSources(before=>{const next={...before};delete next[key];return next;});
+                const value=await api<unknown>('/tasks/'+encodeURIComponent(source.id)+'/delivery-knowledge-source'+query(project));
+                if(!validDeliveryKnowledgeSourceView(value,project,source.id))throw new UiError('delivery-knowledge.source_unavailable');
+                current={kind:'accepted_delivery',value:value.source};
+            }else{
+                const value=await api<RecordItem>('/'+source.kind+'/'+encodeURIComponent(source.id)+query(project));
+                current={kind:'record',value};
+            }
+            setCurrentSources(before=>({...before,[key]:current}));
+        }catch(error){setGuardError(error);}
+        finally{setSourceBusy('');}
+    }
+    function adoptCurrentSource(index:number,source:KnowledgeSourceInput,current:CurrentKnowledgeSource){
+        const input:KnowledgeSourceInput=current.kind==='accepted_delivery'?{...deliveryKnowledgeSourceInput(current.value),kind:'accepted_delivery'}:{kind:source.kind,id:source.id,version:current.value.version};
+        setFixedSources(before=>before.map((item,at)=>at===index?input:item));setDirty(true);
+    }
     return <Modal open title={t(extracting ? 'knowledge.extraction_title' : entry ? 'knowledge.edit_title' : 'knowledge.create_title')} description={t(extracting ? 'knowledge.extraction_hint' : 'knowledge.manual_hint')} onClose={close}>
   <form className="knowledge-editor" onSubmit={event => void submit(event)}>
    <WriteNotice action={action} onRebase={entry ? async () => { const current = await api<KnowledgeDetail>(objectPath(entry.id) + query(project)); setBaseVersion(current.version); setServerContent(current.latest.content); } : undefined}/>
@@ -161,16 +186,7 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
      {sources.next_cursor && <button type="button" disabled={sources.loading} onClick={() => void sources.read(true)}>{t('knowledge.more')}</button>}
      {selected && <small>{selected.id} · {t('knowledge.source_version', { version: formatNumber(selected.version) })}</small>}
      <Field label={t('knowledge.source_quote')} hint={t('knowledge.source_quote_hint')}><textarea name="quote" rows={5} value={quote} onChange={event => setQuote(event.target.value)}/></Field>
-    </> : <><Field label={t('knowledge.content_label')}><textarea name="content" required rows={12} value={content} onChange={event => setContent(event.target.value)}/></Field>{entry && <details><summary>{t('knowledge.source_list')}</summary>{fixedSources.map((source, index) => { const key = source.kind + ':' + source.id, current = currentSources[key]; return <div className="knowledge-source" key={key}><strong>{entry.latest.sources.find(item => item.id === source.id && item.kind === source.kind)?.title || source.id}</strong><p>{t('knowledge.source_version', { version: formatNumber(source.version) })}</p><button type="button" disabled={blocked || !!sourceBusy} onClick={async () => { setSourceBusy(key); setGuardError(''); try {
-            const value = await api<RecordItem>('/' + source.kind + '/' + encodeURIComponent(source.id) + query(project));
-            setCurrentSources(before => ({ ...before, [key]: value }));
-        }
-        catch (error) {
-            setGuardError(error);
-        }
-        finally {
-            setSourceBusy('');
-        } }}>{t('knowledge.source_read_current')}</button>{current && <><p>{t('knowledge.source_current_version', { version: formatNumber(current.version) })} · {current.title || current.id}</p><pre className="knowledge-content">{[current.description, current.content, current.acceptance_criteria].filter(value => typeof value === 'string').join('\n\n')}</pre><p className="muted">{t('knowledge.source_adopt_hint')}</p><button type="button" disabled={blocked} onClick={() => { setFixedSources(before => before.map((item, at) => at === index ? { kind: item.kind, id: item.id, version: current.version } : item)); setDirty(true); }}>{t('knowledge.source_adopt', { version: formatNumber(current.version) })}</button></>}</div>; })}</details>}</>}
+    </> : <><Field label={t('knowledge.content_label')}><textarea name="content" required rows={12} value={content} onChange={event => setContent(event.target.value)}/></Field>{entry && <details><summary>{t('knowledge.source_list')}</summary>{fixedSources.map((source, index) => { const key = source.kind + ':' + source.id, current = currentSources[key]; return <div className="knowledge-source" key={key}><strong>{entry.latest.sources.find(item => item.id === source.id && item.kind === source.kind)?.title || source.id}</strong><p>{t('knowledge.source_version', { version: formatNumber(source.version) })}</p><button type="button" disabled={blocked || !!sourceBusy} onClick={()=>void readCurrentSource(source,key)}>{t('knowledge.source_read_current')}</button>{current && <><p>{t('knowledge.source_current_version', { version: formatNumber(current.value.version) })} · {current.value.title || current.value.id}</p><pre className="knowledge-content">{current.kind==='accepted_delivery'?current.value.quote:[current.value.description,current.value.content,current.value.acceptance_criteria].filter(value=>typeof value==='string').join('\n\n')}</pre><p className="muted">{t('knowledge.source_adopt_hint')}</p><button type="button" disabled={blocked} onClick={()=>adoptCurrentSource(index,source,current)}>{t('knowledge.source_adopt', { version: formatNumber(current.value.version) })}</button></>}</div>; })}</details>}</>}
    </fieldset>
    {serverContent !== undefined && <details open><summary>{t('knowledge.current_content')}</summary><pre className="knowledge-content">{serverContent}</pre></details>}
    {discard && <div className="warning" role="alert"><strong>{t('knowledge.discard_title')}</strong><p>{t('knowledge.discard_confirm')}</p><div className="knowledge-actions"><button type="button" onClick={() => setDiscard(false)}>{t('knowledge.keep_editing')}</button><button type="button" onClick={() => { setDirty(false); onClose(); }}>{t('knowledge.discard')}</button></div></div>}

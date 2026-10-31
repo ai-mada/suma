@@ -1,19 +1,15 @@
 import { UiError, tr } from './i18n';
-import type {KnowledgeIntelligenceAdoption,SkillCatalogAdoption} from '../../../packages/contracts/src';
+import type {KnowledgeIntelligenceAdoption,SkillCatalogAdoption,ProjectKnowledgeSource,ProjectKnowledgeSourceInput} from '../../../packages/contracts/src';
+import {deliveryKnowledgeSourceInput} from './delivery-knowledge-model';
 export const knowledgeKinds = ['memory', 'spec', 'skill'] as const;
 export type KnowledgeKind = typeof knowledgeKinds[number];
 export type KnowledgeState = 'draft' | 'published' | 'retired';
-export type KnowledgeSourceKind = 'documents' | 'requirements' | 'tasks' | 'issues';
-export type KnowledgeSource = {
+export type KnowledgeSourceKind = 'documents' | 'requirements' | 'tasks' | 'issues' | 'accepted_delivery';
+export type KnowledgeSource = Omit<ProjectKnowledgeSource,'kind'> & {
     kind: KnowledgeSourceKind;
-    id: string;
-    version: number;
-    title: string;
-    quote: string;
-    sha256: string;
 };
-export type KnowledgeSourceInput = Pick<KnowledgeSource, 'kind' | 'id' | 'version'> & {
-    quote?: string;
+export type KnowledgeSourceInput = Omit<ProjectKnowledgeSourceInput,'kind'> & {
+    kind: KnowledgeSourceKind;
 };
 export type KnowledgeReference = {
     id: string;
@@ -101,7 +97,12 @@ export function publishedKnowledgeReference(entry: KnowledgeSummary, project: st
     return { id: entry.id, revision: entry.published_revision, sha256: entry.published_sha256 };
 }
 export function knowledgeSourceInputs(sources: readonly KnowledgeSource[]): KnowledgeSourceInput[] {
-    return sources.map(({ kind, id, version, quote }) => ({ kind, id, version, ...(quote ? { quote } : {}) }));
+    return sources.map(source => {
+        if(source.kind==='accepted_delivery')return {...deliveryKnowledgeSourceInput(source),kind:source.kind};
+        if(Object.hasOwn(source,'delivery')||Object.hasOwn(source,'basis_sha256'))throw new UiError('knowledge.errors.ineligible');
+        const {kind,id,version,quote}=source;
+        return {kind,id,version,...(quote?{quote}:{})};
+    });
 }
 export function pinnedKnowledgeReferences(entries: readonly KnowledgeSummary[], project: string): KnowledgeReference[] {
     if (entries.length > 16 || new Set(entries.map(entry => entry.id)).size !== entries.length)
@@ -112,6 +113,6 @@ export function pinnedKnowledgeReferences(entries: readonly KnowledgeSummary[], 
 // Record families do not share one translation namespace: task naming belongs
 // to the workbench tabs. Unknown provider kinds remain literal metadata.
 export function knowledgeSourceLabel(kind:string):string {
- const keys:Record<string,string>={documents:'common.entities.documents',requirements:'common.entities.requirements',tasks:'shell.tabs.tasks',issues:'common.entities.issues'};
+ const keys:Record<string,string>={documents:'common.entities.documents',requirements:'common.entities.requirements',tasks:'shell.tabs.tasks',issues:'common.entities.issues',accepted_delivery:'delivery-knowledge.source_kind'};
  return keys[kind]?tr(keys[kind]):kind;
 }

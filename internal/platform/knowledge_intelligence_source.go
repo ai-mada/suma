@@ -45,18 +45,12 @@ func (s *Service) checkKnowledgeIntelligenceSourceTx(ctx context.Context, tx *sq
 	if status == "archived" || status == "deleted" {
 		return conflict(intelligenceSource)
 	}
-	for _, ref := range source.Sources {
-		if !knowledgeSourceKind(ref.Kind) {
-			return conflict(intelligenceSource)
-		}
-		record, e := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_`+ref.Kind+` WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, ref.ID))
-		if errors.Is(e, sql.ErrNoRows) {
-			return conflict(intelligenceSource)
-		}
-		if e != nil {
-			return e
-		}
-		if !knowledgeSourceCurrent(ref, map[string]Record{knowledgeSourceKey(ref.Kind, ref.ID): record}) {
+	states, e := s.knowledgeSourcesCurrentTx(ctx, tx, tenant, project, source.Sources, nil, true)
+	if e != nil {
+		return e
+	}
+	for _, current := range states {
+		if !current {
 			return conflict(intelligenceSource)
 		}
 	}

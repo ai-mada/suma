@@ -114,7 +114,7 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	if strings.TrimSpace(instructions) == "" {
 		return w, invalid("智能体节点缺少固定开发指令")
 	}
-	context, err := json.Marshal(task)
+	context, err := json.Marshal(taskKnowledgePromptContext(task))
 	if err != nil {
 		return w, err
 	}

@@ -3,12 +3,13 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func projectKnowledgeModels() []any {
-	return []any{platform.ProjectKnowledgeReference{}, platform.ProjectKnowledgeSourceInput{}, platform.ProjectKnowledgeSource{}, platform.ProjectKnowledgeContextItem{}, platform.ProjectKnowledgeRevision{}, platform.ProjectKnowledgeRevisionDetail{}, platform.ProjectKnowledgeSummary{}, platform.ProjectKnowledgeDetail{}, platform.ProjectKnowledgeList{}, platform.ProjectKnowledgeRevisionList{}, platform.ProjectKnowledgeWriteRequest{}, platform.ProjectKnowledgeExtractionRequest{}, platform.ProjectKnowledgeCommandRequest{}}
+	return []any{platform.ProjectKnowledgeReference{}, platform.ProjectKnowledgeSourceInput{}, platform.ProjectKnowledgeSource{}, platform.ProjectKnowledgeContextItem{}, platform.ProjectKnowledgeRevision{}, platform.ProjectKnowledgeRevisionDetail{}, platform.ProjectKnowledgeSummary{}, platform.ProjectKnowledgeDetail{}, platform.ProjectKnowledgeList{}, platform.ProjectKnowledgeRevisionList{}, platform.ProjectKnowledgeWriteRequest{}, platform.ProjectKnowledgeExtractionRequest{}, platform.ProjectKnowledgeCommandRequest{}, platform.DeliveryKnowledgeSourceView{}, platform.DeliveryKnowledgeBasis{}, platform.DeliveryKnowledgeTestEvidence{}, platform.DeliveryKnowledgeCandidateEvidence{}}
 }
 
 func projectKnowledgeContracts(add operationAdder, api map[string]any) {
 	paths := api["paths"].(map[string]any)
 	for _, route := range []struct{ path, method, input, output, status string }{
+		{"/tasks/{id}/delivery-knowledge-source", "get", "", "DeliveryKnowledgeSourceView", "200"},
 		{"/project-knowledge", "get", "", "ProjectKnowledgeList", "200"},
 		{"/project-knowledge", "post", "ProjectKnowledgeWriteRequest", "ProjectKnowledgeDetail", "201"},
 		{"/project-knowledge/extractions", "post", "ProjectKnowledgeExtractionRequest", "ProjectKnowledgeDetail", "201"},
@@ -80,7 +81,21 @@ func projectKnowledgeContracts(add operationAdder, api map[string]any) {
 	field("ProjectKnowledgeCommandRequest", "action", map[string]any{"enum": []string{"publish", "retire"}})
 	field("ProjectKnowledgeCommandRequest", "expected_version", map[string]any{"minimum": 1, "maximum": 2147483646})
 	field("ProjectKnowledgeCommandRequest", "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128})
-	field("ProjectKnowledgeSourceInput", "kind", map[string]any{"enum": []string{"documents", "requirements", "tasks", "issues"}})
+	for _, model := range []string{"ProjectKnowledgeSourceInput", "ProjectKnowledgeSource", "ProjectKnowledgeContextSource"} {
+		field(model, "kind", map[string]any{"enum": []string{"documents", "requirements", "tasks", "issues", "accepted_delivery"}})
+	}
+	field("ProjectKnowledgeSourceInput", "basis_sha256", map[string]any{"description": "Required exact lowercase SHA256 of the explicitly previewed server basis for accepted_delivery. Other source kinds cannot provide a nonempty value. Never submit a delivery proof object.", "pattern": "^([a-f0-9]{64})?$"})
+	for _, name := range []string{"DeliveryKnowledgeSourceView", "DeliveryKnowledgeBasis", "DeliveryKnowledgeTestEvidence", "DeliveryKnowledgeCandidateEvidence"} {
+		toolContractMap(schemas, name)["additionalProperties"] = false
+	}
+	field("DeliveryKnowledgeBasis", "protocol", map[string]any{"const": "suma-accepted-delivery-v1"})
+	field("DeliveryKnowledgeBasis", "sha256", map[string]any{"pattern": "^[a-f0-9]{64}$", "description": "Go canonical digest with this field empty and evidence arrays sorted by their exact identities. Provenance, not a new approval or permission grant."})
+	field("DeliveryKnowledgeBasis", "tests", map[string]any{"maxItems": 256})
+	field("DeliveryKnowledgeBasis", "candidates", map[string]any{"maxItems": 128})
+	field("DeliveryKnowledgeCandidateEvidence", "kind", map[string]any{"enum": []string{"workspace_revision", "sealed_bundle"}, "description": "Only a verified sealed bundle may carry transfer/bundle fields. An accepted test-only task has no candidate."})
+	preview := toolContractMap(paths, "/tasks/{id}/delivery-knowledge-source", "get")
+	preview["x-read-only"], preview["x-no-agent-effects"], preview["x-response-cache-control"] = true, true, "no-store"
+	preview["description"] = "Read the current same-project formally accepted task and exact quality evidence as a source preview. No model, proposal, draft or publication is created. Current authorization and actual task/review/run/evidence remain required; success or a review request alone is ineligible."
 	field("ProjectKnowledgeSourceInput", "version", map[string]any{"minimum": 1, "maximum": 2147483647})
 	field("ProjectKnowledgeReference", "revision", map[string]any{"minimum": 1, "maximum": 2147483647})
 	field("ProjectKnowledgeReference", "sha256", map[string]any{"pattern": "^[a-f0-9]{64}$", "description": "Digest of the explicitly selected publication, not authority."})

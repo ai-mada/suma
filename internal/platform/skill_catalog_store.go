@@ -128,18 +128,12 @@ func (s *Service) skillOriginCurrentTx(ctx context.Context, tx *sql.Tx, tenant s
 		}
 		return false, err
 	}
-	for _, ref := range published.Sources {
-		if !knowledgeSourceKind(ref.Kind) {
-			return false, nil
-		}
-		record, e := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_`+ref.Kind+` WHERE tenant_id=? AND project_id=? AND id=?`), tenant, origin.ProjectID, ref.ID))
-		if errors.Is(e, sql.ErrNoRows) {
-			return false, nil
-		}
-		if e != nil {
-			return false, e
-		}
-		if !knowledgeSourceCurrent(ref, map[string]Record{knowledgeSourceKey(ref.Kind, ref.ID): record}) {
+	states, err := s.knowledgeSourcesCurrentTx(ctx, tx, tenant, origin.ProjectID, published.Sources, nil, false)
+	if err != nil {
+		return false, err
+	}
+	for _, current := range states {
+		if !current {
 			return false, nil
 		}
 	}

@@ -426,9 +426,13 @@ func (s *Service) resolveTaskRequirementDesignTx(ctx context.Context, auth *auth
 	if e := assertProjectRead(auth, project); e != nil {
 		return nil, e
 	}
+	return s.resolveTaskRequirementDesignReadTx(ctx, auth.tx, auth.target.tenantID, project, taskID, false)
+}
+
+func (s *Service) resolveTaskRequirementDesignReadTx(ctx context.Context, tx *sql.Tx, tenant, project, taskID string, current bool) (*RequirementDesignContext, error) {
 	var requirement string
 	var l designTaskLink
-	e := auth.tx.QueryRowContext(ctx, s.q(`SELECT requirement_id,task_key,task_id,active,revision,requirement_version,task_basis,adoption_id FROM suma_requirement_design_task_links WHERE tenant_id=? AND project_id=? AND task_id=?`), auth.target.tenantID, project, taskID).Scan(&requirement, &l.Key, &l.TaskID, &l.Active, &l.Revision, &l.RequirementVersion, &l.TaskBasis, &l.AdoptionID)
+	e := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT requirement_id,task_key,task_id,active,revision,requirement_version,task_basis,adoption_id FROM suma_requirement_design_task_links WHERE tenant_id=? AND project_id=? AND task_id=?`, current)), tenant, project, taskID).Scan(&requirement, &l.Key, &l.TaskID, &l.Active, &l.Revision, &l.RequirementVersion, &l.TaskBasis, &l.AdoptionID)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -438,32 +442,35 @@ func (s *Service) resolveTaskRequirementDesignTx(ctx context.Context, auth *auth
 	if l.Active != 1 {
 		return nil, conflict("设计任务已移出范围，需要重新审阅采用")
 	}
-	a, e := s.designAggregateTx(ctx, auth, project, requirement)
+	a, e := s.designAggregateReadTx(ctx, tx, tenant, project, requirement, current)
 	if e != nil {
 		return nil, e
 	}
 	if a.Published != l.Revision || a.Published < 1 {
 		return nil, conflict("设计任务尚未采用当前发布")
 	}
-	rev, e := s.designRevisionTx(ctx, auth, project, requirement, l.Revision)
+	rev, e := s.designRevisionReadTx(ctx, tx, tenant, project, requirement, l.Revision, current)
 	if e != nil {
 		return nil, e
 	}
-	source, e := s.getRecordTx(ctx, auth, project, "requirements", requirement)
+	source, e := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_requirements WHERE tenant_id=? AND project_id=? AND id=?`, current)), tenant, project, requirement))
 	if e != nil {
 		return nil, conflict("设计需求来源不可用")
 	}
 	if rev.State != "published" || source.Version != l.RequirementVersion || !designSourceCurrent(source, rev.Requirement) {
 		return nil, conflict("设计需求来源已变化，需要重新审阅采用")
 	}
-	task, e := s.getRecordTx(ctx, auth, project, "tasks", taskID)
+	task, e := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, current)), tenant, project, taskID))
+	if errors.Is(e, sql.ErrNoRows) {
+		return nil, missing()
+	}
 	if e != nil {
 		return nil, e
 	}
 	if task.RequirementID != requirement || task.Status == "archived" || task.Status == "deleted" || taskBasis(task) != l.TaskBasis {
 		return nil, conflict("正式任务已偏离设计采用依据，请重新预览")
 	}
-	adoption, e := s.designAdoptionTx(ctx, auth, project, requirement, l.AdoptionID)
+	adoption, e := s.designAdoptionReadTx(ctx, tx, tenant, project, requirement, l.AdoptionID, current)
 	if e != nil {
 		return nil, e
 	}

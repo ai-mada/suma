@@ -40,3 +40,23 @@ it('opens an unstarted test node without inventing an attempt zero',async()=>{
  transport(async()=>Response.json(value));await render('task-a',{onOpenRun:run});await click('[data-task-delivery-toggle]');await click('[data-task-delivery-test="verify"]');
  expect(run).toHaveBeenCalledWith({run:'run-a',node:'verify'});expect(host.textContent).not.toContain('Attempt 0');
 });
+
+it('extracts accepted delivery only from a current formal acceptance and honors navigation and callback locks',async()=>{
+ const value={...delivery(),task_status:'accepted'},extract=vi.fn();transport(async()=>Response.json(value));
+ await render('task-a',{onExtractAcceptedDelivery:extract});await click('[data-task-delivery-toggle]');expect(host.querySelector('[data-task-delivery-extract]')).toBeNull();
+ value.formal_acceptance=true;await click('[data-task-delivery-refresh]');const action=host.querySelector<HTMLButtonElement>('[data-task-delivery-extract]');expect(action).not.toBeNull();expect(action!.disabled).toBe(false);const count=reads.length;
+ const prevent=(event:Event)=>event.preventDefault();window.addEventListener('suma:navigate',prevent);try{await click('[data-task-delivery-extract]');expect(extract).not.toHaveBeenCalled();}finally{window.removeEventListener('suma:navigate',prevent);}
+ await click('[data-task-delivery-extract]');expect(extract).toHaveBeenCalledExactlyOnceWith('task-a');expect(reads).toHaveLength(count);expect(writes).toBe(0);
+ await render('task-a',{onExtractAcceptedDelivery:extract,navigationDisabled:true});expect(host.querySelector<HTMLButtonElement>('[data-task-delivery-extract]')!.disabled).toBe(true);
+ await render();expect(host.querySelector<HTMLButtonElement>('[data-task-delivery-extract]')!.disabled).toBe(true);
+ await render('task-a',{onExtractAcceptedDelivery:extract,taskVersion:4});expect(host.querySelector('[data-task-delivery-extract]')).toBeNull();expect(extract).toHaveBeenCalledOnce();expect(writes).toBe(0);
+});
+
+it('retires delivery extraction on revoked access and ignores late accepted facts after a task owner change',async()=>{
+ let mode:'accepted'|'denied'|'pending'='accepted',release!:(value:Response)=>void;const extract=vi.fn(),forbidden=vi.fn();
+ transport(async path=>mode==='denied'?Response.json({error:{code:'forbidden',message:'No access'}},{status:403}):mode==='pending'&&path.includes('/task-a/')?new Promise<Response>(resolve=>{release=resolve;}):Response.json({...delivery(path.includes('/task-b/')?'task-b':'task-a'),task_status:'accepted',formal_acceptance:mode==='accepted'}));
+ await render('task-a',{onExtractAcceptedDelivery:extract,onForbidden:forbidden});await click('[data-task-delivery-toggle]');expect(host.querySelector('[data-task-delivery-extract]')).not.toBeNull();
+ mode='denied';await click('[data-task-delivery-refresh]');expect(host.querySelector('[data-task-delivery-extract]')).toBeNull();expect(forbidden).toHaveBeenCalledOnce();
+ mode='pending';await click('[data-task-delivery-retry]');const signal=reads.at(-1)!.signal;await render('task-b',{onExtractAcceptedDelivery:extract},{...session,user:{...session.user,id:'user-b'}});expect(signal?.aborted).toBe(true);
+ await act(async()=>release(Response.json({...delivery(),task_status:'accepted',formal_acceptance:true})));await settle();expect(host.querySelector('[data-task-delivery-extract]')).toBeNull();await click('[data-task-delivery-toggle]');expect(reads.at(-1)!.path).toBe('/tasks/task-b/delivery?project_id=project-a');expect(host.querySelector('[data-task-delivery-extract]')).toBeNull();expect(extract).not.toHaveBeenCalled();expect(writes).toBe(0);
+});

@@ -12,6 +12,22 @@
     "target_design": "docs/suma-architecture-design.html",
     "stage_delivery_is_not_full_completion": true
   },
+  "delivery_knowledge": {
+    "stage": "T-DELIVERY-KNOWLEDGE-172",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_source_business_contract_and_readonly_visual_verified",
+    "contract": "contracts/delivery-knowledge.md",
+    "architecture": "docs/architecture/delivery-knowledge.md",
+    "design": "docs/design/delivery-knowledge.md",
+    "report": "docs/quality/delivery-knowledge-verification.md",
+    "summary": "docs/quality/delivery-knowledge-summary.json",
+    "implementation": "Current formally accepted delivery -> exact evidence-bound knowledge source -> existing proposal -> explicit draft adoption/publication -> exact next-task/team published context. Full typed source preserved; lean model projection. Current permissions, CAS, original receipt and drift gates reused; no extra dispatcher/store/dependency.",
+    "verification": "43 distinct top-level (23Go/20Web;37new/6affected old),7subcases separate; one full Web TSC0 and four revised-file semantic0;8181 paired keys/0hardcodes;833declared/834schemas/392paths. Original failures and two P2 fixes retained; no old full-suite repeats.",
+    "actual": "One Go host/one component build, six readonly HTTP/production-component checks;17GET/0POST/17tables unchanged, no model or CLI; normal accepted fixture1run/1report/1review, not real Git/test-process. All exits0/10observed PIDs absent/port free/no force; private snapshot retained. Root viewed CN1366 and EN390 original images; later two English labels copy-only with original evidence preserved.",
+    "remaining": "Real vendor/model and subsequent Codex CLI execution. Physical multi-host, OceanBase/PostgreSQL, full App/theme/device, installers, scale and production. Complete original31/P0-P7 platform and prior171 explicit GUI stop gap.",
+    "full_platform_complete": false
+  },
   "acp_quick_connect": {
     "stage": "T-ACP-QUICK-CONNECT-171",
     "version": "1.0.0",
@@ -660,7 +676,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "af2722c4747593230aedfeac7c87fa0d5ca22e1c"
+    "previously_published_commit": "38ea67e6847157d76aa84a702889868cfa4a3b38"
   },
   "existing_preview": {
     "updated": false,
@@ -668,14 +684,16 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T171 explicit native model discovery and original managed connection implemented,49focused/6critical actual/two partial images; explicit UIstop and real vendor/fullgoal gaps retained. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
+  "last_goal_turn_classification": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-ACP-QUICK-CONNECT-171",
-    "status": "scoped_source_and_critical_actual_verified_with_explicit_ui_stop_gap",
-    "contract": "contracts/acp-quick-connect.md",
-    "full_goal": "active: all original P0–P7 and requirements1–31 retained;58limited/34pending/92total",
-    "next": "Publish verified stage to dev with original21 changes preserved. Continue complete Codex support and Helix-inspired accepted delivery evidence → original knowledge proposal → explicit publication → next Codex team context; no second dispatcher. Preserve explicit GUI stop and real-vendor/full-platform acceptance gaps."
+    "stage": "T-DELIVERY-KNOWLEDGE-172",
+    "status": "scoped_verified",
+    "contract": "contracts/delivery-knowledge.md",
+    "full_goal": "active original31/P0-P7/58limited/34pending/92total",
+    "next": "Continue complete31/P0-P7 platform, real vendors, physical distributed execution, autonomous memory/skill evaluation and remaining storage/installers/production. Stage Git publication is separately recorded; preserve original21 WIP and do not mark full goal complete.",
+    "report": "docs/quality/delivery-knowledge-verification.md",
+    "summary": "docs/quality/delivery-knowledge-summary.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -685,10 +703,10 @@
     "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
   },
   "previous_stage_verification": {
-    "published_commit": "af2722c4747593230aedfeac7c87fa0d5ca22e1c",
-    "stage": "T-ACP-RUNTIME-170",
-    "summary": "docs/quality/acp-runtime-summary.json",
-    "report": "docs/quality/acp-runtime-verification.md"
+    "stage": "T-ACP-QUICK-CONNECT-171",
+    "report": "docs/quality/acp-quick-connect-verification.md",
+    "summary": "docs/quality/acp-quick-connect-summary.json",
+    "published_commit": "38ea67e6847157d76aa84a702889868cfa4a3b38"
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",

@@ -9674,6 +9674,166 @@
         ],
         "type": "object"
       },
+      "DeliveryKnowledgeBasis": {
+        "additionalProperties": false,
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryKnowledgeCandidateEvidence"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "protocol": {
+            "const": "suma-accepted-delivery-v1",
+            "type": "string"
+          },
+          "run_version": {
+            "type": "integer"
+          },
+          "sha256": {
+            "description": "Go canonical digest with this field empty and evidence arrays sorted by their exact identities. Provenance, not a new approval or permission grant.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "task": {
+            "$ref": "#/components/schemas/ReleaseTaskBasis"
+          },
+          "tests": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryKnowledgeTestEvidence"
+            },
+            "maxItems": 256,
+            "type": "array"
+          }
+        },
+        "required": [
+          "protocol",
+          "task",
+          "run_version",
+          "tests",
+          "candidates",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "DeliveryKnowledgeCandidateEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "type": "integer"
+          },
+          "bundle_sha256": {
+            "type": "string"
+          },
+          "evidence_sha256": {
+            "type": "string"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "head_commit": {
+            "type": "string"
+          },
+          "kind": {
+            "description": "Only a verified sealed bundle may carry transfer/bundle fields. An accepted test-only task has no candidate.",
+            "enum": [
+              "workspace_revision",
+              "sealed_bundle"
+            ],
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "transfer_id": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "head_commit",
+          "evidence_sha256"
+        ],
+        "type": "object"
+      },
+      "DeliveryKnowledgeSourceView": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ProjectKnowledgeSource"
+          }
+        },
+        "required": [
+          "project_id",
+          "source"
+        ],
+        "type": "object"
+      },
+      "DeliveryKnowledgeTestEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "type": "integer"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "plan_revision": {
+            "type": "integer"
+          },
+          "plan_sha256": {
+            "type": "string"
+          },
+          "report_id": {
+            "type": "string"
+          },
+          "report_sha256": {
+            "type": "string"
+          },
+          "result_sha256": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "result_sha256"
+        ],
+        "type": "object"
+      },
       "DeploymentAuthorizationGrant": {
         "properties": {
           "assignment": {
@@ -20578,10 +20738,20 @@
       },
       "ProjectKnowledgeContextSource": {
         "properties": {
+          "delivery": {
+            "$ref": "#/components/schemas/DeliveryKnowledgeBasis"
+          },
           "id": {
             "type": "string"
           },
           "kind": {
+            "enum": [
+              "documents",
+              "requirements",
+              "tasks",
+              "issues",
+              "accepted_delivery"
+            ],
             "type": "string"
           },
           "sha256": {
@@ -20916,10 +21086,20 @@
       },
       "ProjectKnowledgeSource": {
         "properties": {
+          "delivery": {
+            "$ref": "#/components/schemas/DeliveryKnowledgeBasis"
+          },
           "id": {
             "type": "string"
           },
           "kind": {
+            "enum": [
+              "documents",
+              "requirements",
+              "tasks",
+              "issues",
+              "accepted_delivery"
+            ],
             "type": "string"
           },
           "quote": {
@@ -20948,6 +21128,11 @@
       "ProjectKnowledgeSourceInput": {
         "additionalProperties": false,
         "properties": {
+          "basis_sha256": {
+            "description": "Required exact lowercase SHA256 of the explicitly previewed server basis for accepted_delivery. Other source kinds cannot provide a nonempty value. Never submit a delivery proof object.",
+            "pattern": "^([a-f0-9]{64})?$",
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -20956,7 +21141,8 @@
               "documents",
               "requirements",
               "tasks",
-              "issues"
+              "issues",
+              "accepted_delivery"
             ],
             "type": "string"
           },
@@ -116207,6 +116393,172 @@
           }
         ],
         "x-request-schema-coverage": "exact id and required project_id; current authorization, complete snapshot and trusted operation provenance enforced by server"
+      }
+    },
+    "/tasks/{id}/delivery-knowledge-source": {
+      "get": {
+        "description": "Read the current same-project formally accepted task and exact quality evidence as a source preview. No model, proposal, draft or publication is created. Current authorization and actual task/review/run/evidence remain required; success or a review request alone is ineligible.",
+        "operationId": "get_tasks_id_delivery-knowledge-source",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryKnowledgeSourceView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-no-agent-effects": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       }
     },
     "/tasks/{id}/design-context": {

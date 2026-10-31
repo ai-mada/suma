@@ -4,7 +4,7 @@
 
 统一开发基线为 **1.0.0**。完整平台仍在实现与验收中：完整P0–P7、需求1–31及58项限定实现／34项待交付／92项总账见[实施计划](docs/delivery/implementation-plan.md)与[当前交付状态](docs/delivery/status.md)。
 
-本阶段已实现[原生工具快速连接](contracts/acp-quick-connect.md)：明确检测本机工具、读取实际模型并确认连接，复用原托管Runner、新库存、暂停登记和独立启用；[架构与AI SOP](docs/architecture/acp-quick-connect.md)及[简洁交互](docs/design/acp-quick-connect.md)记录完整设计。已有[ACP执行链路](docs/quality/acp-runtime-verification.md)贯通固定模型、一次人工权限、候选与独立同提交测试；受控验证与真实厂商、跨平台及生产验收分别记录。
+本阶段已实现[已验收交付经验](contracts/delivery-knowledge.md)：从正式验收任务预览准确测试与代码依据，沿原知识提案、草稿、审阅发布和后续任务上下文复用；[架构与AI SOP](docs/architecture/delivery-knowledge.md)、[简洁交互](docs/design/delivery-knowledge.md)及[限定证据](docs/quality/delivery-knowledge-verification.md)记录设计与实际范围。已保留[原生工具快速连接](contracts/acp-quick-connect.md)及[ACP执行链路](docs/quality/acp-runtime-verification.md)，受控验证与真实厂商、跨平台及生产验收分别记录。
 
 ## 当前能力
 

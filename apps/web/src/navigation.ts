@@ -68,6 +68,18 @@ export function locateWorkbenchTask(id:string,canLeave:()=>boolean,update:(chang
  return true;
 }
 
+/** A delivery source is an explicit task locator, separate from an analysis
+ * record. Opening it preserves the project but carries no old object context. */
+export function deliveryKnowledgeTaskID(panel:string):string|undefined{
+ const prefix='delivery-knowledge:',id=panel.startsWith(prefix)?panel.slice(prefix.length):'';
+ return id.length>0&&id.length<=64&&!/[^A-Za-z0-9_-]/.test(id)?id:undefined;
+}
+export function locateDeliveryKnowledge(taskID:string,canNavigate:()=>boolean,setRoute:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
+ if(!deliveryKnowledgeTaskID('delivery-knowledge:'+taskID)||!canNavigate())return false;
+ setRoute(route=>({...resetTaskCollectionScope(route),view:'knowledge',sub:'project-knowledge',panel:'delivery-knowledge:'+taskID,record:'',run:'',node:'',attempt:'',q:'',status:'all',layout:'list',inbox_filter:undefined,inbox_invalid:undefined,knowledge_kind:undefined,catalog_domain:undefined,catalog_scenario:undefined,catalog_state:undefined,catalog_source:undefined}));
+ return true;
+}
+
 /** A review responsibility link opens the original task detail, never a new
  * approval surface or an automatic acceptance action. */
 export function taskReviewRequestID(panel:string):string{const id=panel.startsWith('task-review:')?panel.slice('task-review:'.length):'';return /^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(id)?id:'';}
