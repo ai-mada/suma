@@ -343,6 +343,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.taskSubscriptionsHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}
+	if s.projectNotificationPreferencesHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.taskConversationHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}

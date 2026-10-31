@@ -16,6 +16,7 @@ afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAl
 function receipt(body:Record<string,any>,patch:Record<string,unknown>={}){return {idempotency_key:body.idempotency_key,notification_id:'notice-a',version:body.expected_version+1,action:body.action,read:body.action==='read',archived:body.action==='archive',read_at:body.action==='read'?'2026-10-29T04:00:00Z':'',archived_at:body.action==='archive'?'2026-10-29T04:00:00Z':'',updated_at:'2026-10-29T04:00:00Z',...patch};}
 function transport(reply?:(path:string,init?:RequestInit)=>Response|undefined|Promise<Response|undefined>){vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
  const path=String(input).replace(/^\/api\/v1/,''),body=init?.body?JSON.parse(String(init.body)):undefined;
+ if(path.startsWith('/notification-preferences'))return Response.json({project_id:props.project,user_id:props.userID,version:0,followed_discussions_muted:false,updated_at:''});
  if(body)writes.push({path,body,headers:new Headers(init?.headers)});else reads.push({path,signal:init?.signal,headers:new Headers(init?.headers)});
  const custom=await reply?.(path,init);if(custom)return custom;
  if(body){const id=path.split('/')[2],index=records.findIndex(record=>record.id===id);if(index<0)return Response.json({error:{code:'not_found',message:'Notification unavailable'}},{status:404});const current=records[index];if(current.version!==body.expected_version)return Response.json({error:{code:'version_conflict',message:'Notification changed'}},{status:409});const read=body.action==='read'?true:body.action==='unread'?false:current.read,archived=body.action==='archive'?true:body.action==='restore'?false:current.archived,version=current.version+(read!==current.read||archived!==current.archived?1:0),read_at=read?current.read_at||'2026-10-29T04:00:00Z':'',archived_at=archived?current.archived_at||'2026-10-29T04:00:00Z':'';records[index]={...current,version,read,archived,read_at,archived_at};return Response.json(receipt(body,{notification_id:id,version,read,archived,read_at,archived_at}));}
@@ -105,7 +106,7 @@ it('clears a failed transient page and retries from the beginning without stale 
 });
 
 it('keeps an unknown command through refresh and restores the exact original ID/version without source snapshots',async()=>{
- let lost=true,originalBody:Record<string,any>|undefined;transport((_path,init)=>{if(!init?.body)return;const body=JSON.parse(String(init.body));if(lost){originalBody=body;records=[item({version:2,archived:true,archived_at:'2026-10-29T04:00:00Z'})];throw new TypeError('Receipt lost');}return Response.json(receipt(body,{archived:true,read:false,read_at:'',archived_at:'2026-10-29T04:00:00Z'}));});await render();await click('[data-notification-action=archive]');expect(host.querySelector('[data-notification-recover]')).not.toBeNull();expect(window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))).toBe(false);expect(host.querySelector<HTMLButtonElement>('[data-notification-filter=unread]')?.disabled).toBe(true);const key='suma-write-recovery-v1:'+notificationInboxScope('user-a','org-a','project-a'),stored=sessionStorage.getItem(key)!;expect(stored).not.toContain('Private assigned task');expect(stored).not.toContain('current_task');await render({refresh:1});expect(host.querySelector('[data-notification-recover]')).not.toBeNull();lost=false;await click('[data-notification-recover]');expect(writes[1].body).toEqual(originalBody);expect(writes[1].headers.get('X-Suma-Expected-User')).toBe('user-a');expect(sessionStorage.getItem(key)).toBeNull();expect(host.querySelector('[data-notification-id]')).toBeNull();expect(window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))).toBe(true);
+ let lost=true,originalBody:Record<string,any>|undefined;transport((_path,init)=>{if(!init?.body)return;const body=JSON.parse(String(init.body));if(lost){originalBody=body;records=[item({version:2,archived:true,archived_at:'2026-10-29T04:00:00Z'})];throw new TypeError('Receipt lost');}return Response.json(receipt(body,{archived:true,read:false,read_at:'',archived_at:'2026-10-29T04:00:00Z'}));});await render();await click('[data-notification-action=archive]');expect(host.querySelector('[data-notification-recover]')).not.toBeNull();let navigationAllowed=true;await act(async()=>{navigationAllowed=window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));});expect(navigationAllowed).toBe(false);expect(host.querySelector<HTMLButtonElement>('[data-notification-filter=unread]')?.disabled).toBe(true);const key='suma-write-recovery-v1:'+notificationInboxScope('user-a','org-a','project-a'),stored=sessionStorage.getItem(key)!;expect(stored).not.toContain('Private assigned task');expect(stored).not.toContain('current_task');await render({refresh:1});expect(host.querySelector('[data-notification-recover]')).not.toBeNull();lost=false;await click('[data-notification-recover]');expect(writes[1].body).toEqual(originalBody);expect(writes[1].headers.get('X-Suma-Expected-User')).toBe('user-a');expect(sessionStorage.getItem(key)).toBeNull();expect(host.querySelector('[data-notification-id]')).toBeNull();await act(async()=>{navigationAllowed=window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));});expect(navigationAllowed).toBe(true);
 });
 
 it('does not acknowledge a malformed receipt or accept a source snapshot as a personal-state receipt',async()=>{
@@ -122,4 +123,26 @@ it('acknowledges an older original receipt without overwriting a newer authorize
 
 it('never widens an invalid route and updates Chinese/English copy without re-reading private data',async()=>{
  transport();await render({invalid:true});expect(reads).toHaveLength(0);expect(host.textContent).toContain('No broader query was made');await click('[data-notification-filter=unread]');expect(props.onFilter).toHaveBeenCalledWith('unread');await render({invalid:false,filter:'unread'});const before=reads.length;await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('任务已分配给本人');expect(reads).toHaveLength(before);await act(async()=>setLocale('en-US',{persist:false}));expect(host.textContent).toContain('Task assigned to you');expect(reads).toHaveLength(before);
+});
+
+it('clears inbox private rows and retires an in-flight page when current preferences access is refused',async()=>{
+ let denyPreferences=false,finishPage!:(value:Response)=>void,pageSignal:AbortSignal|null|undefined;
+ const calls:{path:string;method:string}[]=[];
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  const path=String(input).replace(/^\/api\/v1/,'');calls.push({path,method:init?.method||'GET'});
+  if(path.startsWith('/notification-preferences'))return denyPreferences
+   ?Response.json({error:{code:'forbidden',message:'Project access revoked'}},{status:403})
+   :Response.json({project_id:props.project,user_id:props.userID,version:0,followed_discussions_muted:false,updated_at:''});
+  if(new URLSearchParams(path.split('?')[1]).has('cursor')){pageSignal=init?.signal;return new Promise<Response>(resolve=>{finishPage=resolve;});}
+  return Response.json(page({total:2,counts:{inbox:2,unread:2,archived:0},next_cursor:'next-page'}));
+ }));
+ await render();expect(host.textContent).toContain('Private assigned task');
+ await click('[data-notification-preferences-toggle]');
+ await click('[data-notification-more]');expect(pageSignal?.aborted).toBe(false);
+ denyPreferences=true;await click('[data-notification-preferences-refresh]');
+ expect(pageSignal?.aborted).toBe(true);expect(host.querySelector('[data-notification-id]')).toBeNull();expect(host.textContent).not.toContain('Private assigned task');
+ expect(host.querySelector('[data-notification-filter=unread] .notification-inbox-count')?.textContent).toBe('—');
+ await act(async()=>finishPage(Response.json(page({items:[item({id:'notice-b',sequence:'9007199254740992',current_task:{id:'task-b',version:1,title:'Late private task',status:'draft'}})],total:2,counts:{inbox:2,unread:2,archived:0},next_cursor:''}))));await settle();
+ expect(host.querySelector('[data-notification-id]')).toBeNull();expect(host.textContent).not.toContain('Late private task');
+ expect(calls.every(call=>call.method==='GET')).toBe(true);
 });

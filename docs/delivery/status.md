@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-NOTIFICATION-PREFERENCES-167：[合同](../../contracts/project-notification-preferences.md)、[架构与SOP](../architecture/project-notification-preferences.md)、[交互](../design/project-notification-preferences.md)及[限定证据](../quality/project-notification-preferences-verification.md)。本人当前项目可静音关注讨论，精准提及和其他来源不受影响；原body/key、CAS/no-op与当前值重读分开。14Go／38Web、7875对词条及8项真实HTTP／SQLite业务通过；旧样式夹具缺失被明确修正，保留业务结果后另以快照副本／0POST／15表摘要不变完成两图视觉。业务与视觉各1次必要宿主／SDK构建，各自门禁与首次端口失败留证；无完整App／其他数据库／规模／生产声明，完整31／P0–P7／58／34／92不变。
+
 T-CURSOR-CONNECTION-166：[接入合同](../../contracts/cursor-connection.md)、[架构](../architecture/cursor-connection.md)、[交互](../design/cursor-connection.md)及[验证记录](../quality/cursor-connection-verification.md)。快捷接入区分Cursor编辑器、Agent候选与派发资格，桌面只检查当前PATH固定文件；被动发现与指引已限定核验，真实Cursor执行适配仍planned。不得把文件存在、静态官方包或受控界面当作厂商执行、模型预算、代码候选或生产验收。完整31／P0–P7／58限定＋34待交付＝92项不变。
 
 T-WORKBUDDY-HISTORY-SHARE-165：[明确共享合同](../../contracts/workbuddy-cloud-history-sharing.md)、[架构](../architecture/workbuddy-cloud-history-sharing.md)、[交互](../design/workbuddy-cloud-history-sharing.md)及[限定证据](../quality/workbuddy-cloud-history-sharing-verification.md)。本人选终止观察、同项目目标和精确预览后生成human讨论副本，当前任务读者能读副本而不继承私有会话权限；来源、消息、关注通知与原回执同事务，原操作沿元数据恢复。Go25不同（13新／12旧）、Web41、最新类型及7823对语言通过；两项早期UI缺陷和迟后分页选择P2均已精准修复并独立复核。原11项按修复前输入在第二隔离环境完成；迟后分页修复另用1条当前组件／55条合成GET场景核实，未重跑原11。四次同body／key运输只产生1消息／1来源／1通知，最后正常HTTP201及准确详情200清除journal；viewer私有读取404，原运行／节点／任务依据不变。首次准备失败、测试拦截status0、原驱动及续验退出1和仅自有调试器CLI强停均保留，关键服务正常关闭、快照留存。真实厂商与完整协作／部署矩阵仍待验，完整31／P0–P7／58／34／92不变。

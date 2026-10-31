@@ -7,6 +7,7 @@ import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {Badge,Empty,ErrorNotice,Loading} from './ui';
 import {useWriteAction,WriteNotice} from './write-action';
+import {ProjectNotificationPreferencesControl} from './ProjectNotificationPreferences';
 import {appendNotificationInboxPage,notificationInboxCommandPath,notificationInboxFilters,notificationInboxPath,notificationInboxReceiptIsStale,notificationInboxScope,validNotificationInboxFilter,validNotificationInboxPage,validNotificationInboxReceipt,validNotificationInboxRecovery,type NotificationInboxAction,type NotificationInboxFilter} from './notification-inbox-model';
 import './NotificationInbox.css';
 
@@ -78,7 +79,7 @@ function InboxScope({project,userID,organizationID,filter,refresh,onFilter,onTas
  async function retry(){action.setError('');denied.current=false;setDenial(undefined);await latestRead.current();}
  const pendingAction=action.pending?.body.action;
  return <section className="notification-inbox" aria-label={t('title')}>
-  <header className="notification-inbox-heading"><div><h2><Bell size={19} aria-hidden="true"/>{t('title')}</h2><p>{t('intro')}</p></div><button type="button" disabled={visible.loading||action.busy} onClick={()=>void retry()} data-notification-refresh><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button></header>
+  <header className="notification-inbox-heading"><div><h2><Bell size={19} aria-hidden="true"/>{t('title')}</h2><p>{t('intro')}</p></div><ProjectNotificationPreferencesControl project={project} userID={userID} organizationID={organizationID} disabled={locked} accessBlocked={!!denial||writeDenied} onAccessDenied={clearPrivate}/><button type="button" disabled={visible.loading||action.busy} onClick={()=>void retry()} data-notification-refresh><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button></header>
   <div className="notification-inbox-filters" role="group" aria-label={mt('inbox_filter_label')}>
    {notificationInboxFilters.map(value=><button type="button" key={value} aria-pressed={filter===value&&!invalid} disabled={locked} onClick={()=>{action.setError('');onFilter(value);}} data-notification-filter={value}>{t('filter.'+value)}<span className="notification-inbox-count">{page?formatNumber(page.counts[value]):'—'}</span></button>)}
   </div>

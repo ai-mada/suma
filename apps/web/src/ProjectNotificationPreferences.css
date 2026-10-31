@@ -1,0 +1,29 @@
+.project-notification-preferences{display:grid;gap:12px;min-width:0;font-size:14px}
+.notification-preferences-entry{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.notification-preferences-entry>button,.notification-preferences-actions>button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px}
+.notification-preferences-entry>button svg{flex-shrink:0}
+.notification-preferences-entry>button .is-open{transform:rotate(180deg)}
+.notification-preferences-entry>span{font-size:12px;color:var(--muted);line-height:1.5}
+.notification-preferences-entry>span[data-state=muted]{color:var(--accent)}
+.notification-preferences-panel{display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,2fr);gap:24px;padding:20px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.notification-preferences-panel[hidden]{display:none}
+.notification-preferences-description h3{font-size:16px;margin:0 0 8px;line-height:1.5}
+.notification-preferences-panel p,.notification-preferences-feedback p{margin:0;line-height:1.65;overflow-wrap:anywhere}
+.notification-preferences-description>p,.notification-preferences-hint{color:var(--muted);font-size:14px}
+.notification-preferences-editor{display:grid;gap:12px;min-width:0}
+.notification-preferences-option{display:flex;align-items:center;gap:10px;min-height:36px;font-size:14px;font-weight:600;cursor:pointer}
+.notification-preferences-option input{width:18px;height:18px;margin:0;flex:0 0 auto;accent-color:var(--accent)}
+.notification-preferences-option:has(input:disabled){cursor:default}
+.notification-preferences-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.notification-preferences-actions>span{color:var(--muted);font-size:12px}
+.notification-preferences-feedback{display:grid;gap:12px;min-width:0;font-size:14px}
+.notification-preferences-recovery{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.notification-preferences-recovery>button{flex-shrink:0}
+.project-notification-preferences button:focus-visible,.notification-preferences-option input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.notification-inbox-heading:has(.project-notification-preferences){display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:start;gap:16px}
+.notification-inbox-heading>.project-notification-preferences{display:contents}
+.notification-inbox-heading .notification-preferences-entry{grid-column:2;grid-row:1;justify-content:flex-end;max-width:280px}
+.notification-inbox-heading:has(.project-notification-preferences)>button{grid-column:3;grid-row:1}
+.notification-inbox-heading .notification-preferences-panel,.notification-inbox-heading .notification-preferences-feedback{grid-column:1 / -1}
+@media(max-width:900px){.notification-inbox-heading:has(.project-notification-preferences){grid-template-columns:minmax(0,1fr) auto}.notification-inbox-heading:has(.project-notification-preferences)>div:first-child{grid-column:1 / -1}.notification-inbox-heading .notification-preferences-entry{grid-column:1;grid-row:2;justify-content:flex-start;max-width:none}.notification-inbox-heading:has(.project-notification-preferences)>button{grid-column:2;grid-row:2}.notification-preferences-panel{grid-template-columns:minmax(0,1fr);gap:16px}}
+@media(max-width:600px){.notification-preferences-panel{padding:16px}.notification-preferences-entry>button,.notification-preferences-actions>button,.notification-preferences-option,.notification-preferences-recovery>button{min-height:44px}.notification-preferences-entry{align-items:flex-start;flex-direction:column;gap:4px}.notification-preferences-recovery{align-items:flex-start;flex-direction:column}.notification-preferences-actions>button{max-width:100%;white-space:normal}}

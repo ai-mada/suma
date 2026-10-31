@@ -137,6 +137,9 @@ func generate() (map[string]any, string) {
 	for _, v := range taskSubscriptionModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range projectNotificationPreferencesModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range taskConversationMentionModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -431,6 +434,7 @@ func generate() (map[string]any, string) {
 	taskConversationReplyContracts(add, api)
 	taskConversationMentionContracts(add, api)
 	taskSubscriptionContracts(add, api)
+	projectNotificationPreferencesContracts(add, api)
 	taskReviewRequestContracts(add, api)
 	workBuddyConnectionContracts(add, api)
 	workBuddyCloudContracts(add, api)

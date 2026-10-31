@@ -3982,6 +3982,23 @@ export interface ProjectKnowledgeWriteRequest {
   expected_version: number;
   idempotency_key: string;
 }
+export interface ProjectNotificationPreferences {
+  project_id: string;
+  user_id: string;
+  version: number;
+  followed_discussions_muted: boolean;
+  updated_at: string;
+}
+export interface ProjectNotificationPreferencesCommand {
+  project_id: string;
+  expected_version: number;
+  followed_discussions_muted: boolean;
+  idempotency_key: string;
+}
+export interface ProjectNotificationPreferencesReceipt {
+  idempotency_key: string;
+  preferences: ProjectNotificationPreferences;
+}
 export interface ProjectPoolRunner {
   id: string;
   worker_id: string;

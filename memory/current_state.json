@@ -1,5 +1,23 @@
 {
   "project": "suma",
+  "project_notification_preferences": {
+    "stage": "T-NOTIFICATION-PREFERENCES-167",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_project_personal_discussion_mute_verified",
+    "contract": "contracts/project-notification-preferences.md",
+    "architecture": "docs/architecture/project-notification-preferences.md",
+    "design": "docs/design/project-notification-preferences.md",
+    "report": "docs/quality/project-notification-preferences-verification.md",
+    "summary": "docs/quality/project-notification-preferences-summary.json",
+    "scope": "Own project discussion notification preference, current authority/CAS/original receipts, same-transaction follower filtering and compact bilingual inbox setting. Exact mentions and historical notifications remain independent.",
+    "verification": "52 distinct top-level:14Go/38Web plus3schema subcases separately; once TSC0,late two tests semantic diagnostics0,7875paired keys/0hardcodes.799declared models/800schemas/377paths;existing375paths/797schemas unchanged.",
+    "actual": "8trueHTTP/SQLite/production-inbox-component checks,4human messages/2GUI saves/1old receipt replay=7POST,follow2+mention1/unread3,prefs v2false andtask/subscriptionv1,Run/node/attempt/events/model/vendor/outbound0.1compile/1componentbuild;initial preflightouter1/phase0 retained,only2porthelpers fixed/42inputs same,then all runtimeexits0,11PIDs/portsabsent,noforce.2originalimagesRootviewed,safe14files preserved.",
+    "visual": "Initial8 fixture omitted production foundation CSS,oldimages retained/not final visual. Separate snapshot-copy normalGET-only2cases/2Rootviewed images:all3mainCSS in order,tokens16/24/title18,proper rowpadding/narrowlayout;7GET/0POST/15business digests unchanged,original44/snapshot/out same.49gatefd54,safe12 manifestca4d,oneadditional visualhost/UIbuild,11PIDs/portsabsent,noforce;not8business rerun/fullApp.",
+    "remaining": "Complete notification groups/channels,real other databases/multihost/scale/installers/production;Cursor execution and full31/P0-P7 remain required.",
+    "ledger_unchanged": "Full31/P0-P7 retained;58limited/34pending/92total",
+    "full_platform_complete": false
+  },
   "cursor_connection": {
     "stage": "T-CURSOR-CONNECTION-166",
     "version": "1.0.0",
