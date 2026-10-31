@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-ACP-QUICK-CONNECT-171：[合同](../../contracts/acp-quick-connect.md)、[架构与AI SOP](../architecture/acp-quick-connect.md)、[交互](../design/acp-quick-connect.md)及[限定证据](../quality/acp-quick-connect-verification.md)。明确原生检测、无Prompt实际模型、原托管连接和准确新库存／暂停登记／独立启用已接通；49定向顶层、8137对语言、6关键实际检查与两代表局部图留证。三个驱动1保留：初始busy产品问题已修，空数组与最后窄屏导航为夹具问题；显式UI停止未验，真实app-close Worker停止0。Go4／UI2／probe2，0Prompt／vendor，原18产物与21项其他工作受保护。真实厂商、完整旅程及31／P0–P7／58／34／92继续交付。
+
 T-ACP-RUNTIME-170：[合同](../../contracts/acp-cli-execution.md)、[架构与AI SOP](../architecture/acp-cli-execution.md)、[交互](../design/acp-cli-execution.md)、[接入](../integrations/acp-cli-execution.md)及[证据](../quality/acp-runtime-verification.md)。成熟ACP stdio／固定Qoder策略、真实模型配置ACK、private／Pool一次权限和当前授权、原Worker／候选／独立质量已接通。36Go／24Web不同顶层、全Web类型、8087对语言及8项真实同机Server／SQLite／双Worker／受控CLI／生产组件通过；3项P2及原夹具失败留证，未重复旧绿。1正式Run／1候选、不同Worker同提交JUnit1/1，task仍in_progress且待人工验收；2Go／1组件构建、正常排空、私有快照、两代表视口。真实Qoder／账号／模型、OS沙箱、强制预算、包装器／发现、物理多机及完整31／P0–P7／58／34／92仍待交付或独立验收。
 
 T-WORKBUDDY-CLOUD-TURNS-169：[合同](../../contracts/workbuddy-cloud-turns.md)、[架构与AI SOP](../architecture/workbuddy-cloud-turns.md)、[交互](../design/workbuddy-cloud-turns.md)及[限定证据](../quality/workbuddy-cloud-turns-verification.md)。原云任务内明确新输入、SDK持续回复、准确once权限决定、取消和失联核对已接通；持久命令收件由原lease runtime消费。28个Go／14个Web不同顶层、七项同机双服务HTTP／SQLite／SDK业务和一项独立只读键盘／390px视觉通过；两个夹具失败及第八原旅程partial保留。两次Go编译、一次前端构建复用，493文档／385路径检查通过，原21项工作受保护。回合结束不替代可信代码候选、同提交独立测试及人工验收；真实供应方、物理多机及完整31／P0–P7／58／34／92继续交付。

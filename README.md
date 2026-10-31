@@ -1,20 +1,10 @@
 # 速码 suma
 
-本阶段T-WORKBUDDY-CLOUD-152：[所交付的WorkBuddy云任务工作区](docs/quality/workbuddy-cloud-execution-verification.md)。原运行节点内的本人委派、准确来源和供应方任务核对已接通；控制面以原attempt机器资格提供持久一次创建，未知作用保留原操作。源码、定向检查、隔离构建及真实界面各自范围以专项报告为准，完整自动DAG领取／Execute、ACP协作、可信制品、独立测试和正式验收继续交付。 完整58项限定实现／34项待交付／92项保持不变。
+**速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器、桌面与CLI入口。
 
+统一开发基线为 **1.0.0**。完整平台仍在实现与验收中：完整P0–P7、需求1–31及58项限定实现／34项待交付／92项总账见[实施计划](docs/delivery/implementation-plan.md)与[当前交付状态](docs/delivery/status.md)。
 
-本阶段T-MULTICA-FOLLOW-154：[所交付的当前人员任务关注](docs/quality/task-subscriptions-verification.md)。任务讨论旁用一个关注按钮管理个人偏好，正式讨论与最终assistant消息沿原事务通知当前有权关注者；与精准提及去重，取消后保留历史通知。37个不同Go领域顶层、59项Web及16项真实账号／HTTP／GUI检查限定通过，中英1366／390图片已检查；真实assistant GUI、其他数据库、多机、规模与生产仍待验。 完整58项限定实现／34项待交付／92项保持不变。
-
-
-**速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器和本地桌面入口。
-
-当前统一开发基线为 **1.0.0**，完整平台仍在实现与验收中。产品范围与初始化策略见 [1.0.0 基线](docs/product/v1-baseline.md)，实际能力与限制见 [交付状态](docs/delivery/status.md)，完整 P0–P7 和扩展需求 1–26 见 [实施计划](docs/delivery/implementation-plan.md)。当前58项有限实现、34项待办，共92项；新增全平台智能输入／配置进入待办。
-
-最近交付：[桌面本机工具连接](docs/product/desktop-managed-runner.md)将Codex／CodeBuddy／dsh的目录绑定、安全凭据托管、真实执行节点启动与停止恢复接到原工具快速接入面板；真实库存到达后自动填写配置，暂停登记与明确启用仍分开。Windows本机17项实际检查通过，中英1366／390界面已检查；[验证报告](docs/quality/desktop-managed-runner-verification.md)记录合成只读工具范围、24小时续权、真实供应方编码及跨平台安装等待验边界。完整58／34／92不变。
-
-此前交付：[工具快速接入](docs/product/tool-quick-connect.md)将工具选择、节点匹配、真实库存自动填入、暂停登记和明确启用串在同一简洁面板；桌面增加Codex／CodeBuddy／dsh只读安装检测。55项Web定向检查及15项实际GUI／HTTP／原生IPC验证通过，中英1366／390图片已检查；[报告](docs/quality/tool-quick-connect-verification.md)／[摘要](docs/quality/tool-quick-connect-summary.json)保留本机凭据托管与Runner自动启动待办，完整58／34／92不变。
-
-当前[WorkBuddy账号授权](docs/product/workbuddy-connections.md)沿成熟OAuth SDK管理当前项目本人的连接；浏览器与桌面同会话授权分别核验，桌面返回仅在无草稿／未确认写入时GET原连接，不reload或自动标为已连接。工具页默认收起；[连接证据](docs/quality/workbuddy-connections-verification.md)与[原生窗口证据](docs/quality/workbuddy-desktop-oauth-verification.md)分开记录，最终候选18项实际本机GUI／HTTP通过；视觉图片、真实供应方账号和云派发仍待验。
+本阶段已实现[原生工具快速连接](contracts/acp-quick-connect.md)：明确检测本机工具、读取实际模型并确认连接，复用原托管Runner、新库存、暂停登记和独立启用；[架构与AI SOP](docs/architecture/acp-quick-connect.md)及[简洁交互](docs/design/acp-quick-connect.md)记录完整设计。已有[ACP执行链路](docs/quality/acp-runtime-verification.md)贯通固定模型、一次人工权限、候选与独立同提交测试；受控验证与真实厂商、跨平台及生产验收分别记录。
 
 ## 当前能力
 

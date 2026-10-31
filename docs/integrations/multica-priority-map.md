@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-ACP-QUICK-CONNECT-171沿M11／M12／M16／M17优先补齐真实本机工具接入：明确原生检测、实际模型目录、准确配置与原托管Runner／新库存／暂停登记／独立启用。参考当前Multica `e8ae72c9dfc1b4474b61a9087f51b33cbee6a048`的运行时适配和渐进交互，复用速码原链及成熟ACP SDK0.13.5，无新增受限Multica源码复制。[合同](../../contracts/acp-quick-connect.md)、[架构与AI SOP](../architecture/acp-quick-connect.md)、[交互](../design/acp-quick-connect.md)和[阶段验证](../quality/acp-quick-connect-verification.md)分别记录设计与证据；关键实际链已限定验证，显式停止按钮、真实厂商或全平台验收仍待完成，完整31／P0–P7／58／34／92不变。
+
 T-NOTIFICATION-PREFERENCES-167继续团队协作的个人通知方向：[当前项目本人讨论静音](../../contracts/project-notification-preferences.md)复用速码已有权威事务、关注集合、原回执与个人收件箱，独立实现无新增源码复制。Multica参考`e8ae72c9dfc1b4474b61a9087f51b33cbee6a048`包含7类设置，本片只覆盖followed讨论，不把全部通知分组／系统提示／渠道记完成。[限定证据](../quality/project-notification-preferences-verification.md)保留52定向、8真实HTTP业务与样式修正后的独立只读视觉；完整31／P0–P7／58／34／92不变，Cursor真实执行仍必须交付。
 
 T-CURSOR-CONNECTION-166参考当前Multica `e8ae72c9dfc1b4474b61a9087f51b33cbee6a048` 的统一工具发现思路，复用速码既有Go helper、当前桌面授权、闭合IPC和快捷接入；没有复制新版Cursor源码或新增依赖。[合同](../../contracts/cursor-connection.md)、[架构](../architecture/cursor-connection.md)与[验证范围](../quality/cursor-connection-verification.md)明确区分编辑器／Agent候选／派发能力。本片连接核验已限定完成，Cursor真实执行仍须闭合版本／依赖、配置发现、文件与Git隔离后交付；未增加范围完成数，完整31／P0–P7／58／34／92不变。

@@ -30,6 +30,41 @@ export interface ACPExecutionEvidence {
   host_process_stopped: boolean;
   host_process_tree_stopped: boolean;
 }
+export interface ACPModelCatalogue {
+  source: string;
+  protocol_version: number;
+  config_id: string;
+  current_value: string;
+  models: (ACPModelChoice)[];
+}
+export interface ACPModelChoice {
+  id: string;
+  name: string;
+  configuration_sha256?: string;
+}
+export interface ACPModelDiscoveryEvidence {
+  session_created: boolean;
+  session_close_requested: boolean;
+  session_close_acknowledged: boolean;
+  prompt_requests: number;
+  configuration_writes: number;
+  permission_requests: number;
+  unexpected_activity: number;
+  host_process_stopped: boolean;
+  host_process_tree_stopped: boolean;
+}
+export interface ACPModelDiscoveryResult {
+  protocol: string;
+  runtime: string;
+  state: string;
+  executable_sha256: string;
+  tool_version: string;
+  agent_name?: string;
+  agent_version?: string;
+  catalogue?: ACPModelCatalogue;
+  evidence: ACPModelDiscoveryEvidence;
+  error_code?: string;
+}
 export interface AccountPreferences {
   user_id: string;
   locale: string;

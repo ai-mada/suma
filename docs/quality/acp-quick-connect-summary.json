@@ -1,0 +1,227 @@
+{
+  "stage": "T-ACP-QUICK-CONNECT-171",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "status": "scoped_source_and_critical_actual_verified_with_explicit_ui_stop_gap",
+  "full_platform_complete": false,
+  "full_goal": {
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "status": "active"
+  },
+  "focused": {
+    "distinct_top_level": 49,
+    "new": 40,
+    "affected_existing": 9,
+    "go": 20,
+    "desktop": 16,
+    "web": 13,
+    "protocol_subcases_separate": 20,
+    "old_full_suites_rerun": 0
+  },
+  "types": {
+    "initial_full_exit": 1,
+    "initial_diagnostics": 3,
+    "initial_affected_files": 1,
+    "corrected_local_semantics": 0,
+    "actual_busy_initialization_additional_diagnostic": 1,
+    "corrected_final_local_semantics": 0,
+    "unchanged_file_results_reused": true
+  },
+  "i18n": {
+    "catalog_keys_each_language": 8137,
+    "production_hardcodes": 0,
+    "exit_code": 0,
+    "repeated": false
+  },
+  "contracts": {
+    "declared_models": 829,
+    "schemas": 830,
+    "http_paths": 391,
+    "new_http_model_discovery_routes": 0
+  },
+  "actual": {
+    "source_gate": {
+      "input_count": 89,
+      "root_reported_inputs_sha256": "7ce445978fd13792c95543a8facfb35638fdd38de13e36c80ad19ee4f785801d",
+      "recovery_receipt_sha256": "114f107bac25e06e80b924e0ac0ace6728f65bade42373b90522e100d6facaa4",
+      "native_state_sha256": "8c3e54d77e44d4d9ecba49c65d688b2c7407a539e9ecc6e9a7849bd2e840b38d",
+      "command_receipt_sha256": "1462602254262de03d8d73cd6f41256314179ad400893e5b069818cbedf5c878"
+    },
+    "passed_distinct_checks": 6,
+    "passed_checks": [
+      {
+        "name": "current_owner_hmac_bound_workspace_and_production_quick_connect_open_without_model_probe",
+        "passed": true,
+        "source": "actual-retry1",
+        "reused": true
+      },
+      {
+        "name": "explicit_real_native_probe_uses_one_session_no_prompt_set_auth_and_real_host_stop",
+        "passed": true,
+        "source": "actual-retry1",
+        "reused": true
+      },
+      {
+        "name": "committed201_unknown_recovers_original_body_key_and_exact_post_spawn_inventory",
+        "passed": true,
+        "source": "actual-retry1/recovery",
+        "reused": false
+      },
+      {
+        "name": "production_registration_preserves_exact_profile_and_remains_paused",
+        "passed": true,
+        "source": "actual-retry1/recovery",
+        "reused": false
+      },
+      {
+        "name": "separate_production_confirmation_enables_current_version_without_creating_a_task_or_run",
+        "passed": true,
+        "source": "actual-retry1/recovery",
+        "reused": false
+      },
+      {
+        "name": "english_narrow_original_profile_read_does_not_launch_another_probe_or_worker",
+        "passed": true,
+        "source": "actual-retry1/recovery",
+        "reused": false
+      }
+    ],
+    "full_journey_complete": false,
+    "full_app_verified": false,
+    "real_qoder_verified": false,
+    "driver_attempts": [
+      {
+        "attempt": "actual",
+        "driver_exit_code": 1,
+        "passed_check_count": 1,
+        "failure_kind": "product_initial_status_busy_guard_fixed",
+        "failure_message": "Exactly one controlled native installation was not selected",
+        "original_receipt_retained": true,
+        "host_exit": 0,
+        "native_exit": 0,
+        "port_released": true
+      },
+      {
+        "attempt": "actual-retry1",
+        "driver_exit_code": 1,
+        "passed_check_count": 2,
+        "failure_kind": "fixture_null_transport_list",
+        "failure_message": "Cannot read properties of null (reading 'length')",
+        "original_receipt_retained": true,
+        "host_exit": 0,
+        "native_exit": 0,
+        "port_released": true
+      },
+      {
+        "attempt": "actual-retry1/recovery",
+        "driver_exit_code": 1,
+        "passed_check_count": 4,
+        "failure_kind": "fixture_narrow_layout_navigation_before_explicit_stop",
+        "failure_message": "locator.click: Timeout 30000ms exceeded.",
+        "original_receipt_retained": true,
+        "host_exit": 0,
+        "native_exit": 0,
+        "port_released": true
+      }
+    ],
+    "registration": {
+      "transport_count": 2,
+      "http_statuses": [
+        201,
+        201
+      ],
+      "original_body_sha256": "88f0984103492ec48cb940cb5335de85b8f0ee07abcecead6dda3adbd88b210f",
+      "original_committed_receipt_sha256": "f891ae7a94fe9d90c59b180e0a9d4b9944375a629e0a1f8754ef30a7ae345bde",
+      "recovered_body_sha256": "88f0984103492ec48cb940cb5335de85b8f0ee07abcecead6dda3adbd88b210f",
+      "recovered_committed_receipt_sha256": "f891ae7a94fe9d90c59b180e0a9d4b9944375a629e0a1f8754ef30a7ae345bde",
+      "first_response_truncated": true,
+      "recovered_response_truncated": false,
+      "registered_workers": 1
+    },
+    "final_state": {
+      "stats": {
+        "attempts": 0,
+        "candidates": 0,
+        "inventories": 1,
+        "nodes": 0,
+        "permissions": 0,
+        "profiles": 1,
+        "reports": 0,
+        "reviews": 0,
+        "runs": 0,
+        "tasks": 0,
+        "workers": 1
+      },
+      "profile_state": "enabled",
+      "profile_version": 2,
+      "worker_process_running": false,
+      "model": "owned-model171",
+      "configuration_sha256": "2613753b93dfc2c148934790847cd7f26afe9c40d1a50520d2a90668a82e82ce",
+      "controlled_executable_sha256": "47b46aa4c20a9fdb50cdd47613787889a549edbf4cc60bf3a24b20e6a34062fd",
+      "same_original_owner_project_database_workspace_and_desktop_key": true,
+      "recovery_setup_login_rebind_reseed_calls": 0
+    },
+    "resources": {
+      "go_compilations": 4,
+      "ui_builds": 2,
+      "recovery_ui_builds": 0,
+      "control_recompiled": false,
+      "model_discovery_sessions": 2,
+      "prompt_requests": 0,
+      "configuration_writes": 0,
+      "authenticate_requests": 0,
+      "permission_requests": 0,
+      "vendor_requests": 0,
+      "model_requests": 0
+    },
+    "stop": {
+      "explicit_gui_stop_button": {
+        "status": "unverified",
+        "reason": "Narrow selected-detail view hides the tool list. Driver omitted Return to configuration list before Add tool; last locator timed out."
+      },
+      "actual_app_close_worker_stop": {
+        "status": "observed",
+        "pid": 180780,
+        "closed": true,
+        "exit_code": 0,
+        "pid_absent_at_close": true,
+        "signals": [],
+        "trigger": "Original production managed controller dispose on application close"
+      },
+      "all_recorded_host_electron_and_control_exits_normal": true,
+      "all_recorded_pid_absence_checks_passed": true,
+      "force_stop_used": false
+    },
+    "preservation": {
+      "original_artifact_count": 18,
+      "recorded_final_sha_audit_passed": true,
+      "preservation_manifest_sha256": "7214433b58f27c3c11d0d527e9daac5e2d7570856915da5507a60fe50719199f",
+      "prior_gates_helpers_outputs_and_failure_receipts_retained": true,
+      "latest_private_snapshot": {
+        "retained": true,
+        "bytes": 2965504,
+        "sha256": "615c4de8b2525d2becea960a877a85ddddffbb8302b6c3c402406dc1e6749c75",
+        "method": "Parameterized VACUUM INTO new private target after HTTP shutdown and desktop-managed process stop"
+      }
+    },
+    "page_errors": 0,
+    "console_errors": 0,
+    "external_requests": 0
+  },
+  "remaining": [
+    "Explicit stop button in narrow-screen GUI has not been verified; normal application-close Worker stop was observed.",
+    "Real Qoder installation/login/provider/model/fees, official npm entry resolution, Windows symlink branch and other OS/physical multi-host/full App/device/theme/scale/database/installers/production remain separate.",
+    "All original31/P0-P7 platform requirements and complete Codex/Helix knowledge/skills/quality workflow remain active."
+  ],
+  "docs": {
+    "markdown_documents": 500,
+    "api_paths": 391,
+    "schema_references": 3601,
+    "exit_code": 0,
+    "check_count": 1
+  }
+}

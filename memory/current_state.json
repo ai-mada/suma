@@ -12,6 +12,22 @@
     "target_design": "docs/suma-architecture-design.html",
     "stage_delivery_is_not_full_completion": true
   },
+  "acp_quick_connect": {
+    "stage": "T-ACP-QUICK-CONNECT-171",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_source_and_critical_actual_verified_with_explicit_ui_stop_gap",
+    "contract": "contracts/acp-quick-connect.md",
+    "architecture": "docs/architecture/acp-quick-connect.md",
+    "design": "docs/design/acp-quick-connect.md",
+    "report": "docs/quality/acp-quick-connect-verification.md",
+    "summary": "docs/quality/acp-quick-connect-summary.json",
+    "implementation": "Explicit native discovery and no-Prompt SDK model catalogue → source-bound confirmed fixed model → original managed Runner → precise postspawn inventory → paused profile and independent enable. Native bytes/version/current scope/nonrenewable probe/original encrypted operations remain authoritative.",
+    "verification": "49 distinct focused top-level (20Go/16desktop/13Web;40new/9affected old),20protocol subcases separate; one full Web diagnostic3 corrected locally0, additional busy generic1 corrected locally0;8137paired keys/0hardcodes;829declared/830schemas/391paths. Original failures retained; no old full suites repeated.",
+    "actual": "6critical checks(2reused+4new), same original retry owner/DB/Repo/key/profile, original201truncated then samebody/key recovered1Worker; new exact fixed-model inventory, pausedv1 then explicit enabledv2. Tasks/runs/attempts/candidates/reports/reviews0. 3driver exits1 retained: initial busyP2 fixed; null fixture; final narrow-list navigation fixture. UIstop unverified; actual app-close Worker0 and all host/native/control exits0/PIDsabsent/portsfree/noforce. 2Root-viewed representative partial images. Go4/UI2/probe2;0Prompt/Set/Auth/vendor/model, original18protected, snapshots retained.",
+    "remaining": "Explicit stop button in narrow-screen GUI has not been verified; normal application-close Worker stop was observed. Real Qoder installation/login/provider/model/fees, official npm entry resolution, Windows symlink branch and other OS/physical multi-host/full App/device/theme/scale/database/installers/production remain separate. All original31/P0-P7 platform requirements and complete Codex/Helix knowledge/skills/quality workflow remain active.",
+    "full_platform_complete": false
+  },
   "acp_cli_execution": {
     "stage": "T-ACP-RUNTIME-170",
     "version": "1.0.0",
@@ -644,7 +660,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "9195b58689d1c599ff1133c134e5a4ef5b3d6ed8"
+    "previously_published_commit": "af2722c4747593230aedfeac7c87fa0d5ca22e1c"
   },
   "existing_preview": {
     "updated": false,
@@ -652,14 +668,14 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T170 reusable ACP CLI, exact modelACK, persistent human permissions and sameSHA quality implemented;60distinct focused checks and8actual GUI-HTTP-SQLite-Worker-SDK-candidate-JUnit checks passed, source/p2/fixture evidence retained. Git publication recorded separately against actual commit. Complete original31/P0-P7/58limited/34pending/92total remains active.",
+  "last_goal_turn_classification": "progress: T171 explicit native model discovery and original managed connection implemented,49focused/6critical actual/two partial images; explicit UIstop and real vendor/fullgoal gaps retained. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-ACP-RUNTIME-170",
-    "status": "scoped_verified_continuing_full_goal",
-    "contract": "contracts/acp-cli-execution.md",
+    "stage": "T-ACP-QUICK-CONNECT-171",
+    "status": "scoped_source_and_critical_actual_verified_with_explicit_ui_stop_gap",
+    "contract": "contracts/acp-quick-connect.md",
     "full_goal": "active: all original P0–P7 and requirements1–31 retained;58limited/34pending/92total",
-    "next": "Finish current ACP CLI model/permission/Worker/candidate/same-SHA independent test GUI journey and safe dev publication, then continue trusted cloud code candidate/baseline handoff, actual vendor adapters and complete platform scope. Preserve original source/attempt/fence, unknown-side-effect reconciliation and real vendor/deployment qualification."
+    "next": "Publish verified stage to dev with original21 changes preserved. Continue complete Codex support and Helix-inspired accepted delivery evidence → original knowledge proposal → explicit publication → next Codex team context; no second dispatcher. Preserve explicit GUI stop and real-vendor/full-platform acceptance gaps."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -669,10 +685,10 @@
     "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
   },
   "previous_stage_verification": {
-    "stage": "T-WORKBUDDY-CLOUD-TURNS-169",
-    "report": "docs/quality/workbuddy-cloud-turns-verification.md",
-    "summary": "docs/quality/workbuddy-cloud-turns-summary.json",
-    "published_commit": "9195b58689d1c599ff1133c134e5a4ef5b3d6ed8"
+    "published_commit": "af2722c4747593230aedfeac7c87fa0d5ca22e1c",
+    "stage": "T-ACP-RUNTIME-170",
+    "summary": "docs/quality/acp-runtime-summary.json",
+    "report": "docs/quality/acp-runtime-verification.md"
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",

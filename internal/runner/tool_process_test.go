@@ -78,6 +78,9 @@ func TestMain(m *testing.M) {
 		}
 		os.Exit(22)
 	}
+	if acpModelDiscovery171FixtureProcess() {
+		return
+	}
 	if acpRunnerFixtureProcess() {
 		return
 	}

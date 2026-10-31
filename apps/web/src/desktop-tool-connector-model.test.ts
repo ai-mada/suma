@@ -17,3 +17,10 @@ it('rejects leaked fields and mismatched connection facts before presenting a no
  expect(readDesktopToolResult({status:'failed',code:'authorization_required'},scope)).toEqual({status:'failed',code:'authorization_required'});
  expect(readDesktopToolResult({status:'failed',code:'failed',environment:{}},scope)).toBeUndefined();
 });
+it('keeps Qoder fixed configuration facts scoped to the ACP connection',()=>{
+ const qoderScope={...scope,adapterID:'qoder-acp'},qoderConnection={...connection,adapter_id:'qoder-acp',model:'model:一',tool_version:'Qoder 1.2.3',executable_sha256:'a'.repeat(64),configuration_sha256:'b'.repeat(64)};
+ expect(validDesktopToolScope(qoderScope)).toBe(true);
+ expect(readDesktopToolResult({status:'ok',connection:qoderConnection},qoderScope)).toEqual({status:'ok',connection:qoderConnection});
+ for(const patch of [{model:'bad\nmodel'},{model:'x'.repeat(257)},{tool_version:''},{executable_sha256:'bad'},{configuration_sha256:'A'.repeat(64)},{acp_selection:{installation_id:'private'}}])expect(readDesktopToolResult({status:'ok',connection:{...qoderConnection,...patch}},qoderScope)).toBeUndefined();
+ expect(readDesktopToolResult({status:'ok',connection:{...qoderConnection,adapter_id:scope.adapterID}},scope)).toBeUndefined();
+});

@@ -6,7 +6,7 @@ import (
 )
 
 func acpRuntimeModels() []any {
-	return []any{ac.Capability{}, ac.Evidence{}, ac.PermissionOption{}, ac.PermissionRequest{}, ac.PermissionDecision{}, ac.Permission{}, ac.PermissionList{}, ac.DecisionRequest{}, platform.ToolPermissionOpenRequest{}, platform.ToolPermissionPollRequest{}, platform.PoolToolPermissionOpenRequest{}, platform.PoolToolPermissionPollRequest{}}
+	return []any{ac.Capability{}, ac.Evidence{}, ac.PermissionOption{}, ac.PermissionRequest{}, ac.PermissionDecision{}, ac.Permission{}, ac.PermissionList{}, ac.DecisionRequest{}, platform.ToolPermissionOpenRequest{}, platform.ToolPermissionPollRequest{}, platform.PoolToolPermissionOpenRequest{}, platform.PoolToolPermissionPollRequest{}, ac.ACPModelChoice{}, ac.ACPModelCatalogue{}, ac.ACPModelDiscoveryEvidence{}, ac.ACPModelDiscoveryResult{}}
 }
 
 func acpRuntimeContracts(add operationAdder, api map[string]any) {
@@ -57,8 +57,22 @@ func acpRuntimeContracts(add operationAdder, api map[string]any) {
 		}
 		op["x-response-cache-control"] = "no-store"
 	}
-	for _, name := range []string{"ACPExecutionCapability", "ACPExecutionEvidence", "ToolPermissionOption", "ToolPermissionRequest", "ToolPermissionDecision", "ToolPermission", "ToolPermissionList", "ToolPermissionDecisionRequest", "ToolPermissionOpenRequest", "ToolPermissionPollRequest", "PoolToolPermissionOpenRequest", "PoolToolPermissionPollRequest"} {
+	for _, name := range []string{"ACPExecutionCapability", "ACPExecutionEvidence", "ToolPermissionOption", "ToolPermissionRequest", "ToolPermissionDecision", "ToolPermission", "ToolPermissionList", "ToolPermissionDecisionRequest", "ToolPermissionOpenRequest", "ToolPermissionPollRequest", "PoolToolPermissionOpenRequest", "PoolToolPermissionPollRequest", "ACPModelChoice", "ACPModelCatalogue", "ACPModelDiscoveryEvidence", "ACPModelDiscoveryResult"} {
 		object := api["components"].(map[string]any)["schemas"].(map[string]any)[name].(map[string]any)
 		object["additionalProperties"] = false
 	}
+	// These are safe local IPC observations, not new HTTP operations. A model
+	// directory never grants a task, provider authentication or fee guarantee.
+	schemas := api["components"].(map[string]any)["schemas"].(map[string]any)
+	result := schemas["ACPModelDiscoveryResult"].(map[string]any)
+	result["description"] = "Explicit local native ACP model observation after actual host termination; no Prompt/configuration writes. Ready is adoptable only under the original desktop scope, installation and nonrenewable observation deadline. Not a provider/model health or billing claim."
+	props := result["properties"].(map[string]any)
+	props["protocol"] = map[string]any{"type": "string", "enum": []any{ac.ModelDiscoveryProtocol}}
+	props["runtime"] = map[string]any{"type": "string", "enum": []any{"qoder"}}
+	props["state"] = map[string]any{"type": "string", "enum": []any{"ready", "failed", "unknown"}}
+	catalogue := schemas["ACPModelCatalogue"].(map[string]any)["properties"].(map[string]any)
+	catalogue["source"] = map[string]any{"type": "string", "enum": []any{"acp_session_config"}}
+	catalogue["protocol_version"] = map[string]any{"type": "integer", "enum": []any{1}}
+	catalogue["models"].(map[string]any)["minItems"] = 1
+	catalogue["models"].(map[string]any)["maxItems"] = 256
 }

@@ -119,6 +119,164 @@
         ],
         "type": "object"
       },
+      "ACPModelCatalogue": {
+        "additionalProperties": false,
+        "properties": {
+          "config_id": {
+            "type": "string"
+          },
+          "current_value": {
+            "type": "string"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ACPModelChoice"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "type": "array"
+          },
+          "protocol_version": {
+            "enum": [
+              1
+            ],
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "acp_session_config"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "protocol_version",
+          "config_id",
+          "current_value",
+          "models"
+        ],
+        "type": "object"
+      },
+      "ACPModelChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "ACPModelDiscoveryEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration_writes": {
+            "type": "integer"
+          },
+          "host_process_stopped": {
+            "type": "boolean"
+          },
+          "host_process_tree_stopped": {
+            "type": "boolean"
+          },
+          "permission_requests": {
+            "type": "integer"
+          },
+          "prompt_requests": {
+            "type": "integer"
+          },
+          "session_close_acknowledged": {
+            "type": "boolean"
+          },
+          "session_close_requested": {
+            "type": "boolean"
+          },
+          "session_created": {
+            "type": "boolean"
+          },
+          "unexpected_activity": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_created",
+          "session_close_requested",
+          "session_close_acknowledged",
+          "prompt_requests",
+          "configuration_writes",
+          "permission_requests",
+          "unexpected_activity",
+          "host_process_stopped",
+          "host_process_tree_stopped"
+        ],
+        "type": "object"
+      },
+      "ACPModelDiscoveryResult": {
+        "additionalProperties": false,
+        "description": "Explicit local native ACP model observation after actual host termination; no Prompt/configuration writes. Ready is adoptable only under the original desktop scope, installation and nonrenewable observation deadline. Not a provider/model health or billing claim.",
+        "properties": {
+          "agent_name": {
+            "type": "string"
+          },
+          "agent_version": {
+            "type": "string"
+          },
+          "catalogue": {
+            "$ref": "#/components/schemas/ACPModelCatalogue"
+          },
+          "error_code": {
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/ACPModelDiscoveryEvidence"
+          },
+          "executable_sha256": {
+            "type": "string"
+          },
+          "protocol": {
+            "enum": [
+              "suma-acp-model-discovery-v1"
+            ],
+            "type": "string"
+          },
+          "runtime": {
+            "enum": [
+              "qoder"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ready",
+              "failed",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "tool_version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "runtime",
+          "state",
+          "executable_sha256",
+          "tool_version",
+          "evidence"
+        ],
+        "type": "object"
+      },
       "AccountPreferences": {
         "properties": {
           "locale": {

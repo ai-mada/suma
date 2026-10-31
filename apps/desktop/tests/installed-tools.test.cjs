@@ -37,6 +37,11 @@ test('bounded malformed or cross-tool child output never becomes an installation
 test('report validator keeps install, launch support and dispatch readiness separate',()=>{
  const unavailable={protocol:'suma-installed-tools-v1',items:[{adapter_id:'codex-jsonl',product:'Codex',installed:false,launch_supported:false,reason_code:'not_installed'}]};assert.ok(validInstalledToolReport(unavailable,'codex-jsonl'));assert.equal(validInstalledToolReport({...unavailable,available:true},'codex-jsonl'),undefined);
 });
+test('ACP actual discovery IPC preserves native identity but never grants launch authority',async()=>{
+ const h=harness(),pending=h.controller.discover(h.event,{...request,adapter_id:'qoder-acp'});await tick();
+ h.complete({protocol:'suma-installed-tools-v1',items:[{adapter_id:'qoder-acp',product:'Qoder CLI',installed:true,launch_supported:false,reason_code:'acp_configuration_required',executable:process.execPath,executable_sha256:'a'.repeat(64),version:'Qoder reviewed'}]});
+ const out=await pending;assert.equal(out.status,'observed');assert.equal(out.report.items[0].launch_supported,false);assert.equal(out.report.items[0].executable_sha256,'a'.repeat(64));assert.equal(Object.hasOwn(out.report.items[0],'command'),false);await h.controller.dispose();
+});
 
 const cursorReport=(reason,extra={})=>({protocol:'suma-installed-tools-v1',items:[{adapter_id:'cursor-cli',product:'Cursor',installed:['cursor_agent_unverified','cursor_launcher_unsupported'].includes(reason),launch_supported:false,reason_code:reason,...extra}]});
 test('Cursor passive observations remain closed and cannot acquire executable authority',()=>{

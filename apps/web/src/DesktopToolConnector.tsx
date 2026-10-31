@@ -5,12 +5,13 @@ import {useApi,useApiView} from './api-context';
 import type {ApiCaller} from './api';
 import {DesktopWorkspacePicker} from './DesktopWorkspacePicker';
 import {validWorkspaceMetadata} from './desktop-workspace-model';
-import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope,type DesktopToolAction,type DesktopToolBridge,type DesktopToolConnection,type DesktopToolPhase,type DesktopToolScope} from './desktop-tool-connector-model';
+import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope,type DesktopToolAction,type DesktopToolBridge,type DesktopToolConnection,type DesktopToolPhase,type DesktopToolScope,type DesktopToolRequest} from './desktop-tool-connector-model';
+import {validDesktopACPSelection,type DesktopACPSelection} from './desktop-acp-connector-model';
 import {tr,useLocale} from './i18n';
 import './DesktopToolConnector.css';
 
 const t=(key:string)=>tr('desktop-tool-connector.'+key);
-export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;secondary?:boolean;disabled?:boolean};
+export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;onConnection?:(connection:DesktopToolConnection)=>void;secondary?:boolean;disabled?:boolean;acpSelection?:DesktopACPSelection;expectedConfigurationSHA?:string};
 export function DesktopToolConnector(props:DesktopToolConnectorProps){
  const api=useApi(),view=useApiView(),bridge=desktopToolBridge();
  const scope={project:props.project,userID:view?.userID??'',organizationID:view?.organizationID??'',adapterID:props.adapterID};
@@ -19,12 +20,14 @@ export function DesktopToolConnector(props:DesktopToolConnectorProps){
 }
 type Snapshot={api:ApiCaller;bridge:DesktopToolBridge;connection?:DesktopToolConnection;uncertain?:DesktopToolAction;failed?:boolean;refusal?:DesktopToolPhase};
 const refusals=new Set(['authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','needs_workspace','not_installed','unavailable']);
-function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
+function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected,onConnection,acpSelection,expectedConfigurationSHA}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
  const locale=useLocale(),[snapshot,setSnapshot]=useState<Snapshot>(),[busy,setBusy]=useState<DesktopToolAction>(),[workspaceBlocked,setWorkspaceBlocked]=useState(false);
- const intent=useRef({api,bridge,epoch:0}),mounted=useRef(true),inflight=useRef(false),reported=useRef('');
+ const intent=useRef({api,bridge,epoch:0}),mounted=useRef(true),inflight=useRef(false),reported=useRef(''),reportedConnection=useRef('');
  if(intent.current.api!==api||intent.current.bridge!==bridge)intent.current={api,bridge,epoch:intent.current.epoch+1};
  const current=snapshot?.api===api&&snapshot.bridge===bridge?snapshot:undefined,connection=current?.connection;
  const phase=current?.refusal??(current?.uncertain?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
+ const acp=scope.adapterID==='qoder-acp',originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
+ const selectionValid=validDesktopACPSelection(acpSelection)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
  const live=(epoch:number)=>mounted.current&&epoch===intent.current.epoch;
  function unconfirmed(previous:Snapshot|undefined,action:DesktopToolAction,code?:string):Snapshot{
   const before=previous?.api===api&&previous.bridge===bridge?previous:undefined,connection=before?.connection;
@@ -35,9 +38,12 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  }
  async function run(action:DesktopToolAction){
   if(inflight.current||action!=='status'&&(disabled||workspaceBlocked))return;
+  if(action==='connect'&&acp&&!originalRecovery&&!selectionValid)return;
   const epoch=intent.current.epoch;inflight.current=true;setBusy(action);
   try{
-   const raw=await bridge.manageLocalTool({action,project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,adapter_id:scope.adapterID,locale});
+   const base={project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,adapter_id:scope.adapterID,locale};
+   const request:DesktopToolRequest=action==='connect'?{...base,action,...(acp&&!originalRecovery&&selectionValid?{acp_selection:{...acpSelection!},...(expectedConfigurationSHA?{expected_configuration_sha256:expectedConfigurationSHA}:{})}:{})}:{...base,action};
+   const raw=await bridge.manageLocalTool(request);
    if(!live(epoch))return;const result=readDesktopToolResult(raw,scope);
    if(!result)throw Error('unconfirmed native response');
    if(result.status==='failed')setSnapshot(previous=>unconfirmed(previous,action,result.code));
@@ -46,9 +52,14 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   finally{if(live(epoch)){inflight.current=false;setBusy(undefined);}}
  }
  useEffect(()=>{
-  mounted.current=true;inflight.current=false;setBusy(undefined);setSnapshot(undefined);reported.current='';void run('status');
+  mounted.current=true;inflight.current=false;setBusy(undefined);setSnapshot(undefined);reported.current='';reportedConnection.current='';void run('status');
   return()=>{mounted.current=false;intent.current.epoch++;};
  },[api,bridge]);
+ useEffect(()=>{
+  if(!onConnection||!current||current.uncertain||current.refusal||!connection)return;
+  const identity=JSON.stringify(connection);if(reportedConnection.current===identity)return;
+  reportedConnection.current=identity;onConnection(connection);
+ },[current,connection,onConnection]);
  useEffect(()=>{
   if(!current)return;
   // Reset only after a confirmed state change, never while a read is loading
@@ -58,8 +69,10 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   if(current.uncertain||!connection)return;
   if(connection.phase!=='connected'){reported.current='';return;}
   if(!connection.worker_id)return;
-  if(reported.current===connection.worker_id)return;reported.current=connection.worker_id;onConnected(connection.worker_id);
- },[current,connection,onConnected]);
+  if(acp&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.tool_version||!connection.executable_sha256||acpSelection&&connection.model!==acpSelection.model_id)){reported.current='';return;}
+  const identity=acp?connection.worker_id+':'+connection.configuration_sha256:connection.worker_id;
+  if(reported.current===identity)return;reported.current=identity;onConnected(connection.worker_id);
+ },[current,connection,onConnected,acp,expectedConfigurationSHA,acpSelection?.model_id]);
  useEffect(()=>{
   if(busy||!connection||current?.uncertain)return;
   const wait=connection.phase==='starting'||connection.phase==='stopping'?2000:connection.phase==='connected'&&connection.expires_at?Math.max(1000,Date.parse(connection.expires_at)-Date.now()):undefined;
@@ -67,7 +80,7 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  },[connection,busy,current]);
  const blocked=!!busy||disabled||workspaceBlocked;
  const resume=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
- const canConnect=!!current&&phase!=='connected'&&phase!=='starting'&&phase!=='stopping'&&phase!=='stop_unconfirmed'&&phase!=='needs_workspace'&&phase!=='binding_changed'&&phase!=='origin_changed'&&phase!=='credential_unrecoverable'&&phase!=='authorization_required';
+ const canConnect=!!current&&(!acp||originalRecovery||selectionValid)&&phase!=='connected'&&phase!=='starting'&&phase!=='stopping'&&phase!=='stop_unconfirmed'&&phase!=='needs_workspace'&&phase!=='binding_changed'&&phase!=='origin_changed'&&phase!=='credential_unrecoverable'&&phase!=='authorization_required';
  const canStop=!!connection?.worker_id&&(phase==='connected'||phase==='starting');
  const content=<>
   <p className="desktop-tool-description">{t('help')}</p>

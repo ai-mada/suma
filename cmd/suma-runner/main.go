@@ -36,10 +36,17 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	allow := app.Bool("allow-exec", false, "允许执行本地允许列表中的命令", "enable execution of local allowlisted commands")
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
 	discoverInstalled := app.Bool("discover-installed-tools", false, "只读检测本机已安装的开发工具，不读取执行凭据或启动任务", "read-only detection of installed developer tools; no worker credentials or tasks")
-	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli、cursor-cli（仅被动文件检查）；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica, claude-code-cli or cursor-cli (passive files only); empty selects all")
+	describeACPModels := app.Bool("describe-acp-models-stdin", false, "由私有标准输入明确读取已选本机工具的模型目录；不派发任务", "explicitly discover the selected local tool model catalogue from private stdin; no task dispatch")
+	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli、qoder-acp、cursor-cli（仅被动文件检查）；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica, claude-code-cli, qoder-acp or cursor-cli (passive files only); empty selects all")
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if *describeACPModels {
+		if *base != "http://127.0.0.1:4310" || *project != "" || *id != "" || *workspace != "." || *repository != "" || *baseCommit != "" || *worktrees != "" || *preflight != "" || *state != ".cache/runner" || *inspectState || *commands != "" || *modelDeployments != "" || *externalConfig != "" || *poolConfig != "" || *allow || *describe || *discoverInstalled || *localTool != "" {
+			return app.Failure("模型目录探测不能与执行器、工作区或其他模式混用", "Model discovery cannot be combined with worker, workspace or another mode")
+		}
+		return runACPModelDiscoveryStdin(app, os.Stdin)
 	}
 	if *discoverInstalled {
 		if *base != "http://127.0.0.1:4310" || *project != "" || *id != "" || *workspace != "." || *repository != "" || *baseCommit != "" || *worktrees != "" || *preflight != "" || *state != ".cache/runner" || *inspectState || *commands != "" || *modelDeployments != "" || *externalConfig != "" || *poolConfig != "" || *allow || *describe {

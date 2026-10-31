@@ -1,8 +1,10 @@
 'use strict';
 const {spawn:spawnChild}=require('node:child_process'),path=require('node:path'),crypto=require('node:crypto');
 const {PROTOCOL,createManagedRunnerJournal,scopeKey,validScope,validOrigin}=require('./managed-local-runner-journal.cjs');
+const {createLocalACPController,cleanEnvironment}=require('./local-acp.cjs');
+const {fields,validConfiguration}=require('./local-acp-validation.cjs');
 const CHANNEL='suma:manage-local-runner';
-const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1']});
+const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1'],'qoder-acp':['qoder','acp-stdio-v1']});
 const HASH=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{32}$/;
 const gitUnavailable=error=>error?.status===422&&['desktop_runner_head_unavailable','desktop_runner_repository_unsafe','desktop_runner_repository_unavailable'].includes(error.code);
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
@@ -30,7 +32,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  function caller(event){try{return alive()&&event.sender===parent.webContents&&event.senderFrame===parent.webContents.mainFrame&&new URL(event.senderFrame.url).origin===origin;}catch{return false;}}
  function openJournal(){if(journalFinalized)throw Error('Managed runner controller is closed');return journal??=createManagedRunnerJournal({userData,safeStorage});}
  function save(record){openJournal().write(record.value);}
- function connection(scope,phase,record){const value={project_id:scope.project_id,adapter_id:scope.adapter_id,phase};if(record?.value){value.worker_id=record.value.request.worker_id;value.base_commit=record.value.base_commit;value.repository_name=path.basename(record.value.repository_path);if(record.expiresAt||record.value.worker?.expires_at)value.expires_at=record.expiresAt||record.value.worker.expires_at;}return {status:'ok',connection:value};}
+ function connection(scope,phase,record){const value={project_id:scope.project_id,adapter_id:scope.adapter_id,phase};if(record?.value){value.worker_id=record.value.request.worker_id;value.base_commit=record.value.base_commit;value.repository_name=path.basename(record.value.repository_path);if(record.expiresAt||record.value.worker?.expires_at)value.expires_at=record.expiresAt||record.value.worker.expires_at;const config=record.value.acp_configuration;if(config)Object.assign(value,{model:config.model,tool_version:config.reviewed_version,executable_sha256:config.executable_sha256,configuration_sha256:config.configuration_sha256});}return {status:'ok',connection:value};}
  function phase(record,value){record.value.phase=value;save(record);}
  function getRecord(scope){
   const id=scopeKey(scope);if(records.has(id))return records.get(id);const value=openJournal().read(scope);if(!value)return;
@@ -84,7 +86,10 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   const observed=Date.parse(out.observed_at),expires=Date.parse(out.expires_at),asOf=Date.parse(out.as_of),elapsed=now()-started;
   if(!Number.isFinite(observed)||!Number.isFinite(expires)||!Number.isFinite(asOf)||expires-observed!==60000||observed>asOf||asOf>=expires||elapsed<0||expires-asOf<=elapsed||observed<record.spawnedAt||observed<=record.inventoryWatermark)return false;
   const [adapter,protocol]=TOOL_PROTOCOLS[scope.adapter_id],matching=out.items.filter(item=>item?.available===true&&item.profile?.adapter===adapter&&item.profile.protocol===protocol&&HASH.test(item.profile.profile_sha256)&&HASH.test(item.profile.executable_sha256)&&typeof item.profile.command_id==='string'&&typeof item.profile.tool_version==='string'&&item.profile.tool_version.length>0&&item.profile.read_only===false);
-  if(matching.length!==1)return false;record.expiresAt=out.expires_at;return true;
+  if(matching.length!==1)return false;
+  const fixed=record.value.acp_configuration;
+  if(fixed){const profile=matching[0].profile,cap=profile.acp_execution;if(profile.executable_sha256!==fixed.executable_sha256||profile.tool_version!==fixed.reviewed_version||!exact(cap,['runtime','protocol_version','sdk_version','configuration_sha256','model','model_source','budget_mode','identity_evidence','auth_strategy','permission_mode'])||cap.runtime!=='qoder'||cap.protocol_version!==1||cap.sdk_version!=='0.13.5'||cap.configuration_sha256!==fixed.configuration_sha256||cap.model!==fixed.model||cap.model_source!=='administrator_session_config'||cap.budget_mode!=='observe_only'||cap.identity_evidence!=='configuration_ack_only'||cap.auth_strategy!=='existing_cli_login'||cap.permission_mode!=='human_once')return false;}
+  record.expiresAt=out.expires_at;return true;
  }
  async function observe(record){if(!record.child||record.closed||record.stopping||record.value.phase==='stop_unconfirmed')return;const fresh=await readInventory(record);await session(record.value.scope);if(record.closed||record.stopping)return;phase(record,fresh?'connected':'starting');if(!fresh)record.expiresAt=undefined;}
  async function guard(record){
@@ -93,7 +98,8 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  }
  function launch(record,locale){
   const value=record.value,stateDirectory=openJournal().stateDirectory(value.scope);phase(record,'starting');
-  const child=spawn(binary,['--language='+locale,'--desktop-managed-runner'],{cwd:value.repository_path,env:runnerEnvironment(environment,stateDirectory),stdio:['pipe','ignore','ignore'],windowsHide:true,shell:false});
+  const env=value.acp_configuration?cleanEnvironment(environment,stateDirectory,value.acp_configuration.credential_env_ref):runnerEnvironment(environment,stateDirectory);
+  const child=spawn(binary,['--language='+locale,'--desktop-managed-runner'],{cwd:value.repository_path,env,stdio:['pipe','ignore','ignore'],windowsHide:true,shell:false});
   record.child=child;record.closed=false;record.hardKilled=false;record.spawnedAt=now();record.expiresAt=undefined;
   child.on('error',()=>{void softStop(record,'failed').catch(()=>{});});
   child.stdin.on('error',()=>{void softStop(record,'failed').catch(()=>{});});
@@ -101,6 +107,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    record.closed=true;clearInterval(record.guard);if(record.finishStop){const done=record.finishStop;record.finishStop=null;done();}else if(record.value.phase!=='stop_unconfirmed'){try{phase(record,code===0?'stopped':'failed');}catch{record.value.phase='failed';}}
   });
   const config={protocol:'suma-desktop-managed-runner-v1',control_url:origin,project_id:value.scope.project_id,worker_id:value.request.worker_id,adapter_id:value.scope.adapter_id,repository:value.repository_path,base_commit:value.base_commit,state_directory:stateDirectory,token:value.token};
+  if(value.acp_configuration)config.acp_configuration={...value.acp_configuration};
   child.stdin.write(JSON.stringify(config)+'\n');record.guard=setInterval(()=>{record.guardTask=guard(record).catch(()=>{});},checkIntervalMS);record.guard.unref?.();
  }
  async function register(record){
@@ -108,13 +115,15 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   if(!exact(out,['operation_id','project_id','user_id','tenant_id','instance_id','adapter_id','binding_sha256','base_commit','worker'])||out.operation_id!==value.request.idempotency_key||['project_id','user_id','tenant_id','adapter_id'].some(k=>out[k]!==value.scope[k])||out.instance_id!==value.instance_id||out.binding_sha256!==value.binding_sha256||out.base_commit!==value.base_commit||!validWorkerReceipt(out.worker,record)||value.worker&&value.worker.id!==out.worker.id)throw Error('registration');
   value.worker=out.worker;phase(record,'prepared');
  }
- function newRecord(scope,context){
+ function newRecord(scope,context,configuration,selection){
   const token=crypto.randomBytes(32).toString('hex'),value={protocol:PROTOCOL,scope,origin,instance_id:context.instance_id,repository_path:context.repository_path,repository_identity:context.repository_identity,binding_sha256:context.binding_sha256,base_commit:context.base_commit,token,phase:'prepared',request:{project_id:scope.project_id,user_id:scope.user_id,tenant_id:scope.tenant_id,worker_id:'desktop-'+crypto.randomBytes(16).toString('hex'),adapter_id:scope.adapter_id,instance_id:context.instance_id,expected_binding_sha256:context.binding_sha256,base_commit:context.base_commit,credential_sha256:crypto.createHash('sha256').update(token).digest('hex'),idempotency_key:'desktop-runner-'+crypto.randomBytes(16).toString('hex')}};
+  if(configuration){value.acp_configuration={...configuration};value.acp_selection={...selection};}
   const record={value,child:null,closed:true,stopping:null,guardBusy:false};save(record);records.set(scopeKey(scope),record);return record;
  }
  async function manage(event,request){
-  if(!caller(event)||!exact(request,['action','project_id','user_id','tenant_id','adapter_id','locale'])||!['connect','status','stop'].includes(request.action)||!['zh-CN','en-US'].includes(request.locale)||!validScope(requestScope(request)))return failure('managed_runner_request_rejected');
-  if(busy)return failure('managed_runner_busy');busy=true;let resolveManage;activeManage=new Promise(resolve=>resolveManage=resolve);const scope=requestScope(request);let record;
+  const qoder=request?.adapter_id==='qoder-acp',configurable=qoder&&request?.action==='connect';
+  if(!caller(event)||!fields(request,['action','project_id','user_id','tenant_id','adapter_id','locale'],configurable?['acp_selection','expected_configuration_sha256']:[])||!['connect','status','stop'].includes(request.action)||!['zh-CN','en-US'].includes(request.locale)||!validScope(requestScope(request))||Object.hasOwn(request,'expected_configuration_sha256')&&!HASH.test(request.expected_configuration_sha256)||Object.hasOwn(request,'acp_selection')&&(!fields(request.acp_selection,['installation_id','probe_id','model_id'])||!ID.test(request.acp_selection.installation_id)||!ID.test(request.acp_selection.probe_id)||typeof request.acp_selection.model_id!=='string'||!HASH.test(request.expected_configuration_sha256)))return failure('managed_runner_request_rejected');
+  if(busy||acp.isBusy()&&request.action==='connect')return failure('managed_runner_busy');busy=true;let resolveManage;activeManage=new Promise(resolve=>resolveManage=resolve);const scope=requestScope(request);let record,configuration;
   try{
    await session(scope);if(!caller(event))throw Error('authority');
    try{record=getRecord(scope);}catch{return connection(scope,'credential_unrecoverable');}
@@ -133,16 +142,29 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
     else if(record?.closed&&record.value.phase==='authorization_required'&&record.value.worker&&await checkWorker(record)){await session(scope);phase(record,'prepared');}
     await session(scope);return connection(scope,record?.value.phase||'unconfigured',record);
    }
+   if(qoder){
+    if(request.acp_selection){
+     const same=record?.value.acp_selection&&['installation_id','probe_id','model_id'].every(k=>record.value.acp_selection[k]===request.acp_selection[k]);
+     if(same){configuration=record.value.acp_configuration;}
+     else{
+      if(record&&(!record.closed||record.value.phase!=='stopped'))return connection(scope,'binding_changed',record);
+      try{configuration=await acp.select({...scope,locale:request.locale},request.acp_selection,context,event);}catch{return failure('managed_runner_request_rejected');}
+     }
+     if(!validConfiguration(configuration)||configuration.configuration_sha256!==request.expected_configuration_sha256)return connection(scope,'binding_changed',record);
+    }else{
+     configuration=record?.value.acp_configuration;if(!configuration)return failure('managed_runner_request_rejected');
+     if(request.expected_configuration_sha256&&request.expected_configuration_sha256!==configuration.configuration_sha256)return connection(scope,'binding_changed',record);
+    }
+   }
    if(record?.value.phase==='stop_unconfirmed')return connection(scope,'stop_unconfirmed',record);
    if(record?.child&&!record.closed){await observe(record);return connection(scope,record.value.phase,record);}
-   const observed=await discover(event,{...scope,locale:request.locale});
+   const observed=qoder?undefined:await discover(event,{...scope,locale:request.locale});
    await session(scope);if(!caller(event))throw Error('authority');
    const item=observed?.status==='observed'&&observed.report?.protocol==='suma-installed-tools-v1'&&observed.report.items?.length===1?observed.report.items[0]:undefined;
-   if(!item||item.adapter_id!==scope.adapter_id)return connection(scope,'unavailable',record);
-   if(!item.installed)return connection(scope,'not_installed',record);
-   if(!item.launch_supported)return connection(scope,'unavailable',record);
+   if(!qoder){if(!item||item.adapter_id!==scope.adapter_id)return connection(scope,'unavailable',record);if(!item.installed)return connection(scope,'not_installed',record);if(!item.launch_supported)return connection(scope,'unavailable',record);}
    const current=await authorize(scope);if(!caller(event))throw Error('authority');if(record&&!sameContext(record,current)||JSON.stringify(current)!==JSON.stringify(context))return connection(scope,'binding_changed',record);
-   record??=newRecord(scope,current);
+   if(record&&qoder&&request.acp_selection&&!['installation_id','probe_id','model_id'].every(k=>record.value.acp_selection[k]===request.acp_selection[k])){record.value.acp_configuration={...configuration};record.value.acp_selection={...request.acp_selection};save(record);}
+   record??=newRecord(scope,current,configuration,request.acp_selection);
    if(record.value.worker&&!await checkWorker(record)){phase(record,'authorization_required');return connection(scope,'authorization_required',record);}
    try{await register(record);}catch(error){if([401,403].includes(error.status)){phase(record,'authorization_required');return connection(scope,'authorization_required',record);}return connection(scope,'issuance_unknown',record);}
    const beforeLaunch=await authorize(scope);if(!caller(event)||!sameContext(record,beforeLaunch))return connection(scope,'binding_changed',record);
@@ -155,6 +177,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   if(disposing)return disposing;disposed=true;parent.removeListener('closed',dispose);parent.webContents.removeListener('destroyed',dispose);
   disposing=(async()=>{
    if(activeManage)await activeManage;
+   await acp.dispose();
    for(const record of records.values())clearInterval(record.guard);
    await Promise.all([...records.values()].map(record=>record.guardTask).filter(Boolean));
    await Promise.all([...records.values()].map(record=>softStop(record).catch(()=>{})));
@@ -162,6 +185,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   })();return disposing;
  }
  parent.on('closed',dispose);parent.webContents.on('destroyed',dispose);
- return {manage,dispose};
+ const acp=createLocalACPController({binary,probeDirectory:path.join(userData,'.cache','acp-probes'),credentialKey:privateKey,environment,spawn,caller,session,authorize,discover,journal:openJournal,now,busy:()=>busy});
+ return {manage,inspectACP:acp.inspect,dispose};
 }
 module.exports={CHANNEL,createManagedLocalRunnerController};

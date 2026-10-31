@@ -23,14 +23,15 @@ type InstalledToolDiscovery struct {
 }
 
 type InstalledToolDiscoveryItem struct {
-	AdapterID       string       `json:"adapter_id"`
-	Product         string       `json:"product"`
-	Installed       bool         `json:"installed"`
-	LaunchSupported bool         `json:"launch_supported"`
-	Executable      string       `json:"executable,omitempty"`
-	Version         string       `json:"version,omitempty"`
-	ReasonCode      string       `json:"reason_code"`
-	Command         *CommandSpec `json:"command,omitempty"`
+	AdapterID        string       `json:"adapter_id"`
+	Product          string       `json:"product"`
+	Installed        bool         `json:"installed"`
+	LaunchSupported  bool         `json:"launch_supported"`
+	Executable       string       `json:"executable,omitempty"`
+	ExecutableSHA256 string       `json:"executable_sha256,omitempty"`
+	Version          string       `json:"version,omitempty"`
+	ReasonCode       string       `json:"reason_code"`
+	Command          *CommandSpec `json:"command,omitempty"`
 }
 
 type localToolDirectoryEntry struct {
@@ -45,6 +46,7 @@ func localToolDirectory() []localToolDirectoryEntry {
 		{"dsh-multica", "DeepSeek Harness / dsh", "dsh", "@deepseek-ai/dsh", CommandSpec{Adapter: "harness", Protocol: "dsh-multica-jsonl-v1", Input: "dsh-jsonl", Args: []string{"--profile", "multica", "--stdio"}}},
 		{"claude-code-cli", "Claude Code", "claude", "@anthropic-ai/claude-code", claudePreset()},
 		{id: "cursor-cli", product: "Cursor"},
+		{id: "qoder-acp", product: "Qoder CLI"},
 	}
 }
 
@@ -108,6 +110,10 @@ func discoverInstalledTools(ctx context.Context, adapterID string, paths []strin
 	for index, entry := range entries {
 		go func(index int, entry localToolDirectoryEntry) {
 			defer func() { done <- struct{}{} }()
+			if entry.id == "qoder-acp" {
+				result.Items[index] = discoverLocalQoder(ctx, paths, probe)
+				return
+			}
 			if entry.id == "cursor-cli" {
 				result.Items[index] = discoverLocalCursor(ctx, paths)
 				return
@@ -140,6 +146,14 @@ func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, e
 	exe, _, err := commandExecutable(spec)
 	if err != nil {
 		return "", err
+	}
+	if spec.Adapter == "qoder" {
+		directory, cleanup, err := newACPProbeDirectory()
+		if err != nil {
+			return "", err
+		}
+		defer cleanup()
+		return probeQoderNativeVersion(ctx, exe, directory, nil)
 	}
 	// Reuse each adapter's fixed version/help/protocol proof, without changing a
 	// writing development preset into a read-only execution profile.

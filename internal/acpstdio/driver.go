@@ -55,11 +55,18 @@ type Driver struct {
 	frames, wireBytes, textBytes            int
 	filter                                  *textFilter
 	modelConfig                             string
+	discovery                               *discoveryState
 }
 type sdkOutput struct{ d *Driver }
 
 func newDriver(parent context.Context, o Options) (*Driver, error) {
-	if parent == nil || !filepath.IsAbs(o.Cwd) || !text(o.Goal, 32000, true) || strings.TrimSpace(o.Goal) == "" || !token(o.Model, 256) || !tc.ValidDigest(o.ConfigSHA) || len(o.Secrets) > 128 {
+	if !text(o.Goal, 32000, true) || strings.TrimSpace(o.Goal) == "" || !token(o.Model, 256) || !tc.ValidDigest(o.ConfigSHA) {
+		return nil, errors.New("acp_options_invalid")
+	}
+	return newTransport(parent, o, nil)
+}
+func newTransport(parent context.Context, o Options, discovery *discoveryState) (*Driver, error) {
+	if parent == nil || !filepath.IsAbs(o.Cwd) || len(o.Secrets) > 128 {
 		return nil, errors.New("acp_options_invalid")
 	}
 	total := 0
@@ -71,13 +78,16 @@ func newDriver(parent context.Context, o Options) (*Driver, error) {
 	}
 	ctx, cancel := context.WithCancel(parent)
 	reader, writer := io.Pipe()
-	d := &Driver{options: o, ctx: ctx, cancel: cancel, input: writer, output: make(chan outbound, 64), outEnd: make(chan struct{}), done: make(chan struct{}), promptSent: make(chan struct{}), requests: map[string]string{}, remote: map[string]*pendingPermission{}, permissionTools: map[string]*pendingPermission{}, tools: map[string]string{}, filter: newTextFilter(o.Secrets), result: Result{Terminal: "unknown", UsageState: "unreported", Evidence: ac.Evidence{ConfigurationSHA256: o.ConfigSHA, RequestedModel: o.Model}}}
+	d := &Driver{options: o, ctx: ctx, cancel: cancel, input: writer, output: make(chan outbound, 64), outEnd: make(chan struct{}), done: make(chan struct{}), promptSent: make(chan struct{}), requests: map[string]string{}, remote: map[string]*pendingPermission{}, permissionTools: map[string]*pendingPermission{}, tools: map[string]string{}, filter: newTextFilter(o.Secrets), result: Result{Terminal: "unknown", UsageState: "unreported", Evidence: ac.Evidence{ConfigurationSHA256: o.ConfigSHA, RequestedModel: o.Model}}, discovery: discovery}
 	d.conn = sdk.NewClientSideConnection(d, sdkOutput{d}, reader)
 	d.conn.SetLogger(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	go func() {
 		<-ctx.Done()
 		d.mu.Lock()
 		complete := d.result.Evidence.PromptCompleted
+		if d.discovery != nil {
+			complete = d.discovery.finalized
+		}
 		d.mu.Unlock()
 		if !complete {
 			d.fail("acp_interrupted")
@@ -85,7 +95,11 @@ func newDriver(parent context.Context, o Options) (*Driver, error) {
 		_ = writer.CloseWithError(errors.New("acp_closed"))
 		_ = reader.Close()
 	}()
-	go d.run()
+	if discovery != nil {
+		go d.runModelDiscovery()
+	} else {
+		go d.run()
+	}
 	return d, nil
 }
 func (d *Driver) fail(code string) {
@@ -214,21 +228,33 @@ func (d *Driver) run() {
 	}
 }
 func modelOption(options []sdk.SessionConfigOption, model string) (sdk.SessionConfigOptionSelect, error) {
+	option, values, err := modelSelection(options)
+	if err != nil {
+		return sdk.SessionConfigOptionSelect{}, err
+	}
+	for _, v := range values {
+		if string(v.Value) == model {
+			return option, nil
+		}
+	}
+	return sdk.SessionConfigOptionSelect{}, errors.New("acp_model_unacknowledged")
+}
+func modelSelection(options []sdk.SessionConfigOption) (sdk.SessionConfigOptionSelect, []sdk.SessionConfigSelectOption, error) {
 	var found *sdk.SessionConfigOptionSelect
 	if len(options) > 128 {
-		return sdk.SessionConfigOptionSelect{}, errors.New("acp_model_unacknowledged")
+		return sdk.SessionConfigOptionSelect{}, nil, errors.New("acp_model_unacknowledged")
 	}
 	for _, o := range options {
 		if o.Select == nil || o.Select.Category == nil || *o.Select.Category != sdk.SessionConfigOptionCategoryModel {
 			continue
 		}
 		if found != nil || o.Select.Type != "select" || !token(string(o.Select.Id), 128) {
-			return sdk.SessionConfigOptionSelect{}, errors.New("acp_model_unacknowledged")
+			return sdk.SessionConfigOptionSelect{}, nil, errors.New("acp_model_unacknowledged")
 		}
 		found = o.Select
 	}
 	if found == nil {
-		return sdk.SessionConfigOptionSelect{}, errors.New("acp_model_unacknowledged")
+		return sdk.SessionConfigOptionSelect{}, nil, errors.New("acp_model_unacknowledged")
 	}
 	values := []sdk.SessionConfigSelectOption{}
 	if found.Options.Ungrouped != nil {
@@ -240,22 +266,17 @@ func modelOption(options []sdk.SessionConfigOption, model string) (sdk.SessionCo
 		}
 	}
 	if len(values) == 0 || len(values) > 256 {
-		return sdk.SessionConfigOptionSelect{}, errors.New("acp_model_unacknowledged")
+		return sdk.SessionConfigOptionSelect{}, nil, errors.New("acp_model_unacknowledged")
 	}
 	seen := map[string]bool{}
-	present := false
 	for _, v := range values {
 		key := string(v.Value)
 		if !token(key, 256) || seen[key] {
-			return sdk.SessionConfigOptionSelect{}, errors.New("acp_model_unacknowledged")
+			return sdk.SessionConfigOptionSelect{}, nil, errors.New("acp_model_unacknowledged")
 		}
 		seen[key] = true
-		present = present || key == model
 	}
-	if !present {
-		return sdk.SessionConfigOptionSelect{}, errors.New("acp_model_unacknowledged")
-	}
-	return *found, nil
+	return *found, values, nil
 }
 func (d *Driver) CopyInput(w io.Writer) (int64, error) {
 	d.mu.Lock()

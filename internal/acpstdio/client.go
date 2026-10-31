@@ -50,6 +50,13 @@ func (d *Driver) RequestPermission(ctx context.Context, p sdk.RequestPermissionR
 	if pending == nil || string(p.SessionId) != session {
 		return sdk.RequestPermissionResponse{}, errors.New("acp_permission_invalid")
 	}
+	if d.discovery != nil {
+		d.mu.Lock()
+		pending.denied = true
+		pending.replyOK = true
+		d.mu.Unlock()
+		return sdk.RequestPermissionResponse{Outcome: sdk.NewRequestPermissionOutcomeCancelled()}, nil
+	}
 	req, e := permissionRequest(raw, d.options.Secrets)
 	if e != nil {
 		d.fail("acp_permission_invalid")

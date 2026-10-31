@@ -59,3 +59,14 @@ it('polls starting status to the real connected node without issuing another con
  manage.mockImplementation(async()=>connection('connected',{worker_id:worker}));await act(async()=>vi.advanceTimersByTimeAsync(2001));
  expect(manage.mock.calls.map(call=>call[0].action)).toEqual(['status','connect','status']);expect(onConnected).toHaveBeenCalledExactlyOnceWith(worker);
 });
+
+it('keeps qoder fresh choices separate from original unknown recovery and only reports an exact current connection',async()=>{
+ const first={installation_id:'7'.repeat(32),probe_id:'8'.repeat(32),model_id:'model:alpha'},second={...first,model_id:'model:beta'},sha='a'.repeat(64),otherSHA='b'.repeat(64),onConnection=vi.fn();
+ const result=(phase:string)=>({status:'ok',connection:{project_id:project,adapter_id:'qoder-acp',phase,...(phase!=='unconfigured'?{worker_id:worker,model:first.model_id,tool_version:'Qoder 1.2.3',executable_sha256:'c'.repeat(64),configuration_sha256:sha}:{})}});
+ async function qoder(selection=first,expected=sha,identity=session){await act(async()=>root.render(<ApiViewProvider session={identity}><DesktopToolConnector project={project} adapterID="qoder-acp" acpSelection={selection} expectedConfigurationSHA={expected} onConnected={onConnected} onConnection={onConnection}/></ApiViewProvider>));}
+ const base={project_id:project,user_id:user,tenant_id:tenant,adapter_id:'qoder-acp',locale:'en-US'};manage.mockImplementation(async()=>result('unconfigured'));await qoder();expect(manage.mock.calls[0][0]).toEqual({...base,action:'status'});
+ manage.mockRejectedValueOnce(new Error('Connection result unknown'));await click('connect');expect(manage.mock.calls.at(-1)![0]).toEqual({...base,action:'connect',acp_selection:first,expected_configuration_sha256:sha});expect(onConnected).not.toHaveBeenCalled();
+ await qoder(second,otherSHA);manage.mockImplementation(async()=>result('prepared'));await click('connect');expect(manage.mock.calls.at(-1)![0]).toEqual({...base,action:'connect'});manage.mockImplementation(async()=>result('connected'));await click('status');expect(manage.mock.calls.at(-1)![0]).toEqual({...base,action:'status'});expect(onConnected).not.toHaveBeenCalled();
+ await qoder(first,sha);await click('status');expect(onConnected).toHaveBeenCalledExactlyOnceWith(worker);manage.mockImplementation(async()=>result('stopped'));await click('stop');expect(manage.mock.calls.at(-1)![0]).toEqual({...base,action:'stop'});
+ let finish!:(value:unknown)=>void;manage.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));await click('status');manage.mockImplementation(async()=>result('unconfigured'));await qoder(first,sha,{...session,user:{...session.user,id:'9'.repeat(32)}});const before=onConnection.mock.calls.length;await act(async()=>finish(result('connected')));expect(onConnection).toHaveBeenCalledTimes(before);expect(onConnected).toHaveBeenCalledOnce();
+});

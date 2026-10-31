@@ -43,6 +43,9 @@ func closed(m map[string]json.RawMessage, keys ...string) bool {
 // Every option is checked: an aliased category must never turn an unrelated
 // option into the model authority, nor may a nested value replace its ACK.
 func configOptionsValid(raw []byte) bool {
+	return configOptionsValidMode(raw, false)
+}
+func configOptionsValidMode(raw []byte, discovery bool) bool {
 	var options []json.RawMessage
 	if json.Unmarshal(raw, &options) != nil || options == nil || len(options) > 128 {
 		return false
@@ -65,7 +68,13 @@ func configOptionsValid(raw []byte) bool {
 		}
 		switch stringField(o, "type") {
 		case "select":
-			if !token(stringField(o, "currentValue"), 256) || !configValuesValid(o["options"], true) {
+			currentOK := token(stringField(o, "currentValue"), 256)
+			if discovery {
+				var current string
+				value, present := o["currentValue"]
+				currentOK = !present || string(value) == "null" || json.Unmarshal(value, &current) == nil && (current == "" || token(current, 256))
+			}
+			if !currentOK || !configValuesValid(o["options"], true) {
 				return false
 			}
 		case "boolean":
@@ -250,7 +259,7 @@ func (d *Driver) frame(raw []byte) error {
 	d.mu.Lock()
 	d.frames++
 	d.wireBytes += len(raw)
-	if d.bad != nil || d.frames > 4096 || d.wireBytes > 8<<20 || d.promptResponse {
+	if d.bad != nil || d.frames > 4096 || d.wireBytes > 8<<20 || d.promptResponse || d.discovery != nil && d.discovery.complete {
 		d.mu.Unlock()
 		return errors.New("acp_protocol_invalid")
 	}
@@ -273,13 +282,25 @@ func (d *Driver) frame(raw []byte) error {
 					d.mu.Unlock()
 					return errors.New("acp_protocol_invalid")
 				}
+				if d.discovery != nil {
+					d.discovery.closeAdvertised = discoveryCloseAdvertised(r["agentCapabilities"])
+				}
 			case "session/new":
 				session := stringField(r, "sessionId")
-				if !closed(r, "_meta", "sessionId", "configOptions", "modes") || !configOptionsValid(r["configOptions"]) || !token(session, 128) || hasSecret(session, d.options.Secrets) || d.result.Evidence.SessionID != "" {
+				if !closed(r, "_meta", "sessionId", "configOptions", "modes") || !configOptionsValidMode(r["configOptions"], d.discovery != nil) || !token(session, 128) || hasSecret(session, d.options.Secrets) || d.result.Evidence.SessionID != "" {
 					d.mu.Unlock()
 					return errors.New("acp_protocol_invalid")
 				}
 				d.result.Evidence.SessionID = session
+				if d.discovery != nil {
+					d.discovery.evidence.SessionCreated = true
+				}
+			case "session/close":
+				if d.discovery == nil || !closed(r, "_meta") {
+					d.mu.Unlock()
+					return errors.New("acp_protocol_invalid")
+				}
+				d.discovery.evidence.SessionCloseAcknowledged = true
 			case "session/set_config_option":
 				if !closed(r, "_meta", "configOptions") || !configOptionsValid(r["configOptions"]) {
 					d.mu.Unlock()
@@ -310,6 +331,12 @@ func (d *Driver) frame(raw []byte) error {
 			return errors.New("acp_protocol_invalid")
 		}
 		params := object(m["params"])
+		if d.discovery != nil {
+			d.discovery.evidence.UnexpectedActivity++
+			if method == "session/request_permission" {
+				d.discovery.evidence.PermissionRequests++
+			}
+		}
 		if params == nil || stringField(params, "sessionId") != d.result.Evidence.SessionID || d.result.Evidence.SessionID == "" {
 			d.mu.Unlock()
 			return errors.New("acp_protocol_invalid")
@@ -325,7 +352,7 @@ func (d *Driver) frame(raw []byte) error {
 					d.mu.Unlock()
 					return errors.New("acp_protocol_invalid")
 				}
-				if !d.result.Evidence.PromptStarted || d.result.Evidence.PermissionsRequested >= 32 {
+				if d.discovery == nil && !d.result.Evidence.PromptStarted || d.result.Evidence.PermissionsRequested >= 32 {
 					d.mu.Unlock()
 					return errors.New("acp_protocol_invalid")
 				}
@@ -358,7 +385,7 @@ func (d *Driver) frame(raw []byte) error {
 				}
 			}
 			d.remote[key] = p
-		} else if method != "session/update" {
+		} else if method != "session/update" || d.discovery != nil {
 			d.mu.Unlock()
 			return errors.New("acp_protocol_invalid")
 		}
@@ -390,8 +417,27 @@ func (w sdkOutput) Write(raw []byte) (int, error) {
 		return 0, errors.New("acp_closed")
 	}
 	if method != "" {
+		if d.discovery != nil {
+			if method == "session/prompt" {
+				d.discovery.evidence.PromptRequests++
+			}
+			if method == "session/set_config_option" {
+				d.discovery.evidence.ConfigurationWrites++
+			}
+			if method != "initialize" && method != "session/new" && method != "session/close" || method == "session/close" && (!d.discovery.closeAdvertised || !d.discovery.evidence.SessionCreated) {
+				d.mu.Unlock()
+				return 0, errors.New("acp_outbound_invalid")
+			}
+		}
 		switch method {
-		case "initialize", "session/new", "session/set_config_option", "session/prompt":
+		case "initialize", "session/new", "session/set_config_option", "session/prompt", "session/close":
+			if method == "session/close" {
+				if d.discovery == nil {
+					d.mu.Unlock()
+					return 0, errors.New("acp_outbound_invalid")
+				}
+				d.discovery.evidence.SessionCloseRequested = true
+			}
 			if key == "" || d.requests[key] != "" {
 				d.mu.Unlock()
 				return 0, errors.New("acp_outbound_invalid")
