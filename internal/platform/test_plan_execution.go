@@ -62,7 +62,22 @@ func (s *Service) freezeTaskTestPlanRunTx(ctx context.Context, tx *sql.Tx, auth 
 		snapshot.PlanID = current.ID
 		snapshot.GovernanceRevision = current.Governance
 	}
-	if revision != nil {
+	cloud, cloudFound, cloudErr := s.workBuddyTaskDispatchRunSourceTx(ctx, tx, tenant, project, runID)
+	if cloudErr != nil {
+		return cloudErr
+	}
+	if cloudFound {
+		// Snapshot-only: a cloud dispatch freezes the same protected published
+		// quality basis, but supplies no local test mapping or passing evidence.
+		var current *TaskTestPlanContext
+		if revision != nil {
+			current = &TaskTestPlanContext{Revision: revision.Revision, SHA256: revision.SHA256, SourceSHA256: revision.Source.SHA256, CaseCount: len(revision.Cases), Title: revision.Title}
+		}
+		if cloud.TaskID != taskID || cloud.State != "ready" && cloud.State != "started" || stringify(cloud.Context.TestPlan) != stringify(current) {
+			return conflict(testPlanGate)
+		}
+	}
+	if revision != nil && !cloudFound {
 		rows, e := tx.QueryContext(ctx, s.q(`SELECT spec FROM dag_nodes WHERE run_id=?`), runID)
 		if e != nil {
 			return e

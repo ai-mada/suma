@@ -23,6 +23,17 @@ func (s *Service) checkTaskRequirementDesignRunTx(ctx context.Context, auth *aut
 	var raw, state string
 	if err = auth.tx.QueryRowContext(auth.ctx, s.q(`SELECT payload,state FROM suma_task_dispatch_plans WHERE tenant_id=? AND project_id=? AND run_id=?`), auth.target.tenantID, project, runID).Scan(&raw, &state); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			cloud, found, e := s.workBuddyTaskDispatchRunSourceTx(ctx, auth.tx, auth.target.tenantID, project, runID)
+			if e != nil {
+				return e
+			}
+			if found {
+				allowed := cloud.State == "started" || !requireStarted && cloud.State == "ready"
+				if cloud.TaskID != taskID || cloud.Context.Design == nil || digest(stringify(current)) != digest(stringify(cloud.Context.Design)) || !allowed {
+					return conflict("执行的需求设计依据已失效，需要重新派发")
+				}
+				return nil
+			}
 			// A trusted composition is also a real code-producing task run. Its
 			// immutable domain binding is written in the same Core transaction
 			// before BindRunTx; arbitrary workflow config cannot supply this proof.

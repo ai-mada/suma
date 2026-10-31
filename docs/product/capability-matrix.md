@@ -1,6 +1,8 @@
 # 能力与验收矩阵
 
-当前增量T-P4-041：[Codex合同](../../contracts/codex-app-server.md)、[接入与AI SOP](../integrations/codex-app-server.md)、[限定证据](../quality/codex-app-server-verification.md)。真实目录选择、固定单任务配置、实际CLI私有工作树编码、原进展／结果与partial未定价账本取得本地证据。配置ACK不代表提供方模型，observe-only不能用于enforce预算；团队／修复入口、其他CLI、完整IDE及所有P0–P7／1–22继续实施。
+当前完整范围为原始31项需求、P0–P7、58项限定实现／34待交付／92总账。最新能力、专项证据和待交付项以[交付状态](../delivery/status.md)及[平台能力边界](platform-capability-delivery-matrix.md)为入口。下方早期阶段行保留当时验收范围，不能覆盖后续专项执行合同，尤其OpenCode、dsh、WorkBuddy和交互式终端的当前实现。
+
+历史增量T-P4-041：[Codex合同](../../contracts/codex-app-server.md)、[接入与AI SOP](../integrations/codex-app-server.md)、[限定证据](../quality/codex-app-server-verification.md)。真实目录选择、固定单任务配置、实际CLI私有工作树编码、原进展／结果与partial未定价账本取得本地证据。配置ACK不代表提供方模型，observe-only不能用于enforce预算；团队／修复入口、其他CLI、完整IDE及所有P0–P7／1–22继续实施。
 
 历史增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
 

@@ -1,0 +1,22 @@
+.workbuddy-dispatch-entry{display:flex;align-items:center;justify-content:center;gap:8px}
+.dialog:has(.workbuddy-task-dispatch){width:min(860px,calc(100vw - 32px))}
+.workbuddy-task-dispatch{display:grid;gap:16px;min-width:0;font-size:14px;line-height:1.65}
+.workbuddy-task-dispatch p{margin:0;overflow-wrap:anywhere}
+.workbuddy-dispatch-steps{display:flex;flex-wrap:wrap;gap:8px 24px;list-style:decimal inside;margin:0;padding:0 0 12px;border-bottom:1px solid var(--border);color:var(--muted)}
+.workbuddy-dispatch-steps [aria-current=step]{color:var(--accent);font-weight:600}
+.workbuddy-dispatch-boundary{padding:12px 16px;background:var(--accent-soft);border-radius:8px;color:var(--text)}
+.workbuddy-dispatch-task,.workbuddy-dispatch-plan-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.workbuddy-dispatch-task strong{font-size:16px}.workbuddy-dispatch-task span,.workbuddy-dispatch-plan-heading>span,.workbuddy-dispatch-hint{color:var(--muted);font-size:14px}
+.workbuddy-dispatch-field{display:grid;gap:8px;font-weight:600}.workbuddy-dispatch-field select{width:100%;min-height:36px;font-size:14px}
+.workbuddy-dispatch-account-actions,.workbuddy-dispatch-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.workbuddy-dispatch-account-actions>a,.workbuddy-dispatch-account-actions>button,.workbuddy-dispatch-actions>button,.workbuddy-dispatch-recovery>button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;white-space:normal}
+.workbuddy-dispatch-account-actions>a[aria-disabled=true]{color:var(--muted);cursor:default}
+.workbuddy-dispatch-plan,.workbuddy-dispatch-feedback{display:grid;gap:16px;min-width:0}
+.workbuddy-dispatch-feedback:empty{display:none}.workbuddy-dispatch-plan-heading h3{margin:0;font-size:18px;line-height:1.5}
+.workbuddy-dispatch-plan>details{padding:12px 16px;border:1px solid var(--border);border-radius:8px}.workbuddy-dispatch-plan article{margin-top:16px}.workbuddy-dispatch-plan h4{margin:0 0 8px;font-size:14px}
+.workbuddy-dispatch-plan summary,.workbuddy-task-dispatch>details>summary{cursor:pointer;font-weight:600;min-height:32px}
+.workbuddy-dispatch-plan ul{margin:8px 0;padding-left:24px}.workbuddy-dispatch-text{white-space:pre-wrap}
+.workbuddy-dispatch-plan pre,.workbuddy-dispatch-plan dd{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;margin:0}.workbuddy-dispatch-plan dl{display:grid;grid-template-columns:100px minmax(0,1fr);gap:8px;margin:12px 0 0}.workbuddy-dispatch-plan dt{color:var(--muted)}
+.workbuddy-dispatch-recovery{display:grid;gap:8px;padding:16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:14px}.workbuddy-dispatch-recovery>button{justify-self:start}
+.workbuddy-task-dispatch button:focus-visible,.workbuddy-task-dispatch a:focus-visible,.workbuddy-task-dispatch select:focus-visible,.workbuddy-task-dispatch summary:focus-visible,.workbuddy-dispatch-entry:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.dialog:has(.workbuddy-task-dispatch){width:calc(100vw - 24px);max-height:calc(100dvh - 24px);padding:16px}.workbuddy-dispatch-task,.workbuddy-dispatch-plan-heading{align-items:flex-start;flex-direction:column;gap:4px}.workbuddy-dispatch-plan>details{padding:12px}.workbuddy-dispatch-actions{align-items:stretch;flex-direction:column}.workbuddy-task-dispatch button,.workbuddy-task-dispatch select,.workbuddy-task-dispatch summary,.workbuddy-dispatch-entry{min-height:44px}.workbuddy-dispatch-plan dl{grid-template-columns:minmax(0,1fr);gap:4px}.workbuddy-dispatch-plan dd{margin-bottom:8px}}

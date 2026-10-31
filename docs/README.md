@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [任务直接派发WorkBuddy](../contracts/workbuddy-task-dispatch.md) · [架构与AI SOP](architecture/workbuddy-task-dispatch.md) · [简洁交互](design/workbuddy-task-dispatch.md) · [验证与边界](quality/workbuddy-task-dispatch-verification.md)：T-WORKBUDDY-TASK-DISPATCH-168沿本人账号、固定任务预览、同事务原Run／委派和原云Runner贯通任务入口。模型由供应方管理，完成仍需可信交付和正式质量门禁；完整31／P0–P7范围继续实施。
+
 - [项目个人通知设置](../contracts/project-notification-preferences.md) · [架构与AI SOP](architecture/project-notification-preferences.md) · [交互](design/project-notification-preferences.md) · [限定验证](quality/project-notification-preferences-verification.md)：T-NOTIFICATION-PREFERENCES-167贯通本人讨论静音、原回执核对与真实通知投影。52项定向检查、8项真实HTTP／SQLite业务及独立只读视觉通过；精准提及、历史与任务关注保持，完整通知分组及平台范围继续交付。
 
 - [Cursor连接核验](../contracts/cursor-connection.md) · [架构与SOP](architecture/cursor-connection.md) · [简洁接入交互](design/cursor-connection.md) · [验证范围](quality/cursor-connection-verification.md)：T-CURSOR-CONNECTION-166区分编辑器、Agent候选与正式派发资格，仅被动检查当前PATH；执行适配仍planned。被动发现与指引已限定核验，完整31／P0–P7／58／34／92范围保留。

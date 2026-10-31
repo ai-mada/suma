@@ -6,6 +6,63 @@ import (
 	wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
 
+// Only the task-dispatch bind callback calls this helper, after Core has inserted
+// its reserved immutable run/node and before activation. Public DelegateCloud
+// still requires a positive expected run version and owns its separate receipt.
+func (w *WorkBuddyConnections) issueCloudTaskDispatchDelegationTx(ctx context.Context, auth *authorizedCommand, record workBuddyTaskDispatchSnapshot) (wc.CloudDelegation, error) {
+	p := record.Plan
+	if auth == nil || !auth.actor.IsBrowser() || p.OwnerID != auth.currentPrincipal.ID || p.ProjectID != auth.target.projectID {
+		return wc.CloudDelegation{}, forbidden()
+	}
+	if err := auth.assertTx(auth.tx, auth.target, purposeBrowserProjectWrite); err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	stored, err := w.s.workBuddyTaskDispatchPlanTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID, p.ID)
+	if err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	if stored.Plan.State != "ready" || stringify(stored) != stringify(record) {
+		return wc.CloudDelegation{}, cloudConflict()
+	}
+	node, err := w.cloudNodeTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID, p.RunID, p.NodeID)
+	if err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	if node.runVersion != 0 || node.runState != "running" || node.nodeState != "pending" || node.attempt != 0 || node.specHash != p.NodeSpecSHA256 || node.requestHash != p.RequestSHA256 || node.binding.ConnectionID != p.ConnectionID || node.binding.GrantGeneration != p.GrantGeneration {
+		return wc.CloudDelegation{}, cloudConflict()
+	}
+	row, err := w.cloudGrantMetadataTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID, p.OwnerID, p.ConnectionID, p.GrantGeneration, record.ClientBindingSHA256, true)
+	if err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	if row.Version != p.ConnectionVersion {
+		return wc.CloudDelegation{}, cloudConflict()
+	}
+	if err = w.cloudBudgetTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID); err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	var count int
+	if err = auth.tx.QueryRowContext(ctx, w.s.q(`SELECT COUNT(*) FROM suma_workbuddy_cloud_delegations WHERE tenant_id=? AND project_id=? AND (id=? OR (run_id=? AND node_id=?))`), auth.target.tenantID, p.ProjectID, p.DelegationID, p.RunID, p.NodeID).Scan(&count); err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	if count != 0 {
+		return wc.CloudDelegation{}, cloudConflict()
+	}
+	clock, err := w.s.authorityNow(ctx, auth.tx)
+	if err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	stamp := automationStamp(clock)
+	d := cloudDelegationRow{CloudDelegation: wc.CloudDelegation{ID: p.DelegationID, ProjectID: p.ProjectID, OwnerID: p.OwnerID, ConnectionID: p.ConnectionID, Version: 1, RunID: p.RunID, NodeID: p.NodeID, NodeSpecSHA256: p.NodeSpecSHA256, ConnectionVersionAtIssue: row.Version, GrantGeneration: row.GrantGeneration, ClientBindingSHA256: record.ClientBindingSHA256, RequestSHA256: p.RequestSHA256, ExpiresAt: automationStamp(clock.Add(wc.MaxDelegationLifetime)), MaxCreates: 1, State: "active", CreatedAt: stamp, UpdatedAt: stamp}, tenant: auth.target.tenantID}
+	if err = w.saveCloudDelegationTx(ctx, auth.tx, d, 0); err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	if err = w.s.commandActivity(ctx, auth, "workbuddy_cloud_delegated", d.ID, "WorkBuddy cloud node delegated"); err != nil {
+		return wc.CloudDelegation{}, err
+	}
+	return d.CloudDelegation, nil
+}
+
 func (w *WorkBuddyConnections) DelegateCloud(ctx context.Context, actor Actor, project string, req wc.CloudDelegateRequest) (wc.CloudDelegation, error) {
 	if w == nil || w.s == nil || req.ProjectID != project || req.Validate() != nil {
 		return wc.CloudDelegation{}, cloudInvalid()

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-TASK-DISPATCH-168：[合同](../../contracts/workbuddy-task-dispatch.md)、[架构与AI SOP](../architecture/workbuddy-task-dispatch.md)、[交互](../design/workbuddy-task-dispatch.md)及[阶段验证](../quality/workbuddy-task-dispatch-verification.md)。任务详情直接选择本人WorkBuddy账号、固定上下文预览并明确派发，复用原DAG／唯一Run／委派／Worker及原节点工作区；未知回执沿原body/key核对。35个不同顶层、一次类型／7934对语言及8项真实HTTP／SQLite／私有Worker／生产组件通过；首次启动提交后截断JSON，原GUI恢复后仍只创建1个云任务。1Go宿主／1SDK构建、正常关闭与私有快照保留；两原图为滚动局部视口，时分展示小修单列验证，不重复8项业务。供应方completed仍等待可信交付；云候选／独立测试／验收、真实供应方及完整31／P0–P7／58／34／92保持待交付或待验。
+
 T-NOTIFICATION-PREFERENCES-167：[合同](../../contracts/project-notification-preferences.md)、[架构与SOP](../architecture/project-notification-preferences.md)、[交互](../design/project-notification-preferences.md)及[限定证据](../quality/project-notification-preferences-verification.md)。本人当前项目可静音关注讨论，精准提及和其他来源不受影响；原body/key、CAS/no-op与当前值重读分开。14Go／38Web、7875对词条及8项真实HTTP／SQLite业务通过；旧样式夹具缺失被明确修正，保留业务结果后另以快照副本／0POST／15表摘要不变完成两图视觉。业务与视觉各1次必要宿主／SDK构建，各自门禁与首次端口失败留证；无完整App／其他数据库／规模／生产声明，完整31／P0–P7／58／34／92不变。
 
 T-CURSOR-CONNECTION-166：[接入合同](../../contracts/cursor-connection.md)、[架构](../architecture/cursor-connection.md)、[交互](../design/cursor-connection.md)及[验证记录](../quality/cursor-connection-verification.md)。快捷接入区分Cursor编辑器、Agent候选与派发资格，桌面只检查当前PATH固定文件；被动发现与指引已限定核验，真实Cursor执行适配仍planned。不得把文件存在、静态官方包或受控界面当作厂商执行、模型预算、代码候选或生产验收。完整31／P0–P7／58限定＋34待交付＝92项不变。

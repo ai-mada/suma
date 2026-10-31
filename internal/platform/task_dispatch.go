@@ -421,5 +421,9 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 func (s *Service) TaskDispatchRunTx(ctx context.Context, tx governanceQuery, tenant, project, runID string) (bool, error) {
 	var count int
 	err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_task_dispatch_plans WHERE tenant_id=? AND project_id=? AND run_id=? AND state='started'`), tenant, project, runID).Scan(&count)
-	return count == 1, err
+	if err != nil || count == 1 {
+		return count == 1, err
+	}
+	cloud, found, err := s.workBuddyTaskDispatchRunSourceTx(ctx, tx, tenant, project, runID)
+	return found && cloud.State == "started", err
 }

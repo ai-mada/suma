@@ -6823,6 +6823,45 @@ export interface WorkBuddyRefreshRequest {
   expected_version: number;
   idempotency_key: string;
 }
+export interface WorkBuddyTaskDispatchPlan {
+  id: string;
+  project_id: string;
+  owner_id: string;
+  version: number;
+  state: string;
+  task_id: string;
+  task_version: number;
+  connection_id: string;
+  connection_version: number;
+  grant_generation: number;
+  run_id: string;
+  node_id: string;
+  delegation_id: string;
+  created_at: string;
+  expires_at: string;
+  context: TaskContext;
+  workflow: Workflow;
+  execution_route: ProjectExecutionRoute;
+  node_spec_sha256: string;
+  request_sha256: string;
+  valid: boolean;
+  reason: string;
+}
+export interface WorkBuddyTaskDispatchPreviewRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  connection_id: string;
+  expected_connection_version: number;
+  grant_generation: number;
+  knowledge?: (ProjectKnowledgeReference)[];
+  idempotency_key: string;
+}
+export interface WorkBuddyTaskDispatchStartRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
 export interface Workflow {
   id: string;
   name: string;

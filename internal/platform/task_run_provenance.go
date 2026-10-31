@@ -63,7 +63,18 @@ func (s *Service) taskRunSourceTx(ctx context.Context, tx *sql.Tx, tenant, proje
 	var raw string
 	err = tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_task_dispatch_plans WHERE tenant_id=? AND project_id=? AND run_id=?`), tenant, project, run).Scan(&raw)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", nil, nil
+		cloud, found, e := s.workBuddyTaskDispatchRunSourceTx(ctx, tx, tenant, project, run)
+		if e != nil {
+			return "", nil, e
+		}
+		if !found {
+			return "", nil, nil
+		}
+		if cloud.TaskID != task {
+			return "", nil, conflict(taskRunProvenanceConflict)
+		}
+		v := cloud.TaskVersion + 1
+		return cloud.ID, &v, nil
 	}
 	if err != nil {
 		return

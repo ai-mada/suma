@@ -1,8 +1,8 @@
 # 参考平台能力与当前交付边界
 
-产品统一为 **1.0.0**。完整P0–P7与需求1–26及58项限定实现／34待办／92总账保持不变，见[交付状态](../delivery/status.md)和[实施计划](../delivery/implementation-plan.md)。[Octop、WorkBuddy、Multica逐项产品能力表](reference-platform-parity.md)列明公开功能、页面、交互、实现及证据差距，[原生工作台规格](../design/reference-workbench.md)定义完整体验；不能以适配器清单替代完整产品能力。
+产品统一为 **1.0.0**。完整P0–P7与原始需求1–31及58项限定实现／34待办／92总账保持不变，见[交付状态](../delivery/status.md)和[实施计划](../delivery/implementation-plan.md)。[Octop、WorkBuddy、Multica逐项产品能力表](reference-platform-parity.md)列明公开功能、页面、交互、实现及证据差距，[原生工作台规格](../design/reference-workbench.md)定义完整体验；不能以适配器清单替代完整产品能力。
 
-当前T-WORKBENCH-126推进原生IDE中的正式任务、需求／设计、负责人、准确运行、计划用例及正式验收同页关联，复用[任务上下文合同](../../contracts/workspace-task-context.md)。[限定报告](../quality/workspace-task-context-verification.md)及[摘要](../quality/workspace-task-context-summary.json)由实际验证生成，不提前声明通过。选择任务不改工作区绑定、不派发或批准；PTY、LSP／DAP、持续聊天和办公协作仍完整保留为待交付目标。
+历史T-WORKBENCH-126推进原生IDE中的正式任务、需求／设计、负责人、准确运行、计划用例及正式验收同页关联，复用[任务上下文合同](../../contracts/workspace-task-context.md)。[限定报告](../quality/workspace-task-context-verification.md)及[摘要](../quality/workspace-task-context-summary.json)由实际验证生成，不提前声明通过。选择任务不改工作区绑定、不派发或批准；PTY、LSP／DAP、持续聊天和办公协作仍完整保留为待交付目标。
 
 ## 证据规则
 
