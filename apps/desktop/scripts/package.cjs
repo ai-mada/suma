@@ -7,6 +7,7 @@ const {prepare,withTargetLock,checkedRun} = require('./prepare.cjs');
 const {inventory,fileHash,sourceInventory,validateControlManifest,validateTarget,assertPlainPath} = require('./provenance.cjs');
 const {validateElectron} = require('./builder-sdk.cjs');
 const {validateSourceInspector,inspectorSourceInventory} = require('./source-inspector.cjs');
+const {validateOpenCodeRuntime,openCodeSourceInventory} = require('./opencode-runtime.cjs');
 
 function assertOutput(plan) {
   assertPlainPath(plan.output,plan.language,true);
@@ -27,6 +28,7 @@ function validatePackagedApplication(plan,prepared,directory) {
   validateControlManifest(plan,path.join(resources,'control',path.basename(plan.resources.control)),prepared.control);
   if (inventory(path.join(resources,'web'),{language:plan.language}).sha256 !== prepared.web.sha256) throw failure('source_changed','packaged web',plan.language);
   validateSourceInspector(plan,path.join(resources,'source-inspector'),prepared.source_inspector);
+  validateOpenCodeRuntime(plan,path.join(resources,'control','opencode-runtime'),prepared.opencode_runtime);
 }
 function moveReadyDirectory(source,destination) {
   for (let attempt = 0;;attempt++) {
@@ -68,7 +70,7 @@ function finalize(plan,prepared,rawOutput,result) {
   const manifest = {
     schema_version:1,product:'suma',product_version:plan.version,platform:plan.platform,arch:plan.arch,target:plan.target,format:plan.format,targets:plan.targets,
     artifacts:selected.map(artifact=>artifact.to),files:contents.files,
-    control:prepared.control,web:{sha256:prepared.web.sha256,files:prepared.web.files.length},source_inspector:prepared.source_inspector,...(prepared.desktop_source_sha256 ? {desktop_source_sha256:prepared.desktop_source_sha256} : {}),
+    control:prepared.control,web:{sha256:prepared.web.sha256,files:prepared.web.files.length},source_inspector:prepared.source_inspector,opencode_runtime:prepared.opencode_runtime,...(prepared.desktop_source_sha256 ? {desktop_source_sha256:prepared.desktop_source_sha256} : {}),
     signing:{policy:plan.signing,status:plan.signing === 'off' ? 'unsigned' : 'not_independently_verified'},
     verification:{packaging:'sdk_completed',installation:false,gui:false,signature:false,notarization:false},
   };
@@ -97,6 +99,8 @@ async function packageDesktop(argv = process.argv.slice(2), context = {}) {
     validateControlManifest(plan,plan.resources.control,prepared.control,sourceInventory(plan.root));
     if (prepared.web.sha256 !== inventory(plan.resources.web,{language:plan.language}).sha256) throw failure('source_changed','web',plan.language);
     validateSourceInspector(plan,plan.resources.source_inspector,prepared.source_inspector);
+    validateOpenCodeRuntime(plan,plan.resources.opencode_runtime,prepared.opencode_runtime);
+    if (prepared.opencode_runtime.source_sha256 !== openCodeSourceInventory(plan)) throw failure('source_changed','OpenCode SDK',plan.language);
     if (prepared.source_inspector.source_sha256 !== inspectorSourceInventory(plan)) throw failure('source_changed','source inspector',plan.language);
     if (desktopSource !== inventory(path.join(plan.root,'apps/desktop/src'),{language:plan.language}).sha256) throw failure('source_changed','desktop',plan.language);
     if (result.directories?.length !== 1) throw failure('build_empty','packed application',plan.language);

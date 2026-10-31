@@ -49,6 +49,7 @@ func localToolDirectory() []localToolDirectoryEntry {
 		{id: "cursor-cli", product: "Cursor"},
 		{id: "qoder-acp", product: "Qoder CLI"},
 		{"codex-app-server", "Codex", "codex", "@openai/codex", CommandSpec{Adapter: "codex", Protocol: cc.Protocol, Input: "codex-app-server", Args: []string{"app-server", "--listen", "stdio://"}}},
+		{id: "opencode-sdk", product: "OpenCode", binary: "opencode", packageName: "opencode-ai"},
 	}
 }
 
@@ -112,6 +113,10 @@ func discoverInstalledTools(ctx context.Context, adapterID string, paths []strin
 	for index, entry := range entries {
 		go func(index int, entry localToolDirectoryEntry) {
 			defer func() { done <- struct{}{} }()
+			if entry.id == "opencode-sdk" {
+				result.Items[index] = discoverLocalOpenCode(ctx, paths, probe)
+				return
+			}
 			if entry.id == "codex-app-server" {
 				result.Items[index] = discoverLocalCodex(ctx, entry, paths, probe)
 				return
@@ -152,6 +157,9 @@ func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, e
 	exe, _, err := commandExecutable(spec)
 	if err != nil {
 		return "", err
+	}
+	if spec.Adapter == "opencode" {
+		return passiveOpenCodeVersion(ctx, exe)
 	}
 	if spec.Adapter == "qoder" {
 		directory, cleanup, err := newACPProbeDirectory()

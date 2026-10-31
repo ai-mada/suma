@@ -1,0 +1,43 @@
+// @vitest-environment jsdom
+import {act,StrictMode} from 'react';
+import {createRoot,type Root} from 'react-dom/client';
+import {afterEach,beforeEach,expect,it,vi} from 'vitest';
+import {webcrypto} from 'node:crypto';
+import {ApiViewProvider} from './api-context';
+import {setLocale} from './i18n';
+import type {DesktopToolConnectorProps} from './DesktopToolConnector';
+import {OpenCodeLocalConnector} from './OpenCodeLocalConnector';
+import {openCodeConfigurationSHA} from './desktop-opencode-connector-model';
+const child=vi.hoisted(()=>({props:undefined as DesktopToolConnectorProps|undefined}));
+vi.mock('./DesktopToolConnector',()=>({DesktopToolConnector:(props:DesktopToolConnectorProps)=>{child.props=props;return <div data-real-connector-seam/>;}}));
+const project='1'.repeat(32),user='2'.repeat(32),tenant='3'.repeat(32),worker='desktop-'+'4'.repeat(32),exe='a'.repeat(64),sha='b'.repeat(64);
+const session={user:{id:user,name:'Owner',email:'owner@example.test'},organization:{id:tenant,name:'Team'}};
+const report=()=>({status:'observed',report:{protocol:'suma-installed-tools-v1',items:[{adapter_id:'opencode-sdk',product:'OpenCode',installed:true,launch_supported:false,executable:'D:/tools/opencode.exe',executable_sha256:exe,version:'1.19.4',reason_code:'configuration_required'}]}});
+const connection={project_id:project,adapter_id:'opencode-sdk',phase:'connected' as const,worker_id:worker,model:'model-one',tool_version:'1.19.4',executable_sha256:exe,configuration_sha256:sha,provider_id:'approved',endpoint_origin:'https://provider.example'};
+let host:HTMLDivElement,root:Root,detect:ReturnType<typeof vi.fn>,connected:ReturnType<typeof vi.fn>,ready:ReturnType<typeof vi.fn>,blocked:ReturnType<typeof vi.fn>,expectedSHA:string;
+beforeEach(async()=>{await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('crypto',webcrypto);expectedSHA=(await openCodeConfigurationSHA({provider_id:'approved',model:'model-one',base_url:'https://provider.example/v1',api_key_env_ref:'TEAM_PROVIDER_TOKEN'},'D:/tools/opencode.exe'))!;sessionStorage.clear();host=document.createElement('div');document.body.append(host);root=createRoot(host);detect=vi.fn(async()=>report());connected=vi.fn();ready=vi.fn();blocked=vi.fn();vi.stubGlobal('sumaDesktop',{platform:'win32',version:'1.0.0',discoverInstalledTools:detect,manageLocalTool:vi.fn()});vi.stubGlobal('fetch',vi.fn(()=>{throw Error('No HTTP in local setup');}));});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();vi.restoreAllMocks();});
+async function render(p=project,identity=session){await act(async()=>root.render(<StrictMode><ApiViewProvider session={identity}><OpenCodeLocalConnector project={p} onConnected={connected} onRegistrationReadyChange={ready} onBlockedChange={blocked}/></ApiViewProvider></StrictMode>));}
+async function input(name:string,value:string){const field=host.querySelector<HTMLInputElement>('[name='+name+']')!;expect(field).not.toBeNull();await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(field,value);field.dispatchEvent(new Event('input',{bubbles:true}));});}
+async function initial(){await render();await act(async()=>child.props!.onConnection?.({project_id:project,adapter_id:'opencode-sdk',phase:'unconfigured'}));}
+async function configure(){await input('provider_id','approved');await input('model','model-one');await input('base_url','https://provider.example/v1');await input('api_key_env_ref','TEAM_PROVIDER_TOKEN');}
+async function digestReady(){for(let n=0;n<20&&child.props?.expectedConfigurationSHA!==expectedSHA;n++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});expect(child.props?.expectedConfigurationSHA).toBe(expectedSHA);}
+
+it('uses a fresh native installation and exact adopted setup while edits invalidate registration without inventing model discovery',async()=>{
+ let finish!:(value:unknown)=>void;detect.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));await render();await act(async()=>child.props!.onConnection?.(connection));expect(connected).not.toHaveBeenCalled();expect(ready).toHaveBeenLastCalledWith(false);expect(child.props?.expectedConfigurationSHA).toBeUndefined();await act(async()=>finish(report()));expect(connected).not.toHaveBeenCalled();expect(ready).toHaveBeenLastCalledWith(false);
+ expect(detect).toHaveBeenCalledExactlyOnceWith({project_id:project,user_id:user,tenant_id:tenant,adapter_id:'opencode-sdk',locale:'en-US'});await configure();await digestReady();const setup=child.props!.opencodeSetup!;expect(setup).toEqual({executable_sha256:exe,provider_id:'approved',model:'model-one',base_url:'https://provider.example/v1',api_key_env_ref:'TEAM_PROVIDER_TOKEN'});expect(connected).not.toHaveBeenCalled();
+ await act(async()=>child.props!.onConnection?.(connection));expect(ready).toHaveBeenLastCalledWith(false);expect(connected).not.toHaveBeenCalled();
+ await act(async()=>child.props!.onConnection?.({...connection,configuration_sha256:expectedSHA}));expect(ready).toHaveBeenLastCalledWith(true);expect(connected).toHaveBeenCalledExactlyOnceWith({worker_id:worker,model:'model-one',tool_version:'1.19.4',executable_sha256:exe,configuration_sha256:expectedSHA,provider_id:'approved',endpoint_origin:'https://provider.example'});
+ await act(async()=>child.props!.onConnection?.({...connection,configuration_sha256:expectedSHA}));expect(connected).toHaveBeenCalledOnce();await act(async()=>child.props!.onBlockedChange?.(true));await act(async()=>child.props!.onBlockedChange?.(false));expect(connected).toHaveBeenCalledOnce();
+ await act(async()=>child.props!.onConnection?.({...connection,configuration_sha256:expectedSHA,phase:'stopped'}));expect(ready).toHaveBeenLastCalledWith(false);await act(async()=>child.props!.onConnection?.({...connection,configuration_sha256:expectedSHA}));expect(connected).toHaveBeenCalledTimes(2);
+ await input('base_url','https://provider.example/v2');expect(ready).toHaveBeenLastCalledWith(false);await act(async()=>child.props!.onConnection?.({...connection,configuration_sha256:expectedSHA}));expect(ready).toHaveBeenLastCalledWith(false);expect(connected).toHaveBeenCalledTimes(2);expect(child.props?.disabled).toBe(false);expect(fetch).not.toHaveBeenCalled();
+});
+it('preserves scoped drafts across locale and remount while pending recovery cannot adopt or edit a new setup',async()=>{
+ await initial();await configure();await act(async()=>setLocale('zh-CN',{persist:false}));expect(detect).toHaveBeenCalledOnce();expect(host.querySelector<HTMLInputElement>('[name=model]')!.value).toBe('model-one');
+ await act(async()=>child.props!.onBlockedChange?.(true));expect(host.querySelector<HTMLInputElement>('[name=provider_id]')!.matches(':disabled')).toBe(true);expect(child.props?.opencodeSetup).toBeUndefined();expect(child.props?.disabled).toBe(false);expect(blocked).toHaveBeenLastCalledWith(true);
+ await act(async()=>root.unmount());root=createRoot(host);await render();expect(host.querySelector<HTMLInputElement>('[name=provider_id]')!.value).toBe('approved');expect(connected).not.toHaveBeenCalled();await render('9'.repeat(32));expect(host.querySelector<HTMLInputElement>('[name=provider_id]')!.value).toBe('');expect(fetch).not.toHaveBeenCalled();
+});
+it('discards a late installation for another identity and never adopts an unsupported native version',async()=>{
+ let finish!:(value:unknown)=>void;detect.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));await initial();await render(project,{...session,user:{...session.user,id:'8'.repeat(32)}});await act(async()=>finish(report()));expect(host.textContent).not.toContain('1.19.4');expect(child.props?.opencodeSetup).toBeUndefined();
+ detect.mockResolvedValueOnce({status:'observed',report:{protocol:'suma-installed-tools-v1',items:[{...report().report.items[0],version:'2.0.0',reason_code:'version_unsupported'}]}});await act(async()=>child.props!.onConnection?.({project_id:project,adapter_id:'opencode-sdk',phase:'unconfigured'}));await configure();expect(child.props?.opencodeSetup).toBeUndefined();expect(connected).not.toHaveBeenCalled();expect(ready).toHaveBeenLastCalledWith(false);
+});

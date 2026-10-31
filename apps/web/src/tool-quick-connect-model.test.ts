@@ -4,6 +4,20 @@ import type {AdapterDescriptor} from './AdapterConnections';
 
 const adapter={id:'codex-jsonl',product:'Codex',direction:'suma_to_tool',implementation:'implemented',setup_kind:'runner_profile',adapter:'codex',protocol:'codex-jsonl-v1'} as AdapterDescriptor;
 const profile={command_id:'codex-team',adapter:'codex',protocol:'codex-jsonl-v1',profile_sha256:'a'.repeat(64),executable_sha256:'b'.repeat(64),tool_version:'1.0',read_only:false};
+it('matches OpenCode fixed inventory without comparing native server identity to the Node host',()=>{
+ const openAdapter={...adapter,id:'opencode-sdk',product:'OpenCode',adapter:'opencode',protocol:'opencode-sdk-v1'};
+ const cap={sdk_version:'1.19.4',server_version:'1.19.4',provider_id:'provider',model:'vendor/model',endpoint_origin:'https://provider.example',configuration_sha256:'c'.repeat(64),budget_mode:'observe_only',identity_evidence:'configuration_ack_only'};
+ const item={profile:{...profile,adapter:'opencode',protocol:'opencode-sdk-v1',tool_version:'suma-opencode-runtime 1.0.0',opencode_execution:cap},available:true,reason:''};
+ const proof={model:cap.model,provider_id:cap.provider_id,endpoint_origin:cap.endpoint_origin,tool_version:'1.19.4',executable_sha256:'d'.repeat(64),configuration_sha256:cap.configuration_sha256};
+ expect(matchingQuickTools([item],openAdapter,proof)).toEqual([item]);
+ for(const patch of [{model:'other'},{provider_id:'other'},{endpoint_origin:'https://other.example'},{configuration_sha256:'e'.repeat(64)}])expect(matchingQuickTools([item],openAdapter,{...proof,...patch})).toEqual([]);
+ expect(matchingQuickTools([{...item,profile:{...item.profile,tool_version:'1.19.4'}}],openAdapter,proof)).toEqual([]);
+ expect(matchingQuickTools([{...item,available:false}],openAdapter,proof)).toEqual([]);
+ const row={adapter_id:'opencode-sdk',product:'OpenCode',installed:true,launch_supported:false,executable:'C:/tools/opencode.exe',version:'1.19.4',executable_sha256:'a'.repeat(64),reason_code:'configuration_required'};
+ const read=(value:unknown)=>readInstalledToolDiscovery({status:'observed',report:{protocol:'suma-installed-tools-v1',items:[value]}},'opencode-sdk');
+ expect(read(row)).toEqual(row);expect(read({...row,version:'1.20.0',reason_code:'version_unsupported'})).toBeDefined();
+ for(const patch of [{version:'1.20.0'},{reason_code:'version_unsupported'},{launch_supported:true},{command:['run']},{profile:{}},{executable:'relative.exe'},{executable_sha256:undefined}])expect(read({...row,...patch})).toBeUndefined();
+});
 it('offers only implemented execution entries and distinct active authorized workers',()=>{
  expect(quickConnectAdapters([adapter,{...adapter,id:'planned',implementation:'planned'},{...adapter,id:'client',direction:'tool_to_suma',setup_kind:'client_export'}])).toEqual([adapter]);
  expect(quickConnectWorkers([{worker_id:'one',status:'active'},{worker_id:'old',status:'revoked'}],[{worker_id:'one',status:'active'},{worker_id:'two',status:'active'}])).toEqual(['one','two']);

@@ -4,7 +4,7 @@ export type LocalToolsScanScope=Readonly<{project:string;userID:string;organizat
 export type LocalToolsScanRequest={action:'scan';project_id:string;user_id:string;tenant_id:string;locale:'zh-CN'|'en-US';force?:boolean};
 export type LocalToolsScanResult={status:'observed';report:{protocol:'suma-installed-tools-v1';items:InstalledToolFact[]};scan:{id:string;project_id:string;user_id:string;tenant_id:string;observed_at:string;expires_at:string;cached:boolean}}|{status:'failed';code:string};
 export type LocalToolsScanBridge=Readonly<{platform:'win32'|'darwin'|'linux';version:'1.0.0';discoverInstalledTools:(request:LocalToolsScanRequest)=>Promise<unknown>}>;
-export const scanAdapterIDs=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','cursor-cli','qoder-acp','codex-app-server'] as const;
+export const scanAdapterIDs=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','cursor-cli','qoder-acp','codex-app-server','opencode-sdk'] as const;
 const encoder=new TextEncoder();
 const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&(Object.getPrototypeOf(v)===Object.prototype||Object.getPrototypeOf(v)===null);
 const closed=(v:Record<string,unknown>,required:readonly string[],optional:readonly string[]=[])=>required.every(key=>Object.hasOwn(v,key))&&Reflect.ownKeys(v).every(key=>typeof key==='string'&&(required.includes(key)||optional.includes(key)));

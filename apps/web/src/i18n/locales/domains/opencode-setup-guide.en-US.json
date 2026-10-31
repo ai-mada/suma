@@ -1,0 +1,23 @@
+{
+  "opencode-setup-guide.title": "OpenCode SDK administrator configuration",
+  "opencode-setup-guide.intro": "Prepare a complete configuration draft for a local or remote Runner. This guide only validates inputs and copies nonsecret JSON for an administrator to review and apply on the execution node.",
+  "opencode-setup-guide.runtime_versions": "Use the fixed OpenCode SDK/server 1.19.4 and the complete suma-opencode-runtime assets. These are execution-node paths; entering them does not verify files or tool readiness.",
+  "opencode-setup-guide.field.node": "Absolute path to the native Node executable",
+  "opencode-setup-guide.field.bundle": "Absolute path to the SDK bundle (.mjs)",
+  "opencode-setup-guide.field.manifest": "Absolute path to the SDK manifest (.json)",
+  "opencode-setup-guide.field.executable": "Absolute path to the native OpenCode executable",
+  "opencode-setup-guide.field.provider": "Fixed provider ID",
+  "opencode-setup-guide.field.model": "Fixed model ID",
+  "opencode-setup-guide.field.endpoint": "Provider base URL",
+  "opencode-setup-guide.field.credential": "Credential environment variable name (optional)",
+  "opencode-setup-guide.field.checks": "Existing check command IDs (optional, comma-separated)",
+  "opencode-setup-guide.paths_help": "Use reviewed native Node and OpenCode executables with one complete SDK asset package. The Runner verifies actual files, manifest, dependencies and configuration; do not enter wrapper scripts or relative paths.",
+  "opencode-setup-guide.credential_help": "Enter only a separate environment variable name already configured on the execution node, never a secret value. Platform, OpenCode, Node, NPM and system configuration variables are not allowed.",
+  "opencode-setup-guide.checks_help": "Reference at most 16 distinct existing fixed text-v1 check command IDs from the same commands file. This guide does not create check commands; an empty list does not mean tests passed.",
+  "opencode-setup-guide.incomplete": "Complete valid execution-node paths, provider, model, URL and any optional references before copying the configuration.",
+  "opencode-setup-guide.next": "Apply and verify",
+  "opencode-setup-guide.save": "Have an administrator merge this entry into the node's existing commands file while retaining its configured check commands. This guide does not write files.",
+  "opencode-setup-guide.verify": "Use the existing Runner inventory flow to verify local files, complete SDK assets and fixed configuration. A draft does not establish installation, model execution or health.",
+  "opencode-setup-guide.register": "Register actual new inventory as paused, review its permissions and evidence, then explicitly enable it. Execution, candidates, independent tests and human acceptance remain separate checks.",
+  "opencode-setup-guide.boundary": "The administrator fixes the provider and model; configuration acknowledgement does not verify the provider's actual model. Usage is observed without a provider spending cap. This guide does not log in, create tasks or register tools automatically."
+}

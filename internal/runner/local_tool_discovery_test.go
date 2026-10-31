@@ -41,7 +41,7 @@ func TestLocalToolDiscoveryOnlyFixedCandidatesAndNoExecutionAuthority(t *testing
 		}
 		return "codex-cli fixture", nil
 	})
-	if err != nil || result.Protocol != InstalledToolDiscoveryProtocol || len(result.Items) != 7 || calls != 1 {
+	if err != nil || result.Protocol != InstalledToolDiscoveryProtocol || len(result.Items) != 8 || calls != 1 {
 		t.Fatalf("result=%+v calls=%d error=%v", result, calls, err)
 	}
 	first := result.Items[0]

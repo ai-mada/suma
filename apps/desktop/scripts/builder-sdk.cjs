@@ -30,6 +30,7 @@ function builderConfig(plan,rawOutput) {
     extraResources:[
       {from:plan.resources.control,to:`control/${path.basename(plan.resources.control)}`},
       {from:plan.resources.web,to:'web',filter:['**/*']},
+      {from:plan.resources.opencode_runtime,to:'control/opencode-runtime',filter:['**/*']},
       {from:plan.resources.source_inspector,to:'source-inspector',filter:['node','node.exe','source-inspector.bundle.mjs','NODE_LICENSE.txt','THIRD_PARTY_NOTICES.txt','manifest.json']},
     ],
     win:{target:plan.platform === 'win32' ? plan.targets : [],signExecutable:plan.signing !== 'off'},

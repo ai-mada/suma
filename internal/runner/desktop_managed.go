@@ -20,17 +20,18 @@ const DesktopManagedInputLimit = 16 << 10
 // an HTTP or renderer contract. The token is held in memory, never in arguments,
 // inherited environment, commands files or a returned status frame.
 type DesktopManagedRunnerInput struct {
-	CodexConfiguration *DesktopManagedCodexConfiguration `json:"codex_configuration,omitempty"`
-	ACPConfiguration   *DesktopManagedACPConfiguration   `json:"acp_configuration,omitempty"`
-	Protocol           string                            `json:"protocol"`
-	ControlURL         string                            `json:"control_url"`
-	ProjectID          string                            `json:"project_id"`
-	WorkerID           string                            `json:"worker_id"`
-	AdapterID          string                            `json:"adapter_id"`
-	Repository         string                            `json:"repository"`
-	BaseCommit         string                            `json:"base_commit"`
-	StateDirectory     string                            `json:"state_directory"`
-	Token              string                            `json:"token"`
+	OpenCodeConfiguration *DesktopManagedOpenCodeConfiguration `json:"opencode_configuration,omitempty"`
+	CodexConfiguration    *DesktopManagedCodexConfiguration    `json:"codex_configuration,omitempty"`
+	ACPConfiguration      *DesktopManagedACPConfiguration      `json:"acp_configuration,omitempty"`
+	Protocol              string                               `json:"protocol"`
+	ControlURL            string                               `json:"control_url"`
+	ProjectID             string                               `json:"project_id"`
+	WorkerID              string                               `json:"worker_id"`
+	AdapterID             string                               `json:"adapter_id"`
+	Repository            string                               `json:"repository"`
+	BaseCommit            string                               `json:"base_commit"`
+	StateDirectory        string                               `json:"state_directory"`
+	Token                 string                               `json:"token"`
 }
 
 func desktopManagedHex(value string, length int) bool {
@@ -62,7 +63,14 @@ func (input DesktopManagedRunnerInput) validate() error {
 	if input.Protocol != DesktopManagedRunnerProtocol || !desktopManagedHex(input.ProjectID, 32) || !strings.HasPrefix(input.WorkerID, "desktop-") || !desktopManagedHex(strings.TrimPrefix(input.WorkerID, "desktop-"), 32) || !desktopManagedHex(input.Token, 64) || !commitID.MatchString(input.BaseCommit) || !desktopManagedPath(input.Repository) || !desktopManagedPath(input.StateDirectory) {
 		return invalid
 	}
-	if input.AdapterID != "codex-app-server" && input.AdapterID != "codex-jsonl" && input.AdapterID != "codebuddy-cli" && input.AdapterID != "dsh-multica" && input.AdapterID != "claude-code-cli" && input.AdapterID != "qoder-acp" {
+	if input.AdapterID != "opencode-sdk" && input.AdapterID != "codex-app-server" && input.AdapterID != "codex-jsonl" && input.AdapterID != "codebuddy-cli" && input.AdapterID != "dsh-multica" && input.AdapterID != "claude-code-cli" && input.AdapterID != "qoder-acp" {
+		return invalid
+	}
+	if input.AdapterID == "opencode-sdk" {
+		if !validManagedOpenCodeConfiguration(input.OpenCodeConfiguration) || input.ACPConfiguration != nil || input.CodexConfiguration != nil {
+			return invalid
+		}
+	} else if input.OpenCodeConfiguration != nil {
 		return invalid
 	}
 	if input.AdapterID == "qoder-acp" {
@@ -142,6 +150,22 @@ func DecodeDesktopManagedRunnerInput(raw []byte) (DesktopManagedRunnerInput, err
 	} else if input.AdapterID == "codex-app-server" {
 		return DesktopManagedRunnerInput{}, invalid
 	}
+	if value, present := fields["opencode_configuration"]; present {
+		if input.AdapterID != "opencode-sdk" || value == nil {
+			return DesktopManagedRunnerInput{}, invalid
+		}
+		raw, err := json.Marshal(value)
+		if err != nil {
+			return DesktopManagedRunnerInput{}, invalid
+		}
+		configuration, err := decodeManagedOpenCodeConfiguration(raw)
+		if err != nil {
+			return DesktopManagedRunnerInput{}, invalid
+		}
+		input.OpenCodeConfiguration = configuration
+	} else if input.AdapterID == "opencode-sdk" {
+		return DesktopManagedRunnerInput{}, invalid
+	}
 	return input, nil
 }
 
@@ -157,6 +181,17 @@ func prepareDesktopManagedExecution(ctx context.Context, input DesktopManagedRun
 	// reads repository facts only: it neither creates a checkout nor opens state.
 	if err := inventoryWorkspace(ctx, cfg, true); err != nil {
 		return ExecConfig{}, fmt.Errorf("desktop Runner needs the bound Git root, pinned commit and ignored worktree directory")
+	}
+	if input.AdapterID == "opencode-sdk" {
+		spec, err := prepareManagedOpenCode(ctx, input.OpenCodeConfiguration)
+		if err != nil {
+			return ExecConfig{}, err
+		}
+		cfg.Commands = map[string]CommandSpec{"desktop-opencode-sdk": spec}
+		if ValidateToolConfiguration(cfg) != nil {
+			return ExecConfig{}, fmt.Errorf("desktop OpenCode configuration is unavailable")
+		}
+		return cfg, nil
 	}
 	if input.AdapterID == "codex-app-server" {
 		spec, err := prepareManagedCodex(ctx, input.CodexConfiguration)

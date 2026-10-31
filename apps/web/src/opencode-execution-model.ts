@@ -1,4 +1,15 @@
 import type {OpenCodeExecutionCapability} from '../../../packages/contracts/src';
+import {wellFormed} from './i18n/catalog';
+
+/** Go stores Scheme + "://" + Host verbatim, including host case and port. */
+export function openCodeEndpointOrigin(baseURL:string):string|undefined {
+ if(typeof baseURL!=='string'||!wellFormed(baseURL)||!baseURL||baseURL.trim()!==baseURL||new TextEncoder().encode(baseURL).length>2048||/[\p{Cc}\u2028\u2029?#\\]/u.test(baseURL))return;
+ const match=/^(https|http):\/\/([^/]+)(?:\/.*)?$/u.exec(baseURL);if(!match||match[2].includes('@'))return;
+ const authority=match[2],host=/^(\[[^\]]+\]|[^:]+)(?::([0-9]*))?$/.exec(authority);if(!host)return;
+ try{const parsed=new URL(match[1]+'://'+host[1]);if(!parsed.hostname||parsed.username||parsed.password)return;}catch{return;}
+ if(match[1]==='http'&&!['localhost','127.0.0.1','[::1]'].includes(host[1]))return;
+ return match[1]+'://'+authority;
+}
 
 const keys=['sdk_version','server_version','provider_id','model','endpoint_origin','configuration_sha256','budget_mode','identity_evidence'];
 const text=(value:unknown,max:number):value is string=>typeof value==='string'&&value.trim()===value&&value.length>0&&new TextEncoder().encode(value).length<=max&&!/[\u0000-\u001f\u007f-\u009f]/.test(value);
@@ -8,7 +19,7 @@ export function validOpenCodeCapability(value:unknown):value is OpenCodeExecutio
  if(!value||typeof value!=='object'||Array.isArray(value))return false;
  const p=value as Record<string,unknown>;
  if(Object.keys(p).length!==keys.length||Object.keys(p).some(key=>!keys.includes(key))||p.sdk_version!=='1.19.4'||p.server_version!=='1.19.4'||!text(p.provider_id,100)||!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(p.provider_id)||!text(p.model,256)||!/^[A-Za-z0-9][A-Za-z0-9._:/@+\-]{0,255}$/.test(p.model)||!text(p.endpoint_origin,2048)||typeof p.configuration_sha256!=='string'||!/^[a-f0-9]{64}$/.test(p.configuration_sha256)||p.budget_mode!=='observe_only'||p.identity_evidence!=='configuration_ack_only')return false;
- try{const url=new URL(p.endpoint_origin);return url.origin===p.endpoint_origin&&!url.username&&!url.password&&(url.protocol==='https:'||url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname));}catch{return false;}
+ return openCodeEndpointOrigin(p.endpoint_origin)===p.endpoint_origin;
 }
 
 export function sameOpenCodeCapability(a:unknown,b:unknown):boolean {

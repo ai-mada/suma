@@ -8,12 +8,14 @@ import {validWorkspaceMetadata} from './desktop-workspace-model';
 import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope,type DesktopToolAction,type DesktopToolBridge,type DesktopToolConnection,type DesktopToolPhase,type DesktopToolScope,type DesktopToolRequest} from './desktop-tool-connector-model';
 import {validDesktopACPSelection,type DesktopACPSelection} from './desktop-acp-connector-model';
 import {validDesktopCodexSelection,type DesktopCodexSelection} from './desktop-codex-connector-model';
+import {validDesktopOpenCodeSetup,type DesktopOpenCodeSetup} from './desktop-opencode-connector-model';
+import {openCodeEndpointOrigin} from './opencode-execution-model';
 import {ToolConnectionDiagnostic} from './ToolConnectionDiagnostic';
 import {tr,useLocale} from './i18n';
 import './DesktopToolConnector.css';
 
 const t=(key:string)=>tr('desktop-tool-connector.'+key);
-export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;onConnection?:(connection:DesktopToolConnection)=>void;onBlockedChange?:(blocked:boolean)=>void;onConfigure?:()=>void;onGuide?:()=>void;secondary?:boolean;disabled?:boolean;acpSelection?:DesktopACPSelection;codexSelection?:DesktopCodexSelection;expectedConfigurationSHA?:string};
+export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;onConnection?:(connection:DesktopToolConnection)=>void;onBlockedChange?:(blocked:boolean)=>void;onConfigure?:()=>void;onGuide?:()=>void;secondary?:boolean;disabled?:boolean;acpSelection?:DesktopACPSelection;codexSelection?:DesktopCodexSelection;opencodeSetup?:DesktopOpenCodeSetup;expectedConfigurationSHA?:string};
 export function DesktopToolConnector(props:DesktopToolConnectorProps){
  const api=useApi(),view=useApiView(),bridge=desktopToolBridge();
  const scope={project:props.project,userID:view?.userID??'',organizationID:view?.organizationID??'',adapterID:props.adapterID};
@@ -22,14 +24,14 @@ export function DesktopToolConnector(props:DesktopToolConnectorProps){
 }
 type Snapshot={api:ApiCaller;bridge:DesktopToolBridge;connection?:DesktopToolConnection;uncertain?:DesktopToolAction;failed?:boolean;refusal?:DesktopToolPhase;code?:string};
 const refusals=new Set(['authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','needs_workspace','not_installed','unavailable']);
-function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected,onConnection,onBlockedChange,onConfigure,onGuide,acpSelection,codexSelection,expectedConfigurationSHA}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
+function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected,onConnection,onBlockedChange,onConfigure,onGuide,acpSelection,codexSelection,opencodeSetup,expectedConfigurationSHA}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
  const locale=useLocale(),[snapshot,setSnapshot]=useState<Snapshot>(),[busy,setBusy]=useState<DesktopToolAction>(),[workspaceBlocked,setWorkspaceBlocked]=useState(false);
  const intent=useRef({api,bridge,epoch:0}),mounted=useRef(true),inflight=useRef(false),reported=useRef(''),reportedConnection=useRef(''),workspaceRoot=useRef<HTMLDivElement>(null);
  if(intent.current.api!==api||intent.current.bridge!==bridge)intent.current={api,bridge,epoch:intent.current.epoch+1};
  const current=snapshot?.api===api&&snapshot.bridge===bridge?snapshot:undefined,connection=current?.connection;
  const phase=current?.refusal??(current?.uncertain?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
- const acp=scope.adapterID==='qoder-acp',codex=scope.adapterID==='codex-app-server',native=acp||codex,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
- const selectionValid=(acp?validDesktopACPSelection(acpSelection):codex?validDesktopCodexSelection(codexSelection):false)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
+ const acp=scope.adapterID==='qoder-acp',codex=scope.adapterID==='codex-app-server',opencode=scope.adapterID==='opencode-sdk',native=acp||codex||opencode,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
+ const selectionValid=(acp?validDesktopACPSelection(acpSelection):codex?validDesktopCodexSelection(codexSelection):opencode?validDesktopOpenCodeSetup(opencodeSetup):false)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
  const localBlocked=!!busy||workspaceBlocked||!!current?.uncertain||!!phase&&['prepared','issuance_unknown','starting','stopping','stop_unconfirmed'].includes(phase);
  useEffect(()=>{onBlockedChange?.(localBlocked);},[localBlocked,onBlockedChange]);
  useEffect(()=>()=>onBlockedChange?.(false),[onBlockedChange]);
@@ -47,7 +49,7 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   const epoch=intent.current.epoch;inflight.current=true;setBusy(action);
   try{
    const base={project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,adapter_id:scope.adapterID,locale};
-   const request:DesktopToolRequest=action!=='connect'?{...base,action}:!originalRecovery&&selectionValid&&codex?{...base,action,codex_selection:{...codexSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{...base,action,...(acp&&!originalRecovery&&selectionValid?{acp_selection:{...acpSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{})};
+   const request:DesktopToolRequest=action!=='connect'?{...base,action}:!originalRecovery&&selectionValid&&opencode?{...base,action,opencode_setup:{...opencodeSetup!}}:!originalRecovery&&selectionValid&&codex?{...base,action,codex_selection:{...codexSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{...base,action,...(acp&&!originalRecovery&&selectionValid?{acp_selection:{...acpSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{})};
    const raw=await bridge.manageLocalTool(request);
    if(!live(epoch))return;const result=readDesktopToolResult(raw,scope);
    if(!result)throw Error('unconfirmed native response');
@@ -76,9 +78,10 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   if(!connection.worker_id)return;
   if(acp&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.tool_version||!connection.executable_sha256||acpSelection&&connection.model!==acpSelection.model_id)){reported.current='';return;}
   if(codex&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.tool_version||!connection.executable_sha256||!connection.catalog_sha256)){reported.current='';return;}
+  if(opencode&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.provider_id||!connection.endpoint_origin||!connection.tool_version||!connection.executable_sha256||opencodeSetup&&(!validDesktopOpenCodeSetup(opencodeSetup)||connection.model!==opencodeSetup.model||connection.provider_id!==opencodeSetup.provider_id||connection.executable_sha256!==opencodeSetup.executable_sha256||connection.endpoint_origin!==openCodeEndpointOrigin(opencodeSetup.base_url)))){reported.current='';return;}
   const identity=native?JSON.stringify([connection.worker_id,connection.configuration_sha256,connection.tool_version,connection.executable_sha256,connection.catalog_sha256]):connection.worker_id;
   if(reported.current===identity)return;reported.current=identity;onConnected(connection.worker_id);
- },[current,connection,onConnected,acp,codex,native,expectedConfigurationSHA,acpSelection?.model_id]);
+ },[current,connection,onConnected,acp,codex,opencode,native,expectedConfigurationSHA,acpSelection?.model_id,opencodeSetup]);
  useEffect(()=>{
   if(busy||!connection||current?.uncertain)return;
   const wait=connection.phase==='starting'||connection.phase==='stopping'?2000:connection.phase==='connected'&&connection.expires_at?Math.max(1000,Date.parse(connection.expires_at)-Date.now()):undefined;

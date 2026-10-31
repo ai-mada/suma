@@ -21,7 +21,7 @@ type LocalToolsScanResult = {
 } | { status: 'failed'; code: string };
 ```
 
-对象为闭合类型，ID 为 32 位小写十六进制；时间为 UTC ISO 字符串。批量请求不能携带 `adapter_id`。结果精确包含现有七个接入项各一次，按目录顺序返回：`codex-jsonl`、`codebuddy-cli`、`dsh-multica`、`claude-code-cli`、`cursor-cli`、`qoder-acp`、`codex-app-server`。两个 Codex 项代表不同协议，不能计作两种已安装产品。
+对象为闭合类型，ID 为 32 位小写十六进制；时间为 UTC ISO 字符串。批量请求不能携带 `adapter_id`。当前目录经 [T177 OpenCode 接入](opencode-quick-connect.md)增加至八个接入项，各一次，按目录顺序返回：`codex-jsonl`、`codebuddy-cli`、`dsh-multica`、`claude-code-cli`、`cursor-cli`、`qoder-acp`、`codex-app-server`、`opencode-sdk`。两个 Codex 项代表不同协议，不能计作两种已安装产品。
 
 - 复用 Go 已有的 `--discover-installed-tools` 全目录并行探测，不增加派发器、后台服务、数据库或 CLI 别名。
 - 每行复用现有校验并移除命令参数；不向渲染进程授予启动权限。未知、缺失或重复接入项拒绝整个结果。

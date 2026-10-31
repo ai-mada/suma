@@ -703,12 +703,12 @@
   "last_goal_turn_classification": "progress: T173 native published skill plan/assignment/files/Codex catalogue and explicit invocation implemented,47focused/real installed no-Prompt directory/synthetic4visual verified. No model-use claim,4link skips and fullgoal gaps retained. Stage publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-CODEX-QUICK-CONNECT-175",
-    "status": "scoped_source_and_real_catalogue_verified_ready_for_commit",
-    "contract": "contracts/codex-quick-connect.md",
+    "stage": "T-OPENCODE-QUICK-CONNECT-177",
+    "status": "scoped_verified",
+    "contract": "contracts/opencode-quick-connect.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "priority": "Feature implementation and simple automatic tool onboarding first; reuse mature components and unchanged green results; no broad repeated verification.",
-    "next": "Publish verified native quick connection stage with precise control-main hunk staging; continue multi-tool connection diagnostics/credential lifecycle and original full platform scope."
+    "priority": "Parallel feature delivery, mature runtime reuse, simple bilingual onboarding and only changed behavior checks.",
+    "next": "Continue original full platform, tool credential lifecycle and real native/integration/installer acceptance; preserve current user delta and existing evidence."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -950,6 +950,28 @@
       "Real vendor/model/account/billing/OS isolation; complete tool and Harness ecosystem.",
       "Physical multi-host, other databases, full device/theme/platform/installer matrix, scale and production.",
       "All original 31 requirements/P0-P7; T171 explicit GUI stop gap remains."
+    ],
+    "full_platform_complete": false
+  },
+  "opencode_quick_connect": {
+    "stage": "T-OPENCODE-QUICK-CONNECT-177",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_source_real_sdk_resources_and_synthetic_components_verified",
+    "contract": "contracts/opencode-quick-connect.md",
+    "product": "docs/product/opencode-quick-connect.md",
+    "architecture": "docs/architecture/opencode-quick-connect.md",
+    "design": "docs/design/opencode-quick-connect.md",
+    "report": "docs/quality/opencode-quick-connect-verification.md",
+    "summary": "docs/quality/opencode-quick-connect-summary.json",
+    "implementation": "Existing SDK execution connected to passive native detection and the original managed Worker; eight current scan entries, no generic CLI fallback. Trusted Node and complete SDK/plugin assets prepared and verified separately from native OpenCode; fixed model/provider/base URL/credential reference, no model catalogue or copied login. Exact Go/Web configuration digest and raw endpoint authority; original scope, encrypted journal, unknown-operation recovery and fresh Node/runtime capability inventory. Bilingual four-field local connector and administrator guide, paused profile registration and separate explicit enable; existing fixed_opencode dispatch and quality gates unchanged.",
+    "verification": "40distinct(10Go/8Desktop/22Web;26new/14affectedold),7Go subcases; once TSC0/8421paired/0hardcodes. Exact digest interop and source/version/recovery corrections scoped; unchanged greens reused.",
+    "actual": "1Go compile/1passive CLI not_installed;1actual SDKbuild/3621assets/Node22.16 and exact license, host resolver pass. Initial missing license continued only SDK.2component builds/3browser attempts retain driver/fixture failures; final5checks/2Root-viewed images/normal exit0. No actual native/model/fullinstaller claim.",
+    "remaining": [
+      "Actual installed native OpenCode1.19.4, vendor/account/model and full desktop connect/register/enable/develop/test/accept journey.",
+      "Complete installer, signatures, release third-party notice audit and Windows/macOS/Linux native installation matrix.",
+      "Physical multi-host, other databases, full devices/themes, scale and production.",
+      "All original31/P0-P7 goals and prior171 explicit GUI-stop gap."
     ],
     "full_platform_complete": false
   }

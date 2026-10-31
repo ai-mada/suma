@@ -1,0 +1,21 @@
+{
+ "opencode-quick-connect.title":"Connect local OpenCode",
+ "opencode-quick-connect.intro":"Check the local installation, configure a provider and fixed model, then explicitly connect.",
+ "opencode-quick-connect.desktop_required":"Connect local OpenCode in the desktop app, or use an existing execution node.",
+ "opencode-quick-connect.detect":"Check installation again",
+ "opencode-quick-connect.detecting":"Checking installation…",
+ "opencode-quick-connect.guide":"Setup guide",
+ "opencode-quick-connect.storage_failed":"The local configuration record could not be saved or read. Review the configuration before connecting; the original connection can still be checked or stopped.",
+ "opencode-quick-connect.installed":"OpenCode installation detected",
+ "opencode-quick-connect.not_installed":"Local installation not yet verified",
+ "opencode-quick-connect.version_unsupported":"This installation version is unsupported. Follow the setup guide to prepare OpenCode 1.19.4, then check again.",
+ "opencode-quick-connect.configuration":"Connection configuration",
+ "opencode-quick-connect.verification_unavailable":"This environment cannot verify the configuration. Check the desktop environment and try again. The original connection can still be checked or stopped.",
+ "opencode-quick-connect.provider":"Provider ID",
+ "opencode-quick-connect.model":"Fixed model ID",
+ "opencode-quick-connect.base_url":"Provider API address",
+ "opencode-quick-connect.credential_ref":"Credential environment variable name (optional)",
+ "opencode-quick-connect.credential_hint":"Enter only the name of an existing local environment variable, never its secret value.",
+ "opencode-quick-connect.model_hint":"Enter the model ID explicitly. This form does not read a model directory. Consult execution records for the actual model, usage and cost.",
+ "opencode-quick-connect.draft_not_adopted":"This draft has not been confirmed as applied. Check the original connection first. To change its configuration, confirm it has stopped and then explicitly connect."
+}

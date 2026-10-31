@@ -1,0 +1,21 @@
+{
+ "opencode-quick-connect.title":"连接本机 OpenCode",
+ "opencode-quick-connect.intro":"检查本机安装，填写提供方和固定模型，再明确连接。",
+ "opencode-quick-connect.desktop_required":"请在桌面端连接本机 OpenCode，或使用已有执行节点。",
+ "opencode-quick-connect.detect":"重新检查安装",
+ "opencode-quick-connect.detecting":"正在检查安装…",
+ "opencode-quick-connect.guide":"接入指南",
+ "opencode-quick-connect.storage_failed":"本地配置记录未能保存或读取。请检查当前配置后再连接；原连接仍可核对或停止。",
+ "opencode-quick-connect.installed":"已检测到 OpenCode 安装",
+ "opencode-quick-connect.not_installed":"尚未确认本机安装",
+ "opencode-quick-connect.version_unsupported":"当前安装版本不支持此接入。请按接入指南准备 OpenCode 1.19.4 后重新检查。",
+ "opencode-quick-connect.configuration":"连接配置",
+ "opencode-quick-connect.verification_unavailable":"当前环境无法核对配置，请检查桌面环境后重试。原连接仍可核对或停止。",
+ "opencode-quick-connect.provider":"提供方标识",
+ "opencode-quick-connect.model":"固定模型标识",
+ "opencode-quick-connect.base_url":"提供方接口地址",
+ "opencode-quick-connect.credential_ref":"凭据环境变量名称（可选）",
+ "opencode-quick-connect.credential_hint":"仅填写本机已有环境变量的名称，不填写密钥内容。",
+ "opencode-quick-connect.model_hint":"模型标识由你明确填写，此处不读取模型目录。实际模型、用量与费用以执行记录为准。",
+ "opencode-quick-connect.draft_not_adopted":"当前草稿尚未确认采用。请先核对原连接；如需更换配置，确认停止后再明确连接。"
+}

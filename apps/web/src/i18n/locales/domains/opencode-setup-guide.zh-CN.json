@@ -1,0 +1,23 @@
+{
+  "opencode-setup-guide.title": "OpenCode SDK 管理员配置",
+  "opencode-setup-guide.intro": "为本机或远端 Runner 生成完整配置草稿。这里仅校验输入并复制不含秘密的 JSON，由管理员在执行节点上审阅和应用。",
+  "opencode-setup-guide.runtime_versions": "使用固定的 OpenCode SDK／server 1.19.4 与完整 suma-opencode-runtime 资源。填写的是执行节点路径，不能据此确认文件存在或工具可用。",
+  "opencode-setup-guide.field.node": "Node 原生可执行文件绝对路径",
+  "opencode-setup-guide.field.bundle": "SDK bundle 绝对路径（.mjs）",
+  "opencode-setup-guide.field.manifest": "SDK manifest 绝对路径（.json）",
+  "opencode-setup-guide.field.executable": "OpenCode 原生程序绝对路径",
+  "opencode-setup-guide.field.provider": "固定提供方 ID",
+  "opencode-setup-guide.field.model": "固定模型 ID",
+  "opencode-setup-guide.field.endpoint": "提供方基础地址",
+  "opencode-setup-guide.field.credential": "凭据环境变量名（可选）",
+  "opencode-setup-guide.field.checks": "已有检查命令 ID（可选，逗号分隔）",
+  "opencode-setup-guide.paths_help": "使用已审阅的 Node、原生 OpenCode 与同一完整 SDK 资源包。Runner 会核对实际文件、manifest、依赖与配置；不要填写包装脚本或相对路径。",
+  "opencode-setup-guide.credential_help": "仅填写执行节点已配置的独立环境变量名，不填写密钥原值。不能引用平台、OpenCode、Node、NPM 或系统环境配置变量。",
+  "opencode-setup-guide.checks_help": "最多引用 16 个不重复的既有固定 text-v1 检查命令 ID，由同一 commands 文件提供。向导不生成检查命令；空列表不代表测试已通过。",
+  "opencode-setup-guide.incomplete": "请完整填写有效的执行节点路径、提供方、模型、地址及可选引用后复制配置。",
+  "opencode-setup-guide.next": "应用与验证步骤",
+  "opencode-setup-guide.save": "管理员将此条配置合入执行节点现有 commands 文件，并保留已经配置的检查命令；向导不会写入文件。",
+  "opencode-setup-guide.verify": "使用原 Runner 库存读取流程核对本机文件、完整 SDK 资源与固定配置。配置草稿不表示安装、模型调用或运行健康。",
+  "opencode-setup-guide.register": "将实际新库存登记为暂停配置，审阅权限与依据后再明确启用。任务执行、候选、独立测试与人工验收分别核验。",
+  "opencode-setup-guide.boundary": "提供方和模型由管理员固定；配置确认不证明供应方实际模型。费用仅观察，不提供供应方硬预算保证；本向导不登录、创建任务或自动登记。"
+}

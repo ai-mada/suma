@@ -12,6 +12,7 @@ export type LocalToolsScanPanelProps={project:string;adapters:readonly AdapterDe
 const t=(key:string)=>tr('local-tools-scan.'+key);
 const cursorReasons=new Set(['cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete']);
 function rowGuidance(adapterID:string,code:string){
+ if(adapterID==='opencode-sdk'&&code==='version_unsupported')return {reason:tr('opencode-quick-connect.version_unsupported'),hint:'',install:true};
  if(adapterID==='cursor-cli'&&cursorReasons.has(code))return {reason:tr('cursor-connection.reason_'+code),hint:tr('cursor-connection.reason_'+code+'_hint'),install:false};
  const diagnostic=toolConnectionDiagnostic(adapterID==='qoder-acp'&&code==='acp_configuration_required'?'configuration_required':code),reason=diagnostic?.reason??'unknown';
  return {reason:tr('tool-connection-diagnostics.reason.'+reason),hint:tr('tool-connection-diagnostics.hint.'+reason),install:['not_installed','unsupported_launcher','invalid_package','node_unavailable'].includes(reason)};

@@ -3,6 +3,13 @@ import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope} from './d
 
 const scope={project:'1'.repeat(32),userID:'2'.repeat(32),organizationID:'3'.repeat(32),adapterID:'codex-jsonl'};
 const connection={project_id:scope.project,adapter_id:'codex-jsonl',phase:'connected',worker_id:'desktop-'+'4'.repeat(32),base_commit:'a'.repeat(40),expires_at:'2099-01-01T00:00:00Z',repository_name:'project'};
+it('requires all OpenCode original configuration facts on connected and rejects private setup metadata',()=>{
+ const openScope={...scope,adapterID:'opencode-sdk'},native={...connection,adapter_id:openScope.adapterID,model:'vendor/model',tool_version:'1.19.4',executable_sha256:'a'.repeat(64),configuration_sha256:'b'.repeat(64),provider_id:'provider',endpoint_origin:'https://provider.example'};
+ expect(validDesktopToolScope(openScope)).toBe(true);expect(readDesktopToolResult({status:'ok',connection:native},openScope)).toEqual({status:'ok',connection:native});
+ for(const key of ['model','tool_version','executable_sha256','configuration_sha256','provider_id','endpoint_origin']){const missing:Record<string,unknown>={...native};delete missing[key];expect(readDesktopToolResult({status:'ok',connection:missing},openScope)).toBeUndefined();}
+ for(const patch of [{tool_version:'1.19.5'},{model:'bad model'},{provider_id:'bad provider'},{endpoint_origin:'https://provider.example/v1'},{base_url:'https://provider.example/v1'},{api_key_env_ref:'PRIVATE_KEY'},{catalog_sha256:'c'.repeat(64)}])expect(readDesktopToolResult({status:'ok',connection:{...native,...patch}},openScope)).toBeUndefined();
+ expect(readDesktopToolResult({status:'ok',connection:{project_id:scope.project,adapter_id:'opencode-sdk',phase:'unconfigured'}},openScope)).toBeDefined();
+});
 it('accepts only the supported native function and exact current identity scope',()=>{
  const manageLocalTool=async()=>({});
  expect(desktopToolBridge({platform:'win32',version:'1.0.0',manageLocalTool})).toBeDefined();

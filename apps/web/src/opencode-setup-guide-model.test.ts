@@ -1,0 +1,12 @@
+import {expect,it} from 'vitest';
+import {openCodeSetupConfiguration,type OpenCodeSetupInput} from './opencode-setup-guide-model';
+
+const input:OpenCodeSetupInput={node:'C:/Program Files/nodejs/node.exe',bundle:'D:/suma/opencode/suma-opencode.bundle.mjs',manifest:'D:/suma/opencode/suma-opencode.manifest.json',executable:'D:/tools/opencode/opencode.exe',provider:'approved',model:'approved-model',endpoint:'https://models.example/v1',credential:'MODEL_PROVIDER_API_KEY',checks:'python-tests,lint'};
+
+it('generates only the fixed nonsecret SDK command and rejects unsafe configuration or invented check references',()=>{
+ expect(openCodeSetupConfiguration(input)).toEqual({'opencode-coder':{executable:input.node,args:[input.bundle],adapter:'opencode',protocol:'opencode-sdk-v1',input:'opencode-sdk-jsonl',read_only:false,native_workspace:{checks:['python-tests','lint'],runtime_manifest:input.manifest},opencode:{executable:input.executable,provider_id:input.provider,model:input.model,base_url:input.endpoint,api_key_env_ref:input.credential}}});
+ const unix={...input,node:'/usr/bin/node',bundle:'/opt/suma/opencode.bundle.mjs',manifest:'/opt/suma/opencode.manifest.json',executable:'/opt/opencode/opencode',credential:'',checks:''};
+ expect(openCodeSetupConfiguration(unix)).toEqual({'opencode-coder':{executable:unix.node,args:[unix.bundle],adapter:'opencode',protocol:'opencode-sdk-v1',input:'opencode-sdk-jsonl',read_only:false,native_workspace:{checks:[],runtime_manifest:unix.manifest},opencode:{executable:unix.executable,provider_id:unix.provider,model:unix.model,base_url:unix.endpoint}}});
+ const invalid=[{node:'node'},{node:'C:/tools/node.cmd'},{bundle:'relative.mjs'},{bundle:'D:/suma/runtime.cjs'},{manifest:'runtime.json'},{executable:'D:/tools/opencode.cmd'},{provider:'approved provider'},{model:'model\nname'},{endpoint:'https://user:password@models.example/v1'},{endpoint:'https://@models.example/v1'},{endpoint:'https://models.example/v1?'},{endpoint:'http://models.example/v1'},{credential:'actual-secret-value'},{credential:'OPENCODE_API_KEY'},{credential:'NODE_OPTIONS'},{credential:'SUMA_AGENT_TOKEN'},{checks:'lint,lint'},{checks:'opencode-coder'},{checks:'lint,'},{checks:Array.from({length:17},(_,index)=>'check'+index).join(',')},{api_key:'secret'}];
+ for(const patch of invalid)expect(openCodeSetupConfiguration({...input,...patch}),Object.keys(patch).join(',')).toBeUndefined();
+});

@@ -1,0 +1,438 @@
+{
+  "stage": "T-OPENCODE-QUICK-CONNECT-177",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "status": "scoped_source_real_sdk_resources_and_synthetic_components_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Existing SDK execution connected to passive native detection and the original managed Worker; eight current scan entries, no generic CLI fallback.",
+    "Trusted Node and complete SDK/plugin assets prepared and verified separately from native OpenCode; fixed model/provider/base URL/credential reference, no model catalogue or copied login.",
+    "Exact Go/Web configuration digest and raw endpoint authority; original scope, encrypted journal, unknown-operation recovery and fresh Node/runtime capability inventory.",
+    "Bilingual four-field local connector and administrator guide, paused profile registration and separate explicit enable; existing fixed_opencode dispatch and quality gates unchanged."
+  ],
+  "focused": {
+    "distinct_top_level": 40,
+    "new": 26,
+    "affected_existing": 14,
+    "go": {
+      "distinct": 10,
+      "runner": 7,
+      "platform": 2,
+      "root_interop": 1,
+      "new": 6,
+      "affected_existing": 4
+    },
+    "desktop": {
+      "distinct": 8,
+      "new": 6,
+      "affected_existing": 2
+    },
+    "web": {
+      "distinct": 22,
+      "new": 14,
+      "affected_existing": 8
+    },
+    "go_subcases_separate": 7,
+    "repeated_runs_not_double_counted": true
+  },
+  "integration": {
+    "full_typecheck_exit": 0,
+    "paired_locale_keys": 8421,
+    "production_hardcodes": 0,
+    "new_go_builds": 1,
+    "full_go_tests": false,
+    "schema_generation": 0,
+    "full_web_tests": false,
+    "ui_component_builds": 2,
+    "full_app_builds": 0
+  },
+  "actual": {
+    "scope": "Actual passive installed-tool observation and real SDK asset preparation; no model, user login or task",
+    "working_tree_includes_protected_user_changes": true,
+    "control_sha256": "dd3e1bec8a9634dd2ebdd107248c666e7ffa532d0ee14e961496dce8ec31a265",
+    "passive_cli": {
+      "exit": 0,
+      "elapsed_ms": 335.0967,
+      "stdout_sha256": "f95c0cbe37a5c9cbdd80c73f1b26504dd2d1e91adb60a13a091e37f89492d848",
+      "adapter_id": "opencode-sdk",
+      "product": "OpenCode",
+      "installed": false,
+      "reason_code": "not_installed"
+    },
+    "sdk_builds": 1,
+    "sdk_asset_count": 3621,
+    "sdk": {
+      "schema_version": 1,
+      "kind": "suma-opencode-desktop-runtime",
+      "product_version": "1.0.0",
+      "target": "win32-x64",
+      "sdk_version": "1.19.4",
+      "source_sha256": "ebb2dec6e95bd1a186182f2b9d7d94a171bc8f5dc3de512f871abaf596e20112",
+      "node": {
+        "file": "node.exe",
+        "sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+        "version": "v22.16.0",
+        "version_verification": "native_version_and_format"
+      },
+      "runtime_manifest_sha256": "da5f6d8c1c257055f80183a3ace71c572af916dd8d71ae108966be92bfbd92d8",
+      "node_license_sha256": "1ae62e2015784ba438db7b04ebd33f3c4ff3efdb824c111c4ececd99945fd52d"
+    },
+    "host_resource_resolution": {
+      "scope": "Actual prepared sibling resources and current control binary, checked through production desktop asset resolver; not a packaged application or native OpenCode execution",
+      "status": "passed",
+      "node_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+      "runtime_manifest_sha256": "da5f6d8c1c257055f80183a3ace71c572af916dd8d71ae108966be92bfbd92d8",
+      "additional_sdk_builds": 0,
+      "additional_opencode_cli": 0
+    },
+    "status": "passed",
+    "initial_missing_node_license_preserved": true,
+    "continued_only_sdk_with_matching_prior_node_and_original_license": true,
+    "repeated_go_builds": 0,
+    "repeated_opencode_cli": 0,
+    "complete_installer": false,
+    "native_opencode_execution": false,
+    "vendor_or_model": false,
+    "network_traffic_measurement": false,
+    "all_descendant_pid_capture": false
+  },
+  "visual": {
+    "scope": "Synthetic production OpenCode components; not full App or actual vendor execution",
+    "synthetic_data": true,
+    "checks": [
+      "CN fixed configuration draft and raw authority render",
+      "Explicit connect passes exact configuration SHA and source-matched six facts",
+      "Same-origin changed path stays unready after reading original status",
+      "Confirmed stop permits explicit new configuration and new parent inventory callback",
+      "English narrow fixed fields have no horizontal overflow and keyboard focus order"
+    ],
+    "attempts": 3,
+    "component_builds": 2,
+    "first_failure": "Before-unload dialog/Playwright shutdown race obscured the underlying fixture result; exact task-owned Electron query found no remaining main process.",
+    "second_failure": "Undeclared expected_configuration_sha256 field required by fixture, correctly absent from the production OpenCode IPC contract; native exit0.",
+    "fix": "Fixture-only predicate removed and new output directory built; production sources and green checks unchanged.",
+    "last_native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "root_viewed_images": [
+      {
+        "path": ".cache/opencode-quick-connect-177/visual/cn-1366.png",
+        "sha256": "f8d0b9c26fc8dc7e6f478b5c30fa15c1c27f1681dde8fb93ec0b2a980a52638d"
+      },
+      {
+        "path": ".cache/opencode-quick-connect-177/visual/en-390.png",
+        "sha256": "f71b43f148d45da0140830d0fc272700f2f17fb2eeb7532272160cbd9e20b5bd"
+      }
+    ]
+  },
+  "source_files": [
+    {
+      "path": "apps/desktop/scripts/build-plan.cjs",
+      "sha256": "92c8281fbb38c58074e7975070f844ee8dd4a889bb837ba6671597ca44ca55b3"
+    },
+    {
+      "path": "apps/desktop/scripts/builder-sdk.cjs",
+      "sha256": "8378a4ac19f347777816175b4afe143e5eabd5e091ef5b31e7e06be9a07c6aa7",
+      "working_tree_sha256": "6f9bef1b4151b271b7b109b6765652a1b104e7cf03cedfb31068a79dc4079209",
+      "scope": "Only additive stage hunks; protected user delta excluded"
+    },
+    {
+      "path": "apps/desktop/scripts/opencode-runtime.cjs",
+      "sha256": "d9840c1e30e924c7c8504106b2860434f0901896793c8bcc1a92b9044d2f75a5"
+    },
+    {
+      "path": "apps/desktop/scripts/package.cjs",
+      "sha256": "458625c8e4acd4e66e29115576a1f6aaea50f7001147b9c2768bd8981c67cbea",
+      "working_tree_sha256": "7aff0a44b4590b1b2b48c77ff84940a91f29e468c662d63ce025c1634d700698",
+      "scope": "Only additive stage hunks; protected user delta excluded"
+    },
+    {
+      "path": "apps/desktop/scripts/prepare.cjs",
+      "sha256": "cec942ef7f128c6cd40195d3fe84596a7f68e3673b610a245d604a887adcb9a8"
+    },
+    {
+      "path": "apps/desktop/src/installed-tools.cjs",
+      "sha256": "02a09fc9064e3474280d35f723e87e4e6db1469f912c9ec1786edf62397a0960"
+    },
+    {
+      "path": "apps/desktop/src/local-opencode-assets.cjs",
+      "sha256": "198190da3acadebf3747a149a0e15c7d4e2e37992f49bc0d56ee61270d54da54"
+    },
+    {
+      "path": "apps/desktop/src/local-opencode-validation.cjs",
+      "sha256": "12407b9023737039c449ac22c91a0e2ee586f3b7d29189c8727a17073ebe88ca"
+    },
+    {
+      "path": "apps/desktop/src/managed-local-runner-journal.cjs",
+      "sha256": "fdca2432bac0f8be972b052982a3911793a0460ec32890881d926acfe78f0017"
+    },
+    {
+      "path": "apps/desktop/src/managed-local-runner.cjs",
+      "sha256": "d5d52e1897cdee30150a18737a64f1987aede1175107c8049c464e14ba3a31b0"
+    },
+    {
+      "path": "apps/desktop/tests/installed-tools-batch.test.cjs",
+      "sha256": "3dff4ca6eb8645b104c826b8d85b188dbeb4015b7fb6b66a03008e392ade84de"
+    },
+    {
+      "path": "apps/desktop/tests/managed-opencode.test.cjs",
+      "sha256": "aca3566c8e3734cbb47fe796e20ec90c9a734dc5824ebfe6ba9089fb362a7882"
+    },
+    {
+      "path": "apps/desktop/tests/opencode-assets.test.cjs",
+      "sha256": "f9b59a544c48342636184ac11a3949c17f212098d0b15a0ca68ffab234840d01"
+    },
+    {
+      "path": "apps/web/src/desktop-opencode-connector-model.test.ts",
+      "sha256": "420b13c4d0bf12ddbbf6304cb1cb97fdcaab0b1618f043f67ccc49f087b8991c"
+    },
+    {
+      "path": "apps/web/src/desktop-opencode-connector-model.ts",
+      "sha256": "06d469c87ba4a9f9088678a838927c44f02e975a210b3e7439691a738302a653"
+    },
+    {
+      "path": "apps/web/src/desktop-tool-connector-model.test.ts",
+      "sha256": "6154e1e9f79cb9a9009e3d313f5251bd9f553a1de5dff3a1f5d05979e22f50cb"
+    },
+    {
+      "path": "apps/web/src/desktop-tool-connector-model.ts",
+      "sha256": "c96a29ee5f144850dcf69b5f6a61a7defd2357e816700c1d103dd4419c52fe2a"
+    },
+    {
+      "path": "apps/web/src/DesktopOpenCodeManagedConnector.test.tsx",
+      "sha256": "da8de3665906459537d9155ef3264a1e301318e920909534d0ce12bad50bb42b"
+    },
+    {
+      "path": "apps/web/src/DesktopToolConnector.tsx",
+      "sha256": "ea4a4e18dfd298b56f41bfad464475c95ee62da45a31dbfc32d828b7703b0837"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/opencode-quick-connect.en-US.json",
+      "sha256": "37ad506d79eac6ec276d6c996d8a8834ec7270ffc4bf67f6ebb71a4d738184e0"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/opencode-quick-connect.zh-CN.json",
+      "sha256": "f17d5ee3bcd140daee08161f29c2e4c170eedb7ad4e22b58e9f11a4303ebc2de"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/opencode-setup-guide.en-US.json",
+      "sha256": "e09d79a2563a6617314db641425196598c21388be027f2acfec11e712e7e4bd5"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/opencode-setup-guide.zh-CN.json",
+      "sha256": "a415591957b98f6b39eaae62be25889cabe6aed85045be190ddf3e80866485d7"
+    },
+    {
+      "path": "apps/web/src/local-tools-scan-model.test.ts",
+      "sha256": "e15fbc6a4babd439c119865305fabfba784e7c28b8f5f5c00a3a11326ac44358"
+    },
+    {
+      "path": "apps/web/src/local-tools-scan-model.ts",
+      "sha256": "c52f420c4320b9d5d1ab53222cea523eb88a88feb0db826b28599003c8d1911f"
+    },
+    {
+      "path": "apps/web/src/LocalToolsScanPanel.test.tsx",
+      "sha256": "6049df1c5cb5ee73d789789c28a8a2054f8cf2c69a7811f2fec4606732ef3175"
+    },
+    {
+      "path": "apps/web/src/LocalToolsScanPanel.tsx",
+      "sha256": "95f4d5d86ea34b7ccde35998f9206e0204806e491905746f1a044083401d51cb"
+    },
+    {
+      "path": "apps/web/src/opencode-execution-model.ts",
+      "sha256": "70b237cb1da751140b6480334f25a87f7f946e49edfc334123f4b3a051a4d94f"
+    },
+    {
+      "path": "apps/web/src/opencode-setup-guide-model.test.ts",
+      "sha256": "a81030436be571ff41ec3df98ccda5fd096de0a430d6c48999fc3b6a56ece63b"
+    },
+    {
+      "path": "apps/web/src/opencode-setup-guide-model.ts",
+      "sha256": "d7ef1fed4d8e8a9cf00dc10e69341f1d6d4d0f7cecd80f8b415fdfbcf8d297d7"
+    },
+    {
+      "path": "apps/web/src/OpenCodeLocalConnector.css",
+      "sha256": "c987f945e0e4da5b40199fc6f0239dd6ff2fe75bf1d28bf482f1c6ce10589d62"
+    },
+    {
+      "path": "apps/web/src/OpenCodeLocalConnector.test.tsx",
+      "sha256": "9b1bec69106e35c7fcf008744bac84be8007075b4ee24005338a2c8940959994"
+    },
+    {
+      "path": "apps/web/src/OpenCodeLocalConnector.tsx",
+      "sha256": "528e048671d0744a13035ca99fbdc5ff84642cd1f4d2bbdd44027070e114b2ac"
+    },
+    {
+      "path": "apps/web/src/OpenCodeLocalManagedIntegration.test.tsx",
+      "sha256": "24a0d0fa3b4391c7a5531a86b10b3c60f6f287388c87985c21cff16dd40218f0"
+    },
+    {
+      "path": "apps/web/src/OpenCodeQuickConnectIntegration.test.tsx",
+      "sha256": "c388a76c7df9693fa77a3a43f7669743785c2da944fe490051e1632ba56039e4"
+    },
+    {
+      "path": "apps/web/src/OpenCodeSetupGuide.tsx",
+      "sha256": "886c8d82847f3376fedce5dfb535977e8d76f0be073435fc6eb352389227e57d"
+    },
+    {
+      "path": "apps/web/src/tool-quick-connect-model.test.ts",
+      "sha256": "d047268a5fc4f45eb42d61c2c4f3820d83cfe29ec848fa6937ece7e65cb0de45"
+    },
+    {
+      "path": "apps/web/src/tool-quick-connect-model.ts",
+      "sha256": "17cd3bbb53f1c50e23055710067f4c04b7e4bcdd7b04eaa1db1c515890c6984d"
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnect.tsx",
+      "sha256": "0cf7e93b8222c6bab2a8d07e664b9aec81d7a548e316a2295009bc4ce9e2b7b6"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuide.test.tsx",
+      "sha256": "40d1ec650f674d8edee337708e9cb1fae862d741f02054372cd4502bf199ef87"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuide.tsx",
+      "sha256": "28ad3474cd10091651dbc3cc30706f7c0db7a4fb2d75f6b08c651074c1ec8f20"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "975cfaa976ded8f546f67248c7dcebf5d531798fdb44825ec40b99104735bca5"
+    },
+    {
+      "path": "internal/platform/desktop_runner_opencode_test.go",
+      "sha256": "4388b3eef77a9448725f3067dd0d251fffd2ce1c662eee8ac2556d53c6f88ab6"
+    },
+    {
+      "path": "internal/platform/desktop_runner.go",
+      "sha256": "cbd83af8352f4b0175911b51df7fe49922f56a08fab517f94f0a33b099ea2cf5"
+    },
+    {
+      "path": "internal/runner/desktop_managed_opencode_test.go",
+      "sha256": "4fecee16953d3bc07ba0d7ec57f0fbd9d24f19eed9bc1a20a986ce362d2e57e3"
+    },
+    {
+      "path": "internal/runner/desktop_managed_opencode.go",
+      "sha256": "981fa84dad6cb8528707010ea13752efc376db8487abaed485f6a0717e390710"
+    },
+    {
+      "path": "internal/runner/desktop_managed.go",
+      "sha256": "060ddea0e20965ba6e7ee0f55156032bfe992a1d8c89112d3af0188334962943"
+    },
+    {
+      "path": "internal/runner/local_opencode_discovery.go",
+      "sha256": "a354e75303e0a690c28dd04b691aa59842e40f2920c4889ea422db554a66d8d3"
+    },
+    {
+      "path": "internal/runner/local_tool_discovery_test.go",
+      "sha256": "5f52350a51821ab98013eca1e64128ce5345b93efc87c56debf348fd7877e434"
+    },
+    {
+      "path": "internal/runner/local_tool_discovery.go",
+      "sha256": "b35a7deb0e5c70cb06beacf8aacf9247e4d0e8b8cb72ab80c289e4b97a2d8b93"
+    },
+    {
+      "path": "internal/runner/opencode_digest_interop_test.go",
+      "sha256": "4887d3c28af84c03c15e6ad30df8dffb2934501bb7e57d936bd8d551876db1b4"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/opencode-quick-connect-177/runner/evidence.json",
+      "sha256": "68c23abdc52becbbeb1510d0fc8f34bbfea331286d110a97c5e3a799688e9d43"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/desktop/evidence.json",
+      "sha256": "9ad28c31526029ce9895d21486551bf72cbf26784df28ca73b57c5de904428c8"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/platform/evidence.json",
+      "sha256": "172bb38e01b1541b07c8178ae4f29a6f4caf8983f9bc16036f5da306b771b72f"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/web/frontend-summary.json",
+      "sha256": "484f8f5d253759c011423d305cac09cd2deff76b56ea3f51a6b80e60caf1acdf"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/digest-interop.json",
+      "sha256": "c4c1804bafcd214a1f979ee936266b8745a2b252301f7879131b0bc580c12bcc"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/typecheck.json",
+      "sha256": "5ec14efdbd05cc7c7154e261446f7e253089d2916b742344acce3ded6ddd2461"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/i18n.json",
+      "sha256": "e3ff79b32091d619fb0aa1be770cc00289f51f411f008790f3aa460da5134f79"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/actual/build.json",
+      "sha256": "81eaf7e6a77af399020cd5b6450156c696d6d8802f44407345b0d2841e65ffb7"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/actual/evidence.before-sdk.json",
+      "sha256": "dbaba676526006bed7b2182538b330e34d3e532ac52402cabfbc7e743cb67e04"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/actual/evidence.json",
+      "sha256": "66929dad5c636869714ab81593958a0692ee0c981a8baf075360b885434d952d"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/actual/resolved-resources.json",
+      "sha256": "e39e45e24a23cbd3100dec1b2008995a00655f3de7e2d917e9f5246d91b5506c"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/visual/build.json",
+      "sha256": "2fd2f3e1f26d1604ce7522ce937a3df57890a17950260a306f97d58130da2ac3"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/visual/build-fixed.json",
+      "sha256": "e39df4ac2b1a83aec607894060ef180597cb9293af73c23354860f947c6f2216"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/visual/result.attempt02.json",
+      "sha256": "e7ca504219235869e19a93238ed5fb2c76c918058c3d9132d7be7a18899eb478"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/visual/result.json",
+      "sha256": "1f822a9340e0479f3acc0b22b5e54e7cb7172b01578d548a339b3797bf831165"
+    },
+    {
+      "path": ".cache/opencode-quick-connect-177/integration/packaging-hunks.json",
+      "sha256": "a54d47cc1068c19e3b60764c5076df2de69b4c880b3932e12d3319d221c61d01"
+    }
+  ],
+  "protected_user_work": {
+    "files": 21,
+    "unchanged_raw": 19,
+    "additive_hunks_only": [
+      {
+        "path": "apps/desktop/scripts/builder-sdk.cjs",
+        "before_sha256": "5b068b9a8ac45af2765ce9462a2bddade27fd014d181d39725c582761156c458",
+        "inverse_sha256": "5b068b9a8ac45af2765ce9462a2bddade27fd014d181d39725c582761156c458",
+        "staged_sha256": "8378a4ac19f347777816175b4afe143e5eabd5e091ef5b31e7e06be9a07c6aa7"
+      },
+      {
+        "path": "apps/desktop/scripts/package.cjs",
+        "before_sha256": "c69a900112cd335c41ece23a029843152591634ff05c2e2a51432878abada3a8",
+        "inverse_sha256": "c69a900112cd335c41ece23a029843152591634ff05c2e2a51432878abada3a8",
+        "staged_sha256": "458625c8e4acd4e66e29115576a1f6aaea50f7001147b9c2768bd8981c67cbea"
+      }
+    ],
+    "user_delta_staged": false
+  },
+  "remaining": [
+    "Actual installed native OpenCode1.19.4, vendor/account/model and full desktop connect/register/enable/develop/test/accept journey.",
+    "Complete installer, signatures, release third-party notice audit and Windows/macOS/Linux native installation matrix.",
+    "Physical multi-host, other databases, full devices/themes, scale and production.",
+    "All original31/P0-P7 goals and prior171 explicit GUI-stop gap."
+  ]
+}
