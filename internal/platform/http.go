@@ -307,6 +307,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.workBuddyTaskDispatchHTTP(w, r, actor, scope, boundProject, parts, s.WorkBuddy) {
 		return
 	}
+	if s.workBuddyCloudTurnsHTTP(w, r, actor, scope, boundProject, parts, s.WorkBuddy) {
+		return
+	}
 	if s.workBuddyCloudHTTP(w, r, actor, scope, boundProject, parts, s.WorkBuddy) {
 		return
 	}

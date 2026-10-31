@@ -27,11 +27,21 @@ func browserOnly(op map[string]any) {
 }
 func successStatus(op map[string]any, status string) {
 	responses := op["responses"].(map[string]any)
-	other := "201"
-	if status == "201" {
-		other = "200"
+	selected := responses[status]
+	if selected == nil {
+		selected = responses["200"]
 	}
-	delete(responses, other)
+	// Keep one actual success status. A durable asynchronous admission returns
+	// 202; retaining a default 200 would falsely document completed processing.
+	for code := range responses {
+		if len(code) == 3 && code[0] == '2' {
+			delete(responses, code)
+		}
+	}
+	if status == "202" {
+		selected.(map[string]any)["description"] = "Accepted: the original operation is durably recorded; execution or confirmation may still be pending."
+	}
+	responses[status] = selected
 }
 func pageParameters(op map[string]any) {
 	appendQuery(op, queryParameter("limit", "Task window size, at most 200; default 200.", map[string]any{"type": "integer", "minimum": 1, "maximum": 200, "default": 200}))

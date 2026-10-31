@@ -12,6 +12,24 @@
     "target_design": "docs/suma-architecture-design.html",
     "stage_delivery_is_not_full_completion": true
   },
+  "workbuddy_cloud_turns": {
+    "stage": "T-WORKBUDDY-CLOUD-TURNS-169",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_implementation_business_and_separate_visual_verified",
+    "contract": "contracts/workbuddy-cloud-turns.md",
+    "architecture": "docs/architecture/workbuddy-cloud-turns.md",
+    "design": "docs/design/workbuddy-cloud-turns.md",
+    "report": "docs/quality/workbuddy-cloud-turns-verification.md",
+    "summary": "docs/quality/workbuddy-cloud-turns-summary.json",
+    "implementation": "Explicit original cloud-task prompt, durable safe replies/tool ledger, exact once permissions, cancellation and reconciliation. Persistent cross-control-replica inbox is consumed by the original lease/fence runtime through mature ACP SDK; no duplicate platform dispatcher or initial Create replay.",
+    "verification": "28 distinct Go top-level plus14 Web cases; unchanged green reused. One full TSC and8016 paired language check pass, later exact option labels/overdue copy use affected case and final semantic diagnostics only. Generated813 models/814schemas/385paths; original380paths/803schemas unchanged.",
+    "actual": "First fixture setup failed before GUI due nonexistent SQL ordering column. Second independently prepared source passed7 business checks, two SDK prompts, one exact permission reply and one cancel through two same-host Server/SQLite handles;6GUI POST transports recover original operations. Original task/run/submission1; node waiting/attempt1/fence1, quality0. Eighth English case partial: programmatic focus incorrectly asserted keyboard outline; outer/Node1 retained. Host/proxy/native0,9PIDs absent/3ports free, consistent private snapshot retained;2Go builds/1UI build reused.",
+    "visual": "Original CN1366 scrolling partial screenshot and independent EN390 readonly replay viewed by Root. Same durable snapshot DTOs with synthetic boot envelopes; real Tab :focus-visible solid2px,8GET/0POST, no overflow, snapshot SHA unchanged, native/Node/server0; no compile/build or business rerun. Original eighth partial/failed check remains unchanged.",
+    "remaining": "Full authenticated App/device/theme coverage, real vendor/model/fees, trusted cloud code candidate/baseline and same-commit independent tests/human acceptance, physical multi-host/other databases/installers/scale/production, and complete original31/P0-P7 scope.",
+    "ledger_unchanged": "Full31/P0-P7;58limited/34pending/92total",
+    "full_platform_complete": false
+  },
   "workbuddy_task_dispatch": {
     "stage": "T-WORKBUDDY-TASK-DISPATCH-168",
     "version": "1.0.0",
@@ -609,7 +627,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "cde54bbf0814b5cf1a37a57d8e2a9425988af962"
+    "previously_published_commit": "f27df9b9ffbca552330ec071890199debd7475aa"
   },
   "existing_preview": {
     "updated": false,
@@ -617,12 +635,12 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T168 fixed task-to-cloud dispatch, original receipt recovery and true private Worker/HTTP/SQLite/UI flow verified; previous published stage T167/cde54bb, current Git delivery recorded after exact stage commit. Complete original31/P0-P7/58limited/34pending/92total remains active.",
+  "last_goal_turn_classification": "progress: T169 durable original cloud turns and cross-replica controls verified by42distinct focused checks,7actual local business checks and1separate readonly keyboard/narrow visual check; two fixture failures and original eighth partial retained. Git publication recorded separately against the actual commit. Complete original31/P0-P7/58limited/34pending/92total remains active.",
   "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-WORKBUDDY-TASK-DISPATCH-168",
-    "status": "scoped_verified",
-    "contract": "contracts/workbuddy-task-dispatch.md",
+    "stage": "T-WORKBUDDY-CLOUD-TURNS-169",
+    "status": "scoped_verified_continuing_full_goal",
+    "contract": "contracts/workbuddy-cloud-turns.md",
     "full_goal": "active: all original P0–P7 and requirements1–31 retained;58limited/34pending/92total",
     "next": "Continue persistent original cloud input/permission/cancel and trusted code candidate/baseline delivery into same-commit independent testing and human acceptance, plus actual CLI/ACP adapters and complete platform scope. Preserve original task/run/attempt/fence, side-effect reconciliation and real vendor/deployment qualification."
   },
@@ -634,10 +652,10 @@
     "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
   },
   "previous_stage_verification": {
-    "stage": "T-NOTIFICATION-PREFERENCES-167",
-    "report": "docs/quality/project-notification-preferences-verification.md",
-    "summary": "docs/quality/project-notification-preferences-summary.json",
-    "published_commit": "cde54bbf0814b5cf1a37a57d8e2a9425988af962"
+    "stage": "T-WORKBUDDY-TASK-DISPATCH-168",
+    "report": "docs/quality/workbuddy-task-dispatch-verification.md",
+    "summary": "docs/quality/workbuddy-task-dispatch-summary.json",
+    "published_commit": "f27df9b9ffbca552330ec071890199debd7475aa"
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",

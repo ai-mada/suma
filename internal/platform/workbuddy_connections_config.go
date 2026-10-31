@@ -18,6 +18,7 @@ func NewWorkBuddyConnections(s *Service, cfg workbuddy.OAuthConfig, key []byte) 
 		return nil, fmt.Errorf("%s", workBuddyUnavailable)
 	}
 	w := &WorkBuddyConnections{s: s}
+	w.turnRuntime = w.cloudTurnStartRuntime
 	if cfg.BaseURL == "" && cfg.ClientID == "" && cfg.ClientSecret == "" && cfg.RedirectURI == "" && len(cfg.Scopes) == 0 && cfg.HTTPClient == nil {
 		return w, nil
 	}

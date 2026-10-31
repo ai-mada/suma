@@ -1704,6 +1704,98 @@ export interface CloudSubmission {
   created_at: string;
   updated_at: string;
 }
+export interface CloudTurn {
+  id: string;
+  version: number;
+  operation_id: string;
+  head_version_at_start: number;
+  source: CloudTurnSource;
+  owner_id: string;
+  state: string;
+  prompt_sha256: string;
+  started_at: string;
+  deadline_at: string;
+  overdue: boolean;
+  finished_at?: string;
+  stop_reason?: string;
+  error_code?: string;
+  usage_state: string;
+  usage?: ToolUsage;
+}
+export interface CloudTurnCommand {
+  id: string;
+  turn_id: string;
+  operation_id: string;
+  kind: string;
+  state: string;
+  permission_id?: string;
+  option_id?: string;
+  error_code?: string;
+}
+export interface CloudTurnControlRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface CloudTurnEntry {
+  sequence: number;
+  kind: string;
+  text: string;
+  tool_call_id?: string;
+  tool_state?: string;
+}
+export interface CloudTurnPage {
+  turn: CloudTurn;
+  items: (CloudTurnEntry)[];
+  permissions: (CloudTurnPermission)[];
+  commands: (CloudTurnCommand)[];
+  next_after: number;
+  has_more: boolean;
+}
+export interface CloudTurnPermission {
+  id: string;
+  turn_id: string;
+  version: number;
+  tool_call_id: string;
+  title: string;
+  details: string;
+  details_sha256: string;
+  approve_allowed: boolean;
+  state: string;
+  options: (CloudTurnPermissionOption)[];
+}
+export interface CloudTurnPermissionOption {
+  id: string;
+  name: string;
+  kind: string;
+}
+export interface CloudTurnPermissionReplyRequest {
+  project_id: string;
+  expected_version: number;
+  option_id: string;
+  idempotency_key: string;
+}
+export interface CloudTurnPromptRequest {
+  project_id: string;
+  expected_submission_version: number;
+  expected_run_version: number;
+  expected_version: number;
+  prompt: string;
+  idempotency_key: string;
+}
+export interface CloudTurnSource {
+  collaboration: CloudCollaborationSource;
+  attempt: number;
+  fence: number;
+  dispatch_id: string;
+  assignment_sha256: string;
+}
+export interface CloudTurnView {
+  source: CloudTurnSource;
+  version: number;
+  latest_turn?: CloudTurn;
+  allowed_actions: (string)[];
+}
 export interface CloudWaitEvidence {
   protocol: string;
   claim_id: string;

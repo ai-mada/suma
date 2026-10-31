@@ -1,4 +1,4 @@
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {lazy,Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {WorkBuddyCloudCollaboration} from './WorkBuddyCloudCollaboration';
 import {CloudHistorySharing,type CloudHistoryShareSelection} from './CloudHistorySharing';
 import type {CloudNodeView,WorkBuddyConnection} from '../../../packages/contracts/src';
@@ -7,9 +7,11 @@ import {useApi,useApiView} from './api-context';
 import {tr,UiError,useLocale} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {useWriteAction,WriteNotice} from './write-action';
+import {Loading} from './ui';
 import {WorkBuddyCloudTaskPanel,type WorkBuddyCloudActionResult,type WorkBuddyCloudDelegateDraft,type WorkBuddyCloudTaskModel} from './WorkBuddyCloudTaskPanel';
 import {cloudDelegateBody,cloudNodePath,cloudRecoveryAction,readCloudConnection,readCloudNode,validCloudReceipt,validCloudRecovery,validCloudScope,type CloudTaskScope,type CloudRunFacts} from './workbuddy-cloud-task-model';
 
+const WorkBuddyCloudTurns=lazy(()=>import('./WorkBuddyCloudTurns').then(module=>({default:module.WorkBuddyCloudTurns})));
 type Props={project:string;runID:string;nodeID:string;revision?:number;execution?:CloudRunFacts;taskTitle?:string;onChanged?:()=>void|Promise<void>};
 type ReadResult='ready'|'denied'|'failed';
 type Snapshot={caller:ApiCaller;node?:CloudNodeView;connection?:WorkBuddyConnection;reading:boolean;denied:boolean;sourceFailed:boolean;connectionFailed:boolean};
@@ -161,6 +163,7 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
   {!denied&&<WriteNotice action={action}/>}
   <WorkBuddyCloudTaskPanel model={model} onDelegate={delegate} onRevoke={revoke} onRefresh={observe} onReload={reload} onReconcile={reconcile}/>
   {!denied&&node?.submission?.state==='task_known'&&node.submission.task&&<WorkBuddyCloudCollaboration source={{project_id:project,run_id:runID,node_id:nodeID,submission_id:node.submission.id,submission_version:node.submission.version,task_id:node.submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256}} revision={revision} disabled={!!current.current?.reading||!!current.current?.sourceFailed} onShareSelection={setShareSelection} shareReset={shareReset}/>}
+  {!denied&&node?.submission?.state==='task_known'&&node.submission.task&&<Suspense fallback={<Loading/>}><WorkBuddyCloudTurns source={{project_id:project,run_id:runID,node_id:nodeID,submission_id:node.submission.id,submission_version:node.submission.version,task_id:node.submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256}} revision={revision} runVersion={execution?.runVersion} disabled={!!current.current?.reading||!!current.current?.sourceFailed} onChanged={onChanged}/></Suspense>}
   <CloudHistorySharing project={project} runID={runID} nodeID={nodeID} selection={shareSelection} onClearSelection={clearShareSelection}/>
  </div>;
 }

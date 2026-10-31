@@ -10,11 +10,16 @@ import (
 // WorkBuddyConnections owns provider grants, never task execution or platform
 // identity. All records remain in the control plane's authoritative database.
 type WorkBuddyConnections struct {
-	s          *Service
-	app        workbuddy.OAuthConfig
-	key        []byte
-	appDigest  string
-	configured bool
+	s *Service
+	// Only a newly committed interactive turn receives this one-shot hook.
+	// Receipt recovery never reconstructs a runtime or repeats a prompt.
+	turnRuntime func(cloudTurnPermit)
+	// Guarded by the cloud-turn runtime lifecycle mutex, including registration.
+	turnRuntimesClosed bool
+	app                workbuddy.OAuthConfig
+	key                []byte
+	appDigest          string
+	configured         bool
 }
 
 func (WorkBuddyConnections) Format(s fmt.State, verb rune) {

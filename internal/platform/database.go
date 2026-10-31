@@ -137,6 +137,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateWorkBuddyCloudCollaborationInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateWorkBuddyCloudTurnsInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateWorkBuddyCloudHistorySharingInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -295,6 +298,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeWorkBuddyCloudCollaboration(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeWorkBuddyCloudTurns(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeWorkBuddyCloudHistorySharing(ctx); err != nil {
