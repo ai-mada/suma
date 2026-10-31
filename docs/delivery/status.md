@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-ACP-RUNTIME-170：[合同](../../contracts/acp-cli-execution.md)、[架构与AI SOP](../architecture/acp-cli-execution.md)、[交互](../design/acp-cli-execution.md)、[接入](../integrations/acp-cli-execution.md)及[证据](../quality/acp-runtime-verification.md)。成熟ACP stdio／固定Qoder策略、真实模型配置ACK、private／Pool一次权限和当前授权、原Worker／候选／独立质量已接通。36Go／24Web不同顶层、全Web类型、8087对语言及8项真实同机Server／SQLite／双Worker／受控CLI／生产组件通过；3项P2及原夹具失败留证，未重复旧绿。1正式Run／1候选、不同Worker同提交JUnit1/1，task仍in_progress且待人工验收；2Go／1组件构建、正常排空、私有快照、两代表视口。真实Qoder／账号／模型、OS沙箱、强制预算、包装器／发现、物理多机及完整31／P0–P7／58／34／92仍待交付或独立验收。
+
 T-WORKBUDDY-CLOUD-TURNS-169：[合同](../../contracts/workbuddy-cloud-turns.md)、[架构与AI SOP](../architecture/workbuddy-cloud-turns.md)、[交互](../design/workbuddy-cloud-turns.md)及[限定证据](../quality/workbuddy-cloud-turns-verification.md)。原云任务内明确新输入、SDK持续回复、准确once权限决定、取消和失联核对已接通；持久命令收件由原lease runtime消费。28个Go／14个Web不同顶层、七项同机双服务HTTP／SQLite／SDK业务和一项独立只读键盘／390px视觉通过；两个夹具失败及第八原旅程partial保留。两次Go编译、一次前端构建复用，493文档／385路径检查通过，原21项工作受保护。回合结束不替代可信代码候选、同提交独立测试及人工验收；真实供应方、物理多机及完整31／P0–P7／58／34／92继续交付。
 
 T-WORKBUDDY-TASK-DISPATCH-168：[合同](../../contracts/workbuddy-task-dispatch.md)、[架构与AI SOP](../architecture/workbuddy-task-dispatch.md)、[交互](../design/workbuddy-task-dispatch.md)及[阶段验证](../quality/workbuddy-task-dispatch-verification.md)。任务详情直接选择本人WorkBuddy账号、固定上下文预览并明确派发，复用原DAG／唯一Run／委派／Worker及原节点工作区；未知回执沿原body/key核对。35个不同顶层、一次类型／7934对语言及8项真实HTTP／SQLite／私有Worker／生产组件通过；首次启动提交后截断JSON，原GUI恢复后仍只创建1个云任务。1Go宿主／1SDK构建、正常关闭与私有快照保留；两原图为滚动局部视口，时分展示小修单列验证，不重复8项业务。供应方completed仍等待可信交付；云候选／独立测试／验收、真实供应方及完整31／P0–P7／58／34／92保持待交付或待验。

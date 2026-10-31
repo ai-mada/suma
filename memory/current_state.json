@@ -12,6 +12,23 @@
     "target_design": "docs/suma-architecture-design.html",
     "stage_delivery_is_not_full_completion": true
   },
+  "acp_cli_execution": {
+    "stage": "T-ACP-RUNTIME-170",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_implementation_and_actual_verified",
+    "contract": "contracts/acp-cli-execution.md",
+    "architecture": "docs/architecture/acp-cli-execution.md",
+    "design": "docs/design/acp-cli-execution.md",
+    "integration": "docs/integrations/acp-cli-execution.md",
+    "implementation": "Reusable mature Go ACP stdio engine plus fixed Qoder administrator profile, exact model config ACK, original Runner/worktree/journal/candidate path and durable exact-once human permissions across private/Pool current source. No second dispatcher or counterfeit gateway budget.",
+    "verification": "Go36distinct(8protocol/13permissions/9Runner/6Root) andWeb24distinct in focused batches; original failed fixtures and3P2 review revisions retained, unchanged successes reused. One combinedWebTSC0,8087pairedkeys/0hardcodes;825models/826schemas/391paths.",
+    "actual": "One101-input gated journey,2Go compile/1SDK component build,8actual checks all0 exits. Formal GUIpreview/Start, original Worker/SDK1Prompt/modelACK/once permission; committed200 truncated then samebody/key recovery. Clean candidate7596a199b835a654fb8c9558177346f019d47b4a, differentWorker sameSHA publishedJUnit1/1/current; Run succeededv5,task in_progressv2/focusreview_pending/reviews0/verifiedrunempty. CN1366 permission andEN390 scrolling facts viewed;13observedPIDfinallyabsent/2portsfree/noforce, privateconsistentSnapshot retained. RealQoder/vendor/model0; notphysicalmultihost or formalacceptance.",
+    "report": "docs/quality/acp-runtime-verification.md",
+    "summary": "docs/quality/acp-runtime-summary.json",
+    "remaining": "Real Qoder installation/account/model/billing, OS sandbox, official wrappers/passive discovery, full App/device/theme/physicalmulti-host, trusted cloud delivery/human acceptance/release, other vendors, storage/installers/scale and all original31/P0-P7 scope.",
+    "full_platform_complete": false
+  },
   "workbuddy_cloud_turns": {
     "stage": "T-WORKBUDDY-CLOUD-TURNS-169",
     "version": "1.0.0",
@@ -627,7 +644,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "f27df9b9ffbca552330ec071890199debd7475aa"
+    "previously_published_commit": "9195b58689d1c599ff1133c134e5a4ef5b3d6ed8"
   },
   "existing_preview": {
     "updated": false,
@@ -635,14 +652,14 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T169 durable original cloud turns and cross-replica controls verified by42distinct focused checks,7actual local business checks and1separate readonly keyboard/narrow visual check; two fixture failures and original eighth partial retained. Git publication recorded separately against the actual commit. Complete original31/P0-P7/58limited/34pending/92total remains active.",
+  "last_goal_turn_classification": "progress: T170 reusable ACP CLI, exact modelACK, persistent human permissions and sameSHA quality implemented;60distinct focused checks and8actual GUI-HTTP-SQLite-Worker-SDK-candidate-JUnit checks passed, source/p2/fixture evidence retained. Git publication recorded separately against actual commit. Complete original31/P0-P7/58limited/34pending/92total remains active.",
   "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-WORKBUDDY-CLOUD-TURNS-169",
+    "stage": "T-ACP-RUNTIME-170",
     "status": "scoped_verified_continuing_full_goal",
-    "contract": "contracts/workbuddy-cloud-turns.md",
+    "contract": "contracts/acp-cli-execution.md",
     "full_goal": "active: all original P0–P7 and requirements1–31 retained;58limited/34pending/92total",
-    "next": "Continue persistent original cloud input/permission/cancel and trusted code candidate/baseline delivery into same-commit independent testing and human acceptance, plus actual CLI/ACP adapters and complete platform scope. Preserve original task/run/attempt/fence, side-effect reconciliation and real vendor/deployment qualification."
+    "next": "Finish current ACP CLI model/permission/Worker/candidate/same-SHA independent test GUI journey and safe dev publication, then continue trusted cloud code candidate/baseline handoff, actual vendor adapters and complete platform scope. Preserve original source/attempt/fence, unknown-side-effect reconciliation and real vendor/deployment qualification."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -652,10 +669,10 @@
     "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
   },
   "previous_stage_verification": {
-    "stage": "T-WORKBUDDY-TASK-DISPATCH-168",
-    "report": "docs/quality/workbuddy-task-dispatch-verification.md",
-    "summary": "docs/quality/workbuddy-task-dispatch-summary.json",
-    "published_commit": "f27df9b9ffbca552330ec071890199debd7475aa"
+    "stage": "T-WORKBUDDY-CLOUD-TURNS-169",
+    "report": "docs/quality/workbuddy-cloud-turns-verification.md",
+    "summary": "docs/quality/workbuddy-cloud-turns-summary.json",
+    "published_commit": "9195b58689d1c599ff1133c134e5a4ef5b3d6ed8"
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",

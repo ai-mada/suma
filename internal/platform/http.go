@@ -304,6 +304,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.desktopRunnerHTTP(w, r, actor, scope, boundProject, path) {
 		return
 	}
+	if s.toolPermissionsHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.workBuddyTaskDispatchHTTP(w, r, actor, scope, boundProject, parts, s.WorkBuddy) {
 		return
 	}

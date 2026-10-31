@@ -1,6 +1,7 @@
 package platform
 
 import (
+	ac "github.com/ai-mada/suma/internal/acpcontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
@@ -20,6 +21,7 @@ type ModelExecutionOption struct {
 	OutputTokenReservation int64                    `json:"output_token_reservation"`
 }
 type ModelExecutionOptions struct {
+	FixedACP           *ac.Capability                  `json:"fixed_acp,omitempty"`
 	ParameterLimits    *modelcontract.Parameters       `json:"parameter_limits,omitempty"`
 	FixedOpenCode      *tc.OpenCodeExecutionCapability `json:"fixed_opencode,omitempty"`
 	FixedClaude        *tc.ClaudeExecutionCapability   `json:"fixed_claude,omitempty"`

@@ -1,0 +1,119 @@
+package runner
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"sync"
+
+	ac "github.com/ai-mada/suma/internal/acpcontract"
+	"github.com/ai-mada/suma/internal/acpstdio"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
+)
+
+// Only the original Worker calls this bridge. Process creation, its tree,
+// workspace, final candidate and durable progress remain owned by Execute.
+type acpExecutionBridge struct {
+	driver  *acpstdio.Driver
+	profile tc.Profile
+	output  *output
+	mu      sync.Mutex
+	events  int
+	cfg     ExecConfig
+}
+
+func newACPExecutionBridge(ctx context.Context, a Assignment, cfg ExecConfig, profile tc.Profile, root string) (*acpExecutionBridge, error) {
+	goal, ok := a.Config["goal"].(string)
+	if profile.ACPExecution == nil || cfg.Journal == nil || !ok || goal == "" {
+		return nil, fmt.Errorf("ACP requires the original durable worker inbox")
+	}
+	if err := cfg.Journal.beginACPExecution(a, profile); err != nil {
+		return nil, err
+	}
+	b := &acpExecutionBridge{profile: tc.CloneProfile(profile), output: newOutput(cfg.OutputLimit, cfg.Secrets), cfg: cfg}
+	driver, err := acpstdio.New(ctx, acpstdio.Options{Cwd: root, Goal: goal, Model: profile.ACPExecution.Model, ConfigSHA: profile.ACPExecution.ConfigurationSHA256, Secrets: cfg.Secrets, Emit: b.emit, Permission: func(ctx context.Context, request ac.PermissionRequest) (ac.PermissionDecision, error) {
+		safe, err := safeACPPermission(request, cfg.Secrets)
+		if err != nil {
+			return ac.PermissionDecision{}, err
+		}
+		if err = cfg.Journal.recordACPPermission(a, safe); err != nil {
+			return ac.PermissionDecision{}, err
+		}
+		if cfg.ToolPermission == nil {
+			return ac.PermissionDecision{}, errACPPermission
+		}
+		decision, err := cfg.ToolPermission(ctx, safe)
+		if err != nil || !acpDecisionMatches(safe, decision) {
+			return ac.PermissionDecision{}, errACPPermission
+		}
+		return decision, nil
+	}})
+	if err != nil {
+		return nil, fmt.Errorf("ACP SDK session could not initialize")
+	}
+	b.driver = driver
+	return b, nil
+}
+func (b *acpExecutionBridge) emit(event acpstdio.Event) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.events++
+	message := progressText(event.Text, b.cfg.Secrets)
+	kind, status := "message", ""
+	switch event.Kind {
+	case "session":
+		kind = "session_started"
+	case "tool":
+		kind = "activity_updated"
+		status = event.ToolState
+		if status == "pending" || status == "in_progress" {
+			kind = "activity_started"
+		} else if status == "completed" || status == "failed" {
+			kind = "activity_completed"
+		}
+	case "permission":
+		kind = "waiting_input"
+	case "message":
+		if message != "" {
+			_, _ = b.output.Write([]byte(message))
+		}
+	case "notice":
+	default:
+		return fmt.Errorf("ACP projected activity is invalid")
+	}
+	if b.cfg.ToolProgress != nil {
+		e := tc.Event{SchemaVersion: 1, CommandID: b.profile.CommandID, ProfileSHA256: b.profile.ProfileSHA256, Protocol: b.profile.Protocol, Kind: kind, SessionID: event.SessionID, ItemID: event.ToolCallID, Message: message, Status: status}
+		if err := tc.ValidateEvent(e); err != nil {
+			return fmt.Errorf("ACP projected progress is invalid")
+		}
+		return b.cfg.ToolProgress(e)
+	}
+	return nil
+}
+func (b *acpExecutionBridge) Write(value []byte) (int, error) { return b.driver.Write(value) }
+func (b *acpExecutionBridge) CopyInput(writer io.Writer) (int64, error) {
+	return b.driver.CopyInput(writer)
+}
+func (b *acpExecutionBridge) Cancel() error { return b.driver.Cancel() }
+func (b *acpExecutionBridge) Close() error  { return b.driver.Close() }
+func (b *acpExecutionBridge) finish(parentStopped, treeStopped bool) *tc.Evidence {
+	result := b.driver.Finish()
+	proof := result.Evidence
+	proof.HostProcessStopped = parentStopped
+	proof.HostProcessTreeStopped = parentStopped && treeStopped
+	b.mu.Lock()
+	count := b.events
+	b.mu.Unlock()
+	evidence := &tc.Evidence{Profile: b.profile, SessionID: proof.SessionID, Terminal: result.Terminal, EventCount: count, Usage: cloneUsage(result.Usage), UsageState: result.UsageState, ACPExecution: &proof}
+	if evidence.UsageState != "partial" {
+		evidence.UsageState = tc.UsageUnreported
+		evidence.Usage = nil
+	}
+	if !parentStopped || !treeStopped || result.Error != nil {
+		evidence.Terminal = "unknown"
+	}
+	if err := tc.ValidateEvidence(*evidence); err != nil {
+		evidence.Terminal = "unknown"
+	}
+	return evidence
+}

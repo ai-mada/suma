@@ -2,6 +2,7 @@ import {validOpenCodeCapability} from './opencode-execution-model';
 import {validCodexCatalog} from './codex-execution-model';
 import {validOctopCapability} from './octop-execution-model';
 import {validClaudeCapability} from './claude-cli-model';
+import {validACPCapability} from './acp-execution-model';
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
 import type { ToolDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation, ToolProfile as ContractToolProfile } from "../../../packages/contracts/src";
@@ -123,6 +124,7 @@ const protocols: Record<string, string> = {
   codebuddy: "codebuddy-jsonl-v1",
   claude: "claude-jsonl-v1",
   octop: "octop-harness-acp-v1",
+  qoder: "acp-stdio-v1",
 };
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -149,7 +151,14 @@ function publicOrigin(value: unknown): boolean {
     return !origin.username && !origin.password && (origin.protocol === "https:" || (origin.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname)));
   } catch { return false; }
 }
+const acpForbidden = ['workspace_tools_version','model_execution_protocol','terminal_session_protocol','test_report_protocol','conflict_repair_protocol','planning','knowledge_extraction','failure_diagnosis','intelligent_operations','dispatch_recommendation','task_conversation_reply','opencode_execution','octop_execution','claude_execution'] as const;
+function acpToolProfile(profile: Record<string, unknown> | ToolProfileDefinition) {
+  return profile.adapter === 'qoder' && profile.protocol === 'acp-stdio-v1' && profile.read_only === false && validACPCapability(profile.acp_execution) && !acpForbidden.some(key=>!!profile[key]);
+}
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
+  const acp = acpToolProfile(profile);
+  if (profile.acp_execution !== undefined && !acp || profile.adapter === 'qoder' &&
+    (profile.protocol !== 'acp-stdio-v1' || profile.read_only !== false || acpForbidden.some(key=>!!profile[key]) || observation.available === true && !acp)) invalidCapability();
   const claude = profile.adapter === 'claude' && profile.protocol === 'claude-jsonl-v1' && validClaudeCapability(profile.claude_execution);
   if(profile.claude_execution!==undefined&&(!claude||!['2.1.314','2.1.314 (Claude Code)'].includes(String(profile.tool_version)))||profile.adapter==='claude'&&(profile.protocol!=='claude-jsonl-v1'||profile.read_only!==false||observation.available===true&&!claude||profile.workspace_tools_version||profile.model_execution_protocol||profile.terminal_session_protocol||profile.test_report_protocol||profile.conflict_repair_protocol||profile.planning||profile.knowledge_extraction||profile.failure_diagnosis||profile.intelligent_operations||profile.dispatch_recommendation||profile.task_conversation_reply||profile.opencode_execution||profile.octop_execution))invalidCapability();
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
@@ -245,7 +254,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "read_only",
       "terminal_session_protocol",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol", "test_report_protocol",
-      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution", "claude_execution",
+      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution", "claude_execution", "acp_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);
     if (
       typeof profile.command_id !== "string" ||
@@ -312,22 +321,25 @@ export function toolBinding(
   delete config.tool_profile_id;
   delete config.tool_profile_sha256;
   delete config.claude_execution;
+  delete config.acp_execution;
   if (!profile) return { config };
   if (!profile.id || !digest.test(profile.profile.profile_sha256))
     throw new UiError("development.model.choose_an_official_tool_with_a_fixed");
   return {
     command: [profile.profile.command_id],
-    ...(profile.profile.adapter==='claude'?{max_retries:0}:{}),
+    ...(profile.profile.adapter==='claude'||profile.profile.adapter==='qoder'?{max_retries:0}:{}),
     config: {
       ...config,
       tool_profile_id: profile.id,
       tool_profile_sha256: profile.profile.profile_sha256,
       ...(profile.profile.adapter==='claude'&&validClaudeCapability(profile.profile.claude_execution)?{claude_execution:{...profile.profile.claude_execution}}:{}),
+      ...(acpToolProfile(profile.profile)?{acp_execution:{...profile.profile.acp_execution}}:{}),
     },
   };
 }
 export function taskToolProtocol(profile: ToolProfileDefinition) {
   return (
+    acpToolProfile(profile) ||
     (profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1") ||
     (profile.adapter === "opencode" && profile.protocol === "opencode-sdk-v1" && validOpenCodeCapability(profile.opencode_execution)) ||
     (profile.adapter === "codex" && ["codex-jsonl-v1","codex-app-server-v1"].includes(profile.protocol)) ||

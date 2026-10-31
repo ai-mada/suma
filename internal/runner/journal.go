@@ -29,6 +29,7 @@ type entry struct {
 	WorkspaceTrace    *workspaceTraceCheckpoint `json:"workspace_trace,omitempty"`
 	Terminal          *terminalCheckpoint       `json:"terminal,omitempty"`
 	Cloud             *cloudExecutionCheckpoint `json:"workbuddy_cloud,omitempty"`
+	ACP               *acpExecutionCheckpoint   `json:"acp_execution,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -97,6 +98,9 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if err = validACPCheckpoint(e.Assignment, e.ACP); err != nil {
+			return nil, err
+		}
 		if e.Cloud != nil {
 			if err = validCloudExecution(e.Assignment, *e.Cloud); err != nil || cloudMixed(e) || k != key(e.Assignment) {
 				return nil, fmt.Errorf("invalid cloud checkpoint or mixed execution channel")
@@ -269,6 +273,7 @@ func (j *Journal) Finish(r Result) error {
 		copied.CodexExecution = cc.CloneEvidence(r.ToolEvidence.CodexExecution)
 		copied.OpenCodeExecution = cloneOpenCodeEvidence(r.ToolEvidence.OpenCodeExecution)
 		copied.OctopExecution = cloneOctopEvidence(r.ToolEvidence.OctopExecution)
+		copied.ACPExecution = cloneACPEvidence(r.ToolEvidence.ACPExecution)
 		r.ToolEvidence = &copied
 	}
 	r.Assignment = cloneModelAssignment(r.Assignment)
@@ -477,6 +482,7 @@ func (j *Journal) Pending() []Result {
 				evidence.CodexExecution = cc.CloneEvidence(evidence.CodexExecution)
 				evidence.OpenCodeExecution = cloneOpenCodeEvidence(evidence.OpenCodeExecution)
 				evidence.OctopExecution = cloneOctopEvidence(evidence.OctopExecution)
+				evidence.ACPExecution = cloneACPEvidence(evidence.ACPExecution)
 				copy.ToolEvidence = &evidence
 			}
 			results = append(results, copy)

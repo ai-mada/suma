@@ -13,7 +13,7 @@ export function quickConnectWorkers(local:readonly {worker_id:string;status:stri
  return [...new Set([...local,...shared].filter(item=>item.status==='active').map(item=>item.worker_id))];
 }
 export function matchingQuickTools(items:ToolObservation[],adapter:AdapterDescriptor){
- if(adapter.id==='cursor-cli')return [];
+ if(adapter.id==='cursor-cli'||adapter.direction!=='suma_to_tool'||adapter.setup_kind!=='runner_profile'||adapter.implementation!=='implemented')return [];
  return items.filter(item=>item.profile.adapter===adapter.adapter&&item.profile.protocol===adapter.protocol);
 }
 const canonical=(value:unknown)=>JSON.stringify(value,(_key,item:unknown)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,(item as Record<string,unknown>)[key]])):item);

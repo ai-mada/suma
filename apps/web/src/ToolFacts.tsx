@@ -3,6 +3,7 @@ import {OctopExecutionFacts} from './OctopExecutionFacts';
 import {openCodeRunFacts,type OpenCodeRunTest} from './opencode-run-model';
 import {ExecutionModelFacts} from './ExecutionModelFacts';
 import {ClaudeExecutionFacts} from './ClaudeExecutionFacts';
+import {ACPExecutionFacts} from './ACPExecutionFacts';
 import { Trans } from "./i18n/Trans";
 import type {ReactNode} from 'react';
 import {CheckCircle2, CircleHelp, PauseCircle, ShieldOff} from 'lucide-react';
@@ -110,6 +111,7 @@ export function ToolProfileFacts({ profile, confirmed = true, children }: { prof
         {t("development.facts.version_and_probing_do_not_prove_model")}</p>
       <OpenCodeExecutionFacts capability={profile.profile.opencode_execution}/>
       <ClaudeExecutionFacts capability={profile.profile.claude_execution}/>
+      <ACPExecutionFacts capability={profile.profile.acp_execution}/>
       {profile.profile.adapter==='octop'&&profile.profile.protocol==='octop-harness-acp-v1'&&<OctopExecutionFacts capability={profile.profile.octop_execution}/>}
       {'workspace_tools_version' in profile.profile&&profile.profile.workspace_tools_version==='attempt-workspace-v1'&&<p className="muted">{t('native-workspace.capability')}</p>}
       {profile.profile.conflict_repair_protocol==='suma.candidate-conflict-repair.v1'&&<p className="muted">{t('candidate-conflict-repair.capability')}</p>}
@@ -331,7 +333,7 @@ export function ToolExecutionFacts({
   tests?:OpenCodeRunTest[];
   workspaceOperations?:{scope:AttemptToolScope;events:readonly unknown[];evidence?:WorkspaceEvidence;profileSHA?:string;unconfirmed?:boolean};
 }) { useLocale();
-  const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode}),octop=evidence?.profile.adapter==='octop'&&evidence.profile.protocol==='octop-harness-acp-v1';
+  const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode}),octop=evidence?.profile.adapter==='octop'&&evidence.profile.protocol==='octop-harness-acp-v1',acp=evidence?.profile.adapter==='qoder'&&evidence.profile.protocol==='acp-stdio-v1';
   const host=workspaceOperations?workspaceOperationsForAttempt(workspaceOperations.events,workspaceOperations.scope,workspaceOperations.profileSHA):undefined;
   const hostFacts=workspaceOperations&&host?<WorkspaceOperations scope={workspaceOperations.scope} projection={host} workspaceEvidence={workspaceOperations.evidence} context="current" unconfirmed={workspaceOperations.unconfirmed}/>:null;
   if (!evidence && !events.length&&!openCode&&!modelBinding) return hostFacts;
@@ -365,7 +367,7 @@ export function ToolExecutionFacts({
             <dd>
               {evidence.profile.command_id} · {evidence.profile.tool_version}
             </dd>
-            {!openCode&&!octop&&<><dt>{t("development.facts.tool_report")}</dt>
+            {!openCode&&!octop&&!acp&&<><dt>{t("development.facts.tool_report")}</dt>
             <dd>
               {(
                 {
@@ -379,7 +381,7 @@ export function ToolExecutionFacts({
             <dd>{formatNumber(evidence.event_count)}</dd>
           </>
         )}
-        {!openCode&&!octop&&session && (
+        {!openCode&&!octop&&!acp&&session && (
           <>
             <dt>{t("development.facts.external_session_id")}</dt>
             <dd>
@@ -388,7 +390,7 @@ export function ToolExecutionFacts({
           </>
         )}
       </dl>
-      {!openCode&&!octop&&session && (
+      {!openCode&&!octop&&!acp&&session && (
         <p className="muted">
           {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}

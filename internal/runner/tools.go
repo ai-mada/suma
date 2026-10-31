@@ -211,6 +211,9 @@ func probeCommandStreams(ctx context.Context, exe string, args []string, spec Co
 }
 
 func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []string, workspace string) (string, error) {
+	if spec.ACP != nil {
+		return acpVersion(ctx, exe, spec, secrets)
+	}
 	if spec.Protocol == cc.Protocol {
 		return probeCodexVersion(ctx, exe, spec, secrets, workspace)
 	}
@@ -479,6 +482,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 		if err := validateCodexAppServerSpec(spec); err != nil {
 			return err
 		}
+		if err := validateACPExecutionSpec(spec); err != nil {
+			return err
+		}
 		if err := validateModelExecutionSpec(spec); err != nil {
 			return err
 		}
@@ -591,6 +597,11 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ToolVersion = version
+			o.Profile.ACPExecution, err = localACPCapability(spec)
+			if err != nil {
+				fail(err.Error())
+				return
+			}
 			o.Profile.ClaudeExecution, err = localClaudeCapability(spec)
 			if err != nil {
 				fail(err.Error())
@@ -668,6 +679,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				o.WorkspaceWriteProtocol = wwc.Protocol
 			}
 			o.Reason = "installed executable and protocol probe; model authentication and task success unverified"
+			if spec.ACP != nil {
+				o.Reason = "reviewed native executable version; ACP session, model selection, login and task success unverified"
+			}
 			results[i] = o
 		}(i, id)
 	}
@@ -689,6 +703,9 @@ func ToolCapabilities(items []tc.Observation) []string {
 
 func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (tc.Profile, string, error) {
 	spec = normalizedCommand(spec)
+	if err := validateACPExecutionSpec(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if err := probeTerminalSessionSpec(spec); err != nil {
 		return tc.Profile{}, "", err
 	}
@@ -740,6 +757,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 			return p, "", e
 		}
 		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
+		p.ACPExecution, err = localACPCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
 		p.TerminalSessionProtocol = terminalSessionProtocol(spec)
 		p.ClaudeExecution, err = localClaudeCapability(spec)
 		if err != nil {
@@ -806,6 +827,16 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	expectedOctop, err := localOctopCapability(spec)
 	if err != nil || (p.OctopExecution == nil) != (expectedOctop == nil) || p.OctopExecution != nil && *p.OctopExecution != *expectedOctop {
 		return p, "", fmt.Errorf("Octop fixed configuration differs from local inventory")
+	}
+	expectedACP, err := localACPCapability(spec)
+	if err != nil || (p.ACPExecution == nil) != (expectedACP == nil) || p.ACPExecution != nil && *p.ACPExecution != *expectedACP {
+		return p, "", fmt.Errorf("ACP fixed configuration differs from local inventory")
+	}
+	if spec.ACP != nil {
+		version, versionErr := acpVersion(ctx, exe, spec, cfg.Secrets)
+		if versionErr != nil || version != p.ToolVersion {
+			return p, "", fmt.Errorf("ACP executable version changed before launch")
+		}
 	}
 	if p.ModelExecutionProtocol != spec.ModelExecutionProtocol || validateModelExecutionSpec(spec) != nil {
 		return p, "", fmt.Errorf("model execution capability does not match local configuration")

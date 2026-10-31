@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	ac "github.com/ai-mada/suma/internal/acpcontract"
 	"io"
 	"net/url"
 	"regexp"
@@ -42,14 +43,27 @@ func validText(s string, max int, multiline bool) bool {
 	}
 	return true
 }
+
+// Profiles and streamed events share one closed protocol directory so adding
+// an adapter cannot accidentally admit configuration but reject its first event.
+var adapterProtocols = map[string]string{"qoder": ac.Protocol, "claude": ClaudeProtocol, "octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}
+
 func protocolPair(adapter, protocol string) bool {
 	if adapter == "codex" && protocol == cc.Protocol {
 		return true
 	}
-	return map[string]string{"claude": ClaudeProtocol, "octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
+	return adapterProtocols[adapter] == protocol && protocol != ""
 }
 func ValidProtocol(protocol string) bool {
-	return protocol == ClaudeProtocol || protocol == OctopProtocol || protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == OpenCodeSDKProtocol || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
+	if protocol == cc.Protocol {
+		return true
+	}
+	for _, known := range adapterProtocols {
+		if protocol == known {
+			return true
+		}
+	}
+	return false
 }
 
 // SupportsWorkspaceObservationProfile identifies profile kinds that can expose
@@ -65,6 +79,9 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if err := validateACPProfile(p, complete); err != nil {
+		return err
+	}
 	if err := validateClaudeProfile(p, complete); err != nil {
 		return err
 	}
@@ -309,6 +326,9 @@ func ValidateEvent(e Event) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
+	if err := validateACPEvidence(e); err != nil {
+		return err
+	}
 	if err := validateClaudeEvidence(e); err != nil {
 		return err
 	}

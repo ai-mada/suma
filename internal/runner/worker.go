@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	ac "github.com/ai-mada/suma/internal/acpcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 	"sync"
@@ -150,6 +151,9 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 		cfg.Artifacts = w.Client
 	}
 	cfg.Journal = w.Journal
+	cfg.ToolPermission = func(ctx context.Context, request ac.PermissionRequest) (ac.PermissionDecision, error) {
+		return w.waitToolPermission(ctx, a, request, cfg.Secrets)
+	}
 	if a.WorkBuddyCloud == nil {
 		registry := NewWorkspaceObservationRegistry(w.Client.ProjectID)
 		cfg.WorkspaceObservations = registry

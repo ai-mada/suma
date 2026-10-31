@@ -301,6 +301,7 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 	out.CodexExecution = codexBinding
 	out.OpenCodeExecution = toolcontract.CloneProfile(profile.Profile).OpenCodeExecution
 	out.ClaudeExecution = toolcontract.CloneProfile(profile.Profile).ClaudeExecution
+	out.ACPExecution = toolcontract.CloneProfile(profile.Profile).ACPExecution
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}

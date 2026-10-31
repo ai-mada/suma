@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	ac "github.com/ai-mada/suma/internal/acpcontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
@@ -48,6 +49,7 @@ type CommandSpec struct {
 	ModelExecutionProtocol string                 `json:"model_execution_protocol,omitempty"`
 	CodexAppServer         *CodexAppServerSpec    `json:"codex_app_server,omitempty"`
 	OpenCode               *OpenCodeSpec          `json:"opencode,omitempty"`
+	ACP                    *ACPExecutionSpec      `json:"acp,omitempty"`
 }
 
 type nativeAgentLimits struct {
@@ -134,6 +136,7 @@ type ExecConfig struct {
 	Repository, BaseCommit, WorktreeRoot  string
 	Progress                              func(string) error
 	ToolProgress                          func(tc.Event) error
+	ToolPermission                        func(context.Context, ac.PermissionRequest) (ac.PermissionDecision, error)
 	WorkspaceProgress                     func(wc.Event) error
 	ToolInventory                         []tc.Observation
 	ModelDeployments                      []ModelDeploymentSpec
@@ -385,6 +388,17 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if profileErr != nil {
 		return fail(profileErr.Error())
 	}
+	if fixed, err := tc.DecodeACPNodeConfiguration(a.Config); err != nil || (fixed != nil) != (spec.ACP != nil) {
+		return fail("ACP execution requires its exact current local capability")
+	}
+	if spec.ACP != nil {
+		if profile.ACPExecution == nil {
+			return fail("ACP local capability is missing")
+		}
+		if err := acpExecutionRequest(a, spec, *profile.ACPExecution); err != nil {
+			return fail(err.Error())
+		}
+	}
 	if err := openCodeExecutionRequest(a, spec, profile); err != nil {
 		return fail(err.Error())
 	}
@@ -499,6 +513,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	var dshPipe io.WriteCloser
 	var codexPipe io.WriteCloser
 	var codexDriver *codexAppServer
+	var acpPipe io.WriteCloser
+	var acpDriver *acpExecutionBridge
 	if (spec.Adapter == "harness" || spec.Adapter == "codebuddy" || spec.Adapter == "claude") && a.Type != "agent" {
 		return fail("team CLI profiles require an agent node")
 	}
@@ -512,6 +528,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			return fail(fmt.Sprintf("agent config.goal must contain 1–%d UTF-8 bytes", goalLimit))
 		}
 		switch spec.Input {
+		case "acp-stdio":
+			if spec.ACP == nil {
+				return fail("ACP stdin requires its fixed local configuration")
+			}
+			acpPipe, err = cmd.StdinPipe()
+			if err != nil {
+				return fail("ACP stdin pipe could not be opened")
+			}
+			defer acpPipe.Close()
 		case "agent-jsonl":
 			input := map[string]any{"goal": goal, "request_id": digest([]byte(key(a)))}
 			if (spec.DispatchRecommendation || spec.TaskConversationReply) && modelExecution != nil {
@@ -573,6 +598,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	var environmentSecrets []string
 	cmd.Env, environmentSecrets, err = commandEnvironment(spec)
+	if spec.ACP != nil {
+		cmd.Env, environmentSecrets, err = acpExecutionEnvironment(spec)
+	}
 	if codexBinding != nil {
 		// Replace the inherited home and authentication context before the
 		// child starts. A separate generated home contains no login state.
@@ -759,7 +787,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 	}
 	var stream *toolStream
-	if profile.Protocol != "text-v1" {
+	if spec.ACP != nil {
+		acpDriver, err = newACPExecutionBridge(ctx, a, cfg, profile, root)
+		if err != nil {
+			return fail("ACP durable execution could not be opened")
+		}
+		defer acpDriver.Close()
+		cmd.Stdout = acpDriver
+	} else if profile.Protocol != "text-v1" {
 		var emit func(tc.Event) error
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 			emit = cfg.ToolProgress
@@ -846,6 +881,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}()
 		defer func() { _ = codexDriver.Close(); _ = codexPipe.Close(); <-stdinDone }()
 	}
+	if acpDriver != nil {
+		stdinDone := make(chan struct{})
+		go func() { defer close(stdinDone); _, _ = acpDriver.CopyInput(acpPipe); _ = acpPipe.Close() }()
+		defer func() { _ = acpDriver.Close(); _ = acpPipe.Close(); <-stdinDone }()
+	}
 	done := make(chan error, 1)
 	processContainmentVerified := true
 	go func() { done <- cmd.Wait() }()
@@ -859,16 +899,18 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 	case <-ctx.Done():
 		waited := false
-		if dshStdin != nil || codexDriver != nil {
+		if dshStdin != nil || codexDriver != nil || acpDriver != nil {
 			// Give the versioned cancellation request a bounded chance to settle;
 			// it does not prove that the agent or its descendants actually stopped.
 			if dshStdin != nil {
 				_ = dshStdin.Cancel()
+			} else if acpDriver != nil {
+				_ = acpDriver.Cancel()
 			} else {
 				_ = codexDriver.Cancel()
 			}
 			graceDuration := 1500 * time.Millisecond
-			if spec.OpenCode != nil || spec.Adapter == "octop" {
+			if spec.OpenCode != nil || spec.Adapter == "octop" || spec.ACP != nil {
 				graceDuration = 10 * time.Second
 			}
 			grace := time.NewTimer(graceDuration)
@@ -880,6 +922,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			grace.Stop()
 			if dshStdin != nil {
 				_ = dshStdin.Close()
+			} else if acpDriver != nil {
+				_ = acpDriver.Close()
 			} else {
 				_ = codexDriver.Close()
 			}
@@ -910,7 +954,34 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	closeModelGateway()
 	r.Output = out.String()
-	if stream != nil {
+	if acpDriver != nil {
+		evidence := acpDriver.finish(cmd.ProcessState != nil, processContainmentVerified)
+		if r.Stopped || r.OutcomeUnknown || r.ExitCode != 0 {
+			evidence.Terminal = "unknown"
+		}
+		if evidence.Terminal == "failed" {
+			r.ExitCode = 1
+			r.Error = "ACP agent reported a verified unsuccessful prompt"
+		} else if evidence.Terminal != "completed" {
+			r.ExitCode = -1
+			r.OutcomeUnknown = true
+			r.Error = "ACP execution outcome requires reconciliation"
+		}
+		r.ToolEvidence = evidence
+		r.Output = acpDriver.output.String() + r.Output
+		if cfg.ToolProgress != nil {
+			kind := "turn_failed"
+			if evidence.Terminal == "completed" {
+				kind = "turn_completed"
+			}
+			if emitErr := cfg.ToolProgress(tc.Event{SchemaVersion: 1, CommandID: profile.CommandID, ProfileSHA256: profile.ProfileSHA256, Protocol: profile.Protocol, Kind: kind, SessionID: evidence.SessionID}); emitErr != nil {
+				r.ExitCode = -1
+				r.OutcomeUnknown = true
+				evidence.Terminal = "unknown"
+				r.Error = "ACP durable terminal progress is unavailable"
+			}
+		}
+	} else if stream != nil {
 		if codexDriver != nil {
 			codexDriver.Finish()
 		}

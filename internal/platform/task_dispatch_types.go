@@ -1,6 +1,7 @@
 package platform
 
 import (
+	ac "github.com/ai-mada/suma/internal/acpcontract"
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
@@ -31,6 +32,7 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
+	ACPExecution       *ac.Capability                    `json:"acp_execution,omitempty"`
 	Recommendation     *DispatchRecommendationProvenance `json:"recommendation,omitempty" wire:"nonnull"`
 	OpenCodeExecution  *tc.OpenCodeExecutionCapability   `json:"opencode_execution,omitempty"`
 	ClaudeExecution    *tc.ClaudeExecutionCapability     `json:"claude_execution,omitempty"`

@@ -83,5 +83,8 @@
   "adapter-connections.limit.host_stop_platform_dependent": "停止证明依赖操作系统及实际进程证据，目前无法证明 Unix 分离子进程已停止。",
   "adapter-connections.return_guide": "返回接入向导",
   "adapter-connections.selected_execution": "已选择执行协议：{{adapter}} / {{protocol}}。只可登记匹配的真实观测配置。",
-  "adapter-connections.no_matching_inventory": "当前库存没有匹配配置。可更换设备、提供此协议的库存，或取消后选择其他接入方式。"
+  "adapter-connections.no_matching_inventory": "当前库存没有匹配配置。可更换设备、提供此协议的库存，或取消后选择其他接入方式。",
+  "adapter-connections.limit.fixed_acp_cli_configuration": "管理员固定本机ACP CLI、准确审阅版本与模型，配置确认不证明供应方身份或健康。",
+  "adapter-connections.limit.acp_human_once_permissions": "每次工具请求由当前有权人员明确选择一次允许或拒绝，不支持永久授权。",
+  "adapter-connections.limit.trusted_cli_not_os_sandbox": "平台隔离工作树并拒绝客户端文件与终端回调；CLI自身能力仍依赖本机信任与配置，不是系统沙箱。"
 }

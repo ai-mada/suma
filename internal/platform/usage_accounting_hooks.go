@@ -107,6 +107,12 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 		return
 	}
+	if supportsACPExecution(profile) {
+		if profile.Profile.ProfileSHA256 != sha || !acpNodeMatchesProfile(ref.Spec, profile) {
+			err = invalid(acpExecutionChanged)
+		}
+		return
+	}
 	model, origin, priced := usagePricedModel(profile)
 	if !priced || profile.Profile.ProfileSHA256 != sha {
 		return profile, nil, org, project, nil
@@ -141,6 +147,9 @@ func (s *Service) CheckAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		return false, nil
 	}
 	if checkClaudeObserveOnlyPolicies(profile, org, project) != nil {
+		return false, nil
+	}
+	if checkACPObserveOnlyPolicies(profile, org, project) != nil {
 		return false, nil
 	}
 	period, e := s.usagePeriodTx(ctx, tx)
@@ -196,6 +205,9 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 		return err
 	}
 	if err := checkClaudeObserveOnlyPolicies(profile, org, project); err != nil {
+		return err
+	}
+	if err := checkACPObserveOnlyPolicies(profile, org, project); err != nil {
 		return err
 	}
 	if b, err := dag.CodexBinding(ref.Spec); err != nil {
@@ -446,6 +458,26 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 			modelReconciling = true
 		} else {
 			proof := result.ToolEvidence.ClaudeExecution
+			if proof.ConfigurationSHA256 != fixed.ConfigurationSHA256 || proof.RequestedModel != fixed.Model || toolcontract.ValidateEvidence(*result.ToolEvidence) != nil {
+				modelReconciling = true
+			}
+		}
+	}
+	if fixed, err := acpNodeConfiguration(ref.Spec); err != nil {
+		return err
+	} else if fixed != nil {
+		// ACP configuration/usage acknowledgement is not a complete accounting
+		// authority. Preserve observed counters without inventing coverage.
+		complete = false
+		if a.Usage != nil {
+			a.UsageState = toolcontract.UsagePartial
+		} else {
+			a.UsageState = toolcontract.UsageUnreported
+		}
+		if result.ToolEvidence == nil || result.ToolEvidence.ACPExecution == nil {
+			modelReconciling = true
+		} else {
+			proof := result.ToolEvidence.ACPExecution
 			if proof.ConfigurationSHA256 != fixed.ConfigurationSHA256 || proof.RequestedModel != fixed.Model || toolcontract.ValidateEvidence(*result.ToolEvidence) != nil {
 				modelReconciling = true
 			}

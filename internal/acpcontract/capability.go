@@ -1,0 +1,32 @@
+package acpcontract
+
+import (
+	"fmt"
+	"regexp"
+	"strings"
+	"unicode"
+	"unicode/utf8"
+)
+
+var configurationDigest = regexp.MustCompile(`^[a-f0-9]{64}$`)
+
+// ValidFixedText does not normalize an agent option, model or version. Exact
+// bytes remain part of administrator configuration and protocol comparison.
+func ValidFixedText(value string, limit int) bool {
+	if value == "" || strings.TrimSpace(value) != value || len(value) > limit || !utf8.ValidString(value) {
+		return false
+	}
+	for _, r := range value {
+		if unicode.IsControl(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func ValidateCapability(c Capability) error {
+	if c.Runtime != "qoder" || c.ProtocolVersion != 1 || c.SDKVersion != SDKVersion || !configurationDigest.MatchString(c.ConfigurationSHA256) || !ValidFixedText(c.Model, 256) || c.ModelSource != "administrator_session_config" || c.BudgetMode != "observe_only" || c.IdentityEvidence != "configuration_ack_only" || c.AuthStrategy != "existing_cli_login" || c.PermissionMode != "human_once" {
+		return fmt.Errorf("invalid fixed ACP execution capability")
+	}
+	return nil
+}

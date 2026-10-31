@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [本地ACP CLI执行](../contracts/acp-cli-execution.md) · [架构与AI SOP](architecture/acp-cli-execution.md) · [简洁交互](design/acp-cli-execution.md) · [接入](integrations/acp-cli-execution.md) · [限定证据](quality/acp-runtime-verification.md)：T-ACP-RUNTIME-170接通固定Qoder策略／成熟SDK、准确模型ACK、原一次权限、候选与独立同提交JUnit。60项定向检查与8项实际旅程通过；真实Qoder、沙箱、硬预算及完整平台目标继续交付。
+
 - [原云任务持续协作](../contracts/workbuddy-cloud-turns.md) · [架构与AI SOP](architecture/workbuddy-cloud-turns.md) · [简洁交互](design/workbuddy-cloud-turns.md) · [验证与边界](quality/workbuddy-cloud-turns-verification.md)：T-WORKBUDDY-CLOUD-TURNS-169接通明确新输入、真实SDK回复、准确一次权限决定、取消和失联核对。控制副本共享持久命令，由原租约执行；回合结束与代码交付、独立测试、验收分别保留，完整31／P0–P7范围继续实施。
 
 - [任务直接派发WorkBuddy](../contracts/workbuddy-task-dispatch.md) · [架构与AI SOP](architecture/workbuddy-task-dispatch.md) · [简洁交互](design/workbuddy-task-dispatch.md) · [验证与边界](quality/workbuddy-task-dispatch-verification.md)：T-WORKBUDDY-TASK-DISPATCH-168沿本人账号、固定任务预览、同事务原Run／委派和原云Runner贯通任务入口。模型由供应方管理，完成仍需可信交付和正式质量门禁；完整31／P0–P7范围继续实施。

@@ -83,5 +83,8 @@
   "adapter-connections.limit.host_stop_platform_dependent": "Proof of stopping depends on the operating system and actual process evidence. Detached Unix child processes are not currently proven stopped.",
   "adapter-connections.return_guide": "Back to setup guides",
   "adapter-connections.selected_execution": "Selected execution protocol: {{adapter}} / {{protocol}}. Only matching observed inventory can be registered.",
-  "adapter-connections.no_matching_inventory": "No matching observed configuration. Choose another device or supply inventory for this protocol, or cancel to choose another connection."
+  "adapter-connections.no_matching_inventory": "No matching observed configuration. Choose another device or supply inventory for this protocol, or cancel to choose another connection.",
+  "adapter-connections.limit.fixed_acp_cli_configuration": "Administrator-fixed local ACP CLI, exact reviewed version and model; configuration acknowledgement does not verify provider identity or health.",
+  "adapter-connections.limit.acp_human_once_permissions": "Each tool request requires an explicit once-only decision from a currently authorized person; persistent permission is unavailable.",
+  "adapter-connections.limit.trusted_cli_not_os_sandbox": "The platform isolates the worktree and refuses client file and terminal callbacks. Native CLI capabilities depend on local trust and configuration; this is not an OS sandbox."
 }

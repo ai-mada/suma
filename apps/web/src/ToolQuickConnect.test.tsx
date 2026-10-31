@@ -36,6 +36,17 @@ it('automatically uses the sole authorized node and saves paused, requiring a se
  expect(props.onRegistered).toHaveBeenCalledOnce();expect(props.onEnable).not.toHaveBeenCalled();expect(host.textContent).toContain('paused');
  await click('[data-quick-enable]');expect(props.onEnable).toHaveBeenCalledOnce();
 });
+it('Qoder uses actual ACP inventory for paused registration without claiming local discovery or model health',async()=>{
+ const qoder={...adapter,id:'qoder-acp',product:'Qoder',adapter:'qoder',protocol:'acp-stdio-v1'};
+ const capability={runtime:'qoder',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:'c'.repeat(64),model:'fixed-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'existing_cli_login',permission_mode:'human_once'};
+ const fixed={...profile,command_id:'qoder-team',adapter:'qoder',protocol:'acp-stdio-v1',acp_execution:capability};
+ const discoverInstalledTools=vi.fn(),manageLocalTool=vi.fn();vi.stubGlobal('sumaDesktop',{platform:'win32',version:'1.0.0',discoverInstalledTools,manageLocalTool});
+ reply=async path=>Response.json(path.startsWith('/adapter-catalog')?{project_id:'p',as_of:'2026-10-30T08:00:20Z',items:[qoder]}:{...report(),items:[{profile:fixed,available:true,reason:'actual protocol observation'}]});
+ await render();await change('[data-quick-tool]','qoder-acp');expect(props.action.run).not.toHaveBeenCalled();expect(discoverInstalledTools).not.toHaveBeenCalled();expect(manageLocalTool).not.toHaveBeenCalled();
+ await click('[data-quick-advanced]');expect(props.onAdvanced).toHaveBeenCalledExactlyOnceWith(qoder);
+ await click('[data-quick-register]');expect(props.action.run).toHaveBeenCalledExactlyOnceWith('/tool-profiles',{project_id:'p',worker_id:'one',name:'qoder-team',profile:fixed});expect(props.onEnable).not.toHaveBeenCalled();
+ expect(host.querySelector('[data-quick-register]')).toBeNull();await click('[data-quick-enable]');expect(props.onEnable).toHaveBeenCalledOnce();
+});
 it('requires a node choice when several are authorized and never fans out reads',async()=>{
  props.workers=identity(['one','two']);await render();await change('[data-quick-tool]','codex-jsonl');expect(paths).toHaveLength(1);
  await change('[data-quick-worker]','two');expect(paths).toHaveLength(2);expect(paths[1]).toContain('worker_id=two');
