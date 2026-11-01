@@ -341,5 +341,14 @@ func cloneACPEvidence(value *ac.Evidence) *ac.Evidence {
 		return nil
 	}
 	copy := *value
+	if value.UserInputs != nil {
+		copy.UserInputs = append(value.UserInputs[:0:0], value.UserInputs...)
+		for i := range copy.UserInputs {
+			if copy.UserInputs[i].Observation != nil {
+				observation := *copy.UserInputs[i].Observation
+				copy.UserInputs[i].Observation = &observation
+			}
+		}
+	}
 	return &copy
 }

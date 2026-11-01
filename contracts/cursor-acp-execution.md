@@ -12,7 +12,7 @@ T-CURSOR-ACP-189；suma1.0.0；原31项／P0–P7继续。本合同把原Cursor�
 
 采用官方agent acp，复用acp-go0.13.5原SDK会话、当前Client、Journal与普通／Pool权限API。准确模型配置ACK之后才能Prompt；会话及模型依据保持原值，不把配置选择称底层提供方身份或账单证明。正常会话、消息、工具活动、用量、权限等待与终态通过原进度上报。
 
-只允许原session/request_permission中的明确allow_once／reject_once。不能默认批准allow_always、MCP或计划；Cursor专有阻塞扩展如ask_question／create_plan须明确处理，未支持时返回可核对失败，不无限等待或伪造同意。未知native副作用不重发Prompt、不自动load旧session。取消、进程Wait／树停止与供应方ACK各自留证。
+只允许原session/request_permission中的明确allow_once／reject_once。不能默认批准allow_always、MCP或计划。[T190](cursor-inputs.md)通过原工具输入领域支持ask_question／create_plan，采用准确IDs和正常typed决定；计划拒绝不发会触发native fallback的RPC error。其他未支持方法明确失败，不无限等待或伪造同意。未知native副作用不重发Prompt、不自动load旧session。取消、进程Wait／树停止与供应方ACK各自留证。
 
 ## 本地宿主边界
 

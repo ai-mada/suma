@@ -2,6 +2,8 @@
 
 T-TOOL-INPUTS-187；suma1.0.0；原31项／P0–P7继续。接续 Codex原活turn、当前执行身份、原journal与单stdin writer；问答为补充输入，不属于命令／文件权限，不增加派发器或恢复旧模型会话。
 
+当前共享输入领域已由[T190合同](cursor-inputs.md)扩展为Codex／Cursor独占来源；本文保留原Codex原生协议依据。通用送达投影与实际native TurnClosed分别保存，不使用旧版本别名或fallback。
+
 ## 当前协议与配置
 
 支持原生 item/tool/requestUserInput。按本机已生成Schema：必填threadId／turnId／itemId／isBlocking／questions；autoResolutionMs可省略或null／非负安全整数；question.isOther与isSecret可省略并按当前Schema默认false，null或非bool拒绝。options可省略／null／空，统一为无选项文本题；原完整params摘要仍区分原报文。无startedAtMs或command/file item依赖。

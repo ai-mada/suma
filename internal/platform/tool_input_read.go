@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
 )
@@ -52,15 +51,14 @@ func (s *Service) ListToolInputs(ctx context.Context, actor Actor, project, run,
 		return out, conflict(toolInputChanged)
 	}
 	profileID, profileSHA, bound, e := dag.ToolBinding(spec)
-	binding, bindingErr := dag.CodexBinding(spec)
-	if e == nil && bound && spec.Type == "agent" && bindingErr == nil && binding != nil {
+	if e == nil && bound && spec.Type == "agent" {
 		profile, e := s.toolProfileTx(ctx, tx, auth.currentPrincipal, project, profileID)
 		if e != nil {
 			if !automationAuthorityFailure(e) {
 				return out, e
 			}
-		} else if profile.Profile.ProfileSHA256 == profileSHA && profile.Profile.UserInputProtocol == cc.UserInputProtocol && supportsCodexExecution(profile) {
-			out.Protocol = cc.UserInputProtocol
+		} else if profile.Profile.ProfileSHA256 == profileSHA {
+			out.Protocol = toolInputProfileProtocol(spec, profile)
 		}
 	}
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tool_inputs WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? ORDER BY id LIMIT 33`), auth.target.tenantID, project, run, node, attempt, fence)
@@ -115,7 +113,7 @@ func (s *Service) ListToolInputs(ctx context.Context, actor Actor, project, run,
 		if v.State == "pending" {
 			v = toolInputEffective(r, b, now)
 		}
-		if out.Protocol == cc.UserInputProtocol && v.State == "pending" && canWrite == nil && toolInputRowMatches(r, b, r.assignment) {
+		if out.Protocol != "" && v.State == "pending" && canWrite == nil && toolInputRowMatches(r, b, r.assignment) {
 			e = s.toolPermissionCurrentProfileTx(ctx, tx, r.tenant, project, b, r.assignment)
 			if e == nil {
 				e = s.toolPermissionDispatchTx(ctx, tx, r.tenant, project, r.assignment)

@@ -1,9 +1,12 @@
 package platform
 
 import (
-	cc "github.com/ai-mada/suma/internal/codexcontract"
+	"encoding/json"
 	"github.com/ai-mada/suma/internal/dag"
+	delivery "github.com/ai-mada/suma/internal/inputdelivery"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
+	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,6 +14,30 @@ import (
 )
 
 func toolInputDecodeHTTP(r *http.Request, out any, fields ...string) error {
+	if _, answer := out.(*ic.ToolInputAnswerRequest); answer {
+		if r.URL.RawQuery != "" {
+			return invalid(toolInputInvalid)
+		}
+		raw, err := io.ReadAll(io.LimitReader(r.Body, (1<<20)+1))
+		var object map[string]json.RawMessage
+		if err != nil || len(raw) > 1<<20 || json.Unmarshal(raw, &object) != nil {
+			return invalid(toolInputInvalid)
+		}
+		_, codex := object["answers"]
+		_, cursor := object["cursor"]
+		if len(object) != len(fields)+1 || codex == cursor {
+			return invalid(toolInputInvalid)
+		}
+		for _, field := range append(fields, map[bool]string{true: "answers", false: "cursor"}[codex]) {
+			if value, exists := object[field]; !exists || string(value) == "null" {
+				return invalid(toolInputInvalid)
+			}
+		}
+		if woc.Decode(raw, out) != nil {
+			return invalid(toolInputInvalid)
+		}
+		return nil
+	}
 	if toolPermissionDecodeHTTP(r, out, fields...) != nil {
 		return invalid(toolInputInvalid)
 	}
@@ -90,7 +117,7 @@ func (s *Server) toolInputsHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		return fail(invalid(toolInputInvalid))
 	}
 	var q ic.ToolInputAnswerRequest
-	if toolInputDecodeHTTP(r, &q, "project_id", "expected_version", "idempotency_key", "answers") != nil {
+	if toolInputDecodeHTTP(r, &q, "project_id", "expected_version", "idempotency_key") != nil {
 		return fail(invalid(toolInputInvalid))
 	}
 	out, err := s.Service.AnswerToolInput(r.Context(), actor, parts[1], q)
@@ -143,11 +170,11 @@ type ToolInputPollRequest struct {
 	InputID    string         `json:"input_id"`
 }
 type ToolInputObservationRequest struct {
-	ProjectID      string                       `json:"project_id"`
-	Assignment     dag.Assignment               `json:"assignment"`
-	InputID        string                       `json:"input_id"`
-	IdempotencyKey string                       `json:"idempotency_key"`
-	Observation    cc.CodexUserInputObservation `json:"observation"`
+	ProjectID      string               `json:"project_id"`
+	Assignment     dag.Assignment       `json:"assignment"`
+	InputID        string               `json:"input_id"`
+	IdempotencyKey string               `json:"idempotency_key"`
+	Observation    delivery.Observation `json:"observation"`
 }
 type PoolToolInputOpenRequest struct {
 	PoolRunnerAssignmentRequest
@@ -159,7 +186,7 @@ type PoolToolInputPollRequest struct {
 }
 type PoolToolInputObservationRequest struct {
 	PoolRunnerAssignmentRequest
-	InputID        string                       `json:"input_id"`
-	IdempotencyKey string                       `json:"idempotency_key"`
-	Observation    cc.CodexUserInputObservation `json:"observation"`
+	InputID        string               `json:"input_id"`
+	IdempotencyKey string               `json:"idempotency_key"`
+	Observation    delivery.Observation `json:"observation"`
 }

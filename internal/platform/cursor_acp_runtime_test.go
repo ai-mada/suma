@@ -17,14 +17,18 @@ import (
 	"time"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/runner"
 	tr "github.com/ai-mada/suma/internal/testreportcontract"
+	ic "github.com/ai-mada/suma/internal/toolinputcontract"
 	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
 const cursorFormalVersion189 = "Suma owned ACP package fixture189; not Cursor or Node"
 const cursorFormalMarker189 = "suma-owned-cursor-acp-189-fixture\n"
+const cursorFormalVersion190 = "Suma owned ACP input fixture190; not Cursor or Node"
+const cursorFormalMarker190 = "suma-owned-cursor-inputs-190-fixture\n"
 
 // The reviewed fixture package contains a copy of this native test executable
 // named node[.exe], plus a fixed index.js marker. Production package inspection,
@@ -39,13 +43,13 @@ func init() {
 		return
 	}
 	marker, err := os.ReadFile(os.Args[1])
-	if err != nil || string(marker) != cursorFormalMarker189 {
+	if err != nil || string(marker) != cursorFormalMarker189 && string(marker) != cursorFormalMarker190 {
 		return
 	}
-	os.Exit(cursorFormalCLI189())
+	os.Exit(cursorFormalCLI(string(marker) == cursorFormalMarker190))
 }
 
-func cursorFormalCLI189() int {
+func cursorFormalCLI(withInputs bool) int {
 	if reflect.DeepEqual(os.Args[2:], []string{"--disable-auto-update", "--version"}) {
 		trace, err := os.OpenFile(filepath.Join(filepath.Dir(filepath.Dir(os.Args[1])), "version-probes.jsonl"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 		if err != nil {
@@ -56,7 +60,11 @@ func cursorFormalCLI189() int {
 		if err != nil || closeErr != nil {
 			return 60
 		}
-		fmt.Println(cursorFormalVersion189)
+		version := cursorFormalVersion189
+		if withInputs {
+			version = cursorFormalVersion190
+		}
+		fmt.Println(version)
 		return 0
 	}
 	if !reflect.DeepEqual(os.Args[2:], []string{"--disable-auto-update", "--sandbox", "enabled", "acp"}) || os.Getenv("CURSOR_API_KEY") != "owned-non-vendor-key189" || os.Getenv("SUMA_RUNNER_TOKEN") != "" || os.Getenv("SUMA_POOL_TOKEN") != "" {
@@ -73,7 +81,12 @@ func cursorFormalCLI189() int {
 	options := func() []any {
 		return []any{map[string]any{"id": "model", "name": "Owned fixed model", "category": "model", "type": "select", "currentValue": "owned-cursor-model189", "options": []any{map[string]any{"value": "owned-cursor-model189", "name": "Owned protocol fixture"}}}}
 	}
+	requestPermission := func() {
+		emit(map[string]any{"jsonrpc": "2.0", "method": "session/update", "params": map[string]any{"sessionId": "owned-cursor-session189", "update": map[string]any{"sessionUpdate": "tool_call", "toolCallId": "owned-edit189", "title": "Edit exact isolated candidate file", "kind": "edit", "status": "pending"}}})
+		emit(map[string]any{"jsonrpc": "2.0", "id": "owned-permission189", "method": "session/request_permission", "params": map[string]any{"sessionId": "owned-cursor-session189", "toolCall": map[string]any{"toolCallId": "owned-edit189", "title": "Commit file.txt only in the isolated worktree", "kind": "edit", "rawInput": map[string]any{"path": "file.txt", "after": "candidate189"}}, "options": []any{map[string]any{"optionId": "owned-once189", "name": "Allow once", "kind": "allow_once"}, map[string]any{"optionId": "owned-reject189", "name": "Reject once", "kind": "reject_once"}}}})
+	}
 	var prompt json.RawMessage
+	permissionResponses := 0
 	input := bufio.NewScanner(os.Stdin)
 	input.Buffer(make([]byte, 4096), 1<<20)
 	for input.Scan() {
@@ -112,18 +125,43 @@ func cursorFormalCLI189() int {
 				return 65
 			}
 			prompt = append(json.RawMessage{}, packet["id"]...)
-			emit(map[string]any{"jsonrpc": "2.0", "method": "session/update", "params": map[string]any{"sessionId": "owned-cursor-session189", "update": map[string]any{"sessionUpdate": "tool_call", "toolCallId": "owned-edit189", "title": "Edit exact isolated candidate file", "kind": "edit", "status": "pending"}}})
-			emit(map[string]any{"jsonrpc": "2.0", "id": "owned-permission189", "method": "session/request_permission", "params": map[string]any{"sessionId": "owned-cursor-session189", "toolCall": map[string]any{"toolCallId": "owned-edit189", "title": "Commit file.txt only in the isolated worktree", "kind": "edit", "rawInput": map[string]any{"path": "file.txt", "after": "candidate189"}}, "options": []any{map[string]any{"optionId": "owned-once189", "name": "Allow once", "kind": "allow_once"}, map[string]any{"optionId": "owned-reject189", "name": "Reject once", "kind": "reject_once"}}}})
+			if withInputs {
+				emit(map[string]any{"jsonrpc": "2.0", "id": 190, "method": cu.AskQuestionMethod, "params": map[string]any{"toolCallId": "owned-question-call190", "title": "Choose the exact checks", "questions": []any{map[string]any{"id": "checks", "prompt": "Which checks should this candidate preserve?", "options": []any{map[string]any{"id": "first", "label": "First check"}, map[string]any{"id": "second", "label": "Second check"}}, "allowMultiple": true}}}})
+			} else {
+				requestPermission()
+			}
 		case "session/cancel":
 			if len(prompt) != 0 {
 				reply(prompt, map[string]any{"stopReason": "cancelled"})
 			}
 		case "":
+			if withInputs && string(packet["id"]) == "190" {
+				var result cu.CursorInputNativeResult
+				if packet["error"] != nil || json.Unmarshal(packet["result"], &result) != nil || result.Outcome.Outcome != "answered" || len(result.Outcome.Answers) != 1 || result.Outcome.Answers[0].QuestionID != "checks" || !reflect.DeepEqual(result.Outcome.Answers[0].SelectedOptionIDs, []string{"first", "second"}) {
+					return 71
+				}
+				facts["question_answered"], facts["question_response_id_kind"], facts["selected_option_ids"] = true, "number", result.Outcome.Answers[0].SelectedOptionIDs
+				emit(map[string]any{"jsonrpc": "2.0", "id": "owned-plan190", "method": cu.CreatePlanMethod, "params": map[string]any{"toolCallId": "owned-plan-call190", "name": "A proposal requiring explicit review", "overview": "Do not replace the original task or permissions", "plan": "# Proposed plan\nKeep the original task scope and independent quality gate.\n", "todos": []any{map[string]any{"id": "task", "content": "Preserve the original scope", "status": "pending"}}, "isProject": false}})
+				continue
+			}
+			if withInputs && string(packet["id"]) == `"owned-plan190"` {
+				var result cu.CursorInputNativeResult
+				if packet["error"] != nil || json.Unmarshal(packet["result"], &result) != nil || result.Outcome.Outcome != "rejected" || result.Outcome.Reason != "Keep the original task scope" || facts["question_answered"] != true {
+					return 72
+				}
+				facts["plan_rejected"], facts["plan_response_id_kind"], facts["plan_rpc_error"] = true, "string", false
+				requestPermission()
+				continue
+			}
 			var result struct {
 				Outcome struct{ Outcome, OptionID string } `json:"outcome"`
 			}
 			if string(packet["id"]) != `"owned-permission189"` || len(prompt) == 0 || json.Unmarshal(packet["result"], &result) != nil || result.Outcome.Outcome != "selected" || result.Outcome.OptionID != "owned-once189" {
 				return 66
+			}
+			permissionResponses++
+			if permissionResponses != 1 || withInputs && facts["plan_rejected"] != true {
+				return 73
 			}
 			if err := os.WriteFile("file.txt", []byte("candidate189\n"), 0600); err != nil {
 				return 67
@@ -134,7 +172,7 @@ func cursorFormalCLI189() int {
 					return 68
 				}
 			}
-			facts["permission_responses"] = counts[""]
+			facts["permission_responses"] = permissionResponses
 			facts["candidate_committed"] = true
 			emit(map[string]any{"jsonrpc": "2.0", "method": "session/update", "params": map[string]any{"sessionId": "owned-cursor-session189", "update": map[string]any{"sessionUpdate": "tool_call_update", "toolCallId": "owned-edit189", "status": "completed"}}})
 			reply(prompt, map[string]any{"stopReason": "end_turn"})
@@ -152,11 +190,27 @@ func TestCursorACPFormalOriginalWorkersCandidateIndependentJUnitAndReview(t *tes
 	if os.Getenv("SUMA_CURSOR_ACP_FORMAL") != "1" {
 		t.Skip("explicit owned Cursor ACP formal fixture gate required")
 	}
+	cursorFormalRuntimeJourney(t, false)
+}
+
+func TestCursorInputsFormalOriginalQuestionsPlansWorkerCandidateAndQuality(t *testing.T) {
+	if os.Getenv("SUMA_CURSOR_INPUTS_FORMAL") != "1" {
+		t.Skip("explicit owned Cursor input formal fixture gate required")
+	}
+	cursorFormalRuntimeJourney(t, true)
+}
+
+func cursorFormalRuntimeJourney(t *testing.T, withInputs bool) {
+	t.Helper()
 	root, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	directory := filepath.Join(root, ".cache", "cursor-acp-189", "formal", "run")
+	cacheStage, stage, version, marker := "cursor-acp-189", "T-CURSOR-ACP-189", cursorFormalVersion189, cursorFormalMarker189
+	if withInputs {
+		cacheStage, stage, version, marker = "cursor-inputs-190", "T-CURSOR-INPUTS-190", cursorFormalVersion190, cursorFormalMarker190
+	}
+	directory := filepath.Join(root, ".cache", cacheStage, "formal", "run")
 	if err = os.MkdirAll(filepath.Dir(directory), 0700); err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +229,7 @@ func TestCursorACPFormalOriginalWorkersCandidateIndependentJUnitAndReview(t *tes
 	t.Setenv("LOCAL_CURSOR_FIXTURE_KEY", "owned-non-vendor-key189")
 	f := newFixture(t)
 	f.e.AttemptAccounting = f.s
-	receipt := map[string]any{"stage": "T-CURSOR-ACP-189", "kind": "owned_native_package_original_workers_git_junit_review", "real_cursor": false, "real_node": false, "vendor_requests": 0, "model_requests": 0, "customer_signoff": false, "status": "started"}
+	receipt := map[string]any{"stage": stage, "kind": "owned_native_package_original_workers_git_junit_review", "real_cursor": false, "real_node": false, "vendor_requests": 0, "model_requests": 0, "customer_signoff": false, "status": "started"}
 	defer func() {
 		if t.Failed() {
 			receipt["status"] = "failed"
@@ -218,10 +272,10 @@ func TestCursorACPFormalOriginalWorkersCandidateIndependentJUnitAndReview(t *tes
 	if copyErr != nil || closeErr != nil {
 		t.Fatal(copyErr, closeErr)
 	}
-	if err = os.WriteFile(filepath.Join(packageRoot, "index.js"), []byte(cursorFormalMarker189), 0600); err != nil {
+	if err = os.WriteFile(filepath.Join(packageRoot, "index.js"), []byte(marker), 0600); err != nil {
 		t.Fatal(err)
 	}
-	development, err := runner.BuildCursorACPCommand(packageRoot, cursorFormalVersion189, "owned-cursor-model189", "LOCAL_CURSOR_FIXTURE_KEY")
+	development, err := runner.BuildCursorACPCommand(packageRoot, version, "owned-cursor-model189", "LOCAL_CURSOR_FIXTURE_KEY")
 	if err != nil {
 		t.Fatal("strict reviewed owned package unavailable", err)
 	}
@@ -314,6 +368,8 @@ func TestCursorACPFormalOriginalWorkersCandidateIndependentJUnitAndReview(t *tes
 	}()
 	var produced dag.NodeRun
 	permissionCount := 0
+	questionAnswers, planDecisions := 0, 0
+	answeredInputs := map[string]bool{}
 	for {
 		permissions, e := f.s.ListToolPermissions(ctx, f.actor, f.project, run.ID, "develop")
 		if e != nil {
@@ -340,6 +396,35 @@ func TestCursorACPFormalOriginalWorkersCandidateIndependentJUnitAndReview(t *tes
 				produced = n
 			}
 		}
+		if withInputs && produced.Attempt > 0 && produced.Fence > 0 {
+			path := fmt.Sprintf("/runs/%s/nodes/develop/tool-inputs?project_id=%s&attempt=%d&fence=%d", run.ID, f.project, produced.Attempt, produced.Fence)
+			inputs := issueRepairRuntimeDecode[ic.ToolInputList](t, f.call("GET", path, nil, 200))
+			if inputs.Protocol != cu.InputProtocol {
+				t.Fatal("original Cursor execution did not publish its input capability")
+			}
+			for _, input := range inputs.Items {
+				if input.State != "pending" || answeredInputs[input.ID] {
+					continue
+				}
+				if input.Request.Cursor == nil || input.Request.Cursor.SessionID != "owned-cursor-session189" || len(input.AllowedActions) != 1 {
+					t.Fatal("input did not retain the actual original Cursor source")
+				}
+				var decision cu.CursorInputDecision
+				switch input.Request.Cursor.Method {
+				case cu.AskQuestionMethod:
+					decision = cu.CursorInputDecision{Outcome: "answered", Answers: []cu.CursorInputSelection{{QuestionID: "checks", OptionIDs: []string{"second", "first"}}}}
+					questionAnswers++
+				case cu.CreatePlanMethod:
+					decision = cu.CursorInputDecision{Outcome: "rejected", Reason: "Keep the original task scope"}
+					planDecisions++
+				default:
+					t.Fatal("unexpected native input method")
+				}
+				answer := ic.ToolInputAnswerRequest{ProjectID: f.project, ExpectedVersion: input.Version, IdempotencyKey: newID(), Cursor: &decision}
+				f.call("POST", "/tool-inputs/"+input.ID+"/answer", candidateJSON(t, answer), 200)
+				answeredInputs[input.ID] = true
+			}
+		}
 		if produced.State == "succeeded" {
 			break
 		}
@@ -358,6 +443,18 @@ func TestCursorACPFormalOriginalWorkersCandidateIndependentJUnitAndReview(t *tes
 	candidate, _ := produced.WorkspaceEvidence["head_commit"].(string)
 	if permissionCount != 1 || candidate == "" || candidate == base || produced.WorkerID != developerProfile.WorkerID || produced.WorkspaceEvidence["clean"] != true || produced.ToolEvidence == nil || produced.ToolEvidence.ACPExecution == nil || !produced.ToolEvidence.ACPExecution.HostProcessStopped || produced.ToolEvidence.ACPExecution.SelectedModel != "owned-cursor-model189" {
 		t.Fatal("exact original Cursor candidate facts missing")
+	}
+	if withInputs {
+		proofs := produced.ToolEvidence.ACPExecution.UserInputs
+		if questionAnswers != 1 || planDecisions != 1 || len(proofs) != 2 {
+			t.Fatal("the original human interactions were omitted or repeated", questionAnswers, planDecisions, len(proofs))
+		}
+		for _, proof := range proofs {
+			if proof.Observation == nil || !proof.Observation.AnswerObserved || !proof.Observation.ReplyStarted || !proof.Observation.ReplyWritten || !proof.Observation.ExecutionClosed || proof.Observation.RequestResolved || proof.Observation.FailureCode != "" {
+				t.Fatal("native replies and durable closure did not precede Result", proof)
+			}
+		}
+		receipt["question_answer_api_calls"], receipt["plan_answer_api_calls"], receipt["input_result_proofs"] = questionAnswers, planDecisions, len(proofs)
 	}
 	currentTask, err := f.s.Get(ctx, reviewer, f.project, "tasks", task.ID)
 	if err != nil {

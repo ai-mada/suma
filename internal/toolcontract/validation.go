@@ -16,6 +16,7 @@ import (
 
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/modelcontract"
 	tr "github.com/ai-mada/suma/internal/testreportcontract"
 )
@@ -79,8 +80,9 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
-	if p.UserInputProtocol != "" && (p.UserInputProtocol != cc.UserInputProtocol || p.Adapter != "codex" || p.Protocol != cc.Protocol || p.ReadOnly) {
-		return fmt.Errorf("user input requires an explicitly enabled Codex app-server profile")
+	input := p.UserInputProtocol == cc.UserInputProtocol && p.Adapter == "codex" && p.Protocol == cc.Protocol || p.UserInputProtocol == cu.InputProtocol && p.Adapter == "cursor" && p.Protocol == ac.Protocol
+	if p.UserInputProtocol != "" && (!input || p.ReadOnly) {
+		return fmt.Errorf("user input requires its exact supported writable runtime profile")
 	}
 	if err := validateACPProfile(p, complete); err != nil {
 		return err

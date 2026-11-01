@@ -29,6 +29,7 @@ export interface ACPExecutionEvidence {
   cancel_requested: boolean;
   host_process_stopped: boolean;
   host_process_tree_stopped: boolean;
+  user_inputs?: (CursorInputEvidence)[];
 }
 export interface ACPModelCatalogue {
   source: string;
@@ -2121,6 +2122,86 @@ export interface CreateRequest {
   prompt: string;
   name?: string;
 }
+export interface CursorAskQuestion {
+  tool_call_id: string;
+  title?: string;
+  questions: (CursorQuestion)[];
+}
+export interface CursorCreatePlan {
+  tool_call_id: string;
+  name?: string;
+  overview?: string;
+  plan: string;
+  todos: (CursorTodo)[];
+  is_project: boolean;
+  phases?: (CursorPlanPhase)[];
+}
+export interface CursorInputDecision {
+  outcome: string;
+  answers?: (CursorInputSelection)[];
+  reason?: string;
+}
+export interface CursorInputEvidence {
+  input_id: string;
+  request_id: CursorRPCRequestID;
+  prompt_id: CursorRPCRequestID;
+  session_id: string;
+  method: string;
+  configuration_sha256: string;
+  params_sha256: string;
+  kind: string;
+  question_count: number;
+  observation?: ToolInputDeliveryObservation | null;
+}
+export interface CursorInputNativeAnswer {
+  questionId: string;
+  selectedOptionIds: (string)[];
+}
+export interface CursorInputNativeOutcome {
+  outcome: string;
+  answers?: (CursorInputNativeAnswer)[];
+  reason?: string;
+}
+export interface CursorInputNativeResult {
+  outcome: CursorInputNativeOutcome;
+}
+export interface CursorInputRequest {
+  request_id: CursorRPCRequestID;
+  session_id: string;
+  prompt_id: CursorRPCRequestID;
+  method: string;
+  configuration_sha256: string;
+  params_sha256: string;
+  questions?: CursorAskQuestion | null;
+  plan?: CursorCreatePlan | null;
+}
+export interface CursorInputSelection {
+  question_id: string;
+  option_ids: (string)[];
+}
+export interface CursorPlanPhase {
+  name: string;
+  todos: (CursorTodo)[];
+}
+export interface CursorQuestion {
+  id: string;
+  prompt: string;
+  options: (CursorQuestionOption)[];
+  allow_multiple: boolean;
+}
+export interface CursorQuestionOption {
+  id: string;
+  label: string;
+}
+export interface CursorRPCRequestID {
+  kind: string;
+  value: string;
+}
+export interface CursorTodo {
+  id: string;
+  content: string;
+  status: string;
+}
 export interface DeliveryKnowledgeBasis {
   protocol: string;
   task: ReleaseTaskBasis;
@@ -4152,7 +4233,7 @@ export interface PoolToolInputObservationRequest {
   assignment: Assignment;
   input_id: string;
   idempotency_key: string;
-  observation: CodexUserInputObservation;
+  observation: ToolInputDeliveryObservation;
 }
 export interface PoolToolInputOpenRequest {
   runner_id: string;
@@ -7238,13 +7319,14 @@ export interface ToolInput {
   state: string;
   request: ToolInputRequest;
   answer?: ToolInputAnswer | null;
-  observation?: CodexUserInputObservation | null;
+  observation?: ToolInputDeliveryObservation | null;
   created_at: string;
   expires_at: string;
   allowed_actions: (string)[];
 }
 export interface ToolInputAnswer {
-  answers: (CodexUserInputSelection)[];
+  answers?: (CodexUserInputSelection)[];
+  cursor?: CursorInputDecision | null;
   answer_sha256: string;
   actor_id: string;
   answered_at: string;
@@ -7253,7 +7335,19 @@ export interface ToolInputAnswerRequest {
   project_id: string;
   expected_version: number;
   idempotency_key: string;
-  answers: (CodexUserInputSelection)[];
+  answers?: (CodexUserInputSelection)[];
+  cursor?: CursorInputDecision | null;
+}
+export interface ToolInputDeliveryObservation {
+  sequence: number;
+  params_sha256: string;
+  answer_sha256?: string;
+  answer_observed: boolean;
+  reply_started: boolean;
+  reply_written: boolean;
+  request_resolved: boolean;
+  execution_closed: boolean;
+  failure_code?: string;
 }
 export interface ToolInputList {
   protocol: string;
@@ -7264,7 +7358,7 @@ export interface ToolInputObservationRequest {
   assignment: Assignment;
   input_id: string;
   idempotency_key: string;
-  observation: CodexUserInputObservation;
+  observation: ToolInputDeliveryObservation;
 }
 export interface ToolInputOpenRequest {
   project_id: string;
@@ -7279,7 +7373,8 @@ export interface ToolInputPollRequest {
 export interface ToolInputRequest {
   idempotency_key: string;
   protocol: string;
-  codex: CodexUserInputRequest;
+  codex?: CodexUserInputRequest | null;
+  cursor?: CursorInputRequest | null;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

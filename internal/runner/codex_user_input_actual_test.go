@@ -21,6 +21,7 @@ import (
 	"time"
 
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	delivery "github.com/ai-mada/suma/internal/inputdelivery"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
 )
@@ -258,12 +259,12 @@ func TestCodexUserInputActualInstalledCLIWithOwnedResponses(t *testing.T) {
 		defer controlMu.Unlock()
 		controlCalls[r.URL.Path]++
 		var body struct {
-			ProjectID   string                       `json:"project_id"`
-			Assignment  Assignment                   `json:"assignment"`
-			Request     ic.ToolInputRequest          `json:"request"`
-			InputID     string                       `json:"input_id"`
-			Key         string                       `json:"idempotency_key"`
-			Observation cc.CodexUserInputObservation `json:"observation"`
+			ProjectID   string               `json:"project_id"`
+			Assignment  Assignment           `json:"assignment"`
+			Request     ic.ToolInputRequest  `json:"request"`
+			InputID     string               `json:"input_id"`
+			Key         string               `json:"idempotency_key"`
+			Observation delivery.Observation `json:"observation"`
 		}
 		if r.Method != "POST" || r.Header.Get("Authorization") != "Bearer owned-fixture-187" || json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&body) != nil || body.ProjectID != a.ProjectID || !samePermissionValue(body.Assignment, a) {
 			http.Error(w, "scope", 400)
@@ -289,7 +290,7 @@ func TestCodexUserInputActualInstalledCLIWithOwnedResponses(t *testing.T) {
 			}
 			if record.Answer == nil {
 				selections := []cc.CodexUserInputSelection{{QuestionID: "scope187", Kind: "option", Option: "Keep current scope"}}
-				sha, e := cc.UserInputAnswerDigest(record.Request.Codex, selections)
+				sha, e := cc.UserInputAnswerDigest(*record.Request.Codex, selections)
 				if e != nil {
 					http.Error(w, "answer", 400)
 					return
@@ -299,7 +300,7 @@ func TestCodexUserInputActualInstalledCLIWithOwnedResponses(t *testing.T) {
 				record.State = "answered"
 			}
 		case "/api/v1/runner/tool-inputs/observations":
-			if body.InputID != record.ID || cc.ValidateUserInputObservation(body.Observation) != nil || body.Observation.ParamsSHA256 != record.Request.Codex.ParamsSHA256 || body.Observation.AnswerObserved && (record.Answer == nil || body.Observation.AnswerSHA256 != record.Answer.AnswerSHA256) {
+			if body.InputID != record.ID || delivery.Validate(body.Observation) != nil || body.Observation.ParamsSHA256 != record.Request.Codex.ParamsSHA256 || body.Observation.AnswerObserved && (record.Answer == nil || body.Observation.AnswerSHA256 != record.Answer.AnswerSHA256) {
 				http.Error(w, "observation", 409)
 				return
 			}
@@ -309,7 +310,7 @@ func TestCodexUserInputActualInstalledCLIWithOwnedResponses(t *testing.T) {
 			}
 			record.Version++
 			record.Observation = &body.Observation
-			if body.Observation.RequestResolved || body.Observation.TurnClosed {
+			if body.Observation.RequestResolved || body.Observation.ExecutionClosed {
 				record.State = "closed"
 			}
 			raw, _ := json.Marshal(record)

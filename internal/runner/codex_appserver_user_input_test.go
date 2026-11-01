@@ -132,7 +132,7 @@ func TestCodexUserInputLiveTurnWritesExactAnswerAndKeepsLateFacts(t *testing.T) 
 	mu.Lock()
 	defer mu.Unlock()
 	for i := 1; i < len(observations); i++ {
-		if !inputObservationAdvances(observations[i-1], observations[i]) {
+		if !inputObservationAdvances(ic.FromCodexObservation(observations[i-1]), ic.FromCodexObservation(observations[i])) {
 			t.Fatalf("delivery fact regressed: %+v", observations)
 		}
 	}
@@ -189,7 +189,7 @@ func TestCodexUserInputIntentStagesClosureAndPartialWriteStaysUnknown(t *testing
 			}, Observe: func(_ context.Context, _ cc.CodexUserInputRequest, _ string, o cc.CodexUserInputObservation) error {
 				mu.Lock()
 				defer mu.Unlock()
-				if len(observations) > 0 && !inputObservationAdvances(observations[len(observations)-1], o) {
+				if len(observations) > 0 && !inputObservationAdvances(ic.FromCodexObservation(observations[len(observations)-1]), ic.FromCodexObservation(o)) {
 					return errToolInput
 				}
 				observations = append(observations, o)

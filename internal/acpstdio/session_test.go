@@ -26,7 +26,7 @@ type fixtureState struct {
 	option   string
 }
 
-func runFixture(t *testing.T, options Options, reply func(*Driver, map[string]json.RawMessage, *fixtureState)) (Result, *fixtureState) {
+func runFixture(t *testing.T, options Options, reply func(*Driver, map[string]json.RawMessage, *fixtureState), writeOverride ...func([]byte) (int, error)) (Result, *fixtureState) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -53,6 +53,12 @@ func runFixture(t *testing.T, options Options, reply func(*Driver, map[string]js
 	go func() {
 		defer close(copyDone)
 		_, _ = d.CopyInput(fixtureWriter(func(raw []byte) (int, error) {
+			if len(writeOverride) == 1 {
+				n, e := writeOverride[0](raw)
+				if e != nil || n != len(raw) {
+					return n, e
+				}
+			}
 			select {
 			case messages <- append([]byte{}, raw...):
 				return len(raw), nil

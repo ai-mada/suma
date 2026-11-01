@@ -10,40 +10,45 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	ac "github.com/ai-mada/suma/internal/acpcontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
+	delivery "github.com/ai-mada/suma/internal/inputdelivery"
 )
 
 type ToolInputRequest struct {
-	IdempotencyKey string                   `json:"idempotency_key"`
-	Protocol       string                   `json:"protocol"`
-	Codex          cc.CodexUserInputRequest `json:"codex"`
+	IdempotencyKey string                    `json:"idempotency_key"`
+	Protocol       string                    `json:"protocol"`
+	Codex          *cc.CodexUserInputRequest `json:"codex,omitempty"`
+	Cursor         *cu.CursorInputRequest    `json:"cursor,omitempty"`
 }
 
 type ToolInputAnswer struct {
-	Answers      []cc.CodexUserInputSelection `json:"answers"`
+	Answers      []cc.CodexUserInputSelection `json:"answers,omitempty"`
+	Cursor       *cu.CursorInputDecision      `json:"cursor,omitempty"`
 	AnswerSHA256 string                       `json:"answer_sha256"`
 	ActorID      string                       `json:"actor_id"`
 	AnsweredAt   string                       `json:"answered_at"`
 }
 
 type ToolInput struct {
-	ID             string                        `json:"id"`
-	ProjectID      string                        `json:"project_id"`
-	RunID          string                        `json:"run_id"`
-	NodeID         string                        `json:"node_id"`
-	Attempt        int                           `json:"attempt"`
-	Fence          int64                         `json:"fence"`
-	DispatchID     string                        `json:"dispatch_id"`
-	WorkerID       string                        `json:"worker_id"`
-	ProfileSHA256  string                        `json:"profile_sha256"`
-	Version        int64                         `json:"version"`
-	State          string                        `json:"state"`
-	Request        ToolInputRequest              `json:"request"`
-	Answer         *ToolInputAnswer              `json:"answer,omitempty"`
-	Observation    *cc.CodexUserInputObservation `json:"observation,omitempty"`
-	CreatedAt      string                        `json:"created_at"`
-	ExpiresAt      string                        `json:"expires_at"`
-	AllowedActions []string                      `json:"allowed_actions"`
+	ID             string                `json:"id"`
+	ProjectID      string                `json:"project_id"`
+	RunID          string                `json:"run_id"`
+	NodeID         string                `json:"node_id"`
+	Attempt        int                   `json:"attempt"`
+	Fence          int64                 `json:"fence"`
+	DispatchID     string                `json:"dispatch_id"`
+	WorkerID       string                `json:"worker_id"`
+	ProfileSHA256  string                `json:"profile_sha256"`
+	Version        int64                 `json:"version"`
+	State          string                `json:"state"`
+	Request        ToolInputRequest      `json:"request"`
+	Answer         *ToolInputAnswer      `json:"answer,omitempty"`
+	Observation    *delivery.Observation `json:"observation,omitempty"`
+	CreatedAt      string                `json:"created_at"`
+	ExpiresAt      string                `json:"expires_at"`
+	AllowedActions []string              `json:"allowed_actions"`
 }
 
 type ToolInputList struct {
@@ -57,7 +62,8 @@ type ToolInputAnswerRequest struct {
 	ProjectID       string                       `json:"project_id"`
 	ExpectedVersion int64                        `json:"expected_version"`
 	IdempotencyKey  string                       `json:"idempotency_key"`
-	Answers         []cc.CodexUserInputSelection `json:"answers"`
+	Answers         []cc.CodexUserInputSelection `json:"answers,omitempty"`
+	Cursor          *cu.CursorInputDecision      `json:"cursor,omitempty"`
 }
 
 func textID(value string, maximum int) bool {
@@ -65,14 +71,15 @@ func textID(value string, maximum int) bool {
 }
 
 func ValidateRequest(r ToolInputRequest) error {
-	if !textID(r.IdempotencyKey, 128) || len(r.IdempotencyKey) < 8 || r.Protocol != cc.Protocol || cc.ValidateUserInputRequest(r.Codex) != nil {
+	validNative := r.Protocol == cc.Protocol && r.Codex != nil && r.Cursor == nil && cc.ValidateUserInputRequest(*r.Codex) == nil || r.Protocol == ac.Protocol && r.Cursor != nil && r.Codex == nil && cu.ValidateRequest(*r.Cursor) == nil
+	if !textID(r.IdempotencyKey, 128) || len(r.IdempotencyKey) < 8 || !validNative {
 		return fmt.Errorf("invalid tool input request")
 	}
 	return nil
 }
 
 func ValidateAnswer(r ToolInputRequest, a ToolInputAnswer) error {
-	expected, err := cc.UserInputAnswerDigest(r.Codex, a.Answers)
+	expected, err := AnswerDigest(r, a.Answers, a.Cursor)
 	if ValidateRequest(r) != nil || err != nil || expected != a.AnswerSHA256 || !textID(a.ActorID, 100) {
 		return fmt.Errorf("invalid original tool input answer")
 	}
@@ -102,7 +109,7 @@ func ValidateInput(v ToolInput) error {
 	}
 	if v.Observation != nil {
 		o := v.Observation
-		if cc.ValidateUserInputObservation(*o) != nil || o.ParamsSHA256 != v.Request.Codex.ParamsSHA256 || o.AnswerObserved && (v.Answer == nil || o.AnswerSHA256 != v.Answer.AnswerSHA256) {
+		if delivery.Validate(*o) != nil || o.ParamsSHA256 != ParamsSHA256(v.Request) || v.Request.Cursor != nil && o.RequestResolved || o.AnswerObserved && (v.Answer == nil || o.AnswerSHA256 != v.Answer.AnswerSHA256) {
 			return fmt.Errorf("tool input observation differs from its original answer")
 		}
 	}
@@ -112,4 +119,37 @@ func ValidateInput(v ToolInput) error {
 		}
 	}
 	return nil
+}
+
+// AnswerDigest dispatches only to the exact source runtime. The Cursor native
+// response additionally binds the complete original question or plan digest.
+func AnswerDigest(r ToolInputRequest, answers []cc.CodexUserInputSelection, cursor *cu.CursorInputDecision) (string, error) {
+	if ValidateRequest(r) != nil {
+		return "", fmt.Errorf("invalid tool input source")
+	}
+	if r.Codex != nil && cursor == nil {
+		return cc.UserInputAnswerDigest(*r.Codex, answers)
+	}
+	if r.Cursor != nil && cursor != nil && len(answers) == 0 {
+		return cu.AnswerDigest(*r.Cursor, *cursor)
+	}
+	return "", fmt.Errorf("tool input answer uses another runtime")
+}
+func ParamsSHA256(r ToolInputRequest) string {
+	if r.Codex != nil && r.Cursor == nil {
+		return r.Codex.ParamsSHA256
+	}
+	if r.Cursor != nil && r.Codex == nil {
+		return r.Cursor.ParamsSHA256
+	}
+	return ""
+}
+
+// These projections translate real protocol facts. Cursor has no Codex turn
+// or request-resolved acknowledgement, and does not use the Codex projection.
+func FromCodexObservation(o cc.CodexUserInputObservation) delivery.Observation {
+	return delivery.Observation{Sequence: o.Sequence, ParamsSHA256: o.ParamsSHA256, AnswerSHA256: o.AnswerSHA256, AnswerObserved: o.AnswerObserved, ReplyStarted: o.ReplyStarted, ReplyWritten: o.ReplyWritten, RequestResolved: o.RequestResolved, ExecutionClosed: o.TurnClosed, FailureCode: o.FailureCode}
+}
+func ToCodexObservation(o delivery.Observation) cc.CodexUserInputObservation {
+	return cc.CodexUserInputObservation{Sequence: o.Sequence, ParamsSHA256: o.ParamsSHA256, AnswerSHA256: o.AnswerSHA256, AnswerObserved: o.AnswerObserved, ReplyStarted: o.ReplyStarted, ReplyWritten: o.ReplyWritten, RequestResolved: o.RequestResolved, TurnClosed: o.ExecutionClosed, FailureCode: o.FailureCode}
 }

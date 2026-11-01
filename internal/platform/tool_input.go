@@ -3,11 +3,11 @@ package platform
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"time"
 
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
@@ -35,13 +35,26 @@ func (s *Service) toolInputBasisTx(ctx context.Context, tx *sql.Tx, actor Actor,
 	if err != nil {
 		return nil, b, err
 	}
-	if b.profile.Profile.Protocol != cc.Protocol || b.profile.Profile.UserInputProtocol != cc.UserInputProtocol {
+	if toolInputProfileProtocol(b.node, b.profile) == "" {
 		return nil, b, conflict(toolInputChanged)
 	}
 	if err = s.toolPermissionDispatchTx(ctx, tx, a.TenantID, project, a); err == nil {
 		err = s.toolPermissionCurrentProfileTx(ctx, tx, a.TenantID, project, b, a)
 	}
 	return authority, b, err
+}
+
+func toolInputProfileProtocol(node dag.Node, profile ToolProfile) string {
+	if profile.Profile.UserInputProtocol == cc.UserInputProtocol && supportsCodexExecution(profile) {
+		binding, err := dag.CodexBinding(node)
+		if err == nil && binding != nil {
+			return cc.UserInputProtocol
+		}
+	}
+	if profile.Profile.Adapter == "cursor" && profile.Profile.UserInputProtocol == cu.InputProtocol && acpNodeMatchesProfile(node, profile) {
+		return cu.InputProtocol
+	}
+	return ""
 }
 
 func toolInputRowMatches(r toolInputRow, b toolPermissionBasis, a dag.Assignment) bool {
@@ -183,7 +196,7 @@ func (s *Service) AnswerToolInput(ctx context.Context, actor Actor, id string, r
 		return out, err
 	}
 	defer close()
-	answerSHA, err := cc.UserInputAnswerDigest(r.value.Request.Codex, request.Answers)
+	answerSHA, err := ic.AnswerDigest(r.value.Request, request.Answers, request.Cursor)
 	if err != nil {
 		return out, invalid(toolInputInvalid)
 	}
@@ -195,7 +208,7 @@ func (s *Service) AnswerToolInput(ctx context.Context, actor Actor, id string, r
 		return out, err
 	}
 	if replay {
-		if json.Unmarshal([]byte(hash), &out) != nil || ic.ValidateInput(out) != nil || out.ID != id || out.Answer == nil || out.Answer.ActorID != auth.currentPrincipal.ID || out.Answer.AnswerSHA256 != answerSHA || stringify(out.Answer.Answers) != stringify(request.Answers) {
+		if decodeToolInputStorage(hash, &out) != nil || out.ID != id || out.Answer == nil || out.Answer.ActorID != auth.currentPrincipal.ID || out.Answer.AnswerSHA256 != answerSHA || r.value.Request.Codex != nil && stringify(out.Answer.Answers) != stringify(request.Answers) || stringify(out.Answer.Cursor) != stringify(request.Cursor) {
 			return ic.ToolInput{}, conflict(toolInputChanged)
 		}
 		return out, nil
@@ -230,11 +243,11 @@ func (s *Service) AnswerToolInput(ctx context.Context, actor Actor, id string, r
 	before := r.value.Version
 	r.value.Version++
 	r.value.State = "answered"
-	r.value.Answer = &ic.ToolInputAnswer{Answers: append([]cc.CodexUserInputSelection{}, request.Answers...), AnswerSHA256: answerSHA, ActorID: auth.currentPrincipal.ID, AnsweredAt: now.UTC().Format(time.RFC3339Nano)}
+	r.value.Answer = &ic.ToolInputAnswer{Answers: append([]cc.CodexUserInputSelection{}, request.Answers...), Cursor: request.Cursor, AnswerSHA256: answerSHA, ActorID: auth.currentPrincipal.ID, AnsweredAt: now.UTC().Format(time.RFC3339Nano)}
 	if err = s.toolInputSaveTx(ctx, auth.tx, r, before); err != nil {
 		return out, err
 	}
-	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, r.value); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, toolInputStorageValue(r.value)); err != nil {
 		return out, err
 	}
 	return r.value, auth.tx.Commit()

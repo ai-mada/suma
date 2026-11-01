@@ -17,6 +17,7 @@ type Options struct {
 	Secrets                     []string
 	Emit                        func(Event) error
 	Permission                  func(context.Context, ac.NativeSource) (ac.Choice, error)
+	Inputs                      *CursorInputHandler
 }
 type Event struct{ Kind, SessionID, Text, ToolCallID, ToolState string }
 type Result struct {

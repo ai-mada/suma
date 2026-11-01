@@ -107,7 +107,11 @@ func TestAdapterCatalogDoesNotInventResumeBillingOrInteractiveCLI(t *testing.T) 
 
 func TestCursorCatalogPublishesACPWithoutPromotingPassiveDetection(t *testing.T) {
 	d := catalogEntry(t, "cursor-cli")
-	if d.Implementation != "implemented" || d.SetupKind != "runner_profile" || d.Adapter != "cursor" || d.Protocol != ac.Protocol || len(d.SourceRefs) != 2 || d.SourceRefs[0] != "contracts/cursor-acp-execution.md" || d.SourceRefs[1] != "internal/toolcontract/validation.go#protocolPair" {
+	sources := map[string]bool{}
+	for _, source := range d.SourceRefs {
+		sources[source] = true
+	}
+	if d.Implementation != "implemented" || d.SetupKind != "runner_profile" || d.Adapter != "cursor" || d.Protocol != ac.Protocol || !sources["contracts/cursor-acp-execution.md"] || !sources["internal/toolcontract/validation.go#protocolPair"] || !sources["contracts/cursor-inputs.md"] {
 		t.Fatal("Cursor source support did not use the reviewed ACP contract", d)
 	}
 	if catalogCapability(t, d, "gateway_budget") != "unsupported" {

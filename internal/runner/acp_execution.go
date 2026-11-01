@@ -8,6 +8,7 @@ import (
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
 	"github.com/ai-mada/suma/internal/acpstdio"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
@@ -32,7 +33,16 @@ func newACPExecutionBridge(ctx context.Context, a Assignment, cfg ExecConfig, pr
 		return nil, err
 	}
 	b := &acpExecutionBridge{profile: tc.CloneProfile(profile), output: newOutput(cfg.OutputLimit, cfg.Secrets), cfg: cfg}
-	driver, err := acpstdio.New(ctx, acpstdio.Options{Cwd: root, Runtime: profile.ACPExecution.Runtime, Goal: goal, Model: profile.ACPExecution.Model, ConfigSHA: profile.ACPExecution.ConfigurationSHA256, Secrets: cfg.Secrets, Emit: b.emit, Permission: func(ctx context.Context, source ac.NativeSource) (ac.Choice, error) {
+	var inputs *acpstdio.CursorInputHandler
+	if profile.ACPExecution.Runtime == "cursor" {
+		cfg.ToolInputProfile = profile.ProfileSHA256
+		if profile.UserInputProtocol != cu.InputProtocol || cfg.ToolInputClient == nil || cfg.Journal.beginToolInputExecution(a, profile) != nil {
+			return nil, errToolInput
+		}
+		h := cursorToolInputHandler(a, cfg)
+		inputs = &h
+	}
+	driver, err := acpstdio.New(ctx, acpstdio.Options{Cwd: root, Runtime: profile.ACPExecution.Runtime, Goal: goal, Model: profile.ACPExecution.Model, ConfigSHA: profile.ACPExecution.ConfigurationSHA256, Secrets: cfg.Secrets, Emit: b.emit, Inputs: inputs, Permission: func(ctx context.Context, source ac.NativeSource) (ac.Choice, error) {
 		safe, err := safeToolPermission(pc.Request{IdempotencyKey: operationID(), Protocol: ac.Protocol, ACP: &source}, cfg.Secrets)
 		if err != nil {
 			return ac.Choice{}, err
@@ -72,7 +82,7 @@ func (b *acpExecutionBridge) emit(event acpstdio.Event) error {
 		} else if status == "completed" || status == "failed" {
 			kind = "activity_completed"
 		}
-	case "permission":
+	case "permission", "input":
 		kind = "waiting_input"
 	case "message":
 		if message != "" {

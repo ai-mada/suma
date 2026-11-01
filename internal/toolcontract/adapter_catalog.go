@@ -182,6 +182,9 @@ func refineAdapterSources(d *AdapterDescriptor) {
 		return
 	}
 	d.SourceRefs = append(d.SourceRefs, "internal/toolcontract/validation.go#protocolPair")
+	if d.ID == "cursor-cli" {
+		d.SourceRefs = append(d.SourceRefs, "contracts/cursor-inputs.md")
+	}
 	protocolSource := map[string]string{
 		"suma-native":      "internal/runner/tool_stream.go#toolStream.suma",
 		"command-cli":      "internal/runner/execute.go#Execute",
@@ -227,6 +230,9 @@ func refineAdapterSources(d *AdapterDescriptor) {
 				if d.ID == "qoder-acp" || d.ID == "cursor-cli" {
 					c.SourceRefs = []string{"internal/platform/tool_permission.go", "internal/runner/acp_execution.go"}
 					c.Limitations = []string{"acp_human_once_permissions"}
+					if d.ID == "cursor-cli" {
+						c.SourceRefs = append(c.SourceRefs, "internal/platform/tool_input.go", "internal/runner/cursor_tool_inputs.go")
+					}
 				}
 			}
 		case "independent_test":

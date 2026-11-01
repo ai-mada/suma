@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CURSOR-INPUTS-190：[合同](../../contracts/cursor-inputs.md)／[产品](../product/cursor-inputs.md)／[架构与 AI SOP](../architecture/cursor-inputs.md)／[限定验证](../quality/cursor-inputs-verification.md)。Cursor原问题／多选／完整计划明确决定贯通原输入、普通／Pool、typed响应和送达事实；原生Codex关闭记录保持准确投影。新受控完整链实际贯通HTTP、SDK、Journal、候选、同提交独测及验收；真实账号／模型与完整31／P0–P7／58／34／92继续。
+
 T-CURSOR-ACP-189：[合同](../../contracts/cursor-acp-execution.md)／[架构与 AI SOP](../architecture/cursor-acp-execution.md)／[限定验证](../quality/cursor-acp-execution-verification.md)。Cursor 采用成熟 ACP SDK 接入受核 Node 包、明确凭据引用、准确模型配置、原任务／讨论／专家团队和普通／Pool 权限链；代码候选、同提交独立测试与验收沿原门禁。编辑器观察、包完整性、配置、执行和质量事实独立，未知效果不盲目重发。真实厂商账号／模型、多机与完整31／P0–P7／58／34／92继续交付。
 
 T-TURN-STEERING-188：[合同](../../contracts/turn-steering.md)／[限定验证](../quality/turn-steering-verification.md)。本人已保存消息明确送同一活Codex回合，普通／Pool当前资格、原意图与单writer、native ACK、closed尾项及Result准确闭合；无效RPC error误判P2已修。31不同定向／24Go子例、类型与8803对词条、一次构建／3合成GUI及一次真实CLI＋自有模型通过。完整31／P0–P7／58／34／92、持久会话／其他工具／多机与生产继续。

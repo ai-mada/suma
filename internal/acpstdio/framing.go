@@ -117,7 +117,10 @@ func configValuesValid(raw []byte, groups bool) bool {
 	return true
 }
 func strictJSON(raw []byte) bool {
-	if len(raw) > frameLimit || !tc.ValidJSONUnicode(raw) {
+	return strictJSONLimit(raw, frameLimit)
+}
+func strictJSONLimit(raw []byte, limit int) bool {
+	if len(raw) > limit || !tc.ValidJSONUnicode(raw) {
 		return false
 	}
 	d := json.NewDecoder(bytes.NewReader(raw))
@@ -201,7 +204,10 @@ func idKey(raw []byte) string {
 	return strconv.FormatInt(n, 10)
 }
 func envelope(raw []byte) (map[string]json.RawMessage, bool) {
-	if !strictJSON(raw) {
+	return envelopeLimit(raw, frameLimit)
+}
+func envelopeLimit(raw []byte, limit int) (map[string]json.RawMessage, bool) {
+	if !strictJSONLimit(raw, limit) {
 		return nil, false
 	}
 	m := object(raw)
@@ -228,7 +234,11 @@ func (d *Driver) Write(raw []byte) (int, error) {
 		if at >= 0 {
 			part = raw[:at]
 		}
-		if len(d.pending)+len(part) > frameLimit {
+		limit := frameLimit
+		if d.options.Runtime == "cursor" && d.discovery == nil {
+			limit = 1 << 20
+		}
+		if len(d.pending)+len(part) > limit {
 			d.fail("acp_frame_limited")
 			return original, nil
 		}
@@ -249,12 +259,19 @@ func (d *Driver) Write(raw []byte) (int, error) {
 	return original, nil
 }
 func (d *Driver) frame(raw []byte) error {
-	m, ok := envelope(raw)
+	limit := frameLimit
+	if d.options.Runtime == "cursor" && d.discovery == nil {
+		limit = 1 << 20
+	}
+	m, ok := envelopeLimit(raw, limit)
 	if !ok {
 		return errors.New("acp_protocol_invalid")
 	}
 	key := idKey(m["id"])
 	method := stringField(m, "method")
+	if len(raw) > frameLimit && method != "cursor/ask_question" && method != "cursor/create_plan" {
+		return errors.New("acp_frame_limited")
+	}
 	_, hasID := m["id"]
 	params := object(m["params"])
 	cursorCatalogue := d.options.Runtime == "cursor" && !hasID && method == "session/update" && stringField(object(params["update"]), "sessionUpdate") == "available_commands_update"
@@ -282,6 +299,10 @@ func (d *Driver) frame(raw []byte) error {
 		return d.cursorObservation(method, session, m["params"])
 	}
 	if d.options.Runtime == "cursor" && hasID && (method == "cursor/ask_question" || method == "cursor/create_plan" || method == "cursor/task") {
+		if method != "cursor/task" && d.cursor != nil && d.cursor.handler.Open != nil {
+			d.mu.Unlock()
+			return d.acceptCursorInput(m)
+		}
 		session := d.result.Evidence.SessionID
 		started := d.result.Evidence.PromptStarted
 		d.mu.Unlock()
@@ -343,6 +364,7 @@ func (d *Driver) frame(raw []byte) error {
 					return errors.New("acp_protocol_invalid")
 				}
 				d.promptResponse = true
+				d.closeCursorInputsLocked()
 				if rawUsage, present := r["usage"]; present {
 					value, e := projectUsage(rawUsage)
 					if e != nil {
@@ -372,6 +394,13 @@ func (d *Driver) frame(raw []byte) error {
 			return errors.New("acp_protocol_invalid")
 		}
 		if hasID {
+			if d.options.Runtime == "cursor" {
+				fresh, e := d.registerCursorRequest(key, method, rawDigest(m["params"]))
+				if e != nil || !fresh {
+					d.mu.Unlock()
+					return e
+				}
+			}
 			if _, exists := d.remote[key]; exists || len(d.remote) >= 64 {
 				d.mu.Unlock()
 				return errors.New("acp_protocol_invalid")
@@ -473,6 +502,14 @@ func (w sdkOutput) Write(raw []byte) (int, error) {
 				return 0, errors.New("acp_outbound_invalid")
 			}
 			d.requests[key] = method
+			if method == "session/prompt" && d.cursor != nil {
+				prompt, e := cursorRPCID(m["id"])
+				if e != nil {
+					d.mu.Unlock()
+					return 0, e
+				}
+				d.cursor.prompt = prompt
+			}
 			item.prompt = method == "session/prompt"
 		case "session/cancel", "$/cancel_request":
 			d.result.Evidence.CancelRequested = true

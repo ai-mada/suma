@@ -3,6 +3,8 @@
 // process stopping and independent quality evidence remain separate facts.
 package acpcontract
 
+import cu "github.com/ai-mada/suma/internal/cursorcontract"
+
 const (
 	Protocol   = "acp-stdio-v1"
 	SDKVersion = "0.13.5"
@@ -26,23 +28,24 @@ type ACPExecutionCapability struct {
 // Evidence records facts observed on one original process/session. A selected
 // configuration is not proof of the provider's underlying model or its bill.
 type ACPExecutionEvidence struct {
-	ConfigurationSHA256        string `json:"configuration_sha256"`
-	RequestedModel             string `json:"requested_model"`
-	SelectedModel              string `json:"selected_model,omitempty"`
-	ModelSelectionAcknowledged bool   `json:"model_selection_acknowledged"`
-	SessionID                  string `json:"session_id,omitempty"`
-	ProtocolVersion            int    `json:"protocol_version,omitempty"`
-	AgentName                  string `json:"agent_name,omitempty"`
-	AgentVersion               string `json:"agent_version,omitempty"`
-	PromptStarted              bool   `json:"prompt_started"`
-	PromptCompleted            bool   `json:"prompt_completed"`
-	StopReason                 string `json:"stop_reason,omitempty"`
-	ToolsComplete              bool   `json:"tools_complete"`
-	PermissionsRequested       int    `json:"permissions_requested"`
-	PermissionsDenied          int    `json:"permissions_denied"`
-	CancelRequested            bool   `json:"cancel_requested"`
-	HostProcessStopped         bool   `json:"host_process_stopped"`
-	HostProcessTreeStopped     bool   `json:"host_process_tree_stopped"`
+	ConfigurationSHA256        string                   `json:"configuration_sha256"`
+	RequestedModel             string                   `json:"requested_model"`
+	SelectedModel              string                   `json:"selected_model,omitempty"`
+	ModelSelectionAcknowledged bool                     `json:"model_selection_acknowledged"`
+	SessionID                  string                   `json:"session_id,omitempty"`
+	ProtocolVersion            int                      `json:"protocol_version,omitempty"`
+	AgentName                  string                   `json:"agent_name,omitempty"`
+	AgentVersion               string                   `json:"agent_version,omitempty"`
+	PromptStarted              bool                     `json:"prompt_started"`
+	PromptCompleted            bool                     `json:"prompt_completed"`
+	StopReason                 string                   `json:"stop_reason,omitempty"`
+	ToolsComplete              bool                     `json:"tools_complete"`
+	PermissionsRequested       int                      `json:"permissions_requested"`
+	PermissionsDenied          int                      `json:"permissions_denied"`
+	CancelRequested            bool                     `json:"cancel_requested"`
+	HostProcessStopped         bool                     `json:"host_process_stopped"`
+	HostProcessTreeStopped     bool                     `json:"host_process_tree_stopped"`
+	UserInputs                 []cu.CursorInputEvidence `json:"user_inputs,omitempty"`
 }
 
 // PermissionOption preserves the agent's exact opaque identifier and label.

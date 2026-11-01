@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
@@ -15,7 +16,7 @@ import (
 
 // This is a control-plane protocol fixture, not an installed Cursor or model.
 func cursorACPProfile189() tc.Profile {
-	return tc.Profile{CommandID: "cursor-fixed189", Adapter: "cursor", Protocol: ac.Protocol, ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "Controlled Cursor ACP fixture189", ACPExecution: &ac.Capability{Runtime: "cursor", ProtocolVersion: 1, SDKVersion: ac.SDKVersion, ConfigurationSHA256: strings.Repeat("c", 64), Model: "fixed-cursor-model189", ModelSource: "administrator_session_config", BudgetMode: "observe_only", IdentityEvidence: "configuration_ack_only", AuthStrategy: "explicit_api_key_env", PermissionMode: "human_once"}}
+	return tc.Profile{CommandID: "cursor-fixed189", Adapter: "cursor", Protocol: ac.Protocol, UserInputProtocol: cu.InputProtocol, ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "Controlled Cursor ACP fixture189", ACPExecution: &ac.Capability{Runtime: "cursor", ProtocolVersion: 1, SDKVersion: ac.SDKVersion, ConfigurationSHA256: strings.Repeat("c", 64), Model: "fixed-cursor-model189", ModelSource: "administrator_session_config", BudgetMode: "observe_only", IdentityEvidence: "configuration_ack_only", AuthStrategy: "explicit_api_key_env", PermissionMode: "human_once"}}
 }
 
 func cursorACPInventory189(t *testing.T, h toolPermissionFixture, profile tc.Profile, available bool) {

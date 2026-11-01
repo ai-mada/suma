@@ -7,6 +7,7 @@ import (
 	"fmt"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	delivery "github.com/ai-mada/suma/internal/inputdelivery"
 	"github.com/ai-mada/suma/internal/store"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
@@ -19,7 +20,7 @@ import (
 )
 
 func toolInputRequest187(binding cc.Binding, id string) ic.ToolInputRequest {
-	return ic.ToolInputRequest{IdempotencyKey: newID(), Protocol: cc.Protocol, Codex: cc.CodexUserInputRequest{RequestID: cc.CodexRPCRequestID{Kind: "string", Value: id}, Method: cc.UserInputMethod, ThreadID: "thread187", TurnID: "turn187", ItemID: "tool187", BindingSHA256: binding.BindingSHA256, ParamsSHA256: strings.Repeat("e", 64), IsBlocking: true, Questions: []cc.CodexUserInputQuestion{{ID: "design", Header: "Design choice", Question: "Which existing approach should this change use?", Options: []cc.CodexUserInputOption{{Label: "Keep current design", Description: "Preserve the reviewed module boundary"}, {Label: "Refine the module", Description: "Use the requested smaller interface"}}, IsOther: true}}}}
+	return ic.ToolInputRequest{IdempotencyKey: newID(), Protocol: cc.Protocol, Codex: &cc.CodexUserInputRequest{RequestID: cc.CodexRPCRequestID{Kind: "string", Value: id}, Method: cc.UserInputMethod, ThreadID: "thread187", TurnID: "turn187", ItemID: "tool187", BindingSHA256: binding.BindingSHA256, ParamsSHA256: strings.Repeat("e", 64), IsBlocking: true, Questions: []cc.CodexUserInputQuestion{{ID: "design", Header: "Design choice", Question: "Which existing approach should this change use?", Options: []cc.CodexUserInputOption{{Label: "Keep current design", Description: "Preserve the reviewed module boundary"}, {Label: "Refine the module", Description: "Use the requested smaller interface"}}, IsOther: true}}}}
 }
 
 func TestToolInputObservationReceiptRecoversAfterLeaseAndTerminalDrift(t *testing.T) {
@@ -38,9 +39,9 @@ func TestToolInputObservationReceiptRecoversAfterLeaseAndTerminalDrift(t *testin
 			if err != nil {
 				t.Fatal(err)
 			}
-			o := cc.CodexUserInputObservation{Sequence: 1, ParamsSHA256: request.Codex.ParamsSHA256, RequestResolved: true, TurnClosed: true}
+			o := delivery.Observation{Sequence: 1, ParamsSHA256: request.Codex.ParamsSHA256, ExecutionClosed: true}
 			key := newID()
-			observe := func(a dag.Assignment, operation string, observation cc.CodexUserInputObservation) (ic.ToolInput, error) {
+			observe := func(a dag.Assignment, operation string, observation delivery.Observation) (ic.ToolInput, error) {
 				if pooled {
 					return f.s.ObservePoolToolInput(ctx, h.token, f.project, a, input.ID, operation, observation)
 				}
@@ -49,6 +50,15 @@ func TestToolInputObservationReceiptRecoversAfterLeaseAndTerminalDrift(t *testin
 			original, err := observe(h.assignment, key, o)
 			if err != nil {
 				t.Fatal(err)
+			}
+			var payload string
+			if err = f.s.DB.QueryRow(`SELECT payload FROM suma_tool_inputs WHERE id=?`, input.ID).Scan(&payload); err != nil {
+				t.Fatal(err)
+			}
+			var stored map[string]json.RawMessage
+			var nativeObservation map[string]any
+			if json.Unmarshal([]byte(payload), &stored) != nil || json.Unmarshal(stored["observation"], &nativeObservation) != nil || nativeObservation["turn_closed"] != true || nativeObservation["execution_closed"] != nil || original.Observation == nil || !original.Observation.ExecutionClosed || original.Observation.RequestResolved {
+				t.Fatal("Codex native-only turn closure was not preserved and projected", nativeObservation)
 			}
 			// The first acknowledgement is lost after the operation commits. The
 			// same body/key recovers that receipt without authorizing a new write.
@@ -147,7 +157,7 @@ func TestToolInputHTTPRegistersExactCurrentCodexRequest(t *testing.T) {
 			if err != nil || polled.Answer == nil || polled.Answer.ActorID != f.user.ID {
 				t.Fatal(polled, err)
 			}
-			o := cc.CodexUserInputObservation{Sequence: 1, ParamsSHA256: request.Codex.ParamsSHA256, AnswerSHA256: polled.Answer.AnswerSHA256, AnswerObserved: true, ReplyStarted: true, ReplyWritten: true, RequestResolved: true, TurnClosed: true}
+			o := delivery.Observation{Sequence: 1, ParamsSHA256: request.Codex.ParamsSHA256, AnswerSHA256: polled.Answer.AnswerSHA256, AnswerObserved: true, ReplyStarted: true, ReplyWritten: true, RequestResolved: true, ExecutionClosed: true}
 			if pooled {
 				body = PoolToolInputObservationRequest{PoolRunnerAssignmentRequest: PoolRunnerAssignmentRequest{RunnerID: h.assignment.PoolRunnerID, TenantID: h.assignment.TenantID, ProjectID: f.project, Assignment: h.assignment}, InputID: input.ID, IdempotencyKey: newID(), Observation: o}
 			} else {
@@ -159,6 +169,8 @@ func TestToolInputHTTPRegistersExactCurrentCodexRequest(t *testing.T) {
 			}
 			f.bearer("POST", prefix+"/tool-inputs/observations", h.token, body, 200)
 			secret := request
+			nativeSecret := *request.Codex
+			secret.Codex = &nativeSecret
 			secret.IdempotencyKey = newID()
 			secret.Codex.RequestID.Value = "secret187"
 			secret.Codex.Questions = append([]cc.CodexUserInputQuestion{}, request.Codex.Questions...)
@@ -274,9 +286,9 @@ func TestToolInputTwoCurrentHumansCompeteAndRecoverOriginalAnswer(t *testing.T) 
 	requireAuthorityStatus(t, err, 403)
 }
 
-func toolInputResult187(h toolPermissionFixture, b cc.Binding, input ic.ToolInput, o cc.CodexUserInputObservation) dag.Result {
+func toolInputResult187(h toolPermissionFixture, b cc.Binding, input ic.ToolInput, o delivery.Observation) dag.Result {
 	s := input.Request.Codex
-	e := cc.CodexUserInputEvidence{InputID: input.ID, RequestID: s.RequestID, Method: s.Method, ThreadID: s.ThreadID, TurnID: s.TurnID, ItemID: s.ItemID, BindingSHA256: s.BindingSHA256, ParamsSHA256: s.ParamsSHA256, QuestionCount: len(s.Questions), IsBlocking: s.IsBlocking, Observation: &o}
+	e := cc.CodexUserInputEvidence{InputID: input.ID, RequestID: s.RequestID, Method: s.Method, ThreadID: s.ThreadID, TurnID: s.TurnID, ItemID: s.ItemID, BindingSHA256: s.BindingSHA256, ParamsSHA256: s.ParamsSHA256, QuestionCount: len(s.Questions), IsBlocking: s.IsBlocking, Observation: ptrCodexInputObservation190(o)}
 	return dag.Result{RunID: h.assignment.RunID, NodeID: h.assignment.NodeID, Attempt: h.assignment.Attempt, Fence: h.assignment.Fence, WorkerID: h.assignment.WorkerID, OperationID: newID(), ToolEvidence: &tc.Evidence{Profile: h.profile.Profile, Terminal: "completed", EventCount: 3, SessionID: s.ThreadID, UsageState: tc.UsageUnreported, CodexExecution: &cc.Evidence{BindingSHA256: b.BindingSHA256, ThreadID: s.ThreadID, TurnID: s.TurnID, RequestedModel: b.Model, RequestedReasoningEffort: b.ReasoningEffort, AcknowledgedModel: b.Model, AcknowledgedReasoningEffort: b.ReasoningEffort, AcknowledgedProvider: "owned-provider", ConfigurationAcknowledged: true, UserInputs: []cc.CodexUserInputEvidence{e}}}}
 }
 
@@ -288,7 +300,7 @@ func TestToolInputNativeClosureRacesAnswerAndPreservesWriteUnknownFacts(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	o := cc.CodexUserInputObservation{Sequence: 1, ParamsSHA256: input.Request.Codex.ParamsSHA256, RequestResolved: true, TurnClosed: true}
+	o := delivery.Observation{Sequence: 1, ParamsSHA256: input.Request.Codex.ParamsSHA256, RequestResolved: true, ExecutionClosed: true}
 	closed, err := f.s.ObserveToolInput(ctx, h.actor, f.project, h.assignment, input.ID, newID(), o)
 	if err != nil || closed.State != "closed" {
 		t.Fatal(closed, err)
@@ -302,7 +314,7 @@ func TestToolInputNativeClosureRacesAnswerAndPreservesWriteUnknownFacts(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = f.s.validateCodexUserInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err != nil {
+	if err = f.s.validateToolInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err != nil {
 		t.Fatal(err)
 	}
 	tx.Rollback()
@@ -317,14 +329,14 @@ func TestToolInputNativeClosureRacesAnswerAndPreservesWriteUnknownFacts(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	started := cc.CodexUserInputObservation{Sequence: 1, ParamsSHA256: other.Request.Codex.ParamsSHA256, AnswerSHA256: answered.Answer.AnswerSHA256, AnswerObserved: true, ReplyStarted: true}
+	started := delivery.Observation{Sequence: 1, ParamsSHA256: other.Request.Codex.ParamsSHA256, AnswerSHA256: answered.Answer.AnswerSHA256, AnswerObserved: true, ReplyStarted: true}
 	if _, err = f.s.ObserveToolInput(ctx, h.actor, f.project, h.assignment, other.ID, newID(), started); err != nil {
 		t.Fatal(err)
 	}
 	unknown := started
 	unknown.Sequence++
 	unknown.RequestResolved = true
-	unknown.TurnClosed = true
+	unknown.ExecutionClosed = true
 	unknown.FailureCode = "reply_write_unknown"
 	if _, err = f.s.ObserveToolInput(ctx, h.actor, f.project, h.assignment, other.ID, newID(), unknown); err != nil {
 		t.Fatal("native closure erased an already-started write fact", err)
@@ -336,16 +348,16 @@ func TestToolInputNativeClosureRacesAnswerAndPreservesWriteUnknownFacts(t *testi
 	}
 	defer cancel()
 	defer tx.Rollback()
-	if err = f.s.validateCodexUserInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err == nil {
+	if err = f.s.validateToolInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err == nil {
 		t.Fatal("unknown native write accepted as success")
 	}
 	result.ExitCode = 1
 	result.Error = "Controlled unknown response"
-	if err = f.s.validateCodexUserInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err != nil {
+	if err = f.s.validateToolInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err != nil {
 		t.Fatal("failed execution lost exact original unknown evidence", err)
 	}
 	result.ToolEvidence.CodexExecution.UserInputs[1].Observation.Sequence++
-	if err = f.s.validateCodexUserInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err == nil {
+	if err = f.s.validateToolInputResultTx(bounded, tx, f.user.TenantID, f.project, result); err == nil {
 		t.Fatal("forged non-persisted observation accepted")
 	}
 }
@@ -413,4 +425,9 @@ func TestToolInputInitialSchemaRejectsMissingNativeUniquenessBeforeWrites(t *tes
 	if err = db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table'`).Scan(&count); err != nil || count != 3 {
 		t.Fatal("schema rejection wrote other domain tables", count, err)
 	}
+}
+
+func ptrCodexInputObservation190(o delivery.Observation) *cc.CodexUserInputObservation {
+	native := ic.ToCodexObservation(o)
+	return &native
 }

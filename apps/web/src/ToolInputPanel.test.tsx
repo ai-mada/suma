@@ -2,17 +2,19 @@
 import {act} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-import type {CodexUserInputSelection,ToolInput} from '../../../packages/contracts/src';
+import type {CodexUserInputSelection,CursorInputDecision,ToolInput} from '../../../packages/contracts/src';
 import type {ApiCaller,Session} from './api';
 import {ApiViewProvider,bindApiView} from './api-context';
 import {setLocale} from './i18n';
 import {ToolInputPanel,type ToolInputPanelProps} from './ToolInputPanel';
 import {toolInputRecord,toolInputScope,toolInputSelections} from './tool-input.test-support';
+import {cursorToolInputScope,cursorToolInputRecord,cursorToolInputPlanRecord,cursorToolInputDecision} from './tool-input.test-support';
+import {buildToolInputAnswerBody,buildToolInputIntent,toolInputRecoveryScope} from './tool-input-model';
 
 const callerOverride=vi.hoisted(()=>({current:undefined as ApiCaller|undefined}));
 vi.mock('./api-context',async load=>{const actual=await load<typeof import('./api-context')>();return {...actual,useApi:()=>{const caller=actual.useApi();return callerOverride.current??caller;}};});
 const identity:Session={user:{id:'user-a',name:'Person',email:'person@example.test'},organization:{id:'org-a',name:'Organization'},projects:[]};
-const initial:ToolInputPanelProps={project:toolInputScope.project,runID:toolInputScope.runID,nodeID:toolInputScope.nodeID,attempt:toolInputScope.attempt,fence:toolInputScope.fence,state:'running'};
+const initial:ToolInputPanelProps={project:toolInputScope.project,runID:toolInputScope.runID,nodeID:toolInputScope.nodeID,attempt:toolInputScope.attempt,fence:toolInputScope.fence,protocol:'codex-app-server-v1',state:'running'};
 type Request={path:string;method:string;body?:Record<string,unknown>;headers:Headers};
 let host:HTMLDivElement,root:Root,items:ToolInput[],protocol:string,requests:Request[],reply:(request:Request)=>Promise<Response>,saved:Map<string,ToolInput>;
 const onChanged=vi.fn();
@@ -24,7 +26,7 @@ async function normal(request:Request):Promise<Response>{
  const body=request.body!,key=String(body.idempotency_key);let result=saved.get(key);
  if(!result){
   const row=items.find(item=>request.path==='/tool-inputs/'+item.id+'/answer')!;
-  result={...row,version:row.version+1,state:'answered',allowed_actions:[],answer:{answers:body.answers as CodexUserInputSelection[],answer_sha256:'6'.repeat(64),actor_id:identity.user.id,answered_at:'2026-11-01T04:01:00Z'}};
+  result={...row,version:row.version+1,state:'answered',allowed_actions:[],answer:{...(Object.hasOwn(body,'cursor')?{cursor:body.cursor as CursorInputDecision}:{answers:body.answers as CodexUserInputSelection[]}),answer_sha256:'6'.repeat(64),actor_id:identity.user.id,answered_at:'2026-11-01T04:01:00Z'}};
   saved.set(key,result);items=items.map(item=>item.id===result!.id?result!:item);
  }
  return Response.json(result);
@@ -73,8 +75,8 @@ it('T187 preserves one explicit original answer and key through an unknown recei
  expect(original.path).toBe('/tool-inputs/input-a/answer');expect(original.body).toEqual({project_id:'project-a',expected_version:1,idempotency_key:key,answers:toolInputSelections});
  expect(original.headers.get('X-Suma-Expected-Organization')).toBe('org-a');expect(onChanged).not.toHaveBeenCalled();
  const persisted=journals(key);expect(persisted).toHaveLength(2);
- const metadata=persisted.find(item=>item.value.request)!;expect(metadata.value).toMatchObject({input_id:'input-a',source_identity:{codex:{params_sha256:toolInputRecord.request.codex.params_sha256}},request:{body:original.body}});
- expect(metadata.raw).not.toContain(toolInputRecord.request.codex.questions[0].question);expect(metadata.raw).not.toContain('options');
+ const metadata=persisted.find(item=>item.value.request)!;expect(metadata.value).toMatchObject({input_id:'input-a',source_identity:{codex:{params_sha256:toolInputRecord.request.codex!.params_sha256}},request:{body:original.body}});
+ expect(metadata.raw).not.toContain(toolInputRecord.request.codex!.questions[0].question);expect(metadata.raw).not.toContain('options');
  await click('[data-tool-input-refresh]');expect(onChanged).not.toHaveBeenCalled();expect(journals(key)).toHaveLength(2);
  expect(host.querySelector('[data-tool-input-status="saved"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-status="written"]')).toBeNull();
  items.push({...structuredClone(toolInputRecord),id:'input-next',attempt:3,fence:10,dispatch_id:'dispatch-next'});
@@ -104,7 +106,7 @@ it('T187 isolates late source and caller reads, keeps capability-off or terminal
  expect(host.querySelector('[data-tool-input-card="input-a"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-submit]')).toBeNull();
  protocol='codex-user-input-v1';await render({state:'succeeded',revision:2});await open();expect(host.querySelector('[data-tool-input-submit]')).toBeNull();
  reply=async()=>Response.json({error:{code:'forbidden',message:'Current input access denied'}},{status:403});await click('[data-tool-input-refresh]');
- expect(host.querySelector('[data-tool-input-card]')).toBeNull();expect(host.textContent).not.toContain(toolInputRecord.request.codex.questions[0].question);expect(host.querySelector('[data-public-run]')).not.toBeNull();expect(writes()).toHaveLength(0);
+ expect(host.querySelector('[data-tool-input-card]')).toBeNull();expect(host.textContent).not.toContain(toolInputRecord.request.codex!.questions[0].question);expect(host.querySelector('[data-public-run]')).not.toBeNull();expect(writes()).toHaveLength(0);
  reply=normal;protocol='';items=[];await render({nodeID:'unused-node',revision:3});expect(host.querySelector('[data-tool-input-panel]')).toBeNull();
 });
 
@@ -117,4 +119,42 @@ it('T187 blocks unpersisted answers and new input after a mismatched receipt, re
  expect(onChanged).not.toHaveBeenCalled();expect(journals(key)).toHaveLength(2);expect(host.querySelector('[data-tool-input-recover]')).not.toBeNull();
  reply=async()=>Response.json({error:{code:'forbidden',message:'Current input access denied'}},{status:403});await click('[data-tool-input-refresh]');
  expect(host.querySelector('[data-tool-input-card]')).toBeNull();expect(host.querySelector('[data-tool-input-recover]')).toBeNull();expect(journals(key)).toHaveLength(2);expect(writes()).toHaveLength(1);
+});
+
+it('T190 answers exact Cursor question IDs and restores a legal large selection under its original ACP scope and key',async()=>{
+ protocol='cursor-acp-input-v1';items=[structuredClone(cursorToolInputRecord)];await render({protocol:'acp-stdio-v1'});await open();
+ expect(host.querySelector<HTMLButtonElement>('[data-tool-input-submit]')?.disabled).toBe(true);expect(writes()).toHaveLength(0);
+ for(const answer of cursorToolInputDecision.answers||[])for(const option of answer.option_ids)await click('[data-tool-input-cursor-option="'+answer.question_id+'"][value="'+option+'"]');
+ expect(writes()).toHaveLength(0);await click('[data-tool-input-submit]');
+ expect(writes()).toHaveLength(1);expect(writes()[0].body).toEqual({project_id:'project-a',expected_version:1,idempotency_key:expect.any(String),cursor:cursorToolInputDecision});expect(writes()[0].body).not.toHaveProperty('answers');
+ expect(host.querySelector('[data-tool-input-status="saved"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-status="written"]')).toBeNull();
+ await act(async()=>root.unmount());root=createRoot(host);saved.clear();
+ const large=structuredClone(cursorToolInputRecord);large.id='cursor-large-input';large.request.idempotency_key='large-native-question';large.request.cursor!.request_id={kind:'number',value:'99'};
+ const answerIDs:NonNullable<CursorInputDecision['answers']>=[];
+ large.request.cursor!.questions!.questions=Array.from({length:16},(_,index)=>{
+  const prefix='question-'+index+'-',id=prefix+'q'.repeat(256-prefix.length),options=Array.from({length:32},(_,offset)=>{const head='option-'+index+'-'+offset+'-';return {id:head+'x'.repeat(256-head.length),label:'Option '+index+'/'+offset};});
+  answerIDs.push({question_id:id,option_ids:options.map(option=>option.id)});return {id,prompt:'Original large question '+index+' must not enter recovery metadata.',allow_multiple:true,options};
+ });
+ const decision:CursorInputDecision={outcome:'answered',answers:answerIDs},key='large-cursor-answer-original-key',body=buildToolInputAnswerBody(large,cursorToolInputScope,{cursor:decision},key);expect(body).toBeDefined();
+ const request={path:'/tool-inputs/'+large.id+'/answer',method:'POST',idempotency_key:key,body:body!},intent=buildToolInputIntent(large,cursorToolInputScope,request);expect(intent).toBeDefined();
+ const raw=JSON.stringify(intent);expect(new TextEncoder().encode(raw).length).toBeGreaterThan(65536);expect(raw).not.toContain('must not enter recovery metadata');
+ sessionStorage.setItem('suma-tool-input-intent:'+toolInputRecoveryScope(cursorToolInputScope),raw);sessionStorage.setItem('suma-write-recovery-v1:tool-inputs:'+toolInputRecoveryScope(cursorToolInputScope),JSON.stringify(request));
+ const receipt:ToolInput={...large,version:2,state:'answered',allowed_actions:[],answer:{cursor:decision,answer_sha256:'6'.repeat(64),actor_id:identity.user.id,answered_at:'2026-11-01T04:01:00Z'}};
+ saved.set(key,receipt);items=[receipt,{...structuredClone(cursorToolInputRecord),id:'cursor-next-attempt',attempt:3,fence:10}];
+ await render({protocol:'acp-stdio-v1',attempt:3,fence:10,state:'succeeded'});expect(requests.at(-1)?.path).toContain('attempt=2&fence=9');expect(journals(key)).toHaveLength(2);
+ await click('[data-tool-input-recover]');expect(writes()).toHaveLength(2);expect(writes()[1].body).toEqual(body);expect(journals(key)).toHaveLength(0);expect(requests.at(-1)?.path).toContain('attempt=3&fence=10');
+ await open();expect(host.querySelector('[data-tool-input-card="cursor-next-attempt"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-submit]')).toBeNull();
+});
+
+it('T190 previews the complete Cursor plan and saves only an explicit typed decision without granting permissions or caching plan text',async()=>{
+ protocol='cursor-acp-input-v1';const plan=structuredClone(cursorToolInputPlanRecord);plan.request.cursor!.plan!.plan+='\nUnique controller plan body <script>inert()</script>';items=[plan];
+ const persisted:string[]=[],setItem=Storage.prototype.setItem;vi.spyOn(Storage.prototype,'setItem').mockImplementation(function(this:Storage,key:string,value:string){persisted.push(value);return setItem.call(this,key,value);});
+ await render({protocol:'acp-stdio-v1'});await open();expect(host.querySelector('[data-tool-input-plan]')?.textContent).toBe(plan.request.cursor!.plan!.plan);expect(host.querySelector('script')).toBeNull();
+ expect(host.querySelector<HTMLInputElement>('[data-tool-input-decision="accepted"]')?.checked).toBe(false);expect(host.querySelector<HTMLButtonElement>('[data-tool-input-submit]')?.disabled).toBe(true);
+ await click('[data-tool-input-decision="accepted"]');expect(writes()).toHaveLength(0);await click('[data-tool-input-submit]');expect(writes()).toHaveLength(1);
+ expect(writes()[0].body).toEqual({project_id:'project-a',expected_version:1,idempotency_key:expect.any(String),cursor:{outcome:'accepted'}});expect(writes()[0].body).not.toHaveProperty('answers');expect(writes()[0].body).not.toHaveProperty('planUri');
+ expect(persisted.some(value=>value.includes('Unique controller plan body'))).toBe(false);expect(requests.every(request=>request.path.includes('/tool-inputs'))).toBe(true);expect(onChanged).toHaveBeenCalledOnce();
+ const answered=items[0];items=[{...answered,version:3,observation:{sequence:1,params_sha256:answered.request.cursor!.params_sha256,answer_sha256:answered.answer!.answer_sha256,answer_observed:true,reply_started:true,reply_written:false,request_resolved:false,execution_closed:true,failure_code:'response_write_unknown'}}];
+ await click('[data-tool-input-refresh]');expect(host.querySelector('[data-tool-input-status="execution_closed"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-status="written"]')).toBeNull();expect(host.querySelector('[data-tool-input-status="unknown"]')).not.toBeNull();expect(writes()).toHaveLength(1);
+ protocol='';items=[];await render({protocol:'acp-stdio-v1',nodeID:'qoder-without-inputs',revision:1});expect(host.querySelector('[data-tool-input-panel]')).toBeNull();expect(writes()).toHaveLength(1);
 });

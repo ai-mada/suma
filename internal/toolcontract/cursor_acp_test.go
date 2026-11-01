@@ -1,11 +1,15 @@
 package toolcontract
 
-import "testing"
+import (
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
+	"testing"
+)
 
 func TestCursorACPProfileCannotBorrowAnotherRuntimeOrLogin(t *testing.T) {
 	p := acpTestProfile(t)
 	p.CommandID = "cursor-reviewed"
 	p.Adapter = "cursor"
+	p.UserInputProtocol = cu.InputProtocol
 	p.ACPExecution.Runtime = "cursor"
 	p.ACPExecution.AuthStrategy = "explicit_api_key_env"
 	if err := ValidateProfile(p, true); err != nil || !SupportsACPExecutionProfile(p) {

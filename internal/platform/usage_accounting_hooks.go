@@ -382,7 +382,7 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if e = s.validateCodexApprovalResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
 		return e
 	}
-	if e = s.validateCodexUserInputResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
+	if e = s.validateToolInputResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
 		return e
 	}
 	if e = s.validateCodexSteeringResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {

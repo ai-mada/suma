@@ -8,10 +8,12 @@ import (
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 )
 
 func acpProfileBase(p Profile) bool {
-	return (p.Adapter == "qoder" || p.Adapter == "cursor") && p.Protocol == ac.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == "" && p.ModelExecutionProtocol == "" && p.TerminalSessionProtocol == "" && p.TestReportProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.DispatchRecommendation == nil && p.TaskConversationReply == nil && p.ClaudeExecution == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil
+	input := p.Adapter == "qoder" && p.UserInputProtocol == "" || p.Adapter == "cursor" && p.UserInputProtocol == cu.InputProtocol
+	return input && p.Protocol == ac.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == "" && p.ModelExecutionProtocol == "" && p.TerminalSessionProtocol == "" && p.TestReportProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.DispatchRecommendation == nil && p.TaskConversationReply == nil && p.ClaudeExecution == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil
 }
 
 func SupportsACPExecutionProfile(p Profile) bool {
@@ -80,6 +82,20 @@ func validateACPEvidence(e Evidence) error {
 	}
 	if p.ModelSelectionAcknowledged && p.SelectedModel != c.Model || p.SelectedModel != "" && !p.ModelSelectionAcknowledged || p.PromptStarted && (!p.ModelSelectionAcknowledged || p.SessionID == "" || p.ProtocolVersion != 1) || p.PromptCompleted && !p.PromptStarted || p.HostProcessTreeStopped && !p.HostProcessStopped {
 		return fmt.Errorf("inconsistent ACP execution facts")
+	}
+	if len(p.UserInputs) > 0 && e.Profile.Adapter != "cursor" || len(p.UserInputs)+p.PermissionsRequested > 32 {
+		return fmt.Errorf("ACP input capability or interaction limit differs")
+	}
+	seen, ids := map[string]bool{}, map[string]bool{}
+	for _, input := range p.UserInputs {
+		key := input.RequestID.Kind + ":" + input.RequestID.Value
+		if cu.ValidateEvidence(input) != nil || input.ConfigurationSHA256 != c.ConfigurationSHA256 || input.SessionID != p.SessionID || !p.PromptStarted || seen[key] || ids[input.InputID] {
+			return fmt.Errorf("ACP input evidence differs from its original execution")
+		}
+		seen[key], ids[input.InputID] = true, true
+		if e.Terminal == "completed" && (input.Observation == nil || !input.Observation.AnswerObserved || !input.Observation.ReplyWritten || !input.Observation.ExecutionClosed || input.Observation.FailureCode != "") {
+			return fmt.Errorf("ACP completion requires closed original input delivery")
+		}
 	}
 	if p.StopReason != "" {
 		switch p.StopReason {

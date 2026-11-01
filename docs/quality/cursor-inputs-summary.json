@@ -1,0 +1,280 @@
+{
+  "stage": "T-CURSOR-INPUTS-190",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "复用原ToolInput领域，通过独占Codex／Cursor来源与专用答案接通原提问、多选和完整计划确认；不新增表、HTTP路径、派发器或命令批准。",
+    "原生source绑定准确session、原Prompt与server typed ID、method、配置及完整规范化payload摘要；正常typed响应绑定原参数，拒绝不触RPCerror fallback，不接任意planUri。",
+    "原ACP SDK0.13.5保持不变；仅在既有严格帧入口接两确切方法，共用原singlewriter、live ID／32总量上限及持久写前意图。",
+    "原权限、普通／Pool机器、CAS、当前预算／租约／暂停、原回执优先及断线恢复复用；不重答未知请求或重建原生会话。",
+    "通用送达与两真实native协议明确投影；Codex SQL／操作回执／Journal保持原turn_closed编码，Cursor执行关闭不伪造resolved或接受ACK。",
+    "修复写前持久IO期间关闭后仍可能写出的P2，最终状态门保留unknown意图；新输入slice及观察深拷贝，避免调用者修改已保存证据。",
+    "原面板按协议显示无预选单／多选、原文计划、接受／拒绝／取消；资料详情折叠、完整原意图恢复、中英文与窄屏／键盘接通；修复字段重排误清草稿及Schema capability enum。",
+    "新的本地受控完整链实际通过原Browser HTTP答复、SDK、Worker、Journal、Git候选、不同Worker同提交Node/JUnit和隔离账号Review，原工作区草稿保留。"
+  ],
+  "verification": {
+    "distinct_top_level": 51,
+    "new_top_level": 22,
+    "affected_existing_top_level": 29,
+    "go_subcases": 38,
+    "platform_top_level": 5,
+    "formal_top_level": 1,
+    "runtime_top_level": 16,
+    "web_top_level": 20,
+    "desktop_top_level": 1,
+    "root_top_level": 8,
+    "root_receipts": [
+      {
+        "test": "TestCursorAnswersKeepExactIDsAndOriginalPlanDigest",
+        "command": ".cache/follow155/root-go/20261101T090752114Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestCursorInputLimitsPreserveBoundedCompleteMarkdown",
+        "command": ".cache/follow155/root-go/20261101T091457567Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestToolInputUnionSeparatesNativeAnswersAndClosureFacts",
+        "command": ".cache/follow155/root-go/20261101T091457567Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestCursorInputCapabilityAndEvidenceStayWithOriginalExecution",
+        "command": ".cache/follow155/root-go/20261101T091608750Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestCursorCatalogPublishesACPWithoutPromotingPassiveDetection",
+        "command": ".cache/follow155/root-go/20261101T091608750Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestCursorACPProfileCannotBorrowAnotherRuntimeOrLogin",
+        "command": ".cache/follow155/root-go/20261101T091608750Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestCursorInputsContractKeepsNativeUnionAndPlanAuthority",
+        "command": ".cache/follow155/root-go/20261101T093316387Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestToolInputsContractSeparatesHumanAnswersFromMachineFacts",
+        "command": ".cache/follow155/root-go/20261101T091903878Z.command.json",
+        "command_exit": 0
+      }
+    ],
+    "contract_generations": [
+      ".cache/follow155/root-go/20261101T093325401Z.command.json",
+      ".cache/follow155/root-go/20261101T091925369Z.command.json"
+    ],
+    "new_http_operations": 0,
+    "new_business_tables": 0,
+    "new_schemas": [
+      "CursorAskQuestion",
+      "CursorCreatePlan",
+      "CursorInputDecision",
+      "CursorInputEvidence",
+      "CursorInputNativeAnswer",
+      "CursorInputNativeOutcome",
+      "CursorInputNativeResult",
+      "CursorInputRequest",
+      "CursorInputSelection",
+      "CursorPlanPhase",
+      "CursorQuestion",
+      "CursorQuestionOption",
+      "CursorRPCRequestID",
+      "CursorTodo",
+      "ToolInputDeliveryObservation"
+    ],
+    "changed_schemas": [
+      "ACPExecutionEvidence",
+      "PoolToolInputObservationRequest",
+      "ToolExecutionProfile",
+      "ToolInput",
+      "ToolInputAnswer",
+      "ToolInputAnswerRequest",
+      "ToolInputList",
+      "ToolInputObservationRequest",
+      "ToolInputRequest"
+    ],
+    "changed_operations": [
+      "/pool-runner/tool-inputs post",
+      "/pool-runner/tool-inputs/observations post",
+      "/pool-runner/tool-inputs/poll post",
+      "/runner/tool-inputs post",
+      "/runner/tool-inputs/observations post",
+      "/runner/tool-inputs/poll post",
+      "/runs/{run}/nodes/{node}/tool-inputs get",
+      "/tool-inputs/{id}/answer post"
+    ],
+    "typecheck_exit": 0,
+    "paired_locale_keys": 8828,
+    "production_hardcodes": 0,
+    "isolated_builds": 1,
+    "gui_distinct_checks": 3,
+    "gui_native_hosts": 1,
+    "gui_native_exit": 0,
+    "gui_page_errors": [],
+    "full_suite_repeated": false
+  },
+  "formal": {
+    "stage": "T-CURSOR-INPUTS-190",
+    "status": "controlled_vertical_confirmed",
+    "source_manifest_sha256": "3bcceabaaff1a01001eed3ef7a0bcfef016ecc5ad8e1aaa92cf60ef5dc0500d8",
+    "source_sha256": "bd0544181ea6c2485f7648258135ec1f73736a0107035ae4287f08f4d5d0d887",
+    "command_stamp": "20261101T093625952Z",
+    "command_attempts": 1,
+    "exit_code": 0,
+    "distinct_top_tests": 1,
+    "distinct_subtests": 0,
+    "elapsed_test_seconds": 10.86,
+    "real_cursor": false,
+    "real_node_development_host": false,
+    "real_node_independent_test": true,
+    "vendor_requests": 0,
+    "model_requests": 0,
+    "controlled_native_host_version_probes": 3,
+    "controlled_native_host_prompt_processes": 1,
+    "initialize": 1,
+    "session_new": 1,
+    "model_config_ack": 1,
+    "prompt": 1,
+    "question_browser_answers": 1,
+    "plan_browser_answers": 1,
+    "question_reply_native_id_kind": "number",
+    "question_selected_option_ids": [
+      "first",
+      "second"
+    ],
+    "plan_reply_native_id_kind": "string",
+    "plan_outcome": "rejected",
+    "plan_rpc_error": false,
+    "native_permission_responses": 1,
+    "input_result_proofs": 2,
+    "both_input_observations_written_closed_no_resolved": true,
+    "base_commit": "24d0446f30c165e3b9041d439c448d6aa342bb8c",
+    "candidate_commit": "1130f42647184aaf9811a2665b27c035d6989b60",
+    "test_base_commit": "1130f42647184aaf9811a2665b27c035d6989b60",
+    "test_head_commit": "1130f42647184aaf9811a2665b27c035d6989b60",
+    "producer_worker": "cursor-formal-developer189",
+    "test_worker": "cursor-formal-independent189",
+    "host_stopped": true,
+    "host_tree_stopped": true,
+    "controlled_host_pids_absent": true,
+    "quality_state": "passed",
+    "quality_current": true,
+    "quality_passed": 1,
+    "task_status": "accepted",
+    "fixture_review_by_distinct_invited_account": true,
+    "customer_human_signoff": false,
+    "journal_pending_results_and_progress": 0,
+    "administrator_checkout_retained": true,
+    "private_sqlite_sha256": "384030fe44ad622b74a85b919bb0c2d03c8422d534ab47bfce447d5a8fdbb447",
+    "boundary": "Real original Server/SQLite/ordinary Worker/Client/Journal/production ACP SDK and strict package inspection with an administrator-owned native fixture. Real Git, independent Node/JUnit and isolated-account Review. No vendor package/account/Prompt, model call, physical multi-machine or customer signoff."
+  },
+  "boundaries": [
+    "本轮未启动真实Cursor或Codex CLI、供应方账号或模型。固定Cursor2026.10.22-27dcf5f的189包／版本／握手证据及本轮只读模块事实复用，不冒充认证后模型或完整vendor扩展验收。",
+    "完整链的开发宿主是经过生产包门核验的自有Go原生fixture，不是Cursor或Node厂商包。SDK／HTTP／SQLite／Git及独立Node/JUnit是真实现；Review账号是隔离夹具，不是客户签署。",
+    "接受计划可能让原工具在本attempt私有HOME保存计划文档；该原生artifact不成为正式候选／需求／DAG或验收基线。后续命令权限、独立测试及人工验收仍各自检查。",
+    "Cursor只有真实写入与原Prompt／执行关闭事实，没有Codex请求resolved或通用native接受ACK；完整写入不能保证模型遵从。未知保留原记录、不盲目重答。",
+    "GUI使用生产Panel／Card与明确合成父级、账号、HTTP、scope及回执，3代表场景／2视口Root查看、一次构建、一次原生宿主正常退出；不是完整登录App／真实供应方验收。",
+    "初始完整类型及8828对词条检查通过；随后只因独立审阅发现List.protocol漏cu枚举，修生成Schema并重原新cgen top／第二次生成，TypeScript形状与Web产品源未变，没有重复整套类型或业务。",
+    "原失败、fixture／import／union诊断与package内真实通过结果分别保存；只重直接失败场景。未重复SDK安装／构建、版本探测、189无交互formal、全套或安装矩阵。",
+    "等待仍占原活进程及原资源／deadline，不声称释放执行槽位或恢复旧session。非桌面Runner配置引导、认证后生命周期、完整CLI／团队／知识／质量／运维、多机／跨库／跨平台安装／规模及原31／P0–P7／58／34／92继续。"
+  ],
+  "review": {
+    "before_write_close_p2_fixed": true,
+    "evidence_clone_p2_fixed": true,
+    "field_order_draft_p2_fixed": true,
+    "cursor_list_schema_enum_p2_fixed": true,
+    "remaining_confirmed_p1_p2": 0
+  },
+  "references": {
+    "multica_commit": "5a2cc891ac338eed1919aa11a1eef5957cd82cec",
+    "sdk": "github.com/coder/acp-go-sdk v0.13.5",
+    "cursor_package": "2026.10.22-27dcf5f",
+    "official_acp": "https://cursor.com/docs/cli/acp",
+    "source_adoption": "Existing Suma deep modules and mature ACP SDK; no Multica Cursor/yolo or proprietary runtime code copied"
+  },
+  "evidence": [
+    {
+      "path": ".cache/cursor-inputs-190/platform/source-manifest.json",
+      "sha256": "717629c964d6567981ce7649190e4d96207a3ecdbbb2f8f2f20f71356eec8864"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/platform/summary.json",
+      "sha256": "4ea80f32b89b471ef44642c547bd42b0029a784a704bc1959ec948e0bde48a33"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/formal/source-manifest.json",
+      "sha256": "3bcceabaaff1a01001eed3ef7a0bcfef016ecc5ad8e1aaa92cf60ef5dc0500d8"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/formal/summary.json",
+      "sha256": "fde012d6791114bb9e08bbe93c46fc986023d1fb939b550ec2cbf102d6f78d22"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/formal/artifact-manifest.json",
+      "sha256": "b01145e9cebb1e6fae05306f1183e76cb60b34408e1d31930748a2130413d3fd"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/runtime/source-manifest.json",
+      "sha256": "771131d06b4668e0eb75f16fef5f5a7cce3b977e401915a592d71e5a969a95c5"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/runtime/summary.json",
+      "sha256": "616c4a129f0006ea31b7885151ce760b8c6f572150177ff12539df19244a62a1"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/runtime/test-results.json",
+      "sha256": "ba8c28cf21e99b847bce214a7a034d4f3ee68ec26fa807e5aac3acdc9c0ff1ce"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/runtime/design-findings.json",
+      "sha256": "57a598fc57623c25b9e208665ff14fcbc2c65920d6a12336e15528d255a4812d"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/web/integration-summary.json",
+      "sha256": "e6db97a49b388bb42b1cecb723364277cd9820a24fd3fcc6a7ea258d9d180228"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/root-review.json",
+      "sha256": "0b408371810df32310002ea38b2e2c56eecda012e993d5681c459e96eeb76a21"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/visual/source-manifest.json",
+      "sha256": "3b9ae57b5c77ee17c3784b7bdc5d8931bb66d43aa18255235ac6fc8791a1a676"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/visual/result.json",
+      "sha256": "64666175791b70f682d088d7ed6afddb0d00c05f6ea61cf1d484df31b95244c9"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/types.command.json",
+      "sha256": "1cc1550dba9919b58327687f1f3584ca2c568bb7103ef5fae9bf1a2a2e7895a0"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/i18n.command.json",
+      "sha256": "a3a683dff66f56755e468d7c378d3acdd08ba718516c72de571d2f43d43672bc"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/build.command.json",
+      "sha256": "dd40ba2dc37092648fb9394d1e05b770f311ebf63fa9ce95e4020d9dd5115501"
+    },
+    {
+      "path": ".cache/cursor-inputs-190/gui.command.json",
+      "sha256": "3c803d1535ea02543cc63d8c0ad2a07daf7b1cb411d47a4e4c7aece5dd461938"
+    }
+  ]
+}

@@ -20,9 +20,10 @@ const frameLimit = 64 << 10
 const textLimit = 1 << 20
 
 type outbound struct {
-	raw    []byte
-	reply  string
-	prompt bool
+	raw         []byte
+	reply       string
+	prompt      bool
+	cursorReply string
 }
 type pendingPermission struct {
 	wireID, toolID string
@@ -56,6 +57,7 @@ type Driver struct {
 	filter                                  *textFilter
 	modelConfig                             string
 	discovery                               *discoveryState
+	cursor                                  *cursorInputState
 }
 type sdkOutput struct{ d *Driver }
 
@@ -80,6 +82,12 @@ func newTransport(parent context.Context, o Options, discovery *discoveryState) 
 	reader, writer := io.Pipe()
 	d := &Driver{options: o, ctx: ctx, cancel: cancel, input: writer, output: make(chan outbound, 64), outEnd: make(chan struct{}), done: make(chan struct{}), promptSent: make(chan struct{}), requests: map[string]string{}, remote: map[string]*pendingPermission{}, permissionTools: map[string]*pendingPermission{}, tools: map[string]string{}, filter: newTextFilter(o.Secrets), result: Result{Terminal: "unknown", UsageState: "unreported", Evidence: ac.Evidence{ConfigurationSHA256: o.ConfigSHA, RequestedModel: o.Model}}, discovery: discovery}
 	d.conn = sdk.NewClientSideConnection(d, sdkOutput{d}, reader)
+	if o.Runtime == "cursor" && discovery == nil {
+		d.cursor = &cursorInputState{seen: map[string]cursorNativeRequest{}, records: map[string]*cursorInputRecord{}}
+		if o.Inputs != nil {
+			d.cursor.handler = *o.Inputs
+		}
+	}
 	d.conn.SetLogger(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	go func() {
 		<-ctx.Done()
@@ -113,6 +121,11 @@ func (d *Driver) fail(code string) {
 func (d *Driver) run() {
 	defer close(d.done)
 	defer close(d.outEnd)
+	defer func() {
+		if d.cursor != nil {
+			d.cursor.wait.Wait()
+		}
+	}()
 	fail := func() { d.fail("acp_session_unknown") }
 	initialized, e := d.conn.Initialize(d.ctx, sdk.InitializeRequest{ProtocolVersion: 1, ClientInfo: &sdk.Implementation{Name: "suma-runner", Version: "1"}, ClientCapabilities: sdk.ClientCapabilities{}})
 	if e != nil || initialized.ProtocolVersion != 1 {
@@ -186,6 +199,9 @@ func (d *Driver) run() {
 		return
 	}
 	d.waitReplyWrites()
+	if d.cursor != nil {
+		d.cursor.wait.Wait()
+	}
 	tail, _ := d.filter.flush()
 	if tail != "" {
 		if d.emit(Event{Kind: "message", SessionID: string(session.SessionId), Text: tail}) != nil {
@@ -208,7 +224,7 @@ func (d *Driver) run() {
 	}
 	switch string(response.StopReason) {
 	case "end_turn":
-		if d.bad == nil && !d.incomplete && d.result.Evidence.ToolsComplete && !pending && !d.result.Evidence.CancelRequested && d.result.Evidence.PermissionsDenied == 0 {
+		if d.bad == nil && !d.incomplete && d.result.Evidence.ToolsComplete && !pending && d.cursorInputsCompleteLocked() && !d.result.Evidence.CancelRequested && d.result.Evidence.PermissionsDenied == 0 {
 			d.result.Terminal = "completed"
 		}
 	case "refusal", "max_tokens", "max_turn_requests":
@@ -288,6 +304,12 @@ func (d *Driver) CopyInput(w io.Writer) (int64, error) {
 	d.mu.Unlock()
 	var total int64
 	write := func(item outbound) error {
+		if item.cursorReply != "" {
+			if e := d.beforeCursorWrite(item.cursorReply); e != nil {
+				d.fail("cursor_input_write_refused")
+				return e
+			}
+		}
 		// A peer may consume these bytes and return Prompt before Write returns.
 		// Track the in-flight write without treating enqueue/delivery as success.
 		var written chan struct{}
@@ -302,6 +324,9 @@ func (d *Driver) CopyInput(w io.Writer) (int64, error) {
 		}
 		n, e := w.Write(item.raw)
 		total += int64(n)
+		if item.cursorReply != "" {
+			d.afterCursorWrite(item.cursorReply, e == nil && n == len(item.raw))
+		}
 		if e != nil || n != len(item.raw) {
 			d.fail("acp_stdin_unknown")
 			return errors.New("acp_stdin_unknown")
@@ -384,6 +409,9 @@ func (d *Driver) Close() error {
 }
 func (d *Driver) Finish() Result {
 	d.finishOnce.Do(func() {
+		d.mu.Lock()
+		d.closeCursorInputsLocked()
+		d.mu.Unlock()
 		d.writeMu.Lock()
 		if len(strings.TrimSpace(string(d.pending))) != 0 {
 			d.fail("acp_truncated_frame")
@@ -397,6 +425,7 @@ func (d *Driver) Finish() Result {
 			d.fail("acp_finish_unknown")
 		}
 		d.cancel()
+		d.finishCursorInputs()
 	})
 	return d.Evidence()
 }
@@ -404,6 +433,15 @@ func (d *Driver) Evidence() Result {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	r := d.result
+	if r.Evidence.UserInputs != nil {
+		r.Evidence.UserInputs = append(r.Evidence.UserInputs[:0:0], r.Evidence.UserInputs...)
+		for i := range r.Evidence.UserInputs {
+			if r.Evidence.UserInputs[i].Observation != nil {
+				copy := *r.Evidence.UserInputs[i].Observation
+				r.Evidence.UserInputs[i].Observation = &copy
+			}
+		}
+	}
 	if d.bad != nil {
 		r.Terminal = "unknown"
 		r.Error = d.bad

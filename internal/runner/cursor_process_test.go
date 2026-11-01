@@ -52,7 +52,7 @@ func init() {
 		case "session/set_config_option":
 			result = map[string]any{"configOptions": model}
 		case "session/prompt":
-			_ = json.NewEncoder(os.Stdout).Encode(map[string]any{"jsonrpc": "2.0", "id": "blocking189", "method": "cursor/create_plan", "params": map[string]any{"sessionId": "owned-foreground189"}})
+			_ = json.NewEncoder(os.Stdout).Encode(map[string]any{"jsonrpc": "2.0", "id": "blocking189", "method": "cursor/task", "params": map[string]any{"sessionId": "owned-foreground189"}})
 			continue
 		default:
 			os.Exit(91)
@@ -87,6 +87,9 @@ func TestCursorUnsupportedRequestClosesForegroundWithoutFakeSuccess(t *testing.T
 		t.Fatal(err)
 	}
 	cfg := ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]CommandSpec{"cursor189": spec}}
+	// No input RPC is sent for the still-unsupported task extension. The
+	// original Worker normally supplies this scope; this direct fixture owns it.
+	cfg.ToolInputClient = &Client{ProjectID: "owned-fixture190"}
 	cfg.ToolInventory = describeForTest(t, cfg)
 	if len(cfg.ToolInventory) != 1 || !cfg.ToolInventory[0].Available {
 		t.Fatal("owned Cursor inventory failed", cfg.ToolInventory)
@@ -104,7 +107,7 @@ func TestCursorUnsupportedRequestClosesForegroundWithoutFakeSuccess(t *testing.T
 	cfg.Journal = j
 	notice := false
 	cfg.ToolProgress = func(e tc.Event) error {
-		notice = notice || strings.Contains(e.Message, "Unsupported Cursor request: cursor/create_plan")
+		notice = notice || strings.Contains(e.Message, "Unsupported Cursor request: cursor/task")
 		return nil
 	}
 	started := time.Now()

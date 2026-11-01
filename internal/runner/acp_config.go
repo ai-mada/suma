@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -66,7 +67,7 @@ func validateACPExecutionSpec(spec CommandSpec) error {
 func ACPConfigurationDigest(spec ACPExecutionSpec) string {
 	policy := "minimal-os-existing-cli-login-explicit-credential-v1"
 	if spec.Runtime == "cursor" {
-		policy = "cursor-isolated-home-explicit-api-key-package-closure-v1"
+		policy = "cursor-isolated-home-explicit-api-key-package-closure-" + cu.InputProtocol
 	}
 	raw, _ := json.Marshal(struct {
 		Spec        ACPExecutionSpec `json:"spec"`

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
@@ -554,6 +555,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
+			if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
+				p.UserInputProtocol = cu.InputProtocol
+			}
 			p.TerminalSessionProtocol = terminalSessionProtocol(spec)
 			if spec.TaskConversationReply {
 				p.TaskConversationReply = &tc.TaskConversationReplyCapability{Protocol: tc.TaskConversationReplyProtocol}
@@ -611,6 +615,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			if err != nil {
 				fail(err.Error())
 				return
+			}
+			if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
+				o.Profile.UserInputProtocol = cu.InputProtocol
 			}
 			o.Profile.ClaudeExecution, err = localClaudeCapability(spec)
 			if err != nil {
@@ -776,6 +783,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if err != nil {
 			return p, "", err
 		}
+		if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
+			p.UserInputProtocol = cu.InputProtocol
+		}
 		p.TerminalSessionProtocol = terminalSessionProtocol(spec)
 		p.ClaudeExecution, err = localClaudeCapability(spec)
 		if err != nil {
@@ -848,6 +858,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		return p, "", fmt.Errorf("ACP fixed configuration differs from local inventory")
 	}
 	if spec.ACP != nil {
+		if spec.ACP.Runtime == "cursor" && p.UserInputProtocol != cu.InputProtocol || spec.ACP.Runtime == "qoder" && p.UserInputProtocol != "" {
+			return p, "", fmt.Errorf("ACP input protocol differs from current runtime")
+		}
 		version, versionErr := acpVersion(ctx, exe, spec, cfg.Secrets)
 		if versionErr != nil || version != p.ToolVersion {
 			return p, "", fmt.Errorf("ACP executable version changed before launch")

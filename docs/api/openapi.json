@@ -130,6 +130,13 @@
           },
           "tools_complete": {
             "type": "boolean"
+          },
+          "user_inputs": {
+            "items": {
+              "$ref": "#/components/schemas/CursorInputEvidence"
+            },
+            "maxItems": 32,
+            "type": "array"
           }
         },
         "required": [
@@ -10562,6 +10569,435 @@
         },
         "required": [
           "prompt"
+        ],
+        "type": "object"
+      },
+      "CursorAskQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/CursorQuestion"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          },
+          "tool_call_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_call_id",
+          "questions"
+        ],
+        "type": "object"
+      },
+      "CursorCreatePlan": {
+        "additionalProperties": false,
+        "description": "Complete original read-only plan. Accepted may write a private native HOME plan file; it is not a formal project baseline. Source canonical payload is limited to256KiB and SHA256-bound; no client-supplied URI.",
+        "properties": {
+          "is_project": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "overview": {
+            "type": "string"
+          },
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/CursorPlanPhase"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "plan": {
+            "maxLength": 131072,
+            "type": "string"
+          },
+          "todos": {
+            "items": {
+              "$ref": "#/components/schemas/CursorTodo"
+            },
+            "maxItems": 256,
+            "type": "array"
+          },
+          "tool_call_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_call_id",
+          "plan",
+          "todos",
+          "is_project"
+        ],
+        "type": "object"
+      },
+      "CursorInputDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/CursorInputSelection"
+            },
+            "type": "array"
+          },
+          "outcome": {
+            "enum": [
+              "answered",
+              "skipped",
+              "cancelled",
+              "accepted",
+              "rejected"
+            ],
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "CursorInputEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "input_id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "questions",
+              "plan"
+            ],
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolInputDeliveryObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "prompt_id": {
+            "$ref": "#/components/schemas/CursorRPCRequestID"
+          },
+          "question_count": {
+            "maximum": 16,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/CursorRPCRequestID"
+          },
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "input_id",
+          "request_id",
+          "prompt_id",
+          "session_id",
+          "method",
+          "configuration_sha256",
+          "params_sha256",
+          "kind",
+          "question_count"
+        ],
+        "type": "object"
+      },
+      "CursorInputNativeAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string"
+          },
+          "selectedOptionIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "questionId",
+          "selectedOptionIds"
+        ],
+        "type": "object"
+      },
+      "CursorInputNativeOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/CursorInputNativeAnswer"
+            },
+            "type": "array"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "CursorInputNativeResult": {
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/CursorInputNativeOutcome"
+          }
+        },
+        "required": [
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "CursorInputRequest": {
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "plan"
+              ]
+            },
+            "properties": {
+              "method": {
+                "const": "cursor/ask_question"
+              },
+              "questions": {
+                "$ref": "#/components/schemas/CursorAskQuestion"
+              }
+            },
+            "required": [
+              "questions"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "questions"
+              ]
+            },
+            "properties": {
+              "method": {
+                "const": "cursor/create_plan"
+              },
+              "plan": {
+                "$ref": "#/components/schemas/CursorCreatePlan"
+              }
+            },
+            "required": [
+              "plan"
+            ]
+          }
+        ],
+        "properties": {
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CursorCreatePlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prompt_id": {
+            "$ref": "#/components/schemas/CursorRPCRequestID"
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CursorAskQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/CursorRPCRequestID"
+          },
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "session_id",
+          "prompt_id",
+          "method",
+          "configuration_sha256",
+          "params_sha256"
+        ],
+        "type": "object"
+      },
+      "CursorInputSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "option_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "question_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "option_ids"
+        ],
+        "type": "object"
+      },
+      "CursorPlanPhase": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "todos": {
+            "items": {
+              "$ref": "#/components/schemas/CursorTodo"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "todos"
+        ],
+        "type": "object"
+      },
+      "CursorQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_multiple": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/CursorQuestionOption"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "type": "array"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "prompt",
+          "options",
+          "allow_multiple"
+        ],
+        "type": "object"
+      },
+      "CursorQuestionOption": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object"
+      },
+      "CursorRPCRequestID": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "string",
+              "number"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "value"
+        ],
+        "type": "object"
+      },
+      "CursorTodo": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "in_progress",
+              "completed",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "content",
+          "status"
         ],
         "type": "object"
       },
@@ -21220,7 +21656,7 @@
             "type": "string"
           },
           "observation": {
-            "$ref": "#/components/schemas/CodexUserInputObservation"
+            "$ref": "#/components/schemas/ToolInputDeliveryObservation"
           },
           "project_id": {
             "type": "string"
@@ -38532,8 +38968,11 @@
             "x-max-utf8-bytes": 256
           },
           "user_input_protocol": {
-            "const": "codex-user-input-v1",
-            "description": "Explicit local opt-in, supported only by writable Codex app-server profiles. Experimental native feature, default absent; not a permission grant.",
+            "description": "Exact writable runtime capability: explicit experimental Codex opt-in, or fixed Cursor ACP question/plan support. Never grants command permissions, task dispatch or formal baseline approval.",
+            "enum": [
+              "codex-user-input-v1",
+              "cursor-acp-input-v1"
+            ],
             "type": "string"
           },
           "workspace_tools_version": {
@@ -38595,7 +39034,7 @@
           "observation": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/CodexUserInputObservation"
+                "$ref": "#/components/schemas/ToolInputDeliveryObservation"
               },
               {
                 "type": "null"
@@ -38651,6 +39090,42 @@
       },
       "ToolInputAnswer": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "cursor"
+              ]
+            },
+            "properties": {
+              "answers": {
+                "items": {
+                  "$ref": "#/components/schemas/CodexUserInputSelection"
+                },
+                "maxItems": 3,
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "answers"
+            ]
+          },
+          {
+            "properties": {
+              "answers": {
+                "maxItems": 0,
+                "type": "array"
+              },
+              "cursor": {
+                "$ref": "#/components/schemas/CursorInputDecision"
+              }
+            },
+            "required": [
+              "cursor"
+            ]
+          }
+        ],
         "properties": {
           "actor_id": {
             "type": "string"
@@ -38666,10 +39141,19 @@
               "$ref": "#/components/schemas/CodexUserInputSelection"
             },
             "type": "array"
+          },
+          "cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CursorInputDecision"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "answers",
           "answer_sha256",
           "actor_id",
           "answered_at"
@@ -38678,12 +39162,58 @@
       },
       "ToolInputAnswerRequest": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "cursor"
+              ]
+            },
+            "properties": {
+              "answers": {
+                "items": {
+                  "$ref": "#/components/schemas/CodexUserInputSelection"
+                },
+                "maxItems": 3,
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "answers"
+            ]
+          },
+          {
+            "properties": {
+              "answers": {
+                "maxItems": 0,
+                "type": "array"
+              },
+              "cursor": {
+                "$ref": "#/components/schemas/CursorInputDecision"
+              }
+            },
+            "required": [
+              "cursor"
+            ]
+          }
+        ],
         "properties": {
           "answers": {
             "items": {
               "$ref": "#/components/schemas/CodexUserInputSelection"
             },
             "type": "array"
+          },
+          "cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CursorInputDecision"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "expected_version": {
             "type": "integer"
@@ -38698,8 +39228,52 @@
         "required": [
           "project_id",
           "expected_version",
-          "idempotency_key",
-          "answers"
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ToolInputDeliveryObservation": {
+        "additionalProperties": false,
+        "description": "Durable delivery facts. Execution closure is projected from each real runtime; a complete response write is not a native acceptance ACK. Cursor has no request-resolved acknowledgement.",
+        "properties": {
+          "answer_observed": {
+            "type": "boolean"
+          },
+          "answer_sha256": {
+            "type": "string"
+          },
+          "execution_closed": {
+            "type": "boolean"
+          },
+          "failure_code": {
+            "type": "string"
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "reply_started": {
+            "type": "boolean"
+          },
+          "reply_written": {
+            "type": "boolean"
+          },
+          "request_resolved": {
+            "type": "boolean"
+          },
+          "sequence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sequence",
+          "params_sha256",
+          "answer_observed",
+          "reply_started",
+          "reply_written",
+          "request_resolved",
+          "execution_closed"
         ],
         "type": "object"
       },
@@ -38717,7 +39291,8 @@
             "description": "Server-projected current protected profile capability; empty means not configured. Authorized history can remain readable. This is not liveness.",
             "enum": [
               "",
-              "codex-user-input-v1"
+              "codex-user-input-v1",
+              "cursor-acp-input-v1"
             ],
             "type": "string"
           }
@@ -38741,7 +39316,7 @@
             "type": "string"
           },
           "observation": {
-            "$ref": "#/components/schemas/CodexUserInputObservation"
+            "$ref": "#/components/schemas/ToolInputDeliveryObservation"
           },
           "project_id": {
             "type": "string"
@@ -38798,22 +39373,79 @@
       },
       "ToolInputRequest": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "cursor"
+              ]
+            },
+            "properties": {
+              "codex": {
+                "$ref": "#/components/schemas/CodexUserInputRequest"
+              },
+              "protocol": {
+                "const": "codex-app-server-v1"
+              }
+            },
+            "required": [
+              "codex"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "codex"
+              ]
+            },
+            "properties": {
+              "cursor": {
+                "$ref": "#/components/schemas/CursorInputRequest"
+              },
+              "protocol": {
+                "const": "acp-stdio-v1"
+              }
+            },
+            "required": [
+              "cursor"
+            ]
+          }
+        ],
         "properties": {
           "codex": {
-            "$ref": "#/components/schemas/CodexUserInputRequest"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexUserInputRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CursorInputRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "idempotency_key": {
             "type": "string"
           },
           "protocol": {
-            "const": "codex-app-server-v1",
+            "enum": [
+              "codex-app-server-v1",
+              "acp-stdio-v1"
+            ],
             "type": "string"
           }
         },
         "required": [
           "idempotency_key",
-          "protocol",
-          "codex"
+          "protocol"
         ],
         "type": "object"
       },
@@ -82984,7 +83616,7 @@
     },
     "/pool-runner/tool-inputs": {
       "post": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "post_pool-runner_tool-inputs",
         "parameters": [
           {
@@ -83142,7 +83774,7 @@
     },
     "/pool-runner/tool-inputs/observations": {
       "post": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "post_pool-runner_tool-inputs_observations",
         "parameters": [
           {
@@ -83300,7 +83932,7 @@
     },
     "/pool-runner/tool-inputs/poll": {
       "post": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "post_pool-runner_tool-inputs_poll",
         "parameters": [
           {
@@ -106521,7 +107153,7 @@
     },
     "/runner/tool-inputs": {
       "post": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "post_runner_tool-inputs",
         "parameters": [
           {
@@ -106679,7 +107311,7 @@
     },
     "/runner/tool-inputs/observations": {
       "post": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "post_runner_tool-inputs_observations",
         "parameters": [
           {
@@ -106837,7 +107469,7 @@
     },
     "/runner/tool-inputs/poll": {
       "post": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "post_runner_tool-inputs_poll",
         "parameters": [
           {
@@ -111482,7 +112114,7 @@
     },
     "/runs/{run}/nodes/{node}/tool-inputs": {
       "get": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "get_runs_run_nodes_node_tool-inputs",
         "parameters": [
           {
@@ -129244,7 +129876,7 @@
     },
     "/tool-inputs/{id}/answer": {
       "post": {
-        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
         "operationId": "post_tool-inputs_id_answer",
         "parameters": [
           {

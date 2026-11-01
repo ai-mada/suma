@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CURSOR-INPUTS-190：[限定报告](cursor-inputs-verification.md)／[摘要](cursor-inputs-summary.json)。原问题／多选与计划typed决定贯通原Server／SQLite／Worker／SDK／Journal／Git及独立测试和隔离账号验收，GUI中英代表状态单次收口；厂商账号／模型和完整平台继续单独验收。新增及受影响检查的实际命令、离线环境、原失败和证据摘要均保留，不重复未变全套。
+
 T-TURN-STEERING-188：[限定报告](turn-steering-verification.md)／[摘要](turn-steering-summary.json)。31不同定向／24Go子例，平台真实HTTP／SQLite、真实CLI＋自有模型、3合成组件交互分别留证；完整原文进入后续模型输入，0商业调用。原失败和1项Runtime P2修复保留，未重未变全套。
 
 T-TOOL-INPUTS-187：[限定报告](tool-inputs-verification.md)／[来源摘要](tool-inputs-summary.json)。43不同定向、30Go子例、真实HTTP／SQLite、真实CLI＋自有模型和3合成组件交互分别留证；0商业调用。原失败、类型纠正与3项P2修复保留，不重复未变全套。

@@ -29,7 +29,7 @@ const cursorReport=(row:unknown)=>({status:'observed',report:{protocol:'suma-ins
 it('routes only the implemented Cursor ACP descriptor and its exact current runtime inventory into configuration',()=>{
  const active={...cursorGuide,implementation:'implemented',setup_kind:'runner_profile',adapter:'cursor',protocol:'acp-stdio-v1'} as AdapterDescriptor;
  const capability={runtime:'cursor',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:'c'.repeat(64),model:'observed-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'explicit_api_key_env',permission_mode:'human_once'};
- const item={profile:{...profile,adapter:'cursor',protocol:'acp-stdio-v1',acp_execution:capability},available:true,reason:''};
+ const item={profile:{...profile,adapter:'cursor',protocol:'acp-stdio-v1',user_input_protocol:'cursor-acp-input-v1',acp_execution:capability},available:true,reason:''};
  expect(quickConnectAdapters([adapter,cursorGuide,active])).toEqual([adapter,active]);expect(isCursorConnectionGuide(active)).toBe(false);expect(matchingQuickTools([item],active)).toEqual([item]);
  for(const patch of [{adapter:'qoder'},{protocol:'codex-jsonl-v1'},{product:'Other'},{direction:'tool_to_suma'},{implementation:'planned'},{setup_kind:'manual_guide'}])expect(quickConnectAdapters([{...active,...patch} as AdapterDescriptor])).toEqual([]);
  for(const patch of [{runtime:'qoder'},{auth_strategy:'existing_cli_login'}])expect(matchingQuickTools([{...item,profile:{...item.profile,acp_execution:{...capability,...patch}}}],active)).toEqual([]);

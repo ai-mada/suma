@@ -3,32 +3,33 @@ package platform
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	delivery "github.com/ai-mada/suma/internal/inputdelivery"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
 )
 
-func toolInputObservationAdvances(old *cc.CodexUserInputObservation, next cc.CodexUserInputObservation) bool {
-	if cc.ValidateUserInputObservation(next) != nil {
+func toolInputObservationAdvances(old *delivery.Observation, next delivery.Observation) bool {
+	if delivery.Validate(next) != nil {
 		return false
 	}
 	if old == nil {
 		return true
 	}
-	return next.Sequence > old.Sequence && next.ParamsSHA256 == old.ParamsSHA256 && (!old.AnswerObserved || next.AnswerObserved) && (old.AnswerSHA256 == "" || old.AnswerSHA256 == next.AnswerSHA256) && (!old.ReplyStarted || next.ReplyStarted) && (!old.ReplyWritten || next.ReplyWritten) && (!old.RequestResolved || next.RequestResolved) && (!old.TurnClosed || next.TurnClosed) && (old.FailureCode == "" || old.FailureCode == next.FailureCode) && (!toolInputEnded(old) || old.ReplyStarted || !next.ReplyStarted)
+	return next.Sequence > old.Sequence && next.ParamsSHA256 == old.ParamsSHA256 && (!old.AnswerObserved || next.AnswerObserved) && (old.AnswerSHA256 == "" || old.AnswerSHA256 == next.AnswerSHA256) && (!old.ReplyStarted || next.ReplyStarted) && (!old.ReplyWritten || next.ReplyWritten) && (!old.RequestResolved || next.RequestResolved) && (!old.ExecutionClosed || next.ExecutionClosed) && (old.FailureCode == "" || old.FailureCode == next.FailureCode) && (!toolInputEnded(old) || old.ReplyStarted || !next.ReplyStarted)
 }
 
-func (s *Service) ObserveToolInput(ctx context.Context, actor Actor, project string, a dag.Assignment, id, key string, o cc.CodexUserInputObservation) (ic.ToolInput, error) {
+func (s *Service) ObserveToolInput(ctx context.Context, actor Actor, project string, a dag.Assignment, id, key string, o delivery.Observation) (ic.ToolInput, error) {
 	return s.observeToolInput(ctx, actor, "", project, a, id, key, o)
 }
-func (s *Service) ObservePoolToolInput(ctx context.Context, token, project string, a dag.Assignment, id, key string, o cc.CodexUserInputObservation) (ic.ToolInput, error) {
+func (s *Service) ObservePoolToolInput(ctx context.Context, token, project string, a dag.Assignment, id, key string, o delivery.Observation) (ic.ToolInput, error) {
 	return s.observeToolInput(ctx, Actor{}, token, project, a, id, key, o)
 }
-func (s *Service) observeToolInput(ctx context.Context, actor Actor, token, project string, a dag.Assignment, id, key string, o cc.CodexUserInputObservation) (out ic.ToolInput, err error) {
-	if !handoffID(project, false) || a.ProjectID != project || !handoffID(a.TenantID, false) || !handoffID(id, false) || !planningKey(key) || cc.ValidateUserInputObservation(o) != nil {
+func (s *Service) observeToolInput(ctx context.Context, actor Actor, token, project string, a dag.Assignment, id, key string, o delivery.Observation) (out ic.ToolInput, err error) {
+	if !handoffID(project, false) || a.ProjectID != project || !handoffID(a.TenantID, false) || !handoffID(id, false) || !planningKey(key) || delivery.Validate(o) != nil {
 		return out, invalid(toolInputInvalid)
 	}
 	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
@@ -55,13 +56,13 @@ func (s *Service) observeToolInput(ctx context.Context, actor Actor, token, proj
 	hash, replay, err := s.candidateReceipt(ctx, authority, key, struct {
 		Kind, InputID string
 		Assignment    dag.Assignment
-		Observation   cc.CodexUserInputObservation
-	}{"tool_input_observation", id, a, o})
+		Observation   any
+	}{"tool_input_observation", id, a, toolInputNativeObservation(r.value.Request, &o)})
 	if err != nil {
 		return out, err
 	}
 	if replay {
-		if json.Unmarshal([]byte(hash), &out) != nil || out.ID != id || !toolInputSameSource(out, a) || out.Observation == nil || stringify(*out.Observation) != stringify(o) {
+		if decodeToolInputStorage(hash, &out) != nil || out.ID != id || !toolInputSameSource(out, a) || out.Observation == nil || stringify(*out.Observation) != stringify(o) {
 			return ic.ToolInput{}, conflict(toolInputChanged)
 		}
 		return out, nil
@@ -72,7 +73,7 @@ func (s *Service) observeToolInput(ctx context.Context, actor Actor, token, proj
 	if b.state != "running" || b.runState != "running" && b.runState != "paused" || b.attempt != a.Attempt || b.fence != a.Fence || b.worker != a.WorkerID || b.lease <= now.Unix() || b.deadline <= now.Unix() {
 		return out, conflict(toolInputChanged)
 	}
-	if o.ParamsSHA256 != r.value.Request.Codex.ParamsSHA256 || !toolInputObservationAdvances(r.value.Observation, o) || o.AnswerObserved && (r.value.Answer == nil || r.value.Answer.AnswerSHA256 != o.AnswerSHA256) {
+	if o.ParamsSHA256 != ic.ParamsSHA256(r.value.Request) || r.value.Request.Cursor != nil && o.RequestResolved || !toolInputObservationAdvances(r.value.Observation, o) || o.AnswerObserved && (r.value.Answer == nil || r.value.Answer.AnswerSHA256 != o.AnswerSHA256) {
 		return out, conflict(toolInputChanged)
 	}
 	// Native closure can beat the human answer. Once observed, a later packet
@@ -98,7 +99,7 @@ func (s *Service) observeToolInput(ctx context.Context, actor Actor, token, proj
 	if err = s.toolInputSaveTx(ctx, tx, r, before); err != nil {
 		return out, err
 	}
-	if err = s.saveCandidateReceipt(ctx, authority, key, hash, r.value); err != nil {
+	if err = s.saveCandidateReceipt(ctx, authority, key, hash, toolInputStorageValue(r.value)); err != nil {
 		return out, err
 	}
 	return r.value, tx.Commit()
@@ -106,13 +107,34 @@ func (s *Service) observeToolInput(ctx context.Context, actor Actor, token, proj
 
 func toolInputEvidenceMatches(r ic.ToolInput, e cc.CodexUserInputEvidence) bool {
 	s := r.Request.Codex
-	return cc.ValidateUserInputEvidence(e) == nil && e.InputID == r.ID && stringify(e.RequestID) == stringify(s.RequestID) && e.Method == s.Method && e.ThreadID == s.ThreadID && e.TurnID == s.TurnID && e.ItemID == s.ItemID && e.BindingSHA256 == s.BindingSHA256 && e.ParamsSHA256 == s.ParamsSHA256 && e.QuestionCount == len(s.Questions) && e.IsBlocking == s.IsBlocking && stringify(e.Observation) == stringify(r.Observation)
+	var observation *delivery.Observation
+	if e.Observation != nil {
+		value := ic.FromCodexObservation(*e.Observation)
+		observation = &value
+	}
+	return s != nil && cc.ValidateUserInputEvidence(e) == nil && e.InputID == r.ID && stringify(e.RequestID) == stringify(s.RequestID) && e.Method == s.Method && e.ThreadID == s.ThreadID && e.TurnID == s.TurnID && e.ItemID == s.ItemID && e.BindingSHA256 == s.BindingSHA256 && e.ParamsSHA256 == s.ParamsSHA256 && e.QuestionCount == len(s.Questions) && e.IsBlocking == s.IsBlocking && stringify(observation) == stringify(r.Observation)
 }
 
-func (s *Service) validateCodexUserInputResultTx(ctx context.Context, tx *sql.Tx, tenant, project string, result dag.Result) error {
+func cursorToolInputEvidenceMatches(r ic.ToolInput, e cu.CursorInputEvidence) bool {
+	s := r.Request.Cursor
+	if s == nil || cu.ValidateEvidence(e) != nil {
+		return false
+	}
+	kind, count := "plan", 0
+	if s.Questions != nil {
+		kind, count = "questions", len(s.Questions.Questions)
+	}
+	return e.InputID == r.ID && e.RequestID == s.RequestID && e.PromptID == s.PromptID && e.SessionID == s.SessionID && e.Method == s.Method && e.ConfigurationSHA256 == s.ConfigurationSHA256 && e.ParamsSHA256 == s.ParamsSHA256 && e.Kind == kind && e.QuestionCount == count && stringify(e.Observation) == stringify(r.Observation)
+}
+
+func (s *Service) validateToolInputResultTx(ctx context.Context, tx *sql.Tx, tenant, project string, result dag.Result) error {
 	var proofs []cc.CodexUserInputEvidence
+	var cursorProofs []cu.CursorInputEvidence
 	if result.ToolEvidence != nil && result.ToolEvidence.CodexExecution != nil {
 		proofs = result.ToolEvidence.CodexExecution.UserInputs
+	}
+	if result.ToolEvidence != nil && result.ToolEvidence.ACPExecution != nil {
+		cursorProofs = result.ToolEvidence.ACPExecution.UserInputs
 	}
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tool_inputs WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=? ORDER BY id LIMIT 33`), tenant, project, result.RunID, result.NodeID, result.Attempt, result.Fence, result.WorkerID)
 	if err != nil {
@@ -133,7 +155,7 @@ func (s *Service) validateCodexUserInputResultTx(ctx context.Context, tx *sql.Tx
 	if err != nil {
 		return err
 	}
-	if len(ids) > 32 || len(proofs) > 32 {
+	if len(ids) > 32 || len(proofs)+len(cursorProofs) > 32 {
 		return invalid(toolInputInvalid)
 	}
 	stored := map[string]toolInputRow{}
@@ -165,7 +187,22 @@ func (s *Service) validateCodexUserInputResultTx(ctx context.Context, tx *sql.Tx
 			return invalid(toolInputInvalid)
 		}
 		seen[e.InputID] = true
-		o := e.Observation
+		o := r.value.Observation
+		if success && (o == nil || !toolInputEnded(o) || o.ReplyStarted && (!o.ReplyWritten || o.FailureCode != "")) {
+			return invalid(toolInputInvalid)
+		}
+	}
+	for _, evidence := range cursorProofs {
+		r, ok := stored[evidence.InputID]
+		if !ok || seen[evidence.InputID] || !cursorToolInputEvidenceMatches(r.value, evidence) || result.ToolEvidence == nil || result.ToolEvidence.ACPExecution == nil || !tc.EqualProfile(r.profile, result.ToolEvidence.Profile) {
+			return invalid(toolInputInvalid)
+		}
+		configuration := result.ToolEvidence.ACPExecution
+		if configuration.ConfigurationSHA256 != evidence.ConfigurationSHA256 || configuration.SessionID != evidence.SessionID {
+			return invalid(toolInputInvalid)
+		}
+		seen[evidence.InputID] = true
+		o := r.value.Observation
 		if success && (o == nil || !toolInputEnded(o) || o.ReplyStarted && (!o.ReplyWritten || o.FailureCode != "")) {
 			return invalid(toolInputInvalid)
 		}

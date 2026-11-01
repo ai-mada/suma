@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import {ChevronDown,MessageSquare,RefreshCw} from 'lucide-react';
-import type {CodexUserInputSelection,ToolInput} from '../../../packages/contracts/src';
+import type {ToolInput} from '../../../packages/contracts/src';
 import {ApiError,operation} from './api';
 import {useApi,useApiView} from './api-context';
 import {formatNumber,tr,UiError,useLocale} from './i18n';
@@ -8,10 +8,10 @@ import {ErrorNotice} from './ui';
 import {toolSessionStorage} from './tool-hooks';
 import {useWriteAction,WriteNotice} from './write-action';
 import {ToolInputCard} from './ToolInputCard';
-import {buildToolInputIntent,canAnswerToolInput,readToolInputList,toolInputListPath,toolInputMatchesIntent,toolInputRecoveryScope,validToolInputAnswers,validToolInputIntent,validToolInputReceipt,validToolInputRecovery,type ToolInputIntent,type ToolInputScope} from './tool-input-model';
+import {buildToolInputAnswerBody,buildToolInputIntent,canAnswerToolInput,readToolInputList,toolInputListPath,toolInputMatchesIntent,toolInputRecoveryScope,validToolInputIntent,validToolInputReceipt,validToolInputRecovery,type ToolInputIntent,type ToolInputScope,type ToolInputSubmission} from './tool-input-model';
 import './ToolInputPanel.css';
 
-export type ToolInputPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;state?:string;revision?:number;readOnly?:boolean;onChanged?:()=>void|Promise<void>};
+export type ToolInputPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;protocol:'codex-app-server-v1'|'acp-stdio-v1';state?:string;revision?:number;readOnly?:boolean;onChanged?:()=>void|Promise<void>};
 type Snapshot={key:string;protocol:string;items:ToolInput[];loading:boolean;loaded?:boolean;error?:unknown;denied?:boolean};
 type IntentState={intent?:ToolInputIntent;error?:unknown};
 const t=(key:string,values?:Record<string,unknown>)=>tr('tool-inputs.'+key,values);
@@ -22,18 +22,18 @@ const readKey=(scope:ToolInputScope)=>JSON.stringify([toolInputRecoveryScope(sco
 function readIntent(storage:ReturnType<typeof toolSessionStorage>,key:string,scope:ToolInputScope):IntentState{
  try{
   if(!storage)throw new Error();const raw=storage.getItem(key);if(!raw)return {};
-  if(new TextEncoder().encode(raw).length>65536)throw new Error();const value:unknown=JSON.parse(raw);
+  if(new TextEncoder().encode(raw).length>1024*1024)throw new Error();const value:unknown=JSON.parse(raw);
   if(!validToolInputIntent(value,scope))throw new Error();return {intent:value};
  }catch{return {error:new UiError('tool-inputs.intent_unavailable')};}
 }
 
 /** One current-node reader owns all questions. Answer persistence, native
- * delivery and original-turn completion remain separate observed facts. */
+ * delivery and original-execution closure remain separate observed facts. */
 export function ToolInputPanel(props:ToolInputPanelProps){
  const api=useApi(),view=useApiView(),owner=useRef({api,epoch:0});
  if(owner.current.api!==api)owner.current={api,epoch:owner.current.epoch+1};
  if(!view?.userID||!view.organizationID)return null;
- const scope:ToolInputScope={project:props.project,runID:props.runID,nodeID:props.nodeID,attempt:props.attempt,fence:props.fence,protocol:'codex-app-server-v1',userID:view?.userID||'',organizationID:view?.organizationID||''};
+ const scope:ToolInputScope={project:props.project,runID:props.runID,nodeID:props.nodeID,attempt:props.attempt,fence:props.fence,protocol:props.protocol,userID:view?.userID||'',organizationID:view?.organizationID||''};
  return <InputController key={JSON.stringify([toolInputRecoveryScope(scope),owner.current.epoch])} {...props} scope={scope}/>;
 }
 
@@ -85,7 +85,7 @@ function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInp
  const readNow=useRef(read);readNow.current=read;
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;++generation.current;controller.current?.abort();flight.current=undefined;};},[]);
  useEffect(()=>{void read();},[read,revision,effectiveKey]);
- const historical=readOnly||!!state&&!activeStates.has(state)||effectiveScope.attempt!==scope.attempt||effectiveScope.fence!==scope.fence,capable=visible.protocol==='codex-user-input-v1';
+ const historical=readOnly||!!state&&!activeStates.has(state)||effectiveScope.attempt!==scope.attempt||effectiveScope.fence!==scope.fence,capable=visible.protocol===(effectiveScope.protocol==='codex-app-server-v1'?'codex-user-input-v1':'cursor-acp-input-v1');
  useEffect(()=>{
   if(historical||!activeStates.has(state||'')||!capable||visible.denied||visible.error||backgroundPaused)return;
   const timer=window.setInterval(()=>{
@@ -106,14 +106,15 @@ function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInp
   if(original&&(!restored.intent||canonical(original)!==canonical(restored.intent)))setIntent({intent:original,error:new UiError('tool-inputs.intent_unavailable')});else setIntent(restored);
   const ready=await readNow.current();if(ready&&writeDenied)action.setError('');return ready;
  }
- async function answer(input?:ToolInput,answers?:CodexUserInputSelection[]){
+ async function answer(input?:ToolInput,submission?:ToolInputSubmission){
   const gate=commandGate.current;
   if(!alive.current||owner.current!==api||commandBusy.current||gate.denied||gate.intentUnavailable)return;
   let original=intent.current;
   if(original&&(!gate.recoveryInput||gate.loading||gate.error||!gate.requestMatches))return;
   if(!original){
-   if(!input||!answers||gate.locked||readKey(scope)!==readKey(liveScope.current)||current.current.key!==readKey(scope)||!current.current.items.some(row=>row===input)||input.id===retired.current?.input_id||input.attempt!==scope.attempt||input.fence!==scope.fence||!canAnswerToolInput(input)||!validToolInputAnswers(input.request,answers))return;
-   const key=operation();original=buildToolInputIntent(input,scope,{path:'/tool-inputs/'+encodeURIComponent(input.id)+'/answer',method:'POST',idempotency_key:key,body:{project_id:scope.project,expected_version:input.version,idempotency_key:key,answers}});
+   if(!input||!submission||gate.locked||readKey(scope)!==readKey(liveScope.current)||current.current.key!==readKey(scope)||!current.current.items.some(row=>row===input)||input.id===retired.current?.input_id||input.attempt!==scope.attempt||input.fence!==scope.fence||!canAnswerToolInput(input))return;
+   const key=operation(),body=buildToolInputAnswerBody(input,scope,submission,key);if(!body)return;
+   original=buildToolInputIntent(input,scope,{path:'/tool-inputs/'+encodeURIComponent(input.id)+'/answer',method:'POST',idempotency_key:key,body});
    if(!original)return;
    try{if(!storage)throw new Error();storage.setItem(intentKey,JSON.stringify(original));setIntent({intent:original});}
    catch{setIntent({error:new UiError('tool-inputs.intent_unavailable')});action.setError(new UiError('tool-inputs.intent_unavailable'));return;}
@@ -143,9 +144,9 @@ function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInp
    {hasRecovery&&<div className="tool-input-panel-recovery"><p role="status">{t('original_pending')}</p><button type="button" data-tool-input-recover disabled={action.busy||intentUnavailable||!recoveryInput||visible.loading||!!visible.error} onClick={()=>void answer()}>{t('recover')}</button></div>}
    {!!visible.error&&<ErrorNotice error={visible.error}/>}{backgroundPaused&&<p className="tool-input-panel-note" role="status">{t('background_paused')}</p>}
    <div id={panelID} hidden={!open} className="tool-input-panel-body" aria-busy={visible.loading}>
-    <p className="tool-input-panel-note">{t('experimental')}</p>{historical&&<p className="tool-input-panel-note">{t('historical_readonly')}</p>}{!capable&&!!visible.items.length&&<p className="tool-input-panel-note">{t('capability_disabled')}</p>}
+    {effectiveScope.protocol==='codex-app-server-v1'&&<p className="tool-input-panel-note">{t('experimental')}</p>}{historical&&<p className="tool-input-panel-note">{t('historical_readonly')}</p>}{!capable&&!!visible.items.length&&<p className="tool-input-panel-note">{t('capability_disabled')}</p>}
     {visible.loading&&!visible.loaded&&<p role="status">{t('loading')}</p>}{visible.loaded&&!visible.items.length&&<p className="tool-input-panel-note">{t('empty')}</p>}
-    {visible.items.map(input=><ToolInputCard key={input.id} input={input} readOnly={historical||!capable||input.attempt!==scope.attempt||input.fence!==scope.fence||input.id===retired.current?.input_id} disabled={!!locked||!canAnswerToolInput(input)} onAnswer={answers=>void answer(input,answers)}/>)}
+    {visible.items.map(input=><ToolInputCard key={input.id} input={input} readOnly={historical||!capable||input.attempt!==scope.attempt||input.fence!==scope.fence||input.id===retired.current?.input_id} disabled={!!locked||!canAnswerToolInput(input)} onAnswer={submission=>void answer(input,submission)}/>)}
    </div>
   </>}
  </section>;

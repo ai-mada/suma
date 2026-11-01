@@ -11,10 +11,13 @@ import (
 	"time"
 
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	delivery "github.com/ai-mada/suma/internal/inputdelivery"
 	"github.com/ai-mada/suma/internal/store"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
+	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
 )
 
 const toolInputInvalid = "Invalid tool input request"
@@ -95,6 +98,20 @@ type toolInputRow struct {
 func (toolInputRow) Format(s fmt.State, _ rune) { _, _ = io.WriteString(s, "toolInputRow{redacted}") }
 
 func toolInputSourceDigests(r ic.ToolInputRequest) (string, string) {
+	if r.Cursor != nil && r.Codex == nil {
+		// ACP tool-call IDs and client Prompt IDs are not server RPC IDs.
+		// The two Cursor methods share one server-request namespace.
+		return digest(stringify(struct {
+				Protocol, Runtime, Direction, Session string
+				Prompt                                cu.CursorRPCRequestID
+			}{r.Protocol, "cursor", "server_request", r.Cursor.SessionID, r.Cursor.PromptID})), digest(stringify(struct {
+				Protocol, Runtime, Direction string
+				ID                           cu.CursorRPCRequestID
+			}{r.Protocol, "cursor", "server_request", r.Cursor.RequestID}))
+	}
+	if r.Codex == nil {
+		return "", ""
+	}
 	return digest(stringify([]string{r.Protocol, r.Codex.ThreadID})), digest(stringify(struct {
 		Protocol string               `json:"protocol"`
 		ID       cc.CodexRPCRequestID `json:"id"`
@@ -109,9 +126,69 @@ func toolInputRequestHash(a dag.Assignment, r ic.ToolInputRequest) string {
 func toolInputSameSource(v ic.ToolInput, a dag.Assignment) bool {
 	return v.RunID == a.RunID && v.NodeID == a.NodeID && v.Attempt == a.Attempt && v.Fence == a.Fence && v.WorkerID == a.WorkerID && v.DispatchID == a.DispatchID
 }
+
+// Storage and immutable receipts preserve each real protocol's observation.
+// The API projects the native Codex turn closure into the shared domain;
+// Cursor stores only the domain facts its ACP execution can actually observe.
+type toolInputStored struct {
+	ic.ToolInput
+	Observation json.RawMessage `json:"observation,omitempty"`
+}
+
+func toolInputNativeObservation(request ic.ToolInputRequest, observation *delivery.Observation) any {
+	if observation == nil {
+		return nil
+	}
+	if request.Codex != nil && request.Cursor == nil {
+		return ic.ToCodexObservation(*observation)
+	}
+	return *observation
+}
+
+func toolInputStorageValue(value ic.ToolInput) toolInputStored {
+	stored := toolInputStored{ToolInput: value}
+	if value.Observation != nil {
+		stored.Observation, _ = json.Marshal(toolInputNativeObservation(value.Request, value.Observation))
+	}
+	return stored
+}
+
+func decodeToolInputStorage(raw string, value *ic.ToolInput) error {
+	var stored toolInputStored
+	if json.Unmarshal([]byte(raw), &stored) != nil || ic.ValidateRequest(stored.Request) != nil {
+		return conflict(toolInputChanged)
+	}
+	*value = stored.ToolInput
+	if len(stored.Observation) != 0 {
+		if value.Request.Codex != nil {
+			var native cc.CodexUserInputObservation
+			if woc.Decode(stored.Observation, &native) != nil || cc.ValidateUserInputObservation(native) != nil {
+				return conflict(toolInputChanged)
+			}
+			projected := ic.FromCodexObservation(native)
+			value.Observation = &projected
+		} else {
+			var observed delivery.Observation
+			if woc.Decode(stored.Observation, &observed) != nil {
+				return conflict(toolInputChanged)
+			}
+			value.Observation = &observed
+		}
+	}
+	if ic.ValidateInput(*value) != nil {
+		return conflict(toolInputChanged)
+	}
+	return nil
+}
 func toolInputMatchesBasis(r ic.ToolInputRequest, b toolPermissionBasis) bool {
+	if ic.ValidateRequest(r) != nil {
+		return false
+	}
+	if r.Cursor != nil {
+		return toolInputProfileProtocol(b.node, b.profile) == cu.InputProtocol && b.profile.Profile.ACPExecution != nil && r.Cursor.ConfigurationSHA256 == b.profile.Profile.ACPExecution.ConfigurationSHA256
+	}
 	binding, err := dag.CodexBinding(b.node)
-	return ic.ValidateRequest(r) == nil && b.profile.Profile.Protocol == cc.Protocol && b.profile.Profile.UserInputProtocol == cc.UserInputProtocol && err == nil && binding != nil && binding.BindingSHA256 == r.Codex.BindingSHA256
+	return r.Codex != nil && toolInputProfileProtocol(b.node, b.profile) == cc.UserInputProtocol && err == nil && binding != nil && binding.BindingSHA256 == r.Codex.BindingSHA256
 }
 
 func (s *Service) toolInputReadTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (r toolInputRow, err error) {
@@ -125,7 +202,7 @@ func (s *Service) toolInputReadTx(ctx context.Context, tx *sql.Tx, tenant, proje
 	if err != nil {
 		return r, err
 	}
-	if json.Unmarshal([]byte(raw), &r.value) != nil || ic.ValidateInput(r.value) != nil || json.Unmarshal([]byte(assignment), &r.assignment) != nil || json.Unmarshal([]byte(profile), &r.profile) != nil || r.value.ID != id || r.value.ProjectID != project || r.value.Version != version || r.value.State != state || r.value.ExpiresAt != expires || r.value.Request.IdempotencyKey != operation || r.value.ProfileSHA256 != r.profile.ProfileSHA256 || !toolInputSameSource(r.value, r.assignment) || !toolInputSameSource(source, r.assignment) || r.requestHash != toolInputRequestHash(r.assignment, r.value.Request) {
+	if decodeToolInputStorage(raw, &r.value) != nil || json.Unmarshal([]byte(assignment), &r.assignment) != nil || json.Unmarshal([]byte(profile), &r.profile) != nil || r.value.ID != id || r.value.ProjectID != project || r.value.Version != version || r.value.State != state || r.value.ExpiresAt != expires || r.value.Request.IdempotencyKey != operation || r.value.ProfileSHA256 != r.profile.ProfileSHA256 || !toolInputSameSource(r.value, r.assignment) || !toolInputSameSource(source, r.assignment) || r.requestHash != toolInputRequestHash(r.assignment, r.value.Request) {
 		return r, conflict(toolInputChanged)
 	}
 	a, b := toolInputSourceDigests(r.value.Request)
@@ -142,15 +219,15 @@ func (s *Service) toolInputSaveTx(ctx context.Context, tx *sql.Tx, r toolInputRo
 	}
 	if before == 0 {
 		sessionSHA, requestSHA := toolInputSourceDigests(r.value.Request)
-		_, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_tool_inputs(`+toolInputColumns+`)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`), r.value.ID, r.tenant, r.value.ProjectID, r.value.RunID, r.value.NodeID, r.value.Attempt, r.value.Fence, r.value.WorkerID, r.value.DispatchID, r.profileID, r.profileVersion, stringify(r.profile), r.value.Request.IdempotencyKey, r.requestHash, sessionSHA, requestSHA, r.value.Version, r.value.State, r.value.ExpiresAt, stringify(r.assignment), stringify(r.value))
+		_, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_tool_inputs(`+toolInputColumns+`)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`), r.value.ID, r.tenant, r.value.ProjectID, r.value.RunID, r.value.NodeID, r.value.Attempt, r.value.Fence, r.value.WorkerID, r.value.DispatchID, r.profileID, r.profileVersion, stringify(r.profile), r.value.Request.IdempotencyKey, r.requestHash, sessionSHA, requestSHA, r.value.Version, r.value.State, r.value.ExpiresAt, stringify(r.assignment), stringify(toolInputStorageValue(r.value)))
 		return err
 	}
-	result, err := tx.ExecContext(ctx, s.q(`UPDATE suma_tool_inputs SET version=?,state=?,payload=? WHERE tenant_id=? AND project_id=? AND id=? AND version=?`), r.value.Version, r.value.State, stringify(r.value), r.tenant, r.value.ProjectID, r.value.ID, before)
+	result, err := tx.ExecContext(ctx, s.q(`UPDATE suma_tool_inputs SET version=?,state=?,payload=? WHERE tenant_id=? AND project_id=? AND id=? AND version=?`), r.value.Version, r.value.State, stringify(toolInputStorageValue(r.value)), r.tenant, r.value.ProjectID, r.value.ID, before)
 	return cloudCAS(result, err)
 }
 
-func toolInputEnded(o *cc.CodexUserInputObservation) bool {
-	return o != nil && (o.RequestResolved || o.TurnClosed)
+func toolInputEnded(o *delivery.Observation) bool {
+	return o != nil && (o.RequestResolved || o.ExecutionClosed)
 }
 func toolInputEffective(r toolInputRow, b toolPermissionBasis, now time.Time) ic.ToolInput {
 	v := r.value
