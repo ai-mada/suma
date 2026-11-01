@@ -69,5 +69,9 @@
  "tool-inputs.native_todo.pending":"工具状态：待开始",
  "tool-inputs.native_todo.in_progress":"工具状态：进行中",
  "tool-inputs.native_todo.completed":"工具状态：已完成",
- "tool-inputs.native_todo.cancelled":"工具状态：已取消"
+ "tool-inputs.native_todo.cancelled":"工具状态：已取消",
+ "tool-inputs.claude_questions_title":"Claude Agent SDK · 问题确认",
+ "tool-inputs.claude_boundary":"回答仅补充到本次原 SDK 回调，不授予命令或文件权限，也不代表执行已继续成功。",
+ "tool-inputs.claude_platform_ids":"问题与选项编号由平台按原输入顺序生成，不是 SDK 报告的原生 ID。原问题、选项和说明保持完整。",
+ "tool-inputs.delivery.claude_written":"答复已完整写入本机 SDK 宿主；这不是供应方接受确认，也不代表执行已继续成功。"
 }

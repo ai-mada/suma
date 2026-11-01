@@ -11,7 +11,7 @@ import {ToolInputCard} from './ToolInputCard';
 import {buildToolInputAnswerBody,buildToolInputIntent,canAnswerToolInput,readToolInputList,toolInputListPath,toolInputMatchesIntent,toolInputRecoveryScope,validToolInputIntent,validToolInputReceipt,validToolInputRecovery,type ToolInputIntent,type ToolInputScope,type ToolInputSubmission} from './tool-input-model';
 import './ToolInputPanel.css';
 
-export type ToolInputPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;protocol:'codex-app-server-v1'|'acp-stdio-v1';state?:string;revision?:number;readOnly?:boolean;onChanged?:()=>void|Promise<void>};
+export type ToolInputPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;protocol:'codex-app-server-v1'|'acp-stdio-v1'|'claude-sdk-v1';state?:string;revision?:number;readOnly?:boolean;onChanged?:()=>void|Promise<void>};
 type Snapshot={key:string;protocol:string;items:ToolInput[];loading:boolean;loaded?:boolean;error?:unknown;denied?:boolean};
 type IntentState={intent?:ToolInputIntent;error?:unknown};
 const t=(key:string,values?:Record<string,unknown>)=>tr('tool-inputs.'+key,values);
@@ -85,7 +85,7 @@ function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInp
  const readNow=useRef(read);readNow.current=read;
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;++generation.current;controller.current?.abort();flight.current=undefined;};},[]);
  useEffect(()=>{void read();},[read,revision,effectiveKey]);
- const historical=readOnly||!!state&&!activeStates.has(state)||effectiveScope.attempt!==scope.attempt||effectiveScope.fence!==scope.fence,capable=visible.protocol===(effectiveScope.protocol==='codex-app-server-v1'?'codex-user-input-v1':'cursor-acp-input-v1');
+ const historical=readOnly||!!state&&!activeStates.has(state)||effectiveScope.attempt!==scope.attempt||effectiveScope.fence!==scope.fence,capable=visible.protocol===({'codex-app-server-v1':'codex-user-input-v1','acp-stdio-v1':'cursor-acp-input-v1','claude-sdk-v1':'claude-sdk-input-v1'} as const)[effectiveScope.protocol];
  useEffect(()=>{
   if(historical||!activeStates.has(state||'')||!capable||visible.denied||visible.error||backgroundPaused)return;
   const timer=window.setInterval(()=>{

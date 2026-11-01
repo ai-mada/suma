@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
@@ -53,6 +54,9 @@ func toolInputProfileProtocol(node dag.Node, profile ToolProfile) string {
 	}
 	if profile.Profile.Adapter == "cursor" && profile.Profile.UserInputProtocol == cu.InputProtocol && acpNodeMatchesProfile(node, profile) {
 		return cu.InputProtocol
+	}
+	if profile.Profile.UserInputProtocol == cl.InputProtocol && supportsClaudeSDKExecution(profile) && claudeSDKNodeMatchesProfile(node, profile) {
+		return cl.InputProtocol
 	}
 	return ""
 }
@@ -196,7 +200,7 @@ func (s *Service) AnswerToolInput(ctx context.Context, actor Actor, id string, r
 		return out, err
 	}
 	defer close()
-	answerSHA, err := ic.AnswerDigest(r.value.Request, request.Answers, request.Cursor)
+	answerSHA, err := ic.AnswerDigest(r.value.Request, request.Answers, request.Cursor, request.Claude)
 	if err != nil {
 		return out, invalid(toolInputInvalid)
 	}
@@ -208,7 +212,7 @@ func (s *Service) AnswerToolInput(ctx context.Context, actor Actor, id string, r
 		return out, err
 	}
 	if replay {
-		if decodeToolInputStorage(hash, &out) != nil || out.ID != id || out.Answer == nil || out.Answer.ActorID != auth.currentPrincipal.ID || out.Answer.AnswerSHA256 != answerSHA || r.value.Request.Codex != nil && stringify(out.Answer.Answers) != stringify(request.Answers) || stringify(out.Answer.Cursor) != stringify(request.Cursor) {
+		if decodeToolInputStorage(hash, &out) != nil || out.ID != id || out.Answer == nil || out.Answer.ActorID != auth.currentPrincipal.ID || out.Answer.AnswerSHA256 != answerSHA || r.value.Request.Codex != nil && stringify(out.Answer.Answers) != stringify(request.Answers) || stringify(out.Answer.Cursor) != stringify(request.Cursor) || stringify(out.Answer.Claude) != stringify(request.Claude) {
 			return ic.ToolInput{}, conflict(toolInputChanged)
 		}
 		return out, nil
@@ -243,7 +247,7 @@ func (s *Service) AnswerToolInput(ctx context.Context, actor Actor, id string, r
 	before := r.value.Version
 	r.value.Version++
 	r.value.State = "answered"
-	r.value.Answer = &ic.ToolInputAnswer{Answers: append([]cc.CodexUserInputSelection{}, request.Answers...), Cursor: request.Cursor, AnswerSHA256: answerSHA, ActorID: auth.currentPrincipal.ID, AnsweredAt: now.UTC().Format(time.RFC3339Nano)}
+	r.value.Answer = &ic.ToolInputAnswer{Answers: append([]cc.CodexUserInputSelection{}, request.Answers...), Cursor: request.Cursor, Claude: request.Claude, AnswerSHA256: answerSHA, ActorID: auth.currentPrincipal.ID, AnsweredAt: now.UTC().Format(time.RFC3339Nano)}
 	if err = s.toolInputSaveTx(ctx, auth.tx, r, before); err != nil {
 		return out, err
 	}

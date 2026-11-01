@@ -1,5 +1,6 @@
 import {validACPCapability} from './acp-execution-model';
 import {codexBindingPresent} from './codex-execution-model';
+import {validClaudeSDKCapability} from './claude-sdk-execution-model';
 
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const positive=(value:unknown):value is number=>typeof value==='number'&&Number.isSafeInteger(value)&&value>0;
@@ -9,7 +10,7 @@ const hash=(value:unknown):value is string=>typeof value==='string'&&value.lengt
 
 /** Select only the protocol frozen for this exact current attempt. Terminal
  * attempts remain readable; a protocol match never authorizes a decision. */
-export function frozenToolPermissionProtocolForNode(definition:unknown,run:unknown,node:unknown):'acp-stdio-v1'|'codex-app-server-v1'|undefined{
+export function frozenToolPermissionProtocolForNode(definition:unknown,run:unknown,node:unknown):'acp-stdio-v1'|'codex-app-server-v1'|'claude-sdk-v1'|undefined{
  if(!object(definition)||!object(run)||!object(node)||!identifier(definition.id)||definition.id!==run.workflow_id||!positive(definition.version)||definition.version!==run.workflow_version||!Array.isArray(definition.nodes)||!Array.isArray(run.nodes)||!nodeID(node.id)||!positive(node.attempt)||!positive(node.fence))return;
  const declarations=definition.nodes.filter(item=>object(item)&&item.id===node.id),actuals=run.nodes.filter(item=>object(item)&&item.id===node.id),declared=declarations[0],actual=actuals[0];
  if(declarations.length!==1||actuals.length!==1||!object(declared)||!object(actual)||declared.type!=='agent'||actual.type!=='agent'||node.type!=='agent'||!object(declared.config))return;
@@ -17,8 +18,9 @@ export function frozenToolPermissionProtocolForNode(definition:unknown,run:unkno
  if(!identifier(config.tool_profile_id)||!hash(config.tool_profile_sha256)||!Array.isArray(command)||command.length!==1||!identifier(command[0])||!identifier(actual.worker_id,150))return;
  for(const current of [actual,node])if(current.attempt!==node.attempt||current.fence!==node.fence||current.worker_id!==actual.worker_id||current.tool_profile_id!==config.tool_profile_id||current.tool_profile_sha256!==config.tool_profile_sha256||!Array.isArray(current.command)||current.command.length!==1||current.command[0]!==command[0])return;
  if(['model_execution','opencode_execution','claude_execution','octop_execution'].some(key=>Object.hasOwn(config,key)))return;
- const acp=Object.hasOwn(config,'acp_execution'),codex=Object.hasOwn(config,'codex_execution');
- if(acp===codex)return;
+ const acp=Object.hasOwn(config,'acp_execution'),codex=Object.hasOwn(config,'codex_execution'),claudeSDK=Object.hasOwn(config,'claude_sdk_execution');
+ if(Number(acp)+Number(codex)+Number(claudeSDK)!==1)return;
  if(acp&&validACPCapability(config.acp_execution))return 'acp-stdio-v1';
  if(codex&&codexBindingPresent(config.codex_execution))return 'codex-app-server-v1';
+ if(claudeSDK&&validClaudeSDKCapability(config.claude_sdk_execution))return 'claude-sdk-v1';
 }

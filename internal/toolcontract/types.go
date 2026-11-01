@@ -35,10 +35,11 @@ type ToolExecutionProfile struct {
 	FailureDiagnosis       *FailureDiagnosisCapability       `json:"failure_diagnosis,omitempty"`
 	// OpenCodeExecution is the immutable administrator configuration acknowledged
 	// by the pinned SDK/server probe, not an independently selectable deployment.
-	OpenCodeExecution *OpenCodeExecutionCapability `json:"opencode_execution,omitempty"`
-	OctopExecution    *OctopExecutionCapability    `json:"octop_execution,omitempty"`
-	ClaudeExecution   *ClaudeExecutionCapability   `json:"claude_execution,omitempty"`
-	ACPExecution      *ac.Capability               `json:"acp_execution,omitempty"`
+	OpenCodeExecution  *OpenCodeExecutionCapability  `json:"opencode_execution,omitempty"`
+	OctopExecution     *OctopExecutionCapability     `json:"octop_execution,omitempty"`
+	ClaudeExecution    *ClaudeExecutionCapability    `json:"claude_execution,omitempty"`
+	ClaudeSDKExecution *ClaudeSDKExecutionCapability `json:"claude_sdk_execution,omitempty"`
+	ACPExecution       *ac.Capability                `json:"acp_execution,omitempty"`
 }
 
 // PlanningCapability names a probed, fixed model configuration, not account health.
@@ -77,6 +78,7 @@ func EqualProfile(a, b Profile) bool {
 	af, bf := a.FailureDiagnosis, b.FailureDiagnosis
 	ao, bo := a.OpenCodeExecution, b.OpenCodeExecution
 	al, bl := a.ClaudeExecution, b.ClaudeExecution
+	als, bls := a.ClaudeSDKExecution, b.ClaudeSDKExecution
 	ax, bx := a.ACPExecution, b.ACPExecution
 	at, bt := a.OctopExecution, b.OctopExecution
 	ad, bd := a.DispatchRecommendation, b.DispatchRecommendation
@@ -87,6 +89,7 @@ func EqualProfile(a, b Profile) bool {
 	a.FailureDiagnosis, b.FailureDiagnosis = nil, nil
 	a.OpenCodeExecution, b.OpenCodeExecution = nil, nil
 	a.ClaudeExecution, b.ClaudeExecution = nil, nil
+	a.ClaudeSDKExecution, b.ClaudeSDKExecution = nil, nil
 	a.ACPExecution, b.ACPExecution = nil, nil
 	a.OctopExecution, b.OctopExecution = nil, nil
 	a.DispatchRecommendation, b.DispatchRecommendation = nil, nil
@@ -100,6 +103,9 @@ func EqualProfile(a, b Profile) bool {
 	if !(al == nil && bl == nil || al != nil && bl != nil && *al == *bl) {
 		return false
 	}
+	if !(als == nil && bls == nil || als != nil && bls != nil && *als == *bls) {
+		return false
+	}
 	if !(ax == nil && bx == nil || ax != nil && bx != nil && *ax == *bx) {
 		return false
 	}
@@ -107,6 +113,10 @@ func EqualProfile(a, b Profile) bool {
 }
 
 func CloneProfile(p Profile) Profile {
+	if p.ClaudeSDKExecution != nil {
+		value := *p.ClaudeSDKExecution
+		p.ClaudeSDKExecution = &value
+	}
 	if p.ACPExecution != nil {
 		value := *p.ACPExecution
 		p.ACPExecution = &value
@@ -212,11 +222,12 @@ type ToolEvidence struct {
 	UsageState     string                  `json:"usage_state"`
 	ModelExecution *modelcontract.Evidence `json:"model_execution,omitempty"`
 	// CodexExecution records requested/acknowledged configuration, never provider billing identity.
-	CodexExecution    *cc.Evidence               `json:"codex_execution,omitempty"`
-	OpenCodeExecution *OpenCodeExecutionEvidence `json:"opencode_execution,omitempty"`
-	OctopExecution    *OctopExecutionEvidence    `json:"octop_execution,omitempty"`
-	ClaudeExecution   *ClaudeExecutionEvidence   `json:"claude_execution,omitempty"`
-	ACPExecution      *ac.Evidence               `json:"acp_execution,omitempty"`
+	CodexExecution     *cc.Evidence                `json:"codex_execution,omitempty"`
+	OpenCodeExecution  *OpenCodeExecutionEvidence  `json:"opencode_execution,omitempty"`
+	OctopExecution     *OctopExecutionEvidence     `json:"octop_execution,omitempty"`
+	ClaudeExecution    *ClaudeExecutionEvidence    `json:"claude_execution,omitempty"`
+	ClaudeSDKExecution *ClaudeSDKExecutionEvidence `json:"claude_sdk_execution,omitempty"`
+	ACPExecution       *ac.Evidence                `json:"acp_execution,omitempty"`
 }
 
 type Profile = ToolExecutionProfile

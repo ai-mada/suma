@@ -7,7 +7,7 @@ func TestUnifiedPermissionContractsKeepNativeBranchesAndObservationAuthority(t *
 	schemas := mapAt(api, "components", "schemas")
 	paths := mapAt(api, "paths")
 	for _, name := range []string{"ToolPermissionRequest", "ToolPermissionChoice", "ToolPermissionDecision", "ToolPermissionDecisionRequest"} {
-		if len(mapAt(schemas, name)["oneOf"].([]any)) != 2 || mapAt(schemas, name)["additionalProperties"] != false {
+		if len(mapAt(schemas, name)["oneOf"].([]any)) != 3 || mapAt(schemas, name)["additionalProperties"] != false {
 			t.Fatal("native protocol union not closed", name)
 		}
 	}

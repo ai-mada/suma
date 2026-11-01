@@ -1,6 +1,8 @@
 import {expect,it} from 'vitest';
 import type {ToolPermission,ToolPermissionDecisionRequest} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
+import {buildPermissionDecisionBody} from './tool-permission-model';
+import {claudeSDKPermissionRecord as sdkRow,claudeSDKPermissionScope as sdkScope,claudeSDKPermissionChoice as sdkChoice,claudeSDKDeliveryObservation as sdkObservation} from './claude-sdk.test-support';
 import {permissionListPath,validPermission,validPermissionRecovery,validPermissionReceipt,canChoosePermission,permissionRecoveryScope,validPermissionIntent,permissionMatchesIntent,buildPermissionIntent,type ToolPermissionScope} from './tool-permission-model';
 
 const hash='a'.repeat(64),created='2026-10-31T00:00:00Z',expires='2099-10-31T00:00:00Z';
@@ -93,4 +95,13 @@ it('reads Codex observations as separate machine facts without inventing reply o
  const decided={...value,state:'decided',version:2,allowed_actions:[],decision:{protocol:codexScope.protocol,codex:{decision:'accept'},actor_id:scope.userID,decided_at:'2026-10-31T00:01:00Z'},observation:{...observation,decision:'accept',decision_observed:true,reply_started:true,reply_written:true,item_status:'failed'}};
  expect(validPermission(decided,codexScope)).toBe(true);
  expect(validPermission({...decided,observation:{...decided.observation,decision:'decline'}},codexScope)).toBe(false);
+});
+it('T192 preserves exact SDK one-call choices and original source recovery without Codex acknowledgements or input rewriting',()=>{
+ expect(validPermission(sdkRow,sdkScope)).toBe(true);expect(canChoosePermission(sdkRow,sdkChoice,sdkScope)).toBe(true);expect(canChoosePermission(sdkRow,{outcome:'reject_once',reason:'Review required.'},sdkScope)).toBe(true);
+ const key='sdk-permission-original',body=buildPermissionDecisionBody(sdkRow,sdkScope,sdkChoice,key);expect(body).toEqual({project_id:sdkScope.project,expected_version:1,idempotency_key:key,protocol:'claude-sdk-v1',claude:sdkChoice});
+ const req:WriteRecoveryRequest={path:'/tool-permissions/'+sdkRow.id+'/decision',method:'POST',idempotency_key:key,body:body!},intent=buildPermissionIntent(sdkRow,sdkScope,req)!;expect(validPermissionIntent(intent,{...sdkScope,attempt:3,fence:10})).toBe(true);expect(permissionMatchesIntent(sdkRow,intent)).toBe(true);expect(JSON.stringify(intent)).not.toContain('input_json');expect(JSON.stringify(intent)).not.toContain('git diff --');
+ const receipt={...sdkRow,version:2,state:'decided',allowed_actions:[],decision:{protocol:'claude-sdk-v1',claude:{outcome:'allow_once',reason:''},actor_id:sdkScope.userID,decided_at:'2026-11-01T04:01:00Z'},claude_observation:{...sdkObservation,reply_written:true,execution_closed:true}};expect(validPermissionReceipt(receipt,req,sdkScope)).toBe(true);expect(permissionMatchesIntent(receipt,intent)).toBe(true);expect(canChoosePermission(receipt,sdkChoice,sdkScope)).toBe(false);
+ for(const patch of [{request_id:'another-request'},{callback_id:'another-callback'},{params_sha256:'f'.repeat(64)},{tool_name:'Write'}])expect(permissionMatchesIntent({...sdkRow,request:{...sdkRow.request,claude:{...sdkRow.request.claude,...patch}}},intent)).toBe(false);
+ expect(validPermission({...receipt,claude_observation:{...receipt.claude_observation,request_resolved:true}},sdkScope)).toBe(false);expect(validPermission({...receipt,observation:{sequence:1}},sdkScope)).toBe(false);expect(validPermission({...sdkRow,request:{...sdkRow.request,codex:codexPermission().request.codex}},sdkScope)).toBe(false);expect(validPermissionRecovery({...req,body:{...req.body,acp:choice}},sdkScope)).toBe(false);expect(validPermissionIntent(intent,{...sdkScope,userID:'other-user'})).toBe(false);
+ expect(buildPermissionDecisionBody(sdkRow,sdkScope,{outcome:'allow_once',updated_input:{}} as never,key)).toBeUndefined();
 });

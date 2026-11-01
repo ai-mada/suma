@@ -71,5 +71,20 @@
   "tool-permissions.item_failed": "Failed",
   "tool-permissions.observed": "Recorded",
   "tool-permissions.dispatch_id": "Original dispatch ID",
-  "tool-permissions.started_at_ms": "Original item start time (milliseconds)"
+  "tool-permissions.started_at_ms": "Original item start time (milliseconds)",
+  "tool-permissions.claude_title": "Claude Agent SDK · Confirm {{tool}} call",
+  "tool-permissions.claude_parameter_boundary": "Review the complete original parameters below. This decision applies only to this SDK callback; it changes neither the input nor lasting permissions. Reject if you cannot verify it.",
+  "tool-permissions.claude_original_input": "Complete original SDK call parameters",
+  "tool-permissions.tool_use_id": "SDK tool use ID",
+  "tool-permissions.callback_id": "Host callback ID",
+  "tool-permissions.configuration_sha256": "Fixed configuration SHA-256",
+  "tool-permissions.answer_sha256": "Original decision SHA-256",
+  "tool-permissions.answer_observed": "Runner observed the original decision",
+  "tool-permissions.execution_closed": "Original execution closed",
+  "tool-permissions.claude_reply_written": "Fully written to the local SDK host",
+  "tool-permissions.claude_observation_boundary": "Writing to the local SDK host does not establish provider acceptance, successful tool execution or lasting permission. Execution closure and actual process stop remain separate facts.",
+  "tool-permissions.claude_delivery_details": "View original decision delivery evidence",
+  "tool-permissions.claude_reason": "Reason for this decision (optional; do not enter credentials)",
+  "tool-permissions.claude_reason_invalid": "This reason cannot be adopted. Shorten it and remove unsupported characters. The original text is preserved.",
+  "tool-permissions.claude_one_callback": "Only this original SDK callback"
 }

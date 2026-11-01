@@ -1,7 +1,7 @@
 import {wellFormed} from './i18n/catalog';
 
 export type RemoteRunnerSetupInput={mode:'environment'|'paired'|'identity';pairingID:string;identityPath:string;shell:''|'powershell'|'bash';control:string;project:string;worker:string;commands:string;state:string;localTool:string;repository:string;baseCommit:string};
-export const remoteRunnerLocalTools=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','cursor-cli','qoder-acp','codex-app-server','opencode-sdk'] as const;
+export const remoteRunnerLocalTools=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','claude-code-sdk','cursor-cli','qoder-acp','codex-app-server','opencode-sdk'] as const;
 const fields=['mode','pairingID','identityPath','shell','control','project','worker','commands','state','localTool','repository','baseCommit'] as const;
 const text=(value:string,max:number)=>!!value&&value.trim()===value&&value.length<=max&&wellFormed(value)&&!/[\p{Cc}\u2028\u2029]/u.test(value);
 const absolute=(value:string)=>text(value,4096)&&(/^[A-Za-z]:[\\/].+/.test(value)||/^\/(?!\/).+/.test(value)||/^\\\\[^\\/]+[\\/][^\\/]+[\\/].+/.test(value));
@@ -16,7 +16,7 @@ export function remoteRunnerSetupCommands(value:unknown):{prepare?:string;report
  const input=row as RemoteRunnerSetupInput;
  if(!['environment','paired','identity'].includes(input.mode)||!['powershell','bash'].includes(input.shell)||input.localTool!==''&&!remoteRunnerLocalTools.some(tool=>tool===input.localTool))return {loopback:false};
  const quote=(literal:string)=>"'"+(input.shell==='powershell'?literal.replaceAll("'","''"):literal.replaceAll("'","'\"'\"'"))+"'";
- const commandPath=absolute(input.commands)&&/\.json$/i.test(input.commands),prepare=commandPath&&input.localTool!=='cursor-cli'?'suma-runner --prepare-tools '+quote(input.commands)+(input.localTool?' --local-tool '+quote(input.localTool):''):undefined;
+ const commandPath=absolute(input.commands)&&/\.json$/i.test(input.commands),prepare=commandPath&&!['cursor-cli','claude-code-sdk'].includes(input.localTool)?'suma-runner --prepare-tools '+quote(input.commands)+(input.localTool?' --local-tool '+quote(input.localTool):''):undefined;
  const workspace=absolute(input.repository)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(input.baseCommit)?' --workspace '+quote(input.repository)+' --repository '+quote(input.repository)+' --base-commit '+quote(input.baseCommit)+' --allow-exec':undefined;
  let safeURL=false,loopback=false;
  if(text(input.control,2048)&&/^https?:\/\//.test(input.control)&&!/[\\?#]/.test(input.control)){

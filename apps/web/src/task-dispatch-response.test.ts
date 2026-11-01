@@ -10,6 +10,15 @@ const fixed=()=>({model:'claude-sonnet-5',model_source:'administrator_cli_argume
 const plan=()=>({id:'plan159',project_id:project,state:'started',version:2,run_id:'run159',workflow_id:'published159',workflow_version:7,agent_node_id:'develop',claude_execution:fixed(),workflow:{id:'published159',version:7,nodes:[{id:'develop',type:'agent',max_retries:0,config:{claude_execution:fixed()}}]}});
 const run=()=>({id:'run159',project_id:project,workflow_id:'managed-run159',workflow_version:1});
 
+it('T192 validates the SDK source before acknowledging the original managed Start receipt',async()=>{
+ const sdk={sdk_version:'0.3.314',cli_version:'2.1.314',model:'claude-sonnet-5',configuration_sha256:'a'.repeat(64),model_source:'administrator_sdk_option',budget_mode:'observe_only',identity_evidence:'sdk_init_model_ack_only',auth_strategy:'api_key_env_ref'};
+ const {claude_execution:_,...base}=plan();
+ const original={...base,tool_profile_id:'sdk-profile',tool_profile_sha256:'b'.repeat(64),claude_sdk_execution:sdk,workflow:{...base.workflow,nodes:[{id:'develop',type:'agent',max_retries:0,command:['sdk-command'],config:{tool_profile_id:'sdk-profile',tool_profile_sha256:'b'.repeat(64),claude_sdk_execution:sdk}}]}};
+ const read:ApiCaller=async()=>original as never;expect(await validateTaskDispatchResponse(run(),request,read,project)).toBe(true);
+ const drifted:ApiCaller=async()=>({...original,claude_sdk_execution:{...sdk,configuration_sha256:'f'.repeat(64)}}) as never;
+ expect(await validateTaskDispatchResponse(run(),request,drifted,project)).toBe(false);
+});
+
 it('acknowledges the reserved managed run instead of the original published workflow',async()=>{
  const calls:string[]=[];const read:ApiCaller=async path=>{calls.push(path);return plan() as never;};
  expect(await validateTaskDispatchResponse(run(),request,read,project)).toBe(true);

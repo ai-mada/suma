@@ -11,6 +11,7 @@ import (
 	"time"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/store"
@@ -136,6 +137,9 @@ func toolPermissionRequestMatchesBasis(request pc.Request, basis toolPermissionB
 		binding, err := dag.CodexBinding(basis.node)
 		return err == nil && binding != nil && request.Codex != nil && request.Codex.BindingSHA256 == binding.BindingSHA256
 	}
+	if request.Protocol == cl.Protocol {
+		return request.Claude != nil && supportsClaudeSDKExecution(basis.profile) && request.Claude.ConfigurationSHA256 == basis.profile.Profile.ClaudeSDKExecution.ConfigurationSHA256
+	}
 	return request.Protocol == ac.Protocol && request.ACP != nil
 }
 
@@ -146,11 +150,20 @@ func toolPermissionChoiceAction(choice pc.Choice) string {
 	if choice.Codex != nil {
 		return choice.Codex.Decision
 	}
+	if choice.Claude != nil {
+		return choice.Claude.Outcome
+	}
 	return ""
 }
 
 func toolPermissionObservationEnded(observation *cc.CodexApprovalObservation) bool {
 	return observation != nil && (observation.RequestResolved || observation.ItemStatus == "completed" || observation.ItemStatus == "failed" || observation.ItemStatus == "declined")
+}
+
+// Each native protocol owns its closure facts. Claude's callback return is not
+// a Codex request acknowledgement, so it only uses the explicit execution end.
+func toolPermissionHasEnded(value pc.Permission) bool {
+	return toolPermissionObservationEnded(value.Observation) || value.ClaudeObservation != nil && value.ClaudeObservation.ExecutionClosed
 }
 func (s *Service) toolPermissionSaveTx(ctx context.Context, tx *sql.Tx, r toolPermissionRow, before int64) error {
 	r.value.AllowedActions = []string{}
@@ -206,6 +219,8 @@ func (s *Service) toolPermissionBasisTx(ctx context.Context, tx *sql.Tx, tenant,
 	case cc.Protocol:
 		binding, e := dag.CodexBinding(b.node)
 		qualified = e == nil && binding != nil && supportsCodexExecution(b.profile)
+	case cl.Protocol:
+		qualified = supportsClaudeSDKExecution(b.profile) && claudeSDKNodeMatchesProfile(b.node, b.profile)
 	}
 	if !qualified || b.profile.Profile.ProfileSHA256 != sha || b.profile.WorkerID != a.WorkerID {
 		return b, conflict(toolPermissionChanged)
@@ -275,7 +290,7 @@ func toolPermissionEffective(r toolPermissionRow, b toolPermissionBasis, now tim
 		p.State = "superseded"
 	} else if b.lease <= now.Unix() || b.deadline <= now.Unix() {
 		p.State = "expired"
-	} else if p.State == "pending" && toolPermissionObservationEnded(p.Observation) {
+	} else if p.State == "pending" && toolPermissionHasEnded(p) {
 		p.State = "superseded"
 	}
 	return p
@@ -295,7 +310,7 @@ func (s *Service) toolPermissionWorkAllowedTx(ctx context.Context, tx *sql.Tx, t
 }
 func (s *Service) toolPermissionDeliveryTx(ctx context.Context, tx *sql.Tx, r toolPermissionRow, b toolPermissionBasis, now time.Time) (pc.Permission, error) {
 	p := toolPermissionEffective(r, b, now)
-	if p.Request.Protocol == cc.Protocol && p.State == "decided" && toolPermissionObservationEnded(p.Observation) {
+	if p.State == "decided" && toolPermissionHasEnded(p) {
 		p.State = "superseded"
 	}
 	if p.State == "decided" && p.Decision != nil && pc.IsGrant(p.Decision.Choice) {
@@ -318,7 +333,7 @@ func (s *Service) toolPermissionAllowsTx(ctx context.Context, tx *sql.Tx, tenant
 	if err != nil {
 		return nil, err
 	}
-	if toolPermissionObservationEnded(p.Observation) {
+	if toolPermissionHasEnded(p) {
 		return out, nil
 	}
 	for _, action := range pc.AllowedActions(p.Request) {

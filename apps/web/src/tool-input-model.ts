@@ -1,13 +1,15 @@
-import type {ToolInput,ToolInputList,ToolInputRequest,CodexUserInputRequest,CodexUserInputSelection,CursorInputRequest,CursorAskQuestion,CursorCreatePlan,CursorInputDecision,CursorInputEvidence} from '../../../packages/contracts/src';
+import type {ToolInput,ToolInputList,ToolInputRequest,CodexUserInputRequest,CodexUserInputSelection,CursorInputRequest,CursorAskQuestion,CursorCreatePlan,CursorInputDecision,CursorInputEvidence,ClaudeInputRequest,ClaudeInputDecision} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
+import {validClaudeCallbackBasis,validClaudeInputRequest,validClaudeInputDecisionShape,validClaudeInputDecision} from './claude-sdk-interaction-model';
 import {UiError} from './i18n';
 import {wellFormed} from './i18n/catalog';
-export type ToolInputScope={project:string;runID:string;nodeID:string;attempt:number;fence:number;userID:string;organizationID:string;protocol:'codex-app-server-v1'|'acp-stdio-v1'};
-export type ToolInputSubmission={answers:CodexUserInputSelection[];cursor?:never}|{cursor:CursorInputDecision;answers?:never};
-export type ToolInputSource={kind:'codex';protocol:'codex-app-server-v1';paramsSHA256:string;request:CodexUserInputRequest}|{kind:'cursor-questions';protocol:'acp-stdio-v1';paramsSHA256:string;request:CursorInputRequest&{questions:CursorAskQuestion}}|{kind:'cursor-plan';protocol:'acp-stdio-v1';paramsSHA256:string;request:CursorInputRequest&{plan:CursorCreatePlan}};
+export type ToolInputScope={project:string;runID:string;nodeID:string;attempt:number;fence:number;userID:string;organizationID:string;protocol:'codex-app-server-v1'|'acp-stdio-v1'|'claude-sdk-v1'};
+export type ToolInputSubmission={answers:CodexUserInputSelection[];cursor?:never;claude?:never}|{cursor:CursorInputDecision;answers?:never;claude?:never}|{claude:ClaudeInputDecision;answers?:never;cursor?:never};
+export type ToolInputSource={kind:'codex';protocol:'codex-app-server-v1';paramsSHA256:string;request:CodexUserInputRequest}|{kind:'cursor-questions';protocol:'acp-stdio-v1';paramsSHA256:string;request:CursorInputRequest&{questions:CursorAskQuestion}}|{kind:'cursor-plan';protocol:'acp-stdio-v1';paramsSHA256:string;request:CursorInputRequest&{plan:CursorCreatePlan}}|{kind:'claude-questions';protocol:'claude-sdk-v1';paramsSHA256:string;request:ClaudeInputRequest};
 type CodexSourceIdentity={idempotency_key:string;protocol:'codex-app-server-v1';codex:Pick<CodexUserInputRequest,'request_id'|'method'|'thread_id'|'turn_id'|'item_id'|'binding_sha256'|'params_sha256'>};
 type CursorSourceIdentity={idempotency_key:string;protocol:'acp-stdio-v1';cursor:Pick<CursorInputRequest,'request_id'|'session_id'|'prompt_id'|'method'|'configuration_sha256'|'params_sha256'>};
-type SourceIdentity=CodexSourceIdentity|CursorSourceIdentity;
+type ClaudeSourceIdentity={idempotency_key:string;protocol:'claude-sdk-v1';claude:Pick<ClaudeInputRequest,'session_id'|'tool_use_id'|'request_id'|'callback_id'|'configuration_sha256'|'params_sha256'>};
+type SourceIdentity=CodexSourceIdentity|CursorSourceIdentity|ClaudeSourceIdentity;
 export type ToolInputIntent={scope:ToolInputScope;input_id:string;profile_sha256:string;dispatch_id:string;worker_id:string;source_identity:SourceIdentity;request:WriteRecoveryRequest};
 const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&[Object.prototype,null].includes(Object.getPrototypeOf(v));
 const fields=(v:Record<string,unknown>,required:readonly string[],optional:readonly string[]=[])=>required.every(k=>Object.hasOwn(v,k))&&Reflect.ownKeys(v).every(k=>typeof k==='string'&&(required.includes(k)||optional.includes(k)));
@@ -24,7 +26,7 @@ const hash=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v
 const stamp=(v:unknown):v is string=>typeof v==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,9})?(?:Z|[+-]\d\d:\d\d)$/.test(v)&&Number.isFinite(Date.parse(v))&&new Date(Date.parse(v.slice(0,19)+'Z')).toISOString().slice(0,19)===v.slice(0,19);
 const same=(a:unknown,b:unknown):boolean=>a===b||Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((v,i)=>same(v,b[i]))||object(a)&&object(b)&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>Object.hasOwn(b,k)&&same(a[k],b[k]));
 const scopeKeys=['project','runID','nodeID','attempt','fence','userID','organizationID','protocol'] as const;
-function validScope(v:unknown):v is ToolInputScope{return object(v)&&fields(v,scopeKeys)&&textID(v.project,64)&&textID(v.runID,100)&&textID(v.nodeID,150)&&integer(v.attempt,1)&&integer(v.fence,1)&&textID(v.userID,100)&&textID(v.organizationID,100)&&(v.protocol==='codex-app-server-v1'||v.protocol==='acp-stdio-v1');}
+function validScope(v:unknown):v is ToolInputScope{return object(v)&&fields(v,scopeKeys)&&textID(v.project,64)&&textID(v.runID,100)&&textID(v.nodeID,150)&&integer(v.attempt,1)&&integer(v.fence,1)&&textID(v.userID,100)&&textID(v.organizationID,100)&&(v.protocol==='codex-app-server-v1'||v.protocol==='acp-stdio-v1'||v.protocol==='claude-sdk-v1');}
 export function toolInputRecoveryScope(scope:ToolInputScope):string{
  if(!validScope(scope))throw new UiError('tool-inputs.invalid_read');
  return JSON.stringify([scope.userID,scope.organizationID,scope.project,scope.runID,scope.nodeID,scope.protocol]);
@@ -79,12 +81,13 @@ function validCursorRequest(v:unknown):v is CursorInputRequest{
  return total<=512;
 }
 function validRequest(v:unknown):v is ToolInputRequest{
- if(!object(v)||!fields(v,['idempotency_key','protocol'],['codex','cursor'])||!operation(v.idempotency_key))return false;
- return v.protocol==='codex-app-server-v1'&&Object.hasOwn(v,'codex')&&!Object.hasOwn(v,'cursor')&&validCodexRequest(v.codex)||v.protocol==='acp-stdio-v1'&&Object.hasOwn(v,'cursor')&&!Object.hasOwn(v,'codex')&&validCursorRequest(v.cursor);
+ if(!object(v)||!fields(v,['idempotency_key','protocol'],['codex','cursor','claude'])||!operation(v.idempotency_key))return false;
+ return v.protocol==='codex-app-server-v1'&&Object.hasOwn(v,'codex')&&!Object.hasOwn(v,'cursor')&&!Object.hasOwn(v,'claude')&&validCodexRequest(v.codex)||v.protocol==='acp-stdio-v1'&&Object.hasOwn(v,'cursor')&&!Object.hasOwn(v,'codex')&&!Object.hasOwn(v,'claude')&&validCursorRequest(v.cursor)||v.protocol==='claude-sdk-v1'&&Object.hasOwn(v,'claude')&&!Object.hasOwn(v,'codex')&&!Object.hasOwn(v,'cursor')&&validClaudeInputRequest(v.claude);
 }
 export function toolInputSource(request:unknown):ToolInputSource|undefined{
  if(!validRequest(request))return;
  if(request.protocol==='codex-app-server-v1'&&request.codex)return {kind:'codex',protocol:'codex-app-server-v1',paramsSHA256:request.codex.params_sha256,request:request.codex};
+ if(request.protocol==='claude-sdk-v1'&&request.claude)return {kind:'claude-questions',protocol:'claude-sdk-v1',paramsSHA256:request.claude.params_sha256,request:request.claude};
  const c=request.cursor;if(!c)return;
  return c.method==='cursor/ask_question'?{kind:'cursor-questions',protocol:'acp-stdio-v1',paramsSHA256:c.params_sha256,request:c as CursorInputRequest&{questions:CursorAskQuestion}}:{kind:'cursor-plan',protocol:'acp-stdio-v1',paramsSHA256:c.params_sha256,request:c as CursorInputRequest&{plan:CursorCreatePlan}};
 }
@@ -122,16 +125,16 @@ function validCursorDecision(request:CursorInputRequest,decision:unknown):decisi
  return !!questions&&!!answers&&answers.length===questions.length&&answers.every(answer=>{const q=questions.find(q=>q.id===answer.question_id);return !!q&&(q.allow_multiple||answer.option_ids.length===1)&&answer.option_ids.length<=q.options.length&&answer.option_ids.every(id=>q.options.some(option=>option.id===id));});
 }
 function submissionShape(v:unknown,protocol:ToolInputScope['protocol']):v is ToolInputSubmission{
- return object(v)&&(protocol==='codex-app-server-v1'?fields(v,['answers'])&&selectionsShape(v.answers):fields(v,['cursor'])&&cursorDecisionShape(v.cursor));
+ return object(v)&&(protocol==='codex-app-server-v1'?fields(v,['answers'])&&selectionsShape(v.answers):protocol==='claude-sdk-v1'?fields(v,['claude'])&&validClaudeInputDecisionShape(v.claude):fields(v,['cursor'])&&cursorDecisionShape(v.cursor));
 }
 export function validToolInputSubmission(request:unknown,submission:unknown):submission is ToolInputSubmission{
  if(!validRequest(request)||!submissionShape(submission,request.protocol as ToolInputScope['protocol']))return false;
- return request.protocol==='codex-app-server-v1'?validToolInputAnswers(request,submission.answers):!!request.cursor&&validCursorDecision(request.cursor,submission.cursor);
+ return request.protocol==='codex-app-server-v1'?validToolInputAnswers(request,submission.answers):request.protocol==='claude-sdk-v1'?validClaudeInputDecision(request.claude,submission.claude):!!request.cursor&&validCursorDecision(request.cursor,submission.cursor);
 }
 const normalizedAnswers=(v:CodexUserInputSelection[])=>v.map(a=>({question_id:a.question_id,kind:a.kind,option:a.option||'',text:a.text||''}));
-const normalizedSubmission=(v:ToolInputSubmission)=>v.answers?{answers:normalizedAnswers(v.answers)}:{cursor:{outcome:v.cursor!.outcome,answers:v.cursor!.answers??[],reason:v.cursor!.reason??''}};
+const normalizedSubmission=(v:ToolInputSubmission)=>v.answers?{answers:normalizedAnswers(v.answers)}:v.claude?{claude:{outcome:v.claude.outcome,answers:v.claude.answers??[],reason:v.claude.reason??''}}:{cursor:{outcome:v.cursor!.outcome,answers:v.cursor!.answers??[],reason:v.cursor!.reason??''}};
 function submissionFields(value:Record<string,unknown>):unknown{
- return {...(Object.hasOwn(value,'answers')?{answers:value.answers}:{}),...(Object.hasOwn(value,'cursor')?{cursor:value.cursor}:{})};
+ return {...(Object.hasOwn(value,'answers')?{answers:value.answers}:{}),...(Object.hasOwn(value,'cursor')?{cursor:value.cursor}:{}),...(Object.hasOwn(value,'claude')?{claude:value.claude}:{})};
 }
 function observation(v:unknown):boolean{
  if(!object(v)||!fields(v,['sequence','params_sha256','answer_observed','reply_started','reply_written','request_resolved','execution_closed'],['answer_sha256','failure_code'])||!integer(v.sequence,1)||!hash(v.params_sha256)||!['answer_observed','reply_started','reply_written','request_resolved','execution_closed'].every(k=>typeof v[k]==='boolean')||Object.hasOwn(v,'answer_sha256')&&v.answer_sha256!==''&&!hash(v.answer_sha256)||v.answer_observed!==!!v.answer_sha256||v.reply_started&&!v.answer_observed||v.reply_written&&!v.reply_started)return false;
@@ -147,30 +150,31 @@ export function validCursorInputEvidence(v:unknown):v is CursorInputEvidence{
 export function validToolInput(v:unknown,scope:ToolInputScope):v is ToolInput{
  if(!validScope(scope)||!object(v)||!fields(v,['id','project_id','run_id','node_id','attempt','fence','dispatch_id','worker_id','profile_sha256','version','state','request','created_at','expires_at','allowed_actions'],['answer','observation'])||!textID(v.id)||v.project_id!==scope.project||v.run_id!==scope.runID||v.node_id!==scope.nodeID||v.attempt!==scope.attempt||v.fence!==scope.fence||!text(v.dispatch_id,128)||!textID(v.worker_id)||!hash(v.profile_sha256)||!integer(v.version,1)||typeof v.state!=='string'||!['pending','answered','closed','expired'].includes(v.state)||!validRequest(v.request)||v.request.protocol!==scope.protocol||!stamp(v.created_at)||!stamp(v.expires_at)||!Array.isArray(v.allowed_actions)||v.allowed_actions.length>1||v.allowed_actions.some(a=>a!=='answer'||v.state!=='pending'))return false;
  const answer=v.answer;
- if(Object.hasOwn(v,'answer')&&(!object(answer)||!fields(answer,['answer_sha256','actor_id','answered_at'],['answers','cursor'])||!validToolInputSubmission(v.request,submissionFields(answer))||!hash(answer.answer_sha256)||!textID(answer.actor_id)||!stamp(answer.answered_at))||v.state==='pending'&&Object.hasOwn(v,'answer')||v.state==='answered'&&!object(answer))return false;
- if(Object.hasOwn(v,'observation')){const o=v.observation;if(!observation(o)||!object(o)||o.params_sha256!==toolInputParamsSHA256(v.request)||scope.protocol==='acp-stdio-v1'&&o.request_resolved||o.answer_observed&&(!object(answer)||o.answer_sha256!==answer.answer_sha256))return false;}
+ if(Object.hasOwn(v,'answer')&&(!object(answer)||!fields(answer,['answer_sha256','actor_id','answered_at'],['answers','cursor','claude'])||!validToolInputSubmission(v.request,submissionFields(answer))||!hash(answer.answer_sha256)||!textID(answer.actor_id)||!stamp(answer.answered_at))||v.state==='pending'&&Object.hasOwn(v,'answer')||v.state==='answered'&&!object(answer))return false;
+ if(Object.hasOwn(v,'observation')){const o=v.observation;if(!observation(o)||!object(o)||o.params_sha256!==toolInputParamsSHA256(v.request)||scope.protocol!=='codex-app-server-v1'&&o.request_resolved||o.answer_observed&&(!object(answer)||o.answer_sha256!==answer.answer_sha256))return false;}
  return true;
 }
 export function readToolInputList(v:unknown,scope:ToolInputScope):ToolInputList{
- if(!validScope(scope)||!object(v)||!fields(v,['protocol','items'])||typeof v.protocol!=='string'||!(v.protocol===''||scope.protocol==='codex-app-server-v1'&&v.protocol==='codex-user-input-v1'||scope.protocol==='acp-stdio-v1'&&v.protocol==='cursor-acp-input-v1')||!Array.isArray(v.items)||v.items.length>32||!v.items.every(row=>validToolInput(row,scope))||new Set(v.items.map(row=>row.id)).size!==v.items.length)throw new UiError('tool-inputs.invalid_read');
+ if(!validScope(scope)||!object(v)||!fields(v,['protocol','items'])||typeof v.protocol!=='string'||!(v.protocol===''||scope.protocol==='codex-app-server-v1'&&v.protocol==='codex-user-input-v1'||scope.protocol==='acp-stdio-v1'&&v.protocol==='cursor-acp-input-v1'||scope.protocol==='claude-sdk-v1'&&v.protocol==='claude-sdk-input-v1')||!Array.isArray(v.items)||v.items.length>32||!v.items.every(row=>validToolInput(row,scope))||new Set(v.items.map(row=>row.id)).size!==v.items.length)throw new UiError('tool-inputs.invalid_read');
  return v as unknown as ToolInputList;
 }
 function answerID(path:unknown):string|undefined{if(typeof path!=='string')return;const match=/^\/tool-inputs\/([^/?#]+)\/answer$/.exec(path);if(!match)return;try{const id=decodeURIComponent(match[1]);if(textID(id)&&!/[\/\\]/.test(id)&&encodeURIComponent(id)===match[1])return id;}catch{/* A malformed locator is never a different resource. */}}
 export function validToolInputRecovery(v:unknown,scope:ToolInputScope):v is WriteRecoveryRequest{
- return validScope(scope)&&object(v)&&fields(v,['path','method','idempotency_key','body'])&&v.method==='POST'&&!!answerID(v.path)&&operation(v.idempotency_key)&&object(v.body)&&fields(v.body,['project_id','expected_version','idempotency_key'],['answers','cursor'])&&v.body.project_id===scope.project&&v.body.idempotency_key===v.idempotency_key&&integer(v.body.expected_version,1)&&submissionShape(submissionFields(v.body),scope.protocol);
+ return validScope(scope)&&object(v)&&fields(v,['path','method','idempotency_key','body'])&&v.method==='POST'&&!!answerID(v.path)&&operation(v.idempotency_key)&&object(v.body)&&fields(v.body,['project_id','expected_version','idempotency_key'],['answers','cursor','claude'])&&v.body.project_id===scope.project&&v.body.idempotency_key===v.idempotency_key&&integer(v.body.expected_version,1)&&submissionShape(submissionFields(v.body),scope.protocol);
 }
 function sourceIdentity(row:ToolInput):SourceIdentity{
  const source=toolInputSource(row.request);if(!source)throw new UiError('tool-inputs.invalid_read');
  if(source.kind==='codex'){const c=source.request;return {idempotency_key:row.request.idempotency_key,protocol:'codex-app-server-v1',codex:{request_id:{...c.request_id},method:c.method,thread_id:c.thread_id,turn_id:c.turn_id,item_id:c.item_id,binding_sha256:c.binding_sha256,params_sha256:c.params_sha256}};}
+ if(source.kind==='claude-questions'){const c=source.request;return {idempotency_key:row.request.idempotency_key,protocol:'claude-sdk-v1',claude:{session_id:c.session_id,tool_use_id:c.tool_use_id,request_id:c.request_id,callback_id:c.callback_id,configuration_sha256:c.configuration_sha256,params_sha256:c.params_sha256}};}
  const c=source.request;return {idempotency_key:row.request.idempotency_key,protocol:'acp-stdio-v1',cursor:{request_id:{...c.request_id},session_id:c.session_id,prompt_id:{...c.prompt_id},method:c.method,configuration_sha256:c.configuration_sha256,params_sha256:c.params_sha256}};
 }
 function validSourceIdentity(v:unknown):v is SourceIdentity{
  if(!object(v)||!operation(v.idempotency_key))return false;
- return v.protocol==='codex-app-server-v1'&&fields(v,['idempotency_key','protocol','codex'])&&object(v.codex)&&fields(v.codex,identityKeys)&&nativeIdentity(v.codex)||v.protocol==='acp-stdio-v1'&&fields(v,['idempotency_key','protocol','cursor'])&&object(v.cursor)&&fields(v.cursor,cursorIdentityKeys)&&cursorIdentity(v.cursor);
+ return v.protocol==='codex-app-server-v1'&&fields(v,['idempotency_key','protocol','codex'])&&object(v.codex)&&fields(v.codex,identityKeys)&&nativeIdentity(v.codex)||v.protocol==='acp-stdio-v1'&&fields(v,['idempotency_key','protocol','cursor'])&&object(v.cursor)&&fields(v.cursor,cursorIdentityKeys)&&cursorIdentity(v.cursor)||v.protocol==='claude-sdk-v1'&&fields(v,['idempotency_key','protocol','claude'])&&validClaudeCallbackBasis(v.claude);
 }
 export function validToolInputIntent(v:unknown,scope:ToolInputScope):v is ToolInputIntent{
  if(!validScope(scope)||!object(v)||!fields(v,['scope','input_id','profile_sha256','dispatch_id','worker_id','source_identity','request'])||!validScope(v.scope)||toolInputRecoveryScope(v.scope)!==toolInputRecoveryScope(scope)||!textID(v.input_id)||!hash(v.profile_sha256)||!text(v.dispatch_id,128)||!textID(v.worker_id)||!validSourceIdentity(v.source_identity)||v.source_identity.protocol!==v.scope.protocol||!validToolInputRecovery(v.request,v.scope)||answerID(v.request.path)!==v.input_id)return false;
- return v.source_identity.protocol==='codex-app-server-v1'||!!v.request.body.cursor&&cursorDecisionKind(v.source_identity.cursor.method,v.request.body.cursor as CursorInputDecision);
+ return v.source_identity.protocol!=='acp-stdio-v1'||!!v.request.body.cursor&&cursorDecisionKind(v.source_identity.cursor.method,v.request.body.cursor as CursorInputDecision);
 }
 export function toolInputMatchesIntent(row:unknown,intent:ToolInputIntent):boolean{
  return validToolInputIntent(intent,intent.scope)&&validToolInput(row,intent.scope)&&row.id===intent.input_id&&row.profile_sha256===intent.profile_sha256&&row.dispatch_id===intent.dispatch_id&&row.worker_id===intent.worker_id&&same(sourceIdentity(row),intent.source_identity)&&validToolInputSubmission(row.request,submissionFields(intent.request.body));

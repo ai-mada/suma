@@ -365,7 +365,7 @@ export function TaskDispatchDialog({
                   <code>{profile.profile.profile_sha256}</code>
                 </div>
               )}
-              {profile&&<ModelExecutionPanel key={modelKey} scope={{project,profile:profile.id,version:profile.version,sha256:profile.profile.profile_sha256}} supported={modelRequired} fixedOpenCode={profile.profile.opencode_execution} fixedClaude={profile.profile.claude_execution} fixedACP={profile.profile.acp_execution} codex={codexRequired} disabled={blocked} onChange={updateModelChoice}/>}
+              {profile&&<ModelExecutionPanel key={modelKey} scope={{project,profile:profile.id,version:profile.version,sha256:profile.profile.profile_sha256}} supported={modelRequired} fixedOpenCode={profile.profile.opencode_execution} fixedClaude={profile.profile.claude_execution} fixedClaudeSDK={profile.profile.claude_sdk_execution} fixedACP={profile.profile.acp_execution} codex={codexRequired} disabled={blocked} onChange={updateModelChoice}/>}
               <section aria-label={t('knowledge.dispatch.title')}>
                 <h3>{t('knowledge.dispatch.title')}</h3><p className="muted">{t('knowledge.dispatch.hint')}</p>
                 <div className="knowledge-actions"><button type="button" disabled={blocked||knowledge.loading} onClick={()=>void knowledge.read()}><RefreshCw size={14}/>{t('knowledge.dispatch.refresh')}</button><a href={'?'+new URLSearchParams({project,view:'knowledge',sub:'project-knowledge'})}>{t('knowledge.dispatch.open')}</a></div>
@@ -414,7 +414,7 @@ export function TaskDispatchDialog({
           <>
             <TaskDispatchFacts plan={plan} />
             {plan.development_continuation&&<DevelopmentContinuationFacts binding={plan.development_continuation} project={project} taskID={plan.task_id}/>}
-            <ExecutionModelFacts binding={plan.model_execution} codex={plan.codex_execution} openCode={plan.opencode_execution} claude={plan.claude_execution} acp={plan.acp_execution}/>
+            <ExecutionModelFacts binding={plan.model_execution} codex={plan.codex_execution} openCode={plan.opencode_execution} claude={plan.claude_execution} claudeSDK={plan.claude_sdk_execution} acp={plan.acp_execution}/>
             {plan.codex_execution?<CodexNativeSkillFacts mode="plan" bundle={plan.execution_skills}/>:plan.context.knowledge?.some(item=>item.kind==='skill')&&<CodexNativeSkillFacts mode="text"/>}
             <RequirementDesignFacts project={project} value={plan.context.design??undefined}/>
             <KnowledgeContextFacts project={project} items={plan.context.knowledge}/>

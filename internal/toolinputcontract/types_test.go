@@ -14,10 +14,10 @@ func TestToolInputUnionSeparatesNativeAnswersAndClosureFacts(t *testing.T) {
 	native.ParamsSHA256, _ = cu.ParamsDigest(native)
 	r := ToolInputRequest{IdempotencyKey: "operation-190", Protocol: ac.Protocol, Cursor: &native}
 	decision := &cu.CursorInputDecision{Outcome: "accepted"}
-	if _, err := AnswerDigest(r, nil, decision); err != nil {
+	if _, err := AnswerDigest(r, nil, decision, nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := AnswerDigest(r, []cc.CodexUserInputSelection{{QuestionID: "other", Kind: "skip"}}, decision); err == nil {
+	if _, err := AnswerDigest(r, []cc.CodexUserInputSelection{{QuestionID: "other", Kind: "skip"}}, decision, nil); err == nil {
 		t.Fatal("Cursor accepted a Codex answer")
 	}
 	r.Codex = &cc.CodexUserInputRequest{}

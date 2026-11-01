@@ -1585,6 +1585,103 @@ export interface ClaudeExecutionEvidence {
   deferred_tool_use?: boolean;
   queued_turn_count?: number;
 }
+export interface ClaudeInputDecision {
+  outcome: string;
+  answers?: (ClaudeInputSelection)[];
+  reason?: string;
+}
+export interface ClaudeInputEvidence {
+  input_id: string;
+  session_id: string;
+  tool_use_id: string;
+  request_id: string;
+  callback_id: string;
+  configuration_sha256: string;
+  params_sha256: string;
+  question_count: number;
+  observation?: ToolInputDeliveryObservation | null;
+}
+export interface ClaudeInputRequest {
+  session_id: string;
+  tool_use_id: string;
+  request_id: string;
+  callback_id: string;
+  configuration_sha256: string;
+  params_sha256: string;
+  input_json: string;
+  questions: (ClaudeQuestion)[];
+}
+export interface ClaudeInputSelection {
+  question_id: string;
+  option_ids: (string)[];
+}
+export interface ClaudePermissionChoice {
+  outcome: string;
+  reason?: string;
+}
+export interface ClaudePermissionEvidence {
+  permission_id: string;
+  session_id: string;
+  tool_use_id: string;
+  request_id: string;
+  callback_id: string;
+  configuration_sha256: string;
+  params_sha256: string;
+  tool_name: string;
+  observation?: ToolInputDeliveryObservation | null;
+}
+export interface ClaudePermissionSource {
+  session_id: string;
+  tool_use_id: string;
+  request_id: string;
+  callback_id: string;
+  configuration_sha256: string;
+  params_sha256: string;
+  tool_name: string;
+  input_json: string;
+}
+export interface ClaudeQuestion {
+  id: string;
+  prompt: string;
+  header: string;
+  options: (ClaudeQuestionOption)[];
+  allow_multiple: boolean;
+}
+export interface ClaudeQuestionOption {
+  id: string;
+  label: string;
+  description: string;
+}
+export interface ClaudeSDKExecutionCapability {
+  sdk_version: string;
+  cli_version: string;
+  model: string;
+  configuration_sha256: string;
+  model_source: string;
+  budget_mode: string;
+  identity_evidence: string;
+  auth_strategy: string;
+}
+export interface ClaudeSDKExecutionEvidence {
+  sdk_version: string;
+  cli_version: string;
+  configuration_sha256: string;
+  session_id: string;
+  requested_model: string;
+  acknowledged_model: string;
+  result_subtype: string;
+  result_is_error: boolean;
+  turn_ended: boolean;
+  tools_completed: boolean;
+  cancel_requested: boolean;
+  host_process_stopped: boolean;
+  host_process_tree_stopped: boolean;
+  permission_requests: number;
+  denied_callbacks: number;
+  native_permission_denials?: number;
+  permissions?: (ClaudePermissionEvidence)[];
+  user_inputs?: (ClaudeInputEvidence)[];
+}
 export interface CloudAssignmentBinding {
   delegation_id: string;
   delegation_version: number;
@@ -3567,6 +3664,7 @@ export interface ModelExecutionOptions {
   parameter_limits?: ModelParameters | null;
   fixed_opencode?: OpenCodeExecutionCapability | null;
   fixed_claude?: ClaudeExecutionCapability | null;
+  fixed_claude_sdk?: ClaudeSDKExecutionCapability | null;
   codex_supported: boolean;
   codex_catalog?: CodexCatalog | null;
   codex_reason: string;
@@ -4267,7 +4365,8 @@ export interface PoolToolPermissionObservationRequest {
   assignment: Assignment;
   permission_id: string;
   idempotency_key: string;
-  observation: CodexApprovalObservation;
+  observation?: CodexApprovalObservation | null;
+  claude_observation?: ToolInputDeliveryObservation | null;
 }
 export interface PoolToolPermissionOpenRequest {
   runner_id: string;
@@ -6658,6 +6757,7 @@ export interface TaskDispatchPlan {
   recommendation?: DispatchRecommendationProvenance;
   opencode_execution?: OpenCodeExecutionCapability | null;
   claude_execution?: ClaudeExecutionCapability | null;
+  claude_sdk_execution?: ClaudeSDKExecutionCapability | null;
   codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;
   code_baseline?: CodeBaselineBinding | null;
@@ -7282,6 +7382,7 @@ export interface ToolEvidence {
   opencode_execution?: OpenCodeExecutionEvidence | null;
   octop_execution?: OctopExecutionEvidence | null;
   claude_execution?: ClaudeExecutionEvidence | null;
+  claude_sdk_execution?: ClaudeSDKExecutionEvidence | null;
   acp_execution?: ACPExecutionEvidence | null;
 }
 export interface ToolExecutionProfile {
@@ -7307,6 +7408,7 @@ export interface ToolExecutionProfile {
   opencode_execution?: OpenCodeExecutionCapability | null;
   octop_execution?: OctopExecutionCapability | null;
   claude_execution?: ClaudeExecutionCapability | null;
+  claude_sdk_execution?: ClaudeSDKExecutionCapability | null;
   acp_execution?: ACPExecutionCapability | null;
 }
 export interface ToolInput {
@@ -7330,7 +7432,8 @@ export interface ToolInput {
 }
 export interface ToolInputAnswer {
   answers?: (CodexUserInputSelection)[];
-  cursor?: CursorInputDecision | null;
+  cursor?: CursorInputDecision;
+  claude?: ClaudeInputDecision;
   answer_sha256: string;
   actor_id: string;
   answered_at: string;
@@ -7340,7 +7443,8 @@ export interface ToolInputAnswerRequest {
   expected_version: number;
   idempotency_key: string;
   answers?: (CodexUserInputSelection)[];
-  cursor?: CursorInputDecision | null;
+  cursor?: CursorInputDecision;
+  claude?: ClaudeInputDecision;
 }
 export interface ToolInputDeliveryObservation {
   sequence: number;
@@ -7377,8 +7481,9 @@ export interface ToolInputPollRequest {
 export interface ToolInputRequest {
   idempotency_key: string;
   protocol: string;
-  codex?: CodexUserInputRequest | null;
-  cursor?: CursorInputRequest | null;
+  codex?: CodexUserInputRequest;
+  cursor?: CursorInputRequest;
+  claude?: ClaudeInputRequest;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;
@@ -7414,6 +7519,7 @@ export interface ToolPermission {
   request: ToolPermissionRequest;
   decision?: ToolPermissionDecision;
   observation?: CodexApprovalObservation;
+  claude_observation?: ToolInputDeliveryObservation;
   created_at: string;
   expires_at: string;
   allowed_actions: (string)[];
@@ -7422,11 +7528,13 @@ export interface ToolPermissionChoice {
   protocol: string;
   acp?: ACPToolPermissionChoice;
   codex?: CodexApprovalChoice;
+  claude?: ClaudePermissionChoice;
 }
 export interface ToolPermissionDecision {
   protocol: string;
   acp?: ACPToolPermissionChoice;
   codex?: CodexApprovalChoice;
+  claude?: ClaudePermissionChoice;
   actor_id: string;
   decided_at: string;
 }
@@ -7434,6 +7542,7 @@ export interface ToolPermissionDecisionRequest {
   protocol: string;
   acp?: ACPToolPermissionChoice;
   codex?: CodexApprovalChoice;
+  claude?: ClaudePermissionChoice;
   project_id: string;
   expected_version: number;
   idempotency_key: string;
@@ -7446,7 +7555,8 @@ export interface ToolPermissionObservationRequest {
   assignment: Assignment;
   permission_id: string;
   idempotency_key: string;
-  observation: CodexApprovalObservation;
+  observation?: CodexApprovalObservation | null;
+  claude_observation?: ToolInputDeliveryObservation | null;
 }
 export interface ToolPermissionOpenRequest {
   project_id: string;
@@ -7468,6 +7578,7 @@ export interface ToolPermissionRequest {
   protocol: string;
   acp?: ACPToolPermissionSource;
   codex?: CodexApprovalRequest;
+  claude?: ClaudePermissionSource;
 }
 export interface ToolProfile {
   id: string;

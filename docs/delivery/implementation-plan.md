@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-CLAUDE-SDK-192：[合同](../../contracts/claude-sdk.md)／[PRD](../product/claude-sdk.md)／[架构与AI SOP](../architecture/claude-sdk.md)／[限定验证](../quality/claude-sdk-verification.md)。官方SDK原生一次许可、提问、固定配置、原Runner及同提交质量贯通；CLI／SDK／MCP、配置与真实厂商、送达与验收分别记录。下一优先简化工具新增／调整／移除与自动检测修复，原31／P0–P7／58／34／92继续。
+
 T-CURSOR-SETUP-191完善工具接入及真实生命周期：唯一高级配置表单、UTF8逐字Shell命令、本机Go完整包／新文件准备、原执行节点草稿衔接及独立启用贯通；严格区分成功RPC和受控宿主停止，不伪造退出0或cancel ACK。见[合同](../../contracts/cursor-setup.md)、[架构与AI SOP](../architecture/cursor-setup.md)和[限定验证](../quality/cursor-setup-verification.md)。继续认证后真实CLI／模型、其他工具、持久协作、团队／知识／质量／运维与跨库／多机／安装／规模／生产验收；不缩减原31／P0–P7／58／34／92。
 
 T-CURSOR-INPUTS-190交付原执行中的提问与计划确认：严格区分Codex／Cursor来源和答案，接入原当前权限、操作回执、Journal单writer、原候选与独立质量链；不新增表或派发器。参见[合同](../../contracts/cursor-inputs.md)、[设计与AI SOP](../architecture/cursor-inputs.md)和[证据](../quality/cursor-inputs-verification.md)。后续继续真实厂商账号／模型与进程生命周期、非桌面Runner快捷配置、持久会话、团队／知识／质量／运维和分布式完整验收；不缩减原31／P0–P7／58／34／92范围。

@@ -8,6 +8,7 @@ import {codexBindingPresent,sameCodexBinding,validCodexDispatchReceipt,validCode
 import {validExecutionSkillPlan} from './codex-native-skills-model';
 import {validOpenCodeDispatchReceipt,validOpenCodePlan} from './opencode-execution-model';
 import {validClaudeDispatchReceipt,validClaudePlan} from './claude-cli-model';
+import {validClaudeSDKDispatchReceipt,validClaudeSDKPlan} from './claude-sdk-execution-model';
 import {validACPDispatchReceipt,validACPPlan} from './acp-execution-model';
 import {validDevelopmentContinuationBinding,validDevelopmentContinuationSource} from './development-continuation-model';
 
@@ -38,12 +39,12 @@ function validDiscussionContinuation(value:Record<string,unknown>,plan:Record<st
 /** The dispatcher owns eligibility. A readable preview still needs one exact
  * producer and mutually exclusive, complete bindings before exposing actions. */
 function validDevelopmentExecution(plan:Record<string,unknown>):boolean {
-  if (!validModelPlan(plan)||!validOpenCodePlan(plan)||!validClaudePlan(plan)||!validACPPlan(plan)||!validExecutionSkillPlan(plan)||
+  if (!validModelPlan(plan)||!validOpenCodePlan(plan)||!validClaudePlan(plan)||!validClaudeSDKPlan(plan)||!validACPPlan(plan)||!validExecutionSkillPlan(plan)||
     !object(plan.workflow)||!Array.isArray(plan.workflow.nodes)) return false;
   const matching=plan.workflow.nodes.filter(node=>object(node)&&node.id===plan.agent_node_id),node=matching[0];
   if(matching.length!==1||!object(node)||node.type!=='agent'||!object(node.config)||
     node.config.tool_profile_id!==plan.tool_profile_id||node.config.tool_profile_sha256!==plan.tool_profile_sha256)return false;
-  const bindingFields=['model_execution','codex_execution','opencode_execution','claude_execution','acp_execution'];
+  const bindingFields=['model_execution','codex_execution','opencode_execution','claude_execution','claude_sdk_execution','acp_execution'];
   const present=bindingFields.filter(key=>Object.hasOwn(plan,key));
   if(present.length>1||bindingFields.some(key=>Object.hasOwn(plan,key)!==Object.hasOwn(node.config as Record<string,unknown>,key))||
     present.some(key=>plan[key]===undefined||plan[key]===null))return false;
@@ -114,5 +115,5 @@ export function validDiscussionDevelopmentReceipt(value: unknown, request: Write
     plan.tool_profile_id===body.tool_profile_id&&plan.tool_profile_version===body.expected_tool_version&&
     Object.hasOwn(body,'codex_execution_selection')===Object.hasOwn(plan,'codex_execution')&&
     validModelDispatchReceipt(plan,body)&&validCodexDispatchReceipt(plan,codexBody)&&
-    validOpenCodeDispatchReceipt(plan,body)&&validClaudeDispatchReceipt(plan,body)&&validACPDispatchReceipt(plan,body);
+    validOpenCodeDispatchReceipt(plan,body)&&validClaudeDispatchReceipt(plan,body)&&validClaudeSDKDispatchReceipt(plan,body)&&validACPDispatchReceipt(plan,body);
 }

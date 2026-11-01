@@ -45,6 +45,9 @@ func normalizeClaudeCommand(spec CommandSpec) CommandSpec {
 }
 
 func validateClaudeCommand(spec CommandSpec) error {
+	if spec.ClaudeSDK != nil || spec.Protocol == tc.ClaudeSDKProtocol {
+		return nil // The independent SDK entry has its own fixed policy.
+	}
 	if spec.Adapter != "claude" && spec.Protocol != tc.ClaudeProtocol {
 		return nil
 	}
@@ -91,6 +94,9 @@ func validateClaudeCommand(spec CommandSpec) error {
 }
 
 func localClaudeCapability(spec CommandSpec) (*tc.ClaudeExecutionCapability, error) {
+	if spec.ClaudeSDK != nil || spec.Protocol == tc.ClaudeSDKProtocol {
+		return nil, nil
+	}
 	if spec.Adapter != "claude" && spec.Protocol != tc.ClaudeProtocol {
 		return nil, nil
 	}

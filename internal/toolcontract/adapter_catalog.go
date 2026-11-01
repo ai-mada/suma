@@ -66,6 +66,7 @@ func AdapterCatalog() []AdapterDescriptor {
 		run("dsh-multica", "DeepSeek Harness / DSH", "cli", "harness", "dsh-multica-jsonl-v1", "contracts/team-cli-runtime.md", with("usage_observation"), []string{"fixed_dsh_multica_profile", "foreground_only_no_resume", "provider_usage_may_be_partial"}),
 		run("codebuddy-cli", "CodeBuddy", "cli", "codebuddy", "codebuddy-jsonl-v1", "contracts/team-cli-runtime.md", with("usage_observation"), []string{"foreground_only_no_resume", "provider_usage_may_be_partial", "workbuddy_not_codebuddy"}),
 		run("claude-code-cli", "Claude Code", "cli", "claude", ClaudeProtocol, "contracts/claude-cli.md", with("usage_observation"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "fixed_claude_cli_configuration", "claude_cli_not_sdk", "claude_permissions_require_admin_policy"}),
+		run("claude-code-sdk", "Claude Code", "sdk", "claude", ClaudeSDKProtocol, "contracts/claude-sdk.md", with("usage_observation", "human_input"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "sdk_once_permissions", "sdk_callback_delivery_not_native_ack", "trusted_cli_not_os_sandbox"}),
 		run("qoder-acp", "Qoder", "cli", "qoder", ac.Protocol, "contracts/acp-cli-execution.md", with("usage_observation", "human_input"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "fixed_acp_cli_configuration", "acp_human_once_permissions", "trusted_cli_not_os_sandbox"}),
 		run("cursor-cli", "Cursor", "cli", "cursor", ac.Protocol, "contracts/cursor-acp-execution.md", with("usage_observation", "human_input"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "fixed_acp_cli_configuration", "acp_human_once_permissions", "trusted_cli_not_os_sandbox"}),
 	}
@@ -96,11 +97,6 @@ func AdapterCatalog() []AdapterDescriptor {
 	}
 	rows = append(rows, adapterDescriptor("harness-guide", "Harness", "sdk", "suma_to_tool", "guide_only", "manual_guide", "", "", "docs/integrations/development-tool-matrix.md", nil, []string{"manual_runtime_verification"}))
 	rows = append(rows, adapterDescriptor("workbuddy-cloud", "WorkBuddy", "cloud_api", "suma_to_tool", "implemented", "manual_guide", "", "", "contracts/workbuddy-cloud-runner.md", []string{"task_start"}, []string{"workbuddy_not_codebuddy", "cloud_fixed_delegation_required", "cloud_start_only", "cloud_delivery_not_verified", "cloud_budget_not_enforced"}))
-	for _, entry := range []struct{ id, product, kind string }{{"claude-code-sdk", "Claude Code", "sdk"}} {
-		limits := []string{"no_execution_adapter"}
-		source := "docs/integrations/development-tool-matrix.md"
-		rows = append(rows, adapterDescriptor(entry.id, entry.product, entry.kind, "suma_to_tool", "planned", "manual_guide", "", "", source, nil, limits))
-	}
 	for i := range rows {
 		refineAdapterSources(&rows[i])
 	}
@@ -195,6 +191,7 @@ func refineAdapterSources(d *AdapterDescriptor) {
 		"dsh-multica":      "internal/runner/tool_dsh.go#toolStream.dsh",
 		"codebuddy-cli":    "internal/runner/tool_codebuddy.go#toolStream.codebuddy",
 		"claude-code-cli":  "internal/runner/tool_claude.go#toolStream.claude",
+		"claude-code-sdk":  "internal/runner/claude_sdk.go",
 		"qoder-acp":        "internal/runner/acp_execution.go",
 		"cursor-cli":       "internal/runner/acp_execution.go",
 	}[d.ID]
@@ -227,6 +224,10 @@ func refineAdapterSources(d *AdapterDescriptor) {
 			if c.Support == "supported" {
 				c.SourceRefs = []string{"internal/toolcontract/terminal.go#SupportsTerminalSessionProfile"}
 				c.Limitations = []string{"profile_specific_capabilities"}
+				if d.ID == "claude-code-sdk" {
+					c.SourceRefs = []string{"internal/platform/tool_permission_claude.go", "internal/runner/claude_sdk.go"}
+					c.Limitations = []string{"sdk_once_permissions", "sdk_callback_delivery_not_native_ack"}
+				}
 				if d.ID == "qoder-acp" || d.ID == "cursor-cli" {
 					c.SourceRefs = []string{"internal/platform/tool_permission.go", "internal/runner/acp_execution.go"}
 					c.Limitations = []string{"acp_human_once_permissions"}

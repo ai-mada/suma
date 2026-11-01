@@ -1,5 +1,6 @@
 import {validOpenCodeCapability} from './opencode-execution-model';
 import {validClaudeCapability} from './claude-cli-model';
+import {validClaudeSDKCapability} from './claude-sdk-execution-model';
 import {validACPCapability} from './acp-execution-model';
 import type {ModelBinding, ModelExecutionOptions, ModelSelection} from '../../../packages/contracts/src';
 
@@ -22,7 +23,8 @@ export function modelOptionsPath(scope: ModelScope) {
 }
 /** Match the whole caller/tool scope before displaying or adopting a response. */
 export function validModelOptions(value: ModelExecutionOptions, scope: ModelScope): boolean {
-  if(!value||!closed(value as unknown as Record<string,unknown>,['parameter_limits','fixed_opencode','fixed_claude','fixed_acp','codex_supported','codex_catalog','codex_reason','project_id','tool_profile_id','tool_profile_version','tool_profile_sha256','observed_at','supported','reason','items'])||value.supported&&(!validParameterLimits(value.parameter_limits)||value.codex_supported)||value.parameter_limits!==undefined&&!validParameterLimits(value.parameter_limits))return false;
+  if(!value||!closed(value as unknown as Record<string,unknown>,['parameter_limits','fixed_opencode','fixed_claude','fixed_claude_sdk','fixed_acp','codex_supported','codex_catalog','codex_reason','project_id','tool_profile_id','tool_profile_version','tool_profile_sha256','observed_at','supported','reason','items'])||value.supported&&(!validParameterLimits(value.parameter_limits)||value.codex_supported)||value.parameter_limits!==undefined&&!validParameterLimits(value.parameter_limits))return false;
+  if(value.fixed_claude_sdk!==undefined&&(value.fixed_opencode!==undefined||value.fixed_claude!==undefined||value.fixed_acp!==undefined||value.parameter_limits!==undefined||value.codex_catalog!==undefined||value.supported||value.codex_supported||value.reason!=='fixed_by_tool'||!Array.isArray(value.items)||value.items.length!==0||!validClaudeSDKCapability(value.fixed_claude_sdk)))return false;
   if(value.fixed_acp!==undefined&&(value.fixed_opencode!==undefined||value.fixed_claude!==undefined||value.parameter_limits!==undefined||value.supported||value.codex_supported||value.reason!=='fixed_by_tool'||!Array.isArray(value.items)||value.items.length!==0||!validACPCapability(value.fixed_acp)))return false;
   if(value.fixed_claude!==undefined&&(value.fixed_opencode!==undefined||value.supported||value.codex_supported||value.reason!=='fixed_by_tool'||!Array.isArray(value.items)||value.items.length!==0||!validClaudeCapability(value.fixed_claude)))return false;
   return !!value && (value.fixed_opencode===undefined||!value.supported&&!value.codex_supported&&value.reason==='fixed_by_tool'&&Array.isArray(value.items)&&value.items.length===0&&validOpenCodeCapability(value.fixed_opencode)) && value.project_id === scope.project && value.tool_profile_id === scope.profile && value.tool_profile_version === scope.version && value.tool_profile_sha256 === scope.sha256 && typeof value.supported === 'boolean' && typeof value.observed_at === 'string' && Number.isFinite(Date.parse(value.observed_at)) && Array.isArray(value.items) && value.items.length <= 1000 && value.items.every(item => {

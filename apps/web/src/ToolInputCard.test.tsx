@@ -6,6 +6,7 @@ import type {ToolInput} from '../../../packages/contracts/src';
 import {ToolInputCard} from './ToolInputCard';
 import {toolInputAnswer,toolInputRecord,toolInputSelections,cursorToolInputRecord,cursorToolInputPlanRecord} from './tool-input.test-support';
 import {setLocale} from './i18n';
+import {claudeSDKInputRecord,claudeSDKInputDecision,claudeSDKDeliveryObservation} from './claude-sdk.test-support';
 
 let root:Root|undefined,host:HTMLDivElement|undefined;
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());host?.remove();vi.unstubAllGlobals();vi.restoreAllMocks();});
@@ -57,4 +58,15 @@ it('shows the complete Cursor plan as text with tool-reported todos and phases, 
  await render({...row,request:{...row.request,cursor:{...row.request.cursor!,params_sha256:'f'.repeat(64)}}});expect(host!.querySelectorAll('input:checked')).toHaveLength(0);await click('[data-tool-input-decision="cancelled"]');await click('[data-tool-input-submit]');expect(answer).toHaveBeenNthCalledWith(3,{cursor:{outcome:'cancelled'}});
  const observation={sequence:1,params_sha256:original.params_sha256,answer_sha256:'a'.repeat(64),answer_observed:true,reply_started:true,reply_written:true,request_resolved:false,execution_closed:true};await render({...row,state:'answered',allowed_actions:[],answer:{cursor:{outcome:'accepted'},answer_sha256:'a'.repeat(64),actor_id:'user-a',answered_at:'2026-11-01T05:00:00Z'},observation});expect(host!.querySelector('[data-tool-input-submit]')).toBeNull();expect(host!.querySelector('[data-tool-input-status="saved"]')).not.toBeNull();expect(host!.querySelector('[data-tool-input-status="execution_closed"]')).not.toBeNull();expect(host!.querySelector('[data-tool-input-status="resolved"]')).toBeNull();expect(host!.textContent).not.toContain('Experimental input capability');
  await render(toolInputRecord);expect(host!.querySelectorAll('input:checked')).toHaveLength(0);expect(host!.textContent).toContain('Experimental input capability');
+});
+
+it('collects original Claude SDK question text with platform selection IDs and explicitly answers or cancels without permission or native acknowledgement',async()=>{
+ const answer=vi.fn(),render=await mount(answer);await render(claudeSDKInputRecord);const questions=claudeSDKInputRecord.request.claude.questions;
+ expect(host!.textContent).toContain('Claude Agent SDK');expect(host!.querySelectorAll('input:checked')).toHaveLength(0);expect(host!.querySelector('[data-tool-input-submit]')?.matches(':disabled')).toBe(true);expect(host!.querySelector('[data-tool-input-other],[data-tool-input-text],[data-tool-input-question-skip],[data-tool-input-plan]')).toBeNull();expect(host!.textContent).not.toContain('Experimental input capability');
+ for(const question of questions){expect(host!.textContent).toContain(question.header);expect(host!.textContent).toContain(question.prompt);for(const option of question.options)expect(host!.textContent).toContain(option.description);}
+ for(const selection of claudeSDKInputDecision.answers!)for(const option of selection.option_ids)await click('[data-tool-input-claude-option="'+selection.question_id+'"][value="'+option+'"]');expect(answer).not.toHaveBeenCalled();
+ await render({...claudeSDKInputRecord,version:2},{disabled:true});expect(host!.querySelectorAll('[data-tool-input-claude-option]:checked')).toHaveLength(3);expect(host!.querySelector('[data-tool-input-submit]')?.matches(':disabled')).toBe(true);await render({...claudeSDKInputRecord,version:3});await click('[data-tool-input-submit]');expect(answer).toHaveBeenNthCalledWith(1,{claude:claudeSDKInputDecision});
+ await click('[data-tool-input-decision="cancelled"]');await reason('Please clarify the scope.');await click('[data-tool-input-submit]');expect(answer).toHaveBeenNthCalledWith(2,{claude:{outcome:'cancelled',reason:'Please clarify the scope.'}});
+ await render({...claudeSDKInputRecord,request:{...claudeSDKInputRecord.request,claude:{...claudeSDKInputRecord.request.claude,callback_id:'another-callback'}}});expect(host!.querySelectorAll('input:checked')).toHaveLength(0);
+ await render({...claudeSDKInputRecord,state:'answered',allowed_actions:[],answer:{claude:claudeSDKInputDecision,answer_sha256:'d'.repeat(64),actor_id:'user-a',answered_at:'2026-11-01T05:00:00Z'},observation:{...claudeSDKDeliveryObservation,reply_written:true,execution_closed:true}});expect(host!.querySelector('[data-tool-input-submit]')).toBeNull();expect(host!.querySelector('[data-tool-input-status="written"]')).not.toBeNull();expect(host!.querySelector('[data-tool-input-status="resolved"]')).toBeNull();expect(host!.textContent).toContain('local SDK host');expect(host!.textContent).toContain('Small change');
 });

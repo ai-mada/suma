@@ -11,6 +11,7 @@ import (
 	"time"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	delivery "github.com/ai-mada/suma/internal/inputdelivery"
@@ -79,7 +80,7 @@ func encodeToolInputJournalObservation(protocol string, o delivery.Observation) 
 	switch protocol {
 	case cc.Protocol:
 		return json.Marshal(ic.ToCodexObservation(o))
-	case ac.Protocol:
+	case ac.Protocol, cl.Protocol:
 		return json.Marshal(o)
 	default:
 		return nil, errToolInput
@@ -93,7 +94,7 @@ func decodeToolInputJournalObservation(protocol string, raw json.RawMessage) (de
 		}
 		return ic.FromCodexObservation(native), nil
 	}
-	if protocol == ac.Protocol {
+	if protocol == ac.Protocol || protocol == cl.Protocol {
 		var o delivery.Observation
 		err := decodeToolInputJournalJSON(raw, &o)
 		return o, err
@@ -101,7 +102,7 @@ func decodeToolInputJournalObservation(protocol string, raw json.RawMessage) (de
 	return delivery.Observation{}, errToolInput
 }
 func (cp toolInputExecutionCheckpoint) MarshalJSON() ([]byte, error) {
-	if cp.Profile.Protocol != cc.Protocol && cp.Profile.Protocol != ac.Protocol {
+	if cp.Profile.Protocol != cc.Protocol && cp.Profile.Protocol != ac.Protocol && cp.Profile.Protocol != cl.Protocol {
 		return nil, errToolInput
 	}
 	wire := toolInputJournalCheckpoint{Profile: cp.Profile}
@@ -133,7 +134,7 @@ func (cp *toolInputExecutionCheckpoint) UnmarshalJSON(raw []byte) error {
 	if err := decodeToolInputJournalJSON(raw, &wire); err != nil {
 		return err
 	}
-	if wire.Profile.Protocol != cc.Protocol && wire.Profile.Protocol != ac.Protocol {
+	if wire.Profile.Protocol != cc.Protocol && wire.Profile.Protocol != ac.Protocol && wire.Profile.Protocol != cl.Protocol {
 		return errToolInput
 	}
 	next := toolInputExecutionCheckpoint{Profile: wire.Profile}
@@ -202,10 +203,17 @@ func validToolInputCheckpoint(a Assignment, cp *toolInputExecutionCheckpoint) er
 			return errToolInput
 		}
 		configurationSHA = c.ConfigurationSHA256
+	case p.Adapter == "claude" && p.Protocol == cl.Protocol && p.UserInputProtocol == cl.InputProtocol:
+		c, err := tc.DecodeClaudeSDKNodeConfiguration(a.Config)
+		if err != nil || c == nil || !samePermissionValue(c, p.ClaudeSDKExecution) {
+			return errToolInput
+		}
+		configurationSHA = c.ConfigurationSHA256
 	default:
 		return errToolInput
 	}
 	var cursorSource *cu.CursorInputRequest
+	var claudeSource *cl.InputRequest
 	for key, r := range cp.Requests {
 		if key != r.Request.IdempotencyKey || ic.ValidateRequest(r.Request) != nil || r.Version < 0 || r.Answer != nil && (r.InputID == "" || ic.ValidateAnswer(r.Request, *r.Answer) != nil) || len(r.Observations) > 128 {
 			return errToolInput
@@ -214,6 +222,12 @@ func validToolInputCheckpoint(a Assignment, cp *toolInputExecutionCheckpoint) er
 			if r.Request.Protocol != cc.Protocol || r.Request.Codex == nil || r.Request.Codex.BindingSHA256 != bindingSHA {
 				return errToolInput
 			}
+		} else if p.Protocol == cl.Protocol {
+			s := r.Request.Claude
+			if r.Request.Protocol != cl.Protocol || s == nil || s.ConfigurationSHA256 != configurationSHA || claudeSource != nil && s.SessionID != claudeSource.SessionID {
+				return errToolInput
+			}
+			claudeSource = s
 		} else {
 			s := r.Request.Cursor
 			if r.Request.Protocol != ac.Protocol || s == nil || s.ConfigurationSHA256 != configurationSHA {
@@ -230,7 +244,7 @@ func validToolInputCheckpoint(a Assignment, cp *toolInputExecutionCheckpoint) er
 		keys := map[string]bool{}
 		for _, event := range r.Observations {
 			o := event.Observation
-			if !acpLocalText(event.OperationID, 128) || keys[event.OperationID] || event.InputID != r.InputID || event.Blocked && event.Acked || delivery.Validate(o) != nil || o.ParamsSHA256 != ic.ParamsSHA256(r.Request) || r.Request.Cursor != nil && o.RequestResolved || previous != nil && !inputObservationAdvances(*previous, o) || o.AnswerObserved && (r.Answer == nil || r.Answer.AnswerSHA256 != o.AnswerSHA256) || event.InputID == "" && (o.AnswerObserved || o.ReplyStarted || event.Acked) {
+			if !acpLocalText(event.OperationID, 128) || keys[event.OperationID] || event.InputID != r.InputID || event.Blocked && event.Acked || delivery.Validate(o) != nil || o.ParamsSHA256 != ic.ParamsSHA256(r.Request) || (r.Request.Cursor != nil || r.Request.Claude != nil) && o.RequestResolved || previous != nil && !inputObservationAdvances(*previous, o) || o.AnswerObserved && (r.Answer == nil || r.Answer.AnswerSHA256 != o.AnswerSHA256) || event.InputID == "" && (o.AnswerObserved || o.ReplyStarted || event.Acked) {
 				return errToolInput
 			}
 			keys[event.OperationID] = true
@@ -262,6 +276,23 @@ func validNativeRequestCheckpoints(e entry) error {
 		seen[key] = value
 		return len(seen)+acpPermissions <= 32
 	}
+	claudeSession := ""
+	claudeCallbacks := map[string]string{}
+	addClaude := func(b cl.Basis, source any) bool {
+		if claudeSession != "" && claudeSession != b.SessionID {
+			return false
+		}
+		claudeSession = b.SessionID
+		raw, err := json.Marshal(source)
+		if err != nil {
+			return false
+		}
+		if previous, exists := claudeCallbacks[b.CallbackID]; exists && previous != string(raw) {
+			return false
+		}
+		claudeCallbacks[b.CallbackID] = string(raw)
+		return add("claude:control:"+b.RequestID, source)
+	}
 	if e.ToolPermissions != nil {
 		for _, r := range e.ToolPermissions.Requests {
 			if s := r.Request.Codex; s != nil {
@@ -270,6 +301,10 @@ func validNativeRequestCheckpoints(e entry) error {
 				}
 			} else if r.Request.ACP != nil {
 				acpPermissions++
+			} else if s := r.Request.Claude; s != nil {
+				if !addClaude(s.Basis, s) {
+					return errToolInput
+				}
 			}
 		}
 	}
@@ -281,6 +316,10 @@ func validNativeRequestCheckpoints(e entry) error {
 				}
 			} else if s := r.Request.Cursor; s != nil {
 				if !add("cursor:server:"+s.SessionID+":"+s.RequestID.Kind+":"+s.RequestID.Value, s) {
+					return errToolInput
+				}
+			} else if s := r.Request.Claude; s != nil {
+				if !addClaude(s.Basis, s) {
 					return errToolInput
 				}
 			} else {
@@ -321,6 +360,9 @@ func safeToolInput(r ic.ToolInputRequest, secrets []string) error {
 	if r.Cursor != nil {
 		return safeCursorInputValue(r.Cursor, secrets)
 	}
+	if r.Claude != nil {
+		return safeCursorInputValue(r.Claude, secrets)
+	}
 	check := func(text string) bool { return progressText(text, secrets) == text && !ansi.MatchString(text) }
 	for _, q := range r.Codex.Questions {
 		if !check(q.ID) || !check(q.Header) || !check(q.Question) {
@@ -340,6 +382,9 @@ func safeToolInputAnswer(r ic.ToolInputRequest, a ic.ToolInputAnswer, secrets []
 	}
 	if a.Cursor != nil {
 		return safeCursorInputValue(a.Cursor, secrets)
+	}
+	if a.Claude != nil {
+		return safeCursorInputValue(a.Claude, secrets)
 	}
 	for _, s := range a.Answers {
 		for _, value := range []string{s.QuestionID, s.Option, s.Text} {
@@ -489,7 +534,7 @@ func (j *Journal) recordToolInputObservation(a Assignment, r ic.ToolInputRequest
 		return errToolInput
 	}
 	v, ok := e.ToolInputs.Requests[r.IdempotencyKey]
-	if !ok || !samePermissionValue(v.Request, r) || v.InputID != id || delivery.Validate(o) != nil || o.ParamsSHA256 != ic.ParamsSHA256(r) || r.Cursor != nil && o.RequestResolved || id == "" && (o.AnswerObserved || o.ReplyStarted) || o.AnswerObserved && (v.Answer == nil || v.Answer.AnswerSHA256 != o.AnswerSHA256) {
+	if !ok || !samePermissionValue(v.Request, r) || v.InputID != id || delivery.Validate(o) != nil || o.ParamsSHA256 != ic.ParamsSHA256(r) || (r.Cursor != nil || r.Claude != nil) && o.RequestResolved || id == "" && (o.AnswerObserved || o.ReplyStarted) || o.AnswerObserved && (v.Answer == nil || v.Answer.AnswerSHA256 != o.AnswerSHA256) {
 		return errToolInput
 	}
 	if beginWrite && (!o.AnswerObserved || !o.ReplyStarted || o.ReplyWritten || o.RequestResolved || o.ExecutionClosed || o.FailureCode != "" || v.Observation != nil && v.Observation.ReplyStarted) {
@@ -546,7 +591,7 @@ func (c *Client) PollToolInput(ctx context.Context, a Assignment, id string) (ic
 }
 func (c *Client) ObserveToolInput(ctx context.Context, a Assignment, r ic.ToolInputRequest, id, operation string, observation delivery.Observation) (ic.ToolInput, error) {
 	var v ic.ToolInput
-	if ic.ValidateRequest(r) != nil || delivery.Validate(observation) != nil || observation.ParamsSHA256 != ic.ParamsSHA256(r) || r.Cursor != nil && observation.RequestResolved || !acpLocalText(id, 100) || !acpLocalText(operation, 128) {
+	if ic.ValidateRequest(r) != nil || delivery.Validate(observation) != nil || observation.ParamsSHA256 != ic.ParamsSHA256(r) || (r.Cursor != nil || r.Claude != nil) && observation.RequestResolved || !acpLocalText(id, 100) || !acpLocalText(operation, 128) {
 		return v, errToolInput
 	}
 	err := c.post(ctx, "tool-inputs/observations", map[string]any{"project_id": c.ProjectID, "assignment": a, "input_id": id, "idempotency_key": operation, "observation": observation}, &v)

@@ -71,5 +71,20 @@
   "tool-permissions.item_failed": "失败",
   "tool-permissions.observed": "已记录",
   "tool-permissions.dispatch_id": "原派发 ID",
-  "tool-permissions.started_at_ms": "原操作开始时间（毫秒）"
+  "tool-permissions.started_at_ms": "原操作开始时间（毫秒）",
+  "tool-permissions.claude_title": "Claude Agent SDK · {{tool}} 调用确认",
+  "tool-permissions.claude_parameter_boundary": "请核对下方完整原参数。决定仅适用本次 SDK 回调，不修改输入或长期权限；无法核对时请拒绝。",
+  "tool-permissions.claude_original_input": "完整 SDK 原始调用参数",
+  "tool-permissions.tool_use_id": "SDK 工具调用 ID",
+  "tool-permissions.callback_id": "宿主回调 ID",
+  "tool-permissions.configuration_sha256": "固定配置 SHA-256",
+  "tool-permissions.answer_sha256": "原决定 SHA-256",
+  "tool-permissions.answer_observed": "执行器已观察原决定",
+  "tool-permissions.execution_closed": "原执行已关闭",
+  "tool-permissions.claude_reply_written": "已完整写入本机 SDK 宿主",
+  "tool-permissions.claude_observation_boundary": "写入本机 SDK 宿主不等于供应方接受或工具执行成功，也不授予长期权限；原执行关闭与进程真实停止分别核对。",
+  "tool-permissions.claude_delivery_details": "查看原决定送达依据",
+  "tool-permissions.claude_reason": "本次决定说明（可选，请勿填写凭据）",
+  "tool-permissions.claude_reason_invalid": "说明格式无法采用，请缩短内容并移除不支持的字符。原说明保留。",
+  "tool-permissions.claude_one_callback": "仅本次原 SDK 回调"
 }

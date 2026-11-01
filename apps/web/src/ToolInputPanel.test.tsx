@@ -2,7 +2,7 @@
 import {act} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-import type {CodexUserInputSelection,CursorInputDecision,ToolInput} from '../../../packages/contracts/src';
+import type {CodexUserInputSelection,CursorInputDecision,ClaudeInputDecision,ToolInput} from '../../../packages/contracts/src';
 import type {ApiCaller,Session} from './api';
 import {ApiViewProvider,bindApiView} from './api-context';
 import {setLocale} from './i18n';
@@ -10,6 +10,7 @@ import {ToolInputPanel,type ToolInputPanelProps} from './ToolInputPanel';
 import {toolInputRecord,toolInputScope,toolInputSelections} from './tool-input.test-support';
 import {cursorToolInputScope,cursorToolInputRecord,cursorToolInputPlanRecord,cursorToolInputDecision} from './tool-input.test-support';
 import {buildToolInputAnswerBody,buildToolInputIntent,toolInputRecoveryScope} from './tool-input-model';
+import {claudeSDKInputScope,claudeSDKInputRecord,claudeSDKInputDecision} from './claude-sdk.test-support';
 
 const callerOverride=vi.hoisted(()=>({current:undefined as ApiCaller|undefined}));
 vi.mock('./api-context',async load=>{const actual=await load<typeof import('./api-context')>();return {...actual,useApi:()=>{const caller=actual.useApi();return callerOverride.current??caller;}};});
@@ -26,7 +27,7 @@ async function normal(request:Request):Promise<Response>{
  const body=request.body!,key=String(body.idempotency_key);let result=saved.get(key);
  if(!result){
   const row=items.find(item=>request.path==='/tool-inputs/'+item.id+'/answer')!;
-  result={...row,version:row.version+1,state:'answered',allowed_actions:[],answer:{...(Object.hasOwn(body,'cursor')?{cursor:body.cursor as CursorInputDecision}:{answers:body.answers as CodexUserInputSelection[]}),answer_sha256:'6'.repeat(64),actor_id:identity.user.id,answered_at:'2026-11-01T04:01:00Z'}};
+  result={...row,version:row.version+1,state:'answered',allowed_actions:[],answer:{...(Object.hasOwn(body,'claude')?{claude:body.claude as ClaudeInputDecision}:Object.hasOwn(body,'cursor')?{cursor:body.cursor as CursorInputDecision}:{answers:body.answers as CodexUserInputSelection[]}),answer_sha256:'6'.repeat(64),actor_id:identity.user.id,answered_at:'2026-11-01T04:01:00Z'}};
   saved.set(key,result);items=items.map(item=>item.id===result!.id?result!:item);
  }
  return Response.json(result);
@@ -91,6 +92,22 @@ it('T187 preserves one explicit original answer and key through an unknown recei
  await open();expect(requests.at(-1)?.path).toBe('/runs/run-a/nodes/develop/tool-inputs?project_id=project-a&attempt=3&fence=10');
  expect(host.querySelector('[data-tool-input-card="input-a"]')).toBeNull();expect(host.querySelector('[data-tool-input-card="input-next"]')).not.toBeNull();
  expect(saved.get(key)?.state).toBe('answered');expect(host.querySelector<HTMLButtonElement>('[data-tool-input-submit]')?.disabled).toBe(true);
+});
+
+it('T192 saves exact SDK choices once, restores the original callback body and tuple before terminal history, and removes currently denied questions',async()=>{
+ protocol='claude-sdk-input-v1';items=[structuredClone(claudeSDKInputRecord)];const scope=claudeSDKInputScope;let lost=true;
+ reply=async request=>{const response=await normal(request);if(request.method==='POST'&&lost){lost=false;throw TypeError('Original SDK answer saved; response lost');}return response;};
+ await render(scope);await open();expect(writes()).toHaveLength(0);expect(host.querySelectorAll('input:checked')).toHaveLength(0);expect(host.textContent).not.toContain('Experimental input capability');
+ for(const selection of claudeSDKInputDecision.answers!)for(const option of selection.option_ids)await click('[data-tool-input-claude-option="'+selection.question_id+'"][value="'+option+'"]');
+ const submit=host.querySelector<HTMLButtonElement>('[data-tool-input-submit]')!;await act(async()=>{submit.click();submit.click();});await settle();expect(writes()).toHaveLength(1);
+ const original=writes()[0],key=String(original.body!.idempotency_key);expect(original.path).toBe('/tool-inputs/'+claudeSDKInputRecord.id+'/answer');expect(original.body).toEqual({project_id:scope.project,expected_version:1,idempotency_key:key,claude:claudeSDKInputDecision});expect(original.body).not.toHaveProperty('answers');expect(original.body).not.toHaveProperty('cursor');expect(original.headers.get('X-Suma-Expected-User')).toBe(scope.userID);expect(onChanged).not.toHaveBeenCalled();
+ const persisted=journals(key);expect(persisted).toHaveLength(2);const metadata=persisted.find(item=>item.value.request)!;expect(metadata.value).toMatchObject({source_identity:{claude:{callback_id:claudeSDKInputRecord.request.claude.callback_id,request_id:claudeSDKInputRecord.request.claude.request_id,params_sha256:claudeSDKInputRecord.request.claude.params_sha256}},request:{body:original.body}});expect(metadata.raw).not.toContain('input_json');expect(metadata.raw).not.toContain(claudeSDKInputRecord.request.claude.questions[0].prompt);
+ await click('[data-tool-input-refresh]');expect(host.querySelector('[data-tool-input-status="saved"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-status="written"]')).toBeNull();expect(host.querySelector('[data-tool-input-status="resolved"]')).toBeNull();expect(journals(key)).toHaveLength(2);
+ items.push({...structuredClone(claudeSDKInputRecord),id:'sdk-input-next',attempt:3,fence:10,dispatch_id:'sdk-dispatch-next',request:{...claudeSDKInputRecord.request,idempotency_key:'original-sdk-input-next',claude:{...claudeSDKInputRecord.request.claude,session_id:'sdk-session-next',tool_use_id:'sdk-tool-next',request_id:'sdk-request-next',callback_id:'sdk-callback-next'}}});
+ await render({...scope,attempt:3,fence:10,state:'succeeded'});expect(host.querySelector('[data-tool-input-card="sdk-input-next"]')).toBeNull();await act(async()=>root.unmount());root=createRoot(host);await render({...scope,attempt:3,fence:10,state:'succeeded'});expect(requests.at(-1)?.path).toBe('/runs/'+scope.runID+'/nodes/'+scope.nodeID+'/tool-inputs?project_id='+scope.project+'&attempt=2&fence=9');
+ expect(host.querySelector<HTMLButtonElement>('[data-tool-input-recover]')?.disabled).toBe(false);await click('[data-tool-input-recover]');expect(writes()).toHaveLength(2);expect(writes()[1].body).toEqual(original.body);expect(writes()[1].headers.get('X-Suma-Expected-Organization')).toBe(scope.organizationID);expect(saved.size).toBe(1);expect(journals(key)).toHaveLength(0);expect(onChanged).toHaveBeenCalledOnce();await open();
+ expect(requests.at(-1)?.path).toBe('/runs/'+scope.runID+'/nodes/'+scope.nodeID+'/tool-inputs?project_id='+scope.project+'&attempt=3&fence=10');expect(host.querySelector('[data-tool-input-card="'+claudeSDKInputRecord.id+'"]')).toBeNull();expect(host.querySelector('[data-tool-input-card="sdk-input-next"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-submit]')).toBeNull();expect(writes()).toHaveLength(2);
+ reply=async()=>Response.json({error:{code:'forbidden',message:'Current SDK input access denied'}},{status:403});await click('[data-tool-input-refresh]');expect(host.querySelector('[data-tool-input-card]')).toBeNull();expect(host.textContent).not.toContain(claudeSDKInputRecord.request.claude.questions[0].prompt);expect(host.querySelector('[data-public-run]')).not.toBeNull();expect(writes()).toHaveLength(2);
 });
 
 it('T187 isolates late source and caller reads, keeps capability-off or terminal history read-only, and clears current denied private facts',async()=>{

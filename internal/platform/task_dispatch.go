@@ -344,6 +344,7 @@ func (s *Service) buildTaskDispatchSnapshotInputsTx(ctx context.Context, engine 
 	out.ExecutionSkills = executionSkills
 	out.OpenCodeExecution = toolcontract.CloneProfile(profile.Profile).OpenCodeExecution
 	out.ClaudeExecution = toolcontract.CloneProfile(profile.Profile).ClaudeExecution
+	out.ClaudeSDKExecution = toolcontract.CloneProfile(profile.Profile).ClaudeSDKExecution
 	out.ACPExecution = toolcontract.CloneProfile(profile.Profile).ACPExecution
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version

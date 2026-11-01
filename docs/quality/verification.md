@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CLAUDE-SDK-192：[合同](../../contracts/claude-sdk.md)／[PRD](../product/claude-sdk.md)／[架构与AI SOP](../architecture/claude-sdk.md)／[限定验证](../quality/claude-sdk-verification.md)。官方SDK原生一次许可、提问、固定配置、原Runner及同提交质量贯通；CLI／SDK／MCP、配置与真实厂商、送达与验收分别记录。下一优先简化工具新增／调整／移除与自动检测修复，原31／P0–P7／58／34／92继续。
+
 T-CURSOR-SETUP-191：[限定报告](cursor-setup-verification.md)／[摘要](cursor-setup-summary.json)。准备文件、UTF8命令、原节点引导与受控长驻宿主分别取证；保留真实退出值、标准cancel通知写出和严格未知门。新增／直接影响检查、真实PS5纯准备及双语界面验证的实际命令／环境／原失败与边界见报告，不重复SDK或190完整链。
 
 T-CURSOR-INPUTS-190：[限定报告](cursor-inputs-verification.md)／[摘要](cursor-inputs-summary.json)。原问题／多选与计划typed决定贯通原Server／SQLite／Worker／SDK／Journal／Git及独立测试和隔离账号验收，GUI中英代表状态单次收口；厂商账号／模型和完整平台继续单独验收。新增及受影响检查的实际命令、离线环境、原失败和证据摘要均保留，不重复未变全套。

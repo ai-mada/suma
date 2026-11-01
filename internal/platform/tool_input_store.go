@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
@@ -98,6 +99,11 @@ type toolInputRow struct {
 func (toolInputRow) Format(s fmt.State, _ rune) { _, _ = io.WriteString(s, "toolInputRow{redacted}") }
 
 func toolInputSourceDigests(r ic.ToolInputRequest) (string, string) {
+	if r.Claude != nil && r.Cursor == nil && r.Codex == nil {
+		// Permissions and AskUserQuestion share the actual native request ID
+		// namespace. A regenerated host callback ID cannot create another grant.
+		return digest(stringify([]string{r.Protocol, r.Claude.SessionID})), digest(stringify([]string{r.Protocol, r.Claude.RequestID}))
+	}
 	if r.Cursor != nil && r.Codex == nil {
 		// ACP tool-call IDs and client Prompt IDs are not server RPC IDs.
 		// The two Cursor methods share one server-request namespace.
@@ -186,6 +192,9 @@ func toolInputMatchesBasis(r ic.ToolInputRequest, b toolPermissionBasis) bool {
 	}
 	if r.Cursor != nil {
 		return toolInputProfileProtocol(b.node, b.profile) == cu.InputProtocol && b.profile.Profile.ACPExecution != nil && r.Cursor.ConfigurationSHA256 == b.profile.Profile.ACPExecution.ConfigurationSHA256
+	}
+	if r.Claude != nil {
+		return toolInputProfileProtocol(b.node, b.profile) == cl.InputProtocol && b.profile.Profile.ClaudeSDKExecution != nil && r.Claude.ConfigurationSHA256 == b.profile.Profile.ClaudeSDKExecution.ConfigurationSHA256
 	}
 	binding, err := dag.CodexBinding(b.node)
 	return r.Codex != nil && toolInputProfileProtocol(b.node, b.profile) == cc.UserInputProtocol && err == nil && binding != nil && binding.BindingSHA256 == r.Codex.BindingSHA256

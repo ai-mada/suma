@@ -33,6 +33,12 @@ func observationAdvances(old, next cc.CodexApprovalObservation) bool {
 	return old.ItemStatus == "" || old.ItemStatus == "inProgress" && next.ItemStatus != "" || old.ItemStatus == next.ItemStatus
 }
 func validToolPermissionObservations(r toolPermissionCheckpoint) error {
+	if r.Request.Claude != nil {
+		return validClaudeToolPermissionObservations(r)
+	}
+	if r.ClaudeObservation != nil || len(r.ClaudeObservations) != 0 {
+		return errToolPermission
+	}
 	if r.Request.Codex == nil {
 		if r.Observation != nil || len(r.Observations) != 0 {
 			return errToolPermission
@@ -224,7 +230,7 @@ func ReplayToolPermissionObservations(ctx context.Context, c *Client, j *Journal
 			return err
 		}
 	}
-	return nil
+	return replayClaudeToolPermissionObservations(ctx, c, j)
 }
 
 func (j *Journal) blockToolPermissionObservation(event pendingToolPermissionObservation) error {
@@ -279,6 +285,11 @@ func (j *Journal) bindToolPermissionObservation(a Assignment, request pc.Request
 	for i := range r.Observations {
 		if r.Observations[i].PermissionID == "" {
 			r.Observations[i].PermissionID = permission.ID
+		}
+	}
+	for i := range r.ClaudeObservations {
+		if r.ClaudeObservations[i].PermissionID == "" {
+			r.ClaudeObservations[i].PermissionID = permission.ID
 		}
 	}
 	e.ToolPermissions.Requests[request.IdempotencyKey] = r

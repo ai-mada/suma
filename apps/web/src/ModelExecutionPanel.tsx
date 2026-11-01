@@ -2,11 +2,13 @@ import {useEffect, useId, useState} from 'react';
 import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
 import {validOpenCodeCapability} from './opencode-execution-model';
 import {ClaudeExecutionFacts} from './ClaudeExecutionFacts';
+import {ClaudeSDKExecutionFacts} from './ClaudeSDKExecutionFacts';
+import {validClaudeSDKCapability} from './claude-sdk-execution-model';
 import {ACPExecutionFacts} from './ACPExecutionFacts';
 import {validACPCapability} from './acp-execution-model';
 import type {ACPExecutionCapability} from '../../../packages/contracts/src';
 import {validClaudeCapability} from './claude-cli-model';
-import type {ClaudeExecutionCapability} from '../../../packages/contracts/src';
+import type {ClaudeExecutionCapability,ClaudeSDKExecutionCapability} from '../../../packages/contracts/src';
 import {RefreshCw} from 'lucide-react';
 import type {ModelBinding, ModelExecutionOptions, ModelSelection, CodexSelection, OpenCodeExecutionCapability} from '../../../packages/contracts/src';
 import {useApi} from './api-context';
@@ -19,13 +21,13 @@ import {validCodexCatalog} from './codex-execution-model';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('model-execution.' + key, values);
 export type ModelChoice = {ready: boolean} & ({selection?: ModelSelection; codexSelection?: never} | {selection?: never; codexSelection?: CodexSelection});
-type Props = {scope: ModelScope; fixedOpenCode?:OpenCodeExecutionCapability|null; fixedClaude?:ClaudeExecutionCapability|null; fixedACP?:ACPExecutionCapability|null; supported: boolean; discover?: boolean; codex?: boolean; allowCodex?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
+type Props = {scope: ModelScope; fixedOpenCode?:OpenCodeExecutionCapability|null; fixedClaude?:ClaudeExecutionCapability|null; fixedClaudeSDK?:ClaudeSDKExecutionCapability|null; fixedACP?:ACPExecutionCapability|null; supported: boolean; discover?: boolean; codex?: boolean; allowCodex?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
 /** A current scoped read, never a model health probe or a dispatch action. */
 export function ModelExecutionPanel(props: Props) {
   const key=JSON.stringify(props.scope);
   return props.codex ? <CodexModelExecutionPanel key={key} scope={props.scope} disabled={props.disabled} onChange={props.onChange}/> : <NativeModelExecutionPanel key={key} {...props}/>;
 }
-function NativeModelExecutionPanel({scope, fixedOpenCode, fixedClaude, fixedACP, supported, discover = false, allowCodex = true, disabled, onChange}: Props) {
+function NativeModelExecutionPanel({scope, fixedOpenCode, fixedClaude, fixedClaudeSDK, fixedACP, supported, discover = false, allowCodex = true, disabled, onChange}: Props) {
   const api = useApi(); useLocale(); const id = useId();
   const [read, setRead] = useState<{api:typeof api;path:string;value:ModelExecutionOptions}>(), [error, setError] = useState<unknown>(), [loading, setLoading] = useState(false), [refresh, setRefresh] = useState(0);
   const [draft, setDraft] = useState<ModelDraft>({deployment: '', steps: '8', output: '4096', tokens: '', cost: ''});
@@ -46,7 +48,7 @@ function NativeModelExecutionPanel({scope, fixedOpenCode, fixedClaude, fixedACP,
   const selection = page && modelSelection(page, draft);
   useEffect(() => {if (discover && allowCodex && page?.codex_supported) return;onChange({selection, ready: !supported && !discover || !loading && !error && (!!selection || !supported && discover && page?.supported === false && !page.codex_supported)});}, [supported, discover, allowCodex, page, draft, loading, error, onChange]);
   if (discover && page?.codex_supported) return allowCodex ? <CodexModelExecutionSelector catalog={page.codex_catalog} disabled={disabled} onChange={onChange} onRefresh={()=>setRefresh(n=>n+1)}/> : <p role="status" className="muted">{t('codex_not_supported')}</p>;
-  if (!supported && (!discover || page?.supported === false)) { const acp=fixedACP??page?.fixed_acp;if(validACPCapability(acp))return <ACPExecutionFacts capability={acp}/>;const claude=fixedClaude??page?.fixed_claude;if(validClaudeCapability(claude))return <ClaudeExecutionFacts capability={claude}/>;const fixed=fixedOpenCode??page?.fixed_opencode; return validOpenCodeCapability(fixed)?<OpenCodeExecutionFacts capability={fixed}/>:<p className="muted">{t('fixed_tool')}</p>; }
+  if (!supported && (!discover || page?.supported === false)) { const sdk=fixedClaudeSDK??page?.fixed_claude_sdk;if(validClaudeSDKCapability(sdk))return <ClaudeSDKExecutionFacts capability={sdk}/>;const acp=fixedACP??page?.fixed_acp;if(validACPCapability(acp))return <ACPExecutionFacts capability={acp}/>;const claude=fixedClaude??page?.fixed_claude;if(validClaudeCapability(claude))return <ClaudeExecutionFacts capability={claude}/>;const fixed=fixedOpenCode??page?.fixed_opencode; return validOpenCodeCapability(fixed)?<OpenCodeExecutionFacts capability={fixed}/>:<p className="muted">{t('fixed_tool')}</p>; }
   const item = page?.items.find(item => item.deployment.deployment_sha256 === draft.deployment);
   return <section className="model-execution" aria-labelledby={id} aria-busy={loading}>
     <div className="model-execution-heading"><h3 id={id}>{t('title')}</h3><button type="button" aria-label={t('refresh')} disabled={disabled || loading} onClick={() => setRefresh(n => n + 1)}><RefreshCw size={14}/></button></div>

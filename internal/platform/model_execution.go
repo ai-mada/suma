@@ -98,6 +98,18 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 			out.Reason = "fixed_by_tool"
 			return nil
 		}
+		if supportsClaudeSDKExecution(p) {
+			current, err := s.toolProfileObservationLockedTx(auth.ctx, auth.tx, auth.target.tenantID, project, p)
+			if err != nil {
+				return err
+			}
+			if !current.Available {
+				return conflict(claudeSDKExecutionUnavailable)
+			}
+			out.FixedClaudeSDK = tc.CloneProfile(current.Profile).ClaudeSDKExecution
+			out.Reason = "fixed_by_tool"
+			return nil
+		}
 		if supportsOpenCodeExecution(p) {
 			current, err := s.toolProfileObservationLockedTx(auth.ctx, auth.tx, auth.target.tenantID, project, p)
 			if err != nil {
@@ -242,6 +254,9 @@ func (s *Service) validateModelExecutionPlanTx(ctx context.Context, tx *sql.Tx, 
 	if err := s.validateACPExecutionPlanTx(ctx, tx, tenant, project, p, plan); err != nil {
 		return err
 	}
+	if err := s.validateClaudeSDKExecutionPlanTx(ctx, tx, tenant, project, p, plan); err != nil {
+		return err
+	}
 	if err := s.validateClaudeExecutionPlanTx(ctx, tx, tenant, project, p, plan); err != nil {
 		return err
 	}
@@ -325,6 +340,9 @@ func (s *Service) modelExecutionExactRateTx(ctx context.Context, tx *sql.Tx, ten
 func (s *Service) modelExecutionClaimEligibleTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ToolProfile, n dag.Node) (bool, error) {
 	if eligible, err := s.acpExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
 		return false, err
+	}
+	if eligible, err := s.claudeSDKExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
+		return eligible, err
 	}
 	if eligible, err := s.claudeExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
 		return false, err

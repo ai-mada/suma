@@ -60,6 +60,9 @@ func SupportsClaudeExecutionProfile(p Profile) bool {
 	return claudeProfileBase(p) && p.ClaudeExecution != nil && ValidateClaudeExecutionCapability(*p.ClaudeExecution) == nil && ValidateClaudeCLIVersion(p.ToolVersion) == nil
 }
 func validateClaudeProfile(p Profile, complete bool) error {
+	if p.Protocol == ClaudeSDKProtocol && p.ClaudeExecution == nil {
+		return nil
+	}
 	if p.Adapter != "claude" && p.Protocol != ClaudeProtocol && p.ClaudeExecution == nil {
 		return nil
 	}
@@ -111,7 +114,7 @@ func DecodeClaudeNodeConfiguration(config map[string]any) (*ClaudeExecutionCapab
 
 func validateClaudeEvidence(e Evidence) error {
 	if e.ClaudeExecution == nil {
-		if e.Profile.Adapter == "claude" || e.Profile.Protocol == ClaudeProtocol {
+		if e.Profile.Protocol == ClaudeProtocol {
 			return fmt.Errorf("Claude execution evidence is required")
 		}
 		return nil

@@ -1,10 +1,11 @@
-import type {ACPToolPermissionSource,ACPToolPermissionChoice,CodexApprovalRequest,CodexApprovalChoice,ToolPermission} from '../../../packages/contracts/src';
+import type {ACPToolPermissionSource,ACPToolPermissionChoice,CodexApprovalRequest,CodexApprovalChoice,ClaudePermissionSource,ClaudePermissionChoice,ToolPermission} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
 import {wellFormed} from './i18n/catalog';
+import {validClaudeCallbackBasis,validClaudePermissionSource,validClaudePermissionChoice,validClaudeDeliveryObservation} from './claude-sdk-interaction-model';
 
-export type ToolPermissionScope={project:string;runID:string;nodeID:string;attempt:number;fence:number;userID:string;organizationID:string;protocol:'acp-stdio-v1'|'codex-app-server-v1'};
-export type ToolPermissionChoice=ACPToolPermissionChoice|CodexApprovalChoice;
-type SourceIdentity={protocol:'acp-stdio-v1';idempotency_key:string;acp:Pick<ACPToolPermissionSource,'session_id'|'tool_call_id'>}|{protocol:'codex-app-server-v1';idempotency_key:string;codex:Pick<CodexApprovalRequest,'request_id'|'method'|'thread_id'|'turn_id'|'item_id'|'started_at_ms'|'approval_id'|'binding_sha256'|'params_sha256'|'item_sha256'>};
+export type ToolPermissionScope={project:string;runID:string;nodeID:string;attempt:number;fence:number;userID:string;organizationID:string;protocol:'acp-stdio-v1'|'codex-app-server-v1'|'claude-sdk-v1'};
+export type ToolPermissionChoice=ACPToolPermissionChoice|CodexApprovalChoice|ClaudePermissionChoice;
+type SourceIdentity={protocol:'acp-stdio-v1';idempotency_key:string;acp:Pick<ACPToolPermissionSource,'session_id'|'tool_call_id'>}|{protocol:'codex-app-server-v1';idempotency_key:string;codex:Pick<CodexApprovalRequest,'request_id'|'method'|'thread_id'|'turn_id'|'item_id'|'started_at_ms'|'approval_id'|'binding_sha256'|'params_sha256'|'item_sha256'>}|{protocol:'claude-sdk-v1';idempotency_key:string;claude:Pick<ClaudePermissionSource,'session_id'|'tool_use_id'|'request_id'|'callback_id'|'configuration_sha256'|'params_sha256'|'tool_name'>};
 export type ToolPermissionIntent={scope:ToolPermissionScope;permission_id:string;profile_sha256:string;dispatch_id:string;worker_id:string;source_identity:SourceIdentity;native_choice:ToolPermissionChoice;request:WriteRecoveryRequest};
 
 const maximum=Number.MAX_SAFE_INTEGER,encoder=new TextEncoder();
@@ -17,7 +18,8 @@ const hash=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v
 const routeID=(v:unknown,limit=64):v is string=>typeof v==='string'&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]+$/.test(v)&&v.length<=limit;
 const permissionID=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:/@+\-]{0,149}$/.test(v);
 const operation=(v:unknown):v is string=>token(v)&&encoder.encode(v).length>=8;
-const protocol=(v:unknown):v is ToolPermissionScope['protocol']=>v==='acp-stdio-v1'||v==='codex-app-server-v1';
+const protocol=(v:unknown):v is ToolPermissionScope['protocol']=>v==='acp-stdio-v1'||v==='codex-app-server-v1'||v==='claude-sdk-v1';
+const nativeBranch=(native:ToolPermissionScope['protocol'])=>native==='acp-stdio-v1'?'acp':native==='claude-sdk-v1'?'claude':'codex';
 const codexID=(v:unknown):v is string=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:/@+\-]{0,127}$/.test(v);
 const codexText=(v:unknown,limit:number,required=false,multiline=false):v is string=>text(v,limit)&&(!required||!!v.trim())&&(multiline||!/[\p{Cc}]/u.test(v));
 const codexMethods=['item/commandExecution/requestApproval','item/fileChange/requestApproval'];
@@ -74,9 +76,9 @@ function timestamp(value:unknown):value is string{
  const time=new Date(value);return Number.isFinite(time.valueOf())&&time.toISOString().slice(0,19)===value.slice(0,19);
 }
 export function validPermission(value:unknown,scope:ToolPermissionScope):value is ToolPermission{
- if(!validScope(scope)||!object(value)||!fields(value,['id','project_id','run_id','node_id','attempt','fence','dispatch_id','worker_id','profile_sha256','version','state','request','created_at','expires_at','allowed_actions'],['decision','observation'])||!['id','project_id','run_id','node_id','dispatch_id','worker_id'].every(k=>permissionID(value[k]))||value.project_id!==scope.project||value.run_id!==scope.runID||value.node_id!==scope.nodeID||!integer(value.attempt)||!integer(value.fence)||!integer(value.version)||!hash(value.profile_sha256)||typeof value.state!=='string'||!['pending','decided','expired','superseded'].includes(value.state)||!timestamp(value.created_at)||!timestamp(value.expires_at)||Date.parse(value.expires_at)<=Date.parse(value.created_at)||!object(value.request))return false;
- const request=value.request,native=scope.protocol,key=native==='acp-stdio-v1'?'acp':'codex';
- if(!fields(request,['idempotency_key','protocol',key])||request.protocol!==native||!operation(request.idempotency_key)||!boundedJSON(request,65536)||(native==='acp-stdio-v1'?!validACPSource(request.acp):!validCodexSource(request.codex)))return false;
+ if(!validScope(scope)||!object(value)||!fields(value,['id','project_id','run_id','node_id','attempt','fence','dispatch_id','worker_id','profile_sha256','version','state','request','created_at','expires_at','allowed_actions'],['decision','observation','claude_observation'])||!['id','project_id','run_id','node_id','dispatch_id','worker_id'].every(k=>permissionID(value[k]))||value.project_id!==scope.project||value.run_id!==scope.runID||value.node_id!==scope.nodeID||!integer(value.attempt)||!integer(value.fence)||!integer(value.version)||!hash(value.profile_sha256)||typeof value.state!=='string'||!['pending','decided','expired','superseded'].includes(value.state)||!timestamp(value.created_at)||!timestamp(value.expires_at)||Date.parse(value.expires_at)<=Date.parse(value.created_at)||!object(value.request))return false;
+ const request=value.request,native=scope.protocol,key=nativeBranch(native);
+ if(!fields(request,['idempotency_key','protocol',key])||request.protocol!==native||!operation(request.idempotency_key)||!boundedJSON(request,65536)||(native==='acp-stdio-v1'?!validACPSource(request.acp):native==='claude-sdk-v1'?!validClaudePermissionSource(request.claude):!validCodexSource(request.codex)))return false;
  const decision=value.decision;
  if(value.state==='decided'&&!Object.hasOwn(value,'decision')||value.state==='pending'&&Object.hasOwn(value,'decision'))return false;
  if(Object.hasOwn(value,'decision')&&(!object(decision)||!branch(decision,native,['protocol','actor_id','decided_at'])||!permissionID(decision.actor_id)||!timestamp(decision.decided_at)||!choiceMatches(request,choiceOf(decision,native))))return false;
@@ -86,7 +88,12 @@ export function validPermission(value:unknown,scope:ToolPermissionScope):value i
   if(native!=='codex-app-server-v1'||!validObservation(observation)||!object(observation)||observation.params_sha256!==(request.codex as CodexApprovalRequest).params_sha256||observation.decision_observed&&(!object(decision)||!object(decision.codex)||decision.codex.decision!==observation.decision))return false;
   terminalObservation=observation.request_resolved===true||!!observation.item_status&&observation.item_status!=='inProgress';
  }
- const order=native==='acp-stdio-v1'?['allow_once','reject_once']:['accept','decline','cancel'];let last=-1;
+ if(Object.hasOwn(value,'claude_observation')){
+  const o=value.claude_observation;
+  if(native!=='claude-sdk-v1'||Object.hasOwn(value,'observation')||!validClaudeDeliveryObservation(o)||o.params_sha256!==(request.claude as ClaudePermissionSource).params_sha256||o.answer_observed&&(!object(decision)||!validClaudePermissionChoice(decision.claude)))return false;
+  terminalObservation=o.execution_closed;
+ }
+ const order=native==='codex-app-server-v1'?['accept','decline','cancel']:['allow_once','reject_once'];let last=-1;
  if(!Array.isArray(value.allowed_actions))return false;
  for(const action of value.allowed_actions){
   const index=typeof action==='string'?order.indexOf(action):-1;
@@ -99,10 +106,10 @@ export function validPermission(value:unknown,scope:ToolPermissionScope):value i
 }
 function validChoice(value:unknown,native:ToolPermissionScope['protocol']):value is ToolPermissionChoice{
  if(!object(value))return false;
- return native==='acp-stdio-v1'?fields(value,['option_id','kind'])&&token(value.option_id)&&typeof value.kind==='string'&&['allow_once','reject_once'].includes(value.kind):fields(value,['decision'])&&typeof value.decision==='string'&&['accept','decline','cancel'].includes(value.decision);
+ return native==='acp-stdio-v1'?fields(value,['option_id','kind'])&&token(value.option_id)&&typeof value.kind==='string'&&['allow_once','reject_once'].includes(value.kind):native==='claude-sdk-v1'?validClaudePermissionChoice(value):fields(value,['decision'])&&typeof value.decision==='string'&&['accept','decline','cancel'].includes(value.decision);
 }
 function branch(value:Record<string,unknown>,native:ToolPermissionScope['protocol'],required:readonly string[]):boolean{
- const key=native==='acp-stdio-v1'?'acp':'codex';
+ const key=nativeBranch(native);
  return value.protocol===native&&fields(value,[...required,key])&&validChoice(value[key],native);
 }
 function decisionID(path:unknown):string|undefined{
@@ -116,17 +123,24 @@ export function validPermissionRecovery(request:unknown,scope:ToolPermissionScop
  return branch(body,scope.protocol,['project_id','expected_version','idempotency_key','protocol'])&&body.project_id===scope.project&&integer(body.expected_version,1,maximum-1)&&body.idempotency_key===request.idempotency_key;
 }
 export function validPermissionReceipt(value:unknown,request:WriteRecoveryRequest,scope:ToolPermissionScope):value is ToolPermission{
- return validPermissionRecovery(request,scope)&&validPermission(value,scope)&&value.id===decisionID(request.path)&&value.attempt===scope.attempt&&value.fence===scope.fence&&value.state==='decided'&&value.version===(request.body.expected_version as number)+1&&!!value.decision&&value.decision.actor_id===scope.userID&&same(choiceOf(value.decision as unknown as Record<string,unknown>,scope.protocol),choiceOf(request.body,scope.protocol));
+ if(!validPermissionRecovery(request,scope)||!validPermission(value,scope)||value.id!==decisionID(request.path)||value.attempt!==scope.attempt||value.fence!==scope.fence||value.state!=='decided'||value.version!==(request.body.expected_version as number)+1||!value.decision||value.decision.actor_id!==scope.userID)return false;
+ const actual=choiceOf(value.decision as unknown as Record<string,unknown>,scope.protocol),expected=choiceOf(request.body,scope.protocol);
+ return scope.protocol==='claude-sdk-v1'&&validClaudePermissionChoice(actual)&&validClaudePermissionChoice(expected)?actual.outcome===expected.outcome&&(actual.reason??'')===(expected.reason??''):same(actual,expected);
 }
 export function canChoosePermission(permission:ToolPermission,choice:ToolPermissionChoice|undefined,scope?:ToolPermissionScope):boolean{
  const actualScope=scope??{project:permission.project_id,runID:permission.run_id,nodeID:permission.node_id,attempt:permission.attempt,fence:permission.fence,userID:'view',organizationID:'view',protocol:permission.request.protocol as ToolPermissionScope['protocol']};
  if(!validPermission(permission,actualScope)||permission.attempt!==actualScope.attempt||permission.fence!==actualScope.fence||permission.state!=='pending'||permission.version>=maximum||Date.parse(permission.expires_at)<=Date.now()||!choiceMatches(permission.request,choice))return false;
- const action=choice&&('option_id' in choice?choice.kind:choice.decision);
+ const o=permission.claude_observation;if(o&&(o.answer_observed||o.reply_started||o.reply_written||o.execution_closed||o.failure_code))return false;
+ const action=choice&&('option_id' in choice?choice.kind:'outcome' in choice?choice.outcome:choice.decision);
  return typeof action==='string'&&permission.allowed_actions.includes(action);
 }
 export function permissionRecoveryScope(scope:ToolPermissionScope):string{
  if(!validScope(scope))throw Error('Invalid tool permission scope');
  return JSON.stringify([scope.userID,scope.organizationID,scope.project,scope.runID,scope.nodeID,scope.protocol]);
+}
+export function buildPermissionDecisionBody(permission:ToolPermission,scope:ToolPermissionScope,choice:ToolPermissionChoice,key:string):Record<string,unknown>|undefined{
+ if(!operation(key)||!canChoosePermission(permission,choice,scope))return;
+ return {project_id:scope.project,expected_version:permission.version,idempotency_key:key,protocol:scope.protocol,[nativeBranch(scope.protocol)]:structuredClone(choice)};
 }
 function same(a:unknown,b:unknown):boolean{
  if(a===b)return true;
@@ -136,15 +150,20 @@ function same(a:unknown,b:unknown):boolean{
 function sourceIdentity(permission:ToolPermission):SourceIdentity{
  const request=permission.request;
  if(request.protocol==='acp-stdio-v1')return {protocol:'acp-stdio-v1',idempotency_key:request.idempotency_key,acp:{session_id:request.acp!.session_id,tool_call_id:request.acp!.tool_call_id}};
+ if(request.protocol==='claude-sdk-v1'){const c=request.claude!;return {protocol:'claude-sdk-v1',idempotency_key:request.idempotency_key,claude:{session_id:c.session_id,tool_use_id:c.tool_use_id,request_id:c.request_id,callback_id:c.callback_id,configuration_sha256:c.configuration_sha256,params_sha256:c.params_sha256,tool_name:c.tool_name}};}
  const c=request.codex!;
  return {protocol:'codex-app-server-v1',idempotency_key:request.idempotency_key,codex:{request_id:{...c.request_id},method:c.method,thread_id:c.thread_id,turn_id:c.turn_id,item_id:c.item_id,started_at_ms:c.started_at_ms,...(Object.hasOwn(c,'approval_id')?{approval_id:c.approval_id}:{}),binding_sha256:c.binding_sha256,params_sha256:c.params_sha256,item_sha256:c.item_sha256}};
 }
 function validSourceIdentity(value:unknown,native:ToolPermissionScope['protocol']):value is SourceIdentity{
  if(!object(value)||value.protocol!==native||!operation(value.idempotency_key))return false;
  if(native==='acp-stdio-v1')return fields(value,['protocol','idempotency_key','acp'])&&object(value.acp)&&fields(value.acp,['session_id','tool_call_id'])&&token(value.acp.session_id)&&token(value.acp.tool_call_id);
+ if(native==='claude-sdk-v1'){
+  if(!fields(value,['protocol','idempotency_key','claude'])||!object(value.claude))return false;
+  const {tool_name,...basis}=value.claude;return ['Read','Edit','Write','Glob','Grep','Bash'].includes(String(tool_name))&&validClaudeCallbackBasis(basis);
+ }
  return fields(value,['protocol','idempotency_key','codex'])&&object(value.codex)&&fields(value.codex,identityKeys,['approval_id'])&&validCodexIdentity(value.codex);
 }
-function choiceOf(value:Record<string,unknown>,native:ToolPermissionScope['protocol']):unknown{return value[native==='acp-stdio-v1'?'acp':'codex'];}
+function choiceOf(value:Record<string,unknown>,native:ToolPermissionScope['protocol']):unknown{return value[nativeBranch(native)];}
 function choiceMatches(request:unknown,choice:unknown):boolean{
  if(!object(request)||!protocol(request.protocol)||!validChoice(choice,request.protocol))return false;
  if(request.protocol==='acp-stdio-v1'){
@@ -152,6 +171,7 @@ function choiceMatches(request:unknown,choice:unknown):boolean{
   const source=request.acp;
   return source.options.some(option=>option.id===choice.option_id&&option.kind===choice.kind)&&(choice.kind!=='allow_once'||source.details_complete);
  }
+ if(request.protocol==='claude-sdk-v1')return validClaudePermissionSource(request.claude)&&validClaudePermissionChoice(choice);
  return validCodexSource(request.codex)&&'decision' in choice&&(choice.decision!=='accept'||request.codex.details_complete&&request.codex.scope_supported);
 }
 export function validPermissionIntent(value:unknown,currentScope:ToolPermissionScope):value is ToolPermissionIntent{

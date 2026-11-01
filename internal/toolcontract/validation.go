@@ -15,6 +15,7 @@ import (
 	"unicode/utf8"
 
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/modelcontract"
@@ -50,12 +51,18 @@ func validText(s string, max int, multiline bool) bool {
 var adapterProtocols = map[string]string{"cursor": ac.Protocol, "qoder": ac.Protocol, "claude": ClaudeProtocol, "octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}
 
 func protocolPair(adapter, protocol string) bool {
+	if adapter == "claude" && protocol == cl.Protocol {
+		return true
+	}
 	if adapter == "codex" && protocol == cc.Protocol {
 		return true
 	}
 	return adapterProtocols[adapter] == protocol && protocol != ""
 }
 func ValidProtocol(protocol string) bool {
+	if protocol == cl.Protocol {
+		return true
+	}
 	if protocol == cc.Protocol {
 		return true
 	}
@@ -80,7 +87,7 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
-	input := p.UserInputProtocol == cc.UserInputProtocol && p.Adapter == "codex" && p.Protocol == cc.Protocol || p.UserInputProtocol == cu.InputProtocol && p.Adapter == "cursor" && p.Protocol == ac.Protocol
+	input := p.UserInputProtocol == cc.UserInputProtocol && p.Adapter == "codex" && p.Protocol == cc.Protocol || p.UserInputProtocol == cu.InputProtocol && p.Adapter == "cursor" && p.Protocol == ac.Protocol || p.UserInputProtocol == cl.InputProtocol && p.Adapter == "claude" && p.Protocol == cl.Protocol
 	if p.UserInputProtocol != "" && (!input || p.ReadOnly) {
 		return fmt.Errorf("user input requires its exact supported writable runtime profile")
 	}
@@ -88,6 +95,9 @@ func ValidateProfile(p Profile, complete bool) error {
 		return err
 	}
 	if err := validateClaudeProfile(p, complete); err != nil {
+		return err
+	}
+	if err := validateClaudeSDKProfile(p, complete); err != nil {
 		return err
 	}
 	if err := validateTerminalSessionProfile(p); err != nil {
@@ -335,6 +345,9 @@ func ValidateEvidence(e Evidence) error {
 		return err
 	}
 	if err := validateClaudeEvidence(e); err != nil {
+		return err
+	}
+	if err := validateClaudeSDKEvidence(e); err != nil {
 		return err
 	}
 	if err := validateOctopEvidence(e); err != nil {

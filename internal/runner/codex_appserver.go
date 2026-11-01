@@ -18,11 +18,13 @@ import (
 // codexInput is a bounded host-owned request queue, not an interactive terminal.
 // Closing it drains already queued protocol replies before delivering EOF.
 type codexInput struct {
-	mu      sync.Mutex
-	changed *sync.Cond
-	pending []byte
-	frames  []codexInputFrame
-	closed  bool
+	mu             sync.Mutex
+	changed        *sync.Cond
+	pending        []byte
+	frames         []codexInputFrame
+	closed         bool
+	maximumPending int
+	escapeHTML     bool
 }
 
 type codexInputFrame struct {
@@ -31,18 +33,33 @@ type codexInputFrame struct {
 	after  func(error)
 }
 
-func newCodexInput() *codexInput { q := &codexInput{}; q.changed = sync.NewCond(&q.mu); return q }
+func newCodexInput() *codexInput { return newBoundedHostInput(128<<10, true) }
+
+// All native transports retain the same one-writer and durable before/after
+// hooks. Only their reviewed framing bounds and private JSON encoding differ.
+func newBoundedHostInput(maximumPending int, escapeHTML bool) *codexInput {
+	q := &codexInput{maximumPending: maximumPending, escapeHTML: escapeHTML}
+	q.changed = sync.NewCond(&q.mu)
+	return q
+}
 func (q *codexInput) enqueue(value any) error {
 	return q.enqueueReply(value, nil, nil)
 }
 func (q *codexInput) enqueueReply(value any, before func() error, after func(error)) error {
 	raw, err := json.Marshal(value)
+	if !q.escapeHTML {
+		var encoded bytes.Buffer
+		encoder := json.NewEncoder(&encoded)
+		encoder.SetEscapeHTML(false)
+		err = encoder.Encode(value)
+		raw = bytes.TrimSuffix(encoded.Bytes(), []byte("\n"))
+	}
 	if err != nil {
 		return err
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if q.closed || len(raw)+len(q.pending) > 128<<10 {
+	if q.closed || len(raw)+len(q.pending)+1 > q.maximumPending {
 		return fmt.Errorf("Codex request queue unavailable")
 	}
 	raw = append(raw, '\n')

@@ -1,0 +1,339 @@
+{
+  "stage": "T-CLAUDE-SDK-192",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "官方SDK0.3.314与明确原生CLI2.1.314接到原Worker／DAG／Pool、私有工作区、固定模型与API key引用；CLI、SDK及反向MCP三入口各自表达，observe_only不借网关硬预算。",
+    "SDK真实canUseTool与AskUserQuestion接入原权限／输入表、当前资格、CAS、操作回执及Journal单writer；准确native request/session/toolUse与本机callback、参数摘要绑定，不批准长期规则。",
+    "原生单／多选按原文字和标签重建，无预选，取消／拒绝不授权命令；原保存决定与送达／SDK结果分别校验，阻止伪0denied的Worker绕过拒绝或取消。",
+    "SDK完成帧、错误状态、环境引用及完整大载荷与Go一致；SDK512KiB队列沿原writer参数化，Codex默认128KiB及原编码保持，私有SDK写入避免HTML转义膨胀。",
+    "新增原Go私有stdin七字段准备及双Shell简洁引导，完整资产／Node／native摘要自动计算，原目标先验与O_EXCL写新文件；明确交给原节点登记／fresh库存／暂停／启用。",
+    "原模型／派发／专家团队／运行面板与权限问答卡、恢复入口及中英文贯通；未知先恢复原body/key/tuple，不借generic桌面连接冒SDK ready。",
+    "固定SDK依赖、完整宿主及第三方告知进入可核闭包；不复制Multica自动批准实现或厂商运行代码到Git。",
+    "唯一新正式链实际通过SDK、HTTP／SQLite／原Worker、候选、不同Worker同SHA独立Node/JUnit及隔离Review，原checkout／草稿与原质量门保留。"
+  ],
+  "verification": {
+    "distinct_top_level": 72,
+    "new_top_level": 49,
+    "affected_existing_top_level": 23,
+    "go_subcases": 21,
+    "runtime_top_level": 11,
+    "runner_top_level": 7,
+    "control_top_level": 10,
+    "web_top_level": 34,
+    "root_top_level": 9,
+    "formal_top_level": 1,
+    "root_receipts": [
+      {
+        "test": "TestSDKCallbackDecisionBindsNativeRequestAndOriginalPayload",
+        "package": "github.com/ai-mada/suma/internal/claudecontract",
+        "command": ".cache/follow155/root-go/20261101T105923457Z.command.json",
+        "command_exit": 1,
+        "package_passed": true
+      },
+      {
+        "test": "TestSDKQuestionPreservesNativeTextAndRejectsForgedSelections",
+        "package": "github.com/ai-mada/suma/internal/claudecontract",
+        "command": ".cache/follow155/root-go/20261101T112152439Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestClaudeSDKProfileCannotBorrowCLIOrGatewayAuthority",
+        "package": "github.com/ai-mada/suma/internal/toolcontract",
+        "command": ".cache/follow155/root-go/20261101T115105935Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestClaudeSDKSuccessNeedsExactDeliveryClosureAndStoppedTree",
+        "package": "github.com/ai-mada/suma/internal/toolcontract",
+        "command": ".cache/follow155/root-go/20261101T112128339Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestPrepareSDKModeRejectsPresenceAndMixedFlagsBeforeInput",
+        "package": "github.com/ai-mada/suma/cmd/suma-runner",
+        "command": ".cache/follow155/root-go/20261101T111536434Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestSDKPreparationRejectsOverwriteAndPrivateOverrides",
+        "package": "github.com/ai-mada/suma/internal/runner",
+        "command": ".cache/follow155/root-go/20261101T111536434Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestClaudeSDKContractsSeparateNativeInputsAndBudgetAuthority",
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "command": ".cache/follow155/root-go/20261101T112939549Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestUnifiedPermissionContractsKeepNativeBranchesAndObservationAuthority",
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "command": ".cache/follow155/root-go/20261101T111245702Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestCursorInputsContractKeepsNativeUnionAndPlanAuthority",
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "command": ".cache/follow155/root-go/20261101T111245702Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      }
+    ],
+    "formal_receipt": {
+      "test": "TestClaudeSDKFormalOriginalWorkersNativeCallbacksCandidateAndQuality",
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "command": ".cache/follow155/root-go/20261101T114033787Z.command.json",
+      "command_exit": 0,
+      "package_passed": true
+    },
+    "contract_generations": [
+      ".cache/follow155/root-go/20261101T113422615Z.command.json",
+      ".cache/follow155/root-go/20261101T111317833Z.command.json"
+    ],
+    "runner_build": ".cache/follow155/root-go/20261101T114124379Z.command.json",
+    "new_http_paths": 0,
+    "new_business_tables": 0,
+    "new_schemas": [
+      "ClaudeInputDecision",
+      "ClaudeInputEvidence",
+      "ClaudeInputRequest",
+      "ClaudeInputSelection",
+      "ClaudePermissionChoice",
+      "ClaudePermissionEvidence",
+      "ClaudePermissionSource",
+      "ClaudeQuestion",
+      "ClaudeQuestionOption",
+      "ClaudeSDKExecutionCapability",
+      "ClaudeSDKExecutionEvidence"
+    ],
+    "changed_schemas": [
+      "ModelExecutionOptions",
+      "PoolToolPermissionObservationRequest",
+      "TaskDispatchPlan",
+      "ToolEvidence",
+      "ToolExecutionProfile",
+      "ToolInputAnswer",
+      "ToolInputAnswerRequest",
+      "ToolInputList",
+      "ToolInputRequest",
+      "ToolPermission",
+      "ToolPermissionChoice",
+      "ToolPermissionDecision",
+      "ToolPermissionDecisionRequest",
+      "ToolPermissionObservationRequest",
+      "ToolPermissionRequest"
+    ],
+    "initial_complete_typecheck_exit": 2,
+    "corrected_type_files": 2,
+    "final_affected_semantic_diagnostics": 0,
+    "paired_locale_keys": 8957,
+    "production_hardcodes": 0,
+    "product_version_check_exit": 0,
+    "isolated_component_builds": 1,
+    "gui_checks": 3,
+    "gui_native_hosts": 1,
+    "gui_native_exit": 0,
+    "actual_shell_journeys": 1,
+    "full_suite_repeated": false
+  },
+  "formal": {
+    "status": "controlled_vertical_confirmed",
+    "candidate_commit": "38932357d4b41d101d42a9d25f78074f64b7aeff",
+    "test_base_commit": "38932357d4b41d101d42a9d25f78074f64b7aeff",
+    "test_head_commit": "38932357d4b41d101d42a9d25f78074f64b7aeff",
+    "independent_worker": "claude-sdk-independent192",
+    "task_status": "accepted",
+    "quality_state": "passed",
+    "native": {
+      "candidate_committed": true,
+      "cwd": "D:\\codes\\ai-dev-os\\suma\\.cache\\claude-runtime-192\\formal\\run\\repository\\.cache\\developer-worktrees\\89e64cdc69ce2b683adf536370980403\\src",
+      "model_calls": 0,
+      "native_init_requests": 1,
+      "native_permission_responses": 1,
+      "native_question_responses": 1,
+      "native_user_turns": 1,
+      "owned_native_fixture": true,
+      "pid": 209288,
+      "real_claude": false,
+      "real_model": false,
+      "vendor_calls": 0
+    },
+    "customer_signoff": false,
+    "journal_pending": 0
+  },
+  "boundaries": [
+    "没有真实Claude厂商可执行安装、账号、商业模型或供应方账单验收；SDK真实transport和正式链使用明确自有native fixture，customer_signoff=false。",
+    "本阶段没有新增SDK专用托管桌面IPC；界面指向可操作的本机／独立Runner准备和原库存启用流程，不能以CLI检测或generic连接表示SDK健康。",
+    "窗口为生产组件与明确合成父级／DTO／HTTP回执，3组中英／390px／暗色／键盘及2张视口通过；真实正式SDK链独立于该GUI夹具。",
+    "一次完整类型检查发现4处两文件声明诊断，修后只复验原两top及这两文件语义0，其余57源不动；没有虚报全套重跑。最终隔离组件构建通过；8957对词条、占位符／复数／markup与0生产硬编码及1.0.0身份通过。",
+    "首GUI因已有Playwright路径访问限制在窗口启动前终止，原记录保留；授权工具环境启动后的唯一GUI宿主3组通过、exit0，页面错误0。",
+    "独立窄审及真实RED修复原决定结果门、来源非空Schema、实际完成帧／环境引用／大载荷及晚到取消；保留并行编译、磁盘和声明诊断，未冒所有命令首遍成功。",
+    "只清理已清点的194个旧Go可再生大缓存释放6324589054字节，保留全部源、工作树、SDK原件、数据库、图片及证据；不把缓存、私有配置、二进制或原件入Git。",
+    "原31／P0–P7／58限定／34待交付／92总账继续active，跨平台安装、真实提供方、多机／跨库／规模及完整生产验收不由本阶段关闭。下一优先按最新请求简化工具新增／调整／移除、自动检测与可解释修复。"
+  ],
+  "review": {
+    "remaining_confirmed_p1_p2": 0,
+    "original_decision_result_gate_p2_fixed": true,
+    "native_source_nonnull_schema_p2_fixed": true,
+    "actual_completion_frame_p2_fixed": true,
+    "environment_reference_p2_fixed": true,
+    "large_exact_question_reply_p2_fixed": true,
+    "late_close_cancel_p2_fixed": true
+  },
+  "owner_overrides": [
+    {
+      "path": "internal/toolinputcontract/types.go",
+      "owner_sha256": "10f2d6f7b01bb3a65dfc766878a2734e81e1b8704ee67e035d68893b0ddeed84",
+      "root_sha256": "b52ff73a790d703d634eb855d766b971b0e5c70f818a6cae5c83a04229617d3e",
+      "change": "Seven original native source/decision pointer wire:nonnull tags; no domain logic change"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/claude-runtime-192/runtime/source-manifest.json",
+      "sha256": "07ef1f65227dbeaecbedbabe120060761ee3c20a38e1050bae5791c5f90a7a94"
+    },
+    {
+      "path": ".cache/claude-runtime-192/runtime/summary.json",
+      "sha256": "ddc99d9227df175bcd643b49f8851d9cb183613cff62bb0a590b3b4047cd3038"
+    },
+    {
+      "path": ".cache/claude-runtime-192/runtime/closure-summary.json",
+      "sha256": "5690f0fe5e79692866eb6590cd4101e8a28c130fb6d027b1c76d58e3dcf8d198"
+    },
+    {
+      "path": ".cache/claude-runtime-192/runner/source-manifest.json",
+      "sha256": "7d378d0f029f97d07bbd424942f812c4020cdf7a3d045231bd2043d2e8677c6e"
+    },
+    {
+      "path": ".cache/claude-runtime-192/runner/summary.json",
+      "sha256": "dfa61283d99dd160632d165c5ebe02a491e2daee19c8f3858c74588701ee3b5a"
+    },
+    {
+      "path": ".cache/claude-runtime-192/control/source-manifest.json",
+      "sha256": "f556d334f77e421b29352cf0d08acfc91c1e9fca7d8b7adfad1c79f46149e681"
+    },
+    {
+      "path": ".cache/claude-runtime-192/control/summary.json",
+      "sha256": "b7121f909b9c01b9e146789b8724d532a1916f37e90d3fd28e32ed9dd9720695"
+    },
+    {
+      "path": ".cache/claude-runtime-192/control/formal-source-manifest.json",
+      "sha256": "6f2f82d06a739fabb9f92050d79eb721b663f768d9410a697d6c3c9fd8b42cef"
+    },
+    {
+      "path": ".cache/claude-runtime-192/control/formal-instructions.json",
+      "sha256": "316a194710d1694c1a2ff9da82da65e25ead6d96fe2c41a0c32a26ec9c2ec665"
+    },
+    {
+      "path": ".cache/claude-runtime-192/formal/run/receipt.json",
+      "sha256": "7b5aa5583adf47cb8f1eaf91eb994e1e9c9833c53527fc053be5d9d9d0d7ad51"
+    },
+    {
+      "path": ".cache/claude-runtime-192/formal/run/owned-native/native-facts.json",
+      "sha256": "33fb013e8816167229558ddcc27d9988584be51cd50d3be3f809eeca26b4c931"
+    },
+    {
+      "path": ".cache/claude-runtime-192/actual-prepare/source-manifest.json",
+      "sha256": "058a15f4ffac621ad701e6f165172ff8a2bbb6b348f52c3022bfb3320af55b8d"
+    },
+    {
+      "path": ".cache/claude-runtime-192/actual-prepare/summary.json",
+      "sha256": "a35e66f228137b940ac5752437bf902682144ef9bc219a8640062e685e52da4e"
+    },
+    {
+      "path": ".cache/claude-runtime-192/shared-review.json",
+      "sha256": "466477a1ea3f0dbbf2ae5a9b7bbbf3e46a88d19958fc6127591372c65f2a7fb0"
+    },
+    {
+      "path": ".cache/claude-runtime-192/runner-independent-review.json",
+      "sha256": "6e68af0d9bbfc01b722dba6f830a0a2ae88ab179d6a7b328e878e4ac274d5eec"
+    },
+    {
+      "path": ".cache/claude-runtime-192/runner-independent-review-final.json",
+      "sha256": "976d9bcb513a9ef2646e7ed1b07c01a131cbb9db8e87d43a0d440fa98977ee2a"
+    },
+    {
+      "path": ".cache/claude-runtime-192/cache-inventory.json",
+      "sha256": "11ff731bc1e1d85840299b81d808a33b6a30109bf124807bbb77fda900873dd6"
+    },
+    {
+      "path": ".cache/claude-runtime-192/cache-cleanup.json",
+      "sha256": "01d1b47d7b017fe4ee79f3e183b519cea0173c57dd3ca69edb4ee5ff50efb594"
+    },
+    {
+      "path": ".cache/claude-runtime-192/types.command.json",
+      "sha256": "c5db0598c7a5c540b681d331df01c58ca92b134b85cdba6074bd072e41cf5904"
+    },
+    {
+      "path": ".cache/claude-runtime-192/i18n.command.json",
+      "sha256": "7a1a1953ab6957a5ba79773d19cba72196ae9c1486cca03526ba3a3d42e84d64"
+    },
+    {
+      "path": ".cache/claude-runtime-192/version.command.json",
+      "sha256": "260eb66f07590709c22725e50414db694b2ecf30b5ebc9e995d7f1e46bb1f76b"
+    },
+    {
+      "path": ".cache/claude-runtime-192/build.command.json",
+      "sha256": "c65442f168c03eff213c5a648457f44b2c1f52ae0f96fb87fb33f6f1db26406a"
+    },
+    {
+      "path": ".cache/claude-runtime-192/gui-prelaunch.command.json",
+      "sha256": "df281c2eb49c2269d22f76b81638411ca7f25d3950c615612017ab55b1055fae"
+    },
+    {
+      "path": ".cache/claude-runtime-192/gui.command.json",
+      "sha256": "5b71028dd8e48f014d8780ed974b5d6583dafe7d9e2f355cc787c31c37071d4c"
+    },
+    {
+      "path": ".cache/claude-sdk-192/web/integration-summary.json",
+      "sha256": "39721e63558342cf701d3b11d9485de6e103655505c3b28f6ba4fd66140657fa"
+    },
+    {
+      "path": ".cache/claude-sdk-192/web/execution-summary.json",
+      "sha256": "a3082be549149981e0cc8e08f185dfb8fd99ac36ffbc63be2127edff6b7cfb89"
+    },
+    {
+      "path": ".cache/claude-sdk-192/web/execution-semantic.json",
+      "sha256": "afc09ed8a61f278f81c6350cd838512a8f35d963f4cf9f4f22f9432d6a03be92"
+    },
+    {
+      "path": ".cache/claude-sdk-192/visual/source-manifest.json",
+      "sha256": "53884aae19b318ac3d5208e8a2c225bbdc3c26da933495dd1529e36e0a3587b1"
+    },
+    {
+      "path": ".cache/claude-sdk-192/visual/result.json",
+      "sha256": "0306bffa3526baa1526db76fc8d470b6b9cc2c09a73f7442b5c63b3a4cc85980"
+    },
+    {
+      "path": ".cache/claude-runtime-192/artifact-manifest.json",
+      "sha256": "d01426d3de1d462bcb7de223b63bd5295d6c59ae84de28b1beac8d42853a8f8a"
+    }
+  ],
+  "final_source_followup": {
+    "changes": [
+      "apps/web/src/ToolExecutionPermissionPanel.css",
+      "apps/web/src/ToolInputCard.css",
+      "docs/product/claude-sdk.md"
+    ],
+    "scope": "Two CSS trailing-whitespace-only fixes and source deployment instructions; no behavior/style change and no repeated tests/build/GUI"
+  }
+}

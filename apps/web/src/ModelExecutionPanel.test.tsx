@@ -15,6 +15,13 @@ let root:Root|undefined,host:HTMLDivElement;
 beforeEach(async()=>{await setLocale('en-US',{persist:false});host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);});
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host.remove();vi.unstubAllGlobals();vi.restoreAllMocks();await setLocale('zh-CN',{persist:false});});
 async function settle(){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
+it('T192 shows the fixed SDK configuration without fetching models or offering a gateway budget',async()=>{
+ const changed=vi.fn(),fetch=vi.fn();vi.stubGlobal('fetch',fetch);
+ const sdk={sdk_version:'0.3.314',cli_version:'2.1.314',model:'claude-sonnet-5',configuration_sha256:'b'.repeat(64),model_source:'administrator_sdk_option',budget_mode:'observe_only',identity_evidence:'sdk_init_model_ack_only',auth_strategy:'api_key_env_ref'};
+ await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} fixedClaudeSDK={sdk} disabled={false} onChange={changed}/></ApiViewProvider>);});await settle();
+ expect(host.querySelector('[data-claude-sdk-execution-facts]')).not.toBeNull();expect(host.textContent).toContain(sdk.model);
+ expect(host.querySelector('[data-model-select],[data-model-token-budget],[data-model-cost-budget]')).toBeNull();expect(fetch).not.toHaveBeenCalled();expect(changed.mock.lastCall?.[0]).toEqual({ready:true,selection:undefined});
+});
 it('reads options with GET only, explicitly selects the exact revision and explains unpriced execution in both languages',async()=>{
  const changed=vi.fn();let method='';vi.stubGlobal('fetch',vi.fn(async(_url:string,init?:RequestInit)=>{method=init?.method||'GET';return method==='GET'?Response.json(options()):Response.json({error:{code:'invalid',message:'GET required'}},{status:405});}));
  await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported disabled={false} onChange={changed}/></ApiViewProvider>);});await settle();

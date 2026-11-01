@@ -34,13 +34,15 @@ MCP、ACP、A2A 各自版本与产品 1.0.0 独立，不增加产品历史兼容
 
 ## 2. 产品与适配矩阵
 
+T-CLAUDE-SDK-192更新Claude行；原T158/159 CLI正式执行与新SDK原生交互、反向MCP客户端分别记录，不能以本表旧未发现结论覆盖当前源码。
+
 “源码支持”只说明当前仓库存在对应入口；实际结果以关联专项报告为准。
 “拟接入”是本轮设计，不代表已经注册、配置、探测或完成厂商实测。
 
 | 产品与入口 | 官方协议方向 | 当前 suma 源码支持 | 拟接入路径 | 验证缺口与限制 | 官方直达来源 |
 | --- | --- | --- | --- | --- | --- |
 | Cursor Agent CLI | 固定包 Node + index.js；官方 ACP stdio | T189/T190/T191：`cursor-cli` / `cursor` / `acp-stdio-v1`，复用 acp-go 0.13.5；完整包摘要、明确 API key 环境引用、准确模型配置 ACK、原一次权限、普通／Pool 派发和代码候选 | 桌面原ACP连接与托管Worker；高级／浏览器／独立节点可逐字Shell准备配置并交给原节点指南；讨论／专家团队沿原固定模型和预算门；同提交独立测试及验收仍独立 | 真实 2026.10.22-27dcf5f 仅版本／help／初始化及认证拒绝已验；无账号 Prompt、真实模型或商业费用证明。受控 SDK／HTTP／SQLite／Git 质量旅程见限定报告，不等于厂商验收；原问题／计划typed决定沿190已接入；成功RPC后受控停止与实际host exit分记，cancel写入不称ACK；其他扩展及旧会话恢复不冒充支持 | [执行合同](../../contracts/cursor-acp-execution.md)、[原执行交互](../../contracts/cursor-inputs.md)、[节点配置合同](../../contracts/cursor-setup.md)、[本阶段报告](../quality/cursor-setup-verification.md)、[原输入报告](../quality/cursor-inputs-verification.md)、[官方ACP](https://cursor.com/docs/cli/acp) |
-| Claude Code CLI／Claude Agent SDK | CLI print；官方 Python/TS Agent SDK；可连接 MCP | 未发现 Claude 执行适配；模型 API 接入不等于 Agent SDK | SDK 受控宿主为主，CLI 作为独立入口；约束配置、工具、会话和权限回调 | 需实际版本、鉴权、取消、子代理及费用覆盖；不能转供未经允许的个人订阅登录 | [Headless](https://code.claude.com/docs/en/headless)、[SDK](https://code.claude.com/docs/en/agent-sdk/overview)、[参数](https://code.claude.com/docs/en/cli-reference) |
+| Claude Code CLI／Claude Agent SDK | 独立CLI print及官方SDK管理原生CLI | T158/159原claude-jsonl-v1已限定交付；T192新增claude-sdk-v1／官方SDK0.3.314及固定CLI2.1.314，原一次许可、结构化提问、候选及同提交独测／验收 | 七字段真实本机配置准备→原节点库存／暂停登记／明确启用；原任务、讨论、专家团队与Pool派发 | 自有native fixture的真实SDK／Worker／HTTP链已验；真实厂商账号／模型、其他OS、多机／安装及生产继续；observe_only不借硬预算，回调不是native ACK | [新SDK合同](../../contracts/claude-sdk.md)、[限定验证](../quality/claude-sdk-verification.md)、[SDK官方说明](https://code.claude.com/docs/en/agent-sdk/overview) |
 | Qoder CLI／ACP／Agent SDK | headless CLI；`qoder --acp` stdio server；官方 Python/TS SDK | 未发现 Qoder 执行适配 | 优先 ACP client 接入，必要时独立 SDK 配置；文件与终端经 suma 宿主授权 | 续接、取消与用量按实际握手核验；官方 ACP 页列 Windows arm64 暂不支持；不默认启用绕过权限模式 | [CLI](https://docs.qoder.com/cli/run-in-scripts)、[ACP](https://docs.qoder.com/cli/acp)、[SDK](https://docs.qoder.com/cli/sdk/overview) |
 | Codex app-server／CLI | app-server stdio线程／轮次协议；CLI JSONL为另一入口 | T188更新：明确on-request工具权限、T187显式实验性问答、T188同活turn追加已保存本人消息；独立codex-jsonl-v1入口继续保留 | 原Runner／Journal／单writer、当前模型预算及受保护任务运行；[当前合同](../../contracts/turn-steering.md) | [真实CLI＋自有模型限定验证](../quality/turn-steering-verification.md)；未知写不重发，持久thread恢复未实现，取消ACK不等于停止；厂商账户与生产另验 | [官方app-server](https://learn.chatgpt.com/docs/app-server) |
 | WorkBuddy 云任务 | OAuth Open API 创建/查询任务；ACP SSE＋JSON-RPC；会话产物 | 未发现 WorkBuddy 云任务执行适配，不能以 CodeBuddy CLI 代替 | 新增 `workbuddy-cloud`，映射供应方 task/session 与 suma run，凭据由服务端管理 | 文档未明确创建幂等和取消请求合同；需真实授权、未知创建核对、云产物导入与独立测试 | [Open API](https://open.workbuddy.cn/docs/openapi) |

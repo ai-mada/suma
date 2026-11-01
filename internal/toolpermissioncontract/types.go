@@ -4,6 +4,7 @@ package toolpermissioncontract
 
 import (
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 )
 
@@ -12,12 +13,14 @@ type ToolPermissionRequest struct {
 	Protocol       string                      `json:"protocol"`
 	ACP            *ac.ACPToolPermissionSource `json:"acp,omitempty" wire:"nonnull"`
 	Codex          *cc.CodexApprovalRequest    `json:"codex,omitempty" wire:"nonnull"`
+	Claude         *cl.PermissionSource        `json:"claude,omitempty" wire:"nonnull"`
 }
 
 type ToolPermissionChoice struct {
 	Protocol string                      `json:"protocol"`
 	ACP      *ac.ACPToolPermissionChoice `json:"acp,omitempty" wire:"nonnull"`
 	Codex    *cc.CodexApprovalChoice     `json:"codex,omitempty" wire:"nonnull"`
+	Claude   *cl.PermissionChoice        `json:"claude,omitempty" wire:"nonnull"`
 }
 
 type ToolPermissionDecision struct {
@@ -27,23 +30,25 @@ type ToolPermissionDecision struct {
 }
 
 type ToolPermission struct {
-	ID             string                       `json:"id"`
-	ProjectID      string                       `json:"project_id"`
-	RunID          string                       `json:"run_id"`
-	NodeID         string                       `json:"node_id"`
-	Attempt        int                          `json:"attempt"`
-	Fence          int64                        `json:"fence"`
-	DispatchID     string                       `json:"dispatch_id"`
-	WorkerID       string                       `json:"worker_id"`
-	ProfileSHA256  string                       `json:"profile_sha256"`
-	Version        int64                        `json:"version"`
-	State          string                       `json:"state"`
-	Request        Request                      `json:"request"`
-	Decision       *Decision                    `json:"decision,omitempty" wire:"nonnull"`
-	Observation    *cc.CodexApprovalObservation `json:"observation,omitempty" wire:"nonnull"`
-	CreatedAt      string                       `json:"created_at"`
-	ExpiresAt      string                       `json:"expires_at"`
-	AllowedActions []string                     `json:"allowed_actions"`
+	ID            string                       `json:"id"`
+	ProjectID     string                       `json:"project_id"`
+	RunID         string                       `json:"run_id"`
+	NodeID        string                       `json:"node_id"`
+	Attempt       int                          `json:"attempt"`
+	Fence         int64                        `json:"fence"`
+	DispatchID    string                       `json:"dispatch_id"`
+	WorkerID      string                       `json:"worker_id"`
+	ProfileSHA256 string                       `json:"profile_sha256"`
+	Version       int64                        `json:"version"`
+	State         string                       `json:"state"`
+	Request       Request                      `json:"request"`
+	Decision      *Decision                    `json:"decision,omitempty" wire:"nonnull"`
+	Observation   *cc.CodexApprovalObservation `json:"observation,omitempty" wire:"nonnull"`
+	// Claude callback delivery has no Codex request-resolved acknowledgement.
+	ClaudeObservation *cl.PermissionObservation `json:"claude_observation,omitempty" wire:"nonnull"`
+	CreatedAt         string                    `json:"created_at"`
+	ExpiresAt         string                    `json:"expires_at"`
+	AllowedActions    []string                  `json:"allowed_actions"`
 }
 
 type ToolPermissionList struct {

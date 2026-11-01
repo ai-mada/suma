@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http/httptest"
@@ -323,42 +322,9 @@ func cursorFormalRuntimeJourney(t *testing.T, withInputs bool) {
 	reviewer := invitedReviewer(t, f)
 	control := httptest.NewServer(f.handler)
 	defer control.Close()
+	sharedRuntime := originalDevelopmentRuntime{f: f, control: control, directory: directory, receipt: receipt}
 	startWorker := func(id, token, journalName string, cfg runner.ExecConfig) func() {
-		journal, e := runner.OpenJournal(filepath.Join(directory, journalName))
-		if e != nil {
-			t.Fatal(e)
-		}
-		workerCtx, stop := context.WithCancel(ctx)
-		done := make(chan error, 1)
-		worker := &runner.Worker{Client: &runner.Client{BaseURL: control.URL, ProjectID: f.project, Token: token, HTTP: control.Client()}, Journal: journal, ID: id, Exec: cfg, PollInterval: 75 * time.Millisecond, HeartbeatInterval: time.Second}
-		go func() { done <- worker.Run(workerCtx) }()
-		return func() {
-			stop()
-			select {
-			case e := <-done:
-				if e != nil && !errors.Is(e, context.Canceled) {
-					t.Error("original Worker exit", e)
-				}
-			case <-time.After(8 * time.Second):
-				t.Error("original Worker did not stop")
-			}
-			if len(journal.Pending()) != 0 || len(journal.PendingProgress()) != 0 {
-				replayCtx, replayCancel := context.WithTimeout(context.Background(), 5*time.Second)
-				e = runner.Replay(replayCtx, worker.Client, journal)
-				replayCancel()
-				if e != nil {
-					t.Error("original Worker outbox recovery", e)
-				}
-			}
-			receipt[journalName+"_pending"] = len(journal.Pending())
-			receipt[journalName+"_progress_pending"] = len(journal.PendingProgress())
-			if len(journal.Pending()) != 0 || len(journal.PendingProgress()) != 0 {
-				t.Error("original Worker retained unacknowledged facts")
-			}
-			if e := journal.Close(); e != nil {
-				t.Error(e)
-			}
-		}
+		return sharedRuntime.startWorker(t, ctx, id, token, journalName, cfg)
 	}
 	stopDeveloper := startWorker(developerProfile.WorkerID, developerToken, "developer-journal", developer)
 	defer func() {
@@ -456,67 +422,7 @@ func cursorFormalRuntimeJourney(t *testing.T, withInputs bool) {
 		}
 		receipt["question_answer_api_calls"], receipt["plan_answer_api_calls"], receipt["input_result_proofs"] = questionAnswers, planDecisions, len(proofs)
 	}
-	currentTask, err := f.s.Get(ctx, reviewer, f.project, "tasks", task.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = f.s.Review(ctx, reviewer, f.project, task.ID, f.body(map[string]any{"expected_version": currentTask.Version, "run_id": run.ID, "decision": "accepted", "reason": "Must still reject before independent candidate tests"}), f.e)
-	if err == nil {
-		t.Fatal("producer self-certified independent quality")
-	}
-	stopTest := startWorker(testProfile.WorkerID, testToken, "independent-journal", independent)
-	defer func() {
-		if stopTest != nil {
-			stopTest()
-		}
-	}()
-	var verified dag.NodeRun
-	for {
-		current, e := f.e.GetRun(ctx, f.user.TenantID, f.project, run.ID)
-		if e != nil {
-			t.Fatal(e)
-		}
-		for _, n := range current.Nodes {
-			if n.ID == "test" {
-				verified = n
-			}
-		}
-		if current.State == "succeeded" {
-			break
-		}
-		if verified.State == "failed" || verified.State == "reconciling" || ctx.Err() != nil {
-			receipt["independent"] = verified
-			t.Fatal("independent exact-candidate worker did not succeed", verified.State, verified.Error)
-		}
-		select {
-		case <-ctx.Done():
-			t.Fatal(ctx.Err())
-		case <-time.After(75 * time.Millisecond):
-		}
-	}
-	stopTest()
-	stopTest = nil
-	if verified.WorkerID != testProfile.WorkerID || verified.WorkerID == produced.WorkerID || verified.WorkspaceEvidence["head_commit"] != candidate || verified.WorkspaceEvidence["base_commit"] != candidate || verified.WorkspaceEvidence["clean"] != true || verified.WorkspaceEvidence["attempt_key"] == produced.WorkspaceEvidence["attempt_key"] {
-		t.Fatal("independent source differs from sealed candidate")
-	}
-	execution := issueRepairRuntimeDecode[TestPlanExecution](t, f.call("GET", "/test-plans/"+quality.ID+"/executions/"+run.ID+"?project_id="+f.project, nil, 200))
-	if execution.State != "passed" || !execution.BasisCurrent || execution.Passed != 1 || !reflect.DeepEqual(execution.SourceCommits, []string{candidate}) || len(execution.Cases) != 1 || len(execution.Cases[0].Evidence) != 1 || execution.Cases[0].Evidence[0].WorkerID != testProfile.WorkerID {
-		t.Fatal("original JUnit contract not bound to independent exact candidate", execution)
-	}
-	currentTask, err = f.s.Get(ctx, reviewer, f.project, "tasks", task.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	accepted, err := f.s.Review(ctx, reviewer, f.project, task.ID, f.body(map[string]any{"expected_version": currentTask.Version, "run_id": run.ID, "decision": "accepted", "reason": "Isolated fixture reviewer explicitly exercises the exact candidate/JUnit review contract; no customer or vendor acceptance"}), f.e)
-	if err != nil || accepted.Status != "accepted" || reviewer.Projection().ID == f.user.ID {
-		t.Fatal("independent fixture reviewer could not accept", err)
-	}
-	if workspaceGitTestCommand(t, repo, "rev-parse", "HEAD") != base {
-		t.Fatal("administrator checkout HEAD changed")
-	}
-	if body, e := os.ReadFile(filepath.Join(repo, "file.txt")); e != nil || string(body) != "user draft retained189\n" {
-		t.Fatal("administrator checkout draft changed")
-	}
+	verified, execution, accepted := sharedRuntime.finishQuality(t, ctx, originalDevelopmentQuality{Repository: repo, BaseCommit: base, CandidateCommit: candidate, ExpectedDraft: "user draft retained189\n", Task: task, Plan: quality, Run: run, Producer: produced, TestProfile: testProfile, TestToken: testToken, Independent: independent, Reviewer: reviewer})
 	receipt["status"], receipt["base_commit"], receipt["candidate_commit"] = "controlled_vertical_confirmed", base, candidate
 	receipt["run_id"], receipt["task_id"], receipt["task_status"], receipt["reviewer_id"] = run.ID, task.ID, accepted.Status, reviewer.Projection().ID
 	receipt["producer"], receipt["independent"], receipt["quality"] = produced, verified, execution

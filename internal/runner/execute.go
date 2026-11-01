@@ -51,6 +51,7 @@ type CommandSpec struct {
 	CodexAppServer         *CodexAppServerSpec    `json:"codex_app_server,omitempty"`
 	OpenCode               *OpenCodeSpec          `json:"opencode,omitempty"`
 	ACP                    *ACPExecutionSpec      `json:"acp,omitempty"`
+	ClaudeSDK              *ClaudeSDKSpec         `json:"claude_sdk,omitempty"`
 }
 
 type nativeAgentLimits struct {
@@ -417,7 +418,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if err := openCodeExecutionRequest(a, spec, profile); err != nil {
 		return fail(err.Error())
 	}
-	if spec.Adapter == "claude" {
+	if err := claudeSDKExecutionRequest(a, spec, profile); err != nil {
+		return fail(err.Error())
+	}
+	if spec.Adapter == "claude" && spec.ClaudeSDK == nil {
 		fixed, err := tc.DecodeClaudeNodeConfiguration(a.Config)
 		if err != nil || fixed == nil || profile.ClaudeExecution == nil || *fixed != *profile.ClaudeExecution {
 			return fail("Claude assignment differs from its current fixed CLI configuration")
@@ -536,6 +540,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	var codexDriver *codexAppServer
 	var acpPipe io.WriteCloser
 	var acpDriver *acpExecutionBridge
+	var claudeSDKPipe io.WriteCloser
+	var claudeSDKDriver *claudeSDKDriver
+	var claudeSDKInputDone chan struct{}
 	if (spec.Adapter == "harness" || spec.Adapter == "codebuddy" || spec.Adapter == "claude") && a.Type != "agent" {
 		return fail("team CLI profiles require an agent node")
 	}
@@ -613,6 +620,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				return fail("OpenCode SDK stdin pipe could not be opened")
 			}
 			defer dshPipe.Close()
+		case "claude-sdk-jsonl":
+			if spec.ClaudeSDK == nil {
+				return fail("Claude SDK requires its fixed local configuration")
+			}
+			claudeSDKPipe, err = cmd.StdinPipe()
+			if err != nil {
+				return fail("Claude SDK stdin pipe could not be opened")
+			}
+			defer claudeSDKPipe.Close()
 		default:
 			return fail("agent command specification requires a supported fixed stdin format")
 		}
@@ -657,6 +673,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		cmd.Env, environmentSecrets, err = openCodeEnvironment(spec, home, root, true)
 		cmd.Dir = home
 		cfg.Secrets = append(cfg.Secrets, home, root, spec.OpenCode.BaseURL)
+	}
+	if spec.ClaudeSDK != nil {
+		if workspace == nil {
+			return fail("Claude SDK requires its original isolated writable attempt")
+		}
+		home := filepath.Join(workspace.Directory, "claude-sdk-home")
+		cmd.Env, environmentSecrets, err = claudeSDKEnvironment(spec, home, root, true)
+		cmd.Dir = home
 	}
 	if err != nil {
 		return fail(err.Error())
@@ -834,6 +858,13 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		defer acpDriver.Close()
 		cmd.Stdout = acpDriver
+	} else if spec.ClaudeSDK != nil {
+		claudeSDKDriver, err = newClaudeSDKDriver(ctx, a, cfg, profile, cancel)
+		if err != nil {
+			return fail("Claude SDK durable execution could not be opened")
+		}
+		defer claudeSDKDriver.Close()
+		cmd.Stdout = claudeSDKDriver
 	} else if profile.Protocol != "text-v1" {
 		var emit func(tc.Event) error
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
@@ -960,6 +991,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}()
 		defer func() { _ = codexDriver.Close(); _ = codexPipe.Close(); <-stdinDone }()
 	}
+	if claudeSDKDriver != nil {
+		claudeSDKInputDone = make(chan struct{})
+		go func() {
+			defer close(claudeSDKInputDone)
+			_, _ = claudeSDKDriver.CopyInput(claudeSDKPipe)
+			_ = claudeSDKPipe.Close()
+		}()
+		defer func() { _ = claudeSDKDriver.Close(); _ = claudeSDKPipe.Close(); <-claudeSDKInputDone }()
+	}
 	var cursorInputClosed <-chan struct{}
 	if acpDriver != nil {
 		stdinDone := make(chan struct{})
@@ -999,18 +1039,20 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 	case <-ctx.Done():
 		waited := false
-		if dshStdin != nil || codexDriver != nil || acpDriver != nil {
+		if dshStdin != nil || codexDriver != nil || acpDriver != nil || claudeSDKDriver != nil {
 			// Give the versioned cancellation request a bounded chance to settle;
 			// it does not prove that the agent or its descendants actually stopped.
 			if dshStdin != nil {
 				_ = dshStdin.Cancel()
 			} else if acpDriver != nil {
 				_ = acpDriver.Cancel()
+			} else if claudeSDKDriver != nil {
+				_ = claudeSDKDriver.Cancel()
 			} else {
 				_ = codexDriver.Cancel()
 			}
 			graceDuration := 1500 * time.Millisecond
-			if spec.OpenCode != nil || spec.Adapter == "octop" || spec.ACP != nil {
+			if spec.OpenCode != nil || spec.Adapter == "octop" || spec.ACP != nil || spec.ClaudeSDK != nil {
 				graceDuration = 10 * time.Second
 			}
 			grace := time.NewTimer(graceDuration)
@@ -1024,6 +1066,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				_ = dshStdin.Close()
 			} else if acpDriver != nil {
 				_ = acpDriver.Close()
+			} else if claudeSDKDriver != nil {
+				_ = claudeSDKDriver.Close()
 			} else {
 				_ = codexDriver.Close()
 			}
@@ -1088,6 +1132,36 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				r.OutcomeUnknown = true
 				evidence.Terminal = "unknown"
 				r.Error = "ACP durable terminal progress is unavailable"
+			}
+		}
+	} else if claudeSDKDriver != nil {
+		// Join the sole writer before final observation closure. A process may
+		// consume a full reply and finish while its durable after-write IO runs.
+		_ = claudeSDKDriver.Close()
+		_ = claudeSDKPipe.Close()
+		<-claudeSDKInputDone
+		evidence := claudeSDKDriver.finish(cmd.ProcessState != nil, processContainmentVerified)
+		if r.Stopped || r.OutcomeUnknown || r.ExitCode != 0 || !currentClaudeSDKCommand(cfg, spec, profile.ProfileSHA256) {
+			evidence.Terminal = "unknown"
+		}
+		if evidence.Terminal == "failed" {
+			r.ExitCode = 1
+			r.Error = "Claude SDK operation did not satisfy the reviewed foreground policy"
+		} else if evidence.Terminal != "completed" {
+			r.ExitCode, r.OutcomeUnknown = -1, true
+			r.Error = "Claude SDK outcome requires reconciliation"
+		}
+		r.ToolEvidence = evidence
+		r.Output = claudeSDKDriver.output.String() + r.Output
+		if cfg.ToolProgress != nil {
+			kind := "turn_failed"
+			if evidence.Terminal == "completed" {
+				kind = "turn_completed"
+			}
+			if emitErr := cfg.ToolProgress(tc.Event{SchemaVersion: 1, CommandID: profile.CommandID, ProfileSHA256: profile.ProfileSHA256, Protocol: profile.Protocol, Kind: kind, SessionID: evidence.SessionID}); emitErr != nil {
+				r.ExitCode, r.OutcomeUnknown = -1, true
+				evidence.Terminal = "unknown"
+				r.Error = "Claude SDK durable terminal progress is unavailable"
 			}
 		}
 	} else if stream != nil {

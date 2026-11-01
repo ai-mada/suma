@@ -10,6 +10,20 @@ beforeEach(async()=>{await setLocale('zh-CN',{persist:false});host=document.crea
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();if(clipboard)Object.defineProperty(navigator,'clipboard',clipboard);else Reflect.deleteProperty(navigator,'clipboard');vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function change(element:HTMLInputElement|HTMLSelectElement,value:string){const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
 
+it('T192 uses the independent SDK guide and hands only its public draft to the original Runner flow',async()=>{
+ const fetch=vi.fn();vi.stubGlobal('fetch',fetch);
+ await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide expanded presetRequest={{preset:'claude-sdk',nonce:192}}/>);});
+ expect(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!.value).toBe('claude-sdk');
+ const values={shell:'powershell',node:'C:/Program Files/nodejs/node.exe',host:'D:/suma-sdk/suma-claude.bundle.mjs',nativeCLI:'D:/tools/claude.exe',model:'claude-sonnet-5',credentialEnvRef:'ANTHROPIC_API_KEY',commands:'D:/runner/commands.sdk.json'};
+ for(const [name,value] of Object.entries(values))await change(host.querySelector<HTMLInputElement|HTMLSelectElement>('[data-claude-sdk-setup-field="'+name+'"]')!,value);
+ const use=host.querySelector<HTMLButtonElement>('[data-claude-sdk-setup-use]')!;expect(use.disabled).toBe(false);await act(async()=>use.click());
+ expect(host.querySelector<HTMLInputElement>('[name="remote-runner-commands"]')!.value).toBe(values.commands);expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-localTool"]')!.value).toBe('claude-code-sdk');
+ expect(host.querySelector('[data-remote-runner-command="prepare"]')).toBeNull();
+ const configure=host.querySelector<HTMLButtonElement>('[data-remote-runner-configure-claude-sdk]')!;await act(async()=>configure.click());
+ expect(host.querySelector<HTMLInputElement>('[data-claude-sdk-setup-field="commands"]')!.value).toBe(values.commands);expect(fetch).not.toHaveBeenCalled();
+ await change(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!,'claude');expect(host.querySelector('[data-claude-sdk-setup-guide]')).toBeNull();expect(host.textContent).toContain('claude-jsonl-v1');
+});
+
 it('T191 carries an explicit Cursor configuration draft into the original remote Runner guide without writing or enabling',async()=>{
  const fetch=vi.fn(async(_input:RequestInfo|URL,_init?:RequestInit)=>Response.json({items:[]}));vi.stubGlobal('fetch',fetch);
  await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide expanded presetRequest={{preset:'cursor',nonce:191}}/>);});

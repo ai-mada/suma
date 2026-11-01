@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CLAUDE-SDK-192：[合同](../../contracts/claude-sdk.md)／[PRD](../product/claude-sdk.md)／[架构与AI SOP](../architecture/claude-sdk.md)／[限定验证](../quality/claude-sdk-verification.md)。官方SDK原生一次许可、提问、固定配置、原Runner及同提交质量贯通；CLI／SDK／MCP、配置与真实厂商、送达与验收分别记录。下一优先简化工具新增／调整／移除与自动检测修复，原31／P0–P7／58／34／92继续。
+
 T-CURSOR-SETUP-191：[合同](../../contracts/cursor-setup.md)／[PRD](../product/cursor-setup.md)／[架构与AI SOP](../architecture/cursor-setup.md)／[限定验证](../quality/cursor-setup-verification.md)。高级／浏览器／独立节点沿唯一Cursor表单生成原Go受核配置，复用原库存、暂停登记和明确启用；成功RPC后受控宿主停止与真实退出值分别记录，未知门不松。真实厂商账号／模型、Unix未覆盖约束及完整31／P0–P7／58／34／92继续。
 
 T-CURSOR-INPUTS-190：[合同](../../contracts/cursor-inputs.md)／[产品](../product/cursor-inputs.md)／[架构与 AI SOP](../architecture/cursor-inputs.md)／[限定验证](../quality/cursor-inputs-verification.md)。Cursor原问题／多选／完整计划明确决定贯通原输入、普通／Pool、typed响应和送达事实；原生Codex关闭记录保持准确投影。新受控完整链实际贯通HTTP、SDK、Journal、候选、同提交独测及验收；真实账号／模型与完整31／P0–P7／58／34／92继续。

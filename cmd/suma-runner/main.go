@@ -45,6 +45,7 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
 	prepareTools := app.String("prepare-tools", "", "将可自动配置的本机工具写入全新命令允许列表文件；不连接控制面或领取任务", "prepare local tool commands in a new allowlist file; no control connection or tasks")
 	prepareACP := app.Bool("prepare-acp-stdin", false, "从私有标准输入准备明确的 Cursor 包配置；必须配合 --prepare-tools 全新文件", "prepare an explicit Cursor package configuration from private stdin; requires --prepare-tools with a new file")
+	prepareSDK := app.Bool("prepare-sdk-stdin", false, "从私有标准输入准备 Claude SDK 配置；必须配合 --prepare-tools 全新文件", "prepare Claude SDK configuration from private stdin; requires --prepare-tools with a new file")
 	reportTools := app.Bool("report-tools", false, "只上报或恢复一次原工具清单并退出，不领取任务", "report or recover exactly one tool inventory and exit without claiming tasks")
 	discoverInstalled := app.Bool("discover-installed-tools", false, "只读检测本机已安装的开发工具，不读取执行凭据或启动任务", "read-only detection of installed developer tools; no worker credentials or tasks")
 	describeACPModels := app.Bool("describe-acp-models-stdin", false, "由私有标准输入明确读取已选本机工具的模型目录；不派发任务", "explicitly discover the selected local tool model catalogue from private stdin; no task dispatch")
@@ -60,10 +61,19 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	// Presence, including an explicit false value, is its own mode. This gate
 	// precedes every identity, credential, stdin and worker operation.
 	if app.FlagProvided("prepare-acp-stdin") {
+		if app.FlagProvided("prepare-sdk-stdin") {
+			return app.Failure("配置准备模式不能混用", "Preparation modes cannot be combined")
+		}
 		if !*prepareACP || !app.FlagProvided("prepare-tools") || *prepareTools == "" || toolModeHasAnyFlag(app, "control", "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "pool-config", "allow-exec", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "report-tools", "local-tool", "identity", "paired-runner", "pair-runner", "device-name") {
 			return app.Failure("ACP 配置准备必须配合全新文件，且不能与执行器、身份或其他模式混用", "ACP preparation requires a new file and cannot be combined with worker, identity or other modes")
 		}
 		return runACPToolPreparationStdin(app, *prepareTools, input)
+	}
+	if app.FlagProvided("prepare-sdk-stdin") {
+		if !*prepareSDK || !app.FlagProvided("prepare-tools") || *prepareTools == "" || toolModeHasAnyFlag(app, "control", "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "pool-config", "allow-exec", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "report-tools", "local-tool", "identity", "paired-runner", "pair-runner", "device-name") {
+			return app.Failure("SDK 配置准备必须配合全新文件，且不能与执行器、身份或其他模式混用", "SDK preparation requires a new file and cannot be combined with worker, identity or other modes")
+		}
+		return runSDKToolPreparationStdin(app, *prepareTools, input)
 	}
 	pairedProvided := app.FlagProvided("paired-runner")
 	identityProvided := app.FlagProvided("identity")

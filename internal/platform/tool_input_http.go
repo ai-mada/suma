@@ -23,12 +23,19 @@ func toolInputDecodeHTTP(r *http.Request, out any, fields ...string) error {
 		if err != nil || len(raw) > 1<<20 || json.Unmarshal(raw, &object) != nil {
 			return invalid(toolInputInvalid)
 		}
-		_, codex := object["answers"]
-		_, cursor := object["cursor"]
-		if len(object) != len(fields)+1 || codex == cursor {
+		selected := ""
+		for _, branch := range []string{"answers", "cursor", "claude"} {
+			if _, present := object[branch]; present {
+				if selected != "" {
+					return invalid(toolInputInvalid)
+				}
+				selected = branch
+			}
+		}
+		if len(object) != len(fields)+1 || selected == "" {
 			return invalid(toolInputInvalid)
 		}
-		for _, field := range append(fields, map[bool]string{true: "answers", false: "cursor"}[codex]) {
+		for _, field := range append(fields, selected) {
 			if value, exists := object[field]; !exists || string(value) == "null" {
 				return invalid(toolInputInvalid)
 			}

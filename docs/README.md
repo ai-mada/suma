@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-CLAUDE-SDK-192：[SDK原生协作](product/claude-sdk.md)、[架构与AI SOP](architecture/claude-sdk.md)、[交互](design/claude-sdk.md)及[限定验证](quality/claude-sdk-verification.md)。原控制面、固定来源、候选／独测／验收一条链，完整平台与工具管理优化继续。
+
 - [Cursor独立节点配置](product/cursor-setup.md) · [合同](../contracts/cursor-setup.md) · [架构与AI SOP](architecture/cursor-setup.md) · [交互](design/cursor-setup.md) · [English](en/cursor-setup.md) · [限定验证](quality/cursor-setup-verification.md)：T191补齐真实配置生成、原节点衔接与严格区分RPC／宿主退出。
 
 - [原执行提问与计划确认](product/cursor-inputs.md) · [合同](../contracts/cursor-inputs.md) · [架构与 AI SOP](architecture/cursor-inputs.md) · [交互](design/cursor-inputs.md) · [English](en/cursor-inputs.md) · [限定验证](quality/cursor-inputs-verification.md)：T190将Cursor多选与明确计划决定接入原权限、Journal、候选和独立质量链。

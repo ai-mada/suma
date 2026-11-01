@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/strictjson"
 )
@@ -45,11 +46,15 @@ func ValidateRequest(r Request) error {
 	}
 	switch r.Protocol {
 	case ac.Protocol:
-		if r.ACP == nil || r.Codex != nil || ac.ValidatePermissionSource(*r.ACP) != nil {
+		if r.ACP == nil || r.Codex != nil || r.Claude != nil || ac.ValidatePermissionSource(*r.ACP) != nil {
 			return ErrInvalid
 		}
 	case cc.Protocol:
-		if r.Codex == nil || r.ACP != nil || cc.ValidateApprovalRequest(*r.Codex) != nil {
+		if r.Codex == nil || r.ACP != nil || r.Claude != nil || cc.ValidateApprovalRequest(*r.Codex) != nil {
+			return ErrInvalid
+		}
+	case cl.Protocol:
+		if r.Claude == nil || r.ACP != nil || r.Codex != nil || cl.ValidatePermissionSource(*r.Claude) != nil {
 			return ErrInvalid
 		}
 	default:
@@ -65,19 +70,23 @@ func ValidateRequest(r Request) error {
 func ValidateChoice(c Choice) error {
 	switch c.Protocol {
 	case ac.Protocol:
-		if c.ACP != nil && c.Codex == nil {
+		if c.ACP != nil && c.Codex == nil && c.Claude == nil {
 			return ac.ValidatePermissionChoice(*c.ACP)
 		}
 	case cc.Protocol:
-		if c.Codex != nil && c.ACP == nil {
+		if c.Codex != nil && c.ACP == nil && c.Claude == nil {
 			return cc.ValidateApprovalChoice(*c.Codex)
+		}
+	case cl.Protocol:
+		if c.Claude != nil && c.ACP == nil && c.Codex == nil {
+			return cl.ValidatePermissionChoice(*c.Claude)
 		}
 	}
 	return ErrInvalid
 }
 
 func IsGrant(c Choice) bool {
-	return ValidateChoice(c) == nil && (c.ACP != nil && c.ACP.Kind == "allow_once" || c.Codex != nil && c.Codex.Decision == "accept")
+	return ValidateChoice(c) == nil && (c.ACP != nil && c.ACP.Kind == "allow_once" || c.Codex != nil && c.Codex.Decision == "accept" || c.Claude != nil && c.Claude.Outcome == "allow_once")
 }
 func ChoiceMatchesRequest(r Request, c Choice) bool {
 	if ValidateRequest(r) != nil || ValidateChoice(c) != nil || r.Protocol != c.Protocol {
@@ -85,6 +94,9 @@ func ChoiceMatchesRequest(r Request, c Choice) bool {
 	}
 	if r.ACP != nil {
 		return ac.PermissionChoiceMatchesSource(*r.ACP, *c.ACP)
+	}
+	if r.Claude != nil {
+		return cl.PermissionChoiceMatchesSource(*r.Claude, *c.Claude)
 	}
 	return cc.ApprovalChoiceMatchesRequest(*r.Codex, *c.Codex)
 }
@@ -123,6 +135,9 @@ func AllowedActions(r Request) []string {
 		}
 		return out
 	}
+	if r.Claude != nil {
+		return []string{"allow_once", "reject_once"}
+	}
 	if r.Codex.DetailsComplete && r.Codex.ScopeSupported {
 		out = append(out, "accept")
 	}
@@ -145,6 +160,22 @@ func ValidatePermission(p Permission) error {
 			return ErrInvalid
 		}
 		terminalObservation = o.RequestResolved || o.ItemStatus != "" && o.ItemStatus != "inProgress"
+	}
+	if p.ClaudeObservation != nil {
+		o := p.ClaudeObservation
+		if p.Request.Claude == nil || p.Observation != nil || cl.ValidatePermissionObservation(*o) != nil || o.ParamsSHA256 != p.Request.Claude.ParamsSHA256 {
+			return ErrInvalid
+		}
+		if o.AnswerObserved {
+			if p.Decision == nil || p.Decision.Claude == nil {
+				return ErrInvalid
+			}
+			digest, err := cl.PermissionDecisionDigest(*p.Request.Claude, *p.Decision.Claude)
+			if err != nil || digest != o.AnswerSHA256 {
+				return ErrInvalid
+			}
+		}
+		terminalObservation = o.ExecutionClosed
 	}
 	allowed := AllowedActions(p.Request)
 	last := -1
@@ -191,6 +222,9 @@ func RequestSourceDigests(r Request) (string, string, error) {
 	}
 	if r.ACP != nil {
 		return sourceDigest([]string{r.Protocol, r.ACP.SessionID}), sourceDigest([]string{r.Protocol, r.ACP.ToolCallID}), nil
+	}
+	if r.Claude != nil {
+		return sourceDigest([]string{r.Protocol, r.Claude.SessionID}), sourceDigest([]string{r.Protocol, r.Claude.RequestID}), nil
 	}
 	return sourceDigest([]string{r.Protocol, r.Codex.ThreadID}), sourceDigest(struct {
 		Protocol string               `json:"protocol"`

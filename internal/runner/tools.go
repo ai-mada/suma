@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
@@ -24,7 +25,7 @@ import (
 )
 
 func normalizedCommand(spec CommandSpec) CommandSpec {
-	if spec.Adapter == "claude" {
+	if spec.Adapter == "claude" && spec.ClaudeSDK == nil {
 		return normalizeClaudeCommand(spec)
 	}
 	if spec.Adapter == "" {
@@ -101,6 +102,16 @@ func commandExecutable(spec CommandSpec) (string, string, error) {
 // Pin each interpreter and its reviewed entry. Cursor additionally checks its
 // complete package closure; the other existing entry policies remain scoped.
 func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error) {
+	if spec.ClaudeSDK != nil || spec.Protocol == tc.ClaudeSDKProtocol {
+		configurationSHA, err := ClaudeSDKConfigurationDigest(spec)
+		if err != nil {
+			return "", err
+		}
+		return tc.ProfileDigest(struct {
+			Command             CommandSpec `json:"command"`
+			ConfigurationSHA256 string      `json:"configuration_sha256"`
+		}{spec, configurationSHA}, executableSHA)
+	}
 	if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
 		// This function is also the final pre-spawn gate after workspace and
 		// network preparation. Node alone cannot attest its imported modules.
@@ -222,6 +233,9 @@ func probeCommandStreams(ctx context.Context, exe string, args []string, spec Co
 }
 
 func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []string, workspace string) (string, error) {
+	if spec.ClaudeSDK != nil {
+		return claudeSDKVersion(ctx, spec)
+	}
 	if spec.ACP != nil {
 		return acpVersion(ctx, exe, spec, secrets)
 	}
@@ -517,6 +531,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 		if err := validateClaudeCommand(spec); err != nil {
 			return err
 		}
+		if err := validateClaudeSDKSpec(spec); err != nil {
+			return err
+		}
 		if err := validateNativeWorkspacePolicy(cfg, id, spec); err != nil {
 			return err
 		}
@@ -557,6 +574,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
 			if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
 				p.UserInputProtocol = cu.InputProtocol
+			}
+			if spec.ClaudeSDK != nil {
+				p.UserInputProtocol = cl.InputProtocol
 			}
 			p.TerminalSessionProtocol = terminalSessionProtocol(spec)
 			if spec.TaskConversationReply {
@@ -620,6 +640,11 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				o.Profile.UserInputProtocol = cu.InputProtocol
 			}
 			o.Profile.ClaudeExecution, err = localClaudeCapability(spec)
+			if err != nil {
+				fail(err.Error())
+				return
+			}
+			o.Profile.ClaudeSDKExecution, err = localClaudeSDKCapability(spec)
 			if err != nil {
 				fail(err.Error())
 				return
@@ -725,6 +750,9 @@ func ToolCapabilities(items []tc.Observation) []string {
 
 func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (tc.Profile, string, error) {
 	spec = normalizedCommand(spec)
+	if err := validateClaudeSDKSpec(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if err := validateACPExecutionSpec(spec); err != nil {
 		return tc.Profile{}, "", err
 	}
@@ -786,8 +814,15 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
 			p.UserInputProtocol = cu.InputProtocol
 		}
+		if spec.ClaudeSDK != nil {
+			p.UserInputProtocol = cl.InputProtocol
+		}
 		p.TerminalSessionProtocol = terminalSessionProtocol(spec)
 		p.ClaudeExecution, err = localClaudeCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
+		p.ClaudeSDKExecution, err = localClaudeSDKCapability(spec)
 		if err != nil {
 			return p, "", err
 		}
@@ -842,6 +877,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		return p, "", fmt.Errorf("test report capability does not match local configuration")
 	}
 	expectedOpenCode, err := localOpenCodeCapability(spec)
+	expectedClaudeSDK, sdkErr := localClaudeSDKCapability(spec)
+	if sdkErr != nil || (p.ClaudeSDKExecution == nil) != (expectedClaudeSDK == nil) || p.ClaudeSDKExecution != nil && *p.ClaudeSDKExecution != *expectedClaudeSDK {
+		return p, "", fmt.Errorf("Claude SDK fixed configuration differs from local inventory")
+	}
 	expectedClaude, claudeErr := localClaudeCapability(spec)
 	if claudeErr != nil || (p.ClaudeExecution == nil) != (expectedClaude == nil) || p.ClaudeExecution != nil && *p.ClaudeExecution != *expectedClaude {
 		return p, "", fmt.Errorf("Claude fixed configuration differs from local inventory")

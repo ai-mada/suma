@@ -107,6 +107,12 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 		return
 	}
+	if supportsClaudeSDKExecution(profile) {
+		if profile.Profile.ProfileSHA256 != sha || !claudeSDKNodeMatchesProfile(ref.Spec, profile) {
+			err = invalid(claudeSDKExecutionChanged)
+		}
+		return
+	}
 	if supportsACPExecution(profile) {
 		if profile.Profile.ProfileSHA256 != sha || !acpNodeMatchesProfile(ref.Spec, profile) {
 			err = invalid(acpExecutionChanged)
@@ -144,6 +150,9 @@ func (s *Service) CheckAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		return false, e
 	}
 	if checkOpenCodeObserveOnlyPolicies(profile, org, project) != nil {
+		return false, nil
+	}
+	if checkClaudeSDKObserveOnlyPolicies(profile, org, project) != nil {
 		return false, nil
 	}
 	if checkClaudeObserveOnlyPolicies(profile, org, project) != nil {
@@ -202,6 +211,9 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 		return e
 	}
 	if err := checkOpenCodeObserveOnlyPolicies(profile, org, project); err != nil {
+		return err
+	}
+	if err := checkClaudeSDKObserveOnlyPolicies(profile, org, project); err != nil {
 		return err
 	}
 	if err := checkClaudeObserveOnlyPolicies(profile, org, project); err != nil {
@@ -379,6 +391,9 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if e = s.validateExecutionSkillResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
 		return e
 	}
+	if e = s.validateClaudePermissionResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
+		return e
+	}
 	if e = s.validateCodexApprovalResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
 		return e
 	}
@@ -470,6 +485,26 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 			modelReconciling = true
 		} else {
 			proof := result.ToolEvidence.ClaudeExecution
+			if proof.ConfigurationSHA256 != fixed.ConfigurationSHA256 || proof.RequestedModel != fixed.Model || toolcontract.ValidateEvidence(*result.ToolEvidence) != nil {
+				modelReconciling = true
+			}
+		}
+	}
+	if fixed, err := claudeSDKNodeConfiguration(ref.Spec); err != nil {
+		return err
+	} else if fixed != nil {
+		// The fixed SDK reports observations, not complete request coverage or
+		// provider billing identity. Missing counters remain unknown, never zero.
+		complete = false
+		if a.Usage != nil {
+			a.UsageState = toolcontract.UsagePartial
+		} else {
+			a.UsageState = toolcontract.UsageUnreported
+		}
+		if result.ToolEvidence == nil || result.ToolEvidence.ClaudeSDKExecution == nil {
+			modelReconciling = true
+		} else {
+			proof := result.ToolEvidence.ClaudeSDKExecution
 			if proof.ConfigurationSHA256 != fixed.ConfigurationSHA256 || proof.RequestedModel != fixed.Model || toolcontract.ValidateEvidence(*result.ToolEvidence) != nil {
 				modelReconciling = true
 			}

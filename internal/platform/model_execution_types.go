@@ -21,19 +21,20 @@ type ModelExecutionOption struct {
 	OutputTokenReservation int64                    `json:"output_token_reservation"`
 }
 type ModelExecutionOptions struct {
-	FixedACP           *ac.Capability                  `json:"fixed_acp,omitempty"`
-	ParameterLimits    *modelcontract.Parameters       `json:"parameter_limits,omitempty"`
-	FixedOpenCode      *tc.OpenCodeExecutionCapability `json:"fixed_opencode,omitempty"`
-	FixedClaude        *tc.ClaudeExecutionCapability   `json:"fixed_claude,omitempty"`
-	CodexSupported     bool                            `json:"codex_supported"`
-	CodexCatalog       *cc.Catalog                     `json:"codex_catalog,omitempty"`
-	CodexReason        string                          `json:"codex_reason"`
-	ProjectID          string                          `json:"project_id"`
-	ToolProfileID      string                          `json:"tool_profile_id"`
-	ToolProfileVersion int                             `json:"tool_profile_version"`
-	ToolProfileSHA256  string                          `json:"tool_profile_sha256"`
-	ObservedAt         string                          `json:"observed_at"`
-	Supported          bool                            `json:"supported"`
-	Reason             string                          `json:"reason"`
-	Items              []ModelExecutionOption          `json:"items"`
+	FixedACP           *ac.Capability                   `json:"fixed_acp,omitempty"`
+	ParameterLimits    *modelcontract.Parameters        `json:"parameter_limits,omitempty"`
+	FixedOpenCode      *tc.OpenCodeExecutionCapability  `json:"fixed_opencode,omitempty"`
+	FixedClaude        *tc.ClaudeExecutionCapability    `json:"fixed_claude,omitempty"`
+	FixedClaudeSDK     *tc.ClaudeSDKExecutionCapability `json:"fixed_claude_sdk,omitempty"`
+	CodexSupported     bool                             `json:"codex_supported"`
+	CodexCatalog       *cc.Catalog                      `json:"codex_catalog,omitempty"`
+	CodexReason        string                           `json:"codex_reason"`
+	ProjectID          string                           `json:"project_id"`
+	ToolProfileID      string                           `json:"tool_profile_id"`
+	ToolProfileVersion int                              `json:"tool_profile_version"`
+	ToolProfileSHA256  string                           `json:"tool_profile_sha256"`
+	ObservedAt         string                           `json:"observed_at"`
+	Supported          bool                             `json:"supported"`
+	Reason             string                           `json:"reason"`
+	Items              []ModelExecutionOption           `json:"items"`
 }

@@ -112,7 +112,7 @@ function ScopedToolWorkspace({
   const pairedRunner=pairedSelection?.caller===api&&pairedSelection.generation===pairingGeneration&&pairedSelection.context===contextKey?pairedSelection.value:undefined;
   const guideID = useId();
   const workerRows = useRef(new Map<string, HTMLElement>());
-  const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'|'qoder'|'opencode'|'cursor';cloud?:boolean}>();
+  const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'|'qoder'|'opencode'|'cursor'|'claude-sdk';cloud?:boolean}>();
   const connection=connectionSelection?.context===contextKey?connectionSelection:undefined;
   const recovery = useMemo(
     () =>
@@ -607,7 +607,7 @@ function ScopedToolWorkspace({
           onRegistered={value=>{setReceipt({key:'registered',name:value.name,scope:contextKey});void profiles.read();onSelect(value.id);}}
           onOpen={profile=>{if(action.busy||action.pending)return;setReceipt(undefined);setDialog(undefined);onSelect(profile.id);}}
           onEnable={profile=>{action.clearError();setDialog({kind:'decision',action:'enable',profile});}}
-          onAdvanced={adapter=>{if(writeBlocked)return;action.clearError();const qoder=adapter?.id==='qoder-acp'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='qoder'&&adapter.protocol==='acp-stdio-v1',opencode=adapter?.id==='opencode-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='opencode'&&adapter.protocol==='opencode-sdk-v1',cursor=adapter?.id==='cursor-cli'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='cursor'&&adapter.protocol==='acp-stdio-v1';if(qoder||opencode||cursor){setDialog(undefined);setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:cursor?'cursor':opencode?'opencode':'qoder'}));setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector('summary')?.focus());}else setDialog({kind:'create',adapter});}}
+          onAdvanced={adapter=>{if(writeBlocked)return;action.clearError();const qoder=adapter?.id==='qoder-acp'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='qoder'&&adapter.protocol==='acp-stdio-v1',opencode=adapter?.id==='opencode-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='opencode'&&adapter.protocol==='opencode-sdk-v1',cursor=adapter?.id==='cursor-cli'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='cursor'&&adapter.protocol==='acp-stdio-v1',claudeSDK=adapter?.id==='claude-code-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='claude'&&adapter.protocol==='claude-sdk-v1';if(qoder||opencode||cursor||claudeSDK){setDialog(undefined);setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:claudeSDK?'claude-sdk':cursor?'cursor':opencode?'opencode':'qoder'}));setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector('summary')?.focus());}else setDialog({kind:'create',adapter});}}
           onWorker={()=>{action.clearError();setDialog({kind:'worker'});}}
         />}
         {dialog?.kind === "worker" && <>

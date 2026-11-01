@@ -2,6 +2,7 @@ import {validOpenCodeCapability} from './opencode-execution-model';
 import {validCodexCatalog} from './codex-execution-model';
 import {validOctopCapability} from './octop-execution-model';
 import {validClaudeCapability} from './claude-cli-model';
+import {validClaudeSDKCapability} from './claude-sdk-execution-model';
 import {validACPCapability} from './acp-execution-model';
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
@@ -152,17 +153,25 @@ function publicOrigin(value: unknown): boolean {
     return !origin.username && !origin.password && (origin.protocol === "https:" || (origin.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname)));
   } catch { return false; }
 }
-const acpForbidden = ['workspace_tools_version','model_execution_protocol','terminal_session_protocol','test_report_protocol','conflict_repair_protocol','planning','knowledge_extraction','failure_diagnosis','intelligent_operations','dispatch_recommendation','task_conversation_reply','opencode_execution','octop_execution','claude_execution'] as const;
+const acpForbidden = ['workspace_tools_version','model_execution_protocol','terminal_session_protocol','test_report_protocol','conflict_repair_protocol','planning','knowledge_extraction','failure_diagnosis','intelligent_operations','dispatch_recommendation','task_conversation_reply','opencode_execution','octop_execution','claude_execution','claude_sdk_execution'] as const;
+const sdkForbidden=['workspace_tools_version','model_execution_protocol','terminal_session_protocol','test_report_protocol','conflict_repair_protocol','planning','knowledge_extraction','failure_diagnosis','intelligent_operations','dispatch_recommendation','task_conversation_reply','opencode_execution','octop_execution','claude_execution','acp_execution'] as const;
+function claudeSDKProfileBase(value:unknown):value is Record<string,unknown>{
+ if(!value||typeof value!=='object'||Array.isArray(value))return false;
+ const profile=value as Record<string,unknown>;
+ return profile.adapter==='claude'&&profile.protocol==='claude-sdk-v1'&&profile.read_only===false&&profile.user_input_protocol==='claude-sdk-input-v1'&&!sdkForbidden.some(key=>!!profile[key]);
+}
+function claudeSDKToolProfile(profile:unknown):boolean{return claudeSDKProfileBase(profile)&&profile.tool_version==='2.1.314'&&validClaudeSDKCapability(profile.claude_sdk_execution);}
 function acpToolProfile(profile: Record<string, unknown> | ToolProfileDefinition) {
   return (profile.adapter === 'qoder'&&!profile.user_input_protocol||profile.adapter === 'cursor'&&profile.user_input_protocol==='cursor-acp-input-v1') && profile.protocol === 'acp-stdio-v1' && profile.read_only === false && validACPCapability(profile.acp_execution,profile.adapter as 'qoder'|'cursor') && !acpForbidden.some(key=>!!profile[key]);
 }
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
-  if (profile.user_input_protocol !== undefined && (typeof profile.user_input_protocol !== "string" || profile.user_input_protocol !== "" && !(profile.user_input_protocol === 'codex-user-input-v1'&&profile.adapter === 'codex'&&profile.protocol === 'codex-app-server-v1'&&profile.read_only === false||profile.user_input_protocol === 'cursor-acp-input-v1'&&profile.adapter === 'cursor'&&profile.protocol === 'acp-stdio-v1'&&profile.read_only === false))) invalidCapability();
+  if (profile.user_input_protocol !== undefined && (typeof profile.user_input_protocol !== "string" || profile.user_input_protocol !== "" && !(profile.user_input_protocol === 'codex-user-input-v1'&&profile.adapter === 'codex'&&profile.protocol === 'codex-app-server-v1'&&profile.read_only === false||profile.user_input_protocol === 'cursor-acp-input-v1'&&profile.adapter === 'cursor'&&profile.protocol === 'acp-stdio-v1'&&profile.read_only === false||profile.user_input_protocol==='claude-sdk-input-v1'&&profile.adapter==='claude'&&profile.protocol==='claude-sdk-v1'&&profile.read_only===false))) invalidCapability();
   const acp = acpToolProfile(profile);
   if (profile.acp_execution !== undefined && !acp || (profile.adapter === 'qoder'||profile.adapter === 'cursor') &&
     (profile.protocol !== 'acp-stdio-v1' || profile.read_only !== false || profile.adapter==='cursor'&&profile.user_input_protocol!=='cursor-acp-input-v1' || profile.adapter==='qoder'&&!!profile.user_input_protocol || acpForbidden.some(key=>!!profile[key]) || observation.available === true && !acp)) invalidCapability();
   const claude = profile.adapter === 'claude' && profile.protocol === 'claude-jsonl-v1' && validClaudeCapability(profile.claude_execution);
-  if(profile.claude_execution!==undefined&&(!claude||!['2.1.314','2.1.314 (Claude Code)'].includes(String(profile.tool_version)))||profile.adapter==='claude'&&(profile.protocol!=='claude-jsonl-v1'||profile.read_only!==false||observation.available===true&&!claude||profile.workspace_tools_version||profile.model_execution_protocol||profile.terminal_session_protocol||profile.test_report_protocol||profile.conflict_repair_protocol||profile.planning||profile.knowledge_extraction||profile.failure_diagnosis||profile.intelligent_operations||profile.dispatch_recommendation||profile.task_conversation_reply||profile.opencode_execution||profile.octop_execution))invalidCapability();
+  if(profile.claude_execution!==undefined&&(!claude||!['2.1.314','2.1.314 (Claude Code)'].includes(String(profile.tool_version)))||profile.adapter==='claude'&&profile.protocol!=='claude-sdk-v1'&&(profile.protocol!=='claude-jsonl-v1'||profile.read_only!==false||observation.available===true&&!claude||profile.workspace_tools_version||profile.model_execution_protocol||profile.terminal_session_protocol||profile.test_report_protocol||profile.conflict_repair_protocol||profile.planning||profile.knowledge_extraction||profile.failure_diagnosis||profile.intelligent_operations||profile.dispatch_recommendation||profile.task_conversation_reply||profile.opencode_execution||profile.octop_execution))invalidCapability();
+  if(profile.claude_sdk_execution!==undefined&&!claudeSDKToolProfile(profile)||profile.protocol==='claude-sdk-v1'&&(!claudeSDKProfileBase(profile)||observation.available===true&&!claudeSDKToolProfile(profile)))invalidCapability();
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
   // A dedicated shell may expose live files for reading, but never borrows an
   // agent's model, writable workspace tools, test proof or automation purpose.
@@ -257,7 +266,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "terminal_session_protocol",
       "user_input_protocol",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol", "test_report_protocol",
-      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution", "claude_execution", "acp_execution",
+      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution", "claude_execution", "claude_sdk_execution", "acp_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);
     if (
       typeof profile.command_id !== "string" ||
@@ -268,7 +277,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
     seen.add(profile.command_id);
     if (
       typeof profile.adapter !== "string" ||
-      protocols[profile.adapter] !== profile.protocol && !(profile.adapter === "codex" && profile.protocol === "codex-app-server-v1")
+      protocols[profile.adapter] !== profile.protocol && !(profile.adapter === "codex" && profile.protocol === "codex-app-server-v1") && !(profile.adapter==='claude'&&profile.protocol==='claude-sdk-v1')
     )
       throw new UiError("development.model.the_adapter_and_protocol_do_not_match");
     if (
@@ -324,11 +333,12 @@ export function toolBinding(
   delete config.tool_profile_id;
   delete config.tool_profile_sha256;
   delete config.claude_execution;
+  delete config.claude_sdk_execution;
   delete config.acp_execution;
   if (!profile) return { config };
   if (!profile.id || !digest.test(profile.profile.profile_sha256))
     throw new UiError("development.model.choose_an_official_tool_with_a_fixed");
-  if (acpToolProfile(profile.profile)) {
+  if (acpToolProfile(profile.profile)||claudeSDKToolProfile(profile.profile)) {
     for (const key of ['model_execution','codex_execution','opencode_execution','octop_execution']) delete config[key];
   }
   return {
@@ -339,6 +349,7 @@ export function toolBinding(
       tool_profile_id: profile.id,
       tool_profile_sha256: profile.profile.profile_sha256,
       ...(profile.profile.adapter==='claude'&&validClaudeCapability(profile.profile.claude_execution)?{claude_execution:{...profile.profile.claude_execution}}:{}),
+      ...(claudeSDKToolProfile(profile.profile)?{claude_sdk_execution:{...profile.profile.claude_sdk_execution}}:{}),
       ...(acpToolProfile(profile.profile)?{acp_execution:{...profile.profile.acp_execution}}:{}),
     },
   };
@@ -346,6 +357,7 @@ export function toolBinding(
 export function taskToolProtocol(profile: ToolProfileDefinition) {
   return (
     acpToolProfile(profile) ||
+    claudeSDKToolProfile(profile) ||
     (profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1") ||
     (profile.adapter === "opencode" && profile.protocol === "opencode-sdk-v1" && validOpenCodeCapability(profile.opencode_execution)) ||
     (profile.adapter === "codex" && ["codex-jsonl-v1","codex-app-server-v1"].includes(profile.protocol)) ||

@@ -10,7 +10,7 @@ const text=(value:unknown,max:number):value is string=>typeof value==='string'&&
 const windowsPath=(value:string)=>/^[A-Za-z]:[\\/]/.test(value);
 const absolute=(value:unknown):value is string=>text(value,4096)&&(windowsPath(value)||/^\/(?!\/)/.test(value));
 const commandPath=(value:unknown):value is string=>absolute(value)&&/\.json$/i.test(value);
-const literal=(value:string,shell:CursorSetupDraft['shell'])=>"'"+(shell==='powershell'?value.replaceAll("'","''"):value.replaceAll("'","'\"'\"'"))+"'";
+export const runnerSetupLiteral=(value:string,shell:CursorSetupDraft['shell'])=>"'"+(shell==='powershell'?value.replaceAll("'","''"):value.replaceAll("'","'\"'\"'"))+"'";
 export function validCursorSetupDraft(value:unknown):value is CursorSetupDraft{
  return object(value)&&closed(value,['shell','commands','localTool'])&&(value.shell==='powershell'||value.shell==='bash')&&commandPath(value.commands)&&value.localTool==='cursor-cli';
 }
@@ -22,8 +22,8 @@ export function cursorSetupCommands(value:unknown):{prepare:string;describe:stri
  const shell=value.shell,root=value.packageRoot,windows=windowsPath(root),separator=windows&&root.includes('\\')?'\\':'/',trailing=windows?/[\\/]$/.test(root):root.endsWith('/'),executable=root+(trailing?'':separator)+(windows?'node.exe':'node');
  if(!text(executable,4096))return;
  const request:CursorSetupRequest={adapter_id:'cursor-cli',executable,reviewed_version:value.reviewedVersion,model:value.model,credential_env_ref:value.credentialEnvRef},draft:CursorSetupDraft={shell,commands:value.commands,localTool:'cursor-cli'};
- const json=literal(JSON.stringify(request),shell),prepareRunner='suma-runner --prepare-tools '+literal(value.commands,shell)+' --prepare-acp-stdin';
+ const json=runnerSetupLiteral(JSON.stringify(request),shell),prepareRunner='suma-runner --prepare-tools '+runnerSetupLiteral(value.commands,shell)+' --prepare-acp-stdin';
  const prepare=shell==='powershell'?'& {\n  $cursorSetupPreviousEncoding = $OutputEncoding\n  try {\n    $OutputEncoding = [System.Text.UTF8Encoding]::new($false)\n    '+json+' | '+prepareRunner+'\n  } finally {\n    $OutputEncoding = $cursorSetupPreviousEncoding\n  }\n}':"printf '%s' "+json+' | '+prepareRunner;
- const describe='suma-runner --commands '+literal(value.commands,shell)+' --allow-exec --repository '+literal('REPOSITORY',shell)+' --base-commit '+literal('COMMIT',shell)+' --describe-tools';
+ const describe='suma-runner --commands '+runnerSetupLiteral(value.commands,shell)+' --allow-exec --repository '+runnerSetupLiteral('REPOSITORY',shell)+' --base-commit '+runnerSetupLiteral('COMMIT',shell)+' --describe-tools';
  return {prepare,describe,request,draft};
 }

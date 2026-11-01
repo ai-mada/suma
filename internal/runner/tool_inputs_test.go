@@ -69,7 +69,7 @@ func cursorToolInputFixture190(t *testing.T) (Assignment, tc.Profile, ic.ToolInp
 	r := ic.ToolInputRequest{IdempotencyKey: "cursor-input-original190", Protocol: ac.Protocol, Cursor: &source}
 	decision := &cu.CursorInputDecision{Outcome: "answered", Answers: []cu.CursorInputSelection{{QuestionID: "scope190", OptionIDs: []string{"http", "cli"}}}}
 	answer := ic.ToolInputAnswer{Cursor: decision, ActorID: "human190", AnsweredAt: "2026-11-01T00:00:01Z"}
-	answer.AnswerSHA256, err = ic.AnswerDigest(r, nil, decision)
+	answer.AnswerSHA256, err = ic.AnswerDigest(r, nil, decision, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestCursorToolInputJournalKeepsOriginalSourceAndIntent(t *testing.T) {
 		var answer ic.ToolInputAnswer
 		_ = json.Unmarshal(raw, &answer)
 		answer.Cursor.Answers[0].OptionIDs = []string{"cli"}
-		answer.AnswerSHA256, _ = ic.AnswerDigest(r, nil, answer.Cursor)
+		answer.AnswerSHA256, _ = ic.AnswerDigest(r, nil, answer.Cursor, nil)
 		changed.Answer, changed.Version = &answer, v.Version+1
 		if j.observeToolInput(a, changed, false) == nil {
 			t.Fatal("original multiple selection was replaced")
@@ -123,7 +123,7 @@ func TestCursorToolInputJournalKeepsOriginalSourceAndIntent(t *testing.T) {
 		}
 		privateAnswer := *v.Answer
 		privateAnswer.Cursor = &cu.CursorInputDecision{Outcome: "skipped", Reason: secret}
-		privateAnswer.AnswerSHA256, _ = ic.AnswerDigest(r, nil, privateAnswer.Cursor)
+		privateAnswer.AnswerSHA256, _ = ic.AnswerDigest(r, nil, privateAnswer.Cursor, nil)
 		if safeToolInputAnswer(r, privateAnswer, []string{secret}) == nil {
 			t.Fatal("credential-bearing decision was accepted")
 		}
@@ -212,7 +212,7 @@ func TestCursorToolInputJournalKeepsOriginalSourceAndIntent(t *testing.T) {
 			}
 			if i == 1 {
 				accepted := ic.ToolInputAnswer{Cursor: &cu.CursorInputDecision{Outcome: "accepted"}, ActorID: v.Answer.ActorID, AnsweredAt: v.Answer.AnsweredAt}
-				accepted.AnswerSHA256, err = ic.AnswerDigest(plan, nil, accepted.Cursor)
+				accepted.AnswerSHA256, err = ic.AnswerDigest(plan, nil, accepted.Cursor, nil)
 				if err != nil || safeToolInputAnswer(plan, accepted, nil) != nil {
 					t.Fatal("typed plan acceptance rejected", err)
 				}

@@ -10,6 +10,8 @@
 
 2026-11-01：T-RUNNER-PAIRING-184固定`github.com/zalando/go-keyring v0.2.6`，用于远程Runner的系统凭据存储，系统库不可用时不降级明文文件。原SDK／传递依赖许可及源码摘要见[增量清单](runner-pairing-dependencies.json)，[官方固定版本](https://github.com/zalando/go-keyring/tree/v0.2.6)保持上游系统适配；平台实现与实际验收分开记录。
 
+2026-11-01：T-CLAUDE-SDK-192新增官方`@anthropic-ai/claude-agent-sdk 0.3.314`及其精确SDK依赖。包许可按原件记录，不标为MIT／Apache；最终11资产及依赖告知见[增量清单](claude-sdk-dependencies.json)。外部native CLI2.1.314与账号验收独立，不复制Multica自动许可实现，不作为最终安装／生产SBOM。
+
 ## 参考项目与实际依赖分开记录
 
 2026-10-29，T-MULTICA-137首次实际改编Multica旧提交 `e6f840ca115740a6fb80786537405bcf049d6497` 的 `buildColumns` 分组算法，用于速码任务列表／看板。完整原LICENSE、版权、文件摘要和修改范围见[来源说明](../../third_party/multica-legacy/PROVENANCE.md)与[清单](../../third_party/multica-legacy/manifest.json)。当前 `139b13a…` 的受限源码只作功能参考；没有引入其运行权限旁路、保存视图实现或品牌素材。下表旧“未复制”结论仅对应原调查日期，不能覆盖此项新增采用。

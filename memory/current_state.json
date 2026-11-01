@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T191 Cursor advanced/remote node provisioning and exact RPC/owned-host shutdown, strict shared evidence and bilingual guide; full goal remains active",
+  "last_goal_turn_classification": "progress: T192 real official SDK/native fixture original callbacks, Worker/candidate/same-commit independent quality and bilingual UI; full goal remains active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-CURSOR-SETUP-191",
+    "stage": "T-CLAUDE-SDK-192",
     "status": "scoped_verified",
-    "contract": "contracts/cursor-setup.md",
-    "report": "docs/quality/cursor-setup-verification.md",
+    "contract": "contracts/claude-sdk.md",
+    "report": "docs/quality/claude-sdk-verification.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Continue authenticated native tool/model lifecycle, original distributed team/knowledge/quality flows, deployment and remaining full acceptance."
+    "next": "T193 prioritize simple tool connection/automatic discovery, configuration handoff, safe remove and actionable diagnostics; continue all original distributed platform scope."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1584,6 +1584,166 @@
       "GUI为生产组件加明确隔离父级的三组代表场景：中文配置／草稿、原执行依据、英文390px暗色恢复；初轮只在最后键盘焦点失败，保留已通过断言，修复后只复验英文并补拍当前样式依据。两宿主均exit0，无页面错误；不是完整登录App或生产验收。",
       "原行为RED、同步夹具／并行编译失败和辅助脚本路径诊断均保留，不能声称所有命令首遍成功；35个不同顶层检查及23个Go子例不含重复重试计数，实际Shell另记1条旅程。",
       "未重复190完整输入formal、SDK安装／构建、旧版本探测或全套测试；当前31项、P0–P7、58限定／34待交付／92总账、真实账号、多机／跨库／跨平台安装、规模及生产验收仍active。"
+    ]
+  },
+  "claude_sdk": {
+    "stage": "T-CLAUDE-SDK-192",
+    "status": "scoped_verified",
+    "contract": "contracts/claude-sdk.md",
+    "report": "docs/quality/claude-sdk-verification.md",
+    "summary": "docs/quality/claude-sdk-summary.json",
+    "verification": {
+      "distinct_top_level": 72,
+      "new_top_level": 49,
+      "affected_existing_top_level": 23,
+      "go_subcases": 21,
+      "runtime_top_level": 11,
+      "runner_top_level": 7,
+      "control_top_level": 10,
+      "web_top_level": 34,
+      "root_top_level": 9,
+      "formal_top_level": 1,
+      "root_receipts": [
+        {
+          "test": "TestSDKCallbackDecisionBindsNativeRequestAndOriginalPayload",
+          "package": "github.com/ai-mada/suma/internal/claudecontract",
+          "command": ".cache/follow155/root-go/20261101T105923457Z.command.json",
+          "command_exit": 1,
+          "package_passed": true
+        },
+        {
+          "test": "TestSDKQuestionPreservesNativeTextAndRejectsForgedSelections",
+          "package": "github.com/ai-mada/suma/internal/claudecontract",
+          "command": ".cache/follow155/root-go/20261101T112152439Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestClaudeSDKProfileCannotBorrowCLIOrGatewayAuthority",
+          "package": "github.com/ai-mada/suma/internal/toolcontract",
+          "command": ".cache/follow155/root-go/20261101T115105935Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestClaudeSDKSuccessNeedsExactDeliveryClosureAndStoppedTree",
+          "package": "github.com/ai-mada/suma/internal/toolcontract",
+          "command": ".cache/follow155/root-go/20261101T112128339Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestPrepareSDKModeRejectsPresenceAndMixedFlagsBeforeInput",
+          "package": "github.com/ai-mada/suma/cmd/suma-runner",
+          "command": ".cache/follow155/root-go/20261101T111536434Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestSDKPreparationRejectsOverwriteAndPrivateOverrides",
+          "package": "github.com/ai-mada/suma/internal/runner",
+          "command": ".cache/follow155/root-go/20261101T111536434Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestClaudeSDKContractsSeparateNativeInputsAndBudgetAuthority",
+          "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+          "command": ".cache/follow155/root-go/20261101T112939549Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestUnifiedPermissionContractsKeepNativeBranchesAndObservationAuthority",
+          "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+          "command": ".cache/follow155/root-go/20261101T111245702Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestCursorInputsContractKeepsNativeUnionAndPlanAuthority",
+          "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+          "command": ".cache/follow155/root-go/20261101T111245702Z.command.json",
+          "command_exit": 0,
+          "package_passed": true
+        }
+      ],
+      "formal_receipt": {
+        "test": "TestClaudeSDKFormalOriginalWorkersNativeCallbacksCandidateAndQuality",
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "command": ".cache/follow155/root-go/20261101T114033787Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      "contract_generations": [
+        ".cache/follow155/root-go/20261101T113422615Z.command.json",
+        ".cache/follow155/root-go/20261101T111317833Z.command.json"
+      ],
+      "runner_build": ".cache/follow155/root-go/20261101T114124379Z.command.json",
+      "new_http_paths": 0,
+      "new_business_tables": 0,
+      "new_schemas": [
+        "ClaudeInputDecision",
+        "ClaudeInputEvidence",
+        "ClaudeInputRequest",
+        "ClaudeInputSelection",
+        "ClaudePermissionChoice",
+        "ClaudePermissionEvidence",
+        "ClaudePermissionSource",
+        "ClaudeQuestion",
+        "ClaudeQuestionOption",
+        "ClaudeSDKExecutionCapability",
+        "ClaudeSDKExecutionEvidence"
+      ],
+      "changed_schemas": [
+        "ModelExecutionOptions",
+        "PoolToolPermissionObservationRequest",
+        "TaskDispatchPlan",
+        "ToolEvidence",
+        "ToolExecutionProfile",
+        "ToolInputAnswer",
+        "ToolInputAnswerRequest",
+        "ToolInputList",
+        "ToolInputRequest",
+        "ToolPermission",
+        "ToolPermissionChoice",
+        "ToolPermissionDecision",
+        "ToolPermissionDecisionRequest",
+        "ToolPermissionObservationRequest",
+        "ToolPermissionRequest"
+      ],
+      "initial_complete_typecheck_exit": 2,
+      "corrected_type_files": 2,
+      "final_affected_semantic_diagnostics": 0,
+      "paired_locale_keys": 8957,
+      "production_hardcodes": 0,
+      "product_version_check_exit": 0,
+      "isolated_component_builds": 1,
+      "gui_checks": 3,
+      "gui_native_hosts": 1,
+      "gui_native_exit": 0,
+      "actual_shell_journeys": 1,
+      "full_suite_repeated": false
+    },
+    "implementation": [
+      "官方SDK0.3.314与明确原生CLI2.1.314接到原Worker／DAG／Pool、私有工作区、固定模型与API key引用；CLI、SDK及反向MCP三入口各自表达，observe_only不借网关硬预算。",
+      "SDK真实canUseTool与AskUserQuestion接入原权限／输入表、当前资格、CAS、操作回执及Journal单writer；准确native request/session/toolUse与本机callback、参数摘要绑定，不批准长期规则。",
+      "原生单／多选按原文字和标签重建，无预选，取消／拒绝不授权命令；原保存决定与送达／SDK结果分别校验，阻止伪0denied的Worker绕过拒绝或取消。",
+      "SDK完成帧、错误状态、环境引用及完整大载荷与Go一致；SDK512KiB队列沿原writer参数化，Codex默认128KiB及原编码保持，私有SDK写入避免HTML转义膨胀。",
+      "新增原Go私有stdin七字段准备及双Shell简洁引导，完整资产／Node／native摘要自动计算，原目标先验与O_EXCL写新文件；明确交给原节点登记／fresh库存／暂停／启用。",
+      "原模型／派发／专家团队／运行面板与权限问答卡、恢复入口及中英文贯通；未知先恢复原body/key/tuple，不借generic桌面连接冒SDK ready。",
+      "固定SDK依赖、完整宿主及第三方告知进入可核闭包；不复制Multica自动批准实现或厂商运行代码到Git。",
+      "唯一新正式链实际通过SDK、HTTP／SQLite／原Worker、候选、不同Worker同SHA独立Node/JUnit及隔离Review，原checkout／草稿与原质量门保留。"
+    ],
+    "boundaries": [
+      "没有真实Claude厂商可执行安装、账号、商业模型或供应方账单验收；SDK真实transport和正式链使用明确自有native fixture，customer_signoff=false。",
+      "本阶段没有新增SDK专用托管桌面IPC；界面指向可操作的本机／独立Runner准备和原库存启用流程，不能以CLI检测或generic连接表示SDK健康。",
+      "窗口为生产组件与明确合成父级／DTO／HTTP回执，3组中英／390px／暗色／键盘及2张视口通过；真实正式SDK链独立于该GUI夹具。",
+      "一次完整类型检查发现4处两文件声明诊断，修后只复验原两top及这两文件语义0，其余57源不动；没有虚报全套重跑。最终隔离组件构建通过；8957对词条、占位符／复数／markup与0生产硬编码及1.0.0身份通过。",
+      "首GUI因已有Playwright路径访问限制在窗口启动前终止，原记录保留；授权工具环境启动后的唯一GUI宿主3组通过、exit0，页面错误0。",
+      "独立窄审及真实RED修复原决定结果门、来源非空Schema、实际完成帧／环境引用／大载荷及晚到取消；保留并行编译、磁盘和声明诊断，未冒所有命令首遍成功。",
+      "只清理已清点的194个旧Go可再生大缓存释放6324589054字节，保留全部源、工作树、SDK原件、数据库、图片及证据；不把缓存、私有配置、二进制或原件入Git。",
+      "原31／P0–P7／58限定／34待交付／92总账继续active，跨平台安装、真实提供方、多机／跨库／规模及完整生产验收不由本阶段关闭。下一优先按最新请求简化工具新增／调整／移除、自动检测与可解释修复。"
     ]
   }
 }

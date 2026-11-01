@@ -1,5 +1,5 @@
 import {useId,useState} from 'react';
-import type {CodexUserInputQuestion,CodexUserInputRequest,CodexUserInputSelection,CursorInputRequest,ToolInput} from '../../../packages/contracts/src';
+import type {CodexUserInputQuestion,CodexUserInputRequest,CodexUserInputSelection,CursorInputRequest,ClaudeInputRequest,ToolInput} from '../../../packages/contracts/src';
 import {formatDateTime,formatNumber,tr,useLocale,UiError} from './i18n';
 import {ErrorNotice} from './ui';
 import {canAnswerToolInput,toolInputSource,validToolInputAnswers,validToolInputSubmission,type ToolInputSubmission} from './tool-input-model';
@@ -13,7 +13,7 @@ const specification=(value:unknown)=>JSON.stringify(value,(_key,item:unknown)=>i
 export function ToolInputCard(props:ToolInputCardProps){
  const value=props.input,source=toolInputSource(value.request),spec=specification([value.id,value.project_id,value.run_id,value.node_id,value.attempt,value.fence,value.dispatch_id,value.worker_id,value.profile_sha256,value.request]);
  if(!source)return <ErrorNotice error={new UiError('tool-inputs.invalid_read')}/>;
- return source.kind==='codex'?<ToolInputDraft key={spec} {...props} request={source.request}/>:<CursorInputDraft key={spec} {...props} kind={source.kind} request={source.request}/>;
+ return source.kind==='codex'?<ToolInputDraft key={spec} {...props} request={source.request}/>:source.kind==='claude-questions'?<ClaudeInputDraft key={spec} {...props} request={source.request}/>:<CursorInputDraft key={spec} {...props} kind={source.kind} request={source.request}/>;
 }
 function ToolInputDraft({input,request,disabled=false,readOnly=false,onAnswer}:ToolInputCardProps&{request:CodexUserInputRequest}){
  useLocale();const group=useId(),[draft,setDraft]=useState<Record<string,CodexUserInputSelection|undefined>>({}),questions=request.questions,editable=!readOnly&&canAnswerToolInput(input),locked=disabled||!editable;
@@ -40,6 +40,24 @@ function ToolInputDraft({input,request,disabled=false,readOnly=false,onAnswer}:T
    </section>;
   })}</div>
   {editable&&<div className="tool-input-actions"><button type="button" className="primary" data-tool-input-submit disabled={locked||!complete} onClick={submit}>{t('submit')}</button><button type="button" data-tool-input-skip disabled={locked} onClick={skip}>{t('skip_request')}</button></div>}
+ </section>;
+}
+
+function ClaudeInputDraft({input,request,disabled=false,readOnly=false,onAnswer}:ToolInputCardProps&{request:ClaudeInputRequest}){
+ useLocale();const group=useId(),[selections,setSelections]=useState<Record<string,string[]>>({}),[outcome,setOutcome]=useState<'answered'|'cancelled'>(),[reason,setReason]=useState('');
+ const editable=!readOnly&&canAnswerToolInput(input),locked=disabled||!editable,recorded=input.answer?.claude;
+ const submission:ToolInputSubmission|undefined=outcome?{claude:{outcome,...(outcome==='answered'?{answers:request.questions.map(question=>({question_id:question.id,option_ids:selections[question.id]||[]}))}:reason!==''?{reason}:{})}}:undefined,complete=!!submission&&validToolInputSubmission(input.request,submission);
+ function choose(question:ClaudeInputRequest['questions'][number],optionID:string,checked:boolean){if(locked)return;setSelections(current=>{const old=current[question.id]||[],next=question.allow_multiple?checked?[...old.filter(id=>id!==optionID),optionID]:old.filter(id=>id!==optionID):[optionID];return {...current,[question.id]:question.options.filter(option=>next.includes(option.id)).map(option=>option.id)};});setOutcome('answered');setReason('');}
+ return <section className="tool-input-card" data-tool-input-card={input.id} data-tool-input-state={input.state}>
+  <header className="tool-input-heading"><h4>{t('claude_questions_title')}</h4><span className="tool-input-state">{t('state.'+input.state)}</span></header><p className="tool-input-help">{t('no_credentials')}</p><ToolInputFacts input={input}/>
+  {!editable&&<p className="tool-input-help">{t('historical_readonly')}</p>}
+  <div className="tool-input-questions">{request.questions.map(question=>{const ids=editable?selections[question.id]||[]:recorded?.answers?.find(answer=>answer.question_id===question.id)?.option_ids||[];return <section className="tool-input-question" data-tool-input-question={question.id} key={question.id}><h5>{question.header}</h5><p className="tool-input-question-text">{question.prompt}</p><p className="tool-input-help">{t(question.allow_multiple?'multiple_choice':'single_choice')}</p>
+   {editable?<fieldset className="tool-input-question-controls" disabled={locked}><legend>{t('choose_original_options')}</legend>{question.options.map(option=><label className="tool-input-choice" key={option.id}><input type={question.allow_multiple?'checkbox':'radio'} name={group+':'+question.id} value={option.id} data-tool-input-claude-option={question.id} checked={ids.includes(option.id)} onChange={event=>choose(question,option.id,event.target.checked)}/><span><strong>{option.label}</strong>{option.description&&<span>{option.description}</span>}</span></label>)}</fieldset>:<div className="tool-input-recorded-answer">{ids.length?<ul>{question.options.filter(option=>ids.includes(option.id)).map(option=><li key={option.id}>{option.label}</li>)}</ul>:<p>{t('no_saved_selection')}</p>}</div>}
+  </section>;})}</div>
+  {editable?<><fieldset className="tool-input-question-controls tool-input-decisions" disabled={locked}><legend>{t('decision_prompt')}</legend>{(['answered','cancelled'] as const).map(value=><label className="tool-input-choice" key={value}><input type="radio" name={group+':decision'} data-tool-input-decision={value} checked={outcome===value} onChange={()=>{if(!locked){setOutcome(value);if(value==='answered')setReason('');}}}/><span>{t('decision.'+value)}</span></label>)}</fieldset>
+   {outcome==='cancelled'&&<label className="tool-input-text-label">{t('decision_reason')}<textarea data-tool-input-reason value={reason} disabled={locked} maxLength={2000} rows={3} autoComplete="off" onChange={event=>{if(!locked)setReason(event.target.value);}}/></label>}
+   <div className="tool-input-actions"><button type="button" className="primary" data-tool-input-submit disabled={locked||!complete} onClick={()=>{if(!locked&&complete&&submission)onAnswer(submission);}}>{t('submit')}</button></div>
+  </>:recorded&&<div className="tool-input-recorded-answer"><strong>{t('saved_decision')}: {t('decision.'+recorded.outcome)}</strong>{recorded.reason&&<p>{recorded.reason}</p>}</div>}
  </section>;
 }
 
@@ -86,20 +104,20 @@ function NativePlanTodos({values}:{values:readonly {id:string;content:string;sta
 export function ToolInputFacts({input}:{input:ToolInput}){
  useLocale();const observation=input.observation,uncertain=!!observation?.failure_code||!!observation?.reply_started&&!observation.reply_written&&(observation.request_resolved||observation.execution_closed),native=toolInputSource(input.request);
  if(!native)return <ErrorNotice error={new UiError('tool-inputs.invalid_read')}/>;
- const identity=native.kind==='codex'?{request_id:native.request.request_id,thread_id:native.request.thread_id,turn_id:native.request.turn_id,item_id:native.request.item_id,binding_sha256:native.request.binding_sha256}:{request_id:native.request.request_id,session_id:native.request.session_id,prompt_id:native.request.prompt_id,method:native.request.method,configuration_sha256:native.request.configuration_sha256,tool_call_id:native.request.questions?.tool_call_id||native.request.plan?.tool_call_id,is_project:native.request.plan?.is_project};
+ const identity=native.kind==='codex'?{request_id:native.request.request_id,thread_id:native.request.thread_id,turn_id:native.request.turn_id,item_id:native.request.item_id,binding_sha256:native.request.binding_sha256}:native.kind==='claude-questions'?{request_id:native.request.request_id,session_id:native.request.session_id,tool_use_id:native.request.tool_use_id,callback_id:native.request.callback_id,configuration_sha256:native.request.configuration_sha256,platform_question_ids:native.request.questions.map(question=>question.id),input_json:native.request.input_json}:{request_id:native.request.request_id,session_id:native.request.session_id,prompt_id:native.request.prompt_id,method:native.request.method,configuration_sha256:native.request.configuration_sha256,tool_call_id:native.request.questions?.tool_call_id||native.request.plan?.tool_call_id,is_project:native.request.plan?.is_project};
  const source={input_id:input.id,project_id:input.project_id,run_id:input.run_id,node_id:input.node_id,attempt:input.attempt,fence:input.fence,dispatch_id:input.dispatch_id,worker_id:input.worker_id,profile_sha256:input.profile_sha256,version:input.version,created_at:input.created_at,expires_at:input.expires_at,protocol:native.protocol,kind:native.kind,...identity,params_sha256:native.paramsSHA256,answer_sha256:input.answer?.answer_sha256,observation};
  return <div className="tool-input-facts" data-tool-input-facts>
-  <p className="tool-input-help">{native.kind==='codex'?t(native.request.is_blocking?'blocking':'not_blocking'):t('cursor_boundary')}</p>
+  <p className="tool-input-help">{native.kind==='codex'?t(native.request.is_blocking?'blocking':'not_blocking'):t(native.kind==='claude-questions'?'claude_boundary':'cursor_boundary')}</p>
   <ul className="tool-input-delivery">
    {input.answer&&<li data-tool-input-status="saved">{t('delivery.saved')} <span className="tool-input-meta">{stamp(input.answer.answered_at)} · {input.answer.actor_id}</span></li>}
    {observation?.answer_observed&&<li data-tool-input-status="observed">{t('delivery.observed')}</li>}
    {observation?.reply_started&&<li data-tool-input-status="started">{t('delivery.started')}</li>}
-   {observation?.reply_written&&<li data-tool-input-status="written">{t('delivery.written')}</li>}
-   {observation?.request_resolved&&<li data-tool-input-status="resolved">{t('delivery.resolved')}</li>}
+   {observation?.reply_written&&<li data-tool-input-status="written">{t(native.kind==='claude-questions'?'delivery.claude_written':'delivery.written')}</li>}
+   {native.kind==='codex'&&observation?.request_resolved&&<li data-tool-input-status="resolved">{t('delivery.resolved')}</li>}
    {observation?.execution_closed&&<li data-tool-input-status="execution_closed">{t('delivery.execution_closed')}</li>}
   </ul>
   {!input.answer&&(observation?.request_resolved||observation?.execution_closed||input.state==='closed')&&<p className="tool-input-help">{t('closed_without_answer')}</p>}
   {uncertain&&<p className="tool-input-uncertain" data-tool-input-status="unknown" role="status">{t('delivery.unknown')}</p>}
-  <details className="tool-input-source"><summary>{t('source_details')}</summary><a href={'?'+new URLSearchParams({project:input.project_id,view:'development',sub:'runs',run:input.run_id,node:input.node_id})}>{t('source_run')} · {input.run_id}</a><p className="tool-input-meta">{t('source_version',{version:formatNumber(input.version)})} · {t('expires_at')}: <time dateTime={input.expires_at} title={input.expires_at}>{stamp(input.expires_at)}</time></p><pre tabIndex={0}>{JSON.stringify(source,null,2)}</pre></details>
+  <details className="tool-input-source"><summary>{t('source_details')}</summary><a href={'?'+new URLSearchParams({project:input.project_id,view:'development',sub:'runs',run:input.run_id,node:input.node_id})}>{t('source_run')} · {input.run_id}</a><p className="tool-input-meta">{t('source_version',{version:formatNumber(input.version)})} · {t('expires_at')}: <time dateTime={input.expires_at} title={input.expires_at}>{stamp(input.expires_at)}</time></p>{native.kind==='claude-questions'&&<p className="tool-input-sdk-identifiers">{t('claude_platform_ids')}</p>}<pre tabIndex={0}>{JSON.stringify(source,null,2)}</pre></details>
  </div>;
 }

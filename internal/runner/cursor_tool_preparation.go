@@ -67,7 +67,7 @@ func PrepareACPToolCommands(ctx context.Context, path string, input io.Reader) (
 	if err != nil {
 		return result, err
 	}
-	if err = cursorPreparationDestination(file, parent, filepath.Dir(configuration.Executable)); err != nil {
+	if err = toolPackagePreparationDestination(file, parent, filepath.Dir(configuration.Executable)); err != nil {
 		return result, err
 	}
 	// The exact selected leaf must be the package's fixed native Node. An
@@ -76,7 +76,7 @@ func PrepareACPToolCommands(ctx context.Context, path string, input io.Reader) (
 	if err != nil || !sameACPPath(spec.Executable, configuration.Executable) {
 		return result, fmt.Errorf("reviewed Cursor package configuration is unavailable")
 	}
-	if err = cursorPreparationDestination(file, parent, spec.ACP.CursorPackage.PackageRoot); err != nil {
+	if err = toolPackagePreparationDestination(file, parent, spec.ACP.CursorPackage.PackageRoot); err != nil {
 		return result, err
 	}
 	if err = writePreparedToolCommands(ctx, parent, filepath.Base(file), map[string]CommandSpec{"local-cursor-cli": spec}); err != nil {
@@ -86,10 +86,12 @@ func PrepareACPToolCommands(ctx context.Context, path string, input io.Reader) (
 	return result, nil
 }
 
-func cursorPreparationDestination(file string, parent *os.Root, packageRoot string) error {
+// Shared by locked native packages: writing into a package would invalidate
+// its own closure. Filesystem identities reject aliases before any new write.
+func toolPackagePreparationDestination(file string, parent *os.Root, packageRoot string) error {
 	_, source, err := cursorPackageRoot(packageRoot)
 	if err != nil {
-		return fmt.Errorf("reviewed Cursor package directory is unavailable")
+		return fmt.Errorf("reviewed tool package directory is unavailable")
 	}
 	_, destination, err := cursorPackageRoot(filepath.Dir(file))
 	if err != nil {
@@ -103,7 +105,7 @@ func cursorPreparationDestination(file string, parent *os.Root, packageRoot stri
 	// a lexical path check alone cannot keep the output out of the closure.
 	for _, ancestor := range destination {
 		if os.SameFile(source[0].info, ancestor.info) {
-			return fmt.Errorf("command destination must be outside the reviewed Cursor package")
+			return fmt.Errorf("command destination must be outside the reviewed tool package")
 		}
 	}
 	if within(packageRoot, file) || !cursorPackageParentsStable(source) || !cursorPackageParentsStable(destination) {

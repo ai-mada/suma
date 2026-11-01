@@ -7,17 +7,24 @@ import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {ErrorNotice} from './ui';
 import {useWriteAction,WriteNotice} from './write-action';
-import {buildPermissionIntent,canChoosePermission,permissionListPath,permissionRecoveryScope,permissionMatchesIntent,validPermission,validPermissionIntent,validPermissionRecovery,validPermissionReceipt,type ToolPermissionIntent,type ToolPermissionScope,type ToolPermissionChoice} from './tool-permission-model';
+import {buildPermissionDecisionBody,buildPermissionIntent,canChoosePermission,permissionListPath,permissionRecoveryScope,permissionMatchesIntent,validPermission,validPermissionIntent,validPermissionRecovery,validPermissionReceipt,type ToolPermissionIntent,type ToolPermissionScope,type ToolPermissionChoice} from './tool-permission-model';
+import {validClaudePermissionChoice} from './claude-sdk-interaction-model';
 import './ToolExecutionPermissionPanel.css';
 
-export type ToolExecutionPermissionPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;protocol:'acp-stdio-v1'|'codex-app-server-v1';readOnly?:boolean;state?:string;revision?:number;onChanged?:()=>void|Promise<void>};
+export type ToolExecutionPermissionPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;protocol:'acp-stdio-v1'|'codex-app-server-v1'|'claude-sdk-v1';readOnly?:boolean;state?:string;revision?:number;onChanged?:()=>void|Promise<void>};
 type Snapshot={items:ToolPermission[];loading:boolean;error?:unknown;denied?:boolean;loaded?:boolean};
 const t=(key:string,values?:Record<string,unknown>)=>tr('tool-permissions.'+key,values);
 const refused=(error:unknown)=>error instanceof ApiError&&[401,403,404].includes(error.status);
 const activeStates=new Set(['ready','running','waiting','reconciling']);
-const observationUnknown=(permission:ToolPermission)=>!!permission.observation&&(!!permission.observation.failure_code||permission.observation.reply_started&&!permission.observation.reply_written);
+const observationUnknown=(permission:ToolPermission)=>permission.request.protocol==='claude-sdk-v1'?!!permission.claude_observation&&(!!permission.claude_observation.failure_code||permission.claude_observation.reply_started&&!permission.claude_observation.reply_written&&permission.claude_observation.execution_closed):!!permission.observation&&(!!permission.observation.failure_code||permission.observation.reply_started&&!permission.observation.reply_written);
 
 function PermissionSource({permission}:{permission:ToolPermission}){
+ const claude=permission.request.claude;
+ if(claude)return <>
+  <p className="tool-permissions-hint">{t('claude_parameter_boundary')}</p><pre className="tool-permission-details tool-permission-claude-input" data-tool-permission-claude-input tabIndex={0} aria-label={t('claude_original_input')}>{claude.input_json}</pre>
+  <p className="tool-permissions-hint">{t('expires')}: <time dateTime={permission.expires_at}>{formatDateTime(permission.expires_at,{dateStyle:'short',timeStyle:'short'})}</time></p>
+  <details className="tool-permission-source" data-tool-source><summary>{t('source_details')}</summary><dl className="tool-permission-meta">{([['permission_id',permission.id],['attempt',permission.attempt],['fence',permission.fence],['dispatch_id',permission.dispatch_id],['worker_id',permission.worker_id],['profile_sha256',permission.profile_sha256],['session_id',claude.session_id],['tool_use_id',claude.tool_use_id],['request_id',claude.request_id],['callback_id',claude.callback_id],['configuration_sha256',claude.configuration_sha256],['params_sha256',claude.params_sha256]] as const).map(([label,value])=><Fragment key={label}><dt>{t(label)}</dt><dd><code>{value}</code></dd></Fragment>)}</dl></details>
+ </>;
  const acp=permission.request.acp,codex=permission.request.codex,source=acp??codex!;
  const facts:[string,string|number|undefined][]=[['permission_id',permission.id],['attempt',permission.attempt],['fence',permission.fence],['dispatch_id',permission.dispatch_id],['worker_id',permission.worker_id],['profile_sha256',permission.profile_sha256],...(acp?[['session_id',acp.session_id],['tool_call',acp.tool_call_id],['request_kind',acp.kind]] as [string,string][]:[['request_id',codex!.request_id.kind+': '+codex!.request_id.value],['request_kind',codex!.method],['thread_id',codex!.thread_id],['turn_id',codex!.turn_id],['item_id',codex!.item_id],['approval_id',codex!.approval_id],['started_at_ms',codex!.started_at_ms],['params_sha256',codex!.params_sha256],['binding_sha256',codex!.binding_sha256],['item_sha256',codex!.item_sha256]] as [string,string|number|undefined][])];
  return <>
@@ -34,12 +41,21 @@ function PermissionSource({permission}:{permission:ToolPermission}){
  </>;
 }
 function PermissionObservation({permission}:{permission:ToolPermission}){
+ if(permission.request.protocol==='claude-sdk-v1'){
+  const observed=permission.claude_observation;if(!observed)return null;
+  return <section className="tool-permission-observation" data-tool-observation aria-label={t('observations')}><dl className="tool-permission-meta">{(['answer_observed','reply_started','reply_written','execution_closed'] as const).map(key=><Fragment key={key}><dt>{t(key==='reply_written'?'claude_reply_written':key)}</dt><dd data-fact={key} data-confirmed={observed[key]}>{t(observed[key]?'observed':'not_observed')}</dd></Fragment>)}</dl><p className="tool-permissions-hint">{t('claude_observation_boundary')}</p><details><summary>{t('claude_delivery_details')}</summary><dl className="tool-permission-meta"><dt>{t('params_sha256')}</dt><dd><code>{observed.params_sha256}</code></dd>{observed.answer_sha256&&<><dt>{t('answer_sha256')}</dt><dd><code>{observed.answer_sha256}</code></dd></>}{observed.failure_code&&<><dt>{t('failure_details')}</dt><dd><code>{observed.failure_code}</code></dd></>}</dl></details></section>;
+ }
  const observed=permission.observation;if(!observed)return null;
  return <section className="tool-permission-observation" data-tool-observation aria-label={t('observations')}>
   <dl className="tool-permission-meta">{(['decision_observed','reply_started','reply_written','request_resolved'] as const).map(key=><Fragment key={key}><dt>{t(key)}</dt><dd data-fact={key} data-confirmed={observed[key]}>{t(observed[key]?'observed':'not_observed')}</dd></Fragment>)}<dt>{t('item_status')}</dt><dd>{observed.item_status?t('item_'+observed.item_status):t('not_observed')}</dd></dl>
   <p className="tool-permissions-hint">{t('observation_boundary')}</p>
   {observed.failure_code&&<details><summary>{t('failure_details')}</summary><code>{observed.failure_code}</code></details>}
  </section>;
+}
+
+function ClaudePermissionChoices({permission,scope,unavailable,busy,onDecide}:{permission:ToolPermission;scope:ToolPermissionScope;unavailable:boolean;busy:boolean;onDecide:(choice:ToolPermissionChoice)=>void}){
+ const id=useId(),[reason,setReason]=useState(''),reasonValid=validClaudePermissionChoice({outcome:'allow_once',...(reason!==''?{reason}:{})});
+ return <div className="tool-permission-claude-choices"><label htmlFor={id} className="tool-permission-reason-label">{t('claude_reason')}<textarea id={id} data-tool-permission-claude-reason value={reason} maxLength={2000} rows={2} autoComplete="off" disabled={unavailable||busy} onChange={event=>{if(!unavailable&&!busy)setReason(event.target.value);}}/></label>{!reasonValid&&<p className="tool-permissions-hint" role="status">{t('claude_reason_invalid')}</p>}<div className="tool-permission-options">{(['allow_once','reject_once'] as const).map(outcome=>{const choice={outcome,...(reason!==''?{reason}:{})},blocked=unavailable||!canChoosePermission(permission,choice,scope);return <button type="button" key={outcome} data-tool-option={outcome} disabled={blocked} aria-disabled={blocked||busy} aria-busy={busy} onClick={()=>{if(!blocked&&!busy)onDecide(choice);}}><span>{t('option_'+outcome)}</span><small>{t('claude_one_callback')}</small></button>;})}</div></div>;
 }
 
 /** A permission belongs to one original attempt. Opening, refreshing and
@@ -139,7 +155,7 @@ function PermissionController({scope,state,revision,onChanged,readOnly=false}:To
  },[read,state,snapshot.denied,!!snapshot.error,backgroundPaused]);
  const pendingCount=snapshot.items.filter(item=>item.state==='pending'&&item.attempt===scope.attempt&&item.fence===scope.fence).length;
  const savedIntent=intentState.intent;
- const requestMatches=!action.pending||!!savedIntent&&action.pending.path===savedIntent.request.path&&action.pending.method===savedIntent.request.method&&action.pending.idempotency_key===savedIntent.request.idempotency_key&&['project_id','expected_version','idempotency_key','protocol','acp','codex'].every(key=>JSON.stringify(action.pending!.body[key])===JSON.stringify(savedIntent.request.body[key]));
+ const requestMatches=!action.pending||!!savedIntent&&action.pending.path===savedIntent.request.path&&action.pending.method===savedIntent.request.method&&action.pending.idempotency_key===savedIntent.request.idempotency_key&&['project_id','expected_version','idempotency_key','protocol','acp','codex','claude'].every(key=>JSON.stringify(action.pending!.body[key])===JSON.stringify(savedIntent.request.body[key]));
  const intentUnavailable=!!intentState.error||!!action.pending&&(!savedIntent||!requestMatches);
  const hasRecovery=!!savedIntent||!!action.pending;
  const locked=readOnly||action.busy||hasRecovery||intentUnavailable||action.conflict||snapshot.denied||writeDenied||snapshot.loading||!!snapshot.error;
@@ -155,7 +171,8 @@ function PermissionController({scope,state,revision,onChanged,readOnly=false}:To
   if(!original){
    if(!permission||!choice||locked||permission.id===retiredHistory.current?.permission_id||!canChoosePermission(permission,choice,scope))return;
    const key=operation();
-   original=buildPermissionIntent(permission,scope,{path:'/tool-permissions/'+encodeURIComponent(permission.id)+'/decision',method:'POST',idempotency_key:key,body:{project_id:scope.project,expected_version:permission.version,idempotency_key:key,protocol:scope.protocol,...(scope.protocol==='acp-stdio-v1'?{acp:choice}:{codex:choice})}});
+   const body=buildPermissionDecisionBody(permission,scope,choice,key);if(!body)return;
+   original=buildPermissionIntent(permission,scope,{path:'/tool-permissions/'+encodeURIComponent(permission.id)+'/decision',method:'POST',idempotency_key:key,body});
    if(!original)return;
    try{
     if(!storage)throw new UiError('tool-permissions.intent_unavailable');
@@ -194,14 +211,14 @@ function PermissionController({scope,state,revision,onChanged,readOnly=false}:To
     {snapshot.loading&&!snapshot.loaded&&<p role="status">{t('loading')}</p>}
     {snapshot.loaded&&!snapshot.items.length&&<p className="muted">{t('no_permissions')}</p>}
     {snapshot.items.map(permission=><article className="tool-permission" key={permission.id} data-tool-permission={permission.id}>
-     <header><h4>{permission.request.protocol==='acp-stdio-v1'?permission.request.acp!.title:t(permission.request.codex!.method==='item/fileChange/requestApproval'?'file_approval_title':'command_approval_title')}</h4><span className="tool-permission-state" data-state={permission.state}>{t('state_'+permission.state)}</span></header>
+     <header><h4>{permission.request.claude?t('claude_title',{tool:permission.request.claude.tool_name}):permission.request.protocol==='acp-stdio-v1'?permission.request.acp!.title:t(permission.request.codex!.method==='item/fileChange/requestApproval'?'file_approval_title':'command_approval_title')}</h4><span className="tool-permission-state" data-state={permission.state}>{t('state_'+permission.state)}</span></header>
      <PermissionSource permission={permission}/>
      {permission.attempt!==scope.attempt||permission.fence!==scope.fence||permission.id===retiredHistory.current?.permission_id?<p className="tool-permissions-hint">{t('historical_readonly')}</p>:null}
-     {permission.state==='pending'&&<div className="tool-permission-options">{permission.request.acp?permission.request.acp.options.map(option=>{
+     {permission.state==='pending'&&(permission.request.claude?<ClaudePermissionChoices key={JSON.stringify([permission.id,permission.attempt,permission.fence,permission.dispatch_id,permission.worker_id,permission.profile_sha256,permission.request.claude.session_id,permission.request.claude.tool_use_id,permission.request.claude.request_id,permission.request.claude.callback_id,permission.request.claude.configuration_sha256,permission.request.claude.params_sha256,permission.request.claude.tool_name,permission.request.claude.input_json])} permission={permission} scope={scope} unavailable={!!(readOnly||intentUnavailable||action.conflict||snapshot.denied||writeDenied||snapshot.error||hasRecovery&&!action.busy||permission.attempt!==scope.attempt||permission.fence!==scope.fence||permission.id===retiredHistory.current?.permission_id)} busy={action.busy||snapshot.loading} onDecide={choice=>void decide(permission,choice)}/>:<div className="tool-permission-options">{permission.request.acp?permission.request.acp.options.map(option=>{
       const choice={option_id:option.id,kind:option.kind} as ToolPermissionChoice;
       return <button type="button" key={option.id} data-tool-option={option.id} disabled={!!locked||permission.id===retiredHistory.current?.permission_id||!canChoosePermission(permission,choice,scope)} onClick={()=>void decide(permission,choice)}><span>{option.name}</span><small>{t('option_'+option.kind)}</small></button>;
-     }):(['accept','decline','cancel'] as const).map(decision=><button type="button" key={decision} data-tool-option={decision} disabled={!!locked||permission.id===retiredHistory.current?.permission_id||!canChoosePermission(permission,{decision},scope)} onClick={()=>void decide(permission,{decision})}>{t('codex_'+decision)}</button>)}</div>}
-     {permission.decision&&<p className="tool-permission-decision"><strong>{t('decision_saved')}</strong> {permission.decision.acp?permission.request.acp?.options.find(option=>option.id===permission.decision?.acp?.option_id)?.name:t('codex_'+permission.decision.codex!.decision)} <time dateTime={permission.decision.decided_at}>{formatDateTime(permission.decision.decided_at,{dateStyle:'short',timeStyle:'short'})}</time></p>}
+     }):(['accept','decline','cancel'] as const).map(decision=><button type="button" key={decision} data-tool-option={decision} disabled={!!locked||permission.id===retiredHistory.current?.permission_id||!canChoosePermission(permission,{decision},scope)} onClick={()=>void decide(permission,{decision})}>{t('codex_'+decision)}</button>)}</div>)}
+     {permission.decision&&<div className="tool-permission-decision"><strong>{t('decision_saved')}</strong> {permission.decision.claude?t('option_'+permission.decision.claude.outcome):permission.decision.acp?permission.request.acp?.options.find(option=>option.id===permission.decision?.acp?.option_id)?.name:t('codex_'+permission.decision.codex!.decision)}{permission.decision.claude?.reason&&<p>{permission.decision.claude.reason}</p>} <time dateTime={permission.decision.decided_at}>{formatDateTime(permission.decision.decided_at,{dateStyle:'short',timeStyle:'short'})}</time></div>}
      <PermissionObservation permission={permission}/>
      {(permission.decision||confirmed===permission.id)&&<p className="tool-permissions-hint">{t('decision_boundary')}</p>}
     </article>)}

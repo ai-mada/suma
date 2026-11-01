@@ -17,7 +17,11 @@ func TestCursorInputsContractKeepsNativeUnionAndPlanAuthority(t *testing.T) {
 		t.Fatal("actual Cursor input list violates its generated capability schema")
 	}
 	for _, name := range []string{"ToolInputRequest", "CursorInputRequest", "ToolInputAnswerRequest"} {
-		if len(mapAt(s, name)["oneOf"].([]any)) != 2 || mapAt(s, name)["additionalProperties"] != false {
+		branches := 3
+		if name == "CursorInputRequest" {
+			branches = 2
+		}
+		if len(mapAt(s, name)["oneOf"].([]any)) != branches || mapAt(s, name)["additionalProperties"] != false {
 			t.Fatal("native union is not closed", name)
 		}
 	}

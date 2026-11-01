@@ -6,6 +6,7 @@ import {frozenToolPermissionProtocolForNode} from './tool-permission-workflow-mo
 const hash='a'.repeat(64);
 const acp:ACPExecutionCapability={runtime:'qoder',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:hash,model:'fixed-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'existing_cli_login',permission_mode:'human_once'};
 const codex:CodexBinding={protocol:'codex-app-server-v1',configuration_sha256:hash,catalog_sha256:hash,model:'fixed-model',reasoning_effort:'high',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',binding_sha256:hash};
+const claudeSDK={sdk_version:'0.3.314',cli_version:'2.1.314',model:'claude-sonnet-5',configuration_sha256:hash,model_source:'administrator_sdk_option',budget_mode:'observe_only',identity_evidence:'sdk_init_model_ack_only',auth_strategy:'api_key_env_ref'};
 function fixture(protocol:'acp'|'codex'){
  const config={tool_profile_id:'profile-a',tool_profile_sha256:hash,...(protocol==='acp'?{acp_execution:acp}:{codex_execution:codex})};
  const definition:Workflow={id:'workflow-a',name:'Fixed workflow',version:5,nodes:[{id:'develop',name:'Develop',type:'agent',command:['native-command'],config}],edges:[]};
@@ -15,6 +16,16 @@ function fixture(protocol:'acp'|'codex'){
 
 it('identifies the exact current ACP or Codex binding without excluding terminal evidence',()=>{
  for(const [driver,expected] of [['acp','acp-stdio-v1'],['codex','codex-app-server-v1']] as const){const {definition,run,node}=fixture(driver);expect(frozenToolPermissionProtocolForNode(definition,run,node)).toBe(expected);expect(frozenToolPermissionProtocolForNode(definition,{...run,state:'succeeded',nodes:[{...run.nodes[0],state:'succeeded'}]},{...node,state:'succeeded'})).toBe(expected);}
+});
+
+it('T192 exposes Claude SDK decisions only for its exact frozen original attempt and independent capability',()=>{
+ const {definition,run,node}=fixture('acp'),declared=definition.nodes[0];
+ const config={tool_profile_id:'profile-a',tool_profile_sha256:hash,claude_sdk_execution:claudeSDK};
+ const sdkDefinition={...definition,nodes:[{...declared,config}]};
+ expect(frozenToolPermissionProtocolForNode(sdkDefinition,run,node)).toBe('claude-sdk-v1');
+ expect(frozenToolPermissionProtocolForNode(sdkDefinition,{...run,state:'succeeded'},node)).toBe('claude-sdk-v1');
+ for(const patch of [{claude_sdk_execution:null},{claude_sdk_execution:{...claudeSDK,sdk_version:'latest'}},{acp_execution:acp},{codex_execution:codex},{claude_execution:{model:'claude-sonnet-5'}}])expect(frozenToolPermissionProtocolForNode({...sdkDefinition,nodes:[{...declared,config:{...config,...patch}}]},run,node)).toBeUndefined();
+ expect(frozenToolPermissionProtocolForNode(sdkDefinition,run,{...node,fence:4})).toBeUndefined();
 });
 
 it('rejects ambiguous or foreign workflow revisions and non-agent node sources',()=>{

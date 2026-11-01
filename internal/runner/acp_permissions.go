@@ -9,6 +9,7 @@ import (
 	"time"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
@@ -18,11 +19,13 @@ var errToolPermission = errors.New("tool permission requires the original curren
 var errToolPermissionReconciliation = errors.New("tool permission source requires reconciliation; original journal retained")
 
 type toolPermissionCheckpoint struct {
-	Request      pc.Request                   `json:"request"`
-	PermissionID string                       `json:"permission_id,omitempty"`
-	Decision     *pc.Decision                 `json:"decision,omitempty"`
-	Observation  *cc.CodexApprovalObservation `json:"observation,omitempty"`
-	Observations []toolPermissionObservation  `json:"observations,omitempty"`
+	Request            pc.Request                        `json:"request"`
+	PermissionID       string                            `json:"permission_id,omitempty"`
+	Decision           *pc.Decision                      `json:"decision,omitempty"`
+	Observation        *cc.CodexApprovalObservation      `json:"observation,omitempty"`
+	Observations       []toolPermissionObservation       `json:"observations,omitempty"`
+	ClaudeObservation  *cl.PermissionObservation         `json:"claude_observation,omitempty"`
+	ClaudeObservations []claudeToolPermissionObservation `json:"claude_observations,omitempty"`
 }
 type toolPermissionExecutionCheckpoint struct {
 	Profile  tc.Profile                          `json:"profile"`
@@ -64,6 +67,11 @@ func validToolPermissionCheckpoint(a Assignment, value *toolPermissionExecutionC
 		if _, err := cc.DecodeBinding(a.Config["codex_execution"]); err != nil {
 			return errToolPermission
 		}
+	case cl.Protocol:
+		fixed, err := tc.DecodeClaudeSDKNodeConfiguration(a.Config)
+		if err != nil || fixed == nil || !tc.SupportsClaudeSDKExecutionProfile(p) || !samePermissionValue(fixed, p.ClaudeSDKExecution) {
+			return errToolPermission
+		}
 	default:
 		return errToolPermission
 	}
@@ -76,6 +84,9 @@ func validToolPermissionCheckpoint(a Assignment, value *toolPermissionExecutionC
 			if err != nil || request.Request.Codex.BindingSHA256 != binding.BindingSHA256 {
 				return errToolPermission
 			}
+		}
+		if request.Request.Claude != nil && (p.ClaudeSDKExecution == nil || request.Request.Claude.ConfigurationSHA256 != p.ClaudeSDKExecution.ConfigurationSHA256) {
+			return errToolPermission
 		}
 		if err := validToolPermissionObservations(request); err != nil {
 			return err
@@ -121,6 +132,9 @@ func (j *Journal) recordToolPermission(a Assignment, request pc.Request) error {
 			return errToolPermission
 		}
 	}
+	if request.Claude != nil && (e.ToolPermissions.Profile.ClaudeSDKExecution == nil || request.Claude.ConfigurationSHA256 != e.ToolPermissions.Profile.ClaudeSDKExecution.ConfigurationSHA256) {
+		return errToolPermission
+	}
 	if original, exists := e.ToolPermissions.Requests[request.IdempotencyKey]; exists {
 		if !samePermissionValue(original.Request, request) {
 			return errToolPermission
@@ -165,6 +179,11 @@ func (j *Journal) observeToolPermission(a Assignment, permission pc.Permission) 
 	for i := range original.Observations {
 		if original.Observations[i].PermissionID == "" {
 			original.Observations[i].PermissionID = permission.ID
+		}
+	}
+	for i := range original.ClaudeObservations {
+		if original.ClaudeObservations[i].PermissionID == "" {
+			original.ClaudeObservations[i].PermissionID = permission.ID
 		}
 	}
 	// This is a persisted human decision, never a native response-write ACK.
@@ -234,6 +253,10 @@ func safeToolPermission(request pc.Request, secrets []string) (pc.Request, error
 			r.Options[i].Name = name
 		}
 		request.ACP = &r
+	} else if request.Claude != nil {
+		if safeCursorInputValue(request.Claude, secrets) != nil {
+			return pc.Request{}, errToolPermission
+		}
 	} else {
 		// Driver has already projected relative paths. Never rewrite identities,
 		// digests or native detail fields after their exact display was bound.

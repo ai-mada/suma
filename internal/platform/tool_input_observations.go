@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	"github.com/ai-mada/suma/internal/dag"
@@ -73,7 +74,7 @@ func (s *Service) observeToolInput(ctx context.Context, actor Actor, token, proj
 	if b.state != "running" || b.runState != "running" && b.runState != "paused" || b.attempt != a.Attempt || b.fence != a.Fence || b.worker != a.WorkerID || b.lease <= now.Unix() || b.deadline <= now.Unix() {
 		return out, conflict(toolInputChanged)
 	}
-	if o.ParamsSHA256 != ic.ParamsSHA256(r.value.Request) || r.value.Request.Cursor != nil && o.RequestResolved || !toolInputObservationAdvances(r.value.Observation, o) || o.AnswerObserved && (r.value.Answer == nil || r.value.Answer.AnswerSHA256 != o.AnswerSHA256) {
+	if o.ParamsSHA256 != ic.ParamsSHA256(r.value.Request) || (r.value.Request.Cursor != nil || r.value.Request.Claude != nil) && o.RequestResolved || !toolInputObservationAdvances(r.value.Observation, o) || o.AnswerObserved && (r.value.Answer == nil || r.value.Answer.AnswerSHA256 != o.AnswerSHA256) {
 		return out, conflict(toolInputChanged)
 	}
 	// Native closure can beat the human answer. Once observed, a later packet
@@ -130,11 +131,15 @@ func cursorToolInputEvidenceMatches(r ic.ToolInput, e cu.CursorInputEvidence) bo
 func (s *Service) validateToolInputResultTx(ctx context.Context, tx *sql.Tx, tenant, project string, result dag.Result) error {
 	var proofs []cc.CodexUserInputEvidence
 	var cursorProofs []cu.CursorInputEvidence
+	var claudeProofs []cl.InputEvidence
 	if result.ToolEvidence != nil && result.ToolEvidence.CodexExecution != nil {
 		proofs = result.ToolEvidence.CodexExecution.UserInputs
 	}
 	if result.ToolEvidence != nil && result.ToolEvidence.ACPExecution != nil {
 		cursorProofs = result.ToolEvidence.ACPExecution.UserInputs
+	}
+	if result.ToolEvidence != nil && result.ToolEvidence.ClaudeSDKExecution != nil {
+		claudeProofs = result.ToolEvidence.ClaudeSDKExecution.UserInputs
 	}
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tool_inputs WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=? ORDER BY id LIMIT 33`), tenant, project, result.RunID, result.NodeID, result.Attempt, result.Fence, result.WorkerID)
 	if err != nil {
@@ -155,7 +160,7 @@ func (s *Service) validateToolInputResultTx(ctx context.Context, tx *sql.Tx, ten
 	if err != nil {
 		return err
 	}
-	if len(ids) > 32 || len(proofs)+len(cursorProofs) > 32 {
+	if len(ids) > 32 || len(proofs)+len(cursorProofs)+len(claudeProofs) > 32 {
 		return invalid(toolInputInvalid)
 	}
 	stored := map[string]toolInputRow{}
@@ -204,6 +209,30 @@ func (s *Service) validateToolInputResultTx(ctx context.Context, tx *sql.Tx, ten
 		seen[evidence.InputID] = true
 		o := r.value.Observation
 		if success && (o == nil || !toolInputEnded(o) || o.ReplyStarted && (!o.ReplyWritten || o.FailureCode != "")) {
+			return invalid(toolInputInvalid)
+		}
+	}
+	for _, evidence := range claudeProofs {
+		if cl.ValidateBasis(evidence.Basis) != nil || evidence.Observation != nil && cl.ValidateInputObservation(*evidence.Observation) != nil {
+			return invalid(toolInputInvalid)
+		}
+		if evidence.InputID == "" {
+			if success {
+				return invalid(toolInputInvalid)
+			}
+			continue
+		}
+		r, ok := stored[evidence.InputID]
+		if !ok || seen[evidence.InputID] || r.value.Request.Claude == nil || evidence.Basis != r.value.Request.Claude.Basis || evidence.QuestionCount != len(r.value.Request.Claude.Questions) || stringify(evidence.Observation) != stringify(r.value.Observation) || result.ToolEvidence == nil || result.ToolEvidence.ClaudeSDKExecution == nil || !tc.EqualProfile(r.profile, result.ToolEvidence.Profile) {
+			return invalid(toolInputInvalid)
+		}
+		configuration := result.ToolEvidence.ClaudeSDKExecution
+		if configuration.ConfigurationSHA256 != evidence.ConfigurationSHA256 || configuration.SessionID != evidence.SessionID {
+			return invalid(toolInputInvalid)
+		}
+		seen[evidence.InputID] = true
+		o := r.value.Observation
+		if success && (r.value.Answer == nil || r.value.Answer.Claude == nil || r.value.Answer.Claude.Outcome != "answered" || o == nil || !o.AnswerObserved || !o.ReplyWritten || !o.ExecutionClosed || o.FailureCode != "") {
 			return invalid(toolInputInvalid)
 		}
 	}

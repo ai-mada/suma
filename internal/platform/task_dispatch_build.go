@@ -36,7 +36,7 @@ func buildTaskDispatchWorkflowInputs(source dag.Workflow, agentID, profileID str
 	if profile.ReadOnly {
 		return w, invalid("任务开发派发需要隔离工作树写入工具；只读工具请通过独立流程运行")
 	}
-	if profile.Adapter != "suma" && profile.Adapter != "codex" && profile.Adapter != "harness" && profile.Adapter != "codebuddy" && !tc.SupportsACPExecutionProfile(profile) && !tc.SupportsClaudeExecutionProfile(profile) && !tc.SupportsOpenCodeExecutionProfile(profile) && !tc.SupportsOctopExecutionProfile(profile) {
+	if profile.Adapter != "suma" && profile.Adapter != "codex" && profile.Adapter != "harness" && profile.Adapter != "codebuddy" && !tc.SupportsACPExecutionProfile(profile) && !tc.SupportsClaudeExecutionProfile(profile) && !tc.SupportsClaudeSDKExecutionProfile(profile) && !tc.SupportsOpenCodeExecutionProfile(profile) && !tc.SupportsOctopExecutionProfile(profile) {
 		return w, invalid("任务智能体派发需要已核实的受支持结构化协议；通用命令请使用明确的命令流程")
 	}
 	chosen := -1
@@ -71,6 +71,7 @@ func buildTaskDispatchWorkflowInputs(source dag.Workflow, agentID, profileID str
 	delete(n.Config, "opencode_execution")
 	delete(n.Config, "octop_execution")
 	delete(n.Config, "claude_execution")
+	delete(n.Config, "claude_sdk_execution")
 	delete(n.Config, "acp_execution")
 	if tc.SupportsACPExecutionProfile(profile) {
 		n.MaxRetries = 0
@@ -92,6 +93,17 @@ func buildTaskDispatchWorkflowInputs(source dag.Workflow, agentID, profileID str
 		n.Config["claude_execution"] = fixed
 		if _, err := tc.DecodeClaudeNodeConfiguration(n.Config); err != nil {
 			return w, invalid(claudeExecutionInvalid)
+		}
+	}
+	if tc.SupportsClaudeSDKExecutionProfile(profile) {
+		n.MaxRetries = 0
+		var fixed map[string]any
+		if err := json.Unmarshal([]byte(stringify(profile.ClaudeSDKExecution)), &fixed); err != nil {
+			return w, err
+		}
+		n.Config["claude_sdk_execution"] = fixed
+		if _, err := tc.DecodeClaudeSDKNodeConfiguration(n.Config); err != nil {
+			return w, invalid(claudeSDKExecutionInvalid)
 		}
 	}
 	if tc.SupportsOpenCodeExecutionProfile(profile) {
