@@ -4624,6 +4624,32 @@ export interface ProjectKnowledgeDetail {
   latest: ProjectKnowledgeRevision;
   published?: ProjectKnowledgeRevision | null;
 }
+export interface ProjectKnowledgeDiscovery {
+  items: (ProjectKnowledgeDiscoveryHit)[];
+  next_cursor: string;
+  mode: "keyword";
+  scope: "current_project_publications";
+  scanned: number;
+  scan_limit: 200;
+  exhausted: boolean;
+}
+export interface ProjectKnowledgeDiscoveryHit {
+  reference: ProjectKnowledgeReference;
+  project_id: string;
+  kind: "memory" | "spec" | "skill";
+  title: string;
+  summary: string;
+  snippet: string;
+  matched_field: "none" | "title" | "summary" | "content";
+  source_count: number;
+  published_at: string;
+}
+export interface ProjectKnowledgeDiscoveryQuery {
+  q?: string;
+  kind?: "memory" | "spec" | "skill";
+  limit?: number;
+  cursor?: string;
+}
 export interface ProjectKnowledgeExtractionRequest {
   project_id: string;
   kind: string;

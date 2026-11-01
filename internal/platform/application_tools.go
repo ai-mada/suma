@@ -21,6 +21,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 		makeDefinition("project.tasks", "读取当前项目任务", "agent.tool_tasks", applicationTaskPageSchema(), true, "agent", "api"),
 		makeDefinition("project.search", "检索当前项目资料并返回来源", "agent.tool_search", applicationObject(map[string]any{"query": applicationString(500)}, "query"), true, "agent", "api"),
 		makeDefinition("project.knowledge", "读取明确发布的项目知识固定修订并核验当前来源", "knowledge.agent_read", knowledge, true, "agent", "api"),
+		makeDefinition("project.knowledge.search", "发现当前可采用的已发布记忆、规范和技能，不返回草稿或自动选入上下文", "knowledge.agent_discovery", knowledgeDiscoveryParameters(), true, "agent", "api"),
 		makeDefinition("project.requirements", "分页读取当前项目需求", "application_tool_project_requirements", applicationPageSchema(), true, "api"),
 		makeDefinition("project.requirement", "读取当前项目的单个正式需求", "application_tool_project_requirement", applicationObject(map[string]any{"id": applicationString(64)}, "id"), true, "api"),
 		makeDefinition("project.task", "读取当前项目的单个正式任务", "application_tool_project_task", applicationObject(map[string]any{"id": applicationString(64)}, "id"), true, "api"),
@@ -37,7 +38,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 
 func nativeReadToolAllowed(name string) bool {
 	switch name {
-	case "project.overview", "project.tasks", "project.search", "project.knowledge":
+	case "project.overview", "project.tasks", "project.search", "project.knowledge", "project.knowledge.search":
 		return true
 	}
 	return false
@@ -174,6 +175,15 @@ func (s *Service) invokeApplicationRead(ctx context.Context, auth *authorizedCom
 		}
 		items, e := s.resolvePublishedKnowledgeTx(ctx, auth, project, input.References)
 		return readListEnvelope(items), e
+	case "project.knowledge.search":
+		var input ProjectKnowledgeDiscoveryQuery
+		if e := strictApplicationInput(args, &input); e != nil {
+			return nil, e
+		}
+		if applicationHasField(args, "limit") && input.Limit == 0 || applicationHasField(args, "kind") && input.Kind == "" {
+			return nil, knowledgeDiscoveryInvalid()
+		}
+		return s.discoverProjectKnowledgeTx(ctx, auth, project, input)
 	case "project.requirement", "project.task":
 		var input ApplicationToolIDInput
 		if e := strictApplicationInput(args, &input, "id"); e != nil {

@@ -1,0 +1,16 @@
+{
+ "knowledge-preview.title":"已发布知识预览",
+ "knowledge-preview.close":"关闭预览",
+ "knowledge-preview.choose":"选择此准确发布修订",
+ "knowledge-preview.refresh":"重新读取此引用",
+ "knowledge-preview.boundary":"原发布正文与当前选择资格分别核对。选择仅将准确引用加入当前表单，不发布、派发或启动开发。",
+ "knowledge-preview.invalid_read":"发布预览与项目、引用或发布修订不符。",
+ "knowledge-preview.state.loading":"正在读取准确发布修订与当前资格…",
+ "knowledge-preview.state.current":"此准确发布引用当前可供选择。",
+ "knowledge-preview.state.publication_changed":"当前发布已变化。保留此历史修订供阅读，请另行明确选择当前引用。",
+ "knowledge-preview.state.retired":"此知识已退役。历史正文保留供阅读，不允许新的选择。",
+ "knowledge-preview.state.source_changed":"来源已变化或不再符合采用条件。保留历史正文，不允许新的选择。",
+ "knowledge-preview.state.unavailable":"此引用或当前资格尚未核实，请重新读取原引用。",
+ "knowledge-preview.state.stale":"刷新失败，保留上次正文供参考；当前读取成功前暂停选择。",
+ "knowledge-preview.state.denied":"当前无权读取，已清除受保护正文和来源。"
+}

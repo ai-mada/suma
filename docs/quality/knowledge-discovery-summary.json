@@ -1,0 +1,305 @@
+{
+  "stage": "T-KNOWLEDGE-DISCOVERY-196",
+  "version": "1.0.0",
+  "status": "scoped_verified",
+  "date": "2026-11-02",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "已发布memory／SPEC／skill独立关键词发现；标题、说明与正文来自准确发布，草稿目录保持原语义。",
+    "当前项目、发布SHA及来源资格复核；最多200候选／20命中／48KiB响应，有界空页与完整到尾分别表达。",
+    "资料、任务与讨论共用准确预览及明确选择；已选引用独立于搜索页，原任务预览／Start再次核验。",
+    "原CLI knowledge search和只读Agent／MCP工具复用同一发现领域；准确引用、双语表格和原权限错误保持。",
+    "修复HTTP格式错误遮蔽当前项目撤权、规划白名单漏新只读工具及界面权限恢复依据不完整的问题。"
+  ],
+  "verification": {
+    "distinct_top_level": 27,
+    "new_top_level": 18,
+    "affected_existing_top_level": 9,
+    "control_top_level": 6,
+    "consumer_top_level": 4,
+    "root_contract_top_level": 2,
+    "actual_top_level": 1,
+    "web_top_level": 14,
+    "go_subcases": 6,
+    "go_test_evidence": [
+      {
+        "test": "TestKnowledgeDiscoveryPublishedBodyDraftIsolationAndExactReferences",
+        "command": ".cache/follow155/root-go/20261101T161235769Z.command.json",
+        "top_level": "pass",
+        "command_exit": 1,
+        "package_passed": false,
+        "note": "This top passed; another new fixture expectation failed in this original command. Its relevant production input remained unchanged, so the individual result is reused."
+      },
+      {
+        "test": "TestKnowledgeDiscoveryBoundedScanCursorScopeAndEncodedBudget",
+        "command": ".cache/follow155/root-go/20261101T161235769Z.command.json",
+        "top_level": "pass",
+        "command_exit": 1,
+        "package_passed": false,
+        "note": "This top passed; another new fixture expectation failed in this original command. Its relevant production input remained unchanged, so the individual result is reused."
+      },
+      {
+        "test": "TestKnowledgeDiscoveryCurrentSourceAuthorityAndApplicationRead",
+        "command": ".cache/follow155/root-go/20261101T161716471Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestApplicationToolsCurrentCatalogueAndAuthority",
+        "command": ".cache/follow155/root-go/20261101T161342017Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestApplicationToolsDeclarationsAreIndependent",
+        "command": ".cache/follow155/root-go/20261101T161342017Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestApplicationToolsCurrentViewerCannotRecoverWriteReceipts",
+        "command": ".cache/follow155/root-go/20261101T161716471Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestKnowledgeSearchPreservesPublishedReferencesAndReadScope",
+        "command": ".cache/follow155/root-go/20261101T162114698Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestKnowledgeSearchBoundedInputBilingualTableAndIncompleteEmptyPage",
+        "command": ".cache/follow155/root-go/20261101T162114698Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestProjectContextReadRoutes",
+        "command": ".cache/follow155/root-go/20261101T162114698Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestKnowledgeDiscoveryContractKeepsPublicationReferenceAndPartialCoverage",
+        "command": ".cache/follow155/root-go/20261101T160603426Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestProjectKnowledgeContractKeepsApprovalAndFixedContext",
+        "command": ".cache/follow155/root-go/20261101T160603426Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      },
+      {
+        "test": "TestKnowledgeDiscoveryActualHTTPPublicationPreviewAndChangedBasis",
+        "command": ".cache/follow155/root-go/20261101T161802169Z.command.json",
+        "top_level": "pass",
+        "command_exit": 0,
+        "package_passed": true,
+        "note": ""
+      }
+    ],
+    "paired_locale_keys": 9178,
+    "production_hardcodes": 0,
+    "initial_complete_typecheck_exit": 2,
+    "initial_type_diagnostics": 12,
+    "affected_semantic_files": 6,
+    "final_affected_semantic_diagnostics": 0,
+    "isolated_component_builds": 1,
+    "gui_groups": 2,
+    "gui_images": 2,
+    "gui_native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "actual_journeys": 2,
+    "actual_http_requests_per_journey": 19,
+    "new_http_paths": [
+      "/project-knowledge/discovery"
+    ],
+    "new_schemas": [
+      "ProjectKnowledgeDiscovery",
+      "ProjectKnowledgeDiscoveryHit",
+      "ProjectKnowledgeDiscoveryQuery"
+    ],
+    "new_tables": 0,
+    "new_indexes": 1,
+    "new_application_tool": "project.knowledge.search",
+    "contract_generation_commands": [
+      ".cache/follow155/root-go/20261101T162041434Z.command.json",
+      ".cache/follow155/root-go/20261101T160807880Z.command.json"
+    ],
+    "contract_check_commands": [
+      {
+        "path": ".cache/follow155/root-go/20261101T162050894Z.command.json",
+        "exit": 0
+      },
+      {
+        "path": ".cache/follow155/root-go/20261101T161907094Z.command.json",
+        "exit": 1
+      }
+    ],
+    "failure_history": [
+      "Initial control command contained two passing tops and one fixture expecting400 instead of the correct structural422; retained and explicitly distinguished from a product RED.",
+      "Current-project HTTP auth ordering had a real P2 RED, fixed in one authorized read transaction; final actual journey repeated in an independent retained directory.",
+      "Native planning catalog filtering and CLI response boundaries had targeted RED to GREEN. The old scoped GET test assertion was aligned with existing original-view headers.",
+      "First generated-contract consistency check detected only MCP catalogue drift after the new application tool was finalized; necessary regeneration and final consistency check passed."
+    ],
+    "full_suite_repeated": false
+  },
+  "actual": {
+    "status": "actual_http_sqlite_publication_discovery_exact_preview_and_original_task_context_confirmed",
+    "publications": 3,
+    "kinds": [
+      "memory",
+      "spec",
+      "skill"
+    ],
+    "draft_isolated": true,
+    "immutable_history_retained": true,
+    "stale_start_status": 409,
+    "business_runs": 0,
+    "vendor_calls": 0,
+    "model_calls": 0,
+    "native_tool_calls": 0,
+    "customer_acceptance": false
+  },
+  "review": {
+    "remaining_confirmed_p1_p2": 0
+  },
+  "limits": [
+    "真实实际旅程为本机HTTP／SQLite发布到原任务预览与变更后启动门禁；工具可用状态是既有自有元数据夹具，厂商、模型、Runner和原生工具调用0。",
+    "界面为真实产品组件与隔离合成API数据的代表交互；完整跨平台、物理多机、数据库矩阵、规模与生产验收分别推进。",
+    "关键词发现、准确预览、明确采用、技能目录物化及模型实际使用是独立事实；LanceDB／OceanBase语义投影、事务outbox及外部记忆同步尚需后续实现。",
+    "完整原31项／P0–P7／58limited／34pending／92基线保持active；当前计划checkbox数不作为缩小目标的依据。"
+  ],
+  "evidence": [
+    {
+      "path": ".cache/knowledge-discovery-196/control/summary.json",
+      "sha256": "f1ec2d8a01f64d12e8d118b9e1e79a0d032a65ee068a751aa2ca02e70b95b4e1"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/control/source-manifest.json",
+      "sha256": "23aa1acc9d2548107bc065f08d1e00fcf6b350b388e6405c3bba537a75d5cada"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/consumer/summary.json",
+      "sha256": "b59426e8da33869598e414a3d3f3e84d21afce74cd13472dfadbfcea4c04b6c6"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/consumer/source-manifest.json",
+      "sha256": "abb3797d846cd29620bdda64e9e0183e3994244166c7276ce3f2659e59ed4ce9"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/consumer/verification.json",
+      "sha256": "a7610d79c903b2cf30e385ce3787524ff98e691f1a00d3b45c43434bab0c0d5c"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/web/integration-summary.json",
+      "sha256": "7613e987f9368b5d4cbfc4ce6a7f244c8d0920ebcd146b80e7525a5d786a1a1f"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/review/design-review.json",
+      "sha256": "0d265e7ab3c96552b2d44e725ed6a46802af57eff0d403fc728d6a87bdc09556"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/review/wire-review.json",
+      "sha256": "1b7d144bda95abfcf0204fc1dfcd0dc6d8b50b4ade4d531a13ce4d868e79d7a8"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/review/core-review.json",
+      "sha256": "2bbaf7f54528177b9b501061fd466a3cb8737278eecdb69d6db5bdee0b4d7089"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/review/consumer-review.json",
+      "sha256": "1f7a297e2e5671698977babfe8648bbf16a09093b59a6f4fcbb1e8a09520c5b0"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/actual/receipt.json",
+      "sha256": "6977bd001b270cc37f74b2e5f3836a31a136bed7ede2f71cf42e96a62f64eb34"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/actual/source-manifest.json",
+      "sha256": "38a62503cbc9584a2ed8d962a697b0038e617f9417f27488e41b21043c10a325"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/actual-source-initial.go",
+      "sha256": "7d60281c39fdfe40944fecc96dddf406e234f02d7b95d399fc26c81cc54d5d04"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/actual-final/receipt.json",
+      "sha256": "643068ff69e5423787f6ac2af19a677899a96eac9cc6fa35c30662217f6c00d2"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/actual-final/source-manifest.json",
+      "sha256": "a5ef950a052fcfde7a6c6669dd59f98ac29030ea60c68c4b4ca36534ef417c69"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/actual-final/private.sqlite",
+      "sha256": "31ec5ab5d48e59bb5e9ade81f9dfb639aa13f56e55a10387001b910200cfbb5f"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/types.command.json",
+      "sha256": "e3c8693a8d6c45cc9b41bab688e3337a283c3052122f8ff3b3579dd071689207"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/semantic-result.json",
+      "sha256": "bd1235749d3ab48f3deb5217a9b96a4b18789279ed1b8b0d386f20427cb4244c"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/i18n.command.json",
+      "sha256": "04b941a78669f3d7fa0986d470df836c2f599b472a3c376122f456ef8c6d7b83"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/build.command.json",
+      "sha256": "42b98007feaef353f6cdd5bf82af3f0cbcb4e2cccb61ab8b5704597b3c92b976"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/gui.command.json",
+      "sha256": "dda07b899ff9d1cdf928cfa24744aaea4da6ee5311642d882c6b2ae49bdb15de"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/visual/source-manifest.json",
+      "sha256": "93f7ddf9d1a4995f5eef8d66799be355620869f5053582b34b6ab278db7916a6"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/visual/result.json",
+      "sha256": "90749f35491a1f3554a350df8d38d9655becbd40e23d557f71f225b8b102bc1d"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/visual/cn-publication.png",
+      "sha256": "d48ba3a7c72d8998ed59fe0f01a6edcc9dca8c2f4084a67e83913d594c3cd358"
+    },
+    {
+      "path": ".cache/knowledge-discovery-196/visual/en-dispatch.png",
+      "sha256": "910ba7bde060d058a4e07ae51480902712423a905906cd00cd7d4692cf60f426"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+ "knowledge-consumers.mode_label":"检索范围",
+ "knowledge-consumers.mode.records":"资料与任务",
+ "knowledge-consumers.mode.published":"已发布项目知识",
+ "knowledge-consumers.access_denied":"当前无法读取此项目资料。原引用已保留，请重新核对当前账户与项目权限。",
+ "knowledge-consumers.recheck_access":"重新核对项目权限"
+}

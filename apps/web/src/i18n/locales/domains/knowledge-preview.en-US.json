@@ -1,0 +1,16 @@
+{
+ "knowledge-preview.title":"Published knowledge preview",
+ "knowledge-preview.close":"Close preview",
+ "knowledge-preview.choose":"Select this exact published revision",
+ "knowledge-preview.refresh":"Read this reference again",
+ "knowledge-preview.boundary":"The original published body and current selection eligibility are separate. Selection only adds this exact reference to the current form; it does not publish, dispatch or start work.",
+ "knowledge-preview.invalid_read":"The published preview does not match the project, reference or published revision.",
+ "knowledge-preview.state.loading":"Reading the exact published revision and current eligibility…",
+ "knowledge-preview.state.current":"This exact published reference is currently eligible for selection.",
+ "knowledge-preview.state.publication_changed":"The current publication changed. This historical revision is retained for reading; select a current reference separately.",
+ "knowledge-preview.state.retired":"This knowledge was retired. Its historical body remains readable, and new selection is blocked.",
+ "knowledge-preview.state.source_changed":"The source changed or is no longer eligible. This historical body is retained, and new selection is blocked.",
+ "knowledge-preview.state.unavailable":"This reference or its current eligibility could not be verified. Read the original reference again.",
+ "knowledge-preview.state.stale":"The refresh failed. Previously read text is retained for reference; selection is paused until a successful current read.",
+ "knowledge-preview.state.denied":"Current access is unavailable. Protected body and sources have been cleared."
+}

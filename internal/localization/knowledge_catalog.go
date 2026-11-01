@@ -38,4 +38,5 @@ var knowledgeCatalog = []Definition{
 	{Key: "knowledge.dispatch_changed", Texts: map[Locale]string{ZhCN: "所选项目知识依据已变化，请重新预览派发", EnUS: "The selected knowledge basis has changed. Preview the dispatch again."}},
 	{Key: "knowledge.selection_required", Texts: map[Locale]string{ZhCN: "请选择明确的已发布项目知识修订", EnUS: "Select explicit published project knowledge revisions."}},
 	{Key: "knowledge.agent_read", Texts: map[Locale]string{ZhCN: "读取明确发布的项目知识固定修订并核验当前来源", EnUS: "Read explicit published knowledge revisions and verify their current sources."}},
+	{Key: "knowledge.agent_discovery", Texts: map[Locale]string{ZhCN: "发现当前可采用的已发布记忆、规范和技能，不返回草稿或自动选入上下文", EnUS: "Discover currently eligible published memory, specifications and skills without drafts or automatic adoption."}},
 }

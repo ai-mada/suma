@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-KNOWLEDGE-DISCOVERY-196：[已发布知识发现](product/knowledge-discovery.md)、[架构与AI SOP](architecture/knowledge-discovery.md)、[交互](design/knowledge-discovery.md)、[English](en/knowledge-discovery.md)及[限定验证](quality/knowledge-discovery-verification.md)。准确发布预览与明确任务引用，语义投影和外部同步继续。
+
 T-TOOL-RECOVERY-195：[维护能力与未知恢复](product/tool-recovery.md)、[架构与AI SOP](architecture/tool-recovery.md)、[交互](design/tool-recovery.md)、[English](en/tool-recovery.md)及[限定验证](quality/tool-recovery-verification.md)。真实停止证明与原回执核对，不将释放维护占用冒充检查成功，完整平台继续。
 
 T-TOOL-REINSPECTION-194：[准确节点工具重检](product/tool-reinspection.md)、[架构与AI SOP](architecture/tool-reinspection.md)、[交互](design/tool-reinspection.md)、[English](en/tool-reinspection.md)及[限定验证](quality/tool-reinspection-verification.md)。新请求对应真实新探测，原回执恢复与当前fresh分开，完整平台继续。

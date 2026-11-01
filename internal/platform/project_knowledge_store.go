@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ai-mada/suma/internal/store"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -26,6 +27,9 @@ func (s *Service) InitializeProjectKnowledge(ctx context.Context) error {
 		}
 	}
 	if err := s.InitializeSkillCatalog(ctx); err != nil {
+		return err
+	}
+	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_project_knowledge_discovery_scope", "suma_project_knowledge", "tenant_id", "project_id", "created_at", "id"); err != nil {
 		return err
 	}
 	return s.InitializeKnowledgeIntelligence(ctx)

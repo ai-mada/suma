@@ -21,7 +21,7 @@ export function toolSessionStorage() {
     return undefined;
   }
 }
-type ToolReadView<T>={path:string;data?:T;readStartedAt?:number;loading:boolean;error:string;failure?:unknown;read:()=>Promise<void>};
+type ToolReadView<T>={path:string;data?:T;readStartedAt?:number;loading:boolean;error:string;failure?:unknown;read:()=>Promise<boolean>};
 export function useToolRead<T>(path: string, refresh: number | string = 0):ToolReadView<T> {
   useLocale();
   const caller=useApi();
@@ -41,7 +41,7 @@ export function useToolRead<T>(path: string, refresh: number | string = 0):ToolR
     const generation = ++epoch.current;
     if (!path) {
       setState({ path, caller, loading: false, error: "" });
-      return;
+      return false;
     }
     const readStartedAt=performance.now();
     setState((before) => ({
@@ -55,8 +55,10 @@ export function useToolRead<T>(path: string, refresh: number | string = 0):ToolR
     }));
     try {
       const data = await caller<T>(path);
-      if (generation === epoch.current)
+      if (generation === epoch.current){
         setState({ path, caller, data, readStartedAt, loading: false, error: "" });
+        return true;
+      }
     } catch (error) {
       if (generation === epoch.current)
         setState((before) => ({
@@ -68,6 +70,7 @@ export function useToolRead<T>(path: string, refresh: number | string = 0):ToolR
           failure: error,
         }));
     }
+    return false;
   }, [path,caller]);
   useEffect(() => {
     void read();
@@ -103,8 +106,9 @@ export function useToolList<T extends { id: string }>(
       pager.current.setScope(project, kind);
       const request = more ? pager.current.more() : pager.current.first();
       setPage(pager.current.snapshot());
-      await request;
+      const accepted=await request;
       setPage(pager.current.snapshot());
+      return accepted;
     },
     [project, kind],
   );

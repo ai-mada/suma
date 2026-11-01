@@ -1,0 +1,7 @@
+{
+ "knowledge-consumers.mode_label":"Search scope",
+ "knowledge-consumers.mode.records":"Documents and work items",
+ "knowledge-consumers.mode.published":"Published project knowledge",
+ "knowledge-consumers.access_denied":"Current access to this project's information is unavailable. Original references are retained; recheck the current account and project access.",
+ "knowledge-consumers.recheck_access":"Recheck project access"
+}

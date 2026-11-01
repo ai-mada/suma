@@ -43,8 +43,8 @@ func TestProjectContextReadRoutes(t *testing.T) {
 				if r.Method != "GET" || r.URL.Path != tc.path || r.URL.RawQuery != tc.query || r.Header.Get("Accept-Language") != "en-US" || r.Header.Get("Authorization") != "Bearer fixture-token" {
 					t.Errorf("unexpected read: %s %s", r.Method, r.URL)
 				}
-				if r.Header.Get("X-Suma-Expected-User") != "" || r.ContentLength > 0 {
-					t.Error("GET acquired a command body or original-view header")
+				if r.Header.Get("X-Suma-Expected-User") != strings.Repeat("a", 32) || r.Header.Get("X-Suma-Expected-Organization") != strings.Repeat("b", 32) || r.ContentLength > 0 {
+					t.Error("scoped GET lost the captured account/organization or acquired a command body")
 				}
 				_, _ = w.Write([]byte(`{"content":"用户原文 raw","revision":9007199254740993,"sources":[{"quote":"不翻译 unchanged"}]}`))
 			}))

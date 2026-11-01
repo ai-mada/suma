@@ -590,12 +590,12 @@
   "phase": "implementation",
   "status": "in_progress",
   "stage": "T-TOOL-RECOVERY-195",
-  "updated_at": "2026-11-01T15:53:14.908Z",
+  "updated_at": "2026-11-01T16:40:00.651Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/tool-recovery-verification.md",
-  "current_summary": "docs/quality/tool-recovery-summary.json",
+  "current_evidence": "docs/quality/knowledge-discovery-verification.md",
+  "current_summary": "docs/quality/knowledge-discovery-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -692,7 +692,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "ab50190898d1d2f5e9df83fb8e2e872136c0a228"
+    "previously_published_commit": "d3747a2b3e2c6072e309c79b8e4d4cb3d96acd64"
   },
   "existing_preview": {
     "updated": false,
@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T195 versioned continuous maintenance capability, durable native stop evidence, original unknown closure and three Worker lifetimes with bilingual UX; full platform goal remains active",
+  "last_goal_turn_classification": "progress: T196 published memory/SPEC/skill discovery, original exact task reference reuse, CLI and native planning discovery; full platform goal remains active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-RECOVERY-195",
+    "stage": "T-KNOWLEDGE-DISCOVERY-196",
     "status": "scoped_verified",
-    "contract": "contracts/tool-recovery.md",
-    "report": "docs/quality/tool-recovery-verification.md",
+    "contract": "contracts/knowledge-discovery.md",
+    "report": "docs/quality/knowledge-discovery-verification.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92baseline",
-    "next": "Continue all original platform scope; prioritize published memory/SPEC/skill discovery and exact task context reuse per docs/delivery/knowledge-discovery-next.md without repeating172/173."
+    "next": "Typed knowledge semantic projection with transactional publication/retirement outbox, current-authorized retrieval and external synchronization per docs/delivery/knowledge-discovery-next.md; complete original platform scope remains active."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2030,6 +2030,182 @@
       "当前凭证或Pool route／grant变化继续明确拒绝，不借历史能力扩大权限。过期last-known声明仅可用于有限核对，不用于新检查或健康认定。",
       "OceanBase／PostgreSQL本轮为初始Schema及方言合同／源码覆盖，真实环境、安装包、规模与生产验收继续独立。",
       "完整原31／P0–P7／58limited／34pending／92范围保持active；当前checkbox行与保留基线不等，不由局部阶段关闭整项。已发布知识检索断点另列下一切片，未虚报实现。"
+    ]
+  },
+  "knowledge_discovery": {
+    "stage": "T-KNOWLEDGE-DISCOVERY-196",
+    "status": "scoped_verified",
+    "contract": "contracts/knowledge-discovery.md",
+    "report": "docs/quality/knowledge-discovery-verification.md",
+    "summary": "docs/quality/knowledge-discovery-summary.json",
+    "implementation": [
+      "已发布memory／SPEC／skill独立关键词发现；标题、说明与正文来自准确发布，草稿目录保持原语义。",
+      "当前项目、发布SHA及来源资格复核；最多200候选／20命中／48KiB响应，有界空页与完整到尾分别表达。",
+      "资料、任务与讨论共用准确预览及明确选择；已选引用独立于搜索页，原任务预览／Start再次核验。",
+      "原CLI knowledge search和只读Agent／MCP工具复用同一发现领域；准确引用、双语表格和原权限错误保持。",
+      "修复HTTP格式错误遮蔽当前项目撤权、规划白名单漏新只读工具及界面权限恢复依据不完整的问题。"
+    ],
+    "verification": {
+      "distinct_top_level": 27,
+      "new_top_level": 18,
+      "affected_existing_top_level": 9,
+      "control_top_level": 6,
+      "consumer_top_level": 4,
+      "root_contract_top_level": 2,
+      "actual_top_level": 1,
+      "web_top_level": 14,
+      "go_subcases": 6,
+      "go_test_evidence": [
+        {
+          "test": "TestKnowledgeDiscoveryPublishedBodyDraftIsolationAndExactReferences",
+          "command": ".cache/follow155/root-go/20261101T161235769Z.command.json",
+          "top_level": "pass",
+          "command_exit": 1,
+          "package_passed": false,
+          "note": "This top passed; another new fixture expectation failed in this original command. Its relevant production input remained unchanged, so the individual result is reused."
+        },
+        {
+          "test": "TestKnowledgeDiscoveryBoundedScanCursorScopeAndEncodedBudget",
+          "command": ".cache/follow155/root-go/20261101T161235769Z.command.json",
+          "top_level": "pass",
+          "command_exit": 1,
+          "package_passed": false,
+          "note": "This top passed; another new fixture expectation failed in this original command. Its relevant production input remained unchanged, so the individual result is reused."
+        },
+        {
+          "test": "TestKnowledgeDiscoveryCurrentSourceAuthorityAndApplicationRead",
+          "command": ".cache/follow155/root-go/20261101T161716471Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestApplicationToolsCurrentCatalogueAndAuthority",
+          "command": ".cache/follow155/root-go/20261101T161342017Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestApplicationToolsDeclarationsAreIndependent",
+          "command": ".cache/follow155/root-go/20261101T161342017Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestApplicationToolsCurrentViewerCannotRecoverWriteReceipts",
+          "command": ".cache/follow155/root-go/20261101T161716471Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestKnowledgeSearchPreservesPublishedReferencesAndReadScope",
+          "command": ".cache/follow155/root-go/20261101T162114698Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestKnowledgeSearchBoundedInputBilingualTableAndIncompleteEmptyPage",
+          "command": ".cache/follow155/root-go/20261101T162114698Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestProjectContextReadRoutes",
+          "command": ".cache/follow155/root-go/20261101T162114698Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestKnowledgeDiscoveryContractKeepsPublicationReferenceAndPartialCoverage",
+          "command": ".cache/follow155/root-go/20261101T160603426Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestProjectKnowledgeContractKeepsApprovalAndFixedContext",
+          "command": ".cache/follow155/root-go/20261101T160603426Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        },
+        {
+          "test": "TestKnowledgeDiscoveryActualHTTPPublicationPreviewAndChangedBasis",
+          "command": ".cache/follow155/root-go/20261101T161802169Z.command.json",
+          "top_level": "pass",
+          "command_exit": 0,
+          "package_passed": true,
+          "note": ""
+        }
+      ],
+      "paired_locale_keys": 9178,
+      "production_hardcodes": 0,
+      "initial_complete_typecheck_exit": 2,
+      "initial_type_diagnostics": 12,
+      "affected_semantic_files": 6,
+      "final_affected_semantic_diagnostics": 0,
+      "isolated_component_builds": 1,
+      "gui_groups": 2,
+      "gui_images": 2,
+      "gui_native_exit": {
+        "code": 0,
+        "signal": null
+      },
+      "actual_journeys": 2,
+      "actual_http_requests_per_journey": 19,
+      "new_http_paths": [
+        "/project-knowledge/discovery"
+      ],
+      "new_schemas": [
+        "ProjectKnowledgeDiscovery",
+        "ProjectKnowledgeDiscoveryHit",
+        "ProjectKnowledgeDiscoveryQuery"
+      ],
+      "new_tables": 0,
+      "new_indexes": 1,
+      "new_application_tool": "project.knowledge.search",
+      "contract_generation_commands": [
+        ".cache/follow155/root-go/20261101T162041434Z.command.json",
+        ".cache/follow155/root-go/20261101T160807880Z.command.json"
+      ],
+      "contract_check_commands": [
+        {
+          "path": ".cache/follow155/root-go/20261101T162050894Z.command.json",
+          "exit": 0
+        },
+        {
+          "path": ".cache/follow155/root-go/20261101T161907094Z.command.json",
+          "exit": 1
+        }
+      ],
+      "failure_history": [
+        "Initial control command contained two passing tops and one fixture expecting400 instead of the correct structural422; retained and explicitly distinguished from a product RED.",
+        "Current-project HTTP auth ordering had a real P2 RED, fixed in one authorized read transaction; final actual journey repeated in an independent retained directory.",
+        "Native planning catalog filtering and CLI response boundaries had targeted RED to GREEN. The old scoped GET test assertion was aligned with existing original-view headers.",
+        "First generated-contract consistency check detected only MCP catalogue drift after the new application tool was finalized; necessary regeneration and final consistency check passed."
+      ],
+      "full_suite_repeated": false
+    },
+    "boundaries": [
+      "真实实际旅程为本机HTTP／SQLite发布到原任务预览与变更后启动门禁；工具可用状态是既有自有元数据夹具，厂商、模型、Runner和原生工具调用0。",
+      "界面为真实产品组件与隔离合成API数据的代表交互；完整跨平台、物理多机、数据库矩阵、规模与生产验收分别推进。",
+      "关键词发现、准确预览、明确采用、技能目录物化及模型实际使用是独立事实；LanceDB／OceanBase语义投影、事务outbox及外部记忆同步尚需后续实现。",
+      "完整原31项／P0–P7／58limited／34pending／92基线保持active；当前计划checkbox数不作为缩小目标的依据。"
     ]
   }
 }

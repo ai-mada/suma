@@ -18,7 +18,7 @@ import {adoptionPlan,choiceDraft,defaultChoice,recommendationChoice,recommendati
 import './DispatchRecommendation.css';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('dispatch-recommendation.'+key,values);
-type Inventory={items?:ToolProfile[];total:number;loading:boolean;error:string;failure?:unknown;next_cursor:string;read:(more?:boolean)=>Promise<void>};
+type Inventory={items?:ToolProfile[];total:number;loading:boolean;error:string;failure?:unknown;next_cursor:string;read:(more?:boolean)=>Promise<unknown>};
 type Props={session:Session;scope:RecommendationScope;inventory:Inventory;disabled:boolean;onPrepared:(plan:TaskDispatchPlan)=>void;onOpenPlan:(id:string)=>void;onLockChange:(locked:boolean)=>void;onManual:()=>void};
 type ReadState<T>={key:string;api:ReturnType<typeof useApi>;value?:T;loading:boolean;error?:unknown};
 const denied=(value:unknown)=>value instanceof ApiError&&[401,403,404].includes(value.status);

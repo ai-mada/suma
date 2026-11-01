@@ -117,6 +117,44 @@
       ]
     },
     {
+      "name": "project.knowledge.search",
+      "mcp_name": "suma_project_knowledge_search",
+      "description": "发现当前可采用的已发布记忆、规范和技能，不返回草稿或自动选入上下文",
+      "description_key": "knowledge.agent_discovery",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 2048,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "q": {
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "agent",
+        "api"
+      ]
+    },
+    {
       "name": "project.requirements",
       "mcp_name": "suma_project_requirements",
       "description": "分页读取当前项目需求",

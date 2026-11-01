@@ -4,8 +4,9 @@ import {CodexNativeSkillFacts} from './CodexNativeSkillFacts';
 import {validateTaskDispatchResponse} from './task-dispatch-response';
 import {ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {useApi} from './api-context';
-import {useKnowledgeEntries} from './knowledge-hooks';
-import {publishedKnowledgeReference,pinnedKnowledgeReferences,type KnowledgeSummary} from './knowledge-model';
+import type {KnowledgeReference} from './knowledge-model';
+import {ProjectKnowledgePicker} from './ProjectKnowledgePicker';
+import {knowledgeSelectionKey,validKnowledgePins} from './task-conversation-knowledge-model';
 import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {RequirementDesignFacts} from './RequirementDesignFacts';
 import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
@@ -14,10 +15,11 @@ import {UiError} from './i18n';
 import './knowledge.css';
 import {literalText} from './i18n/literal';
 import { tr as t, useLocale, formatNumber, renderDiagnostic } from "./i18n";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, RefreshCw } from "lucide-react";
 import {
   api,
+  ApiError,
   query,
   type RecordItem,
   type Run,
@@ -51,7 +53,12 @@ type Props = {
   onClose: () => void;
   onRun: (id: string) => void;
 };
-export function TaskDispatchDialog({
+export function TaskDispatchDialog(props:Props){
+  const api=useApi(),owner=useRef({api,epoch:0});
+  if(owner.current.api!==api)owner.current={api,epoch:owner.current.epoch+1};
+  return <TaskDispatchScope key={JSON.stringify([props.session.organization.id,props.session.user.id,props.project,props.task?.id,owner.current.epoch])} {...props}/>;
+}
+function TaskDispatchScope({
   project,
   session,
   task,
@@ -76,19 +83,14 @@ export function TaskDispatchDialog({
     [error, setError] = useState<unknown>(""),
     [confirmed, setConfirmed] = useState(false);
   const [adoptedProfile,setAdoptedProfile]=useState<ToolProfile>(),[profileScope,setProfileScope]=useState(''),[recommendationLocked,setRecommendationLocked]=useState(false);
-  const [knowledgeSelection,setKnowledgeSelection]=useState<KnowledgeSummary[]>([]);
-  const knowledge=useKnowledgeEntries(project,{kind:'all',state:'published',q:''},0,!planID||planID==='new');
-  const selectionCurrent=knowledgeSelection.every(selected=>knowledge.items?.some(current=>current.id===selected.id&&current.published_eligible&&current.eligibility==='current'&&current.published_revision===selected.published_revision&&current.published_sha256===selected.published_sha256));
-  function selectKnowledge(entry:KnowledgeSummary){
-    try{
-      const ref=publishedKnowledgeReference(entry,project);
-      const present=knowledgeSelection.some(item=>item.id===ref.id&&item.published_revision===ref.revision&&item.published_sha256===ref.sha256);
-      const next=knowledgeSelection.filter(item=>item.id!==entry.id);
-      if(present){setKnowledgeSelection(next);return;}
-      if(next.length>=16)throw new UiError('knowledge.errors.selection_limit');
-      setKnowledgeSelection([...next,entry]);
-    }catch(error){setError(error);}
-  }
+  const [knowledgeSelection,setKnowledgeSelection]=useState<KnowledgeReference[]>([]),[knowledgeRefresh,setKnowledgeRefresh]=useState(0),[knowledgeAccessBlocked,setKnowledgeAccessBlocked]=useState(false),[knowledgeValidity,setKnowledgeValidity]=useState<{key:string;valid:boolean}>();
+  const accessAlive=useRef(true),accessEpoch=useRef(0),accessFlight=useRef<object|undefined>(undefined),[accessRefreshing,setAccessRefreshing]=useState(false),accessCaller=useRef(api),accessTarget=useRef('');accessCaller.current=api;
+  accessTarget.current=JSON.stringify([project,task?.id,task?.version,currentTask?.id]);
+  useEffect(()=>{accessAlive.current=true;return()=>{accessAlive.current=false;accessEpoch.current++;};},[]);
+  const knowledgeKey=knowledgeSelectionKey(knowledgeSelection,knowledgeRefresh);
+  const selectionCurrent=!knowledgeAccessBlocked&&(!knowledgeSelection.length||knowledgeValidity?.key===knowledgeKey&&knowledgeValidity.valid);
+  const changeKnowledgeValidity=useCallback((key:string,valid:boolean)=>setKnowledgeValidity(before=>before?.key===key&&before.valid===valid?before:{key,valid}),[]);
+  const knowledgeDenied=useCallback(()=>{accessEpoch.current++;setKnowledgeAccessBlocked(true);},[]);
   useEffect(()=>{setKnowledgeSelection([]);},[project,task?.id,session.user.id,session.organization.id]);
   const recovery = useMemo(
       () =>
@@ -116,7 +118,7 @@ export function TaskDispatchDialog({
     ),
     directBlocked = action.busy || !!action.pending,
     blocked = directBlocked || recommendationLocked;
-  const recommendationKnowledge=useMemo(()=>{try{return pinnedKnowledgeReferences(knowledgeSelection,project);}catch{return undefined;}},[knowledgeSelection,project]);
+  const recommendationKnowledge=useMemo(()=>selectionCurrent&&validKnowledgePins(knowledgeSelection)?knowledgeSelection:undefined,[knowledgeSelection,selectionCurrent]);
   const selectionScope=JSON.stringify([session.organization.id,session.user.id,project,currentTask?.id,currentTask?.version,flow?.id,flow?.version,agentID]);
   const selectedProfileID=profileScope===selectionScope?profileID:'';
   const scopedAdopted=profileScope===selectionScope?adoptedProfile:undefined;
@@ -153,30 +155,34 @@ export function TaskDispatchDialog({
     onPlan(result.id, result.task_id);
   }
   async function refreshTask() {
+    if(!accessAlive.current||accessFlight.current||blocked)return;
+    const ticket=++accessEpoch.current,owner={},originalCaller=api,target=accessTarget.current;accessFlight.current=owner;setAccessRefreshing(true);
+    const owns=()=>accessAlive.current&&accessCaller.current===originalCaller&&accessEpoch.current===ticket&&accessFlight.current===owner&&accessTarget.current===target;
     try {
       const id = currentTask?.id || plan?.task_id;
       if (!id) throw Error(t("development.dispatch.the_current_task_is_missing_reopen_from"));
-      setCurrentTask(
-        await api<RecordItem>(
-          "/tasks/" + encodeURIComponent(id) + query(project),
-        ),
-      );
-      await profiles.read();
-      await workflows.read();
+      const refreshed=await api<RecordItem>("/tasks/"+encodeURIComponent(id)+query(project));
+      if(!owns())return;
+      const [profilesAccepted,workflowsAccepted]=await Promise.all([profiles.read(),workflows.read()]);
+      if(!owns())return;
+      if(!profilesAccepted||!workflowsAccepted){setKnowledgeAccessBlocked(true);return;}
+      setCurrentTask(refreshed);
+      setKnowledgeRefresh(value=>value+1);setKnowledgeAccessBlocked(false);
       action.clearError();
       setError(t("development.dispatch.the_current_task_and_available_configurations_were"));
     } catch (error) {
-      setError(error);
-    }
+      if(owns()){if(error instanceof ApiError&&[401,403,404].includes(error.status))knowledgeDenied();setError(error);}
+    }finally{if(accessFlight.current===owner){accessFlight.current=undefined;if(accessAlive.current)setAccessRefreshing(false);}}
   }
   async function prepare() {
     setError("");
     try {
       if (!currentTask || !flow || !profile || !modelReady)
         throw new Error(t("development.dispatch.choose_a_current_task_a_published_workflow"));
+      if(blocked||!selectionCurrent||!validKnowledgePins(knowledgeSelection))throw new UiError('knowledge.errors.ineligible');
       const result = await action.run<TaskDispatchPlan>(
         "/task-dispatch-plans",
-        {...dispatchRequest(project, currentTask, flow, agentID, profile),knowledge:pinnedKnowledgeReferences(knowledgeSelection,project),...(modelRequired&&modelChoice.selection?{model_execution_selection:modelChoice.selection}:{}),...(codexRequired&&modelChoice.codexSelection?{codex_execution_selection:modelChoice.codexSelection}:{})},
+        {...dispatchRequest(project, currentTask, flow, agentID, profile),knowledge:knowledgeSelection,...(modelRequired&&modelChoice.selection?{model_execution_selection:modelChoice.selection}:{}),...(codexRequired&&modelChoice.codexSelection?{codex_execution_selection:modelChoice.codexSelection}:{})},
       );
       if (result) saved("/task-dispatch-plans", result);
     } catch (error) {
@@ -203,7 +209,7 @@ export function TaskDispatchDialog({
           />
         )}{" "}
         {planRead.loading && <p role="status">{t("development.dispatch.reading_immutable_execution_plan")}</p>}
-        {!planID || planID === "new" ? (
+        {knowledgeAccessBlocked?<section className="tool-notice" role="alert"><p>{t('knowledge-consumers.access_denied')}</p><button type="button" disabled={blocked||accessRefreshing} onClick={()=>void refreshTask()}>{t('knowledge-consumers.recheck_access')}</button></section>:!planID || planID === "new" ? (
           <>
           {currentTask&&flow&&recommendationKnowledge&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<DispatchRecommendation session={session} scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID,knowledge:recommendationKnowledge}} inventory={profiles} disabled={directBlocked} onLockChange={setRecommendationLocked} onPrepared={plan=>saved('/task-dispatch-plans',plan)} onOpenPlan={id=>onPlan(id,currentTask.id)} onManual={()=>{requestAnimationFrame(()=>document.querySelector<HTMLSelectElement>('[data-dispatch-manual-tool]')?.focus());}}/>}
           <form
@@ -368,14 +374,8 @@ export function TaskDispatchDialog({
               {profile&&<ModelExecutionPanel key={modelKey} scope={{project,profile:profile.id,version:profile.version,sha256:profile.profile.profile_sha256}} supported={modelRequired} fixedOpenCode={profile.profile.opencode_execution} fixedClaude={profile.profile.claude_execution} fixedClaudeSDK={profile.profile.claude_sdk_execution} fixedACP={profile.profile.acp_execution} codex={codexRequired} disabled={blocked} onChange={updateModelChoice}/>}
               <section aria-label={t('knowledge.dispatch.title')}>
                 <h3>{t('knowledge.dispatch.title')}</h3><p className="muted">{t('knowledge.dispatch.hint')}</p>
-                <div className="knowledge-actions"><button type="button" disabled={blocked||knowledge.loading} onClick={()=>void knowledge.read()}><RefreshCw size={14}/>{t('knowledge.dispatch.refresh')}</button><a href={'?'+new URLSearchParams({project,view:'knowledge',sub:'project-knowledge'})}>{t('knowledge.dispatch.open')}</a></div>
-                {Boolean(knowledge.error)&&<ErrorNotice error={knowledge.error} onRetry={()=>void knowledge.read(knowledge.more)}/>}
-                {knowledge.loading&&!knowledge.items&&<Loading/>}
-                <div className="knowledge-dispatch-list">{knowledge.items?.map(entry=>{const checked=knowledgeSelection.some(item=>item.id===entry.id&&item.published_revision===entry.published_revision&&item.published_sha256===entry.published_sha256);return <label className="knowledge-dispatch-choice" key={entry.id}><input type="checkbox" checked={checked} disabled={blocked||!entry.published_eligible||entry.eligibility!=='current'} onChange={()=>selectKnowledge(entry)}/><span><strong>{entry.published_title||entry.id}</strong><small>{t('knowledge.kind.'+entry.kind)} · {t('knowledge.revision',{revision:formatNumber(entry.published_revision)})}{entry.has_draft?' · '+t('knowledge.has_draft'):''}</small>{entry.published_summary&&<small>{entry.published_summary}</small>}<small>{t('knowledge.eligible.'+entry.eligibility)}</small></span></label>;})}</div>
-                {knowledge.items?.length===0&&!knowledge.loading&&<p className="muted">{t('knowledge.dispatch.empty')}</p>}
-                {knowledge.cursor&&<button type="button" disabled={blocked||knowledge.loading} onClick={()=>void knowledge.read(true)}>{t('knowledge.more')}</button>}
-                <p>{t('knowledge.dispatch.selected',{count:knowledgeSelection.length})}</p>
-                {knowledgeSelection.length>0&&<><ul>{knowledgeSelection.map(entry=><li key={entry.id}>{entry.published_title||entry.id} · {t('knowledge.revision',{revision:formatNumber(entry.published_revision)})} <button type="button" disabled={blocked} onClick={()=>setKnowledgeSelection(before=>before.filter(item=>item.id!==entry.id))}>{t('knowledge.dispatch.remove')}</button></li>)}</ul>{!selectionCurrent&&<p className="warning">{t('knowledge.errors.ineligible')}</p>}<button type="button" disabled={blocked} onClick={()=>setKnowledgeSelection([])}>{t('knowledge.dispatch.clear')}</button></>}
+                <ProjectKnowledgePicker userID={session.user.id} organizationID={session.organization.id} project={project} taskID={currentTask?.id||''} selected={knowledgeSelection} onChange={setKnowledgeSelection} disabled={blocked} accessBlocked={knowledgeAccessBlocked} refresh={knowledgeRefresh} onValidityChange={changeKnowledgeValidity} onAccessDenied={knowledgeDenied}/>
+                <a href={'?'+new URLSearchParams({project,view:'knowledge',sub:'project-knowledge'})}>{t('knowledge.dispatch.open')}</a>
               </section>
             </fieldset>
             {action.conflict && (
@@ -403,7 +403,7 @@ export function TaskDispatchDialog({
                   !!profiles.error ||
                   workflows.loading ||
                   !!workflows.error ||
-                  (knowledgeSelection.length>0&&(knowledge.loading||!!knowledge.error||!selectionCurrent))
+                  !selectionCurrent
                 }
               >
                 {t("development.dispatch.fix_and_preview_execution_plan")}</button>

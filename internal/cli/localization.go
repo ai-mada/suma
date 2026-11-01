@@ -122,7 +122,9 @@ var cliMessages = map[string]cliMessage{
 	"unsupported API method":                                             {"cli.api.method_unsupported", "不支持此 API 方法"},
 	"API mutations require explicit --method and --file":                 {"cli.api.write_options", "API 写操作必须显式提供 --method 和 --file"},
 	"GET does not accept --file":                                         {"cli.api.get_file", "GET 不接受 --file"},
-	"knowledge requires list, show, history, create, edit, extract, or command; use knowledge --help":                         {"cli.knowledge.action_required", "knowledge 需要 list、show、history、create、edit、extract 或 command，请查看 knowledge --help"},
+	"knowledge requires list, search, show, history, create, edit, extract, or command; use knowledge --help": {"cli.knowledge.action_required", "knowledge 需要 list、search、show、history、create、edit、extract 或 command，请查看 knowledge --help"},
+	knowledgeSearchUsage:           {"cli.knowledge.search_usage", "knowledge search 支持 --query（最多 200 UTF-8 字节）、--kind memory|spec|skill、--limit 1–20、原 --cursor（最多 2048 字节）和 --format json|table；请查看 knowledge --help"},
+	knowledgeSearchResponseInvalid: {"cli.knowledge.search_response", "知识发现结果须保留当前项目的准确发布引用及有界扫描的继续依据"},
 	"invalid knowledge filters or pagination; limit must be 1..100":                                                           {"cli.context.query_invalid", "知识筛选或分页参数无效，limit 必须为 1–100"},
 	"project context command requires a valid resource ID":                                                                    {"cli.context.id_required", "项目上下文命令需要有效的资源标识"},
 	"project context show accepts only the resource ID":                                                                       {"cli.context.show_options", "项目上下文 show 仅接受资源标识"},
@@ -204,6 +206,8 @@ const contextHelpEN = `
 Governed project context (global flags still go before the command):
   knowledge list [--kind memory|spec|skill] [--state draft|published|retired]
                  [--query TEXT] [--limit 1..100] [--cursor NEXT_CURSOR]
+  knowledge search [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
+                   [--cursor NEXT_CURSOR] [--format json|table]
   knowledge show ID
   knowledge history ID [--limit 1..100] [--cursor NEXT_CURSOR]
   knowledge create|extract --file request.json
@@ -222,12 +226,17 @@ Review plan_sha256 before explicit adoption; adoption does not start a run.
 After an unknown write result, retain the original caller, path, body and operation key.
 Never refresh identity or retry automatically. Read current state before the next CAS.
 Response snapshots, user text and numeric lexemes stay unchanged across languages.
+search discovers eligible publications only; omit --query to browse. Default output is JSON.
+Each call scans at most 200 candidates. An empty page with next_cursor requires explicit continuation.
+References are exact id/revision/sha256 values; discovery does not adopt, publish or start a task.
 `
 
 const contextHelpZH = `
 受治理的项目上下文（全局参数仍放在命令前）：
   knowledge list [--kind memory|spec|skill] [--state draft|published|retired]
                  [--query TEXT] [--limit 1..100] [--cursor NEXT_CURSOR]
+  knowledge search [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
+                   [--cursor NEXT_CURSOR] [--format json|table]
   knowledge show ID
   knowledge history ID [--limit 1..100] [--cursor NEXT_CURSOR]
   knowledge create|extract --file request.json
@@ -245,6 +254,9 @@ preview 是只读 POST，不添加操作标识、不更改任务、不预留资�
 明确采用前须审阅 plan_sha256；采用不会启动运行。
 写入结果未知时，保留原调用者、路径、正文和操作标识，不自动刷新身份或重试。
 下一次 CAS 前重新读取当前状态；用户原文、快照和数字字面量不随语言改变。
+search 只发现当前可用的已发布知识；省略 --query 可浏览，默认输出 JSON。
+每次最多扫描 200 条候选；空页若含 next_cursor，须显式通过 --cursor 继续。
+准确引用包含 id、revision 和 sha256；发现不会采用、发布或启动任务。
 `
 
 const helpZH = `suma — 速码控制面客户端

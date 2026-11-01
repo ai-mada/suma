@@ -23724,6 +23724,178 @@
         ],
         "type": "object"
       },
+      "ProjectKnowledgeDiscovery": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "else": {
+              "properties": {
+                "next_cursor": {
+                  "minLength": 1
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "exhausted": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "next_cursor": {
+                  "const": ""
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "exhausted": {
+            "description": "Current traversal reached its remaining tail. An empty non-exhausted page is partial and must offer continuation, never a whole-project empty conclusion.",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectKnowledgeDiscoveryHit"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
+          "mode": {
+            "const": "keyword",
+            "type": "string"
+          },
+          "next_cursor": {
+            "maxLength": 2048,
+            "type": "string",
+            "x-max-utf8-bytes": 2048
+          },
+          "scan_limit": {
+            "const": 200,
+            "type": "integer"
+          },
+          "scanned": {
+            "maximum": 200,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "scope": {
+            "const": "current_project_publications",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "mode",
+          "scope",
+          "scanned",
+          "scan_limit",
+          "exhausted"
+        ],
+        "type": "object",
+        "x-max-response-utf8-bytes": 49152
+      },
+      "ProjectKnowledgeDiscoveryHit": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "matched_field": {
+            "description": "none only when browsing with an empty normalized query. Other values identify the first matching published field.",
+            "enum": [
+              "none",
+              "title",
+              "summary",
+              "content"
+            ],
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/ProjectKnowledgeReference"
+          },
+          "snippet": {
+            "description": "Compact publication excerpt; exact full text and provenance remain available through the original revision API.",
+            "maxLength": 600,
+            "type": "string",
+            "x-max-utf8-bytes": 600
+          },
+          "source_count": {
+            "maximum": 8,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "summary": {
+            "maxLength": 1000,
+            "type": "string",
+            "x-max-utf8-bytes": 1000
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "reference",
+          "project_id",
+          "kind",
+          "title",
+          "summary",
+          "snippet",
+          "matched_field",
+          "source_count",
+          "published_at"
+        ],
+        "type": "object"
+      },
+      "ProjectKnowledgeDiscoveryQuery": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 2048,
+            "type": "string",
+            "x-max-utf8-bytes": 2048
+          },
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "q": {
+            "maxLength": 200,
+            "type": "string",
+            "x-max-utf8-bytes": 200,
+            "x-reject-control-characters": true
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
       "ProjectKnowledgeExtractionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -92581,6 +92753,234 @@
           "required": true
         },
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/project-knowledge/discovery": {
+      "get": {
+        "description": "Discover currently eligible published memory, SPEC and skills by literal Unicode keyword, or browse with an empty query. Latest drafts never supply result text. Every hit is reauthorized against the current publication and sources. A current-read keyset traverses creation order; it is not a cross-request snapshot or semantic index. Explicitly preview and select the exact reference through the existing task contract.",
+        "operationId": "get_project-knowledge_discovery",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Literal published title/summary/content substring; empty browses. Trimmed and Unicode-lowercased; never matches JSON encoding, sources or latest drafts.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 200,
+              "type": "string",
+              "x-max-utf8-bytes": 200,
+              "x-reject-control-characters": true
+            }
+          },
+          {
+            "description": "Optional publication kind.",
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "enum": [
+                "memory",
+                "spec",
+                "skill"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum returned hits, not a full-project total. Canonical positive decimal only.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 10,
+              "maximum": 20,
+              "minimum": 1,
+              "type": "integer",
+              "x-canonical-decimal": true
+            }
+          },
+          {
+            "description": "Opaque current actor/organization/project/query/kind/limit/order-bound continuation. Empty starts a new traversal. Changes in permissions or publication are checked again on every page.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 2048,
+              "type": "string",
+              "x-max-utf8-bytes": 2048
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectKnowledgeDiscovery"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectKnowledgeDiscovery"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-max-response-utf8-bytes": 49152,
+        "x-no-side-effects": "No publication, model call, adoption, task start, tool execution or permission grant.",
+        "x-query-unknown-fields": "reject",
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       }
     },
     "/project-knowledge/extractions": {

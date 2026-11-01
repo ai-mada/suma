@@ -1,5 +1,9 @@
 package platform
 
+func knowledgeDiscoveryParameters() map[string]any {
+	return applicationObject(map[string]any{"q": applicationString(200), "kind": map[string]any{"type": "string", "enum": []string{"memory", "spec", "skill"}}, "limit": applicationInteger(1, 20), "cursor": applicationString(2048)})
+}
+
 // Inline JSON Schema is self-contained for model providers; no component $ref
 // leaves the control plane. The IDs/digest select data and never grant access.
 func knowledgeReferenceParameters() map[string]any {

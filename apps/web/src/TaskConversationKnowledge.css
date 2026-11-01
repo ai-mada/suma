@@ -9,7 +9,9 @@
 .conversation-knowledge-selected span,.conversation-knowledge-options button>span{display:grid;gap:3px;min-width:0}
 .conversation-knowledge-selected strong,.conversation-knowledge-options strong{font-size:14px;font-weight:500;overflow-wrap:anywhere}
 .conversation-knowledge-selected code{overflow-wrap:anywhere}.conversation-knowledge-selected .is-unavailable,.conversation-knowledge-warning{color:var(--warning,var(--text))}
-.conversation-knowledge-warning{font-size:12px;line-height:1.6;margin:8px 0}
+.conversation-knowledge-warning{font-size:14px;line-height:1.6;margin:8px 0}
+.conversation-knowledge-selected>li>span{flex:1;min-width:0}.conversation-knowledge-selected-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.conversation-knowledge-selected-actions button{min-height:36px}.conversation-knowledge-preview{margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;min-width:0}
 .conversation-knowledge-picker{margin-top:10px;min-width:0}.conversation-knowledge-picker>label{font-size:14px}
 .conversation-knowledge-search{display:flex;gap:6px;margin-top:5px}.conversation-knowledge-search input{min-width:0;flex:1}
 .conversation-knowledge-search button{display:flex;align-items:center;gap:5px;font-size:14px}

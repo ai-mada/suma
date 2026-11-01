@@ -317,6 +317,9 @@ func generate() (map[string]any, string) {
 	for _, v := range projectKnowledgeModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range knowledgeDiscoveryModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range localizationModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -442,6 +445,7 @@ func generate() (map[string]any, string) {
 	sharedTaskViewContracts(add, api)
 	notificationInboxContracts(add, api)
 	projectKnowledgeContracts(add, api)
+	knowledgeDiscoveryContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)
 	taskHandoffContracts(add, api)
@@ -527,6 +531,22 @@ func generate() (map[string]any, string) {
 				optional = "?"
 			}
 			wireType := ts(f.Type)
+			if t.Name() == "ProjectKnowledgeDiscovery" {
+				switch f.Name {
+				case "Mode":
+					wireType = `"keyword"`
+				case "Scope":
+					wireType = `"current_project_publications"`
+				case "ScanLimit":
+					wireType = "200"
+				}
+			}
+			if (t.Name() == "ProjectKnowledgeDiscoveryHit" || t.Name() == "ProjectKnowledgeDiscoveryQuery") && f.Name == "Kind" {
+				wireType = `"memory" | "spec" | "skill"`
+			}
+			if t.Name() == "ProjectKnowledgeDiscoveryHit" && f.Name == "MatchedField" {
+				wireType = `"none" | "title" | "summary" | "content"`
+			}
 			if t.Name() == "ToolInspection" && f.Name == "State" {
 				wireType = `"pending" | "claimed" | "completed" | "failed" | "unknown" | "expired" | "superseded" | "closed_unknown"`
 			}

@@ -126,7 +126,7 @@ it('routes a planned Cursor catalog entry only to the guide without node discove
   expect(String(input)).toBe('/api/v1/adapter-catalog?project_id='+project);
   return Response.json({project_id:project,as_of:'2026-10-31T06:00:00Z',items:[cursor]});
  });
- const run=vi.fn(async()=>undefined),onRegistered=vi.fn(),onEnable=vi.fn(),onAdvanced=vi.fn(),onWorker=vi.fn(),read=vi.fn(async()=>undefined);
+ const run=vi.fn(async()=>undefined),onRegistered=vi.fn(),onEnable=vi.fn(),onAdvanced=vi.fn(),onWorker=vi.fn(),read=vi.fn(async()=>true);
  const props:ToolQuickConnectProps={project,adapter:cursor,workers:{path:'local',loading:false,error:'',read},sharedWorkers:{path:'shared',loading:false,error:'',read},action:{busy:false,error:'',conflict:false,pending:undefined,deferred:false,setError:vi.fn(),clearError:vi.fn(),defer:vi.fn(),run,restore:vi.fn(async()=>undefined)},onRegistered,onEnable,onAdvanced,onWorker};
  await act(async()=>root.render(<ApiViewProvider session={session}><ToolQuickConnect {...props}/></ApiViewProvider>));await settle();
  expect(host.querySelector<HTMLSelectElement>('[data-quick-tool]')?.value).toBe('cursor-cli');

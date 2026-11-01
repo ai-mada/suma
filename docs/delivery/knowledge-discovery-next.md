@@ -1,56 +1,51 @@
-# 项目知识发现：下一交付切片
+# 下一切片：知识语义投影与外部同步
 
-版本：1.0.0；状态：待实现；负责人：平台集成；依据：T195 当前源码只读审计。当前阶段优先完成工具维护与未知执行核对，本页保留下一知识切片，不代表该能力已交付。
+版本：1.0.0；状态：后续待实现；负责人：平台集成；更新：2026-11-02。本页维护 T196 之后的剩余边界，不将关键词发现与语义索引、同步或模型效果合并验收。
 
-## 已有能力与准确断点
+## T196 已贯通的范围
 
-已验收交付可以形成固定来源，经过模型提案、人工采用草稿、独立发布，再按准确修订进入后续任务。复用[交付知识合同](../../contracts/delivery-knowledge.md)、[知识提炼合同](../../contracts/knowledge-intelligence.md)、[项目知识合同](../../contracts/project-knowledge.md)和[Codex 原生技能合同](../../contracts/codex-native-skills.md)，不重建 T172／T173 的链路。
+已发布 memory／spec／skill 的关键词发现、准确修订预览和明确选入原任务上下文已限定贯通；CLI 与 Agent 复用同一发现合同和当前权限。真实 HTTP／SQLite 链路验证了发布与新草稿隔离、准确引用、不可变历史以及重新发布后旧任务依据拒绝启动。界面最终收口与实际证据以[限定验证报告](../quality/knowledge-discovery-verification.md)为准。
 
-当前断点是：**已发布的记忆、SPEC 和技能尚不能通过统一检索被发现并便捷选入任务上下文**。
+发现接口采用当前读、有界候选扫描和明确 continuation，不提供全项目假 total，也不声称跨请求一致快照。原[合同](../../contracts/knowledge-discovery.md)、[项目知识](../../contracts/project-knowledge.md)、[交付提炼](../../contracts/delivery-knowledge.md)及[原生技能](../../contracts/codex-native-skills.md)继续作为权威；不重建 T172／T173。
 
-| 当前实现 | 具体边界 |
+## 当前仍存在的准确断点
+
+| 当前实现 | 剩余边界 |
 | --- | --- |
-| `searchKeywordsTx`，`internal/platform/search.go` | 只查询 requirements、tasks、issues、documents 四类正式记录，不查询项目知识发布正文。 |
-| `SearchIndex`，`internal/platform/projector.go` | 外部索引命中统一按 documents 读取原件并重新授权，不能据此接受项目知识命中。 |
-| `ProjectIndexes`，同上 | outbox 载荷按 Record 解析；项目知识发布／退役尚未接入带领域来源的投影。 |
-| `CommandProjectKnowledge` | 已有不可变发布／退役、版本、当前来源及操作回执；当前不产生项目知识索引事件。 |
-| `project.search`／`project.knowledge` | 前者复用四类记录搜索，后者要求调用者已知准确 id／revision／sha256；不能替代可发现目录。 |
-| `TaskDispatch` | 通过已发布列表手动选择知识，固定引用进入原预览；当前没有基于任务的知识检索推荐。 |
+| `ProjectIndexes`，`internal/platform/projector.go` | outbox 载荷按 Record 解析，尚未承载项目知识的领域来源与发布修订。 |
+| `SearchIndex`，同上 | 外部命中仍按 documents 原件重新授权，尚不能接受带项目知识身份的语义命中。 |
+| `CommandProjectKnowledge` | 发布／退役已有事务、不可变修订和回执，但尚未同事务生成知识索引事件及退役墓碑。 |
+| `KnowledgeIndex` | LanceDB／OceanBase 索引、版本和墓碑机制可复用，不能仅因包存在宣称知识发布已自动投影。 |
 
-因此，发布成功不能显示为“记忆已自动同步到检索”，索引命中也不能直接显示为“已用于开发”。
+原 `project.search` 四类记录检索、管理目录的 latest／草稿筛选、已发布关键词发现与语义索引各有独立语义。发布成功不等于索引追平，关键词命中不等于向量召回或模型已应用记忆。
 
-## 建议完整交付链路
+## 下一完整纵向切片
 
 ```mermaid
 flowchart LR
-    A[准确发布修订] --> B[检索发现]
-    B --> C[原文与来源预览]
-    C --> D[明确选择准确引用]
-    D --> E[原任务预览与启动复核]
-    E --> F[固定执行上下文与结果证据]
+    A[准确发布或退役] --> B[同事务领域 outbox]
+    B --> C[版本与墓碑幂等投影]
+    C --> D[文本与向量混合召回]
+    D --> E[当前来源重新授权]
+    E --> F[准确定位与显式上下文引用]
 ```
 
-第一步可完成当前 SQL 的已发布正文检索，复用当前权限和来源资格核验，返回准确修订引用与紧凑片段。结果提供类型、来源和发布版本，能够预览并明确选入原任务表单；不自动勾选、调用模型或启动任务。此范围应标为关键词检索，不宣称语义索引已完成。
+1. **领域来源合同。** 明确 tenant／project／来源类型／知识 ID／发布修订／SHA，区分业务变更顺序与发布内容修订；退役不能以修订归零破坏单调顺序。不把知识伪装成 documents Record，不接收调用者自造批准正文。
+2. **事务事件。** 发布、重新发布和退役与原 outbox 事件原子提交，固定事件身份、准确内容及来源版本。原回执重放不重复投影；网络调用在业务事务之外执行，不增加业务派发器。
+3. **幂等投影。** 复用现有 `KnowledgeIndex` 和 LanceDB／OceanBase 适配器，明确领域命名空间、版本、处理／嵌入模型版本及墓碑优先级。重复、乱序和删除后的旧事件不能复活来源；分代重建在完整校验后切换，保留可核对进度与失败项。
+4. **混合检索与当前授权。** 文本和向量结果统一绑定原来源，再按当前租户／项目权限、发布指针、修订、SHA、退役状态和原来源资格重新解析。不能直接信任外部片段、旧索引权限或草稿加速列；后续任务仍由 `resolvePublishedKnowledgeTx` 复核准确引用。
+5. **可解释结果。** 返回准确修订与段落／字符区间等 locator，预览使用原不可变正文。分别展示业务提交位置、实际索引水位、处理版本及查询覆盖；空结果、滞后、部分覆盖和服务失败不混为“项目没有知识”。用户明确选择后才进入原任务上下文，不自动启动模型或任务。
 
-后续语义投影复用原事务 outbox、`KnowledgeIndex`、LanceDB／OceanBase 后端和既有分代／墓碑规则。发布与索引事件同事务保存，来源增加明确领域身份；退役生成墓碑，重复或乱序事件不得复活旧发布。不能把知识伪装成 documents Record，也不能为索引另建业务派发器。
+## 交互与必要验收
 
-检索结果进入界面或模型前，必须按当前项目权限、发布修订、摘要、状态和原来源资格重新解析。草稿正文不能覆盖当前发布正文；新发布、退役、来源变化或撤权必须阻止新采用。索引尚未追平时显示实际覆盖与滞后，不以空结果代表全项目没有知识。
+沿用 T196 的检索、预览与任务选择入口，按需展开“索引状态与来源”，不新增重复配置中心。中文／英文、键盘、窄屏、加载／失败／无权限与旧响应隔离继续复用；原 16 引用、32000 UTF-8 输入及历史证据边界保持。
 
-最终选择沿用 `ProjectKnowledgeReference{id,revision,sha256}`、`resolvePublishedKnowledgeTx` 和原任务预览／启动事务。保留完整修订证据，模型侧继续采用紧凑来源投影与原输入字节上限，不静默删减验收条件。
+验收聚焦新增投影：业务提交后进程中断、重复／乱序事件、退役后旧事件、嵌入版本变化、重建切换、来源更新／撤权后的旧命中，以及准确 locator 与水位。以一个受控发布→投影→检索→预览→原任务引用链证明该切片，不重复关键词发现、提炼或技能物化的未变整套检查。真实 LanceDB／OceanBase 环境与协议夹具分别记证。
 
-## 实施与验收重点
+外部专业记忆同步另行定义连接授权、远端稳定身份、方向、版本冲突、删除传播和原操作恢复；单向索引投影不能冒充双向同步。真实模型应用、随后代码结果与独立质量证据、物理多机、离线协作及其他原生技能格式继续独立交付，不由索引、目录或回合 ACK 推导。
 
-1. 控制面负责准确已发布检索、来源资格、引用解析与原任务接口复用；语义扩展时负责事务事件和投影命名空间。
-2. 界面复用原检索结果、知识详情和任务选择区，保持中文／英文、键盘操作、加载／失败／空态、项目切换及旧响应隔离。
-3. 仅检查新增断点：发布正文与草稿隔离、准确引用、当前权限、来源漂移、退役、重复事件及明确选入；原已通过的提炼和技能物化不重复整套验证。
-4. 真实模型消费与随后代码结果应有独立证据；目录、物化、调用请求和回合 ACK 各自记录，不能推导模型已阅读或质量提升。
+## 范围与证据
 
-外部专业记忆系统、双向／离线同步、其他工具原生技能格式、可执行插件、评测优化及物理多机仍属于独立后续交付范围。
+知识完整待办仍见[实施计划](implementation-plan.md)。58／34／92 是保留范围基线，当前 checkbox 与基线不等，待稳定 ID、需求及证据映射；不据此删减原 31 项需求或关闭完整 P0–P7。
 
-## 证据与范围
-
-本页依据当前控制面、Worker、知识服务和前端消费者的只读审计。T172 已有来源、采用、发布及固定上下文的定向检查；其实际界面证据是受控正式评审来源和只读 HTTP／组件流程，不能代替真实 Git／测试进程与后续厂商执行。T173 已有已安装 CLI 技能目录观察，尚不能证明真实模型应用技能。
-
-知识相关完整待办见[实施计划](implementation-plan.md)的“知识资产语义索引投影、外部记忆同步、可执行插件技能和完整专家策略”。保留的 58／34／92 范围基线与当前 62／36／98 checkbox 数量不等，待建立稳定 ID、需求与证据映射；不据此删减原 31 项需求或宣称整项完成。
-
-*English: This planned slice makes published project memory, SPEC and skills discoverable, previewable and explicitly selectable through the existing task context contract. Current extraction, approval, publication and Codex skill loading are reused. Keyword discovery, semantic projection, external synchronization and verified model use remain distinct deliverables.*
+*English: T196 delivers bounded keyword discovery of eligible published memory, SPEC and skills, exact preview and explicit task-context references, with CLI and Agent consumers. The next slice is typed transactional publication events, idempotent semantic projection with tombstones, currently authorized hybrid retrieval, exact locators and truthful index watermarks. External memory synchronization, verified model application and physical multi-host operation remain separate deliverables.*

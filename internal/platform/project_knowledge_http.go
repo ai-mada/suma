@@ -66,6 +66,9 @@ func projectKnowledgeQuery(r *http.Request) (ProjectKnowledgeListQuery, error) {
 	return out, nil
 }
 func (s *Server) projectKnowledgeHTTP(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, parts []string, m map[string]any) bool {
+	if s.knowledgeDiscoveryHTTP(w, r, actor, project, parts) {
+		return true
+	}
 	if len(parts) == 0 || parts[0] != "project-knowledge" {
 		return false
 	}
