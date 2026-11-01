@@ -1,5 +1,7 @@
 # 开发工具与 Harness 接入矩阵
 
+T-TURN-STEERING-188更新Codex行及[Multica采用记录](multica-turn-steering.md)。其余产品行保留下面明确的T134检查基线，不能用旧的“未发现”描述当前全部源码；后续八类开发协议见[当前开发交接合同](../../contracts/developer-tool-handoff.md)，实际范围仍逐项以专项证据为准。
+
 阶段：T-PLATFORM-DESIGN-134；产品：速码 suma 1.0.0；核查日期：2026-10-29。
 
 本文是增强设计与源码差异说明，不是新增适配器的实现或验收报告。
@@ -40,7 +42,7 @@ MCP、ACP、A2A 各自版本与产品 1.0.0 独立，不增加产品历史兼容
 | Cursor Agent CLI | 本地 headless CLI；JSON/stream-json；指定会话恢复 | 当前工具协议集合未包含 Cursor | 新增独立 CLI 适配；Runner 固定可执行文件、版本、参数与工作树 | 官方页面存在 `agent` 与 `cursor-agent` 命名差异，按实际版本探测；缺专用取消、完整用量与真实任务证据 | [CLI入口](https://prod.cursor.com/help/integrations/cli)、[输出](https://docs.cursor.com/en/cli/reference/output-format)、[参数](https://docs.cursor.com/en/cli/reference/parameters) |
 | Claude Code CLI／Claude Agent SDK | CLI print；官方 Python/TS Agent SDK；可连接 MCP | 未发现 Claude 执行适配；模型 API 接入不等于 Agent SDK | SDK 受控宿主为主，CLI 作为独立入口；约束配置、工具、会话和权限回调 | 需实际版本、鉴权、取消、子代理及费用覆盖；不能转供未经允许的个人订阅登录 | [Headless](https://code.claude.com/docs/en/headless)、[SDK](https://code.claude.com/docs/en/agent-sdk/overview)、[参数](https://code.claude.com/docs/en/cli-reference) |
 | Qoder CLI／ACP／Agent SDK | headless CLI；`qoder --acp` stdio server；官方 Python/TS SDK | 未发现 Qoder 执行适配 | 优先 ACP client 接入，必要时独立 SDK 配置；文件与终端经 suma 宿主授权 | 续接、取消与用量按实际握手核验；官方 ACP 页列 Windows arm64 暂不支持；不默认启用绕过权限模式 | [CLI](https://docs.qoder.com/cli/run-in-scripts)、[ACP](https://docs.qoder.com/cli/acp)、[SDK](https://docs.qoder.com/cli/sdk/overview) |
-| Codex app-server／CLI | app-server stdio 的线程/轮次协议；CLI JSONL 为另一入口 | 已有 `codex-app-server-v1` 与独立 `codex-jsonl-v1` 协议合同 | 继续维护明确绑定的 app-server 路线；新能力逐项扩展原合同 | 当前 app-server 为 observe-only；开始回执丢失不自动 resume；取消 ACK 不等于进程停止 | [官方 app-server](https://developers.openai.com/codex/app-server/) |
+| Codex app-server／CLI | app-server stdio线程／轮次协议；CLI JSONL为另一入口 | T188更新：明确on-request工具权限、T187显式实验性问答、T188同活turn追加已保存本人消息；独立codex-jsonl-v1入口继续保留 | 原Runner／Journal／单writer、当前模型预算及受保护任务运行；[当前合同](../../contracts/turn-steering.md) | [真实CLI＋自有模型限定验证](../quality/turn-steering-verification.md)；未知写不重发，持久thread恢复未实现，取消ACK不等于停止；厂商账户与生产另验 | [官方app-server](https://learn.chatgpt.com/docs/app-server) |
 | WorkBuddy 云任务 | OAuth Open API 创建/查询任务；ACP SSE＋JSON-RPC；会话产物 | 未发现 WorkBuddy 云任务执行适配，不能以 CodeBuddy CLI 代替 | 新增 `workbuddy-cloud`，映射供应方 task/session 与 suma run，凭据由服务端管理 | 文档未明确创建幂等和取消请求合同；需真实授权、未知创建核对、云产物导入与独立测试 | [Open API](https://open.workbuddy.cn/docs/openapi) |
 | WorkBuddy 连接器 | WorkBuddy 通过 MCP＋Skill 或 CLI＋Skill 调用第三方 | suma 有项目 MCP 基础，不代表完整 WorkBuddy connector 已接通 | 发布明确权限的 suma MCP/CLI 连接器，单独登记反向入口 | 此方向不证明 suma 可派发 WorkBuddy；需要连接器安装、登录与项目授权实际旅程 | [连接器](https://open.workbuddy.cn/docs/connector) |
 | CodeBuddy CLI | print／stream-json；持续输入、指定会话恢复 | 已有 `codebuddy/codebuddy-jsonl-v1` 与限定 decoder | 沿原固定 profile 增补经过验证的交互和会话能力 | 新后台子任务不能套用现有终态假设；完整续接、用量、取消与厂商任务仍需实测 | [CLI参考](https://www.codebuddy.ai/docs/cli/cli-reference)、[Headless](https://www.codebuddy.ai/docs/cli/headless) |

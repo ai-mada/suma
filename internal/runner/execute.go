@@ -140,6 +140,7 @@ type ExecConfig struct {
 	ToolPermission                        func(context.Context, pc.Request) (pc.Decision, error)
 	ToolPermissionPoll                    func(context.Context, string) (pc.Permission, error)
 	ToolInputClient                       *Client
+	SteeringClient                        *Client
 	ToolInputProfile                      string
 	WorkspaceProgress                     func(wc.Event) error
 	ToolInventory                         []tc.Observation
@@ -869,6 +870,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				}
 				if err = codexDriver.configureUserInputs(ctx, codexToolInputHandler(a, cfg)); err != nil {
 					return fail("Codex user input handler is unavailable")
+				}
+			}
+			if cfg.Journal != nil && cfg.SteeringClient != nil {
+				if err = codexDriver.configureSteering(ctx, codexSteeringTransport(a, cfg, profile)); err != nil {
+					return fail("Codex live steering transport is unavailable")
 				}
 			}
 			if err = codexDriver.configureSkills(skillBundle, skillEvidence); err != nil {

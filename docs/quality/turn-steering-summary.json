@@ -1,0 +1,381 @@
+{
+  "stage": "T-TURN-STEERING-188",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "原讨论本人human消息旁新增明确发送入口；单一权威context固定原文、准确任务版本、真实活session及历史，选择目标后单独提交原ID与CAS，不重复输入正文。",
+    "原配置与turn ACK后才由当前机器公布准确live source；普通／Pool共用当前完整Assignment、profile／模型绑定、原DAG与工作区，非任务执行明确返回正常无cap结果。",
+    "两窄表与原事务回执管理Session及Instruction，同session同message唯一／最多32，当前人资格、原任务运行、权限／预算／pause与lease沿旧成熟边界复核。",
+    "原Journal、递增client请求ID与单writer接独立steer ACK；保存、观察、开始写、完整写、原生接受／拒绝、关闭和unknown分别记录，未知不native重发、不新建或恢复回合。",
+    "原native关闭后，closed Poll读取最终尾项并准确保留未派发记录；观察／关闭原HTTP先Result重放，成功结果必须与持久化原指令全量闭合匹配。",
+    "原讨论正文上限32,000UTF8字节／8,000Unicode字符完整复用；中英界面、原scope恢复、独立busy锁、390px与键盘交互接通。",
+    "Multica采用记录、开发工具矩阵当前Codex行、主架构HTML及产品／架构／数据／交互／English设计同步，原旧表其他产品行明确标历史核查基线。"
+  ],
+  "verification": {
+    "distinct_top_level": 31,
+    "new_top_level": 28,
+    "affected_existing_top_level": 3,
+    "go_subcases": 24,
+    "platform_top_level": 7,
+    "runtime_top_level": 8,
+    "actual_cli_top_level": 1,
+    "web_top_level": 11,
+    "root_top_level": 4,
+    "final_types_exit": 0,
+    "paired_i18n_keys": 8803,
+    "hardcodes": 0,
+    "isolated_production_component_builds": 1,
+    "synthetic_gui_checks": 3,
+    "root_viewed_images": 2,
+    "native_gui_exit": 0,
+    "actual_cli": {
+      "command_attempts": 1,
+      "native_steers": 1,
+      "same_turn_acks": 1,
+      "complete_message_in_next_model_input": true,
+      "native_startups": 2,
+      "owned_model_requests": 2,
+      "commercial_calls": 0,
+      "user_credentials": false,
+      "normal_exit": 0,
+      "pid_absent": true
+    }
+  },
+  "retained_failures": [
+    "平台首次测试遇并行Runtime entry字段中间态编译阻断；其余夹具先触发缺合法managed计划、原协议成功字段及pause明确409预期，均只修准确夹具／预期，不弱化生产门。",
+    "平台closed-tail夹具显式Rollback后漏释放自有连接，原测试已精确停止并留非0证据；补cleanup后只重受影响3top通过，不称生产死锁。",
+    "独立Runtime窄审修复1项P2：无效JSON-RPC error.code可误判确定拒绝。固定规范安全整数code及string message，无效ACK保留unknown；只新增原malformed_error子例并复验受影响分支。",
+    "Web新增消费者捕获原操作恢复的刷新门错误，精确修复并只重原2红；32k边界仅重原源与父消费者。首次最终types、词条、隔离构建与GUI均通过，没有重复全套。"
+  ],
+  "boundaries": [
+    "真实安装CLI使用固定0.166.0-alpha.5.1及原SHA，生产driver／Client／Journal是真实现；Responses模型与控制HTTP均为自有fixture，无商业调用、无用户凭据。平台SQL／浏览器当前授权在另一真实HTTP／SQLite层验证，不能合称一次真实厂商全App验收。",
+    "实际旅程一次通过，只有一条native turn/steer与同turn ACK，后续owned模型请求含完整原消息；2CLI进程为新配置只读catalog与活turn各1，首模型请求被正常steer取消，不是故障重试。原Open／观察重复HTTP均为同key恢复，未重复native指令。",
+    "GUI使用真实TaskConversation父／Panel／Card，账号、任务与HTTP为合成；恢复及历史明确是父级harness。3代表检查／两张Root查看视口图／正常原生退出，不是完整登录App或客户验收。",
+    "当前原生steering针对受保护TaskDispatchPlan选定的开发Agent节点，包含沿该计划的讨论交接与专家团队任务；普通非任务或其他节点不伪造能力。其他工具／Harness、持久旧thread／多turn恢复、安全秘密输入等仍需独立交付。",
+    "原生接受只证明接收，不证明模型遵从、代码质量、独立测试、人工验收或生产发布；追加输入不能改原正式验收基线或授予新权限。",
+    "未重复SDK、版本／feature／Schema导出、全套或安装矩阵；当前实库为SQLite。OceanBase／PostgreSQL、物理多机、其他OS安装、规模／生产与原31／P0–P7／58限定／34待交付／92总账继续，原171显式停止GUI缺口保持。",
+    "两份无关本地历史审计原SHA保持且不提交；缓存、数据库、日志、截图、私有home、依赖与二进制不进Git。"
+  ],
+  "contract_changes": {
+    "new_schemas": [
+      "CodexSteeringEvidence",
+      "CodexSteeringInstructionEvidence",
+      "CodexSteeringObservation",
+      "CodexSteeringSource",
+      "PoolSteeringCloseRequest",
+      "PoolSteeringObservationRequest",
+      "PoolSteeringPollRequest",
+      "PoolSteeringSessionOpenRequest",
+      "SteeringCloseRequest",
+      "SteeringContext",
+      "SteeringCreateRequest",
+      "SteeringInstruction",
+      "SteeringMessage",
+      "SteeringObservationRequest",
+      "SteeringOpenResult",
+      "SteeringPoll",
+      "SteeringPollRequest",
+      "SteeringSession",
+      "SteeringSessionOpenRequest"
+    ],
+    "new_paths": [
+      "/pool-runner/steering/close",
+      "/pool-runner/steering/observations",
+      "/pool-runner/steering/poll",
+      "/pool-runner/steering/sessions",
+      "/runner/steering/close",
+      "/runner/steering/observations",
+      "/runner/steering/poll",
+      "/runner/steering/sessions",
+      "/task-execution-steering",
+      "/tasks/{id}/execution-steering"
+    ],
+    "changed_schemas": [
+      "CodexEvidence"
+    ],
+    "changed_existing_operations": []
+  },
+  "owner_sources": [
+    {
+      "path": "internal/platform/turn_steering.go",
+      "sha256": "da2706ecd38aa99d2ffd2b6fb7a21749b857ae5788b12d79aa84954c45591206",
+      "bytes": 12289
+    },
+    {
+      "path": "internal/platform/turn_steering_store.go",
+      "sha256": "cc5b1247cf7231b84b3d5a9462770f69f9418ea1cad3190cde07d079167592ab",
+      "bytes": 13252
+    },
+    {
+      "path": "internal/platform/turn_steering_read.go",
+      "sha256": "c7cd93785d785cbabaccbadc47555ee353e9a970e6af8568f5489f5a0ed43b15",
+      "bytes": 8934
+    },
+    {
+      "path": "internal/platform/turn_steering_observation.go",
+      "sha256": "a4a2ffc95f6d0f2d13b370326c64f14a1b0ec8f2c219d2206bb45fcc8002a370",
+      "bytes": 9742
+    },
+    {
+      "path": "internal/platform/turn_steering_http.go",
+      "sha256": "f84265a567918deb76a3f833727dd4da39920c13dd4a6dafa2ffb4e19f3b403b",
+      "bytes": 8114
+    },
+    {
+      "path": "internal/platform/turn_steering_test.go",
+      "sha256": "419ead4b98437b5216509c4d03abd16d474c592e7a967272e1780487f26ea9e2",
+      "bytes": 23725
+    },
+    {
+      "path": "internal/platform/database.go",
+      "sha256": "5fe69dfeff8effc6bc4f537f59bdb9af0b0f651e6e1557de29f05d391de7a26f",
+      "bytes": 13668
+    },
+    {
+      "path": "internal/platform/http.go",
+      "sha256": "4234c187cb840466129f6e225790bcdbe8f03107e2a3336d33a5009333b76aac",
+      "bytes": 52636
+    },
+    {
+      "path": "internal/platform/pool_runner_http.go",
+      "sha256": "422b9016fde73bd5bcd86be5aa0bf7c18ab303e461fb27e82fdd8ea25a416188",
+      "bytes": 16592
+    },
+    {
+      "path": "internal/platform/usage_accounting_hooks.go",
+      "sha256": "4558df1b46a9979553ba5e423243a3c3f65a1b134d473d8dc16e461d273e487c",
+      "bytes": 23069
+    },
+    {
+      "path": "internal/runner/tool_steering.go",
+      "sha256": "fb0bdf911e9c8391c80989623051ad6425c4862360df666d8283756ec66829f6",
+      "bytes": 20208
+    },
+    {
+      "path": "internal/runner/tool_steering_test.go",
+      "sha256": "2a669766851f05f3b478659e93a8afcdeaa491a5510f00a7ecf078b7cb8a8ea0",
+      "bytes": 18432
+    },
+    {
+      "path": "internal/runner/codex_appserver_steering.go",
+      "sha256": "8b2b5b6db5c1208617116fb7b8328fd896b4c8c67d76b43ae04ccb0f7cb2ac83",
+      "bytes": 16083
+    },
+    {
+      "path": "internal/runner/codex_appserver_steering_test.go",
+      "sha256": "4a930cb28e0b22f8caf4f6c40caed64e925e410fca5b3738a6f1d6f07063f88f",
+      "bytes": 9492
+    },
+    {
+      "path": "internal/runner/codex_appserver.go",
+      "sha256": "7e4a4a8cbe8c5b908ce96c81f7aa215dc2efd97346cdcec930d9a5af537ca8f1",
+      "bytes": 22549
+    },
+    {
+      "path": "internal/runner/execute.go",
+      "sha256": "85c2e35bef24d75f1f77f3cdb2fb469e7f9e22e17e96242e0fa6ee52a948349b",
+      "bytes": 46573
+    },
+    {
+      "path": "internal/runner/journal.go",
+      "sha256": "f80cd29ff5573813bf084a93b6bb7d7e1fdbc34c442c5b9a1fdd24cf9dd1a001",
+      "bytes": 15986
+    },
+    {
+      "path": "internal/runner/worker.go",
+      "sha256": "9fb020d06a4c1ee7a1853912ce63c0a774bde5804176a3b5fe1076bf409117e4",
+      "bytes": 7607
+    },
+    {
+      "path": "internal/runner/client.go",
+      "sha256": "3ee7ef206648b72237bdc3f8a0c9d43fbbf65aee3e2864d583c38c56712bff5c",
+      "bytes": 4822
+    },
+    {
+      "path": "internal/runner/pool_client.go",
+      "sha256": "ce71f732eca2333bf3f433f9d732138b9c7e79d98f16f1696a6b42e3925ddf31",
+      "bytes": 5153
+    },
+    {
+      "path": "internal/runner/workbuddy_cloud_journal.go",
+      "sha256": "9fb081dc23d0ed5b77e3a289b7275a4d2d97c8507d91ee6c16f60c0d7d5bb30d",
+      "bytes": 12312
+    },
+    {
+      "path": "internal/runner/codex_steering_actual_test.go",
+      "sha256": "f0aaa574c74959be83baa6aa089fd695356f179da446be227d94f473c34aa2d3",
+      "bytes": 19984
+    },
+    {
+      "path": "apps/web/src/turn-steering-model.ts",
+      "sha256": "f10446b825453f831d8502c438f8d171752085244661092f734b8775535b6205"
+    },
+    {
+      "path": "apps/web/src/turn-steering-model.test.ts",
+      "sha256": "51f59282a121f17d8cacb5bd16ede3cc5695c5e6cb48ac770091011dbcf7dccb"
+    },
+    {
+      "path": "apps/web/src/turn-steering.test-support.ts",
+      "sha256": "3980be6ccf0f8b3a74fd2f399b8c75104eeb11cc7eb60f4b5cb78c527cfb0a55"
+    },
+    {
+      "path": "apps/web/src/TurnSteeringCard.tsx",
+      "sha256": "adc4d213ac99fb40f52ca56b9a0ac6b6cf2d509ddbfb43a22fc4c7889c714fda"
+    },
+    {
+      "path": "apps/web/src/TurnSteeringCard.css",
+      "sha256": "a3cf6dea6e2e3d0857a1c136533ce7e0b5320ed78ed4962955feca392356a420"
+    },
+    {
+      "path": "apps/web/src/TurnSteeringCard.test.tsx",
+      "sha256": "dc6155186b5880ef9849328a0a836eafef206aa358b410b9d0f6b18a20c497c2"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/turn-steering.zh-CN.json",
+      "sha256": "08231ffe0eeb16b89aa709134e2ed4ab799d3198ae85f9122123043f0bf97d11"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/turn-steering.en-US.json",
+      "sha256": "9e21b0fe7ddab1bd713e02fc6cb39d67fb6ae15de001e3a3aa6b45c3003733a0"
+    },
+    {
+      "path": "apps/web/src/TurnSteeringPanel.tsx",
+      "sha256": "5bac755b4595c5867ce1469dacaa930ad30c9bb92a72ef612132f269661375dc"
+    },
+    {
+      "path": "apps/web/src/TurnSteeringPanel.css",
+      "sha256": "d24e932ffc009a801f8899086fddf3ffb9253f9218a245e459a01f263120bb7d"
+    },
+    {
+      "path": "apps/web/src/TurnSteeringPanel.test.tsx",
+      "sha256": "ea5873b3ca8d8016ccf216947a5e17e2f3d0efa3c94948736f02f26cd301d725"
+    },
+    {
+      "path": "apps/web/src/TaskConversation.tsx",
+      "sha256": "9eaef5ad0069d78fae6836005a0e282171d4c9efe38a8fe24a500cc3c840bbc8"
+    },
+    {
+      "path": "apps/web/src/TaskConversation.css",
+      "sha256": "d33972e9430c2c94681251ff0053de040ea2235fc53b7d461d907892b2fd5883"
+    },
+    {
+      "path": "apps/web/src/TaskConversationSteering.test.tsx",
+      "sha256": "457bd898602e629971549705f304faa9bbec6368efb8f11f5d18baf8d6777b9b"
+    },
+    {
+      "path": "docs/product/turn-steering.md",
+      "sha256": "cd4db8fdf471a354ef69e082db08a0757bcb31ba4e692a5d33fcee4c95c5504e",
+      "bytes": 4549,
+      "lines": 46,
+      "replacement_character": false,
+      "mermaid": 0
+    },
+    {
+      "path": "docs/architecture/turn-steering.md",
+      "sha256": "d476d2b0e0d42a1183e201c5663bd9b5699fa1510e2255fe3d86a45d7602a482",
+      "bytes": 9435,
+      "lines": 71,
+      "replacement_character": false,
+      "mermaid": 1
+    },
+    {
+      "path": "docs/design/turn-steering.md",
+      "sha256": "92e66441a5b1f028a921d3238f2a846b9a0a27bc7deea05048e8a27fc86f2bdd",
+      "bytes": 5011,
+      "lines": 47,
+      "replacement_character": false,
+      "mermaid": 0
+    },
+    {
+      "path": "docs/en/turn-steering.md",
+      "sha256": "7e0b3f004c18a27e7a405a940583cc3ae6193bde3a28d360f67f2168e37c02e6",
+      "bytes": 10565,
+      "lines": 61,
+      "replacement_character": false,
+      "mermaid": 0
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/turn-steering-188/platform/summary.json",
+      "sha256": "8780d30c970da7a2d0e0f578a7b6492105c3a3488dcddd41c39e374fbcc2f639"
+    },
+    {
+      "path": ".cache/turn-steering-188/platform/source-manifest.json",
+      "sha256": "55dd68b30c288c9068297c5dce50229c520f3d5c75e546ccda3090cd9feba028"
+    },
+    {
+      "path": ".cache/turn-steering-188/platform/EVIDENCE.md",
+      "sha256": "bc92f33c6df2653c6cc262c0041c226dc08157e00747c82272b2d275c6be7231"
+    },
+    {
+      "path": ".cache/turn-steering-188/runtime/summary.json",
+      "sha256": "bafda17828b55a89b66058b6078c6af6b9cc4ab7d2982f3c7746f78468cb0264"
+    },
+    {
+      "path": ".cache/turn-steering-188/runtime/source-manifest.json",
+      "sha256": "44412477005db3262fed28ad1e8bf796a38623166be807fcad2df7fb583eef2f"
+    },
+    {
+      "path": ".cache/turn-steering-188/actual/summary.json",
+      "sha256": "317340edc972311614db7064890eb927a413dc74d53d3ad14e743bae816e4678"
+    },
+    {
+      "path": ".cache/turn-steering-188/actual/source-manifest.json",
+      "sha256": "2430c50be3effb85595f01accd238e511695ce680cb10aa76141ef7f7d21bae5"
+    },
+    {
+      "path": ".cache/turn-steering-188/actual/evidence-manifest.json",
+      "sha256": "8051af0410c95f3b2395d7bcd88538ac59cf097721fd224fcdb95000976ca419"
+    },
+    {
+      "path": ".cache/turn-steering-188/web/integration-summary.json",
+      "sha256": "9247fac0fa2c1b39e9e8d2307115858718b4fac768a49a4a54fcf5fb781b33f4"
+    },
+    {
+      "path": ".cache/turn-steering-188/web/panel-summary.json",
+      "sha256": "c792a06924577fa294ac4e69557c1e464c2a4c22bf1c22cc002c0079aa642f80"
+    },
+    {
+      "path": ".cache/turn-steering-188/docs/manifest.json",
+      "sha256": "2640a2ee8f6e6693cff6e1491721dfc938b8094b8cca8d7b59373dcfa11ab720"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T073404556Z.command.json",
+      "sha256": "6bcc745785eb12a7662c856e3bc64a461a8ad4306685a2a35b4b9dfc59689ab7"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T074001473Z.command.json",
+      "sha256": "ce54f40d81fb1d2a593cf42797b77ac9f8fa4c973b02c81c4933c01d016a6833"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T074001564Z.command.json",
+      "sha256": "18c705256134544d45ff7b725c2439130bf7d9016b3a3f8f553703c2583fe122"
+    },
+    {
+      "path": ".cache/turn-steering-188/types.command.json",
+      "sha256": "384143a75be694b0848d6d6515d48e1c50b509c3b58e8359e1131eec52106d2e"
+    },
+    {
+      "path": ".cache/turn-steering-188/i18n.command.json",
+      "sha256": "668b830ebed04c4c9e982b5dbe33a57cc3650ecff8767d22d2eb5e7df45d5d47"
+    },
+    {
+      "path": ".cache/turn-steering-188/build.command.json",
+      "sha256": "e4c2d0db9ac1407ab94712723e207b809378558c5394cee95d833bb9fae982d5"
+    },
+    {
+      "path": ".cache/turn-steering-188/visual/result.json",
+      "sha256": "4fcbcf60a74aa205b24f82f087f980b891899d93b148a4ad24215d23b2923b9c"
+    }
+  ]
+}

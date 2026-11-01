@@ -31,6 +31,7 @@ type entry struct {
 	Cloud             *cloudExecutionCheckpoint          `json:"workbuddy_cloud,omitempty"`
 	ToolPermissions   *toolPermissionExecutionCheckpoint `json:"tool_permissions,omitempty"`
 	ToolInputs        *toolInputExecutionCheckpoint      `json:"tool_inputs,omitempty"`
+	Steering          *steeringExecutionCheckpoint       `json:"steering,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -99,6 +100,14 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if err = validSteeringCheckpoint(e.Assignment, e.Steering); err != nil {
+			return nil, err
+		}
+		if e.Steering != nil && !e.Steering.NotTaskExecution && !e.Steering.CloseRequested {
+			e.Steering.CloseRequested = true
+			e.Steering.CloseOperation = operationID()
+			j.entries[k] = e
+		}
 		if err = validToolInputCheckpoint(e.Assignment, e.ToolInputs); err != nil {
 			return nil, err
 		}

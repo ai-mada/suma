@@ -57,6 +57,7 @@ type CodexBinding struct {
 type CodexEvidence struct {
 	Approvals                   []CodexApprovalEvidence  `json:"approvals,omitempty"`
 	UserInputs                  []CodexUserInputEvidence `json:"user_inputs,omitempty"`
+	Steering                    *CodexSteeringEvidence   `json:"steering,omitempty"`
 	Skills                      *ExecutionSkillEvidence  `json:"skills,omitempty"`
 	BindingSHA256               string                   `json:"binding_sha256"`
 	ThreadID                    string                   `json:"thread_id,omitempty"`
@@ -114,6 +115,17 @@ func CloneEvidence(e *Evidence) *Evidence {
 	}
 	copy := *e
 	copy.Skills = CloneExecutionSkillEvidence(e.Skills)
+	if e.Steering != nil {
+		steering := *e.Steering
+		steering.Instructions = append([]CodexSteeringInstructionEvidence{}, e.Steering.Instructions...)
+		for i := range steering.Instructions {
+			if steering.Instructions[i].Observation != nil {
+				observation := *steering.Instructions[i].Observation
+				steering.Instructions[i].Observation = &observation
+			}
+		}
+		copy.Steering = &steering
+	}
 	copy.Approvals = append([]CodexApprovalEvidence(nil), e.Approvals...)
 	copy.UserInputs = append([]CodexUserInputEvidence(nil), e.UserInputs...)
 	for i := range copy.UserInputs {
@@ -199,6 +211,9 @@ func ValidateBinding(b Binding) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
+	if e.Steering != nil && (ValidateSteeringEvidence(*e.Steering) != nil || !e.ConfigurationAcknowledged || e.Steering.Source.BindingSHA256 != e.BindingSHA256 || e.Steering.Source.ThreadID != e.ThreadID || e.Steering.Source.TurnID != e.TurnID) {
+		return fmt.Errorf("Codex steering evidence differs from its original turn")
+	}
 	if len(e.Approvals)+len(e.UserInputs) > 32 || len(e.Approvals)+len(e.UserInputs) > 0 && !e.ConfigurationAcknowledged {
 		return fmt.Errorf("Codex approval evidence is invalid")
 	}

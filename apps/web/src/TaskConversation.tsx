@@ -17,6 +17,7 @@ import type {KnowledgeReference} from './knowledge-model';
 import {TaskConversationReply} from './TaskConversationReply';
 import {TaskSubscriptionControl} from './TaskSubscriptionControl';
 import {CloudHistorySharedSource} from './CloudHistorySharedSource';
+import {TurnSteeringPanel} from './TurnSteeringPanel';
 import './TaskConversation.css';
 
 type Props = {session: Session; project: string; taskId: string; refresh: number; accessBlocked: boolean;
@@ -45,6 +46,8 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   const [invalidDraft, setInvalidDraft] = useState(!!restored.current.invalid), [draftStorageFailed, setDraftStorageFailed] = useState(false);
   const [mentionValidity, setMentionValidity] = useState<{key: string; valid: boolean}>();
   const [revoked, setRevoked] = useState(false), [accessRetry, setAccessRetry] = useState(0), [replyLocked, setReplyLocked] = useState(false);
+  const [steerMessage, setSteerMessage] = useState(''), [steerLocked, setSteerLocked] = useState(false);
+  const steeringRegion = useRef<HTMLDivElement>(null);
   const [saved, setSaved] = useState<TaskConversationMessage>(), [blocked, setBlocked] = useState(false);
   const action = useWriteAction({scope: 'task-conversation:' + scope, storage: toolSessionStorage(),
     validateRequest: request => validConversationRequest(request, project, taskId),
@@ -60,11 +63,12 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   const selectedIDs = Array.isArray(action.pending?.body.mention_resource_ids) ? action.pending.body.mention_resource_ids as string[] : action.pending ? [] : mentionIDs;
   const selectedKnowledge = Array.isArray(action.pending?.body.knowledge) ? action.pending.body.knowledge as KnowledgeReference[] : action.pending ? [] : knowledge;
   const locked = action.busy || !!action.pending;
+  const interactionLocked = locked || replyLocked || steerLocked;
   const denied = accessBlocked || !!read.denied || !!located.denied || writeDenied || revoked;
   const page = denied ? undefined : read.page;
   const draftField = useRef<HTMLTextAreaElement>(null), continuationReady = useRef(false);
   continuationReady.current = !!page && page.project_id === project && page.task_id === taskId && page.can_post &&
-    !denied && !locked && !replyLocked && !invalidDraft && !draftStorageFailed && !action.conflict && !action.persistenceBlocked &&
+    !denied && !interactionLocked && !invalidDraft && !draftStorageFailed && !action.conflict && !action.persistenceBlocked &&
     !read.loading && !read.error && !located.loading && !located.error;
   const continueDevelopment = useCallback(() => {
     const field = draftField.current;
@@ -87,6 +91,8 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   }, [storage, draftKey, draft, mentionIDs, knowledge, invalidDraft]);
   useEffect(() => { if (selectedMessage) setOpen(true); }, [selectedMessage]);
   useEffect(() => { if (action.pending) setOpen(true); }, [!!action.pending]);
+  useEffect(() => { if (steerLocked) setOpen(true); }, [steerLocked]);
+  useEffect(() => { if (steerMessage && !denied) {steeringRegion.current?.focus(); steeringRegion.current?.scrollIntoView?.({block: 'nearest'});} }, [steerMessage, denied]);
   // A rejected write revokes the visible read owner too. In-flight GETs are
   // cancelled/ignored, and another local diagnostic cannot clear this boundary.
   useEffect(() => { if (writeDenied || read.denied || located.denied) { setSaved(undefined); setRevoked(true); onAccessDenied?.(); } }, [writeDenied, read.denied, located.denied, onAccessDenied]);
@@ -107,7 +113,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   }
 
   function toggle() {
-    if (open && (text || selectedIDs.length || selectedKnowledge.length || invalidDraft || draftStorageFailed || locked || replyLocked)) { setBlocked(true); return; }
+    if (open && (text || selectedIDs.length || selectedKnowledge.length || invalidDraft || draftStorageFailed || interactionLocked)) { setBlocked(true); return; }
     setOpen(value => !value); setBlocked(false);
   }
   function follow(event: MouseEvent<HTMLAnchorElement>) {
@@ -122,7 +128,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (locked || denied || invalidDraft || !mentionsReady || !knowledgeReady || !page?.can_post || !validConversationBody(draft)) return;
+    if (interactionLocked || denied || invalidDraft || !mentionsReady || !knowledgeReady || !page?.can_post || !validConversationBody(draft)) return;
     setSaved(undefined); const caller = api;
     await acknowledged(await action.run<TaskConversationMessage>('/task-conversations', {
       project_id: project, task_id: taskId, expected_task_version: page.task_version, body: draft,
@@ -142,12 +148,16 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   }
 
   function renderMessage(message: TaskConversationMessage) {
+    const ownHuman = message.actor_kind === 'human' && message.author_id === session.user.id;
     return <li key={message.id} id={bodyID + '-message-' + message.id} tabIndex={-1}
       className={message.id === selectedMessage ? 'is-located' : ''} data-conversation-message={message.id}>
       <article><header><strong>{message.author_name || t('unknown_author')}</strong>
         <span className="task-conversation-actor">{t('actor.' + message.actor_kind)}</span>
         <time dateTime={message.created_at}>{formatDateTime(message.created_at, {dateStyle: 'short', timeStyle: 'short'})}</time></header>
         <p className="task-conversation-message-text">{message.body}</p>
+        {ownHuman && <div className="task-conversation-message-actions"><button type="button" data-conversation-steer={message.id}
+          aria-pressed={steerMessage === message.id} disabled={interactionLocked || denied || !page?.can_post}
+          onClick={() => {if (alive.current && owner.current === api && !interactionLocked && !denied && page?.can_post) setSteerMessage(message.id);}}>{tr('turn-steering.entry')}</button></div>}
         {message.cloud_observation&&<CloudHistorySharedSource source={message.cloud_observation}/>}
         {!!message.mentions?.length && <div className="task-conversation-recorded-mentions"><small>{mt('recorded')}</small><ul aria-label={mt('recorded')}>{message.mentions.map(mention => <li key={mention.resource_id}>{mention.name_at_post || mention.resource_id}</li>)}</ul></div>}
         <RecordedConversationKnowledge project={project} items={message.knowledge} refresh={refresh + accessRetry} onAccessDenied={directoryDenied}/>
@@ -164,20 +174,21 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
 
   return <section className="task-conversation" aria-label={t('title')}>
     <div className="task-conversation-heading"><h3><button type="button" className="task-conversation-toggle" aria-expanded={open}
-      aria-controls={bodyID} disabled={open && (locked || replyLocked)} onClick={toggle} data-conversation-toggle>
+      aria-controls={bodyID} disabled={open && interactionLocked} onClick={toggle} data-conversation-toggle>
       <MessageSquare size={15} aria-hidden="true"/><span>{t('title')}</span>
       <ChevronDown size={15} className={open ? 'is-open' : ''} aria-hidden="true"/>
     </button></h3><TaskSubscriptionControl session={session} project={project} taskId={taskId} refresh={refresh+accessRetry} accessBlocked={denied} onAccessDenied={directoryDenied}/></div>
     {blocked && <p className="task-conversation-warning" role="status">{t('draft_guard')}</p>}
-    {open && <div id={bodyID} className="task-conversation-body" aria-busy={!!read.loading}>
+    <div id={bodyID} className="task-conversation-body" hidden={!open} aria-busy={!!read.loading}>
+      {open && <>
       <p className="task-conversation-hint">{t('boundary')}</p>
-      {draftStorageFailed && <div className="task-conversation-warning" role="alert"><p>{mt('draft_storage')}</p><button type="button" disabled={locked} onClick={() => retryDraftStorage()}>{mt('retry_draft')}</button></div>}
-      {invalidDraft && <div className="task-conversation-warning" role="alert"><p>{mt('draft_invalid')}</p><button type="button" disabled={locked} onClick={() => retryDraftStorage(true)}>{mt('clear_saved_draft')}</button></div>}
+      {draftStorageFailed && <div className="task-conversation-warning" role="alert"><p>{mt('draft_storage')}</p><button type="button" disabled={interactionLocked} onClick={() => retryDraftStorage()}>{mt('retry_draft')}</button></div>}
+      {invalidDraft && <div className="task-conversation-warning" role="alert"><p>{mt('draft_invalid')}</p><button type="button" disabled={interactionLocked} onClick={() => retryDraftStorage(true)}>{mt('clear_saved_draft')}</button></div>}
       {denied ? <div role="alert" className="task-conversation-warning"><p>{t('access_changed')}</p>
         {!accessBlocked && <button type="button" onClick={() => { action.setError(''); setRevoked(false); setAccessRetry(value => value + 1); }}>{t('check_access')}</button>}
         {accessBlocked && <p>{t('check_parent_access')}</p>}
         {dirty && !action.pending && <p>{t('private_draft')}</p>}
-        {(!!text || !!selectedIDs.length || !!selectedKnowledge.length) && <button type="button" disabled={locked} onClick={clearDraft}>{t('clear_draft')}</button>}
+        {(!!text || !!selectedIDs.length || !!selectedKnowledge.length) && <button type="button" disabled={interactionLocked} onClick={clearDraft}>{t('clear_draft')}</button>}
         {action.pending && <p>{t('pending_hint')}</p>}
       </div> : <>
         <WriteNotice action={action} onRebase={reloadBasis}/>
@@ -203,25 +214,31 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
             <label htmlFor={bodyID + '-draft'}>{t('draft_label')}</label>
             <small className="task-conversation-hint">{t('task_version', {version: formatNumber(page.task_version)})}</small>
             <textarea ref={draftField} id={bodyID + '-draft'} name="conversation_body" value={text} maxLength={16000}
-              rows={3} disabled={locked || invalidDraft || !page.can_post || action.conflict} placeholder={t('placeholder')}
+              rows={3} disabled={interactionLocked || invalidDraft || !page.can_post || action.conflict} placeholder={t('placeholder')}
               aria-describedby={bodyID + '-hint'} onChange={event => {setDraft(event.target.value); setSaved(undefined);}}/>
             <TaskConversationMentions project={project} taskID={taskId} userID={session.user.id} organizationID={session.organization.id}
-              selectedIDs={selectedIDs} onChange={ids => {setMentionIDs(ids); setSaved(undefined);}} disabled={locked || invalidDraft || !page.can_post || action.conflict}
+              selectedIDs={selectedIDs} onChange={ids => {setMentionIDs(ids); setSaved(undefined);}} disabled={interactionLocked || invalidDraft || !page.can_post || action.conflict}
               accessBlocked={denied} refresh={refresh + accessRetry} onValidityChange={changeValidity} onAccessDenied={directoryDenied}/>
             <TaskConversationKnowledge project={project} taskID={taskId} userID={session.user.id} organizationID={session.organization.id}
-              selected={selectedKnowledge} onChange={pins => {setKnowledge(pins);setSaved(undefined);}} disabled={locked || invalidDraft || !page.can_post || action.conflict}
+              selected={selectedKnowledge} onChange={pins => {setKnowledge(pins);setSaved(undefined);}} disabled={interactionLocked || invalidDraft || !page.can_post || action.conflict}
               accessBlocked={denied} refresh={refresh + accessRetry} onValidityChange={changeKnowledgeValidity} onAccessDenied={directoryDenied}/>
             <div className="task-conversation-compose-footer"><small id={bodyID + '-hint'}>{t('characters', {count: formatNumber(Array.from(text).length)})}</small>
-              <div><button type="button" disabled={locked || !text && !selectedIDs.length && !selectedKnowledge.length} onClick={clearDraft}>{t('clear_draft')}</button>
-                <button type="submit" className="primary" disabled={locked || invalidDraft || !mentionsReady || !knowledgeReady || !page.can_post || action.conflict || !validConversationBody(draft)}><Send size={14} aria-hidden="true"/>{action.busy ? t('sending') : t('send')}</button></div>
+              <div><button type="button" disabled={interactionLocked || !text && !selectedIDs.length && !selectedKnowledge.length} onClick={clearDraft}>{t('clear_draft')}</button>
+                <button type="submit" className="primary" disabled={interactionLocked || invalidDraft || !mentionsReady || !knowledgeReady || !page.can_post || action.conflict || !validConversationBody(draft)}><Send size={14} aria-hidden="true"/>{action.busy ? t('sending') : t('send')}</button></div>
             </div>
           </form>
         </>}
       </>}
-      <TaskConversationReply session={session} project={project} taskId={taskId} page={page}
-        accessBlocked={denied} disabled={locked || dirty || !!text || !!selectedIDs.length || !!selectedKnowledge.length || !!read.error || !!read.loading || !page?.can_post}
+      </>}
+      <div ref={steeringRegion} tabIndex={-1} className="task-conversation-steering-region">
+        <TurnSteeringPanel session={session} project={project} taskID={taskId} selectedMessage={steerMessage}
+          refresh={refresh + accessRetry} accessBlocked={denied} disabled={locked || replyLocked || !!read.error || !!read.loading || !page?.can_post}
+          onLockChange={setSteerLocked} onAccessDenied={directoryDenied}/>
+      </div>
+      {open && <TaskConversationReply session={session} project={project} taskId={taskId} page={page}
+        accessBlocked={denied} disabled={locked || steerLocked || dirty || !!text || !!selectedIDs.length || !!selectedKnowledge.length || !!read.error || !!read.loading || !page?.can_post}
         refresh={refresh} onMessagesRefresh={read.read} onLockChange={setReplyLocked} onDevelopmentStarted={onDevelopmentStarted}
-        onContinueDevelopment={continueDevelopment}/>
-    </div>}
+        onContinueDevelopment={continueDevelopment}/>}
+    </div>
   </section>;
 }

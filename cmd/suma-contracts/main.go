@@ -266,6 +266,9 @@ func generate() (map[string]any, string) {
 	for _, v := range runnerPairingModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range turnSteeringModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range toolInputModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -460,6 +463,7 @@ func generate() (map[string]any, string) {
 	workBuddyCloudTurnContracts(add, api)
 	acpRuntimeContracts(add, api)
 	toolInputContracts(add, api)
+	turnSteeringContracts(add, api)
 	workBuddyCloudHistorySharingContracts(add, api)
 	workBuddyTaskDispatchContracts(add, api)
 	interactiveDevelopmentContracts(add, api)

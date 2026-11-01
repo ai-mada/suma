@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-TURN-STEERING-188新增[活回合追加指令](contracts/turn-steering.md)：原讨论明确选择本人消息和准确执行目标，在同一Codex回合继续协作，原模型预算／工作区保持绑定；[双语交互](docs/design/turn-steering.md)与[真实CLI限定验证](docs/quality/turn-steering-verification.md)分别记录保存、写出、原生接受和异常核对。完整平台继续。
+
 T-TOOL-INPUTS-187新增[执行中问答](contracts/tool-inputs.md)：本地Codex明确开启后，原节点接收问题、保存回答并向同一活回合投递；原意图恢复、实际写出和关闭分别留证。[简洁双语交互](docs/design/tool-inputs.md)及[实际CLI／限定验证](docs/quality/tool-inputs-verification.md)记录范围，完整平台继续。
 
 T-DEVELOPMENT-CONTINUATION-186新增[同任务候选续作](contracts/task-development-continuation.md)：新审阅计划明确采用上一轮封存代码，在独立工作树继续开发，重新独立测试和人工验收。[交互](docs/design/task-development-continuation.md)及[限定证据](docs/quality/task-development-continuation-verification.md)区分代码连续性与工具会话。

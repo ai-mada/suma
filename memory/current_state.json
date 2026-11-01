@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T187 implemented explicit native live-turn questions, exact human answers and delivery/recovery, real installed CLI with owned Responses, bilingual node/connector UI, independent P2 corrections and stage Git delivery; full goal active",
+  "last_goal_turn_classification": "progress: T188 implemented saved human discussion steering into one attested active Codex turn, original authority/receipt/Journal/native ACK/close/result recovery, bilingual parent UI and first-pass real CLI with owned model, stage Git delivery; full goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-INPUTS-187",
+    "stage": "T-TURN-STEERING-188",
     "status": "scoped_verified",
-    "contract": "contracts/tool-inputs.md",
-    "report": "docs/quality/tool-inputs-verification.md",
+    "contract": "contracts/turn-steering.md",
+    "report": "docs/quality/turn-steering-verification.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Continue native persistent sessions, remaining tool/platform integration, knowledge/team/quality/operations and distributed full-platform acceptance."
+    "next": "Continue persistent multi-turn tool collaboration, remaining tool/platform, knowledge/team/quality/operations, distributed deployment and full acceptance capabilities."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1236,6 +1236,61 @@
       "Default模式提问feature仍为上游开发中能力，默认关闭；密码题安全传输、持久旧thread／多turn恢复及其他工具问答协议仍需独立实现。",
       "观测仍需当前机器身份；新观测保留当前lease边界。失效或撤权后未上传事实留原Journal待核对，不伪称平台已经收到。",
       "未重复未变SDK、全套测试、系统凭据库或安装矩阵。当前实库为SQLite；OceanBase／PostgreSQL、物理多机器、其他OS安装、规模、生产及原31／P0–P7／58限定／34待交付／92总账继续，原171显式停止GUI缺口保持。",
+      "两份无关本地历史审计原SHA保持且不提交；缓存、数据库、日志、截图、私有home、依赖与二进制不进Git。"
+    ]
+  },
+  "turn_steering": {
+    "stage": "T-TURN-STEERING-188",
+    "status": "scoped_verified",
+    "contract": "contracts/turn-steering.md",
+    "report": "docs/quality/turn-steering-verification.md",
+    "summary": "docs/quality/turn-steering-summary.json",
+    "verification": {
+      "distinct_top_level": 31,
+      "new_top_level": 28,
+      "affected_existing_top_level": 3,
+      "go_subcases": 24,
+      "platform_top_level": 7,
+      "runtime_top_level": 8,
+      "actual_cli_top_level": 1,
+      "web_top_level": 11,
+      "root_top_level": 4,
+      "final_types_exit": 0,
+      "paired_i18n_keys": 8803,
+      "hardcodes": 0,
+      "isolated_production_component_builds": 1,
+      "synthetic_gui_checks": 3,
+      "root_viewed_images": 2,
+      "native_gui_exit": 0,
+      "actual_cli": {
+        "command_attempts": 1,
+        "native_steers": 1,
+        "same_turn_acks": 1,
+        "complete_message_in_next_model_input": true,
+        "native_startups": 2,
+        "owned_model_requests": 2,
+        "commercial_calls": 0,
+        "user_credentials": false,
+        "normal_exit": 0,
+        "pid_absent": true
+      }
+    },
+    "implementation": [
+      "原讨论本人human消息旁新增明确发送入口；单一权威context固定原文、准确任务版本、真实活session及历史，选择目标后单独提交原ID与CAS，不重复输入正文。",
+      "原配置与turn ACK后才由当前机器公布准确live source；普通／Pool共用当前完整Assignment、profile／模型绑定、原DAG与工作区，非任务执行明确返回正常无cap结果。",
+      "两窄表与原事务回执管理Session及Instruction，同session同message唯一／最多32，当前人资格、原任务运行、权限／预算／pause与lease沿旧成熟边界复核。",
+      "原Journal、递增client请求ID与单writer接独立steer ACK；保存、观察、开始写、完整写、原生接受／拒绝、关闭和unknown分别记录，未知不native重发、不新建或恢复回合。",
+      "原native关闭后，closed Poll读取最终尾项并准确保留未派发记录；观察／关闭原HTTP先Result重放，成功结果必须与持久化原指令全量闭合匹配。",
+      "原讨论正文上限32,000UTF8字节／8,000Unicode字符完整复用；中英界面、原scope恢复、独立busy锁、390px与键盘交互接通。",
+      "Multica采用记录、开发工具矩阵当前Codex行、主架构HTML及产品／架构／数据／交互／English设计同步，原旧表其他产品行明确标历史核查基线。"
+    ],
+    "boundaries": [
+      "真实安装CLI使用固定0.166.0-alpha.5.1及原SHA，生产driver／Client／Journal是真实现；Responses模型与控制HTTP均为自有fixture，无商业调用、无用户凭据。平台SQL／浏览器当前授权在另一真实HTTP／SQLite层验证，不能合称一次真实厂商全App验收。",
+      "实际旅程一次通过，只有一条native turn/steer与同turn ACK，后续owned模型请求含完整原消息；2CLI进程为新配置只读catalog与活turn各1，首模型请求被正常steer取消，不是故障重试。原Open／观察重复HTTP均为同key恢复，未重复native指令。",
+      "GUI使用真实TaskConversation父／Panel／Card，账号、任务与HTTP为合成；恢复及历史明确是父级harness。3代表检查／两张Root查看视口图／正常原生退出，不是完整登录App或客户验收。",
+      "当前原生steering针对受保护TaskDispatchPlan选定的开发Agent节点，包含沿该计划的讨论交接与专家团队任务；普通非任务或其他节点不伪造能力。其他工具／Harness、持久旧thread／多turn恢复、安全秘密输入等仍需独立交付。",
+      "原生接受只证明接收，不证明模型遵从、代码质量、独立测试、人工验收或生产发布；追加输入不能改原正式验收基线或授予新权限。",
+      "未重复SDK、版本／feature／Schema导出、全套或安装矩阵；当前实库为SQLite。OceanBase／PostgreSQL、物理多机、其他OS安装、规模／生产与原31／P0–P7／58限定／34待交付／92总账继续，原171显式停止GUI缺口保持。",
       "两份无关本地历史审计原SHA保持且不提交；缓存、数据库、日志、截图、私有home、依赖与二进制不进Git。"
     ]
   }

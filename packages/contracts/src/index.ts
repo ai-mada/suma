@@ -1980,6 +1980,7 @@ export interface CodexCatalog {
 export interface CodexEvidence {
   approvals?: (CodexApprovalEvidence)[];
   user_inputs?: (CodexUserInputEvidence)[];
+  steering?: CodexSteeringEvidence | null;
   skills?: ExecutionSkillEvidence | null;
   binding_sha256: string;
   thread_id?: string;
@@ -2018,6 +2019,35 @@ export interface CodexSelection {
   model: string;
   reasoning_effort: string;
   token_notice_limit?: number | null;
+}
+export interface CodexSteeringEvidence {
+  session_id: string;
+  source: CodexSteeringSource;
+  closed: boolean;
+  instructions: (CodexSteeringInstructionEvidence)[];
+}
+export interface CodexSteeringInstructionEvidence {
+  instruction_id: string;
+  message_sha256: string;
+  observation?: CodexSteeringObservation | null;
+}
+export interface CodexSteeringObservation {
+  sequence: number;
+  request_id: CodexRPCRequestID;
+  params_sha256: string;
+  observed: boolean;
+  write_started: boolean;
+  write_written: boolean;
+  native_accepted: boolean;
+  native_rejected: boolean;
+  turn_closed: boolean;
+  failure_code?: string;
+}
+export interface CodexSteeringSource {
+  protocol: string;
+  thread_id: string;
+  turn_id: string;
+  binding_sha256: string;
 }
 export interface CodexUserInputEvidence {
   input_id: string;
@@ -4082,6 +4112,39 @@ export interface PoolScope {
   project_weight: number;
   status: string;
 }
+export interface PoolSteeringCloseRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  session_id: string;
+  idempotency_key: string;
+}
+export interface PoolSteeringObservationRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  session_id: string;
+  instruction_id: string;
+  idempotency_key: string;
+  observation: CodexSteeringObservation;
+}
+export interface PoolSteeringPollRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  session_id: string;
+}
+export interface PoolSteeringSessionOpenRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  source: CodexSteeringSource;
+  idempotency_key: string;
+}
 export interface PoolToolInputObservationRequest {
   runner_id: string;
   tenant_id: string;
@@ -6013,6 +6076,98 @@ export interface StartupFailureProof {
   purpose: string;
   workspace_started: boolean;
   process_started: boolean;
+}
+export interface SteeringCloseRequest {
+  project_id: string;
+  assignment: Assignment;
+  session_id: string;
+  idempotency_key: string;
+}
+export interface SteeringContext {
+  task_id: string;
+  task_version: number;
+  message: SteeringMessage;
+  targets: (SteeringSession)[];
+  instructions: (SteeringInstruction)[];
+  can_send: boolean;
+  reason?: string;
+}
+export interface SteeringCreateRequest {
+  project_id: string;
+  task_id: string;
+  message_id: string;
+  expected_task_version: number;
+  session_id: string;
+  expected_session_version: number;
+  idempotency_key: string;
+}
+export interface SteeringInstruction {
+  id: string;
+  session_id: string;
+  project_id: string;
+  task_id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  version: number;
+  message: SteeringMessage;
+  actor_id: string;
+  created_at: string;
+  expires_at: string;
+  observation?: CodexSteeringObservation | null;
+}
+export interface SteeringMessage {
+  id: string;
+  sequence: number;
+  author_id: string;
+  body: string;
+  body_sha256: string;
+}
+export interface SteeringObservationRequest {
+  project_id: string;
+  assignment: Assignment;
+  session_id: string;
+  instruction_id: string;
+  idempotency_key: string;
+  observation: CodexSteeringObservation;
+}
+export interface SteeringOpenResult {
+  session?: SteeringSession;
+  reason?: string;
+}
+export interface SteeringPoll {
+  session: SteeringSession;
+  instructions: (SteeringInstruction)[];
+}
+export interface SteeringPollRequest {
+  project_id: string;
+  assignment: Assignment;
+  session_id: string;
+}
+export interface SteeringSession {
+  id: string;
+  project_id: string;
+  task_id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  dispatch_id: string;
+  profile_sha256: string;
+  source: CodexSteeringSource;
+  version: number;
+  state: string;
+  opened_at: string;
+  expires_at: string;
+  allowed_actions: (string)[];
+}
+export interface SteeringSessionOpenRequest {
+  project_id: string;
+  assignment: Assignment;
+  source: CodexSteeringSource;
+  idempotency_key: string;
 }
 export interface SwitchOrganizationRequest {
   organization_id: string;

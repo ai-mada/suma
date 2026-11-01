@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TURN-STEERING-188：[合同](../../contracts/turn-steering.md)／[限定验证](../quality/turn-steering-verification.md)。本人已保存消息明确送同一活Codex回合，普通／Pool当前资格、原意图与单writer、native ACK、closed尾项及Result准确闭合；无效RPC error误判P2已修。31不同定向／24Go子例、类型与8803对词条、一次构建／3合成GUI及一次真实CLI＋自有模型通过。完整31／P0–P7／58／34／92、持久会话／其他工具／多机与生产继续。
+
 T-TOOL-INPUTS-187：[合同](../../contracts/tool-inputs.md)／[限定验证](../quality/tool-inputs-verification.md)。显式本地实验性能力、普通／Pool问答、原Journal单writer、原scope恢复和中英文节点交互接通；独立窄审修复回执在lease／terminal漂移后的ACK恢复。43不同定向／30Go子例、类型与8761对词条、一次构建／3合成GUI及一条真实CLI＋自有模型问答通过；真实商业模型、多机与完整平台继续。
 
 T-DEVELOPMENT-CONTINUATION-186：[合同](../../contracts/task-development-continuation.md)／[限定验证](../quality/task-development-continuation-verification.md)。同任务终态封存代码接续到新讨论计划、原派发、M→N/B与准确N独测/Review；祖先验收撤回fresh门已修复。26不同定向/27Go子例、最终类型及8710对词条、一次组件构建/5合成交互通过。Codex旧thread恢复、物理多机/其他数据库/生产与完整31/P0–P7/58/34/92继续。

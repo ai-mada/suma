@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [活回合追加指令](product/turn-steering.md) · [合同](../contracts/turn-steering.md) · [架构与AI SOP](architecture/turn-steering.md) · [数据](data/turn-steering.md) · [交互](design/turn-steering.md) · [English](en/turn-steering.md) · [采用记录](integrations/multica-turn-steering.md) · [限定验证](quality/turn-steering-verification.md)：T-TURN-STEERING-188贯通原消息、准确活目标与真实同turn送达。
+
 - [原执行问答](product/tool-inputs.md) · [合同](../contracts/tool-inputs.md) · [架构与AI SOP](architecture/tool-inputs.md) · [数据](data/tool-inputs.md) · [交互](design/tool-inputs.md) · [English](en/tool-inputs.md) · [限定验证](quality/tool-inputs-verification.md)：T-TOOL-INPUTS-187贯通原问题、明确回答、真实写出与异常核对。
 
 - [同任务候选续作](product/task-development-continuation.md) · [合同](../contracts/task-development-continuation.md) · [架构与AI SOP](architecture/task-development-continuation.md) · [交互](design/task-development-continuation.md) · [English](en/task-development-continuation.md) · [限定验证](quality/task-development-continuation-verification.md)：T-DEVELOPMENT-CONTINUATION-186贯通原代码输入、新独立执行与质量链。

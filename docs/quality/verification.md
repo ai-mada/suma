@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TURN-STEERING-188：[限定报告](turn-steering-verification.md)／[摘要](turn-steering-summary.json)。31不同定向／24Go子例，平台真实HTTP／SQLite、真实CLI＋自有模型、3合成组件交互分别留证；完整原文进入后续模型输入，0商业调用。原失败和1项Runtime P2修复保留，未重未变全套。
+
 T-TOOL-INPUTS-187：[限定报告](tool-inputs-verification.md)／[来源摘要](tool-inputs-summary.json)。43不同定向、30Go子例、真实HTTP／SQLite、真实CLI＋自有模型和3合成组件交互分别留证；0商业调用。原失败、类型纠正与3项P2修复保留，不重复未变全套。
 
 T-DEVELOPMENT-CONTINUATION-186：[限定报告](task-development-continuation-verification.md)／[来源摘要](task-development-continuation-summary.json)。26不同定向/27Go子例、实际HTTP/SQLite控制面及另行真实Git/进程、5代表合成交互验证代码接续；不是实际厂商多turn或客户验收。

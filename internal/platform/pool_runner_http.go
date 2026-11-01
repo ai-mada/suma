@@ -27,6 +27,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 	if s.poolWorkBuddyCloudHTTP(w, r, token, path, s.WorkBuddy) {
 		return true
 	}
+	if s.poolTurnSteeringHTTP(w, r, token, path) {
+		return true
+	}
 	if s.poolToolInputsHTTP(w, r, token, path) {
 		return true
 	}

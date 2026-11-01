@@ -1,5 +1,7 @@
 # HTTP、事件与客户端合同
 
+T-TURN-STEERING-188新增[原执行追加指令](../../contracts/turn-steering.md)：10接口／19模型、Codex安全steering证据。当前浏览器仅提交本人已保存message与准确session版本；机器Open基于真实turn ACK，四类普通／Pool调用复用完整原Assignment。原操作恢复不授予新写，Open正常非任务结果与权限／未知错误分开。
+
 T-TOOL-INPUTS-187新增[原执行问答](../../contracts/tool-inputs.md)：8接口／19模型、ToolExecutionProfile可选能力和Codex安全证据；与工具授权Choice分离。Answer仅当前浏览器用户，机器登记／轮询／观察绑定原完整Assignment，原回执恢复与fresh授权各自检查。
 
 T-DEVELOPMENT-CONTINUATION-186新增[同任务候选续作](../../contracts/task-development-continuation.md)：当前任务来源分页、原讨论Create可选来源选择、原计划只读typed binding、CodeInputRequest新增development_continuation。SourceRef不是导入权限，原控制面/current lease/provenance与broker独立核验。

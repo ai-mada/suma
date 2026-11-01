@@ -315,6 +315,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.runnerPairingBrowserHTTP(w, r, actor, parts) {
 		return
 	}
+	if s.turnSteeringHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.toolInputsHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}

@@ -57,6 +57,9 @@ func cloudControlOrigin(value string) (string, error) {
 func cloudAssignmentSHA(a Assignment) string { raw, _ := json.Marshal(a); return digest(raw) }
 
 func cloudMixed(e entry) bool {
+	if e.Steering != nil {
+		return true
+	}
 	return e.ToolInputs != nil || developmentContinuationInput(e.Assignment) != nil || e.Assignment.DevelopmentContinuation != nil || e.Terminal != nil || e.ModelGateway != nil || e.WorkspaceTrace != nil || e.ArtifactPending != nil || e.CandidatePending != nil || e.Assignment.ReleaseExecution != nil || e.Assignment.RepositoryIntegration != nil || e.Assignment.CodeBaseline != nil || e.Assignment.CandidateComposition != nil || e.Assignment.CandidateConflictRepair != nil || hasCandidate(e.Assignment)
 }
 

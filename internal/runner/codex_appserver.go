@@ -143,6 +143,7 @@ type codexAppServer struct {
 	userInputs                                      *codexUserInputSession
 	nativeRequests                                  map[string]codexNativeRequest
 	nativeTurnClosed                                bool
+	steering                                        *codexSteeringSession
 }
 
 func newCodexAppServer(profile tc.Profile, spec CommandSpec, home, root, goal string, binding *cc.Binding, stream *toolStream) *codexAppServer {
@@ -157,6 +158,9 @@ func newCodexAppServer(profile tc.Profile, spec CommandSpec, home, root, goal st
 func (d *codexAppServer) CopyInput(w io.Writer) (int64, error) { return d.input.copyTo(w) }
 func (d *codexAppServer) Close() error {
 	d.stopping.Store(true)
+	d.mu.Lock()
+	d.closeSteering(false)
+	d.mu.Unlock()
 	d.stopApprovals()
 	d.stopUserInputs()
 	d.endApprovalInput()
@@ -174,6 +178,7 @@ func (d *codexAppServer) Finish() {
 	}
 	d.pending = nil
 	d.mu.Unlock()
+	d.finishSteering()
 	d.finishApprovals()
 	d.finishUserInputs()
 }
@@ -272,6 +277,9 @@ func (d *codexAppServer) frame(raw []byte) {
 		d.fail("response has no host request identity")
 		return
 	}
+	if d.steeringResponse(id.String(), m) {
+		return
+	}
 	if id.String() == d.interruptID && d.interruptID != "" {
 		if _, bad := m["error"]; bad {
 			d.fail("interrupt rejected")
@@ -322,6 +330,7 @@ func (d *codexAppServer) frame(raw []byte) {
 			return
 		}
 		d.turnAcknowledged = true
+		d.startSteering()
 		if d.evidence.Skills != nil {
 			d.evidence.Skills.TurnAcknowledged = true
 		}
@@ -552,11 +561,15 @@ func (d *codexAppServer) notification(method string, p map[string]any) {
 			return
 		}
 		d.nativeTurnClosed = true
+		d.closeSteering(true)
 		d.closeUserInputTurn()
 		if d.deferApprovalTerminal(p) {
 			return
 		}
 		if d.deferUserInputTerminal(p) {
+			return
+		}
+		if d.deferSteeringTerminal(p) {
 			return
 		}
 		d.terminalReceived = true
@@ -664,6 +677,7 @@ func (d *codexAppServer) Cancel() error {
 	d.stopUserInputs()
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	d.closeSteering(false)
 	if d.evidence == nil || d.turn == "" || d.terminalReceived {
 		d.input.close()
 		return nil
