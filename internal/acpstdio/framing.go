@@ -330,9 +330,6 @@ func (d *Driver) frame(raw []byte) error {
 					d.mu.Unlock()
 					return errors.New("acp_protocol_invalid")
 				}
-				if d.discovery != nil {
-					d.discovery.closeAdvertised = discoveryCloseAdvertised(r["agentCapabilities"])
-				}
 			case "session/new":
 				session := stringField(r, "sessionId")
 				keys := []string{"_meta", "sessionId", "configOptions", "modes"}
@@ -347,12 +344,6 @@ func (d *Driver) frame(raw []byte) error {
 				if d.discovery != nil {
 					d.discovery.evidence.SessionCreated = true
 				}
-			case "session/close":
-				if d.discovery == nil || !closed(r, "_meta") {
-					d.mu.Unlock()
-					return errors.New("acp_protocol_invalid")
-				}
-				d.discovery.evidence.SessionCloseAcknowledged = true
 			case "session/set_config_option":
 				if !closed(r, "_meta", "configOptions") || !configOptionsValid(r["configOptions"]) {
 					d.mu.Unlock()
@@ -483,20 +474,13 @@ func (w sdkOutput) Write(raw []byte) (int, error) {
 			if method == "session/set_config_option" {
 				d.discovery.evidence.ConfigurationWrites++
 			}
-			if method != "initialize" && method != "session/new" && method != "session/close" || method == "session/close" && (!d.discovery.closeAdvertised || !d.discovery.evidence.SessionCreated) {
+			if method != "initialize" && method != "session/new" && method != "session/cancel" || method == "session/cancel" && (!d.discovery.evidence.SessionCreated || key != "") {
 				d.mu.Unlock()
 				return 0, errors.New("acp_outbound_invalid")
 			}
 		}
 		switch method {
-		case "initialize", "session/new", "session/set_config_option", "session/prompt", "session/close":
-			if method == "session/close" {
-				if d.discovery == nil {
-					d.mu.Unlock()
-					return 0, errors.New("acp_outbound_invalid")
-				}
-				d.discovery.evidence.SessionCloseRequested = true
-			}
+		case "initialize", "session/new", "session/set_config_option", "session/prompt":
 			if key == "" || d.requests[key] != "" {
 				d.mu.Unlock()
 				return 0, errors.New("acp_outbound_invalid")
@@ -512,7 +496,12 @@ func (w sdkOutput) Write(raw []byte) (int, error) {
 			}
 			item.prompt = method == "session/prompt"
 		case "session/cancel", "$/cancel_request":
-			d.result.Evidence.CancelRequested = true
+			if d.discovery != nil {
+				d.discovery.evidence.SessionCancelRequested = true
+				item.discoveryCancel = true
+			} else {
+				d.result.Evidence.CancelRequested = true
+			}
 		default:
 			d.mu.Unlock()
 			return 0, errors.New("acp_outbound_invalid")

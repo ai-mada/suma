@@ -35,7 +35,7 @@ func TestModelDiscoveryResultRequiresActualStop(t *testing.T) {
 	if ValidateModelDiscoveryResult(r) != nil {
 		t.Fatal("actual stopped ready result rejected")
 	}
-	for _, mutate := range []func(*ACPModelDiscoveryResult){func(r *ACPModelDiscoveryResult) { r.Evidence.HostProcessStopped = false }, func(r *ACPModelDiscoveryResult) { r.Evidence.HostProcessTreeStopped = false }, func(r *ACPModelDiscoveryResult) { r.Evidence.PromptRequests = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.ConfigurationWrites = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.PermissionRequests = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.UnexpectedActivity = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.SessionCloseRequested = true }, func(r *ACPModelDiscoveryResult) { r.ErrorCode = "arbitrary" }} {
+	for _, mutate := range []func(*ACPModelDiscoveryResult){func(r *ACPModelDiscoveryResult) { r.Evidence.HostProcessStopped = false }, func(r *ACPModelDiscoveryResult) { r.Evidence.HostProcessTreeStopped = false }, func(r *ACPModelDiscoveryResult) { r.Evidence.PromptRequests = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.ConfigurationWrites = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.PermissionRequests = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.UnexpectedActivity = 1 }, func(r *ACPModelDiscoveryResult) { r.Evidence.SessionCancelRequested = true }, func(r *ACPModelDiscoveryResult) { r.ErrorCode = "arbitrary" }} {
 		x := r
 		mutate(&x)
 		if ValidateModelDiscoveryResult(x) == nil {

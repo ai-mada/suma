@@ -1,4 +1,4 @@
-import type {ToolInput,ToolInputList,ToolInputRequest,CodexUserInputRequest,CodexUserInputSelection,CursorInputRequest,CursorAskQuestion,CursorCreatePlan,CursorInputDecision} from '../../../packages/contracts/src';
+import type {ToolInput,ToolInputList,ToolInputRequest,CodexUserInputRequest,CodexUserInputSelection,CursorInputRequest,CursorAskQuestion,CursorCreatePlan,CursorInputDecision,CursorInputEvidence} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
 import {UiError} from './i18n';
 import {wellFormed} from './i18n/catalog';
@@ -136,6 +136,13 @@ function submissionFields(value:Record<string,unknown>):unknown{
 function observation(v:unknown):boolean{
  if(!object(v)||!fields(v,['sequence','params_sha256','answer_observed','reply_started','reply_written','request_resolved','execution_closed'],['answer_sha256','failure_code'])||!integer(v.sequence,1)||!hash(v.params_sha256)||!['answer_observed','reply_started','reply_written','request_resolved','execution_closed'].every(k=>typeof v[k]==='boolean')||Object.hasOwn(v,'answer_sha256')&&v.answer_sha256!==''&&!hash(v.answer_sha256)||v.answer_observed!==!!v.answer_sha256||v.reply_started&&!v.answer_observed||v.reply_written&&!v.reply_started)return false;
  return !Object.hasOwn(v,'failure_code')||v.failure_code===''||typeof v.failure_code==='string'&&/^[a-z][a-z0-9_]{0,79}$/.test(v.failure_code);
+}
+/** Read-only evidence retains the original source and delivery facts, without
+ * accepting a question, answer or plan body as a completion proof. */
+export function validCursorInputEvidence(v:unknown):v is CursorInputEvidence{
+ if(!object(v)||!fields(v,[...cursorIdentityKeys,'input_id','kind','question_count'],['observation'])||!cursorIdentity(v)||!cursorID(v.input_id)||!integer(v.question_count)||!(v.method==='cursor/ask_question'&&v.kind==='questions'&&v.question_count>=1&&v.question_count<=16||v.method==='cursor/create_plan'&&v.kind==='plan'&&v.question_count===0))return false;
+ if(Object.hasOwn(v,'observation')){const o=v.observation;if(!observation(o)||!object(o)||o.params_sha256!==v.params_sha256||o.request_resolved)return false;}
+ return true;
 }
 export function validToolInput(v:unknown,scope:ToolInputScope):v is ToolInput{
  if(!validScope(scope)||!object(v)||!fields(v,['id','project_id','run_id','node_id','attempt','fence','dispatch_id','worker_id','profile_sha256','version','state','request','created_at','expires_at','allowed_actions'],['answer','observation'])||!textID(v.id)||v.project_id!==scope.project||v.run_id!==scope.runID||v.node_id!==scope.nodeID||v.attempt!==scope.attempt||v.fence!==scope.fence||!text(v.dispatch_id,128)||!textID(v.worker_id)||!hash(v.profile_sha256)||!integer(v.version,1)||typeof v.state!=='string'||!['pending','answered','closed','expired'].includes(v.state)||!validRequest(v.request)||v.request.protocol!==scope.protocol||!stamp(v.created_at)||!stamp(v.expires_at)||!Array.isArray(v.allowed_actions)||v.allowed_actions.length>1||v.allowed_actions.some(a=>a!=='answer'||v.state!=='pending'))return false;

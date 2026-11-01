@@ -1,0 +1,212 @@
+{
+  "stage": "T-CURSOR-SETUP-191",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "原高级工具入口接通唯一Cursor配置表单，六项明确输入派生固定Node／index.js，复用原节点身份、项目范围、fresh库存、暂停登记及单独启用，不落回通用JSON或反向MCP入口。",
+    "PowerShell／Bash生成准确逐字引用和UTF8输入，明确把shell／文件路径草稿交给原执行节点指南；换项目／账号／目标时失效，已输入目标不被迟到回调覆盖。",
+    "原Go --prepare-tools新增--prepare-acp-stdin，私有stdin闭合五字段，复用BuildCursorACPCommand完整包闭包、固定参数及DecodeCommands／O_EXCL／Sync；危险／已有／包内及Windows别名目标在读取输入前拒绝。",
+    "配置准备只产生原ToolPreparation文件事实；不读取token、执行原生工具、探测版本、启动模型或自动登记／Claim／启用。共同语言环境读取保持原行为。",
+    "原Driver单一判断RPC完成及无悬而未决写入，Runner再核当前ctx、准确配置／包和真实全树停止；Cursor可在已完成RPC后受控停止长驻宿主，业务结果与真实非零宿主退出分别保存。",
+    "目录发现明确记录session_cancel_requested／session_cancel_written；标准通知没有native ACK。host_process_exit_code与host_stopped_after_rpc由Go、Schema、Web及桌面同时严格验证，不保留虚构close／ack别名。",
+    "原执行依据接纳并深校验190 user_inputs，绑定当前session、配置、typed ID及完整写入／执行关闭；修复外层来源匹配遗漏，未知证据不因新增字段而获得成功。",
+    "简洁中英文配置、折叠依据、390px与44px动作沿原组件；真实GUI发现复制异步disabled丢失键盘焦点，改为可聚焦busy状态及同步防重复入口，失败保留同一命令后可键盘重试。"
+  ],
+  "verification": {
+    "distinct_top_level": 35,
+    "new_top_level": 18,
+    "affected_existing_top_level": 17,
+    "go_subcases": 23,
+    "runtime_top_level": 7,
+    "lifecycle_top_level": 7,
+    "web_and_desktop_top_level": 17,
+    "root_top_level": 4,
+    "root_receipts": [
+      {
+        "test": "TestCursorCatalogueSeparatesCancelWriteAndManagedHostStop",
+        "command": ".cache/follow155/root-go/20261101T101317496Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestCursorCompletionRequiresRPCAndIndependentHostStopFacts",
+        "command": ".cache/follow155/root-go/20261101T101317496Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestModelDiscoveryResultRequiresActualStop",
+        "command": ".cache/follow155/root-go/20261101T100554195Z.command.json",
+        "command_exit": 0
+      },
+      {
+        "test": "TestACPHostContractSeparatesActualExitAndCancelNotification",
+        "command": ".cache/follow155/root-go/20261101T101409968Z.command.json",
+        "command_exit": 0
+      }
+    ],
+    "contract_generations": [
+      ".cache/follow155/root-go/20261101T101419010Z.command.json"
+    ],
+    "runner_build": ".cache/follow155/root-go/20261101T101917348Z.command.json",
+    "new_http_operations": 0,
+    "new_business_tables": 0,
+    "new_schemas": [],
+    "changed_schemas": [
+      "ACPExecutionEvidence",
+      "ACPModelDiscoveryEvidence"
+    ],
+    "changed_operations": [],
+    "typecheck_exit": 0,
+    "paired_locale_keys": 8869,
+    "production_hardcodes": 0,
+    "actual_shell_journeys": 1,
+    "isolated_component_builds": 2,
+    "gui_distinct_groups": 3,
+    "gui_native_hosts": 2,
+    "gui_final_exit": 0,
+    "gui_page_errors": [],
+    "full_suite_repeated": false
+  },
+  "actual": {
+    "stage": "T-CURSOR-SETUP-191",
+    "status": "actual_windows_powershell5_prepare_passed",
+    "shell_exit": 0,
+    "distinct_checks": 1,
+    "runner_sha256": "2f5b491085f5f7c22107d2071784db98474b97a9283dad60b397411073c533fd",
+    "source_count": 4,
+    "config_sha256": "8cfb6a0feea93be16984d5eff7d3d213586618d8b1f4be8c72a54d4e3700bab4",
+    "script_sha256": "4a4b28f45a7795af3351f21bcb3ed425456879b666f1f9258bbce89fce50e681",
+    "model_utf8_and_shell_literals_preserved": true,
+    "output_path_exists": true,
+    "stdout_path_exact": true,
+    "stdout_path_observed": "D:\\codes\\ai-dev-os\\suma\\.cache\\cursor-setup-191\\actual\\配置'与$准备\\commands.local.json",
+    "package_path": "D:\\codes\\ai-dev-os\\suma\\.cache\\cursor-acp-189\\probe\\package\\dist-package",
+    "package_closure_sha256": "22de30a031ee6c62e1a3831f705cd818b1704b38ac1c4210cf2a6c6c4c1093ee",
+    "tool_version_probe_processes": 0,
+    "native_cursor_processes": 0,
+    "sdk_calls": 0,
+    "model_calls": 0,
+    "credentials_supplied": false,
+    "control_calls": 0,
+    "claim_calls": 0,
+    "overwrite_attempts": 0,
+    "boundary": "One production Runner executable invoked through the actual generated PowerShell command; real pinned package read and hashed, new file written. No native CLI, credential, model, registration, claim or enablement. Package identity is prior evidence, not a new version/authentication check."
+  },
+  "boundaries": [
+    "真实Windows PowerShell5已调用一次生产Runner可执行文件，读取固定官方包并写全新配置，中文、引号、$及反引号准确保留；只证明文件准备，不是版本、认证、模型或可派发验证。",
+    "真实包2026.10.22-27dcf5f及此前版本／help／初始化／认证拒绝证据复用，本轮没有新安装、原生Cursor进程、凭据或供应方模型调用；189原EOF强停的unknown历史未改判。",
+    "长驻执行与目录生命周期使用生产SDK及自有Go宿主；真实Windows Job／树停止、Git候选和同提交独立测试通过，不是厂商认证后执行证明。Unix当前Stop约束错误仍unknown，未宣称其他OS运行通过。",
+    "取消、超时、权限拒绝、部分写、RPC错误、来源改变、天然非零失败或不能证明全树停止继续失败／unknown；不盲重Prompt或答复。业务成功不是宿主exit0，也不是测试、验收或供应方取消ACK。",
+    "一次完整类型与8869对中英词条检查通过；随后仅因真实GUI焦点缺陷修改复制按钮及其既有检查，沿受影响检查、最新隔离构建和GUI复验，没有重复整套类型或业务。",
+    "GUI为生产组件加明确隔离父级的三组代表场景：中文配置／草稿、原执行依据、英文390px暗色恢复；初轮只在最后键盘焦点失败，保留已通过断言，修复后只复验英文并补拍当前样式依据。两宿主均exit0，无页面错误；不是完整登录App或生产验收。",
+    "原行为RED、同步夹具／并行编译失败和辅助脚本路径诊断均保留，不能声称所有命令首遍成功；35个不同顶层检查及23个Go子例不含重复重试计数，实际Shell另记1条旅程。",
+    "未重复190完整输入formal、SDK安装／构建、旧版本探测或全套测试；当前31项、P0–P7、58限定／34待交付／92总账、真实账号、多机／跨库／跨平台安装、规模及生产验收仍active。"
+  ],
+  "review": {
+    "windows_destination_alias_p2_fixed": true,
+    "evidence_source_envelope_p2_fixed": true,
+    "async_copy_focus_p2_fixed": true,
+    "remaining_confirmed_p1_p2": 0
+  },
+  "references": {
+    "sdk": "github.com/coder/acp-go-sdk v0.13.5",
+    "cursor_package": "2026.10.22-27dcf5f",
+    "package_files": 411,
+    "package_bytes": 267399576,
+    "source_adoption": "Existing Suma Go preparation/SDK/Job/deep modules and canonical Tool/Remote guides; no new vendor runtime copied"
+  },
+  "evidence": [
+    {
+      "path": ".cache/cursor-setup-191/runtime/source-manifest.json",
+      "sha256": "367fda02b301252472a2e0680b0a7e97fc400b012b964744f675cbf090aed7c3"
+    },
+    {
+      "path": ".cache/cursor-setup-191/runtime/summary.json",
+      "sha256": "9c0c215c65b1ae01273d48d86b47b2ab33e602d623363c77bcfa409c47403380"
+    },
+    {
+      "path": ".cache/cursor-setup-191/runtime/test-results.json",
+      "sha256": "01fd01b7454065bc4e81757f92fd935fb2537e1389afba3d5d7b2d2384e268cb"
+    },
+    {
+      "path": ".cache/cursor-setup-191/lifecycle/source-manifest.json",
+      "sha256": "692a6c7915d58973f5f45dcfe4d75383375332a19e0533e334addd139229fc49"
+    },
+    {
+      "path": ".cache/cursor-setup-191/lifecycle/summary.json",
+      "sha256": "cab619211212e83f43b8183bd42e02bb9f0753d9316cdd858211f391f8bd62d5"
+    },
+    {
+      "path": ".cache/cursor-setup-191/lifecycle/EVIDENCE.md",
+      "sha256": "dade739ab4eda80e9f40913f5f1568765f5cb3f6d53d296231b337281f892330"
+    },
+    {
+      "path": ".cache/cursor-setup-191/web/integration-summary.json",
+      "sha256": "aab9340dd1fe0089b55c93e08d49eb646bafec59eb9a0e52c6c67721a452fa82"
+    },
+    {
+      "path": ".cache/cursor-setup-191/root-review.json",
+      "sha256": "648675c4f0e55a5c71c4412d947d67b5fe9f037fdb9321a69cf75385d3c4900f"
+    },
+    {
+      "path": ".cache/cursor-setup-191/actual/source-manifest.json",
+      "sha256": "3df9911b070ced08d6732dd6a515ad9ee4f4e0372c15150f9a7359587dd0d92b"
+    },
+    {
+      "path": ".cache/cursor-setup-191/actual/summary.json",
+      "sha256": "a7027fe43599e0adcb2c8be698c669d52316c7d08b164a8cc1378055875f9946"
+    },
+    {
+      "path": ".cache/cursor-setup-191/visual/final-source-manifest.json",
+      "sha256": "a889df6dd3772cb2ce4f39171ac047c390f99c898e4c0df558e2729c90d017dc"
+    },
+    {
+      "path": ".cache/cursor-setup-191/visual/attempt1-result.json",
+      "sha256": "b036aae5df9d884d5df27e307c234a6786654fd0417cd367117d8ea3e82c50cb"
+    },
+    {
+      "path": ".cache/cursor-setup-191/visual/final-result.json",
+      "sha256": "50931204e9c8ba1bd64faa4879cb1cae1173fc5120bee650dca47cba1e29ac2e"
+    },
+    {
+      "path": ".cache/cursor-setup-191/types.command.json",
+      "sha256": "bc8275300e74d962c9320ac2116eff9f8bfe0e6028b8b44cbac27f31a6aa7e7b"
+    },
+    {
+      "path": ".cache/cursor-setup-191/i18n.command.json",
+      "sha256": "4c03b8fc8ccc0ed8720df549dacb412bea67aa2410530a0ceafe918124492ae6"
+    },
+    {
+      "path": ".cache/cursor-setup-191/build.command.json",
+      "sha256": "b996c5eea2bcc3094dfd1141ec98d27afe088e71615413c824ee1b4d2fce8c6f"
+    },
+    {
+      "path": ".cache/cursor-setup-191/build-final.command.json",
+      "sha256": "4e4679e16ebfc47b83e25a215abeb213581159d36a0bad330193bbdb790e9cbd"
+    },
+    {
+      "path": ".cache/cursor-setup-191/gui.command.json",
+      "sha256": "3d745d4489e00cc216427af761c6086627390edbf1d013475cf09eea4f6fb5f2"
+    },
+    {
+      "path": ".cache/cursor-setup-191/gui-final.command.json",
+      "sha256": "c0c65b1719253195b7287865557f31cfe72a37d3aca388415d126a03c6e44a40"
+    },
+    {
+      "path": ".cache/cursor-setup-191/actual.command.json",
+      "sha256": "be2ede1ad40f3f3b99b4bfb369a5bacfccd75f70016d689e777725eac2847c62"
+    },
+    {
+      "path": ".cache/cursor-191/backend/lifecycle-findings.json",
+      "sha256": "62000681aec2ce99b2e080b1525ca06b9da1fa51c8a334f32186a208ca694c43"
+    }
+  ]
+}

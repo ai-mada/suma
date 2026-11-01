@@ -45,6 +45,8 @@ type ACPExecutionEvidence struct {
 	CancelRequested            bool                     `json:"cancel_requested"`
 	HostProcessStopped         bool                     `json:"host_process_stopped"`
 	HostProcessTreeStopped     bool                     `json:"host_process_tree_stopped"`
+	HostProcessExitCode        *int                     `json:"host_process_exit_code,omitempty"`
+	HostStoppedAfterRPC        bool                     `json:"host_stopped_after_rpc"`
 	UserInputs                 []cu.CursorInputEvidence `json:"user_inputs,omitempty"`
 }
 

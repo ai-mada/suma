@@ -11,18 +11,12 @@ import (
 )
 
 type discoveryState struct {
-	catalogue                            *ac.ACPModelCatalogue
-	evidence                             ac.ACPModelDiscoveryEvidence
-	closeAdvertised, complete, finalized bool
+	catalogue           *ac.ACPModelCatalogue
+	evidence            ac.ACPModelDiscoveryEvidence
+	complete, finalized bool
+	cancelWritten       chan struct{}
 }
 
-// Only the exact raw canonical advertisement permits a CloseSession call;
-// the SDK's case-insensitive struct decoding is never the authority for it.
-func discoveryCloseAdvertised(raw []byte) bool {
-	caps := object(raw)
-	sessions := object(caps["sessionCapabilities"])
-	return closed(object(sessions["close"]), "_meta")
-}
 func (d *Driver) runModelDiscovery() {
 	defer close(d.done)
 	defer close(d.outEnd)
@@ -56,17 +50,19 @@ func (d *Driver) runModelDiscovery() {
 		d.fail("acp_discovery_model_unavailable")
 		return
 	}
-	d.mu.Lock()
-	closeSession := d.discovery.closeAdvertised
-	d.mu.Unlock()
-	if closeSession {
-		ctx, cancel := context.WithTimeout(d.ctx, 1500*time.Millisecond)
-		_, err = d.conn.CloseSession(ctx, sdk.CloseSessionRequest{SessionId: session.SessionId})
-		cancel()
-		if err != nil {
-			d.fail("acp_discovery_unknown")
-			return
-		}
+	// Standard ACP Cancel is a notification, not a CloseSession RPC or ACK.
+	// Its full write is recorded only by the single stdin owner.
+	ctx, cancel := context.WithTimeout(d.ctx, 1500*time.Millisecond)
+	err = d.conn.Cancel(ctx, sdk.CancelNotification{SessionId: session.SessionId})
+	cancel()
+	if err != nil {
+		d.fail("acp_discovery_unknown")
+		return
+	}
+	select {
+	case <-d.discovery.cancelWritten:
+	case <-d.ctx.Done():
+		return
 	}
 	// Unexpected requests are actually refused by the SDK callbacks. Let their
 	// already-generated replies reach stdin before closing this protocol stack.
@@ -128,6 +124,10 @@ func (m *ModelDiscovery) observation() DiscoveryObservation {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	o := DiscoveryObservation{Evidence: d.discovery.evidence, AgentName: d.result.Evidence.AgentName, AgentVersion: d.result.Evidence.AgentVersion}
+	if o.Evidence.HostProcessExitCode != nil {
+		code := *o.Evidence.HostProcessExitCode
+		o.Evidence.HostProcessExitCode = &code
+	}
 	if d.discovery.evidence.UnexpectedActivity != 0 {
 		o.ErrorCode = "acp_discovery_unexpected_activity"
 	} else if d.bad != nil {

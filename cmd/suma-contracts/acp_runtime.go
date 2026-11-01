@@ -89,4 +89,12 @@ func acpRuntimeContracts(add operationAdder, api map[string]any) {
 	for field, value := range map[string]any{"protocol_version": 1, "sdk_version": ac.SDKVersion, "model_source": "administrator_session_config", "budget_mode": "observe_only", "identity_evidence": "configuration_ack_only", "permission_mode": "human_once"} {
 		toolContractMap(capability, "properties", field)["const"] = value
 	}
+	for _, name := range []string{"ACPExecutionEvidence", "ACPModelDiscoveryEvidence"} {
+		properties := toolContractMap(schemas, name, "properties")
+		properties["host_process_exit_code"] = map[string]any{"type": "integer", "minimum": -1, "maximum": 4294967295, "description": "Actual OS host exit, including signal termination. RPC operation success never rewrites it to zero."}
+		properties["host_stopped_after_rpc"].(map[string]any)["description"] = "Cursor only: controlled host stop after a complete successful original RPC, no unresolved writes, and confirmed process-tree termination. Not a natural exit or vendor ACK."
+		toolContractMap(schemas, name)["allOf"] = []any{map[string]any{"if": map[string]any{"required": []string{"host_stopped_after_rpc"}, "properties": map[string]any{"host_stopped_after_rpc": map[string]any{"const": true}}}, "then": map[string]any{"required": []string{"host_process_exit_code"}, "properties": map[string]any{"host_process_stopped": map[string]any{"const": true}, "host_process_tree_stopped": map[string]any{"const": true}}}}}
+		toolContractMap(schemas, name)["allOf"] = append(toolContractMap(schemas, name)["allOf"].([]any), map[string]any{"if": map[string]any{"required": []string{"host_process_exit_code"}}, "then": map[string]any{"properties": map[string]any{"host_process_stopped": map[string]any{"const": true}}}})
+	}
+	toolContractMap(schemas, "ACPModelDiscoveryEvidence", "properties", "session_cancel_written")["description"] = "The standard ACP cancel notification was actually written. No independent native cancellation or session-close acknowledgement exists."
 }

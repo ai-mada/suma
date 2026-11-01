@@ -7,7 +7,7 @@ import type {ModelExecutionOptions} from '../../../packages/contracts/src';
 const hash='a'.repeat(64),created='2026-10-31T00:00:00Z',expiry='2099-10-31T00:00:00Z';
 const scope:ToolPermissionScope={project:'p1',runID:'run1',nodeID:'node1',attempt:2,fence:3,userID:'u1',organizationID:'o1',protocol:'acp-stdio-v1'};
 const cap=()=>({runtime:'qoder',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:hash,model:'fixed-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'existing_cli_login',permission_mode:'human_once'});
-const proof=()=>({configuration_sha256:hash,requested_model:'fixed-model',selected_model:'fixed-model',model_selection_acknowledged:true,session_id:'session1',protocol_version:1,prompt_started:true,prompt_completed:true,stop_reason:'end_turn',tools_complete:true,permissions_requested:1,permissions_denied:0,cancel_requested:false,host_process_stopped:true,host_process_tree_stopped:true});
+const proof=()=>({configuration_sha256:hash,requested_model:'fixed-model',selected_model:'fixed-model',model_selection_acknowledged:true,session_id:'session1',protocol_version:1,prompt_started:true,prompt_completed:true,stop_reason:'end_turn',tools_complete:true,permissions_requested:1,permissions_denied:0,cancel_requested:false,host_process_stopped:true,host_process_tree_stopped:true,host_stopped_after_rpc:false});
 const allow={id:'permission:允许',name:'Allow once',kind:'allow_once'},reject={id:'reject:once',name:'Reject once',kind:'reject_once'};
 const permission=()=>({id:'permission1',project_id:'p1',run_id:'run1',node_id:'node1',attempt:2,fence:3,dispatch_id:'dispatch1',worker_id:'worker1',profile_sha256:hash,version:1,state:'pending',request:{idempotency_key:'runner-request-key',protocol:'acp-stdio-v1',acp:{session_id:'session1',tool_call_id:'tool:一',title:'Change file',kind:'edit',details:'One reviewed file',details_complete:true,options:[allow,reject,{id:'always',name:'Always',kind:'allow_always'}]}},created_at:created,expires_at:expiry,allowed_actions:['allow_once','reject_once']});
 const once=(option:typeof allow)=>({option_id:option.id,kind:option.kind});
@@ -27,11 +27,12 @@ describe('ACP execution and permission contracts',()=>{
   expect(validModelOptions(options,modelScope)).toBe(true);expect(validModelOptions({...options,fixed_acp:{...cursor,auth_strategy:'existing_cli_login'}},modelScope)).toBe(false);expect(validModelOptions({...options,supported:true},modelScope)).toBe(false);
  });
  it('separates model selection acknowledgement, prompt completion and host stop evidence',()=>{
-  expect(validACPEvidence(proof())).toBe(true);
-  expect(validACPEvidence({...proof(),prompt_completed:false,stop_reason:undefined})).toBe(false);
+  const source={session_id:'session1',terminal:'completed'};
+  expect(validACPEvidence(proof(),'qoder',source)).toBe(true);
+  expect(validACPEvidence({...proof(),prompt_completed:false,stop_reason:undefined},'qoder',source)).toBe(false);
   const {stop_reason:_,selected_model:__,session_id:___,protocol_version:____,...notStarted}=proof();
-  expect(validACPEvidence({...notStarted,model_selection_acknowledged:false,prompt_started:false,prompt_completed:false,tools_complete:false,host_process_stopped:false,host_process_tree_stopped:false,permissions_requested:0})).toBe(true);
-  expect(validACPEvidence({...proof(),selected_model:'different'})).toBe(false);expect(validACPEvidence({...proof(),permissions_denied:2})).toBe(false);
+  expect(validACPEvidence({...notStarted,model_selection_acknowledged:false,prompt_started:false,prompt_completed:false,tools_complete:false,host_process_stopped:false,host_process_tree_stopped:false,permissions_requested:0},'qoder',{terminal:'unknown'})).toBe(true);
+  expect(validACPEvidence({...proof(),selected_model:'different'},'qoder',source)).toBe(false);expect(validACPEvidence({...proof(),permissions_denied:2},'qoder',source)).toBe(false);
  });
  it('requires exact frozen ACP capability in the original nonretrying producer and rejects mixed bindings',()=>{
   const value={agent_node_id:'agent1',acp_execution:cap(),workflow:{nodes:[{id:'agent1',type:'agent',max_retries:0,config:{acp_execution:cap()}}]}};

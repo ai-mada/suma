@@ -21,14 +21,24 @@ func discoveryFixture(t *testing.T, secrets []string, timeout time.Duration, rep
 		t.Fatal(err)
 	}
 	defer d.Close()
-	packets := make(chan []byte, 64)
+	type packet struct {
+		raw       []byte
+		processed chan struct{}
+	}
+	packets := make(chan packet, 64)
 	copied := make(chan struct{})
 	go func() {
 		defer close(copied)
 		_, _ = d.CopyInput(fixtureWriter(func(b []byte) (int, error) {
+			p := packet{raw: append([]byte{}, b...), processed: make(chan struct{})}
 			select {
-			case packets <- append([]byte{}, b...):
-				return len(b), nil
+			case packets <- p:
+				select {
+				case <-p.processed:
+					return len(b), nil
+				case <-ctx.Done():
+					return 0, ctx.Err()
+				}
 			case <-ctx.Done():
 				return 0, ctx.Err()
 			}
@@ -37,7 +47,8 @@ func discoveryFixture(t *testing.T, secrets []string, timeout time.Duration, rep
 	for {
 		select {
 		case b := <-packets:
-			reply(d, object(b))
+			reply(d, object(b.raw))
+			close(b.processed)
 		case <-copied:
 			// Reading the provisional catalogue does not launch another stack;
 			// mutating the caller's copy cannot change the final observation.
@@ -98,16 +109,15 @@ func TestModelDiscoveryNeverStartsWork(t *testing.T) {
 						options[0].(map[string]any)["options"] = []any{map[string]any{"group": "models", "name": "Models", "options": options[0].(map[string]any)["options"]}}
 					}
 					discoveryReply(d, p["id"], map[string]any{"sessionId": "discovery-session", "configOptions": options})
-				case "session/close":
-					discoveryReply(d, p["id"], map[string]any{})
+				case "session/cancel":
+					if p["id"] != nil {
+						t.Error("Cancel notification acquired a request ID")
+					}
 				default:
 					t.Error("discovery sent work/auth/configuration request")
 				}
 			})
-			want := "initialize,session/new"
-			if mode == "close" {
-				want += ",session/close"
-			}
+			want := "initialize,session/new,session/cancel"
 			if strings.Join(methods, ",") != want || o.ErrorCode != "" || o.Catalogue == nil || len(o.Catalogue.Models) != 2 || !o.Evidence.SessionCreated || o.Evidence.PromptRequests != 0 || o.Evidence.ConfigurationWrites != 0 || o.Evidence.HostProcessStopped || o.Evidence.HostProcessTreeStopped {
 				t.Fatal("no-work catalogue observation missing")
 			}
@@ -119,8 +129,8 @@ func TestModelDiscoveryNeverStartsWork(t *testing.T) {
 			if mode == "unlisted_current" && o.Catalogue.CurrentValue != "not-listed" {
 				t.Error("safe unlisted current model observation was changed")
 			}
-			if mode == "close" && (!o.Evidence.SessionCloseRequested || !o.Evidence.SessionCloseAcknowledged) {
-				t.Error("close facts missing")
+			if !o.Evidence.SessionCancelRequested || !o.Evidence.SessionCancelWritten {
+				t.Error("Cancel notification write facts missing")
 			}
 		})
 	}
@@ -172,9 +182,8 @@ func TestModelDiscoveryRejectsUnsafeDirectory(t *testing.T) {
 	}
 }
 func TestModelDiscoveryRejectsActivityAndUnknownLifecycle(t *testing.T) {
-	for _, mode := range []string{"text", "tool", "permission", "filesystem", "terminal", "timeout", "close_error", "late", "truncated"} {
+	for _, mode := range []string{"text", "tool", "permission", "filesystem", "terminal", "timeout", "cancel_reply", "late", "truncated"} {
 		t.Run(mode, func(t *testing.T) {
-			var closeID json.RawMessage
 			refusals := 0
 			timeout := 3 * time.Second
 			if mode == "timeout" {
@@ -188,17 +197,15 @@ func TestModelDiscoveryRejectsActivityAndUnknownLifecycle(t *testing.T) {
 					}
 				case "session/new":
 					discoveryReply(d, p["id"], map[string]any{"sessionId": "discovery-session", "configOptions": modelOptions("lite")})
-				case "session/close":
-					closeID = p["id"]
+				case "session/cancel":
 					switch mode {
-					case "close_error":
-						_, _ = d.Write([]byte(`{"jsonrpc":"2.0","id":` + string(p["id"]) + `,"error":{"code":-32603,"message":"private provider diagnostic"}}` + "\n"))
+					case "cancel_reply":
+						_, _ = d.Write([]byte(`{"jsonrpc":"2.0","id":"no-cancel-ack","error":{"code":-32603,"message":"private provider diagnostic"}}` + "\n"))
 					case "truncated":
 						_, _ = d.Write([]byte(`{"jsonrpc":`))
 						_ = d.Close()
 					case "late":
-						discoveryReply(d, p["id"], map[string]any{})
-						discoveryReply(d, p["id"], map[string]any{})
+						discoveryReply(d, json.RawMessage(`"unknown-late-response"`), map[string]any{})
 					default:
 						method := "session/update"
 						params := map[string]any{"sessionId": "discovery-session", "update": map[string]any{"sessionUpdate": "agent_message_chunk", "content": map[string]any{"type": "text", "text": "unexpected body"}}}
@@ -232,7 +239,6 @@ func TestModelDiscoveryRejectsActivityAndUnknownLifecycle(t *testing.T) {
 					if (mode == "filesystem" || mode == "terminal") && p["error"] == nil {
 						t.Error("unexpected host capability was acknowledged")
 					}
-					discoveryReply(d, closeID, map[string]any{})
 				default:
 					t.Error("unexpected work request")
 				}

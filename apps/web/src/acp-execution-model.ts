@@ -1,5 +1,6 @@
-import type {ACPExecutionCapability,ACPExecutionEvidence} from '../../../packages/contracts/src';
+import type {ACPExecutionCapability,ACPExecutionEvidence,ToolEvidence} from '../../../packages/contracts/src';
 import {wellFormed} from './i18n/catalog';
+import {validCursorInputEvidence} from './tool-input-model';
 const max=2147483647,encoder=new TextEncoder(),bytes=(v:string)=>encoder.encode(v).length;
 const object=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&(Object.getPrototypeOf(v)===Object.prototype||Object.getPrototypeOf(v)===null);
 const fields=(v:Record<string,unknown>,required:readonly string[],optional:readonly string[]=[])=>required.every(k=>Object.hasOwn(v,k))&&Reflect.ownKeys(v).every(k=>typeof k==='string'&&(required.includes(k)||optional.includes(k)));
@@ -12,12 +13,27 @@ const capabilityKeys=['runtime','protocol_version','sdk_version','configuration_
 export function validACPCapability(value:unknown,expectedRuntime?:'qoder'|'cursor'):value is ACPExecutionCapability{
  return object(value)&&fields(value,capabilityKeys)&&(expectedRuntime===undefined||value.runtime===expectedRuntime)&&(value.runtime==='qoder'&&value.auth_strategy==='existing_cli_login'||value.runtime==='cursor'&&value.auth_strategy==='explicit_api_key_env')&&value.protocol_version===1&&value.sdk_version==='0.13.5'&&hash(value.configuration_sha256)&&token(value.model,256)&&value.model_source==='administrator_session_config'&&value.budget_mode==='observe_only'&&value.identity_evidence==='configuration_ack_only'&&value.permission_mode==='human_once';
 }
-export function validACPEvidence(value:unknown):value is ACPExecutionEvidence{
- const required=['configuration_sha256','requested_model','model_selection_acknowledged','prompt_started','prompt_completed','tools_complete','permissions_requested','permissions_denied','cancel_requested','host_process_stopped','host_process_tree_stopped'];
- if(!object(value)||!fields(value,required,['selected_model','session_id','protocol_version','agent_name','agent_version','stop_reason'])||!hash(value.configuration_sha256)||!token(value.requested_model,256)||!['model_selection_acknowledged','prompt_started','prompt_completed','tools_complete','cancel_requested','host_process_stopped','host_process_tree_stopped'].every(k=>typeof value[k]==='boolean')||!integer(value.permissions_requested,0,32)||!integer(value.permissions_denied,0,value.permissions_requested))return false;
+export function validACPEvidence(value:unknown,runtime:'qoder'|'cursor',source:Pick<ToolEvidence,'session_id'|'terminal'>):value is ACPExecutionEvidence{
+ const required=['configuration_sha256','requested_model','model_selection_acknowledged','prompt_started','prompt_completed','tools_complete','permissions_requested','permissions_denied','cancel_requested','host_process_stopped','host_process_tree_stopped','host_stopped_after_rpc'];
+ if(!object(value)||!fields(value,required,['selected_model','session_id','protocol_version','agent_name','agent_version','stop_reason','host_process_exit_code','user_inputs'])||!hash(value.configuration_sha256)||!token(value.requested_model,256)||!['model_selection_acknowledged','prompt_started','prompt_completed','tools_complete','cancel_requested','host_process_stopped','host_process_tree_stopped','host_stopped_after_rpc'].every(k=>typeof value[k]==='boolean')||!integer(value.permissions_requested,0,32)||!integer(value.permissions_denied,0,value.permissions_requested))return false;
  if(['selected_model','session_id','agent_name','agent_version'].some(k=>Object.hasOwn(value,k)&&!token(value[k],256))||Object.hasOwn(value,'protocol_version')&&value.protocol_version!==1)return false;
+ if(!source||!['completed','failed','unknown'].includes(source.terminal)||source.session_id!==undefined&&!token(source.session_id,256)||source.session_id!==value.session_id)return false;
  if(Object.hasOwn(value,'stop_reason')&&(typeof value.stop_reason!=='string'||!['end_turn','max_tokens','max_turn_requests','refusal','cancelled'].includes(value.stop_reason)))return false;
- if(value.model_selection_acknowledged&&value.selected_model!==value.requested_model||value.prompt_started&&(!value.model_selection_acknowledged||!value.session_id||value.protocol_version!==1)||value.prompt_completed&&(!value.prompt_started||!value.stop_reason)||value.host_process_tree_stopped&&!value.host_process_stopped)return false;
+ if(value.model_selection_acknowledged&&value.selected_model!==value.requested_model||value.selected_model!==undefined&&!value.model_selection_acknowledged||value.prompt_started&&(!value.model_selection_acknowledged||!value.session_id||value.protocol_version!==1)||value.prompt_completed&&(!value.prompt_started||!value.stop_reason)||value.host_process_tree_stopped&&!value.host_process_stopped)return false;
+ if(Object.hasOwn(value,'host_process_exit_code')&&(!integer(value.host_process_exit_code,-1,4294967295)||!value.host_process_stopped))return false;
+ if(Object.hasOwn(value,'user_inputs')){
+  if(!Array.isArray(value.user_inputs)||value.user_inputs.length+value.permissions_requested>32||value.user_inputs.length>0&&(runtime!=='cursor'||!value.prompt_started))return false;
+  const requests=new Set<string>(),inputs=new Set<string>();
+  for(const input of value.user_inputs){
+   if(!validCursorInputEvidence(input)||input.configuration_sha256!==value.configuration_sha256||input.session_id!==value.session_id)return false;
+   const request=input.request_id.kind+':'+input.request_id.value;
+   if(requests.has(request)||inputs.has(input.input_id))return false;
+   requests.add(request);inputs.add(input.input_id);
+   if(source.terminal==='completed'&&(!input.observation?.answer_observed||!input.observation.reply_written||!input.observation.execution_closed||!!input.observation.failure_code))return false;
+  }
+ }
+ if(value.host_stopped_after_rpc&&(runtime!=='cursor'||!integer(value.host_process_exit_code,-1,4294967295)||!value.host_process_stopped||!value.host_process_tree_stopped||!value.prompt_completed||value.stop_reason!=='end_turn'||!value.tools_complete||value.cancel_requested||value.permissions_denied!==0||Array.isArray(value.user_inputs)&&value.user_inputs.some(input=>!input.observation?.answer_observed||!input.observation.reply_written||!input.observation.execution_closed||!!input.observation.failure_code)))return false;
+ if(source.terminal==='completed'&&(!value.prompt_completed||value.stop_reason!=='end_turn'||!value.tools_complete||value.permissions_denied!==0||value.cancel_requested||!value.host_process_stopped||value.host_process_exit_code!==undefined&&value.host_process_exit_code!==0&&!value.host_stopped_after_rpc))return false;
  return true;
 }
 /** The original workflow and preview must freeze the same administrator

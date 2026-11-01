@@ -971,6 +971,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	done := make(chan error, 1)
 	processContainmentVerified := true
+	acpStoppedAfterRPC := false
 	go func() { done <- cmd.Wait() }()
 	select {
 	case err = <-done:
@@ -981,39 +982,21 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			r.Error = "process exited unsuccessfully"
 		}
 	case <-cursorInputClosed:
-		// A completed or rejected SDK stack closes stdin. Cursor must then
-		// leave the foreground; never wait a whole task deadline or turn a
-		// forced host shutdown into a successful native exit.
-		grace := time.NewTimer(2 * time.Second)
-		select {
-		case err = <-done:
-			if err == nil {
-				r.ExitCode = 0
-			} else if cmd.ProcessState != nil {
-				r.ExitCode = cmd.ProcessState.ExitCode()
-				r.Error = "process exited unsuccessfully"
-			}
-		case <-grace.C:
-			stopErr := controller.Stop()
-			<-done
+		completion := stopCursorHostAfterRPC(ctx, controller, done, func() bool {
+			return acpDriver.CanStopAfterRPC() && completeACPOutput(out) && currentACPCommand(ctx, cfg, spec, executable, profile.ProfileSHA256)
+		})
+		err, acpStoppedAfterRPC = completion.waitErr, completion.afterRPC
+		processContainmentVerified = completion.stopErr == nil
+		if acpStoppedAfterRPC || err == nil && !completion.interrupted {
+			// Business success denotes the completed RPC, not a native exit 0.
+			r.ExitCode = 0
+		} else {
 			if cmd.ProcessState != nil {
 				r.ExitCode = cmd.ProcessState.ExitCode()
 			}
 			r.OutcomeUnknown = true
-			r.Error = "Cursor foreground did not close after the protocol stack ended"
-			if stopErr != nil {
-				processContainmentVerified = false
-			}
-		case <-ctx.Done():
-			stopErr := controller.Stop()
-			<-done
-			r.OutcomeUnknown = true
-			r.Error = ctx.Err().Error()
-			if stopErr != nil {
-				processContainmentVerified = false
-			}
+			r.Error = "Cursor foreground shutdown requires reconciliation"
 		}
-		grace.Stop()
 	case <-ctx.Done():
 		waited := false
 		if dshStdin != nil || codexDriver != nil || acpDriver != nil {
@@ -1072,7 +1055,16 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	closeModelGateway()
 	r.Output = out.String()
 	if acpDriver != nil {
-		evidence := acpDriver.finish(cmd.ProcessState != nil, processContainmentVerified)
+		var hostExitCode *int
+		if cmd.ProcessState != nil {
+			code := cmd.ProcessState.ExitCode()
+			hostExitCode = &code
+		}
+		if spec.ACP.Runtime == "cursor" && (!currentACPCommand(ctx, cfg, spec, executable, profile.ProfileSHA256) || !completeACPOutput(out)) {
+			r.OutcomeUnknown = true
+			r.Error = "ACP execution source changed or was cancelled"
+		}
+		evidence := acpDriver.finish(cmd.ProcessState != nil, processContainmentVerified, hostExitCode, acpStoppedAfterRPC)
 		if r.Stopped || r.OutcomeUnknown || r.ExitCode != 0 {
 			evidence.Terminal = "unknown"
 		}

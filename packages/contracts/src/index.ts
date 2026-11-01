@@ -29,6 +29,8 @@ export interface ACPExecutionEvidence {
   cancel_requested: boolean;
   host_process_stopped: boolean;
   host_process_tree_stopped: boolean;
+  host_process_exit_code?: number | null;
+  host_stopped_after_rpc: boolean;
   user_inputs?: (CursorInputEvidence)[];
 }
 export interface ACPModelCatalogue {
@@ -45,14 +47,16 @@ export interface ACPModelChoice {
 }
 export interface ACPModelDiscoveryEvidence {
   session_created: boolean;
-  session_close_requested: boolean;
-  session_close_acknowledged: boolean;
+  session_cancel_requested: boolean;
+  session_cancel_written: boolean;
   prompt_requests: number;
   configuration_writes: number;
   permission_requests: number;
   unexpected_activity: number;
   host_process_stopped: boolean;
   host_process_tree_stopped: boolean;
+  host_process_exit_code?: number | null;
+  host_stopped_after_rpc: boolean;
 }
 export interface ACPModelDiscoveryResult {
   protocol: string;

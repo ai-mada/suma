@@ -79,6 +79,47 @@
       },
       "ACPExecutionEvidence": {
         "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "host_stopped_after_rpc": {
+                  "const": true
+                }
+              },
+              "required": [
+                "host_stopped_after_rpc"
+              ]
+            },
+            "then": {
+              "properties": {
+                "host_process_stopped": {
+                  "const": true
+                },
+                "host_process_tree_stopped": {
+                  "const": true
+                }
+              },
+              "required": [
+                "host_process_exit_code"
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "host_process_exit_code"
+              ]
+            },
+            "then": {
+              "properties": {
+                "host_process_stopped": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ],
         "properties": {
           "agent_name": {
             "type": "string"
@@ -92,10 +133,20 @@
           "configuration_sha256": {
             "type": "string"
           },
+          "host_process_exit_code": {
+            "description": "Actual OS host exit, including signal termination. RPC operation success never rewrites it to zero.",
+            "maximum": 4294967295,
+            "minimum": -1,
+            "type": "integer"
+          },
           "host_process_stopped": {
             "type": "boolean"
           },
           "host_process_tree_stopped": {
+            "type": "boolean"
+          },
+          "host_stopped_after_rpc": {
+            "description": "Cursor only: controlled host stop after a complete successful original RPC, no unresolved writes, and confirmed process-tree termination. Not a natural exit or vendor ACK.",
             "type": "boolean"
           },
           "model_selection_acknowledged": {
@@ -150,7 +201,8 @@
           "permissions_denied",
           "cancel_requested",
           "host_process_stopped",
-          "host_process_tree_stopped"
+          "host_process_tree_stopped",
+          "host_stopped_after_rpc"
         ],
         "type": "object"
       },
@@ -214,8 +266,55 @@
       },
       "ACPModelDiscoveryEvidence": {
         "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "host_stopped_after_rpc": {
+                  "const": true
+                }
+              },
+              "required": [
+                "host_stopped_after_rpc"
+              ]
+            },
+            "then": {
+              "properties": {
+                "host_process_stopped": {
+                  "const": true
+                },
+                "host_process_tree_stopped": {
+                  "const": true
+                }
+              },
+              "required": [
+                "host_process_exit_code"
+              ]
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "host_process_exit_code"
+              ]
+            },
+            "then": {
+              "properties": {
+                "host_process_stopped": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ],
         "properties": {
           "configuration_writes": {
+            "type": "integer"
+          },
+          "host_process_exit_code": {
+            "description": "Actual OS host exit, including signal termination. RPC operation success never rewrites it to zero.",
+            "maximum": 4294967295,
+            "minimum": -1,
             "type": "integer"
           },
           "host_process_stopped": {
@@ -224,16 +323,21 @@
           "host_process_tree_stopped": {
             "type": "boolean"
           },
+          "host_stopped_after_rpc": {
+            "description": "Cursor only: controlled host stop after a complete successful original RPC, no unresolved writes, and confirmed process-tree termination. Not a natural exit or vendor ACK.",
+            "type": "boolean"
+          },
           "permission_requests": {
             "type": "integer"
           },
           "prompt_requests": {
             "type": "integer"
           },
-          "session_close_acknowledged": {
+          "session_cancel_requested": {
             "type": "boolean"
           },
-          "session_close_requested": {
+          "session_cancel_written": {
+            "description": "The standard ACP cancel notification was actually written. No independent native cancellation or session-close acknowledgement exists.",
             "type": "boolean"
           },
           "session_created": {
@@ -245,14 +349,15 @@
         },
         "required": [
           "session_created",
-          "session_close_requested",
-          "session_close_acknowledged",
+          "session_cancel_requested",
+          "session_cancel_written",
           "prompt_requests",
           "configuration_writes",
           "permission_requests",
           "unexpected_activity",
           "host_process_stopped",
-          "host_process_tree_stopped"
+          "host_process_tree_stopped",
+          "host_stopped_after_rpc"
         ],
         "type": "object"
       },

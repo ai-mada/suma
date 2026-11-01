@@ -22,12 +22,18 @@ func ValidateModelCatalogue(c ACPModelCatalogue) error {
 }
 func ValidateModelDiscoveryResult(r ACPModelDiscoveryResult) error {
 	e := r.Evidence
-	if r.Protocol != ModelDiscoveryProtocol || (r.Runtime != "qoder" && r.Runtime != "cursor") || !configurationDigest.MatchString(r.ExecutableSHA256) || !ValidFixedText(r.ToolVersion, 256) || !permissionText(r.AgentName, 256, false, false) || !permissionText(r.AgentVersion, 256, false, false) || e.PromptRequests < 0 || e.ConfigurationWrites < 0 || e.PermissionRequests < 0 || e.UnexpectedActivity < 0 || e.PromptRequests > 4096 || e.ConfigurationWrites > 4096 || e.PermissionRequests > 4096 || e.UnexpectedActivity > 4096 || e.HostProcessTreeStopped && !e.HostProcessStopped || e.SessionCloseAcknowledged && !e.SessionCloseRequested || e.SessionCloseRequested && !e.SessionCreated {
+	if e.HostProcessExitCode != nil && !e.HostProcessStopped {
+		return ErrModelDiscoveryInvalid
+	}
+	if r.Protocol != ModelDiscoveryProtocol || (r.Runtime != "qoder" && r.Runtime != "cursor") || !configurationDigest.MatchString(r.ExecutableSHA256) || !ValidFixedText(r.ToolVersion, 256) || !permissionText(r.AgentName, 256, false, false) || !permissionText(r.AgentVersion, 256, false, false) || e.PromptRequests < 0 || e.ConfigurationWrites < 0 || e.PermissionRequests < 0 || e.UnexpectedActivity < 0 || e.PromptRequests > 4096 || e.ConfigurationWrites > 4096 || e.PermissionRequests > 4096 || e.UnexpectedActivity > 4096 || e.HostProcessTreeStopped && !e.HostProcessStopped || e.SessionCancelWritten && !e.SessionCancelRequested || e.SessionCancelRequested && !e.SessionCreated || !ValidHostExitCode(e.HostProcessExitCode) {
+		return ErrModelDiscoveryInvalid
+	}
+	if e.HostStoppedAfterRPC && (r.Runtime != "cursor" || !e.SessionCreated || !e.SessionCancelRequested || !e.SessionCancelWritten || !e.HostProcessStopped || !e.HostProcessTreeStopped || e.HostProcessExitCode == nil || e.PromptRequests != 0 || e.ConfigurationWrites != 0 || e.PermissionRequests != 0 || e.UnexpectedActivity != 0) {
 		return ErrModelDiscoveryInvalid
 	}
 	switch r.State {
 	case "ready":
-		if r.ErrorCode != "" || r.Catalogue == nil || ValidateModelCatalogue(*r.Catalogue) != nil || !e.SessionCreated || !e.HostProcessStopped || !e.HostProcessTreeStopped || e.PromptRequests != 0 || e.ConfigurationWrites != 0 || e.PermissionRequests != 0 || e.UnexpectedActivity != 0 || e.SessionCloseRequested && !e.SessionCloseAcknowledged {
+		if r.ErrorCode != "" || r.Catalogue == nil || ValidateModelCatalogue(*r.Catalogue) != nil || !e.SessionCreated || !e.HostProcessStopped || !e.HostProcessTreeStopped || e.PromptRequests != 0 || e.ConfigurationWrites != 0 || e.PermissionRequests != 0 || e.UnexpectedActivity != 0 || e.SessionCancelRequested && !e.SessionCancelWritten || e.HostProcessExitCode != nil && *e.HostProcessExitCode != 0 && !e.HostStoppedAfterRPC {
 			return ErrModelDiscoveryInvalid
 		}
 	case "failed", "unknown":

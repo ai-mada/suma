@@ -368,20 +368,41 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 	go func() { done <- cmd.Wait() }()
 	var waitErr error
 	interrupted := false
+	stoppedAfterRPC := false
+	var explicitStopErr error
+	var cursorInputClosed <-chan struct{}
+	if spec.ACP.Runtime == "cursor" {
+		cursorInputClosed = inputDone
+	}
+	currentSource := func() bool {
+		return ctx.Err() == nil && sameACPProbeInstallation(ctx, exe, input.ExecutableSHA256) && (spec.ACP.CursorPackage == nil || cursorPackageUnchanged(*spec.ACP.CursorPackage))
+	}
 	select {
 	case waitErr = <-done:
+	case <-cursorInputClosed:
+		completion := stopCursorHostAfterRPC(ctx, controller, done, func() bool { return driver.CanStopAfterRPC() && currentSource() })
+		waitErr, explicitStopErr, stoppedAfterRPC, interrupted = completion.waitErr, completion.stopErr, completion.afterRPC, completion.interrupted
 	case <-ctx.Done():
 		interrupted = true
 		_ = driver.Close()
 		_ = stdin.Close()
-		_ = controller.Stop()
+		explicitStopErr = controller.Stop()
 		waitErr = <-done
 	}
 	stopErr := controller.Finish()
+	if explicitStopErr != nil {
+		stopErr = explicitStopErr
+	}
+	stoppedAfterRPC = stoppedAfterRPC && driver.CanStopAfterRPC() && currentSource()
 	observation := driver.Finish()
 	result.AgentName, result.AgentVersion, result.Evidence = observation.AgentName, observation.AgentVersion, observation.Evidence
 	result.Evidence.HostProcessStopped = cmd.ProcessState != nil
 	result.Evidence.HostProcessTreeStopped = result.Evidence.HostProcessStopped && stopErr == nil
+	if cmd.ProcessState != nil {
+		code := cmd.ProcessState.ExitCode()
+		result.Evidence.HostProcessExitCode = &code
+	}
+	result.Evidence.HostStoppedAfterRPC = stoppedAfterRPC && result.Evidence.HostProcessTreeStopped
 	diagnostic.mu.Lock()
 	truncated := diagnostic.truncated
 	diagnostic.mu.Unlock()
@@ -394,7 +415,7 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 		if result.ErrorCode != "acp_discovery_unknown" {
 			result.State = "failed"
 		}
-	} else if waitErr != nil || truncated {
+	} else if waitErr != nil && !stoppedAfterRPC || truncated {
 		result.State, result.ErrorCode = "failed", "acp_discovery_failed"
 	} else if !sameACPProbeInstallation(ctx, exe, input.ExecutableSHA256) {
 		result.ErrorCode = "acp_discovery_unknown"

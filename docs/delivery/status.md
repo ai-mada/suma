@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CURSOR-SETUP-191：[合同](../../contracts/cursor-setup.md)／[PRD](../product/cursor-setup.md)／[架构与AI SOP](../architecture/cursor-setup.md)／[限定验证](../quality/cursor-setup-verification.md)。高级／浏览器／独立节点沿唯一Cursor表单生成原Go受核配置，复用原库存、暂停登记和明确启用；成功RPC后受控宿主停止与真实退出值分别记录，未知门不松。真实厂商账号／模型、Unix未覆盖约束及完整31／P0–P7／58／34／92继续。
+
 T-CURSOR-INPUTS-190：[合同](../../contracts/cursor-inputs.md)／[产品](../product/cursor-inputs.md)／[架构与 AI SOP](../architecture/cursor-inputs.md)／[限定验证](../quality/cursor-inputs-verification.md)。Cursor原问题／多选／完整计划明确决定贯通原输入、普通／Pool、typed响应和送达事实；原生Codex关闭记录保持准确投影。新受控完整链实际贯通HTTP、SDK、Journal、候选、同提交独测及验收；真实账号／模型与完整31／P0–P7／58／34／92继续。
 
 T-CURSOR-ACP-189：[合同](../../contracts/cursor-acp-execution.md)／[架构与 AI SOP](../architecture/cursor-acp-execution.md)／[限定验证](../quality/cursor-acp-execution-verification.md)。Cursor 采用成熟 ACP SDK 接入受核 Node 包、明确凭据引用、准确模型配置、原任务／讨论／专家团队和普通／Pool 权限链；代码候选、同提交独立测试与验收沿原门禁。编辑器观察、包完整性、配置、执行和质量事实独立，未知效果不盲目重发。真实厂商账号／模型、多机与完整31／P0–P7／58／34／92继续交付。

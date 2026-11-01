@@ -23,15 +23,17 @@ type ACPModelCatalogue struct {
 // Transport requests and real host lifecycle are recorded independently.
 // Zero Prompt requests does not prove the trusted CLI made no internal calls.
 type ACPModelDiscoveryEvidence struct {
-	SessionCreated           bool `json:"session_created"`
-	SessionCloseRequested    bool `json:"session_close_requested"`
-	SessionCloseAcknowledged bool `json:"session_close_acknowledged"`
-	PromptRequests           int  `json:"prompt_requests"`
-	ConfigurationWrites      int  `json:"configuration_writes"`
-	PermissionRequests       int  `json:"permission_requests"`
-	UnexpectedActivity       int  `json:"unexpected_activity"`
-	HostProcessStopped       bool `json:"host_process_stopped"`
-	HostProcessTreeStopped   bool `json:"host_process_tree_stopped"`
+	SessionCreated         bool `json:"session_created"`
+	SessionCancelRequested bool `json:"session_cancel_requested"`
+	SessionCancelWritten   bool `json:"session_cancel_written"`
+	PromptRequests         int  `json:"prompt_requests"`
+	ConfigurationWrites    int  `json:"configuration_writes"`
+	PermissionRequests     int  `json:"permission_requests"`
+	UnexpectedActivity     int  `json:"unexpected_activity"`
+	HostProcessStopped     bool `json:"host_process_stopped"`
+	HostProcessTreeStopped bool `json:"host_process_tree_stopped"`
+	HostProcessExitCode    *int `json:"host_process_exit_code,omitempty"`
+	HostStoppedAfterRPC    bool `json:"host_stopped_after_rpc"`
 }
 
 // Safe result for the fixed local stdin command. It contains no executable

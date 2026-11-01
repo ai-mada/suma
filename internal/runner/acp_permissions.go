@@ -341,6 +341,10 @@ func cloneACPEvidence(value *ac.Evidence) *ac.Evidence {
 		return nil
 	}
 	copy := *value
+	if value.HostProcessExitCode != nil {
+		code := *value.HostProcessExitCode
+		copy.HostProcessExitCode = &code
+	}
 	if value.UserInputs != nil {
 		copy.UserInputs = append(value.UserInputs[:0:0], value.UserInputs...)
 		for i := range copy.UserInputs {

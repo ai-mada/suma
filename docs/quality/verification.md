@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CURSOR-SETUP-191：[限定报告](cursor-setup-verification.md)／[摘要](cursor-setup-summary.json)。准备文件、UTF8命令、原节点引导与受控长驻宿主分别取证；保留真实退出值、标准cancel通知写出和严格未知门。新增／直接影响检查、真实PS5纯准备及双语界面验证的实际命令／环境／原失败与边界见报告，不重复SDK或190完整链。
+
 T-CURSOR-INPUTS-190：[限定报告](cursor-inputs-verification.md)／[摘要](cursor-inputs-summary.json)。原问题／多选与计划typed决定贯通原Server／SQLite／Worker／SDK／Journal／Git及独立测试和隔离账号验收，GUI中英代表状态单次收口；厂商账号／模型和完整平台继续单独验收。新增及受影响检查的实际命令、离线环境、原失败和证据摘要均保留，不重复未变全套。
 
 T-TURN-STEERING-188：[限定报告](turn-steering-verification.md)／[摘要](turn-steering-summary.json)。31不同定向／24Go子例，平台真实HTTP／SQLite、真实CLI＋自有模型、3合成组件交互分别留证；完整原文进入后续模型输入，0商业调用。原失败和1项Runtime P2修复保留，未重未变全套。

@@ -10,6 +10,22 @@ beforeEach(async()=>{await setLocale('zh-CN',{persist:false});host=document.crea
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();if(clipboard)Object.defineProperty(navigator,'clipboard',clipboard);else Reflect.deleteProperty(navigator,'clipboard');vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function change(element:HTMLInputElement|HTMLSelectElement,value:string){const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
 
+it('T191 carries an explicit Cursor configuration draft into the original remote Runner guide without writing or enabling',async()=>{
+ const fetch=vi.fn(async(_input:RequestInfo|URL,_init?:RequestInit)=>Response.json({items:[]}));vi.stubGlobal('fetch',fetch);
+ await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide expanded presetRequest={{preset:'cursor',nonce:191}}/>);});
+ const select=host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!;expect(select.value).toBe('cursor');
+ const values={shell:'powershell',packageRoot:'D:/tools/Cursor Agent',reviewedVersion:'Cursor exact 191',model:'reviewed-model',credentialEnvRef:'LOCAL_CURSOR_CREDENTIAL',commands:'D:/suma/commands.cursor.json'};
+ for(const [name,value] of Object.entries(values))await change(host.querySelector<HTMLInputElement|HTMLSelectElement>('[data-cursor-setup-field="'+name+'"]')!,value);
+ const use=host.querySelector<HTMLButtonElement>('[data-cursor-setup-use]')!;expect(use.disabled).toBe(false);await act(async()=>use.click());
+ expect(host.querySelector<HTMLInputElement>('[name="remote-runner-commands"]')!.value).toBe(values.commands);
+ expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-shell"]')!.value).toBe(values.shell);
+ expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-localTool"]')!.value).toBe('cursor-cli');
+ expect(host.querySelector('[data-remote-runner-command="prepare"]')).toBeNull();expect(fetch).not.toHaveBeenCalled();
+ await act(async()=>root!.render(<ToolSetupGuide expanded project="another-project" presetRequest={{preset:'cursor',nonce:192}}/>));
+ expect(host.querySelector<HTMLInputElement>('[data-cursor-setup-field="commands"]')!.value).toBe('');
+ expect(host.querySelector<HTMLInputElement>('[name="remote-runner-commands"]')!.value).toBe('');expect(fetch.mock.calls.every(([,init])=>!init?.method||init.method==='GET')).toBe(true);
+});
+
 it.each([['extractor','知识提炼模型','knowledge_extraction'],['diagnosis','失败分诊模型','failure_diagnosis'],['operations','智能操作规划模型','intelligent_operations']] as const)('configures the %s model with explicit valid inputs and no planning or control credentials',async(_preset,title,capability)=>{
  const writeText=vi.fn(async(_text:string)=>{});Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText}});
  await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide/>);});

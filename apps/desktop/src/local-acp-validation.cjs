@@ -15,10 +15,13 @@ const errors=new Set(['acp_discovery_invalid','acp_discovery_unknown','acp_disco
 function validDiscovery(v,adapterID='qoder-acp'){
  const adapter=acpAdapter(adapterID);
  if(!adapter||!fields(v,['protocol','runtime','state','executable_sha256','tool_version','evidence'],['agent_name','agent_version','catalogue','error_code'])||v.protocol!=='suma-acp-model-discovery-v1'||v.runtime!==adapter.runtime||!HASH.test(v.executable_sha256)||!text(v.tool_version,256)||['agent_name','agent_version'].some(k=>Object.hasOwn(v,k)&&!text(v[k],256)))return false;
- const e=v.evidence,booleans=['session_created','session_close_requested','session_close_acknowledged','host_process_stopped','host_process_tree_stopped'],numbers=['prompt_requests','configuration_writes','permission_requests','unexpected_activity'];
- if(!fields(e,[...booleans,...numbers])||booleans.some(k=>typeof e[k]!=='boolean')||numbers.some(k=>!Number.isSafeInteger(e[k])||e[k]<0||e[k]>(k==='permission_requests'?32:4096))||e.host_process_tree_stopped&&!e.host_process_stopped||e.session_close_acknowledged&&!e.session_close_requested||e.session_close_requested&&!e.session_created)return false;
+ const e=v.evidence,booleans=['session_created','session_cancel_requested','session_cancel_written','host_process_stopped','host_process_tree_stopped','host_stopped_after_rpc'],numbers=['prompt_requests','configuration_writes','permission_requests','unexpected_activity'];
+ if(!fields(e,[...booleans,...numbers],['host_process_exit_code'])||booleans.some(k=>typeof e[k]!=='boolean')||numbers.some(k=>!Number.isSafeInteger(e[k])||e[k]<0||e[k]>4096)||e.host_process_tree_stopped&&!e.host_process_stopped||e.session_cancel_written&&!e.session_cancel_requested||e.session_cancel_requested&&!e.session_created)return false;
+ const hasExit=Object.hasOwn(e,'host_process_exit_code'),exit=e.host_process_exit_code;
+ if(hasExit&&(!Number.isSafeInteger(exit)||exit< -1||exit>4294967295||!e.host_process_stopped))return false;
+ if(e.host_stopped_after_rpc&&(v.runtime!=='cursor'||!e.session_created||!e.session_cancel_requested||!e.session_cancel_written||!e.host_process_stopped||!e.host_process_tree_stopped||!hasExit||numbers.some(k=>e[k]!==0)))return false;
  if(v.state!=='ready')return ['failed','unknown'].includes(v.state)&&!Object.hasOwn(v,'catalogue')&&errors.has(v.error_code);
- if(Object.hasOwn(v,'error_code')||!e.session_created||!e.host_process_stopped||!e.host_process_tree_stopped||numbers.some(k=>e[k]!==0)||e.session_close_requested&&!e.session_close_acknowledged)return false;
+ if(Object.hasOwn(v,'error_code')||!e.session_created||!e.host_process_stopped||!e.host_process_tree_stopped||numbers.some(k=>e[k]!==0)||e.session_cancel_requested&&!e.session_cancel_written||hasExit&&exit!==0&&!e.host_stopped_after_rpc)return false;
  const c=v.catalogue;
  if(!fields(c,['source','protocol_version','config_id','current_value','models'])||c.source!=='acp_session_config'||c.protocol_version!==1||!text(c.config_id,128)||typeof c.current_value!=='string'||!Array.isArray(c.models)||c.models.length<1||c.models.length>256)return false;
  const seen=new Set();for(const m of c.models){if(!fields(m,['id','name','configuration_sha256'])||!text(m.id,256)||!text(m.name,4096)||!HASH.test(m.configuration_sha256)||seen.has(m.id))return false;seen.add(m.id);}

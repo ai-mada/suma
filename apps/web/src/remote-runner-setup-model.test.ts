@@ -17,6 +17,7 @@ it('builds explicit ordinary Worker startup from the exact same public identity 
   expect(commands.start).toBe(mode==='identity'?'suma-runner'+identityArgs:env+'suma-runner'+environmentArgs);
   expect(commands.report).toBe(mode==='identity'?'suma-runner --report-tools'+identityArgs:env+'suma-runner --report-tools'+environmentArgs);
   expect(commands.prepare).toBe('suma-runner --prepare-tools '+literal(value.commands)+' --local-tool '+literal(value.localTool));
+  const cursor=remoteRunnerSetupCommands({...value,localTool:'cursor-cli'});expect(cursor.prepare).toBeUndefined();expect(cursor.report).toBe(commands.report);expect(cursor.start).toBe(commands.start);
   expect(commands.start).not.toMatch(/--(?:report-tools|pair-runner|prepare-tools)/);
   if(mode==='identity'){
    expect(commands.start).not.toMatch(/--state\b|SUMA_RUNNER_TOKEN/);

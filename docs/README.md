@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [Cursor独立节点配置](product/cursor-setup.md) · [合同](../contracts/cursor-setup.md) · [架构与AI SOP](architecture/cursor-setup.md) · [交互](design/cursor-setup.md) · [English](en/cursor-setup.md) · [限定验证](quality/cursor-setup-verification.md)：T191补齐真实配置生成、原节点衔接与严格区分RPC／宿主退出。
+
 - [原执行提问与计划确认](product/cursor-inputs.md) · [合同](../contracts/cursor-inputs.md) · [架构与 AI SOP](architecture/cursor-inputs.md) · [交互](design/cursor-inputs.md) · [English](en/cursor-inputs.md) · [限定验证](quality/cursor-inputs-verification.md)：T190将Cursor多选与明确计划决定接入原权限、Journal、候选和独立质量链。
 
 - [Cursor ACP 开发执行](product/cursor-acp-execution.md) · [合同](../contracts/cursor-acp-execution.md) · [架构与 AI SOP](architecture/cursor-acp-execution.md) · [简洁接入交互](design/cursor-acp-execution.md) · [English](en/cursor-acp-execution.md) · [Multica 采用记录](integrations/multica-cursor-acp.md) · [限定验证](quality/cursor-acp-execution-verification.md)：受核包、明确模型与凭据引用接入原派发和独立质量链；实际账号与厂商模型分别验收。

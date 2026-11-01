@@ -83,6 +83,9 @@ func validateACPEvidence(e Evidence) error {
 	if p.ModelSelectionAcknowledged && p.SelectedModel != c.Model || p.SelectedModel != "" && !p.ModelSelectionAcknowledged || p.PromptStarted && (!p.ModelSelectionAcknowledged || p.SessionID == "" || p.ProtocolVersion != 1) || p.PromptCompleted && !p.PromptStarted || p.HostProcessTreeStopped && !p.HostProcessStopped {
 		return fmt.Errorf("inconsistent ACP execution facts")
 	}
+	if !ac.ValidHostExitCode(p.HostProcessExitCode) || p.HostProcessExitCode != nil && !p.HostProcessStopped || p.HostStoppedAfterRPC && (e.Profile.Adapter != "cursor" || p.HostProcessExitCode == nil || !p.PromptCompleted || p.StopReason != "end_turn" || !p.ToolsComplete || p.PermissionsDenied != 0 || p.CancelRequested || !p.HostProcessStopped || !p.HostProcessTreeStopped) {
+		return fmt.Errorf("invalid ACP RPC and host termination relationship")
+	}
 	if len(p.UserInputs) > 0 && e.Profile.Adapter != "cursor" || len(p.UserInputs)+p.PermissionsRequested > 32 {
 		return fmt.Errorf("ACP input capability or interaction limit differs")
 	}
@@ -93,7 +96,7 @@ func validateACPEvidence(e Evidence) error {
 			return fmt.Errorf("ACP input evidence differs from its original execution")
 		}
 		seen[key], ids[input.InputID] = true, true
-		if e.Terminal == "completed" && (input.Observation == nil || !input.Observation.AnswerObserved || !input.Observation.ReplyWritten || !input.Observation.ExecutionClosed || input.Observation.FailureCode != "") {
+		if (e.Terminal == "completed" || p.HostStoppedAfterRPC) && (input.Observation == nil || !input.Observation.AnswerObserved || !input.Observation.ReplyWritten || !input.Observation.ExecutionClosed || input.Observation.FailureCode != "") {
 			return fmt.Errorf("ACP completion requires closed original input delivery")
 		}
 	}
@@ -104,7 +107,7 @@ func validateACPEvidence(e Evidence) error {
 			return fmt.Errorf("unknown ACP stop reason")
 		}
 	}
-	if e.Terminal == "completed" && (!p.PromptCompleted || p.StopReason != "end_turn" || !p.ToolsComplete || p.PermissionsDenied != 0 || p.CancelRequested || !p.HostProcessStopped) {
+	if e.Terminal == "completed" && (!p.PromptCompleted || p.StopReason != "end_turn" || !p.ToolsComplete || p.PermissionsDenied != 0 || p.CancelRequested || !p.HostProcessStopped || p.HostProcessExitCode != nil && *p.HostProcessExitCode != 0 && !p.HostStoppedAfterRPC) {
 		return fmt.Errorf("ACP completion requires exact successful RPC and host termination facts")
 	}
 	return nil

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 const ToolPreparationProtocol = "suma-runner-tools-preparation-v1"
@@ -33,34 +35,12 @@ func PrepareToolCommands(ctx context.Context, path, adapterID string) (ToolPrepa
 
 func prepareToolCommands(ctx context.Context, path, adapterID string, discover func(context.Context, string) (InstalledToolDiscovery, error)) (ToolPreparation, error) {
 	result := ToolPreparation{Protocol: ToolPreparationProtocol, Remaining: []UnpreparedTool{}}
-	if !localToolSafeText(path, 4096) {
-		return result, fmt.Errorf("command destination must be a bounded local path")
-	}
-	file, err := filepath.Abs(path)
-	if err != nil {
-		return result, fmt.Errorf("command destination is unavailable")
-	}
+	file, parent, err := openToolCommandDestination(path)
 	result.File = file
-	// Never create parents or follow an existing destination or directory link.
-	// OpenRoot below anchors creation in the already checked parent directory.
-	if _, err = os.Lstat(file); !os.IsNotExist(err) {
-		return result, fmt.Errorf("command destination must be a new file")
-	}
-	for directory := filepath.Dir(file); ; directory = filepath.Dir(directory) {
-		info, statErr := os.Lstat(directory)
-		if statErr != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-			return result, fmt.Errorf("command destination needs existing directories without links")
-		}
-		if filepath.Dir(directory) == directory {
-			break
-		}
-	}
-	parent, err := os.OpenRoot(filepath.Dir(file))
 	if err != nil {
-		return result, fmt.Errorf("command destination directory is unavailable")
+		return result, err
 	}
 	defer parent.Close()
-
 	report, err := discover(ctx, adapterID)
 	if err != nil {
 		return result, err
@@ -76,8 +56,6 @@ func prepareToolCommands(ctx context.Context, path, adapterID string, discover f
 		}
 		seen[item.AdapterID] = true
 		if item.Installed && item.LaunchSupported && item.Command != nil {
-			// Scanner commands are fixed local policies, never caller-authored
-			// configuration or inherited platform/vendor secret values.
 			commands["local-"+item.AdapterID] = *item.Command
 		} else {
 			result.Remaining = append(result.Remaining, UnpreparedTool{AdapterID: item.AdapterID, ReasonCode: item.ReasonCode})
@@ -86,25 +64,77 @@ func prepareToolCommands(ctx context.Context, path, adapterID string, discover f
 	if len(commands) == 0 {
 		return result, nil
 	}
+	if err = writePreparedToolCommands(ctx, parent, filepath.Base(file), commands); err != nil {
+		return result, err
+	}
+	result.Prepared, result.CommandCount = true, len(commands)
+	return result, nil
+}
+
+// Both preparation modes reject an existing or linked destination before
+// consuming private input, inspecting a package, or discovering any tool.
+func openToolCommandDestination(path string) (string, *os.Root, error) {
+	if !localToolSafeText(path, 4096) {
+		return "", nil, fmt.Errorf("command destination must be a bounded local path")
+	}
+	// Reject aliases before Abs/Clean or any filesystem/stdin access. In
+	// particular, Windows trailing dots/spaces and ADS cannot name a new file.
+	for _, part := range strings.FieldsFunc(strings.TrimPrefix(path, filepath.VolumeName(path)), func(r rune) bool { return r == '/' || runtime.GOOS == "windows" && r == '\\' }) {
+		if part == ".." || runtime.GOOS == "windows" && part != "." && (strings.TrimRight(part, ". ") != part || strings.ContainsRune(part, ':')) {
+			return "", nil, fmt.Errorf("command destination has an unsupported alias")
+		}
+	}
+	file, err := filepath.Abs(path)
+	if err != nil {
+		return "", nil, fmt.Errorf("command destination is unavailable")
+	}
+	if runtime.GOOS == "windows" && (!cursorDiscoveryWindowsDrive(file) || cursorDiscoveryWindowsNamespace(file)) {
+		return file, nil, fmt.Errorf("command destination must be local")
+	}
+	// Never create parents or follow an existing destination or directory link.
+	// OpenRoot below anchors creation in the already checked parent directory.
+	if _, err = os.Lstat(file); !os.IsNotExist(err) {
+		return file, nil, fmt.Errorf("command destination must be a new file")
+	}
+	for directory := filepath.Dir(file); ; directory = filepath.Dir(directory) {
+		info, statErr := os.Lstat(directory)
+		if statErr != nil || !info.IsDir() || !cursorPackageOrdinary(info) {
+			return file, nil, fmt.Errorf("command destination needs existing directories without links")
+		}
+		if filepath.Dir(directory) == directory {
+			break
+		}
+	}
+	parent, err := os.OpenRoot(filepath.Dir(file))
+	if err != nil {
+		return file, nil, fmt.Errorf("command destination directory is unavailable")
+	}
+	return file, parent, nil
+}
+
+func writePreparedToolCommands(ctx context.Context, parent *os.Root, leaf string, commands map[string]CommandSpec) error {
+	if len(commands) == 0 {
+		return fmt.Errorf("tool configuration must not be empty")
+	}
 	raw, err := json.MarshalIndent(commands, "", "  ")
 	if err != nil {
-		return result, fmt.Errorf("local tool configuration could not be encoded")
+		return fmt.Errorf("local tool configuration could not be encoded")
 	}
 	if _, err = DecodeCommands(raw); err != nil {
-		return result, err
+		return err
 	}
 	if err = ctx.Err(); err != nil {
-		return result, err
+		return err
 	}
-	output, err := parent.OpenFile(filepath.Base(file), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	output, err := parent.OpenFile(leaf, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
-		return result, fmt.Errorf("command destination must be a new writable file")
+		return fmt.Errorf("command destination must be a new writable file")
 	}
 	created := false
 	defer func() {
 		_ = output.Close()
 		if !created {
-			_ = parent.Remove(filepath.Base(file))
+			_ = parent.Remove(leaf)
 		}
 	}()
 	if _, err = output.Write(append(raw, '\n')); err == nil {
@@ -114,9 +144,8 @@ func prepareToolCommands(ctx context.Context, path, adapterID string, discover f
 		err = closeErr
 	}
 	if err != nil {
-		return result, fmt.Errorf("local tool configuration could not be persisted")
+		return fmt.Errorf("local tool configuration could not be persisted")
 	}
 	created = true
-	result.Prepared, result.CommandCount = true, len(commands)
-	return result, nil
+	return nil
 }

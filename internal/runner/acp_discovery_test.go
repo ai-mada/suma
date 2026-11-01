@@ -174,7 +174,7 @@ func TestACPModelDiscoveryProcessHasNoWorkAndBindsEachChoice(t *testing.T) {
 	if err != nil || result.State != "ready" || result.Catalogue == nil {
 		t.Fatalf("controlled zero-work process discovery failed: %v state=%s code=%s", err, result.State, result.ErrorCode)
 	}
-	if !result.Evidence.HostProcessStopped || !result.Evidence.HostProcessTreeStopped || !result.Evidence.SessionCreated || result.Evidence.PromptRequests != 0 || result.Evidence.ConfigurationWrites != 0 || result.Evidence.PermissionRequests != 0 || result.Evidence.UnexpectedActivity != 0 || result.Evidence.SessionCloseRequested {
+	if !result.Evidence.HostProcessStopped || !result.Evidence.HostProcessTreeStopped || !result.Evidence.SessionCreated || result.Evidence.PromptRequests != 0 || result.Evidence.ConfigurationWrites != 0 || result.Evidence.PermissionRequests != 0 || result.Evidence.UnexpectedActivity != 0 || !result.Evidence.SessionCancelRequested || !result.Evidence.SessionCancelWritten {
 		t.Fatal("discovery confused catalogue with work or host stop")
 	}
 	if len(result.Catalogue.Models) != 2 || result.Catalogue.Models[1].ID != "secondary171" {
@@ -218,6 +218,11 @@ func acpModelDiscovery171FixtureProcess() bool {
 			result = map[string]any{"protocolVersion": 1, "agentInfo": map[string]any{"name": "owned model discovery fixture", "version": "171"}, "agentCapabilities": map[string]any{}, "authMethods": []any{}}
 		case "session/new":
 			result = map[string]any{"sessionId": "private-discovery171-session", "configOptions": []any{map[string]any{"id": "model", "name": "Model", "category": "model", "type": "select", "currentValue": "primary171", "options": []any{map[string]any{"value": "primary171", "name": "Primary"}, map[string]any{"value": "secondary171", "name": "模型二"}}}}}
+		case "session/cancel":
+			if len(packet.ID) != 0 {
+				os.Exit(88)
+			}
+			continue
 		default:
 			os.Exit(85)
 		}

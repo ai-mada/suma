@@ -107,11 +107,20 @@ func (b *acpExecutionBridge) CopyInput(writer io.Writer) (int64, error) {
 }
 func (b *acpExecutionBridge) Cancel() error { return b.driver.Cancel() }
 func (b *acpExecutionBridge) Close() error  { return b.driver.Close() }
-func (b *acpExecutionBridge) finish(parentStopped, treeStopped bool) *tc.Evidence {
+func (b *acpExecutionBridge) CanStopAfterRPC() bool {
+	b.output.mu.Lock()
+	truncated := b.output.truncated
+	b.output.mu.Unlock()
+	return !truncated && b.driver.CanStopAfterRPC()
+}
+func (b *acpExecutionBridge) finish(parentStopped, treeStopped bool, exitCode *int, afterRPC bool) *tc.Evidence {
+	afterRPC = afterRPC && b.driver.CanStopAfterRPC()
 	result := b.driver.Finish()
 	proof := result.Evidence
 	proof.HostProcessStopped = parentStopped
 	proof.HostProcessTreeStopped = parentStopped && treeStopped
+	proof.HostProcessExitCode = exitCode
+	proof.HostStoppedAfterRPC = afterRPC && proof.HostProcessTreeStopped
 	b.mu.Lock()
 	count := b.events
 	b.mu.Unlock()

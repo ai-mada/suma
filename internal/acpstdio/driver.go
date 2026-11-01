@@ -20,10 +20,11 @@ const frameLimit = 64 << 10
 const textLimit = 1 << 20
 
 type outbound struct {
-	raw         []byte
-	reply       string
-	prompt      bool
-	cursorReply string
+	raw             []byte
+	reply           string
+	prompt          bool
+	cursorReply     string
+	discoveryCancel bool
 }
 type pendingPermission struct {
 	wireID, toolID string
@@ -44,6 +45,7 @@ type Driver struct {
 	outEnd, done, promptSent                chan struct{}
 	finishOnce, closeOnce, promptSentOnce   sync.Once
 	copyStarted                             bool
+	inputDrained                            bool
 	localClosed                             bool
 	result                                  Result
 	bad                                     error
@@ -332,6 +334,10 @@ func (d *Driver) CopyInput(w io.Writer) (int64, error) {
 			return errors.New("acp_stdin_unknown")
 		}
 		d.mu.Lock()
+		if item.discoveryCancel && d.discovery != nil {
+			d.discovery.evidence.SessionCancelWritten = true
+			close(d.discovery.cancelWritten)
+		}
 		if p := d.remote[item.reply]; item.reply != "" && p != nil && (p.replyOK || p.toolID == "") {
 			p.decided = true
 			if p.denied {
@@ -358,6 +364,9 @@ func (d *Driver) CopyInput(w io.Writer) (int64, error) {
 						return total, e
 					}
 				default:
+					d.mu.Lock()
+					d.inputDrained = true
+					d.mu.Unlock()
 					return total, nil
 				}
 			}
@@ -433,6 +442,10 @@ func (d *Driver) Evidence() Result {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	r := d.result
+	if r.Evidence.HostProcessExitCode != nil {
+		code := *r.Evidence.HostProcessExitCode
+		r.Evidence.HostProcessExitCode = &code
+	}
 	if r.Evidence.UserInputs != nil {
 		r.Evidence.UserInputs = append(r.Evidence.UserInputs[:0:0], r.Evidence.UserInputs...)
 		for i := range r.Evidence.UserInputs {

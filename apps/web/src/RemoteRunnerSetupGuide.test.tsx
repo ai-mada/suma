@@ -89,3 +89,28 @@ it('binds all three commands to the exact approved public target and clears draf
  await act(async()=>root!.render(<RemoteRunnerSetupGuide project="project-one" pairedRunner={{...pairedRunner,id:'e'.repeat(32),worker_id:'remote-'+'f'.repeat(32),control_url:'https://new.example.test/team'}}/>));expect(field('shell').value).toBe('');expect(field('commands').value).toBe('');expect(field('worker').value).toBe('remote-'+'f'.repeat(32));expect(host.querySelector('[data-remote-runner-command]')).toBeNull();expect(host.textContent).not.toContain('/srv/original');
  await act(async()=>root!.render(<RemoteRunnerSetupGuide project="other-project" pairedRunner={pairedRunner}/>));expect(field('control').value).toBe('');expect(field('worker').value).toBe('');expect(host.textContent).not.toContain(pairedRunner.control_url);expect(host.querySelector<HTMLButtonElement>('[data-remote-runner-copy="start"]')!.disabled).toBe(true);expect(fetch).not.toHaveBeenCalled();
 });
+
+it('T191 adopts only an explicit Cursor configuration draft while retaining the original Runner identity and locking draft navigation',async()=>{
+ await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const fetch=vi.fn(),onConfigureCursor=vi.fn();vi.stubGlobal('fetch',fetch);
+ const pairedRunner={id:'a'.repeat(32),project_id:'project-one',version:3,state:'approved',control_url:'https://original.example.test/team',created_at:'2026-11-01T00:00:00Z',expires_at:'2026-11-01T00:10:00Z',can_approve:false,device_name:'Original machine',credential_sha256:'b'.repeat(64),worker_id:'remote-'+'c'.repeat(32),credential_expires_at:'2026-11-02T00:00:00Z'};
+ const props={project:'project-one',pairedRunner,onConfigureCursor};
+ host=document.createElement('div');document.body.append(host);root=createRoot(host);await act(async()=>root!.render(<RemoteRunnerSetupGuide {...props}/>));
+ const field=(name:string)=>host!.querySelector<HTMLInputElement|HTMLSelectElement>('[name="remote-runner-'+name+'"]')!;
+ for(const [name,value] of Object.entries({mode:'identity',identityPath:'/srv/runner/original.identity.json',shell:'bash',commands:'/srv/original.json',repository:'/srv/original/repository',baseCommit:'d'.repeat(40)}))await change(field(name),value);
+ const configurationRequest={shell:'powershell' as const,commands:'C:/tools/cursor/commands.local.json',localTool:'cursor-cli' as const,nonce:1};
+ await act(async()=>root!.render(<RemoteRunnerSetupGuide {...props} configurationRequest={configurationRequest}/>));
+ expect(field('shell').value).toBe('powershell');expect(field('commands').value).toBe(configurationRequest.commands);expect(field('localTool').value).toBe('cursor-cli');
+ for(const [name,value] of Object.entries({mode:'identity',identityPath:'/srv/runner/original.identity.json',control:pairedRunner.control_url,project:pairedRunner.project_id,worker:pairedRunner.worker_id,repository:'/srv/original/repository',baseCommit:'d'.repeat(40)})){
+  if(name==='worker')expect(host.querySelector('[data-remote-runner-command="report"]')!.textContent).toContain("--worker '"+value+"'");else expect(field(name).value).toBe(value);
+ }
+ expect(host.querySelector('[data-remote-runner-copy="prepare"]')).toBeNull();expect(host.textContent).not.toContain('Choose the target shell and enter a valid absolute JSON file path');
+ for(const kind of ['report','start']){const shown=host.querySelector('[data-remote-runner-command="'+kind+'"]')!.textContent!;expect(shown).toContain(configurationRequest.commands);expect(shown).toContain("--identity '/srv/runner/original.identity.json'");expect(shown).not.toContain('--prepare-tools');}
+ const configure=()=>host!.querySelector<HTMLButtonElement>('[data-remote-runner-configure-cursor]')!;
+ expect(configure().textContent).toContain('Configure Cursor Agent');await act(async()=>configure().click());expect(onConfigureCursor).toHaveBeenCalledTimes(1);
+ await change(field('commands'),'C:/tools/manual-draft.json');await act(async()=>root!.render(<RemoteRunnerSetupGuide {...props} configurationRequest={{...configurationRequest}}/>));expect(field('commands').value).toBe('C:/tools/manual-draft.json');
+ const nextRequest={...configurationRequest,shell:'bash' as const,commands:'/srv/next-cursor.json',nonce:2};
+ await act(async()=>root!.render(<RemoteRunnerSetupGuide {...props} configurationRequest={nextRequest} disabled/>));expect(field('commands').value).toBe('C:/tools/manual-draft.json');expect(configure().disabled).toBe(true);await act(async()=>configure().click());expect(onConfigureCursor).toHaveBeenCalledTimes(1);
+ await act(async()=>root!.render(<RemoteRunnerSetupGuide {...props} configurationRequest={nextRequest}/>));expect(field('commands').value).toBe(nextRequest.commands);expect(field('shell').value).toBe('bash');
+ await act(async()=>root!.render(<RemoteRunnerSetupGuide {...props} configurationRequest={{...nextRequest,commands:'/srv/unsafe.json\ncommand',nonce:3}}/>));expect(field('commands').value).toBe(nextRequest.commands);
+ await act(async()=>root!.render(<RemoteRunnerSetupGuide {...props} pairedRunner={{...pairedRunner,version:4}} configurationRequest={nextRequest}/>));expect(field('commands').value).toBe('');expect(field('localTool').value).toBe('');expect(fetch).not.toHaveBeenCalled();
+});

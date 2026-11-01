@@ -2,6 +2,8 @@
 
 T-CURSOR-ACP-189；suma1.0.0；原31项／P0–P7继续。本合同把原Cursor被动发现推进到受审执行，复用现ACP SDK与当前Go派发、模型、权限、工作树、候选和质量链，不新增派发器或业务表。编辑器、被动候选、已配置工具与真实运行分别表达。
 
+当前独立节点配置与服务停止语义见[T191](cursor-setup.md)：标准cancel只有通知写出，无session-close ACK；完整RPC后已证实的受控停止保留真实OS退出值，不等于自然退出0。原189实际未认证探测的SIGTERM仍是当时unknown证据，不回写成成功。
+
 ## 公共执行合同
 
 目录ID为cursor-cli，adapter=cursor，protocol=acp-stdio-v1。复用ACPExecutionCapability／Evidence与原节点acp_execution；Runtime必须准确等于Profile.Adapter，不把Cursor当Qoder别名。固定字段：protocol_version=1、sdk_version=0.13.5、model_source=administrator_session_config、budget_mode=observe_only、identity_evidence=configuration_ack_only、auth_strategy=explicit_api_key_env、permission_mode=human_once。公开合同不含路径、argv、密钥值或用户登录文件。

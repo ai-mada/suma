@@ -31,3 +31,9 @@ func ValidateCapability(c Capability) error {
 	}
 	return nil
 }
+
+// Exit status is the actual host fact, including signalled Unix termination
+// (-1) and Windows status values. It is independent of RPC operation success.
+func ValidHostExitCode(code *int) bool {
+	return code == nil || *code >= -1 && int64(*code) <= 4294967295
+}

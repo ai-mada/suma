@@ -16,7 +16,7 @@ export function remoteRunnerSetupCommands(value:unknown):{prepare?:string;report
  const input=row as RemoteRunnerSetupInput;
  if(!['environment','paired','identity'].includes(input.mode)||!['powershell','bash'].includes(input.shell)||input.localTool!==''&&!remoteRunnerLocalTools.some(tool=>tool===input.localTool))return {loopback:false};
  const quote=(literal:string)=>"'"+(input.shell==='powershell'?literal.replaceAll("'","''"):literal.replaceAll("'","'\"'\"'"))+"'";
- const commandPath=absolute(input.commands)&&/\.json$/i.test(input.commands),prepare=commandPath?'suma-runner --prepare-tools '+quote(input.commands)+(input.localTool?' --local-tool '+quote(input.localTool):''):undefined;
+ const commandPath=absolute(input.commands)&&/\.json$/i.test(input.commands),prepare=commandPath&&input.localTool!=='cursor-cli'?'suma-runner --prepare-tools '+quote(input.commands)+(input.localTool?' --local-tool '+quote(input.localTool):''):undefined;
  const workspace=absolute(input.repository)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(input.baseCommit)?' --workspace '+quote(input.repository)+' --repository '+quote(input.repository)+' --base-commit '+quote(input.baseCommit)+' --allow-exec':undefined;
  let safeURL=false,loopback=false;
  if(text(input.control,2048)&&/^https?:\/\//.test(input.control)&&!/[\\?#]/.test(input.control)){

@@ -38,7 +38,7 @@ func (*ModelDiscovery) Format(s fmt.State, _ rune) {
 // background SDK stack ends naturally; CopyInput then drains and returns.
 // The caller closes process stdin and waits before invoking Finish.
 func NewModelDiscovery(ctx context.Context, o DiscoveryOptions) (*ModelDiscovery, error) {
-	d, err := newTransport(ctx, Options{Cwd: o.Cwd, Runtime: o.Runtime, Secrets: o.Secrets}, &discoveryState{})
+	d, err := newTransport(ctx, Options{Cwd: o.Cwd, Runtime: o.Runtime, Secrets: o.Secrets}, &discoveryState{cancelWritten: make(chan struct{})})
 	if err != nil {
 		return nil, errors.New("acp_discovery_invalid")
 	}

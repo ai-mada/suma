@@ -68,11 +68,19 @@ func TestCursorModelDiscoveryKeepsNativeConfigSourceAndNoWork(t *testing.T) {
 					if mode == "native_config" {
 						update(d.d, "cursor-discovery189", "available_commands_update", map[string]any{"availableCommands": []any{}})
 					}
+				case "session/cancel":
+					if p["id"] != nil {
+						t.Error("Cancel is not a request")
+					}
 				default:
 					t.Error("discovery sent work/auth/config RPC", method)
 				}
 			}, "cursor")
-			if strings.Join(calls, ",") != "initialize,session/new" {
+			want := "initialize,session/new"
+			if mode == "native_config" {
+				want += ",session/cancel"
+			}
+			if strings.Join(calls, ",") != want {
 				t.Fatal("Cursor discovery sent unexpected work")
 			}
 			if mode == "native_config" {
