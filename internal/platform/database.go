@@ -143,6 +143,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateToolPermissionsInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateToolInputsInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateWorkBuddyCloudHistorySharingInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -310,6 +313,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeToolPermissions(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeToolInputs(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeWorkBuddyCloudHistorySharing(ctx); err != nil {

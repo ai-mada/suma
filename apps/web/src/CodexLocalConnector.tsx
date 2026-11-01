@@ -13,15 +13,15 @@ import './CodexLocalConnector.css';
 
 export type CodexLocalConnectorProps={project:string;disabled?:boolean;secondary?:boolean;onConnected:(proof:DesktopCodexConnectedProof)=>void;onBlockedChange?:(blocked:boolean)=>void;onRegistrationReadyChange?:(ready:boolean)=>void};
 type SavedRequest=Extract<DesktopCodexRequest,{action:'models'}>;
-type Draft={installation_id:string;provider_id:string;base_url:string;api_key_env_ref:string;windows_sandbox:string};
-const emptyDraft=():Draft=>({installation_id:'',provider_id:'',base_url:'',api_key_env_ref:'',windows_sandbox:''});
+type Draft={installation_id:string;provider_id:string;base_url:string;api_key_env_ref:string;windows_sandbox:string;enable_user_input?:boolean};
+const emptyDraft=():Draft=>({installation_id:'',provider_id:'',base_url:'',api_key_env_ref:'',windows_sandbox:'',enable_user_input:false});
 const t=(key:string,values?:Record<string,unknown>)=>tr('codex-quick-connect.'+key,values);
-const sourceKey=(draft:Draft)=>JSON.stringify([draft.installation_id,draft.provider_id,draft.base_url,draft.api_key_env_ref,draft.windows_sandbox]);
+const sourceKey=(draft:Draft)=>JSON.stringify([draft.installation_id,draft.provider_id,draft.base_url,draft.api_key_env_ref,draft.windows_sandbox,!!draft.enable_user_input]);
 const fromRequest=(request:SavedRequest):Draft=>({...emptyDraft(),...request.configuration,installation_id:request.installation_id});
 function safeDraft(value:unknown):value is Draft{
  if(!value||typeof value!=='object'||Array.isArray(value))return false;
- const row=value as Record<string,unknown>,keys=Object.keys(emptyDraft());
- return Object.keys(row).length===keys.length&&keys.every(key=>typeof row[key]==='string')&&/^(?:[a-f0-9]{32})?$/.test(String(row.installation_id))&&String(row.provider_id).length<=64&&/^[A-Za-z0-9_-]*$/.test(String(row.provider_id))&&String(row.base_url).length<=2048&&!/[\p{Cc}@?#]/u.test(String(row.base_url))&&/^[A-Za-z0-9_]{0,128}$/.test(String(row.api_key_env_ref))&&['','unelevated','elevated','mxc'].includes(String(row.windows_sandbox));
+ const row=value as Record<string,unknown>,keys=['installation_id','provider_id','base_url','api_key_env_ref','windows_sandbox'];
+ return Object.keys(row).every(key=>keys.includes(key)||key==='enable_user_input')&&keys.every(key=>typeof row[key]==='string')&&(!Object.hasOwn(row,'enable_user_input')||typeof row.enable_user_input==='boolean')&&/^(?:[a-f0-9]{32})?$/.test(String(row.installation_id))&&String(row.provider_id).length<=64&&/^[A-Za-z0-9_-]*$/.test(String(row.provider_id))&&String(row.base_url).length<=2048&&!/[\p{Cc}@?#]/u.test(String(row.base_url))&&/^[A-Za-z0-9_]{0,128}$/.test(String(row.api_key_env_ref))&&['','unelevated','elevated','mxc'].includes(String(row.windows_sandbox));
 }
 function readLocal(scope:DesktopCodexScope,platform:DesktopCodexBridge['platform']){
  const key=desktopCodexRecoveryScope(scope),storage=toolSessionStorage();let draft=emptyDraft(),request:SavedRequest|undefined,error:unknown;
@@ -55,8 +55,9 @@ function LocalCodexController({project,scope,bridge,onConnected,onBlockedChange,
  useEffect(()=>{notifications.current.onBlockedChange?.(blocking);},[blocking]);
  useEffect(()=>()=>notifications.current.onBlockedChange?.(false),[]);
  const store=useCallback((value:typeof snapshot)=>{currentObservation.current=value?.observation;setSnapshot(value);},[]);
+ const inputConfigurationLocked=!!active&&['starting','connected','stopping','stop_unconfirmed'].includes(active.phase);
  function edit(next:Draft){
-  if(disabled||busy||pending||managedBlocked||denied)return;edited.current=true;setDraft(next);
+  if(disabled||busy||pending||managedBlocked||denied||inputConfigurationLocked&&!!next.enable_user_input!==!!draft.enable_user_input)return;edited.current=true;setDraft(next);
   try{const storage=toolSessionStorage();if(!storage||!safeDraft(next))throw Error();storage.setItem(key+':draft',JSON.stringify(next));setRecordError(undefined);}catch{setRecordError(new UiError('codex-quick-connect.draft_not_saved'));}
  }
  const perform=useCallback(async(request:DesktopCodexRequest)=>{
@@ -94,7 +95,7 @@ function LocalCodexController({project,scope,bridge,onConnected,onBlockedChange,
  const registrationReady=!!(!blocking&&!denied&&!recordError&&!snapshot?.error&&active?.phase==='connected'&&active.project_id===project&&active.adapter_id==='codex-app-server'&&active.worker_id&&active.tool_version&&active.executable_sha256&&expectedSHA&&expectedCatalog&&active.configuration_sha256===expectedSHA&&active.catalog_sha256===expectedCatalog&&(!discovery||active.executable_sha256===discovery.executable_sha256&&active.tool_version===discovery.tool_version));
  useEffect(()=>{notifications.current.onRegistrationReadyChange?.(registrationReady);},[registrationReady,onRegistrationReadyChange]);
  useEffect(()=>()=>notifications.current.onRegistrationReadyChange?.(false),[]);
- const configuration={provider_id:draft.provider_id,base_url:draft.base_url,...(draft.api_key_env_ref?{api_key_env_ref:draft.api_key_env_ref}:{}),...(draft.windows_sandbox?{windows_sandbox:draft.windows_sandbox}:{})};
+ const configuration={provider_id:draft.provider_id,base_url:draft.base_url,...(draft.api_key_env_ref?{api_key_env_ref:draft.api_key_env_ref}:{}),...(draft.windows_sandbox?{windows_sandbox:draft.windows_sandbox}:{}),...(draft.enable_user_input?{enable_user_input:true}:{})};
  const validConfiguration=validDesktopCodexConfiguration(configuration,bridge.platform);
  const installation=observation?.installations.find(row=>row.installation_id===draft.installation_id&&row.kind==='native');
  const editBlocked=disabled||!!busy||pending||managedBlocked||denied;
@@ -119,6 +120,7 @@ function LocalCodexController({project,scope,bridge,onConnected,onBlockedChange,
     <div className="codex-local-fields"><label>{t('provider')}<input ref={providerField} name="provider_id" value={draft.provider_id} disabled={!!editBlocked} autoComplete="off" spellCheck={false} maxLength={64} onChange={event=>edit({...draft,provider_id:event.target.value})}/></label><label>{t('base_url')}<input name="base_url" value={draft.base_url} disabled={!!editBlocked} autoComplete="off" spellCheck={false} maxLength={2048} type="url" onChange={event=>edit({...draft,base_url:event.target.value})}/></label></div>
     <label>{t('credential_ref')}<input name="api_key_env_ref" value={draft.api_key_env_ref} disabled={!!editBlocked} autoComplete="off" spellCheck={false} maxLength={128} onChange={event=>edit({...draft,api_key_env_ref:event.target.value})}/></label><p className="codex-local-muted">{t('credential_hint')}</p>
     {bridge.platform==='win32'&&<label>{t('windows_sandbox')}<select name="windows_sandbox" value={draft.windows_sandbox} disabled={!!editBlocked} onChange={event=>edit({...draft,windows_sandbox:event.target.value})}><option value="">{t('choose_sandbox')}</option>{['unelevated','elevated','mxc'].map(value=><option key={value} value={value}>{t('sandbox_'+value)}</option>)}</select></label>}
+    <label className="codex-local-input-option"><input name="enable_user_input" type="checkbox" checked={!!draft.enable_user_input} disabled={!!editBlocked||inputConfigurationLocked} onChange={event=>edit({...draft,enable_user_input:event.target.checked})}/><span>{t('enable_user_input')}<small className="codex-local-muted">{t(inputConfigurationLocked?'user_input_stop_first':'user_input_hint')}</small></span></label>
     <button type="button" data-codex-models disabled={!!editBlocked||!!recordError||!installation||!validConfiguration} onClick={()=>void models()}>{t(busy==='models'?'reading_catalogue':'read_catalogue')}</button>
    </div>:null}
    {catalogue&&<div className="codex-local-catalogue"><p role="status">{t(fresh?'catalogue_ready':'catalogue_expired',{value:catalogue.models.length})}</p><p className="codex-local-muted">{t('selection_later')}</p><details><summary>{t('catalogue_details')}</summary><ul>{catalogue.models.map(model=><li key={model.model}><code>{model.model}</code></li>)}</ul><dl><dt>{t('configuration_sha')}</dt><dd><code>{discovery!.configuration_sha256}</code></dd><dt>{t('catalogue_sha')}</dt><dd><code>{catalogue.catalog_sha256}</code></dd></dl></details></div>}

@@ -79,6 +79,9 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if p.UserInputProtocol != "" && (p.UserInputProtocol != cc.UserInputProtocol || p.Adapter != "codex" || p.Protocol != cc.Protocol || p.ReadOnly) {
+		return fmt.Errorf("user input requires an explicitly enabled Codex app-server profile")
+	}
 	if err := validateACPProfile(p, complete); err != nil {
 		return err
 	}

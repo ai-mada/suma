@@ -26,6 +26,7 @@ type CodexModelDiscoveryInput struct {
 	BaseURL          string `json:"base_url"`
 	APIKeyEnvRef     string `json:"api_key_env_ref,omitempty"`
 	WindowsSandbox   string `json:"windows_sandbox,omitempty"`
+	EnableUserInput  bool   `json:"enable_user_input,omitempty"`
 }
 
 type DesktopManagedCodexConfiguration struct {
@@ -36,11 +37,12 @@ type DesktopManagedCodexConfiguration struct {
 	BaseURL             string `json:"base_url"`
 	APIKeyEnvRef        string `json:"api_key_env_ref,omitempty"`
 	WindowsSandbox      string `json:"windows_sandbox,omitempty"`
+	EnableUserInput     bool   `json:"enable_user_input,omitempty"`
 	ConfigurationSHA256 string `json:"configuration_sha256"`
 }
 
 func codexDiscoveryCommand(input CodexModelDiscoveryInput) CommandSpec {
-	return CommandSpec{Adapter: "codex", Protocol: cc.Protocol, Executable: input.Executable, Args: []string{"app-server", "--listen", "stdio://"}, Input: "codex-app-server", CodexAppServer: &CodexAppServerSpec{ProviderID: input.ProviderID, BaseURL: input.BaseURL, APIKeyEnvRef: input.APIKeyEnvRef, WindowsSandbox: input.WindowsSandbox}}
+	return CommandSpec{Adapter: "codex", Protocol: cc.Protocol, Executable: input.Executable, Args: []string{"app-server", "--listen", "stdio://"}, Input: "codex-app-server", CodexAppServer: &CodexAppServerSpec{ProviderID: input.ProviderID, BaseURL: input.BaseURL, APIKeyEnvRef: input.APIKeyEnvRef, WindowsSandbox: input.WindowsSandbox, EnableUserInput: input.EnableUserInput}}
 }
 func validCodexDiscoveryInput(input CodexModelDiscoveryInput) bool {
 	return input.AdapterID == "codex-app-server" && desktopManagedPath(input.Executable) && tc.ValidDigest(input.ExecutableSHA256) && localToolSafeText(input.ReviewedVersion, 256) && strings.TrimSpace(input.ReviewedVersion) == input.ReviewedVersion && validateCodexAppServerSpec(codexDiscoveryCommand(input)) == nil
@@ -53,7 +55,7 @@ func DecodeCodexModelDiscoveryInput(raw []byte) (CodexModelDiscoveryInput, error
 	return input, nil
 }
 func managedCodexDiscoveryInput(value *DesktopManagedCodexConfiguration) CodexModelDiscoveryInput {
-	return CodexModelDiscoveryInput{AdapterID: "codex-app-server", Executable: value.Executable, ExecutableSHA256: value.ExecutableSHA256, ReviewedVersion: value.ReviewedVersion, ProviderID: value.ProviderID, BaseURL: value.BaseURL, APIKeyEnvRef: value.APIKeyEnvRef, WindowsSandbox: value.WindowsSandbox}
+	return CodexModelDiscoveryInput{AdapterID: "codex-app-server", Executable: value.Executable, ExecutableSHA256: value.ExecutableSHA256, ReviewedVersion: value.ReviewedVersion, ProviderID: value.ProviderID, BaseURL: value.BaseURL, APIKeyEnvRef: value.APIKeyEnvRef, WindowsSandbox: value.WindowsSandbox, EnableUserInput: value.EnableUserInput}
 }
 func validManagedCodexConfiguration(value *DesktopManagedCodexConfiguration) bool {
 	if value == nil {

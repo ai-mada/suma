@@ -22,10 +22,11 @@ import (
 // catalog model/effort, but cannot supply this provider, URL or credential ref.
 // Only the generated configuration digest crosses the Runner boundary.
 type CodexAppServerSpec struct {
-	ProviderID     string `json:"provider_id"`
-	BaseURL        string `json:"base_url"`
-	APIKeyEnvRef   string `json:"api_key_env_ref,omitempty"`
-	WindowsSandbox string `json:"windows_sandbox,omitempty"`
+	ProviderID      string `json:"provider_id"`
+	BaseURL         string `json:"base_url"`
+	APIKeyEnvRef    string `json:"api_key_env_ref,omitempty"`
+	WindowsSandbox  string `json:"windows_sandbox,omitempty"`
+	EnableUserInput bool   `json:"enable_user_input,omitempty"`
 }
 
 var codexProviderID = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]{0,63}$`)
@@ -77,13 +78,19 @@ func CodexConfigurationDigest(spec CodexAppServerSpec) string {
 		Version        int                `json:"version"`
 		ApprovalPolicy string             `json:"approval_policy"`
 		Provider       CodexAppServerSpec `json:"provider"`
-	}{3, cc.ApprovalPolicy, spec})
+	}{4, cc.ApprovalPolicy, spec})
 	return digest(raw)
 }
 
 func codexConfiguration(spec CodexAppServerSpec, root string) string {
 	q := strconv.Quote
-	text := "model_provider = " + q(spec.ProviderID) + "\napproval_policy = " + q(cc.ApprovalPolicy) + "\nsandbox_mode = \"workspace-write\"\nweb_search = \"disabled\"\n\n[sandbox_workspace_write]\nwritable_roots = [" + q(root) + "]\nnetwork_access = false\nexclude_tmpdir_env_var = true\nexclude_slash_tmp = true\n\n[features]\nmulti_agent = false\n\n[model_providers." + spec.ProviderID + "]\nname = " + q(spec.ProviderID) + "\nbase_url = " + q(spec.BaseURL) + "\nwire_api = \"responses\"\nrequires_openai_auth = false\nrequest_max_retries = 0\nstream_max_retries = 0\n"
+	features := "\n[features]\nmulti_agent = false\n"
+	if spec.EnableUserInput {
+		// This experimental capability is local administrator opt-in. It only
+		// changes our isolated home, never the user's global mode or policies.
+		features += "default_mode_request_user_input = true\n"
+	}
+	text := "model_provider = " + q(spec.ProviderID) + "\napproval_policy = " + q(cc.ApprovalPolicy) + "\nsandbox_mode = \"workspace-write\"\nweb_search = \"disabled\"\n\n[sandbox_workspace_write]\nwritable_roots = [" + q(root) + "]\nnetwork_access = false\nexclude_tmpdir_env_var = true\nexclude_slash_tmp = true\n" + features + "\n[model_providers." + spec.ProviderID + "]\nname = " + q(spec.ProviderID) + "\nbase_url = " + q(spec.BaseURL) + "\nwire_api = \"responses\"\nrequires_openai_auth = false\nrequest_max_retries = 0\nstream_max_retries = 0\n"
 	if spec.APIKeyEnvRef != "" {
 		text += "env_key = " + q(spec.APIKeyEnvRef) + "\n"
 	}
@@ -152,6 +159,13 @@ func probeCodexVersion(ctx context.Context, exe string, spec CommandSpec, secret
 	provider := *spec.CodexAppServer
 	provider.APIKeyEnvRef = ""
 	copy.CodexAppServer = &provider
+	if provider.EnableUserInput {
+		// The offline feature listing must read the exact enabled setting in
+		// an owned home, without access to the provider account credential.
+		if err = prepareCodexHome(copy, home, home); err != nil {
+			return "", err
+		}
+	}
 	environment, _, err := codexEnvironment(copy, home)
 	if err != nil {
 		return "", err
@@ -175,7 +189,31 @@ func probeCodexVersion(ctx context.Context, exe string, spec CommandSpec, secret
 	if version == "" || len(version) > 256 {
 		return "", fmt.Errorf("Codex version is missing or oversized")
 	}
+	if provider.EnableUserInput {
+		features, err := probeCommandStreams(ctx, exe, []string{"features", "list"}, probe, secrets, true)
+		if err != nil || !codexUserInputFeatureEnabled(features) {
+			return "", fmt.Errorf("installed Codex does not confirm the enabled user input feature")
+		}
+	}
 	return version, nil
+}
+
+// The stable offline listing has feature, stage (possibly multiple words),
+// and effective boolean columns. A missing, false or duplicated target is not
+// proof of support. Stderr diagnostics never enter this authoritative output.
+func codexUserInputFeatureEnabled(list string) bool {
+	found := false
+	for _, line := range strings.Split(list, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) == 0 || fields[0] != "default_mode_request_user_input" {
+			continue
+		}
+		if found || len(fields) < 3 || fields[len(fields)-1] != "true" {
+			return false
+		}
+		found = true
+	}
+	return found
 }
 
 func codexExecutionRequest(a Assignment, cfg ExecConfig, spec CommandSpec) (*cc.Binding, error) {

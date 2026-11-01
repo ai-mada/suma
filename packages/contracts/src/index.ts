@@ -1979,6 +1979,7 @@ export interface CodexCatalog {
 }
 export interface CodexEvidence {
   approvals?: (CodexApprovalEvidence)[];
+  user_inputs?: (CodexUserInputEvidence)[];
   skills?: ExecutionSkillEvidence | null;
   binding_sha256: string;
   thread_id?: string;
@@ -2017,6 +2018,66 @@ export interface CodexSelection {
   model: string;
   reasoning_effort: string;
   token_notice_limit?: number | null;
+}
+export interface CodexUserInputEvidence {
+  input_id: string;
+  request_id: CodexRPCRequestID;
+  method: string;
+  thread_id: string;
+  turn_id: string;
+  item_id: string;
+  binding_sha256: string;
+  params_sha256: string;
+  question_count: number;
+  is_blocking: boolean;
+  observation?: CodexUserInputObservation | null;
+}
+export interface CodexUserInputNativeAnswer {
+  answers: (string)[];
+}
+export interface CodexUserInputObservation {
+  sequence: number;
+  params_sha256: string;
+  answer_sha256?: string;
+  answer_observed: boolean;
+  reply_started: boolean;
+  reply_written: boolean;
+  request_resolved: boolean;
+  turn_closed: boolean;
+  failure_code?: string;
+}
+export interface CodexUserInputOption {
+  label: string;
+  description: string;
+}
+export interface CodexUserInputQuestion {
+  id: string;
+  header: string;
+  question: string;
+  is_other: boolean;
+  is_secret: boolean;
+  options: (CodexUserInputOption)[];
+}
+export interface CodexUserInputRequest {
+  request_id: CodexRPCRequestID;
+  method: string;
+  thread_id: string;
+  turn_id: string;
+  item_id: string;
+  binding_sha256: string;
+  params_sha256: string;
+  is_blocking: boolean;
+  auto_resolution_ms?: number | null;
+  questions: (CodexUserInputQuestion)[];
+}
+export interface CodexUserInputResponse {
+  answers: { [key: string]: CodexUserInputNativeAnswer };
+}
+export interface CodexUserInputSelection {
+  question_id: string;
+  kind: string;
+  option?: string;
+  text?: string;
 }
 export interface ConsumeDeploymentAuthorization {
   provider_id: string;
@@ -4020,6 +4081,29 @@ export interface PoolScope {
   grant_version: number;
   project_weight: number;
   status: string;
+}
+export interface PoolToolInputObservationRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  input_id: string;
+  idempotency_key: string;
+  observation: CodexUserInputObservation;
+}
+export interface PoolToolInputOpenRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  request: ToolInputRequest;
+}
+export interface PoolToolInputPollRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  input_id: string;
 }
 export interface PoolToolInventoryRequest {
   runner_id: string;
@@ -6970,6 +7054,7 @@ export interface ToolExecutionProfile {
   read_only: boolean;
   terminal_session_protocol?: string;
   workspace_tools_version?: string;
+  user_input_protocol?: string;
   model_execution_protocol?: string;
   test_report_protocol?: string;
   conflict_repair_protocol?: string;
@@ -6983,6 +7068,63 @@ export interface ToolExecutionProfile {
   octop_execution?: OctopExecutionCapability | null;
   claude_execution?: ClaudeExecutionCapability | null;
   acp_execution?: ACPExecutionCapability | null;
+}
+export interface ToolInput {
+  id: string;
+  project_id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  dispatch_id: string;
+  worker_id: string;
+  profile_sha256: string;
+  version: number;
+  state: string;
+  request: ToolInputRequest;
+  answer?: ToolInputAnswer | null;
+  observation?: CodexUserInputObservation | null;
+  created_at: string;
+  expires_at: string;
+  allowed_actions: (string)[];
+}
+export interface ToolInputAnswer {
+  answers: (CodexUserInputSelection)[];
+  answer_sha256: string;
+  actor_id: string;
+  answered_at: string;
+}
+export interface ToolInputAnswerRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+  answers: (CodexUserInputSelection)[];
+}
+export interface ToolInputList {
+  protocol: string;
+  items: (ToolInput)[];
+}
+export interface ToolInputObservationRequest {
+  project_id: string;
+  assignment: Assignment;
+  input_id: string;
+  idempotency_key: string;
+  observation: CodexUserInputObservation;
+}
+export interface ToolInputOpenRequest {
+  project_id: string;
+  assignment: Assignment;
+  request: ToolInputRequest;
+}
+export interface ToolInputPollRequest {
+  project_id: string;
+  assignment: Assignment;
+  input_id: string;
+}
+export interface ToolInputRequest {
+  idempotency_key: string;
+  protocol: string;
+  codex: CodexUserInputRequest;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

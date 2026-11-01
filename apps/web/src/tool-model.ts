@@ -156,6 +156,7 @@ function acpToolProfile(profile: Record<string, unknown> | ToolProfileDefinition
   return profile.adapter === 'qoder' && profile.protocol === 'acp-stdio-v1' && profile.read_only === false && validACPCapability(profile.acp_execution) && !acpForbidden.some(key=>!!profile[key]);
 }
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
+  if (profile.user_input_protocol !== undefined && (typeof profile.user_input_protocol !== "string" || profile.user_input_protocol !== "" && (profile.user_input_protocol !== "codex-user-input-v1" || profile.adapter !== "codex" || profile.protocol !== "codex-app-server-v1" || profile.read_only !== false))) invalidCapability();
   const acp = acpToolProfile(profile);
   if (profile.acp_execution !== undefined && !acp || profile.adapter === 'qoder' &&
     (profile.protocol !== 'acp-stdio-v1' || profile.read_only !== false || acpForbidden.some(key=>!!profile[key]) || observation.available === true && !acp)) invalidCapability();
@@ -253,6 +254,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "tool_version",
       "read_only",
       "terminal_session_protocol",
+      "user_input_protocol",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol", "test_report_protocol",
       "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution", "claude_execution", "acp_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);

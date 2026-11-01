@@ -217,7 +217,7 @@ func TestCodexAppServerLocalPolicyAndDurableReceiptIsolation(t *testing.T) {
 		Version        int                `json:"version"`
 		ApprovalPolicy string             `json:"approval_policy"`
 		Provider       CodexAppServerSpec `json:"provider"`
-	}{3, cc.ApprovalPolicy, *spec.CodexAppServer})
+	}{4, cc.ApprovalPolicy, *spec.CodexAppServer})
 	if configSHA != digest(policyBytes) || !strings.Contains(codexConfiguration(*spec.CodexAppServer, home), "approval_policy = \"on-request\"") || strings.Contains(codexConfiguration(*spec.CodexAppServer, home), "never") {
 		t.Fatal("native approval policy was absent from the immutable configuration")
 	}

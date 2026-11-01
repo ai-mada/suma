@@ -139,6 +139,8 @@ type ExecConfig struct {
 	ToolProgress                          func(tc.Event) error
 	ToolPermission                        func(context.Context, pc.Request) (pc.Decision, error)
 	ToolPermissionPoll                    func(context.Context, string) (pc.Permission, error)
+	ToolInputClient                       *Client
+	ToolInputProfile                      string
 	WorkspaceProgress                     func(wc.Event) error
 	ToolInventory                         []tc.Observation
 	ModelDeployments                      []ModelDeploymentSpec
@@ -859,6 +861,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			}
 			if err = codexDriver.configureApprovals(ctx, codexPermissionHandler(a, cfg)); err != nil {
 				return fail("Codex human approval handler is unavailable")
+			}
+			if spec.CodexAppServer.EnableUserInput {
+				cfg.ToolInputProfile = profile.ProfileSHA256
+				if cfg.Journal == nil || cfg.ToolInputClient == nil || cfg.Journal.beginToolInputExecution(a, profile) != nil {
+					return fail("Codex durable user input checkpoint is unavailable")
+				}
+				if err = codexDriver.configureUserInputs(ctx, codexToolInputHandler(a, cfg)); err != nil {
+					return fail("Codex user input handler is unavailable")
+				}
 			}
 			if err = codexDriver.configureSkills(skillBundle, skillEvidence); err != nil {
 				if skillEvidence != nil {

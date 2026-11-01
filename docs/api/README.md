@@ -1,5 +1,7 @@
 # HTTP、事件与客户端合同
 
+T-TOOL-INPUTS-187新增[原执行问答](../../contracts/tool-inputs.md)：8接口／19模型、ToolExecutionProfile可选能力和Codex安全证据；与工具授权Choice分离。Answer仅当前浏览器用户，机器登记／轮询／观察绑定原完整Assignment，原回执恢复与fresh授权各自检查。
+
 T-DEVELOPMENT-CONTINUATION-186新增[同任务候选续作](../../contracts/task-development-continuation.md)：当前任务来源分页、原讨论Create可选来源选择、原计划只读typed binding、CodeInputRequest新增development_continuation。SourceRef不是导入权限，原控制面/current lease/provenance与broker独立核验。
 
 T-RUNNER-INBOX-185新增[项目配对收件箱](../../contracts/runner-inbox.md)：GET /runner-pairings 由当前真实浏览器项目管理员读取，实时筛选总数／游标与来源绑定；RunnerPairingPage及浏览器只读reason_code由共享Go合同生成，不扩大机器权限。

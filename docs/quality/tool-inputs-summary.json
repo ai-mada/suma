@@ -1,0 +1,451 @@
+{
+  "stage": "T-TOOL-INPUTS-187",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "本地Codex显式实验性问答开关默认关闭；Go／桌面JS同一policy4摘要，离线证明feature、准确profile capability与原连接停止／恢复约束贯通。",
+    "独立问答领域覆盖普通／Pool Open、Poll、Observation、当前浏览器Answer和节点读取；原身份、完整Assignment、租约／fence、事务CAS、受保护profile及原操作回执复用。",
+    "题目、选项、文本、Other与明确跳过准确生成原生答案；密码题持久化前拒绝，approval／input原ID共用32上限但权限语义不混合。",
+    "原Journal、单stdin writer及当前Result链区分答案保存、观察、写入开始、完整写出、原生resolved和turn关闭；未知写不重答、不重启模型，普通／Pool先恢复原观察。",
+    "独立窄审修复原观察ACK丢失在lease／terminal漂移后不能恢复的P2；原当前身份／scope先核，exact原回执先于fresh liveness，过期凭据和新观察仍拒。",
+    "原节点双语问题面板、当前配置能力投影、原scope恢复与新attempt只读隔离接通；配置开关不自动探测或执行。"
+  ],
+  "verification": {
+    "distinct_top_level": 43,
+    "new_top_level": 33,
+    "affected_existing_top_level": 10,
+    "go_subcases": 30,
+    "platform_top_level": 7,
+    "runtime_top_level": 14,
+    "receipt_recovery_top_level": 1,
+    "actual_cli_top_level": 1,
+    "web_top_level": 12,
+    "desktop_top_level": 4,
+    "root_top_level": 4,
+    "final_types_exit": 0,
+    "paired_i18n_keys": 8761,
+    "hardcodes": 0,
+    "isolated_production_component_builds": 1,
+    "synthetic_gui_checks": 3,
+    "root_viewed_images": 2,
+    "native_gui_exit": 0,
+    "actual_cli": {
+      "live_turn_attempts": 2,
+      "native_startups": 4,
+      "completed_journeys": 1,
+      "native_answer_writes": 1,
+      "commercial_calls": 0,
+      "user_credentials": false
+    }
+  },
+  "retained_failures": [
+    "各域新功能RED、并行字段中间态编译、旧授权状态／EventCount夹具错误与Runtime写关闭序号问题均保留，只复验受影响部分。",
+    "独立窄审发现两项Runtime P2（写意图保存期间关闭序号、Pool重启入口漏观察重传）和一项平台P2（原观察回执被live门挡住），均已修且对应定向通过。",
+    "唯一全Web类型发现4个React19 ref缺初值／undefined类型；只改声明并最终全类型0，未重复组件测试或词条检查。CSS仅去尾随空白，不重构建；actual test路径注入同属无协议行为变化的配置收口。"
+  ],
+  "boundaries": [
+    "实际安装CLI与生产driver／Client／Journal已完成一条问答；模型Responses和控制HTTP端是明确自有fixture，未调用商业模型或使用用户凭据。控制面实际HTTP／SQLite／浏览器账号验证另行留证，两者不冒充一次真实厂商完整App验收。",
+    "真实CLI证据共有2活turn尝试／4启动（2只读catalog），首夹具字段顺序比较错误在0答案写入时拒绝；仅改夹具后成功1次。最终实际test仅将机器专有路径改为显式环境变量注入，原验证源与最终源摘要分开保存，未重跑CLI。",
+    "组件GUI复用生产Panel／Card／本地Connector，父页／API／桥为合成；3代表检查／2Root查看视口图／正常原生退出，不是完整登录App或用户验收。",
+    "Default模式提问feature仍为上游开发中能力，默认关闭；密码题安全传输、持久旧thread／多turn恢复及其他工具问答协议仍需独立实现。",
+    "观测仍需当前机器身份；新观测保留当前lease边界。失效或撤权后未上传事实留原Journal待核对，不伪称平台已经收到。",
+    "未重复未变SDK、全套测试、系统凭据库或安装矩阵。当前实库为SQLite；OceanBase／PostgreSQL、物理多机器、其他OS安装、规模、生产及原31／P0–P7／58限定／34待交付／92总账继续，原171显式停止GUI缺口保持。",
+    "两份无关本地历史审计原SHA保持且不提交；缓存、数据库、日志、截图、私有home、依赖与二进制不进Git。"
+  ],
+  "contract_changes": {
+    "new_schemas": [
+      "CodexUserInputEvidence",
+      "CodexUserInputNativeAnswer",
+      "CodexUserInputObservation",
+      "CodexUserInputOption",
+      "CodexUserInputQuestion",
+      "CodexUserInputRequest",
+      "CodexUserInputResponse",
+      "CodexUserInputSelection",
+      "PoolToolInputObservationRequest",
+      "PoolToolInputOpenRequest",
+      "PoolToolInputPollRequest",
+      "ToolInput",
+      "ToolInputAnswer",
+      "ToolInputAnswerRequest",
+      "ToolInputList",
+      "ToolInputObservationRequest",
+      "ToolInputOpenRequest",
+      "ToolInputPollRequest",
+      "ToolInputRequest"
+    ],
+    "new_paths": [
+      "/pool-runner/tool-inputs",
+      "/pool-runner/tool-inputs/observations",
+      "/pool-runner/tool-inputs/poll",
+      "/runner/tool-inputs",
+      "/runner/tool-inputs/observations",
+      "/runner/tool-inputs/poll",
+      "/runs/{run}/nodes/{node}/tool-inputs",
+      "/tool-inputs/{id}/answer"
+    ],
+    "changed_schemas": [
+      "CodexEvidence",
+      "ToolExecutionProfile"
+    ],
+    "changed_existing_operations": []
+  },
+  "owner_sources": [
+    {
+      "path": "internal/platform/tool_input.go",
+      "sha256": "6bd7f50d6fa9381d6b6332ec7d555f9bebeb9a62488fa14bcc495f1992899a28",
+      "bytes": 9895
+    },
+    {
+      "path": "internal/platform/tool_input_store.go",
+      "sha256": "257c273e8a8f43a8e164ff118f343cc4fc21d351826c5b5fe8cf447c2d55cf06",
+      "bytes": 10509
+    },
+    {
+      "path": "internal/platform/tool_input_observations.go",
+      "sha256": "f4205034c3cce36564846f6e8fb47dd1b50dafdc2926955d8fed31383dfff3fd",
+      "bytes": 7356
+    },
+    {
+      "path": "internal/platform/tool_input_read.go",
+      "sha256": "ffdafdf0d85dd6d43856a07dc54678ff61acb532947b2ae68ebd2a5a429dff12",
+      "bytes": 4523
+    },
+    {
+      "path": "internal/platform/tool_input_http.go",
+      "sha256": "f250da6e03f30879528a1bf0e30b32c91b79d6496b47668ea78399be17c63349",
+      "bytes": 6700
+    },
+    {
+      "path": "internal/platform/tool_input_test.go",
+      "sha256": "712fb3aa21f7de3fd020b094546ef04ab1b4f96a384399cffc5c1eed4676f407",
+      "bytes": 20176
+    },
+    {
+      "path": "internal/platform/database.go",
+      "sha256": "040972838c72c05a1cd5d7000a1092db9f8db50f41b9d7085e4da3ed29bbcd3c",
+      "bytes": 13515
+    },
+    {
+      "path": "internal/platform/http.go",
+      "sha256": "2720d5661b70fa43fbf34832f6f57ce4e8ccbe28996e2c01706b4bd1e3d62c90",
+      "bytes": 52558
+    },
+    {
+      "path": "internal/platform/pool_runner_http.go",
+      "sha256": "a70a2080f2f60ee8a38e67bbd178abc17460357332dd5961c04bbbdfa40970fc",
+      "bytes": 16527
+    },
+    {
+      "path": "internal/platform/usage_accounting_hooks.go",
+      "sha256": "290e8d9e216e9150e80ae605ec708a12bee33fa69c2b4b5cf40b9c7930d10709",
+      "bytes": 22957
+    },
+    {
+      "path": "internal/platform/tool_permission.go",
+      "sha256": "9cfa82801794c4b33e692d8ac85257bb941c002034aa2c7d7a6e84d4f2a9b289",
+      "bytes": 13955
+    },
+    {
+      "path": "internal/platform/tool_permission_codex_test.go",
+      "sha256": "f1c945bf0562210d3c670ebc8ee99b415d4a532174f318d2e491f0b128846ad3",
+      "bytes": 21562
+    },
+    {
+      "path": "internal/runner/codex_appserver_config.go",
+      "sha256": "b06267bd74eb107f6ccc175bdc8f69776afd9f9978c4d43599ac6969fc0fd657",
+      "bytes": 12762
+    },
+    {
+      "path": "internal/runner/tools.go",
+      "sha256": "c435d570948e4bbee643c8c207026efc470f9488a63785ebd399151047dae515",
+      "bytes": 30720
+    },
+    {
+      "path": "internal/runner/desktop_managed_codex.go",
+      "sha256": "45ad62c3e1b35712edf6a854e22b3afa6979bdbc96ad1d2f7a5d8ca3eca233f4",
+      "bytes": 9620
+    },
+    {
+      "path": "internal/runner/codex_user_input_config_test.go",
+      "sha256": "6aed125d8ebabfd0f2aa8346c39389252c7d690195a21cd5b18f008aefc18157",
+      "bytes": 10349
+    },
+    {
+      "path": "internal/runner/codex_appserver.go",
+      "sha256": "08b5dfdc02d20d32236cc4d2be4db6cf8f949398d40e0158070ccf2d90eedb66",
+      "bytes": 22237
+    },
+    {
+      "path": "internal/runner/codex_appserver_approvals.go",
+      "sha256": "4af89d7577947ecd2f032c869b918d98dad2f32658ec52c8404b639f0b3d50df",
+      "bytes": 26073
+    },
+    {
+      "path": "internal/runner/codex_appserver_user_input.go",
+      "sha256": "55fa9b80dd979ac1c90a53a162515a2c5882e43e877572b936a583db4520832d",
+      "bytes": 17485
+    },
+    {
+      "path": "internal/runner/codex_appserver_user_input_test.go",
+      "sha256": "5145e3c6a28ea0c76e2e8af174842b7351848f60228ef1d23ac54b8f77d0e638",
+      "bytes": 12117
+    },
+    {
+      "path": "internal/runner/tool_inputs.go",
+      "sha256": "7cdb97283a894b2be3039e5807557ab6f842317c4ceea734094d920c8863a84b",
+      "bytes": 19418
+    },
+    {
+      "path": "internal/runner/tool_inputs_test.go",
+      "sha256": "f5036bcdbcc3bcd2c717fa19ce253093b71f20a59660a9e290ee2bb1ab6e871f",
+      "bytes": 14981
+    },
+    {
+      "path": "internal/runner/journal.go",
+      "sha256": "368942d624031f029278757019ccc94f5e587e626a0529681dd3cedfb012cee5",
+      "bytes": 15614
+    },
+    {
+      "path": "internal/runner/execute.go",
+      "sha256": "345216bda3b977ab85bf8f0961933deef4456acdfd4f1ae941d0983acdebae64",
+      "bytes": 46291
+    },
+    {
+      "path": "internal/runner/worker.go",
+      "sha256": "8bd141d8ea2a57a566e542e070cbb8c2b07e8aaa7ddc0e7074e6d57ea8edf995",
+      "bytes": 7525
+    },
+    {
+      "path": "internal/runner/client.go",
+      "sha256": "0e88e411798c53b8daec8239f1a3a8f18dee2931494938b4298248c6e87e8342",
+      "bytes": 4755
+    },
+    {
+      "path": "internal/runner/acp_permissions.go",
+      "sha256": "88b857a3254d84e47c05537ba414c98a9b1afb93809c523187bd409d0be3d76b",
+      "bytes": 12723
+    },
+    {
+      "path": "internal/runner/workbuddy_cloud_journal.go",
+      "sha256": "79140f3f22dda750db8954eb2f93f1c1f3aa61e3d72ab3cea099ad1bba6546a4",
+      "bytes": 12271
+    },
+    {
+      "path": "internal/runner/pool_client.go",
+      "sha256": "eb9973c198a69fa2899ba567adf556da12bc9a810bdd20375f56eb25badda0c5",
+      "bytes": 5086
+    },
+    {
+      "path": "internal/runner/codex_appserver_test.go",
+      "sha256": "4e46f932b1ac6575483c74094c005caf0a6a8efb6639dce7433215b52cc23263",
+      "bytes": 16183
+    },
+    {
+      "path": "apps/web/src/tool-input-model.ts",
+      "sha256": "5c86c637147e3753600c2770e9c447d12102174dded7946d92843017761b4654"
+    },
+    {
+      "path": "apps/web/src/tool-input-model.test.ts",
+      "sha256": "f0f8734e82853b7099ac62e1d4cf1d5d4746b8736f0c399e61bd062042dc5af8"
+    },
+    {
+      "path": "apps/web/src/tool-input.test-support.ts",
+      "sha256": "637362e436f930cbbe4b3e456efc501028cd448a5409165b315fb47e1f4fa161"
+    },
+    {
+      "path": "apps/web/src/ToolInputCard.tsx",
+      "sha256": "a7d2a6a35f346c96031f4a07efa21cce7fd113135cb6957170c5052d32fb9a0b"
+    },
+    {
+      "path": "apps/web/src/ToolInputCard.css",
+      "sha256": "d9934ec7102506cfc555f226bf8d44b0a60d4fba7e03f0a366ff2102d67d4d9f"
+    },
+    {
+      "path": "apps/web/src/ToolInputCard.test.tsx",
+      "sha256": "b7defc73776b9f77ae58d06eec7550db389a1d8a93116c598e843f525142a805"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-inputs.zh-CN.json",
+      "sha256": "5b1cd8646f86a82489d50a5836bb78308df82c5045f6b71fd047138868b6627f"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-inputs.en-US.json",
+      "sha256": "8135dad23a13b6387b9dbc3f82f70877c22dda5a3b34609df90964321c6beaee"
+    },
+    {
+      "path": "apps/web/src/tool-model.ts",
+      "sha256": "8df22361cf5cb02272470aa621d3fc8d9eb22e9a59d38119f8a489ff45d683ba"
+    },
+    {
+      "path": "apps/web/src/tool-input-capability.test.ts",
+      "sha256": "7b04865be3b34238be27ab710393cf81b3c7aa297d0aa38c621d7eb6318f6357"
+    },
+    {
+      "path": "apps/web/src/ToolInputPanel.tsx",
+      "sha256": "bddbb499670eb484a40e6e59764a4e7097dd952e5a0aa79abad9d23fa165fc3a"
+    },
+    {
+      "path": "apps/web/src/ToolInputPanel.css",
+      "sha256": "adcc452b3d9ce785a5e3500dc3377acc93762f6b2ee4ea3607e3f8b2eedb6fc5"
+    },
+    {
+      "path": "apps/web/src/ToolInputPanel.test.tsx",
+      "sha256": "aff588136bda8d43322cfdff3a7e7672d80ff8baebe520ae7d80d73154bfde98"
+    },
+    {
+      "path": "apps/web/src/CodexLocalConnector.tsx",
+      "sha256": "6c842b512903d690c5d9989adadf019e371f786cf69c8f96f081aac0262b9610"
+    },
+    {
+      "path": "apps/web/src/CodexLocalConnector.css",
+      "sha256": "2c1d54ca188b6cd1aaddd8f22e070ae1dde43d07f361728189ad7cda19c1b2b7"
+    },
+    {
+      "path": "apps/web/src/CodexLocalConnector.test.tsx",
+      "sha256": "6a8d0b0fdfc1e8d0a9d27b41eeb4e29762fd22ea64ee33ab2326a0eaa0612226"
+    },
+    {
+      "path": "apps/web/src/desktop-codex-connector-model.ts",
+      "sha256": "e4bd8c42234a980431514971fcfd0e4262eda67efdba56a4d62b9cbfe71fb148"
+    },
+    {
+      "path": "apps/web/src/desktop-codex-connector-model.test.ts",
+      "sha256": "ce9ff1c46dd8db6b351b6fb8276c7381ed23501ec6b96ccc82a2be27cf394697"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/codex-quick-connect.zh-CN.json",
+      "sha256": "42163ad4587f480afceb3e4d9f48c28d84db041c800f4313f38a7f60383f1ab1"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/codex-quick-connect.en-US.json",
+      "sha256": "15b0fc505d92806f34faaa95b3dd5d0a5fe97e268ee4fd47e9f84431c639022b"
+    },
+    {
+      "path": "apps/web/src/Workflow.tsx",
+      "sha256": "b48e3f163384efdf7fc5e878e71d3296200bbbef816ab62aa0a82e1e36695d12"
+    },
+    {
+      "path": "apps/desktop/src/local-codex-validation.cjs",
+      "sha256": "697a05061108f63a660a0995e8c48d10fa198d7a2baa8b4a45394f5fe1d7f65a"
+    },
+    {
+      "path": "apps/desktop/src/local-codex.cjs",
+      "sha256": "0fe8781cb2ceca44ad8d86d6f25a976a8f9d28379e87a1db155da3c7a6c2ca27"
+    },
+    {
+      "path": "apps/desktop/src/managed-local-runner.cjs",
+      "sha256": "d028d8e913f8e19288d26f7bd75ad2cea15921fbf4f2177b2408e7ac70d9c2dd"
+    },
+    {
+      "path": "apps/desktop/tests/local-codex.test.cjs",
+      "sha256": "f84577728962407299502e89049639d970ca3af7049212e02ce1db5a23b6f51f"
+    },
+    {
+      "path": "apps/desktop/tests/managed-codex.test.cjs",
+      "sha256": "d75e4003f29fb007baecaf818602e6acce3b33df423b40633276e2ee2f5068fb"
+    },
+    {
+      "path": "internal/runner/codex_user_input_actual_test.go",
+      "sha256": "7574bc850cc444ead38b2836ae0fbb83a52b259758b53717bc113ec30ecfe8f6",
+      "bytes": 19559,
+      "actual_verified_source_sha256": "1866f4a51831105a9ea5f07ab03044ce4762edc0af92937474561b8cfabf9c5a",
+      "change_after_actual": "Configuration-only: require explicit absolute SUMA_CODEX_EXECUTABLE; fixed pin and all execution logic unchanged; actual CLI not repeated"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-inputs-187/protocol/summary.json",
+      "sha256": "d776bb3408692f1d0a10e12586697fb9a20a28b71376f3ea79afbd7e31763d39"
+    },
+    {
+      "path": ".cache/tool-inputs-187/platform/summary.json",
+      "sha256": "0675641c691f4180382a8e4e3587277134c2c1ded7c194158d2c68ff7c66c338"
+    },
+    {
+      "path": ".cache/tool-inputs-187/platform/source-manifest.json",
+      "sha256": "2024585380c22525b68fa2109407aef4460c42b4dc4fdb845bc95030c9f0b75d"
+    },
+    {
+      "path": ".cache/tool-inputs-187/runtime/summary.json",
+      "sha256": "0c2794de6e37bcd067d77fa89e34c06e67daedf40da9c4463ad03b95d83d5fda"
+    },
+    {
+      "path": ".cache/tool-inputs-187/runtime/source-manifest.json",
+      "sha256": "b0a9ac9f1b6c8ad9f746b8a08b087dac6dd90a73fdd32423b66ae4ec74c523ea"
+    },
+    {
+      "path": ".cache/tool-inputs-187/runtime/receipt-recovery-summary.json",
+      "sha256": "dd62bcb54b2137b6b25178f994952afc193980cb74c316ad5f6309d2ed55e73c"
+    },
+    {
+      "path": ".cache/tool-inputs-187/runtime/receipt-recovery-source-manifest.json",
+      "sha256": "08863523200c1d43511655385cb7137e4831b381c5712688c7c1c3ef5c8531f0"
+    },
+    {
+      "path": ".cache/tool-inputs-187/actual/summary.json",
+      "sha256": "4b635bd6e14c184061f960c021209cfe8aad46e82a13441bb35aef2552706dd9"
+    },
+    {
+      "path": ".cache/tool-inputs-187/actual/source-manifest.json",
+      "sha256": "c73248a0d08cd107649140b8678fea3877caf8c9af88f232d339e3de5784230d"
+    },
+    {
+      "path": ".cache/tool-inputs-187/actual/artifact-manifest.json",
+      "sha256": "f30c72b7f9f595bd2da5ad56d7b2107dca8bde1ff8c0518e614e2c9b259a186b"
+    },
+    {
+      "path": ".cache/tool-inputs-187/web/integration-summary.json",
+      "sha256": "7189b3bdb257345a89cce1bbf05830b1c083b0c0afb39a475796404702dc07bc"
+    },
+    {
+      "path": ".cache/tool-inputs-187/desktop/summary.json",
+      "sha256": "e7402ac3b2e0eccc928e153eda0b8eef89644a8893f5c89b9f5c109b8a8a5078"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T070523731Z.command.json",
+      "sha256": "612777e1212e9c22e3257f5d0ab469dc102ff86a946412612c422d973ca3a646"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T070523627Z.command.json",
+      "sha256": "61526d60aa6699f5b347ecb406a89ee86bb450fd0518d535090c84f46dff007b"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T070523685Z.command.json",
+      "sha256": "96acedb9947a4743c3c089857c5107d1c7184e856125add386f93c311a04223b"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T070559134Z.command.json",
+      "sha256": "ba7a720c6ac34e9da1b12d4676b99fb13525e8d07dca672b0af97521ff2f182f"
+    },
+    {
+      "path": ".cache/tool-inputs-187/types-before-ref-fix.command.json",
+      "sha256": "1916e098ec363d125bda101e8e2a70fed7ac8fa35a6e0a4620644286c3010768"
+    },
+    {
+      "path": ".cache/tool-inputs-187/types.command.json",
+      "sha256": "6bcbec173098acef56c6df96e8d4114e34e95e2d03d1a701f82628e1d3b86ae7"
+    },
+    {
+      "path": ".cache/tool-inputs-187/i18n.command.json",
+      "sha256": "831db830f03d2c143ada55aba966a05f44d0729acca8a902d61a634d4c85fc95"
+    },
+    {
+      "path": ".cache/tool-inputs-187/build.command.json",
+      "sha256": "82c53857fdfb986cbcd96450111c0f8ad3669ac4530bf4f9e451723c04c37593"
+    },
+    {
+      "path": ".cache/tool-inputs-187/visual/result.json",
+      "sha256": "5a74d053c285fcbe7dd4b3d4eea537ab2def6317abf341fffff5fe6943f4b1bc"
+    }
+  ]
+}

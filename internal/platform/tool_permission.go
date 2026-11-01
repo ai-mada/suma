@@ -87,22 +87,12 @@ func (s *Service) toolPermissionMachine(ctx context.Context, actor Actor, token,
 	if toolPermissionEffective(probe, b, now).State != "pending" || b.runState != "running" {
 		return empty, conflict(toolPermissionChanged)
 	}
-	var count int
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=?`), a.TenantID, project, a.RunID, a.NodeID, a.Attempt).Scan(&count); err != nil {
-		return empty, err
-	}
-	if count >= 32 {
-		return empty, conflict("Tool permission attempt limit reached")
-	}
 	sessionSHA, requestSHA, err := pc.RequestSourceDigests(*request)
 	if err != nil {
 		return empty, invalid(toolPermissionInvalid)
 	}
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND source_session_sha256=? AND source_request_sha256=?`), a.TenantID, project, a.RunID, a.NodeID, a.Attempt, a.Fence, sessionSHA, requestSHA).Scan(&count); err != nil {
+	if err = s.toolInteractionAdmitTx(ctx, tx, a, sessionSHA, requestSHA); err != nil {
 		return empty, err
-	}
-	if count != 0 {
-		return empty, conflict(toolPermissionChanged)
 	}
 	r := toolPermissionRow{tenant: a.TenantID, profileID: b.profile.ID, profileVersion: b.profile.Version, profile: b.profile.Profile, assignment: a, requestHash: toolPermissionRequestHash(a, *request)}
 	r.value = pc.Permission{ID: newID(), ProjectID: project, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, DispatchID: a.DispatchID, WorkerID: a.WorkerID, ProfileSHA256: b.profile.Profile.ProfileSHA256, Version: 1, State: "pending", Request: *request, CreatedAt: now.Format(time.RFC3339Nano), ExpiresAt: time.Unix(b.deadline, 0).UTC().Format(time.RFC3339Nano), AllowedActions: []string{}}

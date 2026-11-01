@@ -50,6 +50,10 @@ func TestCodexToolPermissionRejectsRegisteredPreviousSchemaBeforeDDL(t *testing.
 }
 
 func newCodexToolPermissionFixture(t *testing.T, pooled bool, goals ...string) (toolPermissionFixture, cc.Binding) {
+	return newCodexToolInteractionFixture(t, pooled, false, goals...)
+}
+
+func newCodexToolInteractionFixture(t *testing.T, pooled, userInput bool, goals ...string) (toolPermissionFixture, cc.Binding) {
 	t.Helper()
 	ctx := context.Background()
 	h := toolPermissionFixture{pool: pooled}
@@ -66,6 +70,9 @@ func newCodexToolPermissionFixture(t *testing.T, pooled bool, goals ...string) (
 	}
 	f := h.f
 	profile := tc.Profile{CommandID: "codex-approval174", Adapter: "codex", Protocol: cc.Protocol, ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "Controlled Codex approval domain fixture"}
+	if userInput {
+		profile.UserInputProtocol = cc.UserInputProtocol
+	}
 	tool, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: worker, Name: "Explicit Codex once approval fixture", Profile: profile, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)

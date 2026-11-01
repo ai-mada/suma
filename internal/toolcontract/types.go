@@ -18,7 +18,10 @@ type ToolExecutionProfile struct {
 	ReadOnly                bool   `json:"read_only"`
 	TerminalSessionProtocol string `json:"terminal_session_protocol,omitempty"`
 	WorkspaceToolsVersion   string `json:"workspace_tools_version,omitempty"`
-	ModelExecutionProtocol  string `json:"model_execution_protocol,omitempty"`
+	// UserInputProtocol is an explicitly enabled native input capability. It is
+	// not a grant, an answered question or a claim that execution is online.
+	UserInputProtocol      string `json:"user_input_protocol,omitempty"`
+	ModelExecutionProtocol string `json:"model_execution_protocol,omitempty"`
 	// TestReportProtocol is a process-collected report capability of an isolated,
 	// administrator-designated test command. It grants no case acceptance.
 	TestReportProtocol string `json:"test_report_protocol,omitempty"`

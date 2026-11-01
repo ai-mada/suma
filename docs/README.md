@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [原执行问答](product/tool-inputs.md) · [合同](../contracts/tool-inputs.md) · [架构与AI SOP](architecture/tool-inputs.md) · [数据](data/tool-inputs.md) · [交互](design/tool-inputs.md) · [English](en/tool-inputs.md) · [限定验证](quality/tool-inputs-verification.md)：T-TOOL-INPUTS-187贯通原问题、明确回答、真实写出与异常核对。
+
 - [同任务候选续作](product/task-development-continuation.md) · [合同](../contracts/task-development-continuation.md) · [架构与AI SOP](architecture/task-development-continuation.md) · [交互](design/task-development-continuation.md) · [English](en/task-development-continuation.md) · [限定验证](quality/task-development-continuation-verification.md)：T-DEVELOPMENT-CONTINUATION-186贯通原代码输入、新独立执行与质量链。
 
 - [配对收件箱与执行接续](product/runner-inbox.md) · [合同](../contracts/runner-inbox.md) · [架构与AI SOP](architecture/runner-inbox.md) · [简洁双语交互](design/runner-inbox.md) · [English](en/runner-inbox.md) · [限定报告](quality/runner-inbox-verification.md)：T-RUNNER-INBOX-185复用原权限、身份和Worker，不增加第二套执行状态。

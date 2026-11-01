@@ -121,6 +121,9 @@ func ReplayProgress(ctx context.Context, c *Client, j *Journal) error {
 	return nil
 }
 func Replay(ctx context.Context, c *Client, j *Journal) error {
+	if err := ReplayToolInputObservations(ctx, c, j); err != nil {
+		return err
+	}
 	if err := ReplayToolPermissionObservations(ctx, c, j); err != nil {
 		return err
 	}

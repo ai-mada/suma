@@ -136,6 +136,9 @@ func (j *Journal) recordToolPermission(a Assignment, request pc.Request) error {
 	var safe pc.Request
 	_ = json.Unmarshal(raw, &safe)
 	e.ToolPermissions.Requests[request.IdempotencyKey] = toolPermissionCheckpoint{Request: safe}
+	if validNativeRequestCheckpoints(e) != nil {
+		return errToolPermission
+	}
 	j.entries[k] = e
 	if err := j.save(); err != nil {
 		j.entries[k] = before

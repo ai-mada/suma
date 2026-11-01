@@ -140,6 +140,9 @@ type codexAppServer struct {
 	skills                                          *cc.ExecutionSkillBundle
 	skillsConfigured                                bool
 	approvals                                       *codexApprovalSession
+	userInputs                                      *codexUserInputSession
+	nativeRequests                                  map[string]codexNativeRequest
+	nativeTurnClosed                                bool
 }
 
 func newCodexAppServer(profile tc.Profile, spec CommandSpec, home, root, goal string, binding *cc.Binding, stream *toolStream) *codexAppServer {
@@ -155,6 +158,7 @@ func (d *codexAppServer) CopyInput(w io.Writer) (int64, error) { return d.input.
 func (d *codexAppServer) Close() error {
 	d.stopping.Store(true)
 	d.stopApprovals()
+	d.stopUserInputs()
 	d.endApprovalInput()
 	d.input.close()
 	return nil
@@ -171,6 +175,7 @@ func (d *codexAppServer) Finish() {
 	d.pending = nil
 	d.mu.Unlock()
 	d.finishApprovals()
+	d.finishUserInputs()
 }
 func (d *codexAppServer) request(method string, params any) {
 	if d.stopping.Load() || d.bad != nil || d.stream != nil && d.stream.bad != nil {
@@ -245,6 +250,10 @@ func (d *codexAppServer) frame(raw []byte) {
 	}
 	if method := textAt(m, "method"); method != "" {
 		if id, present := m["id"]; present {
+			if method == cc.UserInputMethod {
+				d.receiveUserInput(id, objectAt(m, "params"))
+				return
+			}
 			if method == "item/commandExecution/requestApproval" || method == "item/fileChange/requestApproval" {
 				d.receiveApproval(id, method, objectAt(m, "params"))
 				return
@@ -502,7 +511,12 @@ func (d *codexAppServer) scoped(p map[string]any, turn bool) bool {
 func (d *codexAppServer) notification(method string, p map[string]any) {
 	switch method {
 	case "serverRequest/resolved":
-		d.resolveApproval(p)
+		id, _, err := codexRPCIdentity(p["requestId"])
+		if err == nil && d.nativeRequests[id.Kind+":"+id.Value].method == cc.UserInputMethod {
+			d.resolveUserInput(p)
+		} else {
+			d.resolveApproval(p)
+		}
 	case "item/started":
 		d.observeApprovalItem(p, false)
 	case "thread/started":
@@ -537,7 +551,12 @@ func (d *codexAppServer) notification(method string, p map[string]any) {
 			d.fail("multiple turn terminals")
 			return
 		}
+		d.nativeTurnClosed = true
+		d.closeUserInputTurn()
 		if d.deferApprovalTerminal(p) {
+			return
+		}
+		if d.deferUserInputTerminal(p) {
 			return
 		}
 		d.terminalReceived = true
@@ -642,6 +661,7 @@ func (d *codexAppServer) Cancel() error {
 	// delayed acknowledgement must not start a new thread or turn meanwhile.
 	d.stopping.Store(true)
 	d.stopApprovals()
+	d.stopUserInputs()
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.evidence == nil || d.turn == "" || d.terminalReceived {

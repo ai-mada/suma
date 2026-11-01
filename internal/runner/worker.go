@@ -150,6 +150,7 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	cfg := w.Exec
 	cfg.TerminalClient = w.Client
 	cfg.CloudClient = w.Client
+	cfg.ToolInputClient = w.Client
 	cfg.ToolInventory = w.currentInventory()
 	if cfg.Artifacts == nil {
 		cfg.Artifacts = w.Client
@@ -221,6 +222,7 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 			case <-retry.C:
 			}
 			_ = ReplayToolPermissionObservations(runCtx, w.Client, w.Journal)
+			_ = ReplayToolInputObservations(runCtx, w.Client, w.Journal)
 			_ = ReplayProgress(runCtx, w.Client, w.Journal)
 		}
 	}()

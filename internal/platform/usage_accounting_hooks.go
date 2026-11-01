@@ -382,6 +382,9 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if e = s.validateCodexApprovalResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
 		return e
 	}
+	if e = s.validateCodexUserInputResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
+		return e
+	}
 	startupZero, e := s.CertifiedCandidateRepairStartupFailureTx(ctx, tx, ref.TenantID, ref.ProjectID, result)
 	if e != nil {
 		return e

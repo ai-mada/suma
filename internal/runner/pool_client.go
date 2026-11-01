@@ -106,6 +106,9 @@ func (c *Client) forPoolAssignment(a Assignment) (*Client, error) {
 }
 
 func replayPool(ctx context.Context, c *Client, j *Journal) error {
+	if err := ReplayToolInputObservations(ctx, c, j); err != nil {
+		return err
+	}
 	if err := ReplayTerminalExchanges(ctx, c, j); err != nil {
 		return err
 	}

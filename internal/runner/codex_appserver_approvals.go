@@ -117,7 +117,7 @@ func codexApprovalSHA(value any) string { raw, _ := json.Marshal(value); return 
 func (d *codexAppServer) receiveApproval(wireID any, method string, params map[string]any) {
 	s := d.approvals
 	id, key, err := codexRPCIdentity(wireID)
-	if err != nil || s == nil || d.evidence == nil || d.stream == nil || d.stream.id(id.Value) != id.Value || d.stopping.Load() || d.terminalReceived || !d.evidence.ConfigurationAcknowledged || d.thread == "" || d.turn == "" || textAt(params, "threadId") != d.thread || textAt(params, "turnId") != d.turn {
+	if err != nil || s == nil || d.evidence == nil || d.stream == nil || d.stream.id(id.Value) != id.Value || d.stopping.Load() || d.terminalReceived || d.nativeTurnClosed || !d.evidence.ConfigurationAcknowledged || d.thread == "" || d.turn == "" || textAt(params, "threadId") != d.thread || textAt(params, "turnId") != d.turn {
 		d.fail("approval request has no active native source")
 		return
 	}
@@ -133,6 +133,10 @@ func (d *codexAppServer) receiveApproval(wireID any, method string, params map[s
 	ms, msErr := strconv.ParseInt(string(started), 10, 64)
 	if len(s.records) >= 32 || item == nil || item.status != "inProgress" || !ok || msErr != nil || ms <= 0 || ms > cc.MaxSafeInteger || strconv.FormatInt(ms, 10) != string(started) || !validApprovalParamsShape(method, params) || (method == "item/commandExecution/requestApproval") != (item.kind == "commandExecution") {
 		d.fail("approval callback item or bounded timestamp is invalid")
+		return
+	}
+	if fresh, err := d.registerNativeRequest(id, method, paramsSHA); err != nil || !fresh {
+		d.fail("native server request identity changed or exceeded its bound")
 		return
 	}
 	ctx, cancel := context.WithCancel(s.ctx)

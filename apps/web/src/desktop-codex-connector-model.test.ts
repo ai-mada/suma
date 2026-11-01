@@ -18,6 +18,8 @@ it('uses the existing bridge and closes each Codex request around current caller
 });
 it('permits only safe provider drafts and explicit Windows sandbox without accepting secrets or process configuration',()=>{
  expect(validDesktopCodexConfiguration(configuration,'win32')).toBe(true);
+ expect(validDesktopCodexConfiguration({...configuration,enable_user_input:true},'win32')).toBe(true);expect(validDesktopCodexConfiguration({...configuration,enable_user_input:false},'win32')).toBe(true);
+ for(const enable_user_input of [null,'true',1])expect(validDesktopCodexConfiguration({...configuration,enable_user_input},'win32')).toBe(false);
  const {windows_sandbox:_,...portable}=configuration;expect(validDesktopCodexConfiguration(portable,'linux')).toBe(true);expect(validDesktopCodexConfiguration(portable,'win32')).toBe(false);
  for(const patch of [{base_url:'http://remote.example/v1'},{base_url:'https://user:secret@provider.example/v1'},{base_url:'https://provider.example/v1?'},{base_url:'https://provider.example/v1#'},{base_url:'https://provider.example/\u2028v1'},{api_key:'secret'},{executable:'/private/codex'},{api_key_env_ref:'SUMA_RUNNER_TOKEN'},{api_key_env_ref:'NODE_OPTIONS'},{windows_sandbox:'disabled'},{windows_sandbox:['unelevated']},{provider_id:'bad.name'}])expect(validDesktopCodexConfiguration({...configuration,...patch},'win32')).toBe(false);
  expect(validDesktopCodexConfiguration({...configuration,base_url:'http://127.0.0.1:1234/v1'},'win32')).toBe(true);

@@ -3,7 +3,7 @@ import type {DesktopToolScope,DesktopToolConnection,DesktopToolRequest} from './
 import {validCodexCatalog} from './codex-execution-model';
 import {wellFormed} from './i18n/catalog';
 export type DesktopCodexScope=DesktopToolScope;
-export type DesktopCodexConfiguration={provider_id:string;base_url:string;api_key_env_ref?:string;windows_sandbox?:'unelevated'|'elevated'|'mxc'};
+export type DesktopCodexConfiguration={provider_id:string;base_url:string;api_key_env_ref?:string;windows_sandbox?:'unelevated'|'elevated'|'mxc';enable_user_input?:boolean};
 export type DesktopCodexSelection={installation_id:string;probe_id:string};
 type Platform='win32'|'darwin'|'linux';
 type Base={project_id:string;user_id:string;tenant_id:string;adapter_id:'codex-app-server';locale:'zh-CN'|'en-US'};
@@ -38,7 +38,7 @@ export function desktopCodexBridge(value:unknown=(window as unknown as {sumaDesk
 }
 export function validDesktopCodexScope(scope:DesktopCodexScope):boolean{return object(scope)&&id(scope.project)&&id(scope.userID)&&id(scope.organizationID)&&scope.adapterID==='codex-app-server';}
 export function validDesktopCodexConfiguration(value:unknown,platform?:Platform):value is DesktopCodexConfiguration{
- if(!object(value)||!closed(value,['provider_id','base_url'],['api_key_env_ref','windows_sandbox'])||typeof value.provider_id!=='string'||!/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(value.provider_id)||!token(value.base_url,2048)||Object.hasOwn(value,'api_key_env_ref')&&!credential(value.api_key_env_ref)||Object.hasOwn(value,'windows_sandbox')&&(typeof value.windows_sandbox!=='string'||!['unelevated','elevated','mxc'].includes(value.windows_sandbox))||platform==='win32'&&!Object.hasOwn(value,'windows_sandbox'))return false;
+ if(!object(value)||!closed(value,['provider_id','base_url'],['api_key_env_ref','windows_sandbox','enable_user_input'])||typeof value.provider_id!=='string'||!/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(value.provider_id)||!token(value.base_url,2048)||Object.hasOwn(value,'api_key_env_ref')&&!credential(value.api_key_env_ref)||Object.hasOwn(value,'windows_sandbox')&&(typeof value.windows_sandbox!=='string'||!['unelevated','elevated','mxc'].includes(value.windows_sandbox))||Object.hasOwn(value,'enable_user_input')&&typeof value.enable_user_input!=='boolean'||platform==='win32'&&!Object.hasOwn(value,'windows_sandbox'))return false;
  try{const url=new URL(value.base_url);return !!url.hostname&&!url.username&&!url.password&&!url.search&&!value.base_url.includes('?')&&!url.hash&&!value.base_url.includes('#')&&(url.protocol==='https:'||url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname));}catch{return false;}
 }
 export function validDesktopCodexSelection(value:unknown):value is DesktopCodexSelection{return object(value)&&closed(value,['installation_id','probe_id'])&&id(value.installation_id)&&id(value.probe_id);}

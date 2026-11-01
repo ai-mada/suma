@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T186 implemented explicit same-task sealed-code continuation, current authority and ancestor revocation checks, new independent execution/quality, bilingual interaction, focused actual evidence and stage Git delivery; full goal active",
+  "last_goal_turn_classification": "progress: T187 implemented explicit native live-turn questions, exact human answers and delivery/recovery, real installed CLI with owned Responses, bilingual node/connector UI, independent P2 corrections and stage Git delivery; full goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-DEVELOPMENT-CONTINUATION-186",
+    "stage": "T-TOOL-INPUTS-187",
     "status": "scoped_verified",
-    "contract": "contracts/task-development-continuation.md",
-    "report": "docs/quality/task-development-continuation-verification.md",
+    "contract": "contracts/tool-inputs.md",
+    "report": "docs/quality/tool-inputs-verification.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Continue persistent interactive tool sessions and the remaining project/team/knowledge/quality/operations, distributed deployment and full acceptance capabilities."
+    "next": "Continue native persistent sessions, remaining tool/platform integration, knowledge/team/quality/operations and distributed full-platform acceptance."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1185,6 +1185,58 @@
       "Codex当前仍每attempt新thread/turn；未实现旧隐藏会话迁移或持久多turn恢复。本轮不重复模型SDK、配对系统库、全套、安装包或部署矩阵。",
       "实际数据库覆盖SQLite；OceanBase/PostgreSQL、物理多机器、真实厂商、跨平台运行/安装、规模和生产仍需各自证据。原31/P0-P7/58limited/34pending/92total及171显式GUI停止缺口继续。",
       "两份无关本地历史审计保持原SHA且不提交；缓存、数据库、日志、截图、秘密、依赖和二进制不入Git。"
+    ]
+  },
+  "tool_inputs": {
+    "stage": "T-TOOL-INPUTS-187",
+    "status": "scoped_verified",
+    "contract": "contracts/tool-inputs.md",
+    "report": "docs/quality/tool-inputs-verification.md",
+    "summary": "docs/quality/tool-inputs-summary.json",
+    "verification": {
+      "distinct_top_level": 43,
+      "new_top_level": 33,
+      "affected_existing_top_level": 10,
+      "go_subcases": 30,
+      "platform_top_level": 7,
+      "runtime_top_level": 14,
+      "receipt_recovery_top_level": 1,
+      "actual_cli_top_level": 1,
+      "web_top_level": 12,
+      "desktop_top_level": 4,
+      "root_top_level": 4,
+      "final_types_exit": 0,
+      "paired_i18n_keys": 8761,
+      "hardcodes": 0,
+      "isolated_production_component_builds": 1,
+      "synthetic_gui_checks": 3,
+      "root_viewed_images": 2,
+      "native_gui_exit": 0,
+      "actual_cli": {
+        "live_turn_attempts": 2,
+        "native_startups": 4,
+        "completed_journeys": 1,
+        "native_answer_writes": 1,
+        "commercial_calls": 0,
+        "user_credentials": false
+      }
+    },
+    "implementation": [
+      "本地Codex显式实验性问答开关默认关闭；Go／桌面JS同一policy4摘要，离线证明feature、准确profile capability与原连接停止／恢复约束贯通。",
+      "独立问答领域覆盖普通／Pool Open、Poll、Observation、当前浏览器Answer和节点读取；原身份、完整Assignment、租约／fence、事务CAS、受保护profile及原操作回执复用。",
+      "题目、选项、文本、Other与明确跳过准确生成原生答案；密码题持久化前拒绝，approval／input原ID共用32上限但权限语义不混合。",
+      "原Journal、单stdin writer及当前Result链区分答案保存、观察、写入开始、完整写出、原生resolved和turn关闭；未知写不重答、不重启模型，普通／Pool先恢复原观察。",
+      "独立窄审修复原观察ACK丢失在lease／terminal漂移后不能恢复的P2；原当前身份／scope先核，exact原回执先于fresh liveness，过期凭据和新观察仍拒。",
+      "原节点双语问题面板、当前配置能力投影、原scope恢复与新attempt只读隔离接通；配置开关不自动探测或执行。"
+    ],
+    "boundaries": [
+      "实际安装CLI与生产driver／Client／Journal已完成一条问答；模型Responses和控制HTTP端是明确自有fixture，未调用商业模型或使用用户凭据。控制面实际HTTP／SQLite／浏览器账号验证另行留证，两者不冒充一次真实厂商完整App验收。",
+      "真实CLI证据共有2活turn尝试／4启动（2只读catalog），首夹具字段顺序比较错误在0答案写入时拒绝；仅改夹具后成功1次。最终实际test仅将机器专有路径改为显式环境变量注入，原验证源与最终源摘要分开保存，未重跑CLI。",
+      "组件GUI复用生产Panel／Card／本地Connector，父页／API／桥为合成；3代表检查／2Root查看视口图／正常原生退出，不是完整登录App或用户验收。",
+      "Default模式提问feature仍为上游开发中能力，默认关闭；密码题安全传输、持久旧thread／多turn恢复及其他工具问答协议仍需独立实现。",
+      "观测仍需当前机器身份；新观测保留当前lease边界。失效或撤权后未上传事实留原Journal待核对，不伪称平台已经收到。",
+      "未重复未变SDK、全套测试、系统凭据库或安装矩阵。当前实库为SQLite；OceanBase／PostgreSQL、物理多机器、其他OS安装、规模、生产及原31／P0–P7／58限定／34待交付／92总账继续，原171显式停止GUI缺口保持。",
+      "两份无关本地历史审计原SHA保持且不提交；缓存、数据库、日志、截图、私有home、依赖与二进制不进Git。"
     ]
   }
 }

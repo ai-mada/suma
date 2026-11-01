@@ -9879,6 +9879,14 @@
           },
           "turn_id": {
             "type": "string"
+          },
+          "user_inputs": {
+            "description": "Safe identities and delivery facts only; combined with approvals at most32 original requests. Question and answer bodies stay in the separately authorized domain.",
+            "items": {
+              "$ref": "#/components/schemas/CodexUserInputEvidence"
+            },
+            "maxItems": 32,
+            "type": "array"
           }
         },
         "required": [
@@ -10046,6 +10054,290 @@
           "catalog_sha256",
           "model",
           "reasoning_effort"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "binding_sha256": {
+            "type": "string"
+          },
+          "input_id": {
+            "type": "string"
+          },
+          "is_blocking": {
+            "type": "boolean"
+          },
+          "item_id": {
+            "type": "string"
+          },
+          "method": {
+            "const": "item/tool/requestUserInput",
+            "type": "string"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexUserInputObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "question_count": {
+            "type": "integer"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/CodexRPCRequestID"
+          },
+          "thread_id": {
+            "type": "string"
+          },
+          "turn_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "input_id",
+          "request_id",
+          "method",
+          "thread_id",
+          "turn_id",
+          "item_id",
+          "binding_sha256",
+          "params_sha256",
+          "question_count",
+          "is_blocking"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputNativeAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "answers"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_observed": {
+            "type": "boolean"
+          },
+          "answer_sha256": {
+            "type": "string"
+          },
+          "failure_code": {
+            "pattern": "^[a-z][a-z0-9_]{0,79}$",
+            "type": "string"
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "reply_started": {
+            "type": "boolean"
+          },
+          "reply_written": {
+            "type": "boolean"
+          },
+          "request_resolved": {
+            "type": "boolean"
+          },
+          "sequence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "turn_closed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sequence",
+          "params_sha256",
+          "answer_observed",
+          "reply_started",
+          "reply_written",
+          "request_resolved",
+          "turn_closed"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputOption": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "description"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "header": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "is_other": {
+            "type": "boolean"
+          },
+          "is_secret": {
+            "const": false,
+            "type": "boolean"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/CodexUserInputOption"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "question": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "header",
+          "question",
+          "is_other",
+          "is_secret",
+          "options"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "auto_resolution_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "binding_sha256": {
+            "type": "string"
+          },
+          "is_blocking": {
+            "type": "boolean"
+          },
+          "item_id": {
+            "type": "string"
+          },
+          "method": {
+            "const": "item/tool/requestUserInput",
+            "type": "string"
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/CodexUserInputQuestion"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "type": "array"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/CodexRPCRequestID"
+          },
+          "thread_id": {
+            "type": "string"
+          },
+          "turn_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "method",
+          "thread_id",
+          "turn_id",
+          "item_id",
+          "binding_sha256",
+          "params_sha256",
+          "is_blocking",
+          "questions"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CodexUserInputNativeAnswer"
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "answers"
+        ],
+        "type": "object"
+      },
+      "CodexUserInputSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "option",
+              "text",
+              "other",
+              "skip"
+            ],
+            "type": "string"
+          },
+          "option": {
+            "type": "string"
+          },
+          "question_id": {
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 4000,
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "kind"
         ],
         "type": "object"
       },
@@ -20610,6 +20902,98 @@
           "grant_version",
           "project_weight",
           "status"
+        ],
+        "type": "object"
+      },
+      "PoolToolInputObservationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "input_id": {
+            "type": "string"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/CodexUserInputObservation"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "runner_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runner_id",
+          "tenant_id",
+          "project_id",
+          "assignment",
+          "input_id",
+          "idempotency_key",
+          "observation"
+        ],
+        "type": "object"
+      },
+      "PoolToolInputOpenRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/ToolInputRequest"
+          },
+          "runner_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runner_id",
+          "tenant_id",
+          "project_id",
+          "assignment",
+          "request"
+        ],
+        "type": "object"
+      },
+      "PoolToolInputPollRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "input_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "runner_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runner_id",
+          "tenant_id",
+          "project_id",
+          "assignment",
+          "input_id"
         ],
         "type": "object"
       },
@@ -37415,6 +37799,11 @@
             "type": "string",
             "x-max-utf8-bytes": 256
           },
+          "user_input_protocol": {
+            "const": "codex-user-input-v1",
+            "description": "Explicit local opt-in, supported only by writable Codex app-server profiles. Experimental native feature, default absent; not a permission grant.",
+            "type": "string"
+          },
           "workspace_tools_version": {
             "type": "string"
           }
@@ -37427,6 +37816,272 @@
           "executable_sha256",
           "tool_version",
           "read_only"
+        ],
+        "type": "object"
+      },
+      "ToolInput": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "const": "answer",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolInputAnswer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attempt": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "dispatch_id": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexUserInputObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile_sha256": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/ToolInputRequest"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "answered",
+              "closed",
+              "expired"
+            ],
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "dispatch_id",
+          "worker_id",
+          "profile_sha256",
+          "version",
+          "state",
+          "request",
+          "created_at",
+          "expires_at",
+          "allowed_actions"
+        ],
+        "type": "object"
+      },
+      "ToolInputAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "type": "string"
+          },
+          "answer_sha256": {
+            "type": "string"
+          },
+          "answered_at": {
+            "type": "string"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/CodexUserInputSelection"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "answers",
+          "answer_sha256",
+          "actor_id",
+          "answered_at"
+        ],
+        "type": "object"
+      },
+      "ToolInputAnswerRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/CodexUserInputSelection"
+            },
+            "type": "array"
+          },
+          "expected_version": {
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "idempotency_key",
+          "answers"
+        ],
+        "type": "object"
+      },
+      "ToolInputList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ToolInput"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "protocol": {
+            "description": "Server-projected current protected profile capability; empty means not configured. Authorized history can remain readable. This is not liveness.",
+            "enum": [
+              "",
+              "codex-user-input-v1"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "items"
+        ],
+        "type": "object"
+      },
+      "ToolInputObservationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "input_id": {
+            "type": "string"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/CodexUserInputObservation"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "assignment",
+          "input_id",
+          "idempotency_key",
+          "observation"
+        ],
+        "type": "object"
+      },
+      "ToolInputOpenRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/ToolInputRequest"
+          }
+        },
+        "required": [
+          "project_id",
+          "assignment",
+          "request"
+        ],
+        "type": "object"
+      },
+      "ToolInputPollRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "input_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "assignment",
+          "input_id"
+        ],
+        "type": "object"
+      },
+      "ToolInputRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "codex": {
+            "$ref": "#/components/schemas/CodexUserInputRequest"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "protocol": {
+            "const": "codex-app-server-v1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "protocol",
+          "codex"
         ],
         "type": "object"
       },
@@ -80961,6 +81616,482 @@
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },
+    "/pool-runner/tool-inputs": {
+      "post": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "post_pool-runner_tool-inputs",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolToolInputOpenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInput"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/pool-runner/tool-inputs/observations": {
+      "post": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "post_pool-runner_tool-inputs_observations",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolToolInputObservationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInput"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/pool-runner/tool-inputs/poll": {
+      "post": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "post_pool-runner_tool-inputs_poll",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolToolInputPollRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInput"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
+        "x-no-agent-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
     "/pool-runner/tool-inventory": {
       "post": {
         "operationId": "post_pool-runner_tool-inventory",
@@ -103388,6 +104519,482 @@
         "x-required-token-scope": "runner"
       }
     },
+    "/runner/tool-inputs": {
+      "post": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "post_runner_tool-inputs",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolInputOpenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInput"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/runner/tool-inputs/observations": {
+      "post": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "post_runner_tool-inputs_observations",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolInputObservationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInput"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/runner/tool-inputs/poll": {
+      "post": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "post_runner_tool-inputs_poll",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolInputPollRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInput"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
+        "x-no-agent-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
     "/runner/tool-inventory": {
       "post": {
         "description": "Bound registered worker identity reports at most128 nonsecret local command observations. Exact operation replay recovers the original database timestamp and does not renew expiry. Reports cannot grant profile approval or deployment authority.",
@@ -107871,6 +109478,204 @@
           "runner"
         ],
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/runs/{run}/nodes/{node}/tool-inputs": {
+      "get": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "get_runs_run_nodes_node_tool-inputs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "node",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original execution scope, including historical read-only questions.",
+            "in": "query",
+            "name": "attempt",
+            "required": true,
+            "schema": {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Original execution scope, including historical read-only questions.",
+            "in": "query",
+            "name": "fence",
+            "required": true,
+            "schema": {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInputList"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-no-agent-effects": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       }
     },
     "/runs/{run}/nodes/{node}/tool-permissions": {
@@ -125031,6 +126836,239 @@
           "pool_runner"
         ],
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/tool-inputs/{id}/answer": {
+      "post": {
+        "description": "Exact original Codex input, attempt/fence, current identity and protected profile capability. Saved human answer, Runner observation, response write and native closure are distinct. No automatic answer, permission grant or process restart. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "operationId": "post_tool-inputs_id_answer",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolInputAnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInput"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-max-request-body-bytes": 1048576,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
       }
     },
     "/tool-permissions/{id}/decision": {

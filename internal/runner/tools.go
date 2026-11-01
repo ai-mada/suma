@@ -629,6 +629,11 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 					fail(err.Error())
 					return
 				}
+				if spec.CodexAppServer.EnableUserInput {
+					// toolVersion has already proved the enabled native feature
+					// through its credential-free, isolated offline listing.
+					o.Profile.UserInputProtocol = cc.UserInputProtocol
+				}
 			}
 			if spec.ModelExecutionProtocol == mc.Protocol {
 				if err = probeModelExecution(ctx, exe, spec); err != nil {

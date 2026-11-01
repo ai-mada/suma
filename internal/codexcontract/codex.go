@@ -55,21 +55,22 @@ type CodexBinding struct {
 // carried by the existing ToolEvidence counters with partial/unknown coverage.
 // Missing turn-start acknowledgements never authorize automatic replay/resume.
 type CodexEvidence struct {
-	Approvals                   []CodexApprovalEvidence `json:"approvals,omitempty"`
-	Skills                      *ExecutionSkillEvidence `json:"skills,omitempty"`
-	BindingSHA256               string                  `json:"binding_sha256"`
-	ThreadID                    string                  `json:"thread_id,omitempty"`
-	TurnID                      string                  `json:"turn_id,omitempty"`
-	RequestedModel              string                  `json:"requested_model"`
-	RequestedReasoningEffort    string                  `json:"requested_reasoning_effort"`
-	AcknowledgedModel           string                  `json:"acknowledged_model,omitempty"`
-	AcknowledgedReasoningEffort string                  `json:"acknowledged_reasoning_effort,omitempty"`
-	AcknowledgedProvider        string                  `json:"acknowledged_provider,omitempty"`
-	ConfigurationAcknowledged   bool                    `json:"configuration_acknowledged"`
-	InterruptRequested          bool                    `json:"interrupt_requested"`
-	InterruptAcknowledged       bool                    `json:"interrupt_acknowledged"`
-	ReroutedModels              []string                `json:"rerouted_models,omitempty"`
-	TokenNoticeExceeded         bool                    `json:"token_notice_exceeded"`
+	Approvals                   []CodexApprovalEvidence  `json:"approvals,omitempty"`
+	UserInputs                  []CodexUserInputEvidence `json:"user_inputs,omitempty"`
+	Skills                      *ExecutionSkillEvidence  `json:"skills,omitempty"`
+	BindingSHA256               string                   `json:"binding_sha256"`
+	ThreadID                    string                   `json:"thread_id,omitempty"`
+	TurnID                      string                   `json:"turn_id,omitempty"`
+	RequestedModel              string                   `json:"requested_model"`
+	RequestedReasoningEffort    string                   `json:"requested_reasoning_effort"`
+	AcknowledgedModel           string                   `json:"acknowledged_model,omitempty"`
+	AcknowledgedReasoningEffort string                   `json:"acknowledged_reasoning_effort,omitempty"`
+	AcknowledgedProvider        string                   `json:"acknowledged_provider,omitempty"`
+	ConfigurationAcknowledged   bool                     `json:"configuration_acknowledged"`
+	InterruptRequested          bool                     `json:"interrupt_requested"`
+	InterruptAcknowledged       bool                     `json:"interrupt_acknowledged"`
+	ReroutedModels              []string                 `json:"rerouted_models,omitempty"`
+	TokenNoticeExceeded         bool                     `json:"token_notice_exceeded"`
 }
 
 // Public type names are unique in the generated OpenAPI/TypeScript namespace.
@@ -114,6 +115,13 @@ func CloneEvidence(e *Evidence) *Evidence {
 	copy := *e
 	copy.Skills = CloneExecutionSkillEvidence(e.Skills)
 	copy.Approvals = append([]CodexApprovalEvidence(nil), e.Approvals...)
+	copy.UserInputs = append([]CodexUserInputEvidence(nil), e.UserInputs...)
+	for i := range copy.UserInputs {
+		if e.UserInputs[i].Observation != nil {
+			observation := *e.UserInputs[i].Observation
+			copy.UserInputs[i].Observation = &observation
+		}
+	}
 	for i := range copy.Approvals {
 		if e.Approvals[i].Observation != nil {
 			observation := *e.Approvals[i].Observation
@@ -191,7 +199,7 @@ func ValidateBinding(b Binding) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
-	if len(e.Approvals) > 32 || len(e.Approvals) > 0 && !e.ConfigurationAcknowledged {
+	if len(e.Approvals)+len(e.UserInputs) > 32 || len(e.Approvals)+len(e.UserInputs) > 0 && !e.ConfigurationAcknowledged {
 		return fmt.Errorf("Codex approval evidence is invalid")
 	}
 	requests := map[string]bool{}
@@ -199,6 +207,13 @@ func ValidateEvidence(e Evidence) error {
 		key := request.RequestID.Kind + ":" + request.RequestID.Value
 		if ValidateApprovalEvidence(request) != nil || request.ThreadID != e.ThreadID || request.TurnID != e.TurnID || requests[key] {
 			return fmt.Errorf("Codex approval identity differs from its original turn")
+		}
+		requests[key] = true
+	}
+	for _, request := range e.UserInputs {
+		key := request.RequestID.Kind + ":" + request.RequestID.Value
+		if ValidateUserInputEvidence(request) != nil || request.BindingSHA256 != e.BindingSHA256 || request.ThreadID != e.ThreadID || request.TurnID != e.TurnID || requests[key] {
+			return fmt.Errorf("Codex user input identity differs from its original turn")
 		}
 		requests[key] = true
 	}

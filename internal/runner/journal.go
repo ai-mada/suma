@@ -30,6 +30,7 @@ type entry struct {
 	Terminal          *terminalCheckpoint                `json:"terminal,omitempty"`
 	Cloud             *cloudExecutionCheckpoint          `json:"workbuddy_cloud,omitempty"`
 	ToolPermissions   *toolPermissionExecutionCheckpoint `json:"tool_permissions,omitempty"`
+	ToolInputs        *toolInputExecutionCheckpoint      `json:"tool_inputs,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -98,6 +99,12 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if err = validToolInputCheckpoint(e.Assignment, e.ToolInputs); err != nil {
+			return nil, err
+		}
+		if err = validNativeRequestCheckpoints(e); err != nil {
+			return nil, err
+		}
 		if err = validToolPermissionCheckpoint(e.Assignment, e.ToolPermissions); err != nil {
 			return nil, err
 		}
