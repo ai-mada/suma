@@ -1,6 +1,6 @@
 # suma 命令行与终端浏览器
 
-入口为 `cmd/suma`，Windows 构建产物为 `dist/suma.exe`。它连接现有控制面，项目授权、版本校验和操作回执均由同一 API 执行。
+入口为 `cmd/suma`。Windows 运行程序按批次保存在 `dist/runtime/windows-amd64/<批次>/suma.exe`；运行前应核对批次清单及其源码版本。历史 `dist/suma.exe` 已于 2026-10-30 清理。它连接现有控制面，项目授权、版本校验和操作回执均由同一 API 执行。
 
 ## 配置和身份
 

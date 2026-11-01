@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"github.com/ai-mada/suma/internal/buildinfo"
 	"io"
 	"log/slog"
@@ -138,6 +139,9 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	}
 	if err = service.Initialize(context.Background()); err != nil {
 		logger.Error(app.Text("业务数据库结构迁移失败", "migrate business schema"), "event", "control.business_schema_migrate", "error", err)
+		if errors.Is(err, store.ErrInitialSchema) {
+			return 78
+		}
 		return 1
 	}
 	workBuddy, err := configureWorkBuddyConnections(service, publicURL, app.Getenv)
@@ -148,6 +152,9 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	engine, err := dag.New(db, store.Dialect(driver))
 	if err != nil {
 		logger.Error(app.Text("执行数据库结构迁移失败", "migrate execution schema"), "event", "control.execution_schema_migrate", "error", err)
+		if errors.Is(err, store.ErrInitialSchema) {
+			return 78
+		}
 		return 1
 	}
 	engine.AttemptAccounting = service

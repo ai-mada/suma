@@ -1,5 +1,7 @@
 # Go 运行时交付包
 
+2026-10-29 清理说明：按用户要求，`dist/runtime` 各目标仅保留当时最新成功批次及其对应的 `builds` 收据；更早运行程序和批次目录已移除。本文件及其他历史报告中的旧路径保留为当时的记录，不保证仍有对应程序。历史批次的清单、源码清单和 build-info 已核对并集中保存在 `dist/delivery/runtime-history-receipts-20261029.zip`，移除清单及 SHA-256 见同目录 `runtime-history-cleanup-20261029.json`；归档不包含旧程序本体。
+
 `scripts/build-runtime.ps1` 构建控制面 `suma-control`、Runner `suma-runner`、本机静态发布提供方 `suma-deployer` 和 CLI `suma`。脚本需要 PowerShell 7 及本机已安装、满足 `go.mod` 的 Go 工具链。使用 `CGO_ENABLED=0`，不调用目标平台二进制。
 
 ## 构建

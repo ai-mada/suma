@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [剩余代码检查与修复](quality/remaining-code-review-verification.md) · [摘要](quality/remaining-code-review-summary.json)：T183补齐共同初始化无写拒绝、桌面打包隔离与知识准确来源，按改动复用与定向验证后交付。
+
 - [开发工具交接与远端接入](product/developer-tool-handoff.md) · [合同](../contracts/developer-tool-handoff.md) · [架构与AI SOP](architecture/developer-tool-handoff.md) · [交互](design/developer-tool-handoff.md) · [English](en/developer-tool-handoff.md) · [报告](quality/developer-tool-handoff-verification.md)：讨论复用正式派发；自动配置、单次上报与作用域恢复各循原门禁，完整平台继续交付。
 
 - [工具配置自动体检](product/tool-profile-diagnostics.md) · [合同](../contracts/tool-profile-diagnostics.md) · [架构与AI SOP](architecture/tool-profile-diagnostics.md) · [交互](design/tool-profile-diagnostics.md) · [English](en/tool-profile-diagnostics.md) · [限定报告](quality/tool-profile-diagnostics-verification.md)：T181自动核对四项当前事实，沿原版本审核和准确节点入口处理；27定向与6合成界面检查通过，完整目标保持进行中。

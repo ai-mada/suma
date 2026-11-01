@@ -37,7 +37,7 @@ async function mainHarness(t,environment={}){
 
 test('main exposes only fixed workspace, OAuth, discovery and managed channels with the owned frame and local database',async t=>{
  const h=await mainHarness(t,{SUMA_DB_DRIVER:'postgres',SUMA_DB_DSN:'postgres://untrusted.example',SUMA_WORKSPACE_ROOT:'untrusted-root'});
- assert.deepEqual([...h.handlers.keys()].sort(),['suma:choose-project-directory','suma:discover-installed-tools','suma:manage-local-runner','suma:open-workbuddy-authorization']);
+ assert.deepEqual([...h.handlers.keys()].sort(),['suma:choose-project-directory','suma:discover-installed-tools','suma:inspect-local-acp','suma:manage-local-runner','suma:open-workbuddy-authorization']);
  const handler=h.handlers.get('suma:choose-project-directory');assert.equal(typeof handler,'function');
  const env=h.spawns[0][2].env;
  const target=path.join(repository,'.cache/desktop',`${process.platform}-${process.arch}`);

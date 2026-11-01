@@ -23,7 +23,7 @@ SQLite is exercised by the local test suite, including two independent connectio
 | `dag_compensation_effects` | Fixed successful source attempt/fence references for generated inverse nodes |
 | `dag_lock` | Cross-process scheduler write lock and event sequence allocator |
 
-`dag.New` creates the initial schema with idempotent DDL. It can reopen an existing schema from this implementation without clearing data. This initial version does not implement a general migration framework for incompatible historical schemas. Workflow versions preserve execution semantics independently of source changes; application/schema upgrades still need a reviewed migration and backup plan.
+`dag.New` creates the initial schema with idempotent DDL. Before either component writes a declaration or runs DDL, the shared `InitializeBaseline` boundary checks both `platform` / `suma_` and `dag` / `dag_`. An unregistered sibling namespace must not allow the current component to initialize first. SQLite name checks follow its case-insensitive identifier semantics, including the shared declaration table. A valid current declaration allows interrupted initial creation to finish without clearing data. Incompatible declarations are preserved and rejected; there is no migration, inferred marker, reset or compatibility alias. The control CLI returns exit code78 for `ErrInitialSchema`, and the desktop presents a bilingual preservation notice. See the [scoped review](../quality/remaining-code-review-verification.md); real OceanBase/PostgreSQL startup remains separately unverified.
 
 ## Transaction protocol
 
@@ -50,7 +50,7 @@ DSNs and database credentials are provided at runtime and are not embedded in re
 
 ## Business projections and document visibility
 
-`Service.Migrate` installs `suma_index_outbox`, `suma_index_failures` and `suma_failure_projection` at startup, using `MigrateProjections` for the delivery ledgers. Periodic projection loops execute data reads/writes and perform no runtime schema creation. `IndexStatus` reads per-project pending/indexed/failed counts without changing activity or schema.
+`Service.Initialize` installs `suma_index_outbox`, `suma_index_failures` and `suma_failure_projection` at startup, using `InitializeProjections` for the delivery ledgers. Periodic projection loops execute data reads/writes and perform no runtime schema creation. `IndexStatus` reads per-project pending/indexed/failed counts without changing activity or schema.
 
 Document description plus optional body is limited to 1 MiB of UTF-8 bytes, including the joining newline. Creating or updating a document commits an immutable revision event with the canonical source mutation. `archived` and `deleted` sources are excluded from both keyword fallback and canonical validation of remote search hits. These visibility states produce a higher-revision `delete` tombstone instead of an upsert. Tombstone requests carry only source scope, revision and action, not the removed title/body. A deliberate restoration to active creates a newer upsert revision. The knowledge service's monotonic revision/tombstone rules reject late same-or-older upserts, while the control service independently rejects stale or hidden-source hits.
 

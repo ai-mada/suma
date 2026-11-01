@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"flag"
 	"os"
 	"os/exec"
@@ -10,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ai-mada/suma/internal/store"
 )
 
 func TestCommandProcessHelper(t *testing.T) {
@@ -25,6 +28,79 @@ func TestCommandProcessHelper(t *testing.T) {
 		}
 	}
 	os.Exit(97)
+}
+
+func TestIncompatibleDatabaseReturnsDistinctExitWithoutChangingDatabase(t *testing.T) {
+	data := t.TempDir()
+	dbPath := filepath.Join(data, "suma.db")
+	db, err := store.Open("sqlite", dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`CREATE TABLE suma_workspace_bindings(tenant_id TEXT,project_id TEXT,root_path TEXT)`); err != nil {
+		t.Fatal(err)
+	}
+	if err = db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	code, _, stderr, _ := commandProcess(t, map[string]string{"SUMA_DATA_DIR": data, "SUMA_DB_DSN": dbPath}, "--language=en")
+	after, err := os.ReadFile(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != 78 || !strings.Contains(stderr, "control.business_schema_migrate") || sha256.Sum256(before) != sha256.Sum256(after) {
+		t.Fatalf("code=%d stderr=%q database_changed=%v", code, stderr, sha256.Sum256(before) != sha256.Sum256(after))
+	}
+}
+
+func TestUnregisteredDAGDatabaseFailsBeforeBusinessWrites(t *testing.T) {
+	for _, declaredPlatform := range []bool{false, true} {
+		name := "unregistered-dag"
+		if declaredPlatform {
+			name = "current-platform-with-unregistered-dag"
+		}
+		t.Run(name, func(t *testing.T) {
+			data := t.TempDir()
+			dbPath := filepath.Join(data, "suma.db")
+			db, err := store.Open("sqlite", dbPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if declaredPlatform {
+				if _, err = db.Exec(`CREATE TABLE suma_schema_baselines(component VARCHAR(80) PRIMARY KEY,version VARCHAR(30) NOT NULL)`); err != nil {
+					t.Fatal(err)
+				}
+				if _, err = db.Exec(`INSERT INTO suma_schema_baselines(component,version) VALUES('platform',?)`, store.InitialDataContract); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err = db.Exec(`CREATE TABLE dag_workflows(id TEXT PRIMARY KEY,payload TEXT NOT NULL)`); err != nil {
+				t.Fatal(err)
+			}
+			if _, err = db.Exec(`INSERT INTO dag_workflows(id,payload) VALUES('original','preserve unique DAG data')`); err != nil {
+				t.Fatal(err)
+			}
+			if err = db.Close(); err != nil {
+				t.Fatal(err)
+			}
+			before, err := os.ReadFile(dbPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			code, _, stderr, _ := commandProcess(t, map[string]string{"SUMA_DATA_DIR": data, "SUMA_DB_DSN": dbPath}, "--language=en")
+			after, err := os.ReadFile(dbPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if code != 78 || !strings.Contains(stderr, "control.business_schema_migrate") || sha256.Sum256(before) != sha256.Sum256(after) {
+				t.Fatalf("code=%d stderr=%q database_changed=%v", code, stderr, sha256.Sum256(before) != sha256.Sum256(after))
+			}
+		})
+	}
 }
 
 func commandProcess(t *testing.T, vars map[string]string, args ...string) (int, string, string, string) {

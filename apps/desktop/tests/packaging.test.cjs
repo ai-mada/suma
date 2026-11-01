@@ -314,8 +314,8 @@ test('Linux deb requires a configured real maintainer while portable and directo
   for (const format of ['portable','dir']) assert.equal(createPlan(['--platform','linux','--arch','x64','--format',format],{root:directory,hostPlatform:'linux',env:{}}).build_allowed,true);
   const configured = createPlan(['--platform','linux','--arch','x64','--maintainer','Release team <release@example.org>'],{root:directory,hostPlatform:'linux',env:{}});
   assert.equal(configured.build_allowed,true);assert.equal(configured.maintainer,'Release team <release@example.org>');
-  const linux = require('../scripts/builder-sdk.cjs').builderConfig({...configured,root},path.join(configured.stage,'sdk-fixture')).linux;
-  assert.equal(linux.maintainer,'Release team <release@example.org>');assert.equal(linux.executableName,'suma');assert.equal(linux.packageName,'suma');
+  const config = require('../scripts/builder-sdk.cjs').builderConfig({...configured,root},path.join(configured.stage,'sdk-fixture'));
+  assert.equal(config.linux.maintainer,'Release team <release@example.org>');assert.equal(config.linux.executableName,'suma');assert.equal(config.linux.packageName,undefined);assert.equal(config.deb.packageName,'suma');
   const envConfigured = createPlan(['--platform','linux','--arch','arm64'],{root:directory,hostPlatform:'linux',env:{SUMA_DESKTOP_MAINTAINER:'Release team <release@example.org>'}});
   assert.equal(envConfigured.build_allowed,true);
   for (const value of ['Suma contributors','release@example.org','Release <bad@-domain.example>','Release <bad@domain..example>']) assert.throws(()=>createPlan(['--platform','linux','--arch','x64','--maintainer',value],{root:directory,hostPlatform:'linux',env:{}}),{code:'maintainer_invalid'});

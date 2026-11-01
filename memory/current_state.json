@@ -700,15 +700,14 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T182 ordinary discussion development handoff, automatic Runner configuration and exact scoped single-report recovery, professional bilingual guide, focused checks and isolated GUI; full goal active",
+  "last_goal_turn_classification": "progress: user requested remaining code review; parallel source review found and fixed startup no-write/schema-case guards, desktop temporary/i18n defects and knowledge identity regression; focused evidence and dev delivery, full goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-DEVELOPER-TOOL-HANDOFF-182",
-    "status": "scoped_verified",
-    "contract": "contracts/developer-tool-handoff.md",
+    "stage": "T-WIP-REVIEW-183",
+    "status": "scoped_reviewed_and_fixed",
+    "report": "docs/quality/remaining-code-review-verification.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "priority": "Parallel implementation; mature SDK/domain/runtime reuse; simple bilingual onboarding; only changed-contract checks.",
-    "next": "Continue automatic registration and configuration for remote/distributed tools, actual vendor/continuous development and remaining project/team/knowledge/quality/operations domains."
+    "next": "Continue actual distributed tool registration and task development, and remaining project/team/knowledge/quality/operations capabilities."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1085,6 +1084,24 @@
       "Codex usage is observe-only; enforced-budget policies continue to block unsupported execution. Tool-owned defaults are not presented as a known fixed provider model.",
       "Creation, real execution progress, candidate sealing, independent same-commit tests, formal acceptance, release and deployment are separate facts. Existing quality and handoff paths were preserved, not newly production-accepted by this stage.",
       "Physical remote/distributed hosts, full authenticated desktop/SaaS, cross-platform install, databases/scale, other pending effects and the original31/P0-P7 remain in progress. The prior171 explicit-stop GUI gap remains."
+    ]
+  },
+  "remaining_code_review": {
+    "stage": "T-WIP-REVIEW-183",
+    "status": "scoped_reviewed_and_fixed",
+    "report": "docs/quality/remaining-code-review-verification.md",
+    "summary": "docs/quality/remaining-code-review-summary.json",
+    "focused": 15,
+    "go_subcases": 9,
+    "retained_uncommitted_audits": [
+      "docs/quality/conflict-resolution-2026-10-29-summary.json",
+      "docs/quality/conflict-resolution-2026-10-29.md"
+    ],
+    "boundaries": [
+      "Focused success does not certify every platform function or eliminate all possible defects. Original31/P0-P7/58limited/34pending/92total remains active.",
+      "No current installer, GUI, signing/notarization, real vendor, remote host or production deployment was revalidated. Historical package evidence is retained with its original source scope.",
+      "Actual database coverage is SQLite; PostgreSQL/OceanBase startup and recovery require their own real-instance checks.",
+      "No cache, test database, log, screenshot, artifact, credential, dependency directory or historical binary is committed."
     ]
   }
 }

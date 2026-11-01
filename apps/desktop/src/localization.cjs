@@ -24,6 +24,7 @@ const messages=Object.freeze({
  missing_web:Object.freeze({'zh-CN':'缺少网页资源，请先构建工作台。','en-US':'The web bundle is missing. Build the workbench first.'}),
  missing_source_inspector:Object.freeze({'zh-CN':'缺少内置源码观察器，请重新准备桌面资源或安装完整安装包。','en-US':'The bundled source inspector is missing. Prepare desktop resources again or install the complete package.'}),
  startup_exited:Object.freeze({'zh-CN':'内置控制服务在启动前退出','en-US':'Bundled control service exited before startup'}),
+ startup_database_incompatible:Object.freeze({'zh-CN':'现有数据库与当前版本不兼容。原数据已保留，请备份后使用单独的新数据目录；旧数据不会自动迁移。','en-US':'The existing database is incompatible with this version. Your data has been preserved. Back it up and use a separate new data directory; existing data is not migrated automatically.'}),
  startup_unhealthy:Object.freeze({'zh-CN':'内置控制服务未能就绪','en-US':'Bundled control service did not become healthy'}),
  termination_failed:Object.freeze({'zh-CN':'控制服务终止失败','en-US':'Control service termination failed'}),
  termination_timeout:Object.freeze({'zh-CN':'控制服务在强制终止后仍未退出','en-US':'Control service did not exit after forced termination'}),

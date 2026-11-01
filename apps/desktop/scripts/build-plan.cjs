@@ -18,6 +18,7 @@ const messages = {
   binary_manifest: ['控制程序来源清单缺失或与当前源码、版本、目标或摘要不匹配', 'Control provenance manifest is missing or does not match current source, version, target, or hash'],
   binary_version: ['控制程序产品版本未通过校验', 'Control binary product version could not be verified'],
   command_failed: ['构建子进程失败；请检查上述原始诊断', 'Build subprocess failed; inspect the preceding original diagnostics'],
+  startup_smoke_failed: ['打包后的控制服务启动检查失败', 'Packaged control startup smoke check failed'],
   output_nonempty: ['输出目录已含文件；请使用新的输出子目录以保留既有产物', 'Output directory is not empty; use a new output child to preserve existing artifacts'],
   build_busy: ['同一目标已有准备或打包任务；请等待或核对锁文件', 'This target already has a preparation or packaging task; wait or inspect its lock file'],
   build_empty: ['构建未生成可核验的实际文件', 'Build produced no verifiable files'],

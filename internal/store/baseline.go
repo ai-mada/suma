@@ -30,12 +30,12 @@ func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, own
 	if dialect == "postgres" {
 		placeholder = "$1"
 	}
-	read := func() (string, error) {
+	read := func(name string) (string, error) {
 		var found string
-		err := db.QueryRowContext(ctx, "SELECT version FROM suma_schema_baselines WHERE component="+placeholder, component).Scan(&found)
+		err := db.QueryRowContext(ctx, "SELECT version FROM suma_schema_baselines WHERE component="+placeholder, name).Scan(&found)
 		return found, err
 	}
-	declared := func() (bool, error) {
+	declared := func(name string) (bool, error) {
 		present, err := baselineTableExists(ctx, db, dialect, "suma_schema_baselines")
 		if err != nil || !present {
 			return false, err
@@ -65,7 +65,7 @@ func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, own
 		if err = rows.Close(); err != nil {
 			return false, err
 		}
-		found, err := read()
+		found, err := read(name)
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
@@ -73,11 +73,28 @@ func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, own
 			return false, err
 		}
 		if found != version {
-			return false, fmt.Errorf("%w: component %s", ErrInitialSchema, component)
+			return false, fmt.Errorf("%w: component %s", ErrInitialSchema, name)
 		}
 		return true, nil
 	}
-	if ok, err := declared(); err != nil || ok {
+	// Both components share this database. A current declaration for one must
+	// not let its DDL run before an unregistered sibling namespace is rejected.
+	// Legitimate interrupted initialization declares its component before DDL.
+	for _, domain := range []struct{ name, prefix string }{{"platform", "suma_"}, {"dag", "dag_"}} {
+		present, err := baselineOwnedTablesExist(ctx, db, dialect, domain.prefix)
+		if err != nil {
+			return err
+		}
+		if !present {
+			continue
+		}
+		if ok, err := declared(domain.name); err != nil {
+			return err
+		} else if !ok {
+			return fmt.Errorf("%w: component %s", ErrInitialSchema, domain.name)
+		}
+	}
+	if ok, err := declared(component); err != nil || ok {
 		return err
 	}
 	present, err := baselineOwnedTablesExist(ctx, db, dialect, ownedPrefix)
@@ -87,7 +104,7 @@ func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, own
 	if present {
 		// Another current initializer may have declared the schema and created
 		// its first table since our initial read. Re-read before rejecting it.
-		if ok, err := declared(); err != nil || ok {
+		if ok, err := declared(component); err != nil || ok {
 			return err
 		}
 		return fmt.Errorf("%w: component %s", ErrInitialSchema, component)
@@ -106,7 +123,7 @@ func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, own
 	}
 	// A concurrent initializer may have declared another schema. Verify the
 	// durable winner instead of treating an ignored insert as agreement.
-	if ok, err := declared(); err != nil || ok {
+	if ok, err := declared(component); err != nil || ok {
 		return err
 	}
 	return fmt.Errorf("%w: component %s", ErrInitialSchema, component)
@@ -119,7 +136,7 @@ func baselineOwnedTablesExist(ctx context.Context, db *sql.DB, dialect, prefix s
 	var query string
 	switch dialect {
 	case "sqlite":
-		query = `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND substr(name,1,?)=? AND name<>'suma_schema_baselines'`
+		query = `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND lower(substr(name,1,?))=? AND lower(name)<>'suma_schema_baselines'`
 	case "postgres":
 		query = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=current_schema() AND table_type='BASE TABLE' AND left(table_name,$1)=$2 AND table_name<>'suma_schema_baselines'`
 	case "oceanbase":
@@ -136,7 +153,7 @@ func baselineTableExists(ctx context.Context, db *sql.DB, dialect, table string)
 	var query string
 	switch dialect {
 	case "sqlite":
-		query = `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?`
+		query = `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND lower(name)=lower(?)`
 	case "postgres":
 		query = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=current_schema() AND table_type='BASE TABLE' AND table_name=$1`
 	case "oceanbase":

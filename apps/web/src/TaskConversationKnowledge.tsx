@@ -140,7 +140,7 @@ function RecordedKnowledgeScope({project, items, refresh, onAccessDenied}: Recor
   return <div className="conversation-knowledge-recorded"><small>{t('recorded')}</small><ul aria-label={t('recorded')}>
     {items.map(pin => <li key={pin.id}><button type="button" data-knowledge-history={pin.id} onClick={() => setSelected(pin)}><BookOpen size={13} aria-hidden="true"/><span>{pin.title_at_post || pin.id} · {tr('knowledge.kind.' + pin.kind_at_post)} · {t('revision', {revision: formatNumber(pin.revision)})}</span></button></li>)}
   </ul><Modal open={!!selected} onClose={() => {setSelected(undefined);setState(undefined);}} title={selected?.title_at_post || t('history')} description={t('history_hint')}>
-    {selected && <><p>{t('revision', {revision: formatNumber(selected.revision)})} · <code>{selected.id}</code></p><code className="knowledge-hash">{selected.sha256}</code>
+    {selected && <><p>{!value?.revision && <>{t('revision', {revision: formatNumber(selected.revision)})} · </>}<code>{selected.id}</code></p>{!value?.revision && <code className="knowledge-hash">{selected.sha256}</code>}
       {!value && <Loading/>}{!!value?.error && <ErrorNotice error={value.error} onRetry={() => setRetry(number => number + 1)}/>}
       {value?.revision && <div onClickCapture={event => {if (event.target instanceof Element && event.target.closest('a[href]') && !window.dispatchEvent(new Event('suma:navigate', {cancelable: true}))) event.preventDefault();}}><KnowledgeRevisionFacts project={project} revision={value.revision}/></div>}</>}
   </Modal></div>;

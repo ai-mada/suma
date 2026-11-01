@@ -36,7 +36,11 @@ it('opens the exact historical revision on demand and refuses a mismatched hash'
   let corrupt=false;transport(()=>Response.json({project_id:'p',knowledge_id:pin.id,snapshot:{...snapshot,sha256:corrupt?'b'.repeat(64):pin.sha256}}));
   const renderFacts=async()=>{await act(async()=>root.render(<ApiViewProvider session={current}><RecordedConversationKnowledge project="p" items={[{...pin,title_at_post:'Original title',kind_at_post:'spec'}]} refresh={0} onAccessDenied={denied}/></ApiViewProvider>));await settle();};
   await renderFacts();expect(reads).toEqual([]);await click('[data-knowledge-history]');expect(reads[0]).toContain('/knowledge-a/revisions/2?project_id=p');expect(document.body.textContent).toContain(snapshot.content);
+  expect(document.querySelectorAll('[role=dialog] .knowledge-hash')).toHaveLength(1);
+  expect(document.querySelector('[role=dialog]')?.textContent).toContain(pin.id);
   await click('[role=dialog] .dialog-heading .icon-button');corrupt=true;await click('[data-knowledge-history]');expect(document.body.textContent).not.toContain(snapshot.content);expect(document.body.textContent).toContain('could not be confirmed');
+  expect(document.querySelector('[role=dialog]')?.textContent).toContain(pin.id);
+  expect(document.querySelector('[role=dialog] .knowledge-hash')?.textContent).toBe(pin.sha256);
 });
 it('ignores an old identity denial and hides the exact-history content on a current denial',async()=>{
   let finish:(value:Response)=>void=()=>{};

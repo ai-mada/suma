@@ -4,7 +4,7 @@ const {spawn}=require('node:child_process');
 const {existsSync,lstatSync}=require('node:fs');
 const {join,resolve}=require('node:path');
 const {selectLocalServicePort,reserveLocalServicePort}=require('./local-service-port.cjs');
-const {waitForHealth,allowedNavigation,terminateService}=require('./lifecycle.cjs');
+const {waitForHealth,allowedNavigation,terminateService,startupExitError}=require('./lifecycle.cjs');
 const {resolveLocale,message,localError}=require('./localization.cjs');
 const {CHANNEL,loadWorkspaceKey,createDirectoryPicker,developmentOverrides,ensurePrivateDirectory,controlEnvironment}=require('./workspace-grants.cjs');
 const {createWorkBuddyOAuthController}=require('./oauth-window.cjs');
@@ -51,7 +51,7 @@ async function start(){
  environment.SUMA_SOURCE_INSPECTOR_NODE=sourceInspectorNode;
  environment.SUMA_SOURCE_INSPECTOR_ENTRY=sourceInspectorEntry;
  service=spawn(binary,['--addr',`127.0.0.1:${port}`],{cwd:data,env:environment,stdio:'ignore',windowsHide:true});let exited=false;let spawnError;service.once('error',()=>{spawnError=true;exited=true});service.once('exit',()=>{exited=true;if(window && !shuttingDown){dialog.showErrorBox(message(locale,'service_stopped_title'),message(locale,'service_stopped'));window.close()}});
- try{await waitForHealth(origin,()=>exited,15000,locale)}catch(error){if(spawnError)throw localError(locale,'startup_failed');throw error}
+ try{await waitForHealth(origin,()=>exited,15000,locale)}catch(error){if(spawnError)throw localError(locale,'startup_failed');if(exited)throw startupExitError(service.exitCode,locale);throw error}
  window=new BrowserWindow({width:1440,height:960,minWidth:960,minHeight:640,show:false,title:message(locale,'window_title'),backgroundColor:'#101014',webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,allowRunningInsecureContent:false}});
  window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',(event,url)=>{if(!allowedNavigation(url,origin))event.preventDefault()});window.webContents.on('will-redirect',(event,url)=>{if(!allowedNavigation(url,origin))event.preventDefault()});window.webContents.session.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));window.webContents.session.setPermissionCheckHandler(()=>false);
  ipcMain.handle(CHANNEL,createDirectoryPicker({key,dialog,getWindow:()=>window,getOrigin:()=>origin,isShuttingDown:()=>shuttingDown}));

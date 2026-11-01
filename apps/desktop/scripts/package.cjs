@@ -8,6 +8,7 @@ const {inventory,fileHash,sourceInventory,validateControlManifest,validateTarget
 const {validateElectron} = require('./builder-sdk.cjs');
 const {validateSourceInspector,inspectorSourceInventory} = require('./source-inspector.cjs');
 const {validateOpenCodeRuntime,openCodeSourceInventory} = require('./opencode-runtime.cjs');
+const {smokeControl} = require('./startup-smoke.cjs');
 
 function assertOutput(plan) {
   assertPlainPath(plan.output,plan.language,true);
@@ -72,7 +73,7 @@ function finalize(plan,prepared,rawOutput,result) {
     artifacts:selected.map(artifact=>artifact.to),files:contents.files,
     control:prepared.control,web:{sha256:prepared.web.sha256,files:prepared.web.files.length},source_inspector:prepared.source_inspector,opencode_runtime:prepared.opencode_runtime,...(prepared.desktop_source_sha256 ? {desktop_source_sha256:prepared.desktop_source_sha256} : {}),
     signing:{policy:plan.signing,status:plan.signing === 'off' ? 'unsigned' : 'not_independently_verified'},
-    verification:{packaging:'sdk_completed',installation:false,gui:false,signature:false,notarization:false},
+    verification:{packaging:'sdk_completed',control_startup:prepared.control_startup || 'not_run',installation:false,gui:false,signature:false,notarization:false},
   };
   fs.writeFileSync(path.join(delivery,'manifest.json'),`${JSON.stringify(manifest,null,2)}\n`);
   const checksumFiles = [...contents.files.filter(file=>file.type !== 'symlink'),{path:'manifest.json',sha256:fileHash(path.join(delivery,'manifest.json'))}];
@@ -106,6 +107,8 @@ async function packageDesktop(argv = process.argv.slice(2), context = {}) {
     if (result.directories?.length !== 1) throw failure('build_empty','packed application',plan.language);
     if (!within(rawOutput,path.resolve(result.directories[0]))) throw failure('unsafe_path','packed application',plan.language);
     validatePackagedApplication(plan,prepared,result.directories[0]);
+    const app = plan.platform === 'darwin' ? path.join(result.directories[0],'Suma.app/Contents/Resources') : path.join(result.directories[0],'resources');
+    prepared.control_startup = await smokeControl(plan,rawOutput,app);
     return finalize(plan,prepared,rawOutput,result);
   });
 }

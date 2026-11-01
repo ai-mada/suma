@@ -1,0 +1,181 @@
+{
+  "stage": "T-WIP-REVIEW-183",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_reviewed_and_fixed",
+  "scope": {
+    "original_working_paths": 21,
+    "reviewed_source_paths": 17,
+    "original_source_paths": 13,
+    "authorized_additional_source_paths": 4,
+    "necessary_original_documents": 6,
+    "retained_uncommitted_audits": [
+      {
+        "path": "docs/quality/conflict-resolution-2026-10-29-summary.json",
+        "sha256": "35f4764d64d4d91fcd4368ad7a67f64262597bde64e51dfaf1dd1c070751a10a"
+      },
+      {
+        "path": "docs/quality/conflict-resolution-2026-10-29.md",
+        "sha256": "c1e601f8d26166132a03e7a0bf0683aed388142dfef95e8825f0a342a278fe81"
+      }
+    ]
+  },
+  "fixes": [
+    "Startup incompatibility preserves the original database and returns78 with a bilingual desktop message; unrelated failures retain their original behavior.",
+    "Shared initial schema preflight rejects unregistered sibling platform/DAG namespaces before either component writes a marker or runs DDL. SQLite namespace and baseline-table detection follow case-insensitive identifier semantics.",
+    "Packaging smoke uses a child-local temporary directory under the owned scratch area, standalone fixtures create their own parent and validate cleanup ownership, and failures use the existing bilingual structured error helper.",
+    "Linux packageName is configured in the SDK-supported DebOptions location. The existing trusted ACP channel is included in the exact main-wiring expectation without changing production permissions.",
+    "Historical knowledge details retain their exact parent knowledge ID, show the verified revision/SHA only once, and preserve original expected metadata on a mismatched response."
+  ],
+  "verification": {
+    "distinct_top_level": 15,
+    "desktop_top_level": 9,
+    "control_store_top_level": 5,
+    "web_top_level": 1,
+    "go_subcases": 9,
+    "latest_failures": 0,
+    "latest_skips": 0,
+    "node_syntax_sources": 11,
+    "official_builder_schema": "installed26.15.3 validated without build",
+    "global_typecheck": "T182 passing baseline reused; no new DTO or TypeScript interface change, markup compiled by the one focused component case",
+    "global_i18n": "T1828559 paired catalog baseline reused; new desktop build failure bilingual copy checked in its existing exact rejection test",
+    "full_suites": 0,
+    "sdk_builds": 0,
+    "installer_builds": 0,
+    "standalone_business_builds": 0,
+    "browser_runs": 0,
+    "unchanged_green_cases": "reused; after each concrete fix only affected case/subcase was repeated; distinct counts exclude repeated invocations"
+  },
+  "actual_scope": [
+    "Control checks use actual production main in child processes of the Go test executable, local SQLite and byte hashes; direct store cases cover both component directions, declared/undeclared current sibling states, uppercase domain names and uppercase invalid baseline metadata.",
+    "Desktop checks use controlled local Node services, actual child environments, original lifecycle helpers and VM main wiring. They do not run a newly packaged control executable.",
+    "The one existing Web historical revision test uses the production component with controlled HTTP; current authorization, identity epoch and exact source validators were unchanged by source review."
+  ],
+  "documentation_review": [
+    "Current137/138 filtered task/shared-view statements match their committed limited contracts and retain explicit pending scope.",
+    "Desktop data paths describe an observed Windows package and leave macOS/Linux actual paths unverified, rather than guessing product-name defaults.",
+    "Runtime and CLI artifact notes point to existing dated delivery/cleanup receipts; no ignored artifacts or binary files are staged.",
+    "Historical verification facts remain dated snapshots, including earlier failed/skipped checks; this review does not recertify those old builds.",
+    "Two redundant historical local conflict audit documents are preserved byte-for-byte and intentionally not committed."
+  ],
+  "evidence": [
+    {
+      "path": ".cache/wip-review-183/desktop/summary.json",
+      "sha256": "e40175ca94bfb0559bad6809c618ab05fa3a0ab8064dddc6e5396c222601c07f"
+    },
+    {
+      "path": ".cache/wip-review-183/desktop/source-manifest.json",
+      "sha256": "5be7bd6167a340f21f0cfb10b61f895ddea5cea00363a4208f5f6d7a2bc0a8c3"
+    },
+    {
+      "path": ".cache/wip-review-183/desktop/EVIDENCE.md",
+      "sha256": "c57f5613ffc34ad6b92522361286b254596506adbd5afac81e26962bcfa44334"
+    },
+    {
+      "path": ".cache/wip-review-183/desktop/focused-green.log",
+      "sha256": "301919fd6220da0d82bbb2a1a9e4c961f222451e61aa88a5686229443d51d643"
+    },
+    {
+      "path": ".cache/wip-review-183/desktop/smoke-language-green.log",
+      "sha256": "484642b30336065483539129b0f469e01c3af801e3a9e067fe99a18045c8a6ef"
+    },
+    {
+      "path": ".cache/wip-review-183/desktop/sdk-schema.log",
+      "sha256": "f355f7f24183598beab304bd79e0f7dcba9bac5e1e043d3f998084b6f4e0de4e"
+    },
+    {
+      "path": ".cache/wip-review-183/control/summary.json",
+      "sha256": "ee95e425cf183365a2bb10f829164478a3156b981b224b2bca7cfd1baa09b732"
+    },
+    {
+      "path": ".cache/wip-review-183/control/source-manifest.json",
+      "sha256": "718d7239f2001deb178cfd0823930aff175a82be8bcac32beecdddc6fcb51958"
+    },
+    {
+      "path": ".cache/wip-review-183/control/EVIDENCE.md",
+      "sha256": "d5bf196970dfdc1b1c8c21881bf49934834bd6aa3da6988bda0981ef820575ea"
+    },
+    {
+      "path": ".cache/wip-review-183/web/summary.json",
+      "sha256": "929cf85678ba23ca70e2c54f0edbf9b6aee46e91ab52dd6b23dc9096dadb37e4"
+    }
+  ],
+  "source_manifest": [
+    {
+      "path": "apps/desktop/scripts/builder-sdk.cjs",
+      "sha256": "6f9bef1b4151b271b7b109b6765652a1b104e7cf03cedfb31068a79dc4079209"
+    },
+    {
+      "path": "apps/desktop/scripts/package.cjs",
+      "sha256": "7aff0a44b4590b1b2b48c77ff84940a91f29e468c662d63ce025c1634d700698"
+    },
+    {
+      "path": "apps/desktop/scripts/startup-smoke.cjs",
+      "sha256": "fd81e4aeb5975bea2569bf5b3c83723f443e2b9ba074d994f87eea1e17040044"
+    },
+    {
+      "path": "apps/desktop/src/lifecycle.cjs",
+      "sha256": "131f4e230c6553fddc01be9c00d2a10e01f589e9c0217b50c07738e095103311"
+    },
+    {
+      "path": "apps/desktop/src/localization.cjs",
+      "sha256": "2815fbe89a90e3d3f69de72088a2b41f46f1220da9c842d9bf2d78c8813dc30e"
+    },
+    {
+      "path": "apps/desktop/src/main.cjs",
+      "sha256": "c29afd60fd92e6ee5fa82d7dd5f4e068ab2b30272de3b5d181767135aa561b1d"
+    },
+    {
+      "path": "apps/desktop/tests/lifecycle.test.cjs",
+      "sha256": "80611af007985ce86600c67e25d9ec3f756039860bcc07fc0980ae17357a7cb0"
+    },
+    {
+      "path": "apps/desktop/tests/packaging.test.cjs",
+      "sha256": "f56acf0c1a1d37729287fafa42bb7294a60da61bf02e95b72ea9a72d35b4c354"
+    },
+    {
+      "path": "apps/desktop/tests/startup-smoke.test.cjs",
+      "sha256": "745f86688e33fb2c2cdc488cebce1068ded45024afdb4340436133126073216e"
+    },
+    {
+      "path": "apps/desktop/tests/workspace-main.test.cjs",
+      "sha256": "6055750cb05baa437e2fd4024fa334ea216fd88257b35bfbe5bbe8d2cd6f5210"
+    },
+    {
+      "path": "apps/desktop/scripts/build-plan.cjs",
+      "sha256": "6bd82d2edb77aa7276bc92ce4d58fb60a0fb605265f7cd27956adb77fb71f300"
+    },
+    {
+      "path": "cmd/suma-control/main.go",
+      "sha256": "743814009412a063e93c41d369b891c85943b8c56753a3404a1380934a6a7592"
+    },
+    {
+      "path": "cmd/suma-control/main_test.go",
+      "sha256": "bda3f5b31a45ab3253649e62d17c0b22afa20f8015fcadf013166344de1a3d4c"
+    },
+    {
+      "path": "internal/store/baseline.go",
+      "sha256": "f8720f59604d322f6abc502bf61c0da77aff491da09b5fa900d42a095de6809e"
+    },
+    {
+      "path": "internal/store/baseline_test.go",
+      "sha256": "4b9ae94761612ae70608f5178e0eb765b7875acb87e834d5b3b52ead475b370a"
+    },
+    {
+      "before_sha256": "5773091c6f0dff52a24b28730d216cbbd11bc0d9a0da8bb3861831844f8a9041",
+      "path": "apps/web/src/TaskConversationKnowledge.tsx",
+      "sha256": "51a37163580e47de213700d9a7c5bddccfe9e6cd95dedd2b3b013ce4198a0ae0"
+    },
+    {
+      "before_sha256": "9334dc631d6d4a527f7f3e67d70a66af78271336114a16cee69bc221b8b5d45a",
+      "path": "apps/web/src/TaskConversationKnowledge.test.tsx",
+      "sha256": "05023ead0ae36b9d5266bf9624e0c729dacaeaf05b6f129605791aee1209ac20"
+    }
+  ],
+  "boundaries": [
+    "Focused success does not certify every platform function or eliminate all possible defects. Original31/P0-P7/58limited/34pending/92total remains active.",
+    "No current installer, GUI, signing/notarization, real vendor, remote host or production deployment was revalidated. Historical package evidence is retained with its original source scope.",
+    "Actual database coverage is SQLite; PostgreSQL/OceanBase startup and recovery require their own real-instance checks.",
+    "No cache, test database, log, screenshot, artifact, credential, dependency directory or historical binary is committed."
+  ]
+}

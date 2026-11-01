@@ -75,13 +75,12 @@ The workbench supports Chinese and English preferences. Startup diagnostics use 
 
 ## Data, backup and removal
 
-Packaged apps use Electron's `userData` directory. With the current product name Suma, the usual locations are below; respect actual system redirection. [Electron's path documentation](https://www.electronjs.org/docs/latest/api/app#appgetpathname) defines these platform defaults.
+Packaged apps use Electron's `userData` directory. The Windows x64 package was observed using the location below; respect actual system redirection. The macOS and Linux paths still require verification on those packages. [Electron's path documentation](https://www.electronjs.org/docs/latest/api/app#appgetpathname) defines the platform defaults.
 
 | System | Current user's application data |
 | --- | --- |
-| Windows | `%APPDATA%\Suma` |
-| macOS | `~/Library/Application Support/Suma` |
-| Linux | `$XDG_CONFIG_HOME/Suma`, or `~/.config/Suma` when unset |
+| Windows | `%APPDATA%\@suma\desktop` (observed on Windows x64) |
+| macOS / Linux | Use the actual Electron `userData` location; target verification is pending |
 
 - `data/suma.db` and accompanying business files hold local state. In automatic key mode, `data/automation-ingress.key` protects saved ingress secrets.
 - `desktop-workspace.key` is the 32-byte local directory authorization key. Database root proofs also identify the directory's operating system identity.

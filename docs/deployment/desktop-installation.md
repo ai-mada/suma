@@ -75,13 +75,12 @@ Suma启动内置Go控制服务，只监听动态分配的`127.0.0.1`端口；健
 
 ## 数据、备份与卸载边界
 
-打包应用采用Electron的`userData`目录；按当前产品名Suma，其通常位置如下，系统重定向时以实际路径为准。[Electron路径说明](https://www.electronjs.org/docs/latest/api/app#appgetpathname)定义了各平台默认位置。
+打包应用采用Electron的`userData`目录；本机Windows x64包实际使用下列位置，系统重定向时以实际路径为准。macOS和Linux位置仍需在对应安装包实机确认。[Electron路径说明](https://www.electronjs.org/docs/latest/api/app#appgetpathname)定义了各平台默认位置。
 
 | 系统 | 当前账号应用数据位置 |
 | --- | --- |
-| Windows | `%APPDATA%\Suma` |
-| macOS | `~/Library/Application Support/Suma` |
-| Linux | `$XDG_CONFIG_HOME/Suma`，未设置时为`~/.config/Suma` |
+| Windows | `%APPDATA%\@suma\desktop`（本机Windows x64包实测） |
+| macOS／Linux | 以实际Electron `userData`目录为准，待目标系统实测 |
 
 - `data/suma.db`及同目录业务文件保存本机状态；`data/automation-ingress.key`在自动密钥模式下保护已保存的入口秘密。
 - `desktop-workspace.key`是32字节本机目录授权密钥；数据库中的项目根证明还包含目录的操作系统身份。

@@ -35,12 +35,12 @@ function builderConfig(plan,rawOutput) {
     ],
     win:{target:plan.platform === 'win32' ? plan.targets : [],signExecutable:plan.signing !== 'off'},
     mac:{target:plan.platform === 'darwin' ? plan.targets : [],category:'public.app-category.developer-tools',hardenedRuntime:true,entitlements:path.join(__dirname,'entitlements.mac.plist'),entitlementsInherit:path.join(__dirname,'entitlements.mac.plist'),notarize:false,...(plan.signing === 'off' ? {identity:null} : {})},
-    linux:{target:plan.platform === 'linux' ? plan.targets : [],category:'Development',executableName:'suma',packageName:'suma',...(plan.maintainer ? {maintainer:plan.maintainer} : {})},
+    linux:{target:plan.platform === 'linux' ? plan.targets : [],category:'Development',executableName:'suma',...(plan.maintainer ? {maintainer:plan.maintainer} : {})},
     nsis:{artifactName:`${prefix}-installer.\${ext}`,oneClick:false,perMachine:false,selectPerMachineByDefault:false,allowElevation:false,allowToChangeInstallationDirectory:true,packElevateHelper:false,deleteAppDataOnUninstall:false,displayLanguageSelector:true,installerLanguages:['zh_CN','en_US'],multiLanguageInstaller:true,differentialPackage:false,runAfterFinish:false},
     portable:{artifactName:`${prefix}-portable.\${ext}`},
     dmg:{artifactName:`${prefix}-installer.\${ext}`},
     appImage:{artifactName:`${prefix}-installer.\${ext}`},
-    deb:{artifactName:`${prefix}-installer.\${ext}`},
+    deb:{artifactName:`${prefix}-installer.\${ext}`,packageName:'suma'},
   };
 }
 async function buildWithSDK(plan,rawOutput) {

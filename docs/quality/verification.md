@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WIP-REVIEW-183：[剩余代码检查与修复](remaining-code-review-verification.md)／[来源摘要](remaining-code-review-summary.json)。15定向／9Go子例通过，统一启动前两域无写预检、SQLite大小写识别、桌面临时隔离和知识详情准确来源已修复。历史打包与GUI记录保持原日期和输入范围；本次未重建安装包或宣称完整平台验收。
+
 T-WORKBUDDY-CLOUD-152限定结果：[验证报告](workbuddy-cloud-execution-verification.md) · [机器摘要](workbuddy-cloud-execution-summary.json)。原运行节点内的本人委派、准确来源和供应方任务核对已接通；控制面以原attempt机器资格提供持久一次创建，未知作用保留原操作。源码、定向检查、隔离构建及真实界面各自范围以专项报告为准，完整自动DAG领取／Execute、ACP协作、可信制品、独立测试和正式验收继续交付。 完整平台58／34／92不变。
 
 
@@ -12,6 +14,8 @@ T-WORKBUDDY-ACP-149：[准确Session与ACP协议限定验证](workbuddy-acp-veri
 
 T-TOOLS-151：[工具快速接入限定验证](tool-quick-connect-verification.md)／[摘要](tool-quick-connect-summary.json)。14个不同Go顶层通过、1环境符号链接跳过，55个Web定向用例、15个原生候选场景、最终类型／7499双语／隔离构建通过。15项实际GUI／HTTP／生产preload与IPC核对了自动匹配、一次暂停登记、一次明确启用和当时fresh available；中英图片已目视。合成探测CLI不代表供应方开发，本机托管Runner和自动启动仍待交付。自有fixture Runner验收后停止，不夸持续在线；58／34／92不变。
 
+2026-10-30 Windows x64 桌面重新打包：从当前未提交工作区固定1994份构建输入，隔离编译后端、源码观察器和Web，生成安装版与便携版到 `dist/desktop/win32-x64/`；实际内置控制服务启动检查及产物SHA256核对通过。快照桌面检查69项通过、1项失败、1项因Windows符号链接权限跳过；失败为 `workspace-main.test.cjs` 尚未将新增本机工具检测通道计入接口白名单预期，未记为全套通过。包未签名，安装及GUI未验。源码与证据归档、输入／临时目录清单见本地 `dist/delivery/desktop-build-source-20261030.zip`、`desktop-build-evidence-20261030.zip`、`desktop-build-verification-20261030.json`；这些包对应固定快照，后续工作区继续开发不自动进入本次产物。
+
 T-MULTICA-BULK-150：[批量负责人限定验证](task-owner-changes-verification.md)／[摘要](task-owner-changes-summary.json)。24个Go顶层／14子场景、24个不同Web用例，原CLI／生成合同／语言和隔离构建检查通过；23项实际本机断言与5项最终只读核对分别记录，最终中英图片已目视。C／D仅按原正文及操作ID恢复、各+1版本且各1通知；同窗口GUI刷新恢复仍有测试宿主缺口。源码、旧r3行为与最终r4仅文案变化按摘要映射，不重跑无关全套，完整58／34／92不变。
 
 T-HANDOFF-INBOX-148：[交接收件与准确定位验证](task-handoff-inbox-verification.md)／[摘要](task-handoff-inbox-summary.json)。原事务通知、准确GET、来源反向校验及独立草稿已限定检查；16项真实本机GUI／HTTP通过，打开0业务写、一次明确退回及exact v2／returned一致、通知仍unread。两次截图timeout，视觉图片待验；责任接收不等于Review，完整58／34／92不变。
@@ -20,17 +24,17 @@ T-WORKBUDDY-CONNECTIONS-147：[连接验证](workbuddy-connections-verification.
 
 T-CONTEXT-145：[固定资料引用验证](task-conversation-knowledge-verification.md)／[摘要](task-conversation-knowledge-summary.json)。125个Go顶层／148个子场景、36项Web、类型／7312双语键／合同／隔离构建及真实OS Node两轮本地模型协议通过；5项实际GUI通过，工具更新后的4组代表性界面观察仍待补。知识pin经原回复与开发Start核验，无静默升级；商业模型、完整平台与生产不据此验收。
 
-T-MENTIONS-140：[定向与真实接口报告](task-conversation-mentions-verification.md)／[紧凑摘要](task-conversation-mentions-summary.json)。46项独立Go、56项Web、完整类型／7191语言键／合同／构建及12项真实本机双账号HTTP-CLI检查通过；实现提交`63bcc39`与整合证据提交`30d5c6b`对应T-COLLAB-144的36项实际GUI，见[当前整合报告](collaboration-integration-verification.md)和[浏览器证据](collaboration-browser-summary.json)。原专项报告保留阶段范围，完整平台不据此验收。
-
-T-TEAM-EXECUTION-141：[准确执行跟进报告](expert-team-execution-verification.md)／[摘要](expert-team-execution-summary.json)。8项后端、24项前端、类型／7228双语键、生成器及44.17秒隔离构建通过；指定构建输入前后摘要一致。最终浏览器与实现提交按T-COLLAB-144记录；未重复计算139／140结果。
+T-COLLAB-144：[整合报告](collaboration-integration-verification.md)／[浏览器证据](collaboration-browser-summary.json)。36项实际GUI全部通过，准确最终资产、双角色保存v4未发布和两个Review入口草稿保护已复核；源码63bcc39，最终证据独立提交。全平台及未完整后端套件不据此宣称通过。
 
 T-REVIEW-142：[报告](task-review-requests-verification.md)／[摘要](task-review-requests-summary.json)。93项独立Go、58项Web、类型／7292语言键／合同／构建和12项真实本机三账号HTTP-CLI-Runner检查通过，最终GUI缺口与实现提交见T-COLLAB-144。历史及他人阶段证据保留。
 
-T-COLLAB-144：[整合报告](collaboration-integration-verification.md)／[浏览器证据](collaboration-browser-summary.json)。36项实际GUI全部通过，准确最终资产、双角色保存v4未发布和两个Review入口草稿保护已复核；源码63bcc39，最终证据独立提交。全平台及未完整后端套件不据此宣称通过。
+T-WORKBUDDY-143：[协议与持久提交验证](workbuddy-cloud-submission-verification.md)／[摘要](workbuddy-cloud-submission-summary.json)。27项去重Go通过，覆盖准确HTTP、单次准备、并发／重启、未知不重发、保存失败及原终端恢复。仅内部底层，未开放为可派发云工具；正式OAuth、ACP、预算、候选、厂商与多机验收继续待办。本阶段没有UI变更，其他阶段分别验收，以各自当前记录为准。
+
+T-TEAM-EXECUTION-141：[准确执行跟进报告](expert-team-execution-verification.md)／[摘要](expert-team-execution-summary.json)。8项后端、24项前端、类型／7228双语键、生成器及44.17秒隔离构建通过；指定构建输入前后摘要一致。最终浏览器与实现提交按T-COLLAB-144记录；未重复计算139／140结果。
+
+T-MENTIONS-140：[定向与真实接口报告](task-conversation-mentions-verification.md)／[紧凑摘要](task-conversation-mentions-summary.json)。46项独立Go、56项Web、完整类型／7191语言键／合同／构建及12项真实本机双账号HTTP-CLI检查通过；实现提交`63bcc39`与整合证据提交`30d5c6b`对应T-COLLAB-144的36项实际GUI，见[当前整合报告](collaboration-integration-verification.md)和[浏览器证据](collaboration-browser-summary.json)。原专项报告保留阶段范围，完整平台不据此验收。
 
 T-ADAPTERS-139：[限定验证](adapter-connections-verification.md)／[摘要](adapter-connections-summary.json)。状态scoped_verified，覆盖此前139待验状态。复用43项独立Web（11项复验包含在内）、9项Go、类型／7156语言键和合同检查；用户重新授权后新增25项真实GUI通过，覆盖中英、桌面／390px、明暗及键盘代表性流程，修复移动标题被固定页头遮挡。53.28秒隔离构建来自当前合成前端工作区，与既有139后端核验本阶段API和交互；不表示其他在途页面、厂商执行或生产验收。审批容量拒绝、恢复和缺陷证据均保留。
-
-T-WORKBUDDY-143：[协议与持久提交验证](workbuddy-cloud-submission-verification.md)／[摘要](workbuddy-cloud-submission-summary.json)。27项去重Go通过，覆盖准确HTTP、单次准备、并发／重启、未知不重发、保存失败及原终端恢复。仅内部底层，未开放为可派发云工具；正式OAuth、ACP、预算、候选、厂商与多机验收继续待办。本阶段没有UI变更，其他阶段分别验收，以各自当前记录为准。
 
 T-INBOX-138：[个人收件箱限定验证](notification-inbox-verification.md)与[摘要](notification-inbox-summary.json)。37个Go顶层、完整Web1510项、类型／7079双语／合同／隔离构建，以及23项实际浏览器和7项真实Suma CLI检查通过；原始失败及修复保留。仅任务分配来源，完整通知／工具／数据库／规模仍待交付，58／34／92不变。
 
@@ -47,9 +51,13 @@ T-DESIGN-135：[架构主文档与操作样稿验证](design-workflows-verificat
 
 T-PLATFORM-DESIGN-134：[全平台设计与样稿验证](platform-design-verification.md)、[紧凑摘要](platform-design-summary.json)。仅核查设计、官方接入依据和独立HTML样稿的浏览器交互；不改变生产实现或全套测试结论，未重复Go／生产前端套件。
 
-更新：2026-10-29。当前只有单一 **1.0.0** 产品基线，当前唯一数据合同为 `suma-initial-quality-v1`；完整平台继续实施。本页按能力指向准确报告，不重复阶段流水、旧测试数字或旧数据库升级说明。详细过程仍可从专项档案与 Git 追溯。
+更新：2026-11-01。当前只有单一 **1.0.0** 产品基线，当前唯一数据合同为 `suma-initial-quality-v1`；完整平台继续实施。本页按能力指向准确报告，不重复阶段流水、旧测试数字或旧数据库升级说明。详细过程仍可从专项档案与 Git 追溯。
+
+2026-10-29 本地冲突整合：恢复暂存时的项目概览与本页冲突均已合并，保留全项目交付事实／待办分页／智能入口、独立项目焦点及两份验证记录；焦点独立重试和失权后清除两块私有视图均有回归。概览16项、焦点6项、外壳导航7项共29项通过，完整Web类型、6673项语言目录／标记及生产构建通过；输出隔离到本次忽略目录，未替换活动预览，GUI和完整平台全套未重跑。原有其他暂存内容及stash保留，不整体提交或远程推送；原始冲突与紧凑证据保留在`dist/quality/conflict-resolution-134/`。
 
 T-EXPERIENCE-131：项目全量交付事实、有权限分页、导航视觉基础和IDE渐进展开，见[限定报告](unified-experience-verification.md)与[紧凑摘要](unified-experience-summary.json)。实际隔离HTTP／SQLite页面已验证中英、明暗、桌面与390px及编辑器草稿保留；前端整合1236项通过。本阶段后端专项通过，全量Go仍有失败与环境限制，报告逐项区分，不能视为全平台或生产通过。
+
+2026-10-29 本机 Windows x64 桌面构建：Node 22.16.0、Go 1.26.10、Electron 35.7.5、electron-builder 26.15.3；`pnpm --filter @suma/desktop test` 41项通过、1项跳过，`go test ./cmd/suma-control -count=1` 通过。打包时在隔离空数据库启动实际内置控制服务并取得健康响应，安装版与便携版及校验清单位于 `dist/desktop/win32-x64/`，两包的 SHA256 与清单一致。旧数据库快照复现旧工作区结构不兼容；服务现在通过明确退出码报告该原因。经用户同意，原库在校验备份后移除，由用户首次启动创建新库，旧数据未自动迁移。GUI检查因桌面操作授权超时未完成；未验证安装、签名或Linux实际打包。构建包含当时工作区未提交改动。
 
 T-TERMINAL-129：真实Windows ConPTY终端、原输入／输出回执、受保护讨论到原生开发预览与明确启动，以及同SHA独立测试、夹具账号显式Review和问题回流，见[当前限定报告](interactive-development-verification.md)及[精简摘要](interactive-development-summary.json)。原浏览器终端夹具派生Name字段误判保留exit1，以17列持久审计和最终Web只读回看133表不变分别补证；商业调用0，Unix完整containment、物理多机、三系统安装和生产仍待验。
 

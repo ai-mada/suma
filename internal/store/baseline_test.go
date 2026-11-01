@@ -2,10 +2,95 @@ package store
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 )
+
+func TestInitialSchemaRejectsOtherUnregisteredNamespaceBeforeAnyWrite(t *testing.T) {
+	for _, scenario := range []struct {
+		name, component, prefix, otherTable string
+		currentDeclaration                  bool
+	}{
+		{"platform-before-unregistered-dag", "platform", "suma_", "dag_workflows", false},
+		{"current-platform-before-unregistered-dag", "platform", "suma_", "dag_workflows", true},
+		{"dag-before-unregistered-platform", "dag", "dag_", "suma_contract_sentinel", false},
+		{"current-dag-before-unregistered-platform", "dag", "dag_", "suma_contract_sentinel", true},
+		{"platform-before-uppercase-dag", "platform", "suma_", "DAG_LOCK", false},
+		{"dag-before-uppercase-platform", "dag", "dag_", "SUMA_WORKSPACE_BINDINGS", false},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "unregistered-other.db")
+			db, err := Open("sqlite", path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if scenario.currentDeclaration {
+				if _, err = db.Exec(`CREATE TABLE suma_schema_baselines(component VARCHAR(80) PRIMARY KEY,version VARCHAR(30) NOT NULL)`); err != nil {
+					t.Fatal(err)
+				}
+				if _, err = db.Exec(`INSERT INTO suma_schema_baselines(component,version) VALUES(?,?)`, scenario.component, InitialDataContract); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err = db.Exec("CREATE TABLE " + scenario.otherTable + "(id TEXT PRIMARY KEY,payload TEXT NOT NULL)"); err != nil {
+				t.Fatal(err)
+			}
+			if _, err = db.Exec("INSERT INTO " + scenario.otherTable + "(id,payload) VALUES('original','preserve unique user data')"); err != nil {
+				t.Fatal(err)
+			}
+			if err = db.Close(); err != nil {
+				t.Fatal(err)
+			}
+			before, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			db, err = Open("sqlite", path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = InitializeBaseline(context.Background(), db, "sqlite", scenario.component, scenario.prefix, InitialDataContract)
+			closeErr := db.Close()
+			after, readErr := os.ReadFile(path)
+			if !errors.Is(err, ErrInitialSchema) || closeErr != nil || readErr != nil || sha256.Sum256(before) != sha256.Sum256(after) {
+				t.Fatalf("other namespace must reject before any write: initialization=%v close=%v read=%v database_changed=%v", err, closeErr, readErr, sha256.Sum256(before) != sha256.Sum256(after))
+			}
+		})
+	}
+	t.Run("uppercase-baseline-invalid-declaration", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "uppercase-baseline.db")
+		db, err := Open("sqlite", path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = db.Exec(`CREATE TABLE SUMA_SCHEMA_BASELINES(component VARCHAR(80) PRIMARY KEY,version VARCHAR(30) NOT NULL)`); err != nil {
+			t.Fatal(err)
+		}
+		if _, err = db.Exec(`INSERT INTO SUMA_SCHEMA_BASELINES(component,version) VALUES('unknown-component','unsupported-contract')`); err != nil {
+			t.Fatal(err)
+		}
+		if err = db.Close(); err != nil {
+			t.Fatal(err)
+		}
+		before, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		db, err = Open("sqlite", path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = InitializeBaseline(context.Background(), db, "sqlite", "platform", "suma_", InitialDataContract)
+		closeErr := db.Close()
+		after, readErr := os.ReadFile(path)
+		if !errors.Is(err, ErrInitialSchema) || closeErr != nil || readErr != nil || sha256.Sum256(before) != sha256.Sum256(after) {
+			t.Fatalf("invalid uppercase baseline must reject before any write: initialization=%v close=%v read=%v database_changed=%v", err, closeErr, readErr, sha256.Sum256(before) != sha256.Sum256(after))
+		}
+	})
+}
 
 func TestInitialSchemaDeclarationAndRestart(t *testing.T) {
 	db, err := Open("sqlite", ":memory:")

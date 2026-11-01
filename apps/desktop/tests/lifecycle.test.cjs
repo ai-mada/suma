@@ -2,7 +2,12 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const http=require('node:http');
 const {spawn}=require('node:child_process');
-const {waitForHealth,allowedNavigation,terminateService}=require('../src/lifecycle.cjs');
+const {waitForHealth,allowedNavigation,terminateService,startupExitError}=require('../src/lifecycle.cjs');
+test('incompatible database exit explains the data is preserved',()=>{
+ assert.match(startupExitError(78,'zh-CN').message,/数据库/);
+ assert.match(startupExitError(78,'zh-CN').message,/保留/);
+ assert.equal(startupExitError(1,'en-US').code,'startup_exited');
+});
 test('waits for health and rejects an exited control service',async()=>{
  const server=http.createServer((_req,res)=>{res.writeHead(200,{'Content-Type':'application/json'});res.end('{"status":"ok"}')});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${server.address().port}`;
