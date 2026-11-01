@@ -18266,6 +18266,411 @@
         ],
         "type": "object"
       },
+      "KnowledgeIndexLocator": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "maximum": 1048576,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "start": {
+            "maximum": 1048576,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unit": {
+            "const": "unicode_codepoints",
+            "type": "string"
+          }
+        },
+        "required": [
+          "unit",
+          "start",
+          "end"
+        ],
+        "type": "object",
+        "x-cross-field-validation": "end \u003e start and end \u003c= canonical codepoint length; the locator stays bound to the exact approved reference."
+      },
+      "KnowledgeIndexReceipt": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "upsert"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "source": {
+                  "properties": {
+                    "revision": {
+                      "minimum": 1
+                    },
+                    "sha256": {
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "action": {
+            "enum": [
+              "upsert",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "disposition": {
+            "enum": [
+              "applied",
+              "duplicate",
+              "obsolete"
+            ],
+            "type": "string"
+          },
+          "event_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "generation": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "index_watermark": {
+            "description": "Provider-local projection position, not a business sequence or proof of continuous project coverage.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "protocol": {
+            "const": "suma-knowledge-index-v1",
+            "type": "string"
+          },
+          "request_sha256": {
+            "description": "Digest of the actual received POST bytes. A2xx status or an unrelated receipt cannot acknowledge this event.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/KnowledgeIndexSource"
+          },
+          "tenant_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          }
+        },
+        "required": [
+          "protocol",
+          "event_id",
+          "tenant_id",
+          "project_id",
+          "source",
+          "action",
+          "disposition",
+          "generation",
+          "index_watermark",
+          "request_sha256"
+        ],
+        "type": "object",
+        "x-source-action-validation": "Upsert requires positive revision and64 lowercase hex SHA. Delete text is empty. The only zero/empty marker is an unpublished project_knowledge tombstone; documents use sequence=revision."
+      },
+      "KnowledgeIndexRequest": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "else": {
+              "properties": {
+                "source": {
+                  "properties": {
+                    "revision": {
+                      "minimum": 1
+                    },
+                    "sha256": {
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "delete"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "content": {
+                  "const": ""
+                },
+                "title": {
+                  "const": ""
+                }
+              }
+            }
+          }
+        ],
+        "properties": {
+          "action": {
+            "enum": [
+              "upsert",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "content": {
+            "maxLength": 1048576,
+            "type": "string",
+            "x-max-utf8-bytes": 1048576
+          },
+          "event_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "protocol": {
+            "const": "suma-knowledge-index-v1",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/KnowledgeIndexSource"
+          },
+          "tenant_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "title": {
+            "maxLength": 4096,
+            "type": "string",
+            "x-max-utf8-bytes": 4096
+          }
+        },
+        "required": [
+          "protocol",
+          "event_id",
+          "tenant_id",
+          "project_id",
+          "source",
+          "action",
+          "title",
+          "content"
+        ],
+        "type": "object",
+        "x-source-action-validation": "Upsert requires positive revision and64 lowercase hex SHA. Delete text is empty. The only zero/empty marker is an unpublished project_knowledge tombstone; documents use sequence=revision."
+      },
+      "KnowledgeIndexSearchHit": {
+        "additionalProperties": false,
+        "properties": {
+          "locator": {
+            "$ref": "#/components/schemas/KnowledgeIndexLocator"
+          },
+          "source": {
+            "$ref": "#/components/schemas/KnowledgeIndexSource",
+            "properties": {
+              "revision": {
+                "minimum": 1
+              },
+              "sha256": {
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        "required": [
+          "source",
+          "locator"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIndexSearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "protocol": {
+            "const": "suma-knowledge-index-v1",
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 500
+          },
+          "source_kind": {
+            "enum": [
+              "documents",
+              "project_knowledge"
+            ],
+            "type": "string"
+          },
+          "tenant_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          }
+        },
+        "required": [
+          "protocol",
+          "tenant_id",
+          "project_id",
+          "source_kind",
+          "query",
+          "limit"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIndexSearchResult": {
+        "additionalProperties": false,
+        "properties": {
+          "generation": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "index_watermark": {
+            "description": "Provider-local projection position, not a business sequence or proof of continuous project coverage.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeIndexSearchHit"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "lancedb_fts",
+              "lancedb_hybrid",
+              "oceanbase_fts",
+              "oceanbase_hybrid"
+            ],
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-knowledge-index-v1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "items",
+          "mode",
+          "generation",
+          "index_watermark"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIndexSource": {
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "revision": {
+                "minimum": 1
+              },
+              "sha256": {
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "project_knowledge"
+              },
+              "revision": {
+                "const": 0
+              },
+              "sha256": {
+                "const": ""
+              }
+            }
+          }
+        ],
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "kind": {
+            "enum": [
+              "documents",
+              "project_knowledge"
+            ],
+            "type": "string"
+          },
+          "revision": {
+            "description": "Zero is legal only for a project-knowledge delete that never had a publication.",
+            "maximum": 2147483647,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sequence": {
+            "description": "Monotonic business event order, independent from the approved publication revision. Draft edits do not invalidate the old publication.",
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^([a-f0-9]{64})?$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "sequence",
+          "revision",
+          "sha256"
+        ],
+        "type": "object"
+      },
       "KnowledgeIntelligenceAdoption": {
         "properties": {
           "adopted_at": {
@@ -23942,6 +24347,251 @@
         ],
         "type": "object"
       },
+      "ProjectKnowledgeIndexHit": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "locator": {
+            "$ref": "#/components/schemas/KnowledgeIndexLocator"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/ProjectKnowledgeReference"
+          },
+          "snippet": {
+            "maxLength": 600,
+            "type": "string",
+            "x-max-utf8-bytes": 600
+          },
+          "source": {
+            "$ref": "#/components/schemas/KnowledgeIndexSource",
+            "properties": {
+              "kind": {
+                "const": "project_knowledge"
+              },
+              "revision": {
+                "minimum": 1
+              },
+              "sha256": {
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "x-reference-binding": "id/revision/sha256 exactly match reference; sequence is the publishing event order, not the current draft version."
+          },
+          "source_count": {
+            "maximum": 8,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "summary": {
+            "maxLength": 1000,
+            "type": "string",
+            "x-max-utf8-bytes": 1000
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "reference",
+          "project_id",
+          "kind",
+          "title",
+          "summary",
+          "snippet",
+          "source_count",
+          "published_at",
+          "source",
+          "locator"
+        ],
+        "type": "object"
+      },
+      "ProjectKnowledgeIndexQuery": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "q": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "type": "object"
+      },
+      "ProjectKnowledgeIndexSearch": {
+        "additionalProperties": false,
+        "properties": {
+          "candidates_examined": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "discarded": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "generation": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "index_watermark": {
+            "description": "Provider-local projection position, not a business sequence or proof of continuous project coverage.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectKnowledgeIndexHit"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "lancedb_fts",
+              "lancedb_hybrid",
+              "oceanbase_fts",
+              "oceanbase_hybrid"
+            ],
+            "type": "string"
+          },
+          "scope": {
+            "const": "provider_candidates",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "mode",
+          "generation",
+          "index_watermark",
+          "candidates_examined",
+          "discarded",
+          "scope"
+        ],
+        "type": "object"
+      },
+      "ProjectKnowledgeIndexStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "coverage": {
+            "const": "outbox_delivery_only",
+            "type": "string"
+          },
+          "current_publications": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "domain": {
+            "const": "project_knowledge",
+            "type": "string"
+          },
+          "failed": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "indexed": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "last_ack": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeIndexReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectKnowledgeProjectionEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pending": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "untracked_publications": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "domain",
+          "as_of",
+          "configured",
+          "coverage",
+          "pending",
+          "indexed",
+          "failed",
+          "total",
+          "current_publications",
+          "untracked_publications",
+          "latest_event",
+          "last_ack"
+        ],
+        "type": "object"
+      },
       "ProjectKnowledgeList": {
         "properties": {
           "items": {
@@ -23961,6 +24611,47 @@
           "items",
           "total",
           "next_cursor"
+        ],
+        "type": "object"
+      },
+      "ProjectKnowledgeProjectionEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "upsert",
+              "delete"
+            ],
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "event_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "source": {
+            "$ref": "#/components/schemas/KnowledgeIndexSource"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "indexed",
+              "failed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "source",
+          "action",
+          "state",
+          "created_at"
         ],
         "type": "object"
       },
@@ -93201,6 +93892,406 @@
           "required": true
         },
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/project-knowledge/index-search": {
+      "get": {
+        "description": "Current-project published knowledge index facts. Delivery, native generation, current source eligibility and explicit task adoption are separate facts. No model or task is started.",
+        "operationId": "get_project-knowledge_index-search",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Required nonempty literal query, maximum200 UTF8 bytes. Index mode uses the configured native provider; no silent keyword fallback.",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string",
+              "x-max-utf8-bytes": 200,
+              "x-reject-control-characters": true
+            }
+          },
+          {
+            "description": "Optional publication kind; filtering can reduce provider-candidate results.",
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "enum": [
+                "memory",
+                "spec",
+                "skill"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum public hits, not a total or complete-corpus guarantee.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 10,
+              "maximum": 20,
+              "minimum": 1,
+              "type": "integer",
+              "x-canonical-decimal": true
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectKnowledgeIndexSearch"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectKnowledgeIndexSearch"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-current-authority": "Authorize before provider IO and again afterward, including empty responses; resolve exact current publication and provenance, then reconstruct the codepoint snippet from canonical content.",
+        "x-query-unknown-fields": "reject",
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/project-knowledge/index-status": {
+      "get": {
+        "description": "Current-project published knowledge index facts. Delivery, native generation, current source eligibility and explicit task adoption are separate facts. No model or task is started.",
+        "operationId": "get_project-knowledge_index-status",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectKnowledgeIndexStatus"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectKnowledgeIndexStatus"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-coverage": "Project knowledge outbox delivery only. Current publication count does not prove source eligibility; provider-local watermark and maximum ACK do not prove continuous coverage.",
+        "x-query-unknown-fields": "reject",
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       }
     },
     "/project-knowledge/{id}": {

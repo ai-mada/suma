@@ -35,6 +35,7 @@ secureCookies: true
 
 knowledge:
   url: ""
+  httpOrigins: ""
   existingSecret: ""
   tokenKey: knowledge-token
 

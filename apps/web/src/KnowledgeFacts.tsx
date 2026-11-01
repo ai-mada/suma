@@ -3,22 +3,28 @@ import type {KnowledgeIntelligenceAdoption,SkillCatalogAdoption} from '../../../
 import { sourceHref } from './navigation';
 import {knowledgeSourceLabel,type KnowledgeRevision,type KnowledgeSnapshot} from './knowledge-model';
 import './knowledge.css';
+import type {PublishedKnowledgeHighlight} from './published-knowledge-preview-model';
 type TextSource = Pick<KnowledgeSnapshot, 'content' | 'sha256' | 'sources'>;
-function KnowledgeTextFacts({ project, value, collapseSources=false }: {
+function KnowledgeTextFacts({ project, value, collapseSources=false, highlight }: {
     project: string;
     value: TextSource;
     collapseSources?: boolean;
+    highlight?: PublishedKnowledgeHighlight;
 }) {
+    const points=highlight?Array.from(value.content):undefined;
+    const marked=highlight&&points&&Number.isSafeInteger(highlight.start)&&Number.isSafeInteger(highlight.end)&&highlight.start>=0&&highlight.end>highlight.start&&highlight.end<=points.length;
+    const body=highlight&&points&&marked?<>{points.slice(0,highlight.start).join('')}<mark key={highlight.start+':'+highlight.end} tabIndex={-1} data-knowledge-preview-match>{points.slice(highlight.start,highlight.end).join('')}</mark>{points.slice(highlight.end).join('')}</>:value.content;
     const sources=value.sources.length ? value.sources.map((source, index) => { const href = sourceHref(project, source); return <div className="knowledge-source" key={source.kind + ':' + source.id + ':' + index}><strong>{source.title}</strong><div className="knowledge-meta"><span>{knowledgeSourceLabel(source.kind)}</span><span>{t('knowledge.source_version', { version: formatNumber(source.version) })}</span>{href && <a href={href}>{t('knowledge.source_open')}</a>}</div><code className="knowledge-hash">{source.sha256}</code>{source.quote !== undefined && <details><summary>{t('knowledge.source_quote_view')}</summary><blockquote>{source.quote}</blockquote></details>}</div>; }) : <p className="muted">{t('knowledge.source_none')}</p>;
-    return <><pre className="knowledge-content">{value.content}</pre><span className="knowledge-hash">{t('knowledge.hash')}: <code>{value.sha256}</code></span>{collapseSources?<details data-knowledge-preview-sources><summary>{t('knowledge.source_list')}</summary>{sources}</details>:<><h4>{t('knowledge.source_list')}</h4>{sources}</>}</>;
+    return <><pre className="knowledge-content">{body}</pre><span className="knowledge-hash">{t('knowledge.hash')}: <code>{value.sha256}</code></span>{collapseSources?<details data-knowledge-preview-sources><summary>{t('knowledge.source_list')}</summary>{sources}</details>:<><h4>{t('knowledge.source_list')}</h4>{sources}</>}</>;
 }
-export function KnowledgeRevisionFacts({ project, revision, collapseSources=false }: {
+export function KnowledgeRevisionFacts({ project, revision, collapseSources=false, highlight }: {
     project: string;
     revision: KnowledgeRevision;
     collapseSources?: boolean;
+    highlight?: PublishedKnowledgeHighlight;
 }) {
     useLocale();
-    return <><p className="knowledge-meta">{t('knowledge.revision', { revision: formatNumber(revision.revision) })} · {t('knowledge.state.' + revision.state)} · {t('knowledge.method.' + revision.method)}</p>{revision.summary && <p>{revision.summary}</p>}<KnowledgeTextFacts project={project} value={revision} collapseSources={collapseSources}/></>;
+    return <><p className="knowledge-meta">{t('knowledge.revision', { revision: formatNumber(revision.revision) })} · {t('knowledge.state.' + revision.state)} · {t('knowledge.method.' + revision.method)}</p>{revision.summary && <p>{revision.summary}</p>}<KnowledgeTextFacts project={project} value={revision} collapseSources={collapseSources} highlight={highlight}/></>;
 }
 export function CatalogAdoptionFacts({project,value}:{project:string;value?:SkillCatalogAdoption|null}){
  useLocale();if(!value)return null;

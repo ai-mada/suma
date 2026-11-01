@@ -1,5 +1,9 @@
 package platform
 
+func knowledgeIndexParameters() map[string]any {
+	return applicationObject(map[string]any{"q": applicationString(200), "kind": map[string]any{"type": "string", "enum": []string{"memory", "spec", "skill"}}, "limit": applicationInteger(1, 20)}, "q")
+}
+
 func knowledgeDiscoveryParameters() map[string]any {
 	return applicationObject(map[string]any{"q": applicationString(200), "kind": map[string]any{"type": "string", "enum": []string{"memory", "spec", "skill"}}, "limit": applicationInteger(1, 20), "cursor": applicationString(2048)})
 }

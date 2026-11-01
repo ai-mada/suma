@@ -1,0 +1,935 @@
+{
+  "stage": "T-KNOWLEDGE-PROJECTION-197",
+  "status": "scoped_verified",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "sources": 63,
+  "verification": {
+    "distinct_top_level": 37,
+    "new_top_level": 20,
+    "affected_existing_top_level": 17,
+    "control": 7,
+    "projection": 12,
+    "consumer": 5,
+    "web": 10,
+    "root_contract": 2,
+    "actual": 1,
+    "go_top_level": 21,
+    "go_subcases": 13,
+    "go_results": [
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "test": "TestKnowledgeDiscoveryContractKeepsPublicationReferenceAndPartialCoverage",
+        "command": ".cache/follow155/root-go/20261101T170406975Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "test": "TestKnowledgeProjectionContractsKeepNamespaceCurrentReferencesAndCoverage",
+        "command": ".cache/follow155/root-go/20261101T170802011Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestKnowledgeProjectionPublicationRetirementReceiptAndRollback",
+        "command": ".cache/follow155/root-go/20261101T171755149Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestKnowledgeProjectionIndexSearchCanonicalReferencesAndCurrentAuthority",
+        "command": ".cache/follow155/root-go/20261101T174227432Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestKnowledgeProjectionInitialSchemaRejectsUnknownBeforeDDL",
+        "command": ".cache/follow155/root-go/20261101T171134395Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestKnowledgeProjectionHTTPCurrentScopeAndLocalizedClosedQueries",
+        "command": ".cache/follow155/root-go/20261101T171924775Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestProjectKnowledgePublicationPreservesApprovedRevisionDuringDraftEdit",
+        "command": ".cache/follow155/root-go/20261101T171413516Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestDocumentRejectsCombinedIndexSourceOverOneMiB",
+        "command": ".cache/follow155/root-go/20261101T171413516Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestDocumentLimitCountsUTF8Bytes",
+        "command": ".cache/follow155/root-go/20261101T171413516Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestKnowledgeSearchPreservesPublishedReferencesAndReadScope",
+        "command": ".cache/follow155/root-go/20261101T171427930Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestKnowledgeSearchBoundedInputBilingualTableAndIncompleteEmptyPage",
+        "command": ".cache/follow155/root-go/20261101T171427930Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestKnowledgeIndexSearchPreservesSourceLocatorAndReadScope",
+        "command": ".cache/follow155/root-go/20261101T171635249Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestKnowledgeIndexSearchRejectsInvalidFactsAndSeparatesModes",
+        "command": ".cache/follow155/root-go/20261101T171427930Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestTypedProjectionRequiresExactOriginalACKBeforeAdvancing",
+        "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestTypedIndexUsesCanonicalCodepointsAndSafeRebuildErrors",
+        "command": ".cache/follow155/root-go/20261101T180432304Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestIndexPoisonEventIsDeadLetteredWithoutBlockingOtherSources",
+        "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestIndexTransientFailureRemainsReplayableAndOtherEventsAdvance",
+        "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestMalformedPersistedIndexEventDoesNotPoisonQueue",
+        "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestDocumentVisibilityTransitionsProduceMonotonicTombstones",
+        "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestDeletedSourceRejectsLateIndexHitAndProjectionSchemaIsInstalled",
+        "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestKnowledgeProjectionActualNativeLifecycleAndExactTaskContext",
+        "command": ".cache/follow155/root-go/20261101T180558252Z.command.json",
+        "command_exit": 0,
+        "top_level": "pass"
+      }
+    ],
+    "full_web_typecheck_exit": 0,
+    "paired_locale_keys": 9248,
+    "production_hardcodes": 0,
+    "isolated_gui_builds": 1,
+    "gui_groups": 2,
+    "gui_images": 2,
+    "gui_native_exit": 0,
+    "actual_journeys": 2,
+    "actual_http_requests": 24,
+    "first_actual_http_requests": 25,
+    "native_lifetimes": 3,
+    "controlled_embedding_requests": 10,
+    "commercial_embedding_calls": 0,
+    "llm_calls": 0,
+    "successful_contract_generations": 1,
+    "contract_dependency_gap_attempts": 1,
+    "contract_checks": [
+      ".cache/follow155/root-go/20261101T174917392Z.command.json"
+    ],
+    "generation_commands": [
+      {
+        "path": ".cache/follow155/root-go/20261101T170940684Z.command.json",
+        "exit": 1
+      },
+      {
+        "path": ".cache/follow155/root-go/20261101T171153274Z.command.json",
+        "exit": 0
+      }
+    ],
+    "new_http_paths": [
+      "/project-knowledge/index-search",
+      "/project-knowledge/index-status"
+    ],
+    "new_schemas": [
+      "KnowledgeIndexLocator",
+      "KnowledgeIndexReceipt",
+      "KnowledgeIndexRequest",
+      "KnowledgeIndexSearchHit",
+      "KnowledgeIndexSearchRequest",
+      "KnowledgeIndexSearchResult",
+      "KnowledgeIndexSource",
+      "ProjectKnowledgeIndexHit",
+      "ProjectKnowledgeIndexQuery",
+      "ProjectKnowledgeIndexSearch",
+      "ProjectKnowledgeIndexStatus",
+      "ProjectKnowledgeProjectionEvent"
+    ],
+    "new_application_tool": "project.knowledge.index_search",
+    "new_business_tables": 0,
+    "current_outbox_columns": 14,
+    "full_suite_repeated": false
+  },
+  "actual": {
+    "approved_reference": {
+      "id": "3c2b2bac9a42f4bc192dce6679d8dbd1",
+      "revision": 2,
+      "sha256": "d6aaf01723e9d1d48939d09d4e0c450c2ebca25455217520ee592907b72d3805"
+    },
+    "business_runs": 0,
+    "canonical_locator": {
+      "end": 76,
+      "start": 0,
+      "unit": "unicode_codepoints"
+    },
+    "commercial_embedding_calls": 0,
+    "controlled_embedding_requests": 10,
+    "customer_acceptance": false,
+    "delivery_status": {
+      "as_of": "2026-11-01T18:06:21Z",
+      "configured": true,
+      "coverage": "outbox_delivery_only",
+      "current_publications": 1,
+      "domain": "project_knowledge",
+      "failed": 0,
+      "indexed": 3,
+      "last_ack": {
+        "action": "upsert",
+        "disposition": "applied",
+        "event_id": "bcbc6b31c05bcbab308c8be9fe067a81",
+        "generation": "ff36ae67669494b0d38871efb26b9cb22e3fa8cada1f361488cad66d3acf29c0",
+        "index_watermark": 3,
+        "project_id": "c4b8771661318d012d65fdf0fcd7db22",
+        "protocol": "suma-knowledge-index-v1",
+        "request_sha256": "9a391654583950fc09225bcd6d633ad601d1a20c801a20fb56aa9e6ab81c6d02",
+        "source": {
+          "id": "0eae8807d3707af50e16e62ab41e6525",
+          "kind": "project_knowledge",
+          "revision": 2,
+          "sequence": 2,
+          "sha256": "e1d493ce42e814ebb271f208c15c2a7b58d89c8116b88bd3127fccff1186b09e"
+        },
+        "tenant_id": "a692d680ba6514b03bebc27da5fe325c"
+      },
+      "latest_event": {
+        "action": "upsert",
+        "created_at": "2026-11-01T18:06:12Z",
+        "event_id": "bcbc6b31c05bcbab308c8be9fe067a81",
+        "source": {
+          "id": "0eae8807d3707af50e16e62ab41e6525",
+          "kind": "project_knowledge",
+          "revision": 2,
+          "sequence": 2,
+          "sha256": "e1d493ce42e814ebb271f208c15c2a7b58d89c8116b88bd3127fccff1186b09e"
+        },
+        "state": "indexed"
+      },
+      "pending": 0,
+      "total": 3,
+      "untracked_publications": 0
+    },
+    "final_health": {
+      "active_generation": "e5775a97da9cefc4dc7cdb3c01172067f555a01a9806ba8e3422403828481b2a",
+      "available": true,
+      "backend": "lancedb",
+      "embedding_configured": true,
+      "embedding_verified": true,
+      "generation": "e5775a97da9cefc4dc7cdb3c01172067f555a01a9806ba8e3422403828481b2a",
+      "index_watermark": 3,
+      "mode": "lancedb_hybrid",
+      "native_rows": 1,
+      "pending_source_count": 0,
+      "phase": "ready",
+      "profile": "bd53e876ee7800c1dc7254fcbf82ad1e148f6148fde55c747ef8bc58901d088e",
+      "rebuild": {
+        "deadline_at": "2026-11-01T18:07:20.791Z",
+        "embedding_requests": 1,
+        "max_embedding_requests": 100,
+        "max_sources": 100,
+        "operation_id": "owned-rebuild-197",
+        "reason_code": "",
+        "replaced_sources": 2,
+        "scanned_sources": 2,
+        "skipped_sources": 0
+      },
+      "source_count": 2,
+      "status": "ok",
+      "verified": true,
+      "watermark_kind": "provider_local_projection_position"
+    },
+    "final_reference": {
+      "id": "0eae8807d3707af50e16e62ab41e6525",
+      "revision": 2,
+      "sha256": "e1d493ce42e814ebb271f208c15c2a7b58d89c8116b88bd3127fccff1186b09e"
+    },
+    "initial_health": {
+      "active_generation": "ff36ae67669494b0d38871efb26b9cb22e3fa8cada1f361488cad66d3acf29c0",
+      "available": true,
+      "backend": "lancedb",
+      "embedding_configured": true,
+      "embedding_verified": false,
+      "generation": "ff36ae67669494b0d38871efb26b9cb22e3fa8cada1f361488cad66d3acf29c0",
+      "index_watermark": 0,
+      "mode": "lancedb_hybrid",
+      "native_rows": 0,
+      "pending_source_count": 0,
+      "phase": "ready",
+      "profile": "ff36ae67669494b0d38871efb26b9cb22e3fa8cada1f361488cad66d3acf29c0",
+      "source_count": 0,
+      "status": "ok",
+      "verified": true,
+      "watermark_kind": "provider_local_projection_position"
+    },
+    "model_calls": 0,
+    "native_lifetimes": [
+      {
+        "closed": true,
+        "commercial_embedding_calls": 0,
+        "lifetime": "lifetime1",
+        "version": "owned-embedding-v1"
+      },
+      {
+        "closed": true,
+        "commercial_embedding_calls": 0,
+        "lifetime": "lifetime2",
+        "version": "owned-embedding-v1"
+      },
+      {
+        "closed": true,
+        "commercial_embedding_calls": 0,
+        "lifetime": "lifetime3",
+        "version": "owned-embedding-v2"
+      }
+    ],
+    "original_payload_sha256": "7e6588a56e942575b2183a9c4d18f2e2cf611188b51a7efde0070870775960a0",
+    "replay_disposition": "obsolete",
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "82338d7b0fd01ba345d42e06f61b47ff9eba275020e3cd30712dec9ec48739a3",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge",
+        "response_sha256": "b3f1877e6a36bc6d0249f25a52e0e893348e432853df9ac5dce4dc1b6df243cf",
+        "status": 201
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge/3c2b2bac9a42f4bc192dce6679d8dbd1/commands",
+        "response_sha256": "b455d41c43f9b89600f767aab2385c3a0fe8412383402fb2c576cf8cf63cc271",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=c4b8771661318d012d65fdf0fcd7db22&q=rescue&limit=10",
+        "response_sha256": "6c550a67a8e9a4a23f961589c84e28b3bd338a635be6129cc9e48be2f30e5ed2",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/task-dispatch-plans",
+        "response_sha256": "900ef3532046f9a5ac96ee6bb9057711d8bc4040f794d4a6f218a18cc4aa0b29",
+        "status": 201
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/project-knowledge/3c2b2bac9a42f4bc192dce6679d8dbd1",
+        "response_sha256": "702f2cb14698a5bfdb0c9c7c7a1d15d3af1f588a7e0cdff98438da4b9ee1d7cd",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=c4b8771661318d012d65fdf0fcd7db22&q=rescue&limit=10",
+        "response_sha256": "6c550a67a8e9a4a23f961589c84e28b3bd338a635be6129cc9e48be2f30e5ed2",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge/3c2b2bac9a42f4bc192dce6679d8dbd1/commands",
+        "response_sha256": "dd6f63f94c78b6de083d38f178ea51b989efeb0300ac2486b1b7de9e475dd76b",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=c4b8771661318d012d65fdf0fcd7db22&q=rescue&limit=10",
+        "response_sha256": "5cdb2d34d93f8f31c101ecd791bdf657bddbd0ca267a9ea785d0dd64fd601393",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/index",
+        "response_sha256": "312beb799ebc4432130d7c783d226abb1bf98c0cb76b824373e777aeefe1e241",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=c4b8771661318d012d65fdf0fcd7db22&q=rescue&limit=10",
+        "response_sha256": "af76322f387a5a318b2f37fc56843fdbb7ae03fa023f69c44ac6abc48dd0f810",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "0ac725a29f12dd09eb7ccf8aa929b5956690c4604d36b8510d48034783a0d9c3",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=c4b8771661318d012d65fdf0fcd7db22&q=rescue&limit=10",
+        "response_sha256": "af76322f387a5a318b2f37fc56843fdbb7ae03fa023f69c44ac6abc48dd0f810",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge",
+        "response_sha256": "ef97658265aa4942a4538669d1ab73afff7fd7415c61cf64a99bf02f713162b6",
+        "status": 201
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge/0eae8807d3707af50e16e62ab41e6525/commands",
+        "response_sha256": "f709e71a442490d71e5101b3845fe455e628214edba0ba909c4219204d9931ac",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=c4b8771661318d012d65fdf0fcd7db22&q=rescue&limit=10",
+        "response_sha256": "2a40d26074ec5ef4556a1fd838d24fc3cda63bd7d575a7b694f27372885bfc8f",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "ca954dd5e9ca3d5e61fc54e638acd4db9d22cac09b914bd02bfa2e3efb2b0884",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "6d2027a590e88bc532b3c092f952f340694a163a5d4c4934f7eb4da410d67788",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "3809b3fd2389371d1e10b9a47a745675fe680961059b438ba6caee367e13cf63",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "3809b3fd2389371d1e10b9a47a745675fe680961059b438ba6caee367e13cf63",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "281f2b50f566a31b10ceb696efb61dc6920346594480953e4dc77ec3abc4738d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=c4b8771661318d012d65fdf0fcd7db22&q=rescue&limit=10",
+        "response_sha256": "0fd3b97e83cdb49432c9b82b49cf324a39df0a282626e89b796fad21fbcec88f",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/task-dispatch-plans/5e4d16e944fffa05978f5f539db826c9/start",
+        "response_sha256": "acb0440cba9564e261457606e7bca8ffccd1c9ffc886e3e8991e79c6f636e6f5",
+        "status": 409
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-status?project_id=c4b8771661318d012d65fdf0fcd7db22",
+        "response_sha256": "b683e3b6a02a3d4417f42078fcb8179b153dfed5ac4afdb1d9eb9ec91fc95f21",
+        "status": 200
+      }
+    ],
+    "stage": "T-KNOWLEDGE-PROJECTION-197",
+    "status": "actual_http_sqlite_native_lance_hybrid_restart_tombstone_and_explicit_generation_confirmed"
+  },
+  "first_actual": {
+    "approved_reference": {
+      "id": "08b0f09feaca6b619d13a876aeaa472f",
+      "revision": 2,
+      "sha256": "d6aaf01723e9d1d48939d09d4e0c450c2ebca25455217520ee592907b72d3805"
+    },
+    "business_runs": 0,
+    "canonical_locator": {
+      "end": 76,
+      "start": 0,
+      "unit": "unicode_codepoints"
+    },
+    "commercial_embedding_calls": 0,
+    "controlled_embedding_requests": 10,
+    "customer_acceptance": false,
+    "delivery_status": {
+      "as_of": "2026-11-01T17:46:23Z",
+      "configured": true,
+      "coverage": "outbox_delivery_only",
+      "current_publications": 1,
+      "domain": "project_knowledge",
+      "failed": 0,
+      "indexed": 3,
+      "last_ack": {
+        "action": "upsert",
+        "disposition": "applied",
+        "event_id": "56b0c1d6126f9109721b0cdf4b2cd482",
+        "generation": "2691d5a71db90884dfd53f3f18c0702f14b66727cb6ddcdc44a4af05868cab12",
+        "index_watermark": 3,
+        "project_id": "d1f109fe3933fe7fc3c4c8390cf25096",
+        "protocol": "suma-knowledge-index-v1",
+        "request_sha256": "cf7a1f4dc12fb08541a3e5644d9970630d9f37a41dfeb1a15b8bb1815d26354f",
+        "source": {
+          "id": "abea5d7e854c31da84d52552d74a2aab",
+          "kind": "project_knowledge",
+          "revision": 2,
+          "sequence": 2,
+          "sha256": "e1d493ce42e814ebb271f208c15c2a7b58d89c8116b88bd3127fccff1186b09e"
+        },
+        "tenant_id": "ad29d6669f146cd3ebb081c2291c12bd"
+      },
+      "latest_event": {
+        "action": "upsert",
+        "created_at": "2026-11-01T17:46:14Z",
+        "event_id": "56b0c1d6126f9109721b0cdf4b2cd482",
+        "source": {
+          "id": "abea5d7e854c31da84d52552d74a2aab",
+          "kind": "project_knowledge",
+          "revision": 2,
+          "sequence": 2,
+          "sha256": "e1d493ce42e814ebb271f208c15c2a7b58d89c8116b88bd3127fccff1186b09e"
+        },
+        "state": "indexed"
+      },
+      "pending": 0,
+      "total": 3,
+      "untracked_publications": 0
+    },
+    "final_health": {
+      "active_generation": "041b047fd0c762ef0f4506dbeed8b5c85f2320468cc7b9294609949fad2e4eea",
+      "available": true,
+      "backend": "lancedb",
+      "embedding_configured": true,
+      "embedding_verified": true,
+      "generation": "041b047fd0c762ef0f4506dbeed8b5c85f2320468cc7b9294609949fad2e4eea",
+      "index_watermark": 3,
+      "mode": "lancedb_hybrid",
+      "native_rows": 1,
+      "pending_source_count": 0,
+      "phase": "ready",
+      "profile": "6d57ee07af050b05fab57d34862b374e3834a5bb4bcb92091d467515c12e4915",
+      "rebuild": {
+        "deadline_at": "2026-11-01T17:47:22.950Z",
+        "embedding_requests": 1,
+        "max_embedding_requests": 100,
+        "max_sources": 100,
+        "operation_id": "owned-rebuild-197",
+        "reason_code": "",
+        "replaced_sources": 2,
+        "scanned_sources": 2,
+        "skipped_sources": 0
+      },
+      "source_count": 2,
+      "status": "ok",
+      "verified": true,
+      "watermark_kind": "provider_local_projection_position"
+    },
+    "final_reference": {
+      "id": "abea5d7e854c31da84d52552d74a2aab",
+      "revision": 2,
+      "sha256": "e1d493ce42e814ebb271f208c15c2a7b58d89c8116b88bd3127fccff1186b09e"
+    },
+    "initial_health": {
+      "active_generation": "2691d5a71db90884dfd53f3f18c0702f14b66727cb6ddcdc44a4af05868cab12",
+      "available": true,
+      "backend": "lancedb",
+      "embedding_configured": true,
+      "embedding_verified": false,
+      "generation": "2691d5a71db90884dfd53f3f18c0702f14b66727cb6ddcdc44a4af05868cab12",
+      "index_watermark": 0,
+      "mode": "lancedb_hybrid",
+      "native_rows": 0,
+      "pending_source_count": 0,
+      "phase": "ready",
+      "profile": "2691d5a71db90884dfd53f3f18c0702f14b66727cb6ddcdc44a4af05868cab12",
+      "source_count": 0,
+      "status": "ok",
+      "verified": true,
+      "watermark_kind": "provider_local_projection_position"
+    },
+    "model_calls": 0,
+    "native_lifetimes": [
+      {
+        "closed": true,
+        "commercial_embedding_calls": 0,
+        "lifetime": "lifetime1",
+        "version": "owned-embedding-v1"
+      },
+      {
+        "closed": true,
+        "commercial_embedding_calls": 0,
+        "lifetime": "lifetime2",
+        "version": "owned-embedding-v1"
+      },
+      {
+        "closed": true,
+        "commercial_embedding_calls": 0,
+        "lifetime": "lifetime3",
+        "version": "owned-embedding-v2"
+      }
+    ],
+    "original_payload_sha256": "3a2f64bf486f2249ce6e49f044299fad9a71db1303321920337856873c58e46a",
+    "replay_disposition": "obsolete",
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "5355094bdf899741d60f641c587d89501efedfcd80a0022de18d2e9a70e64e79",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge",
+        "response_sha256": "af0f1d409478a7c32c7a3d4ea9d28a1d76d2c8b48d79d0ad648b96155e73471b",
+        "status": 201
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge/08b0f09feaca6b619d13a876aeaa472f/commands",
+        "response_sha256": "6a3f074c484754c634817b5221db4dbfc33ee9c725023a415e794f79c115e032",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=d1f109fe3933fe7fc3c4c8390cf25096&q=rescue&limit=10",
+        "response_sha256": "81f1f5b7aeb50ddf567a02570177ddfd5d2f4f5b0768289113d422d472fb7868",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/task-dispatch-plans",
+        "response_sha256": "33d87842b2ed87dacc93c6d9863a00d0b8a33092dd97e15cfe3d22d1a3e06034",
+        "status": 201
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/project-knowledge/08b0f09feaca6b619d13a876aeaa472f",
+        "response_sha256": "6703ac2f3a43bf7273864ee6dcb7199d73fd919630923690938fc5ac7b5b6ed5",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=d1f109fe3933fe7fc3c4c8390cf25096&q=rescue&limit=10",
+        "response_sha256": "81f1f5b7aeb50ddf567a02570177ddfd5d2f4f5b0768289113d422d472fb7868",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge/08b0f09feaca6b619d13a876aeaa472f/commands",
+        "response_sha256": "06641b4ad60a974317f3718a07ca46330601756451ff37b245c22fa374545d9c",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=d1f109fe3933fe7fc3c4c8390cf25096&q=rescue&limit=10",
+        "response_sha256": "bdc71b8f1aebb96e4d6ac44704b8236051a2b293cf7e88027c32e6ed36a2727e",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/index",
+        "response_sha256": "8ed6dccd217726eb7a92b554200508f0f90340898fbe1aeca311c40120eb1919",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=d1f109fe3933fe7fc3c4c8390cf25096&q=rescue&limit=10",
+        "response_sha256": "0f74021b733519cf81c76eda7676693536f4bc5026d27810d3a0fc6bf3239e35",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "dcc03fe7258ab6f6ba810f094c02a31648770ca04a9ad14e9262eb3d48ac07de",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=d1f109fe3933fe7fc3c4c8390cf25096&q=rescue&limit=10",
+        "response_sha256": "0f74021b733519cf81c76eda7676693536f4bc5026d27810d3a0fc6bf3239e35",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge",
+        "response_sha256": "7f354364c52abd9755b383248c1842dfed9e2ff252943babfb1098c236bbaf3d",
+        "status": 201
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/project-knowledge/abea5d7e854c31da84d52552d74a2aab/commands",
+        "response_sha256": "009f59e598782efbea79ac229d696cf0a8441e419aebcf4a94357b89afd02b33",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=d1f109fe3933fe7fc3c4c8390cf25096&q=rescue&limit=10",
+        "response_sha256": "395e8eb74d8e8f789c117da9495e44cdf292fc03831ebd2755af4c9afdf6ab10",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "97f0312251057501739d70ab78ff232ea69130369c8252c94144e6196f7ad1a3",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "ee6c4793f639ec794ea1205dd252d525c7ae05b1e4850bd40fca3c0c7164bcb2",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "b770537c1b874647b6a670cf4f5abf2fe1de11ebab7c7f94bcba0af6b9b0f607",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "d3c20e63c8e0b8988830b7fc7b6288208d0d35a6e66e3f856821b83aa0c3545e",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "b770537c1b874647b6a670cf4f5abf2fe1de11ebab7c7f94bcba0af6b9b0f607",
+        "status": 503
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "response_sha256": "57e0641992042e5e9ba55e9f027bab08efda73d20e3d2923e3b328e66d1046c8",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-search?project_id=d1f109fe3933fe7fc3c4c8390cf25096&q=rescue&limit=10",
+        "response_sha256": "c56a9b92280fd14a2d5a75cab93c69216777bfbb938150ae6d3c905f34d09b9b",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/task-dispatch-plans/143ff7311265afb9a25c24408e51f4d0/start",
+        "response_sha256": "acb0440cba9564e261457606e7bca8ffccd1c9ffc886e3e8991e79c6f636e6f5",
+        "status": 409
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/project-knowledge/index-status?project_id=d1f109fe3933fe7fc3c4c8390cf25096",
+        "response_sha256": "cea7d7a6b3fb67e9bd1c0fa980da433bdec0de3ac3e897282cd1106f4f8e5b44",
+        "status": 200
+      }
+    ],
+    "stage": "T-KNOWLEDGE-PROJECTION-197",
+    "status": "actual_http_sqlite_native_lance_hybrid_restart_tombstone_and_explicit_generation_confirmed"
+  },
+  "known_boundaries": [
+    "Physical OceanBase/PostgreSQL, shared physical multi-host ownership and full-scale production acceptance were not performed.",
+    "Native index directories have one controlled owner. Private service rebuild budgets and source32 attempt limits are distinct from full tenant-attributed embedding billing.",
+    "Knowledge subtypes are filtered after bounded provider recall; provider_candidates does not assert complete corpus coverage. External bidirectional memory synchronization and actual model use remain separate."
+  ],
+  "failure_history": [
+    "Final deployment review found the private Compose URL rejected by the new URL policy. Exact explicit HTTP origins and Compose/Helm configuration were added; only the affected original Go top and the integrated actual journey were repeated. Disk-full infrastructure attempt ran zero origin subcases; original receipts retained.",
+    "Initial Go generation/consumer attempts encountered the concurrent queryTypedIndex dependency gap; no behavioral cases ran and no placeholder was substituted.",
+    "Initial native infrastructure attempt encountered cached pnpm junction resolution and ran zero behavioral cases. Existing installed real package targets were linked; no dependency installation.",
+    "Native domain/tombstone top passed in a command whose sibling used an over-specific lexical-first RRF rank assertion. Only the sibling was corrected and rechecked; individual unchanged results were reused, not called a whole-package pass.",
+    "Control temporarily reverted a shared provider-error guard to demonstrate its HTTP regression, then restored and accepted the final guard. This was not an isolated overlay; original receipts are retained. No Root actual journey was active during that temporary change.",
+    "Two confirmed read-path fixes require current authority even on a provider error and bind returned sequence to the exact local publication event.",
+    "Owner final source review found late asynchronous save after unlock and a normal32-budget obstruction of explicit authorized rebuild recovery; both were corrected together and only affected checks recompiled/retested."
+  ],
+  "review": {
+    "scope": "Changed T197 contracts and consumers only",
+    "remaining_confirmed_p1_p2": 0,
+    "next_known_issue": "A separate advanced tool setup path can lose the exact original worker to a last-paired runner; preserved in web/next-tool-ux-readonly.json for the next authorized stage."
+  },
+  "evidence": [
+    {
+      "path": ".cache/knowledge-projection-197/control/summary.json",
+      "sha256": "44ad1c95ac490773bf29f3102187856a1b82adffdd6cb1ddcabb2317b312e013"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/control/source-manifest.json",
+      "sha256": "712dbf7ab6b38f608c14e8ca9a3679355ce116c81cc159e758a79efbf1ae9125"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/projection/summary.json",
+      "sha256": "e9712461205c58b38cefb4f28ff94de5ce995b6630286b3a0ebb706107d2c692"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/projection/source-manifest.json",
+      "sha256": "5d539f4991b8148958993d95f729d39cf3af1aa8433627317239dc677ee48cdd"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/projection/verification.json",
+      "sha256": "c5a77ca994dc25b75668b0de6ccde905a3b25a83e3d1cc5fbace7e9fab1ea3de"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/consumer/summary.json",
+      "sha256": "842d643f411ae1b9107024b162beb17ed5d5739cb9ce382e6c4739f27360b30e"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/consumer/source-manifest.json",
+      "sha256": "f92e296b5dddcfd6fdaf9698ffdb1531f713640b572877297604437a7ef7f3c2"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/web/integration-summary.json",
+      "sha256": "4421f7ce471dbea1cde5dd7d155cd0635e60727a8d807287211b15e85ce8402b"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/web/next-tool-ux-readonly.json",
+      "sha256": "ad0c09cc1c97e01cc08cf8d216f212059d43078697f45d7a96fb8efdada2eabe"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/review/design-review.json",
+      "sha256": "f2f847eeb4cbf719c6f4d0829803215d97f681c513c91562f7fb6cb13694528e"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/review/control-review.json",
+      "sha256": "2a100e115ec557a48206eca9e34b6b6e60434e5f077938bb089294ce3330d007"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/review/projection-review.json",
+      "sha256": "9406d01826ddd51e1f2fcc3a1f19ab526669413df43249882598ed653a781839"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/actual-inputs.json",
+      "sha256": "26bbf45e1afc349cbc1a26dacd29528fc1bca474be7ace398a50349df7586866"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/actual/receipt.json",
+      "sha256": "1ff168dee36aff82799cc496f441796ec6515f01781bfe30adec0f6868528ef6"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/actual/private.sqlite",
+      "sha256": "bf556cdf00eba4383bd6f5f1f83b69685c8e9c5873683411685c0f0982917ea4"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/actual-final-inputs.json",
+      "sha256": "a38576cf63383236844d1ea564dc78fae5014b3429b84824dbba40b612c9649d"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/actual-final/receipt.json",
+      "sha256": "e7047d01b1a30ad34699b33615c13090ad77dea4c797d9436b2003a09747ce29"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/actual-final/private.sqlite",
+      "sha256": "eb6bc6953259d73dba5dded7a1ce2934d466662897fe78a7f14277d78ff1fc31"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/deployment-check.json",
+      "sha256": "203a98970f0ffc44cb47c594c0bae487a4ffb297e7fda2d15f7797d871bdd96c"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/types.command.json",
+      "sha256": "d3e2f1f4dd360c68f1d1eda921f5b5190ad1a37ba401c105857ecf1c1ded7710"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/i18n.command.json",
+      "sha256": "e64a50da569bfe85ece66e26bc1e78fb0236ba025516504172b395fd45e9b6e6"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/build.command.json",
+      "sha256": "f0be91fa6d7d0ab1c286366d98afb1be4067bda0051a710518a043cf7a877daa"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/gui.command.json",
+      "sha256": "b2602669a5c40d69c457d4e925687ae8ed8b0d4c8aa7edb22c93b35db3bdfeac"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/visual/source-manifest.json",
+      "sha256": "e9497b1d040d3852661a0924547c1b352959966ef70ce73dbed0273e6cea7271"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/visual/result.json",
+      "sha256": "c2c720913193f3d7c58e24609af01f722b7d47f6c661401af298bb4540fc712b"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/visual/cn-index.png",
+      "sha256": "f39dd71e8ae5764ca905cfa12ac0037c57993e30f043bfde18333f61c1d638c2"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/visual/en-index-dispatch.png",
+      "sha256": "80ece6c0edbe6e3bcb146695b2cf540e3b648ffaef9c54ca3f9efa740fdb9962"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/review/origin-deployment-review.json",
+      "sha256": "0fdb4a58f4121702cd6e5f2a0d47d5f42ab2c9c7605809432f5197db3b4aae92"
+    },
+    {
+      "path": ".cache/knowledge-projection-197/review/disk-cleanup-receipt.json",
+      "sha256": "d0ba7f414411c816431f2f8070ce170b9c135223f93e7f055080a8ae9795459b"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ services:
   control:
     environment:
       SUMA_KNOWLEDGE_URL: http://knowledge:4312
+      SUMA_KNOWLEDGE_HTTP_ORIGINS: http://knowledge:4312
       SUMA_KNOWLEDGE_TOKEN_FILE: /run/secrets/knowledge_token
     secrets: [knowledge_token]
     depends_on:

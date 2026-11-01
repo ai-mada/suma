@@ -95,6 +95,9 @@ func (s *Service) validateWorkspaceInitialSchema(ctx context.Context) error {
 }
 
 func (s *Service) Initialize(ctx context.Context) error {
+	if err := s.validateKnowledgeProjectionInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := dag.ValidateExternalAssignmentsInitialSchema(ctx, s.DB, s.Dialect); err != nil {
 		return err
 	}
@@ -182,7 +185,7 @@ func (s *Service) Initialize(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_reviews (id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,task_version INTEGER NOT NULL,run_id VARCHAR(64) NOT NULL,reviewer_id VARCHAR(64) NOT NULL,decision VARCHAR(40) NOT NULL,reason TEXT NOT NULL,created_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_issue_repairs(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,issue_id VARCHAR(64) NOT NULL,cycle INTEGER NOT NULL,version INTEGER NOT NULL,task_id VARCHAR(64) NOT NULL,closed_run_id VARCHAR(100) NOT NULL,snapshot TEXT NOT NULL,UNIQUE(tenant_id,project_id,issue_id,cycle),UNIQUE(tenant_id,project_id,task_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_artifacts (id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,digest VARCHAR(64) NOT NULL,name VARCHAR(500) NOT NULL,media_type VARCHAR(200) NOT NULL,size_bytes BIGINT NOT NULL,created_at VARCHAR(40) NOT NULL)`,
-		`CREATE TABLE IF NOT EXISTS suma_index_outbox (id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,source_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,action VARCHAR(40) NOT NULL,payload TEXT NOT NULL,state VARCHAR(40) NOT NULL,created_at VARCHAR(40) NOT NULL)`,
+		indexOutboxDDL,
 	}
 	for _, table := range []string{"requirements", "tasks", "members", "issues", "documents", "releases", "tests", "evidence"} {
 		statements = append(statements, `CREATE TABLE IF NOT EXISTS suma_`+table+` (id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,title VARCHAR(500) NOT NULL,description TEXT NOT NULL,status VARCHAR(40) NOT NULL,priority VARCHAR(20) NOT NULL,owner_id VARCHAR(64) NOT NULL,requirement_id VARCHAR(64) NOT NULL,run_id VARCHAR(64) NOT NULL,depends_on TEXT NOT NULL,acceptance_criteria TEXT NOT NULL,kind VARCHAR(40) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,data TEXT NOT NULL)`)

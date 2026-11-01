@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-KNOWLEDGE-PROJECTION-197：[合同](../../contracts/knowledge-projection.md)／[PRD](../product/knowledge-projection.md)／[架构与AI SOP](../architecture/knowledge-projection.md)／[限定验证](../quality/knowledge-projection-verification.md)。正式发布投影、墓碑、真实混合检索与预算重建贯通；原文定位和当前授权保持，真实数据库／原生索引重启链及双语代表界面限定通过，完整31／P0–P7继续。
+
 T-KNOWLEDGE-DISCOVERY-196：[合同](../../contracts/knowledge-discovery.md)／[PRD](../product/knowledge-discovery.md)／[架构与AI SOP](../architecture/knowledge-discovery.md)／[限定验证](../quality/knowledge-discovery-verification.md)。已发布记忆、SPEC与技能的关键词发现、准确预览和原任务明确引用贯通；有界分页、草稿隔离与当前资格保持，完整31／P0–P7继续。
 
 T-TOOL-RECOVERY-195：[合同](../../contracts/tool-recovery.md)／[PRD](../product/tool-recovery.md)／[架构与AI SOP](../architecture/tool-recovery.md)／[限定验证](../quality/tool-recovery-verification.md)。真实维护能力、原停止证明、一次有限核对授权与持久ACK释放未知占用贯通；关闭保原未知事实、不重probe。30个不同定向、Windows父子进程／三次Worker及双语代表界面限定通过，完整31／P0–P7继续。

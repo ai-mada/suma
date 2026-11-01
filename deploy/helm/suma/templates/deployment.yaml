@@ -80,6 +80,10 @@ spec:
             {{- if .Values.knowledge.url }}
             - name: SUMA_KNOWLEDGE_URL
               value: {{ .Values.knowledge.url | quote }}
+            {{- if .Values.knowledge.httpOrigins }}
+            - name: SUMA_KNOWLEDGE_HTTP_ORIGINS
+              value: {{ .Values.knowledge.httpOrigins | quote }}
+            {{- end }}
             - name: SUMA_KNOWLEDGE_TOKEN
               valueFrom:
                 secretKeyRef:

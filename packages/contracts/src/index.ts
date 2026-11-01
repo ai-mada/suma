@@ -3514,6 +3514,59 @@ export interface KnowledgeExtractionCapability {
   model: string;
   endpoint_origin: string;
 }
+export interface KnowledgeIndexLocator {
+  unit: "unicode_codepoints";
+  start: number;
+  end: number;
+}
+export interface KnowledgeIndexReceipt {
+  protocol: "suma-knowledge-index-v1";
+  event_id: string;
+  tenant_id: string;
+  project_id: string;
+  source: KnowledgeIndexSource;
+  action: "upsert" | "delete";
+  disposition: "applied" | "duplicate" | "obsolete";
+  generation: string;
+  index_watermark: number;
+  request_sha256: string;
+}
+export interface KnowledgeIndexRequest {
+  protocol: "suma-knowledge-index-v1";
+  event_id: string;
+  tenant_id: string;
+  project_id: string;
+  source: KnowledgeIndexSource;
+  action: "upsert" | "delete";
+  title: string;
+  content: string;
+}
+export interface KnowledgeIndexSearchHit {
+  source: KnowledgeIndexSource;
+  locator: KnowledgeIndexLocator;
+}
+export interface KnowledgeIndexSearchRequest {
+  protocol: "suma-knowledge-index-v1";
+  tenant_id: string;
+  project_id: string;
+  source_kind: "documents" | "project_knowledge";
+  query: string;
+  limit: number;
+}
+export interface KnowledgeIndexSearchResult {
+  protocol: "suma-knowledge-index-v1";
+  items: (KnowledgeIndexSearchHit)[];
+  mode: "lancedb_fts" | "lancedb_hybrid" | "oceanbase_fts" | "oceanbase_hybrid";
+  generation: string;
+  index_watermark: number;
+}
+export interface KnowledgeIndexSource {
+  kind: "documents" | "project_knowledge";
+  id: string;
+  sequence: number;
+  revision: number;
+  sha256: string;
+}
 export interface KnowledgeIntelligenceAdoption {
   analysis_id: string;
   analysis_version: number;
@@ -4658,10 +4711,57 @@ export interface ProjectKnowledgeExtractionRequest {
   sources: (ProjectKnowledgeSourceInput)[];
   idempotency_key: string;
 }
+export interface ProjectKnowledgeIndexHit {
+  reference: ProjectKnowledgeReference;
+  project_id: string;
+  kind: "memory" | "spec" | "skill";
+  title: string;
+  summary: string;
+  snippet: string;
+  source_count: number;
+  published_at: string;
+  source: KnowledgeIndexSource;
+  locator: KnowledgeIndexLocator;
+}
+export interface ProjectKnowledgeIndexQuery {
+  q?: string;
+  kind?: "memory" | "spec" | "skill";
+  limit?: number;
+}
+export interface ProjectKnowledgeIndexSearch {
+  items: (ProjectKnowledgeIndexHit)[];
+  mode: "lancedb_fts" | "lancedb_hybrid" | "oceanbase_fts" | "oceanbase_hybrid";
+  generation: string;
+  index_watermark: number;
+  candidates_examined: number;
+  discarded: number;
+  scope: "provider_candidates";
+}
+export interface ProjectKnowledgeIndexStatus {
+  domain: "project_knowledge";
+  as_of: string;
+  configured: boolean;
+  coverage: "outbox_delivery_only";
+  pending: number;
+  indexed: number;
+  failed: number;
+  total: number;
+  current_publications: number;
+  untracked_publications: number;
+  latest_event: ProjectKnowledgeProjectionEvent | null;
+  last_ack: KnowledgeIndexReceipt | null;
+}
 export interface ProjectKnowledgeList {
   items: (ProjectKnowledgeSummary)[];
   total: number;
   next_cursor: string;
+}
+export interface ProjectKnowledgeProjectionEvent {
+  event_id: string;
+  source: KnowledgeIndexSource;
+  action: "upsert" | "delete";
+  state: "pending" | "indexed" | "failed";
+  created_at: string;
 }
 export interface ProjectKnowledgeReference {
   id: string;

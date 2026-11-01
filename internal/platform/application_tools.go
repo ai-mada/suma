@@ -22,6 +22,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 		makeDefinition("project.search", "检索当前项目资料并返回来源", "agent.tool_search", applicationObject(map[string]any{"query": applicationString(500)}, "query"), true, "agent", "api"),
 		makeDefinition("project.knowledge", "读取明确发布的项目知识固定修订并核验当前来源", "knowledge.agent_read", knowledge, true, "agent", "api"),
 		makeDefinition("project.knowledge.search", "发现当前可采用的已发布记忆、规范和技能，不返回草稿或自动选入上下文", "knowledge.agent_discovery", knowledgeDiscoveryParameters(), true, "agent", "api"),
+		makeDefinition("project.knowledge.index_search", "通过已配置索引发现当前可采用的已发布知识并核验准确引用，不自动采用", "knowledge.agent_index_search", knowledgeIndexParameters(), true, "agent", "api"),
 		makeDefinition("project.requirements", "分页读取当前项目需求", "application_tool_project_requirements", applicationPageSchema(), true, "api"),
 		makeDefinition("project.requirement", "读取当前项目的单个正式需求", "application_tool_project_requirement", applicationObject(map[string]any{"id": applicationString(64)}, "id"), true, "api"),
 		makeDefinition("project.task", "读取当前项目的单个正式任务", "application_tool_project_task", applicationObject(map[string]any{"id": applicationString(64)}, "id"), true, "api"),
@@ -38,7 +39,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 
 func nativeReadToolAllowed(name string) bool {
 	switch name {
-	case "project.overview", "project.tasks", "project.search", "project.knowledge", "project.knowledge.search":
+	case "project.overview", "project.tasks", "project.search", "project.knowledge", "project.knowledge.search", "project.knowledge.index_search":
 		return true
 	}
 	return false
@@ -102,6 +103,18 @@ func (s *Service) InvokeApplicationTool(ctx context.Context, actor Actor, call A
 	}
 	if !definition.ReadOnly {
 		return s.invokeApplicationDraft(ctx, actor, call)
+	}
+	if call.Tool == "project.knowledge.index_search" {
+		return s.searchProjectKnowledgeIndex(ctx, actor, call.ProjectID, func() (ProjectKnowledgeIndexQuery, error) {
+			var input ProjectKnowledgeIndexQuery
+			if e := strictApplicationInput(call.Arguments, &input, "q"); e != nil {
+				return input, e
+			}
+			if applicationHasField(call.Arguments, "limit") && input.Limit == 0 || applicationHasField(call.Arguments, "kind") && input.Kind == "" {
+				return input, knowledgeIndexInvalid()
+			}
+			return input, nil
+		})
 	}
 	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: call.ProjectID}, knowledgeReadPurpose(actor), func(auth *authorizedCommand) error {
 		var e error

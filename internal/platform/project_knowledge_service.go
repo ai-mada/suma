@@ -257,6 +257,13 @@ func (s *Service) CommandProjectKnowledge(ctx context.Context, actor Actor, proj
 		if err = s.advanceKnowledgeTx(ctx, auth, project, current, revision, state, published); err != nil {
 			return ProjectKnowledgeDetail{}, err
 		}
+		indexAction := "upsert"
+		if request.Action == "retire" {
+			indexAction = "delete"
+		}
+		if err = s.knowledgeIndexEventTx(ctx, auth, current, revision, indexAction); err != nil {
+			return ProjectKnowledgeDetail{}, err
+		}
 		if err = s.commandActivity(ctx, auth, "knowledge."+request.Action, id, revision.Title); err != nil {
 			return ProjectKnowledgeDetail{}, err
 		}

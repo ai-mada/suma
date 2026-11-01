@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+
+	ic "github.com/ai-mada/suma/internal/indexcontract"
 )
 
 var tables = map[string]bool{"requirements": true, "tasks": true, "members": true, "issues": true, "documents": true, "releases": true, "tests": true, "evidence": true}
@@ -319,7 +321,7 @@ func (s *Service) createCommandRecordTx(ctx context.Context, tx *sql.Tx, auth *a
 		return r, err
 	}
 	if kind == "documents" {
-		if err = s.indexEvent(ctx, tx, r, "upsert"); err != nil {
+		if err = s.indexEvent(ctx, auth, r, "upsert"); err != nil {
 			return r, err
 		}
 	}
@@ -395,7 +397,7 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 		}
 	}
 	if kind == "documents" {
-		if err = s.indexEvent(ctx, tx, r, "upsert"); err != nil {
+		if err = s.indexEvent(ctx, auth, r, "upsert"); err != nil {
 			return r, err
 		}
 	}
@@ -523,12 +525,17 @@ func taskBasis(r Record) string {
 
 const recordVersionExhausted = "Record version limit reached; review the record before changing it"
 
-func (s *Service) indexEvent(ctx context.Context, tx *sql.Tx, r Record, action string) error {
+func (s *Service) indexEvent(ctx context.Context, auth *authorizedCommand, r Record, action string) error {
 	if r.Status == "archived" || r.Status == "deleted" {
 		action = "delete"
 	}
-	_, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_index_outbox(id,tenant_id,project_id,source_id,revision,action,payload,state,created_at) VALUES(?,?,?,?,?,?,?,?,?)`), newID(), r.TenantID, r.ProjectID, r.ID, r.Version, action, stringify(r), "pending", now())
-	return err
+	content := indexedDocumentContent(r)
+	request := ic.Request{Protocol: ic.Protocol, EventID: newID(), TenantID: r.TenantID, ProjectID: r.ProjectID, Source: ic.Source{Kind: "documents", ID: r.ID, Sequence: r.Version, Revision: r.Version, SHA256: ic.Digest([]byte(content))}, Action: action}
+	if action != "delete" {
+		request.Title = r.Title
+		request.Content = content
+	}
+	return s.appendIndexEventTx(ctx, auth, request)
 }
 
 func (s *Service) CreateProject(ctx context.Context, actor Actor, m map[string]any) (Record, error) {

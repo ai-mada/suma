@@ -1,12 +1,13 @@
 import {useCallback,useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import {BookOpen,X} from 'lucide-react';
-import type {ProjectKnowledgeDiscoveryHit} from '../../../packages/contracts/src';
+import type {ProjectKnowledgeDiscoveryHit,ProjectKnowledgeIndexHit} from '../../../packages/contracts/src';
 import {ApiError} from './api';
 import {useApi} from './api-context';
 import {formatNumber,tr,UiError,useLocale} from './i18n';
 import {ErrorNotice} from './ui';
 import {PublishedKnowledgeDiscovery} from './PublishedKnowledgeDiscovery';
 import {PublishedKnowledgePreview} from './PublishedKnowledgePreview';
+import {knowledgePreviewTarget,type KnowledgePreviewTarget} from './knowledge-preview-target';
 import type {KnowledgeReference,KnowledgeSummary} from './knowledge-model';
 import {conversationKnowledgeLimit,currentKnowledgePin,knowledgeDetailPath,knowledgeSelectionKey,sameKnowledgePin,validKnowledgePins,validKnowledgeSummary} from './task-conversation-knowledge-model';
 import './TaskConversationKnowledge.css';
@@ -24,7 +25,7 @@ export function ProjectKnowledgePicker(props:ProjectKnowledgePickerProps){
  return <PickerScope key={JSON.stringify([props.userID,props.organizationID,props.project,props.taskID,caller.current.epoch])} {...props}/>;
 }
 function PickerScope({project,userID,organizationID,selected,onChange,disabled,accessBlocked,refresh,onValidityChange,onAccessDenied}:ProjectKnowledgePickerProps){
- useLocale();const api=useApi(),id=useId(),[expanded,setExpanded]=useState(false),[preview,setPreview]=useState<KnowledgeReference>(),[conflict,setConflict]=useState(false),[deniedAt,setDeniedAt]=useState<number>();
+ useLocale();const api=useApi(),id=useId(),[expanded,setExpanded]=useState(false),[preview,setPreview]=useState<KnowledgePreviewTarget>(),[conflict,setConflict]=useState(false),[deniedAt,setDeniedAt]=useState<number>();
  const [hydrated,setHydrated]=useState<{key:string;items:KnowledgeSummary[]}>(),[error,setError]=useState<unknown>(),[retry,setRetry]=useState(0);
  const alive=useRef(true),epoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),notified=useRef<number|undefined>(undefined);
  const callbacks=useRef({onChange,onValidityChange,onAccessDenied});callbacks.current={onChange,onValidityChange,onAccessDenied};
@@ -55,17 +56,17 @@ function PickerScope({project,userID,organizationID,selected,onChange,disabled,a
   void Promise.all(Array.from({length:Math.min(3,selected.length)},worker)).then(()=>{if(!active())return;if(failure)setError(failure);else setHydrated({key:selectionKey,items:rows});});
   return()=>abort.abort();
  },[api,project,userID,organizationID,selectionKey,hidden,pinsValid,retry,deny]);
- function openPreview(reference:KnowledgeReference){if(!alive.current||current.current.hidden||current.current.disabled||!validKnowledgePins([reference]))return;setConflict(false);setPreview(reference);setExpanded(true);}
- function previewHit(hit:ProjectKnowledgeDiscoveryHit){if(hit.project_id===project)openPreview(hit.reference);}
+ function openPreview(reference:KnowledgeReference){if(!alive.current||current.current.hidden||current.current.disabled||!validKnowledgePins([reference]))return;setConflict(false);setPreview({reference:{...reference}});setExpanded(true);}
+ function previewHit(hit:ProjectKnowledgeDiscoveryHit|ProjectKnowledgeIndexHit){if(!alive.current||current.current.hidden||current.current.disabled)return;const target=knowledgePreviewTarget(hit,project);if(target){setConflict(false);setPreview(target);setExpanded(true);}}
  function choose(reference:KnowledgeReference){
-  const now=current.current;if(!alive.current||now.hidden||now.disabled||!now.preview||!sameKnowledgePin(reference,now.preview)||!validKnowledgePins([reference])||!validKnowledgePins(now.selected))return;
+  const now=current.current;if(!alive.current||now.hidden||now.disabled||!now.preview||!sameKnowledgePin(reference,now.preview.reference)||!validKnowledgePins([reference])||!validKnowledgePins(now.selected))return;
   const existing=now.selected.find(pin=>pin.id===reference.id);
   if(existing&&!sameKnowledgePin(existing,reference)){setConflict(true);return;}
   if(!existing&&now.selected.length>=conversationKnowledgeLimit)return;
   setConflict(false);setPreview(undefined);if(!existing)callbacks.current.onChange([...now.selected,reference]);
  }
  function remove(id:string){const now=current.current;if(alive.current&&!now.hidden&&!now.disabled){setConflict(false);callbacks.current.onChange(now.selected.filter(pin=>pin.id!==id));}}
- const limitReached=!!preview&&!selected.some(pin=>pin.id===preview.id)&&selected.length>=conversationKnowledgeLimit;
+ const limitReached=!!preview&&!selected.some(pin=>pin.id===preview.reference.id)&&selected.length>=conversationKnowledgeLimit;
  if(hidden)return null;
  return <div className="conversation-knowledge project-knowledge-picker" data-project-knowledge-picker aria-label={t('title')}>
   <div className="conversation-knowledge-heading"><button type="button" data-knowledge-toggle aria-expanded={expanded} aria-controls={id} disabled={disabled} onClick={()=>setExpanded(value=>!value)}><BookOpen size={14} aria-hidden="true"/>{t('title')}<span>{formatNumber(selected.length)}/{conversationKnowledgeLimit}</span></button><small>{t('hint')}</small></div>
@@ -77,7 +78,7 @@ function PickerScope({project,userID,organizationID,selected,onChange,disabled,a
   {conflict&&<p className="conversation-knowledge-warning" role="alert">{t('conflict')}</p>}
   {expanded&&<div id={id} className="conversation-knowledge-picker">
    <PublishedKnowledgeDiscovery project={project} disabled={disabled} accessBlocked={hidden} refresh={refresh} onPreview={previewHit} onAccessDenied={deny}/>
-   {preview&&<div className="conversation-knowledge-preview"><PublishedKnowledgePreview project={project} reference={preview} disabled={disabled} accessBlocked={hidden} refresh={refresh} onChoose={pinsValid&&!limitReached?choose:undefined} onAccessDenied={deny} onClose={()=>setPreview(undefined)}/>{limitReached&&<p className="conversation-knowledge-warning" role="status">{t('limit',{limit:conversationKnowledgeLimit})}</p>}</div>}
+   {preview&&<div className="conversation-knowledge-preview"><PublishedKnowledgePreview project={project} reference={preview.reference} location={preview.location} disabled={disabled} accessBlocked={hidden} refresh={refresh} onChoose={pinsValid&&!limitReached?choose:undefined} onAccessDenied={deny} onClose={()=>setPreview(undefined)}/>{limitReached&&<p className="conversation-knowledge-warning" role="status">{t('limit',{limit:conversationKnowledgeLimit})}</p>}</div>}
   </div>}
  </div>;
 }

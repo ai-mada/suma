@@ -1,37 +1,35 @@
 package platform
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"strings"
-	"time"
+
+	ic "github.com/ai-mada/suma/internal/indexcontract"
+	"github.com/ai-mada/suma/internal/strictjson"
 )
 
-// ProjectIndexes performs network effects after closing the source query. Failed events remain replayable.
+// ProjectIndexes sends only the original immutable typed event after releasing
+// its source query. An HTTP success alone is never a persistence receipt.
 func (s *Service) ProjectIndexes(ctx context.Context) error {
-	endpoint := strings.TrimRight(os.Getenv("SUMA_KNOWLEDGE_URL"), "/")
-	token := os.Getenv("SUMA_KNOWLEDGE_TOKEN")
-	if endpoint == "" || token == "" {
+	if os.Getenv("SUMA_KNOWLEDGE_URL") == "" || os.Getenv("SUMA_KNOWLEDGE_TOKEN") == "" {
 		return nil
 	}
-	rows, err := s.DB.QueryContext(ctx, `SELECT id,tenant_id,project_id,source_id,revision,action,payload FROM suma_index_outbox WHERE state='pending' ORDER BY created_at,id LIMIT 20`)
+	rows, err := s.DB.QueryContext(ctx, "SELECT id,tenant_id,project_id,source_kind,source_id,revision,content_revision,source_sha256,action,payload FROM suma_index_outbox WHERE state='pending' ORDER BY created_at,id LIMIT 20")
 	if err != nil {
 		return err
 	}
-	type item struct {
-		id, tenant, project, source, action, payload string
-		revision                                     int
+	type event struct {
+		id, tenant, project, kind, source, sha, action, payload string
+		sequence, contentRevision                               int
 	}
-	items := []item{}
+	items := []event{}
 	for rows.Next() {
-		var i item
-		if err = rows.Scan(&i.id, &i.tenant, &i.project, &i.source, &i.revision, &i.action, &i.payload); err != nil {
+		var i event
+		if err = rows.Scan(&i.id, &i.tenant, &i.project, &i.kind, &i.source, &i.sequence, &i.contentRevision, &i.sha, &i.action, &i.payload); err != nil {
 			rows.Close()
 			return err
 		}
@@ -42,64 +40,42 @@ func (s *Service) ProjectIndexes(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	client := &http.Client{Timeout: 30 * time.Second}
 	failures := []error{}
 	for _, i := range items {
-		var r Record
-		if err = json.Unmarshal([]byte(i.payload), &r); err != nil {
-			failures = append(failures, fmt.Errorf("index event %s has invalid payload", i.id))
-			if e := s.failIndexEvent(ctx, i.id, i.tenant, i.project, i.source, i.revision, 0); e != nil {
+		raw := []byte(i.payload)
+		var request ic.Request
+		source := ic.Source{Kind: i.kind, ID: i.source, Sequence: i.sequence, Revision: i.contentRevision, SHA256: i.sha}
+		if strictjson.Decode(raw, &request, 8<<20) != nil || ic.ValidateRequest(request) != nil || request.EventID != i.id || request.TenantID != i.tenant || request.ProjectID != i.project || request.Source != source || request.Action != i.action {
+			failures = append(failures, fmt.Errorf("index event %s has invalid typed payload", i.id))
+			if e := s.failIndexEvent(ctx, i.id, i.tenant, i.project, i.kind, i.source, i.sequence, 0); e != nil {
 				failures = append(failures, e)
 			}
 			continue
 		}
-		content := r.Description
-		if body, ok := r.Data["content"].(string); ok {
-			content += "\n" + body
-		}
-		body := map[string]any{"tenant_id": i.tenant, "project_id": i.project, "source_id": i.source, "revision": i.revision, "action": i.action}
-		if i.action != "delete" {
-			body["title"] = r.Title
-			body["content"] = content
-		}
-		req, e := http.NewRequestWithContext(ctx, "POST", endpoint+"/index", bytes.NewBufferString(stringify(body)))
+		receipt, status, e := s.postTypedIndex(ctx, request, raw)
 		if e != nil {
 			failures = append(failures, fmt.Errorf("index event %s: %w", i.id, e))
-			continue
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+token)
-		response, e := client.Do(req)
-		if e != nil {
-			failures = append(failures, fmt.Errorf("index event %s: %w", i.id, e))
-			continue
-		}
-		io.Copy(io.Discard, io.LimitReader(response.Body, 64<<10))
-		response.Body.Close()
-		if response.StatusCode/100 != 2 {
-			failures = append(failures, fmt.Errorf("index event %s rejected: HTTP %d", i.id, response.StatusCode))
-			if response.StatusCode >= 400 && response.StatusCode < 500 && response.StatusCode != 408 && response.StatusCode != 429 {
-				if e = s.failIndexEvent(ctx, i.id, i.tenant, i.project, i.source, i.revision, response.StatusCode); e != nil {
+			if status >= 400 && status < 500 && status != 408 && status != 429 {
+				if e = s.failIndexEvent(ctx, i.id, i.tenant, i.project, i.kind, i.source, i.sequence, status); e != nil {
 					failures = append(failures, e)
 				}
 			}
 			continue
 		}
-		if _, e = s.DB.ExecContext(ctx, s.q(`UPDATE suma_index_outbox SET state='indexed' WHERE id=? AND state='pending'`), i.id); e != nil {
+		if _, e = s.DB.ExecContext(ctx, s.q("UPDATE suma_index_outbox SET state='indexed',receipt=?,indexed_at=? WHERE id=? AND state='pending'"), stringify(receipt), now(), i.id); e != nil {
 			failures = append(failures, fmt.Errorf("index acknowledgement %s: %w", i.id, e))
-			continue
 		}
 	}
 	return errors.Join(failures...)
 }
 
-func (s *Service) failIndexEvent(ctx context.Context, id, tenant, project, source string, revision, status int) error {
+func (s *Service) failIndexEvent(ctx context.Context, id, tenant, project, kind, source string, revision, status int) error {
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	result, err := tx.ExecContext(ctx, s.q(`UPDATE suma_index_outbox SET state='failed' WHERE id=? AND state='pending'`), id)
+	result, err := tx.ExecContext(ctx, s.q("UPDATE suma_index_outbox SET state='failed' WHERE id=? AND state='pending'"), id)
 	if err != nil {
 		return err
 	}
@@ -110,15 +86,15 @@ func (s *Service) failIndexEvent(ctx context.Context, id, tenant, project, sourc
 	if n == 0 {
 		return tx.Commit()
 	}
-	query := `INSERT INTO suma_index_failures(event_id,tenant_id,project_id,source_id,revision,http_status,reason,failed_at)VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(event_id) DO NOTHING`
+	query := "INSERT INTO suma_index_failures(event_id,tenant_id,project_id,source_kind,source_id,revision,http_status,reason,failed_at)VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(event_id) DO NOTHING"
 	if s.Dialect == "oceanbase" {
-		query = `INSERT IGNORE INTO suma_index_failures(event_id,tenant_id,project_id,source_id,revision,http_status,reason,failed_at)VALUES(?,?,?,?,?,?,?,?)`
+		query = "INSERT IGNORE INTO suma_index_failures(event_id,tenant_id,project_id,source_kind,source_id,revision,http_status,reason,failed_at)VALUES(?,?,?,?,?,?,?,?,?)"
 	}
 	reason := fmt.Sprintf("provider rejected immutable index event: HTTP %d", status)
 	if status == 0 {
-		reason = "invalid persisted index event payload"
+		reason = "invalid persisted typed index event payload"
 	}
-	if _, err = tx.ExecContext(ctx, s.q(query), id, tenant, project, source, revision, status, reason, now()); err != nil {
+	if _, err = tx.ExecContext(ctx, s.q(query), id, tenant, project, kind, source, revision, status, reason, now()); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -165,90 +141,64 @@ func (s *Service) indexStatusTx(ctx context.Context, auth *authorizedCommand, pr
 }
 
 func (s *Service) SearchIndex(ctx context.Context, actor Actor, project, query string) (map[string]any, error) {
-	endpoint := strings.TrimRight(os.Getenv("SUMA_KNOWLEDGE_URL"), "/")
-	if endpoint == "" {
+	if os.Getenv("SUMA_KNOWLEDGE_URL") == "" {
 		return s.SearchKeywords(ctx, actor, project, query)
 	}
-	// Resolve current scope before the external effect, then release all SQL
-	// locks. The provider reply never carries authority across this IO boundary.
 	var tenant string
 	target := commandTarget{tenantID: actor.credential.tenantID, projectID: project}
 	purpose := knowledgeReadPurpose(actor)
 	if err := s.withCurrentRead(ctx, actor, target, purpose, func(auth *authorizedCommand) error { tenant = auth.target.tenantID; return nil }); err != nil {
 		return nil, err
 	}
-	if len(query) < 1 || len(query) > 500 {
-		return nil, invalid("查询长度超出限制")
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint+"/search", bytes.NewBufferString(stringify(map[string]any{"tenant_id": tenant, "project_id": project, "query": query, "limit": 50})))
+	result, err := s.queryTypedIndex(ctx, ic.SearchRequest{Protocol: ic.Protocol, TenantID: tenant, ProjectID: project, SourceKind: "documents", Query: query, Limit: 50})
 	if err != nil {
+		if authErr := s.withCurrentRead(ctx, actor, target, purpose, func(*authorizedCommand) error { return nil }); authErr != nil {
+			return nil, authErr
+		}
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("SUMA_KNOWLEDGE_TOKEN"))
-	response, err := (&http.Client{Timeout: 15 * time.Second}).Do(req)
-	if err != nil {
-		return nil, &APIError{503, "index_unavailable", "检索服务暂不可用；资料原件仍可访问", nil}
-	}
-	defer response.Body.Close()
-	if response.StatusCode != 200 {
-		return nil, &APIError{503, "index_unavailable", "检索服务尚未通过查询验证", nil}
-	}
-	var result map[string]any
-	decoder := json.NewDecoder(io.LimitReader(response.Body, 2<<20))
-	decoder.UseNumber()
-	if err = decoder.Decode(&result); err != nil {
-		return nil, err
-	}
-	if result == nil {
-		return nil, &APIError{503, "index_unavailable", "检索服务尚未通过查询验证", nil}
-	}
-	// Even an empty provider response is reauthorized. All source/version checks
-	// share this current SQL snapshot, not one stale Principal per provider hit.
-	filtered := []any{}
+	items := []any{}
+	discarded := 0
+	// Provider locators identify candidates only. Current source, version, digest,
+	// permissions and excerpt bytes are resolved again in one current snapshot.
 	err = s.withCurrentRead(ctx, actor, target, purpose, func(auth *authorizedCommand) error {
 		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
 		defer cancel()
-		hits, _ := result["items"].([]any)
-		for _, value := range hits {
-			hit, ok := value.(map[string]any)
-			if !ok {
-				continue
-			}
-			if hitTenant := str(hit, "tenant_id"); hitTenant != "" && hitTenant != tenant {
-				continue
-			}
-			if hitProject := str(hit, "project_id"); hitProject != "" && hitProject != project {
-				continue
-			}
-			source := str(hit, "source_ref")
-			record, readErr := s.getRecordTx(bounded, auth, project, "documents", source)
-			if readErr != nil {
-				var apiErr *APIError
-				if errors.As(readErr, &apiErr) && apiErr.Status == http.StatusNotFound {
+		for _, hit := range result.Items {
+			record, e := s.getRecordTx(bounded, auth, project, "documents", hit.Source.ID)
+			if e != nil {
+				var api *APIError
+				if errors.As(e, &api) && api.Status == http.StatusNotFound {
+					discarded++
 					continue
 				}
-				return readErr
+				return e
 			}
-			if record.Status == "archived" || record.Status == "deleted" {
+			content := indexedDocumentContent(record)
+			if record.Status == "archived" || record.Status == "deleted" || record.Version != hit.Source.Sequence || record.Version != hit.Source.Revision || ic.Digest([]byte(content)) != hit.Source.SHA256 {
+				discarded++
 				continue
 			}
-			revision, ok := hit["revision"].(json.Number)
-			if !ok {
+			points := []rune(content)
+			if hit.Locator.End > len(points) {
+				discarded++
 				continue
 			}
-			version, parseErr := revision.Int64()
-			if parseErr != nil || version != int64(record.Version) {
-				continue
+			excerpt := string(points[hit.Locator.Start:hit.Locator.End])
+			var preview strings.Builder
+			for _, point := range excerpt {
+				if preview.Len()+len(string(point)) > 600 {
+					break
+				}
+				preview.WriteRune(point)
 			}
-			hit["locator"] = map[string]any{"project_id": project, "type": "documents", "id": source}
-			filtered = append(filtered, hit)
+			locator := map[string]any{"project_id": project, "type": "documents", "id": record.ID, "unit": hit.Locator.Unit, "start": hit.Locator.Start, "end": hit.Locator.End}
+			items = append(items, map[string]any{"id": ic.Digest([]byte(stringify(hit))), "type": "documents", "title": record.Title, "snippet": preview.String(), "source_ref": record.ID, "revision": record.Version, "source": hit.Source, "locator": locator})
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	result["items"] = filtered
-	return result, nil
+	return map[string]any{"items": items, "mode": result.Mode, "generation": result.Generation, "index_watermark": result.IndexWatermark, "watermark_kind": "provider_local_projection_position", "candidates_examined": len(result.Items), "discarded": discarded, "coverage": "current_authorized_document_candidates"}, nil
 }

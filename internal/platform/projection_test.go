@@ -3,12 +3,15 @@ package platform
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
+
+	ic "github.com/ai-mada/suma/internal/indexcontract"
 )
 
 type projectionCounts struct {
@@ -26,6 +29,19 @@ func (c *projectionCounts) add(id string) {
 }
 func (c *projectionCounts) get(id string) int { c.mu.Lock(); defer c.mu.Unlock(); return c.values[id] }
 
+func projectionRequest(t *testing.T, r *http.Request) (ic.Request, []byte) {
+	t.Helper()
+	raw, err := io.ReadAll(r.Body)
+	var request ic.Request
+	if err != nil || json.Unmarshal(raw, &request) != nil || ic.ValidateRequest(request) != nil {
+		t.Error("invalid typed projection request")
+	}
+	return request, raw
+}
+func projectionACK(w http.ResponseWriter, request ic.Request, raw []byte) {
+	_ = json.NewEncoder(w).Encode(ic.Receipt{Protocol: ic.Protocol, EventID: request.EventID, TenantID: request.TenantID, ProjectID: request.ProjectID, Source: request.Source, Action: request.Action, Disposition: "applied", Generation: "fixture-typed", IndexWatermark: 1, RequestSHA256: ic.Digest(raw)})
+}
+
 func TestDocumentRejectsCombinedIndexSourceOverOneMiB(t *testing.T) {
 	f := newFixture(t)
 	f.call("POST", "/documents", f.body(map[string]any{"title": "oversized", "description": strings.Repeat("d", 100), "data": map[string]any{"content": strings.Repeat("x", 1<<20)}}), 400)
@@ -40,18 +56,15 @@ func TestIndexPoisonEventIsDeadLetteredWithoutBlockingOtherSources(t *testing.T)
 	good := f.call("POST", "/documents", f.body(map[string]any{"title": "good source", "description": "valid"}), 201)
 	seen := &projectionCounts{}
 	provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]any
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			t.Error(err)
-		}
-		id, _ := body["source_id"].(string)
+		request, raw := projectionRequest(t, r)
+		id := request.Source.ID
 		seen.add(id)
 		if id == bad["id"] {
 			w.WriteHeader(400)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"applied":true}`))
+		projectionACK(w, request, raw)
 	}))
 	defer provider.Close()
 	t.Setenv("SUMA_KNOWLEDGE_URL", provider.URL)
@@ -89,15 +102,14 @@ func TestIndexTransientFailureRemainsReplayableAndOtherEventsAdvance(t *testing.
 	fail.Store(true)
 	seen := &projectionCounts{}
 	provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]any
-		json.NewDecoder(r.Body).Decode(&body)
-		id := body["source_id"].(string)
+		request, raw := projectionRequest(t, r)
+		id := request.Source.ID
 		seen.add(id)
 		if id == first["id"] && fail.Load() {
 			w.WriteHeader(429)
 			return
 		}
-		w.Write([]byte(`{"applied":true}`))
+		projectionACK(w, request, raw)
 	}))
 	defer provider.Close()
 	t.Setenv("SUMA_KNOWLEDGE_URL", provider.URL)
@@ -178,18 +190,17 @@ func TestDocumentVisibilityTransitionsProduceMonotonicTombstones(t *testing.T) {
 	}
 	var tombstones atomic.Int64
 	provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var event map[string]any
-		json.NewDecoder(r.Body).Decode(&event)
-		if event["action"] == "delete" {
+		request, raw := projectionRequest(t, r)
+		if request.Action == "delete" {
 			tombstones.Add(1)
-			if _, ok := event["content"]; ok {
+			if request.Content != "" {
 				t.Error("tombstone disclosed source content")
 			}
-			if _, ok := event["title"]; ok {
+			if request.Title != "" {
 				t.Error("tombstone disclosed source title")
 			}
 		}
-		w.Write([]byte(`{"applied":true}`))
+		projectionACK(w, request, raw)
 	}))
 	defer provider.Close()
 	t.Setenv("SUMA_KNOWLEDGE_URL", provider.URL)
@@ -206,7 +217,7 @@ func TestDeletedSourceRejectsLateIndexHitAndProjectionSchemaIsInstalled(t *testi
 	record := f.call("POST", "/documents", f.body(map[string]any{"title": "deleted source", "data": map[string]any{"content": "old content"}}), 201)
 	record = f.call("PATCH", "/documents/"+record["id"].(string), f.body(map[string]any{"expected_version": record["version"], "status": "deleted"}), 200)
 	provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"items": []any{map[string]any{"source_ref": record["id"], "revision": 1, "title": "stale upsert", "snippet": "old private body"}, map[string]any{"source_ref": record["id"], "revision": record["version"], "title": "wrong indexed tombstone", "snippet": "private body"}}})
+		_ = json.NewEncoder(w).Encode(ic.SearchResult{Protocol: ic.Protocol, Mode: "lancedb_fts", Generation: "fixture-typed", IndexWatermark: 1, Items: []ic.SearchHit{{Source: ic.Source{Kind: "documents", ID: record["id"].(string), Sequence: 1, Revision: 1, SHA256: ic.Digest([]byte("\nold content"))}, Locator: ic.Locator{Unit: "unicode_codepoints", Start: 0, End: 4}}}})
 	}))
 	defer provider.Close()
 	t.Setenv("SUMA_KNOWLEDGE_URL", provider.URL)

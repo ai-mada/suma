@@ -123,20 +123,21 @@ var cliMessages = map[string]cliMessage{
 	"API mutations require explicit --method and --file":                 {"cli.api.write_options", "API 写操作必须显式提供 --method 和 --file"},
 	"GET does not accept --file":                                         {"cli.api.get_file", "GET 不接受 --file"},
 	"knowledge requires list, search, show, history, create, edit, extract, or command; use knowledge --help": {"cli.knowledge.action_required", "knowledge 需要 list、search、show、history、create、edit、extract 或 command，请查看 knowledge --help"},
-	knowledgeSearchUsage:           {"cli.knowledge.search_usage", "knowledge search 支持 --query（最多 200 UTF-8 字节）、--kind memory|spec|skill、--limit 1–20、原 --cursor（最多 2048 字节）和 --format json|table；请查看 knowledge --help"},
-	knowledgeSearchResponseInvalid: {"cli.knowledge.search_response", "知识发现结果须保留当前项目的准确发布引用及有界扫描的继续依据"},
-	"invalid knowledge filters or pagination; limit must be 1..100":                                                           {"cli.context.query_invalid", "知识筛选或分页参数无效，limit 必须为 1–100"},
-	"project context command requires a valid resource ID":                                                                    {"cli.context.id_required", "项目上下文命令需要有效的资源标识"},
-	"project context show accepts only the resource ID":                                                                       {"cli.context.show_options", "项目上下文 show 仅接受资源标识"},
-	"unknown project context command; use knowledge --help or requirement design --help":                                      {"cli.context.command_unknown", "未知项目上下文命令，请查看 knowledge --help 或 requirement design --help"},
-	"requirement design requires an action and requirement ID; use requirement design --help":                                 {"cli.design.action_required", "requirement design 需要操作和需求标识，请查看 requirement design --help"},
-	"project context request requires --file JSON_FILE or --file -":                                                           {"cli.context.file_required", "项目上下文请求需要 --file JSON_FILE 或 --file -"},
-	"webhook requires deliver; see --help":                                                                                    {"cli.webhook.command_required", "webhook 需要 deliver，请查看 --help"},
+	knowledgeSearchUsage:                                                                      {"cli.knowledge.search_usage", "knowledge search 支持 --mode keyword|index、--query（最多 200 UTF-8 字节）、--kind memory|spec|skill、--limit 1–20 和 --format json|table；index 须非空查询且禁止 --cursor，keyword 可用原 --cursor（最多 2048 字节）；请查看 knowledge --help"},
+	knowledgeIndexSearchResponseInvalid:                                                       {"cli.knowledge.index_search_response", "知识索引检索须保留准确发布来源、Unicode 码点定位和真实提供方候选事实"},
+	knowledgeSearchResponseInvalid:                                                            {"cli.knowledge.search_response", "知识发现结果须保留当前项目的准确发布引用及有界扫描的继续依据"},
+	"invalid knowledge filters or pagination; limit must be 1..100":                           {"cli.context.query_invalid", "知识筛选或分页参数无效，limit 必须为 1–100"},
+	"project context command requires a valid resource ID":                                    {"cli.context.id_required", "项目上下文命令需要有效的资源标识"},
+	"project context show accepts only the resource ID":                                       {"cli.context.show_options", "项目上下文 show 仅接受资源标识"},
+	"unknown project context command; use knowledge --help or requirement design --help":      {"cli.context.command_unknown", "未知项目上下文命令，请查看 knowledge --help 或 requirement design --help"},
+	"requirement design requires an action and requirement ID; use requirement design --help": {"cli.design.action_required", "requirement design 需要操作和需求标识，请查看 requirement design --help"},
+	"project context request requires --file JSON_FILE or --file -":                           {"cli.context.file_required", "项目上下文请求需要 --file JSON_FILE 或 --file -"},
+	"webhook requires deliver; see --help":                                                    {"cli.webhook.command_required", "webhook 需要 deliver，请查看 --help"},
 	"webhook deliver requires --ingress (32 hex), --delivery (8..128 safe characters), --file, and a valid --secret-env name": {"cli.webhook.options_invalid", "webhook deliver 需要 --ingress（32 位十六进制）、--delivery（8–128 个安全字符）、--file 和有效的 --secret-env 名称"},
 	"signed delivery requires HTTPS except for loopback development":                                                          {"cli.webhook.https_required", "签名投递需要 HTTPS，本机回环开发除外"},
 	"signing key environment must contain 64 lowercase hex characters; do not pass keys in arguments":                         {"cli.webhook.key_invalid", "签名密钥环境变量必须包含 64 位小写十六进制字符，不要通过命令参数传递密钥"},
-	"unable to open event JSON file":                                                                                          {"cli.webhook.file_unreadable", "无法打开事件 JSON 文件"},
-	"event must be one UTF-8 JSON object at most 2 MiB; exact bytes are retained for signing":                                 {"cli.webhook.body_invalid", "事件必须是至多 2 MiB 的单个 UTF-8 JSON 对象，签名保留原始字节"},
+	"unable to open event JSON file": {"cli.webhook.file_unreadable", "无法打开事件 JSON 文件"},
+	"event must be one UTF-8 JSON object at most 2 MiB; exact bytes are retained for signing": {"cli.webhook.body_invalid", "事件必须是至多 2 MiB 的单个 UTF-8 JSON 对象，签名保留原始字节"},
 	"invalid ingress request": {"cli.webhook.request_invalid", "接入请求无效"},
 	"signed delivery outcome may be unknown; retry the same ingress, delivery ID and exact body; timestamp and signature will be refreshed": {"cli.webhook.outcome_unknown", "签名投递结果可能未知；请使用相同接入点、投递标识和原始正文重试，时间戳与签名会刷新"},
 	"signed delivery rejected; inspect the ingress configuration and delivery history before retrying":                                      {"cli.webhook.rejected", "签名投递被拒绝；重试前请检查接入配置和投递历史"},
@@ -206,7 +207,7 @@ const contextHelpEN = `
 Governed project context (global flags still go before the command):
   knowledge list [--kind memory|spec|skill] [--state draft|published|retired]
                  [--query TEXT] [--limit 1..100] [--cursor NEXT_CURSOR]
-  knowledge search [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
+  knowledge search [--mode keyword|index] [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
                    [--cursor NEXT_CURSOR] [--format json|table]
   knowledge show ID
   knowledge history ID [--limit 1..100] [--cursor NEXT_CURSOR]
@@ -226,8 +227,11 @@ Review plan_sha256 before explicit adoption; adoption does not start a run.
 After an unknown write result, retain the original caller, path, body and operation key.
 Never refresh identity or retry automatically. Read current state before the next CAS.
 Response snapshots, user text and numeric lexemes stay unchanged across languages.
-search discovers eligible publications only; omit --query to browse. Default output is JSON.
-Each call scans at most 200 candidates. An empty page with next_cursor requires explicit continuation.
+search discovers eligible publications only; default mode is keyword and output is JSON.
+keyword permits browsing without --query and scans at most 200 candidates per page;
+an empty page with next_cursor requires explicit continuation through --cursor.
+index requires a nonempty --query and forbids --cursor. It reports actual provider mode,
+generation, watermark and candidate scope, without automatic keyword fallback.
 References are exact id/revision/sha256 values; discovery does not adopt, publish or start a task.
 `
 
@@ -235,7 +239,7 @@ const contextHelpZH = `
 受治理的项目上下文（全局参数仍放在命令前）：
   knowledge list [--kind memory|spec|skill] [--state draft|published|retired]
                  [--query TEXT] [--limit 1..100] [--cursor NEXT_CURSOR]
-  knowledge search [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
+  knowledge search [--mode keyword|index] [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
                    [--cursor NEXT_CURSOR] [--format json|table]
   knowledge show ID
   knowledge history ID [--limit 1..100] [--cursor NEXT_CURSOR]
@@ -254,8 +258,11 @@ preview 是只读 POST，不添加操作标识、不更改任务、不预留资�
 明确采用前须审阅 plan_sha256；采用不会启动运行。
 写入结果未知时，保留原调用者、路径、正文和操作标识，不自动刷新身份或重试。
 下一次 CAS 前重新读取当前状态；用户原文、快照和数字字面量不随语言改变。
-search 只发现当前可用的已发布知识；省略 --query 可浏览，默认输出 JSON。
-每次最多扫描 200 条候选；空页若含 next_cursor，须显式通过 --cursor 继续。
+search 只发现当前可用的已发布知识；默认 keyword 模式，默认输出 JSON。
+keyword 模式省略 --query 可浏览，每页最多扫描 200 条候选；
+空页若含 next_cursor，须显式通过 --cursor 继续。
+index 模式须提供非空 --query 且禁止 --cursor；显示真实提供方模式、代际、水位
+和候选范围，不会自动回退关键词检索。
 准确引用包含 id、revision 和 sha256；发现不会采用、发布或启动任务。
 `
 

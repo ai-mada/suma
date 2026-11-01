@@ -1,53 +1,60 @@
 # Suma Knowledge Service
 
-独立 TypeScript 服务，默认监听 `127.0.0.1:4312`。文档原件属于控制服务 SQL 数据库；本服务只保存可重建的检索分块与 revision/tombstone 清单。
+速码 1.0.0 独立检索服务。正式原件、发布权限和事务 outbox 由 Go 控制面管理；本服务保存可重建的 typed source 分块、不可变来源快照、向量缓存及退役墓碑。默认监听 `127.0.0.1:4312`。
 
-构建：`pnpm --filter @suma/knowledge build`；运行：`pnpm --filter @suma/knowledge start`。
+构建：`pnpm --filter @suma/knowledge build`；运行：`pnpm --filter @suma/knowledge start`。唯一私有协议为 `suma-knowledge-index-v1`，接口类型由 Go 合同生成至 [src/contract.ts](src/contract.ts)，不得独立维护另一套 wire。
 
-| 变量 | 含义 |
+| 环境变量 | 含义 |
 | --- | --- |
-| `SUMA_KNOWLEDGE_TOKEN` | 必填，内部服务 Bearer token；与控制服务保持一致 |
-| `SUMA_KNOWLEDGE_DIR` | 默认 `.suma/knowledge`；一个目录只能由一个服务进程持有 |
-| `SUMA_KNOWLEDGE_PORT` | 默认 4312；只绑定 loopback |
-| `SUMA_KNOWLEDGE_BACKEND` | 默认 `lancedb`；可设置 `oceanbase` |
-| `SUMA_KNOWLEDGE_OB_URL` | OceanBase MySQL-mode 连接 URI，仅从环境读取 |
-| `SUMA_KNOWLEDGE_OB_TLS` | 远程 OceanBase 必须为 `true`，校验服务端证书 |
-| `SUMA_EMBEDDING_URL` | 可选，完整 OpenAI-compatible `/embeddings` endpoint |
-| `SUMA_EMBEDDING_MODEL` | 启用 embedding 时必填 |
-| `SUMA_EMBEDDING_DIMENSIONS` | 启用 embedding 时必填，1–4096 |
-| `SUMA_EMBEDDING_VERSION` | 启用 embedding 时必填，由运维显式管理 |
-| `SUMA_EMBEDDING_API_KEY` | 可选服务商密钥，不写入 manifest 或文档 |
+| `SUMA_KNOWLEDGE_TOKEN` | 必填，内部服务 Bearer token，与控制面一致 |
+| `SUMA_KNOWLEDGE_DIR` | 默认 `.suma/knowledge`，同一目录仅允许一个进程持有 |
+| `SUMA_KNOWLEDGE_HOST` / `SUMA_KNOWLEDGE_PORT` | 默认 `127.0.0.1:4312` |
+| `SUMA_KNOWLEDGE_BACKEND` | `lancedb`（默认）或 `oceanbase` |
+| `SUMA_KNOWLEDGE_OB_URL` / `SUMA_KNOWLEDGE_OB_TLS` | MySQL 模式连接 URI；远程 OceanBase 必须校验 TLS |
+| `SUMA_EMBEDDING_URL` | 可选，完整 OpenAI-compatible `/embeddings` 地址；HTTPS 或 loopback |
+| `SUMA_EMBEDDING_MODEL` / `SUMA_EMBEDDING_DIMENSIONS` / `SUMA_EMBEDDING_VERSION` | 启用 embedding 时必填；维数 1–4096，处理版本由管理员明确管理 |
+| `SUMA_EMBEDDING_API_KEY` | 可选服务商密钥，不进入来源快照或目录元数据 |
+| `SUMA_KNOWLEDGE_MAX_QUEUED_OPERATIONS` | 默认 64，范围 1–4096（含执行中）；满队列返回 `503 index_busy` |
 
-## 内部 HTTP 合同
+## 来源、回执和查询
 
-`GET /health` 实际执行 native FTS 查询，配置 vector 时同时执行 native vector 查询；返回 `available`、`verified`、`mode`、`profile`、`index_watermark`。该只读探针不要求 token。embedding 的 `configured/verified` 分开报告；verified 只有当前进程实际收到并校验了 embedding 响应后才为 true，不因为环境变量存在就置 true。
+`POST /index` 与 `POST /search` 必须携带内部 Bearer token 和 JSON Content-Type。内部 token 能选择 tenant/project，必须留在服务端。控制面仍在检索后重新读取当前权限、来源及精确发布引用。
 
-`POST /index`、`POST /search` 必须携带 `Authorization: Bearer <SUMA_KNOWLEDGE_TOKEN>` 与 JSON Content-Type。服务不接受浏览器会话身份；tenant/project 来自已经完成授权的控制服务，**内部 token 可以选择租户，因此不得发给普通用户或前端**。
+来源身份为 `(tenant_id, project_id, source.kind, source.id)`，其中 kind 为 `documents` 或 `project_knowledge`。`source.sequence` 是正式业务的单调版本；`source.revision/sha256` 是当前文档版本或精确发布引用，不能混用。尚未发布便退役的知识仅可使用 delete、revision=0、空 SHA。delete 的 title/content 必须存在且均为空串。
 
-```json
-{"tenant_id":"tenant-1","project_id":"project-1","source_id":"document-1","revision":3,"title":"发布说明","content":"文档正文","action":"upsert"}
-```
+每次请求包含独立 `event_id`。回执精确返回原 event、scope、source、action、实际 HTTP 原始字节摘要 `request_sha256`、`generation`、`index_watermark` 和 `applied|duplicate|obsolete`。同 sequence 不同内容会冲突；墓碑阻止旧事件复活。控制面只有核验原回执后才能推进 outbox。
 
-`revision` 是 JSON 数值类型的正的单调递增安全整数；同 revision 的内容不可变。删除使用 `action:"delete"` 和更高 revision，title/content 可省略。乱序旧事件不会覆盖新 revision；delete tombstone 阻止相同/更旧 revision 的 upsert 复活。
+搜索必须提供 protocol、tenant/project、source_kind、非空 query 与 limit（1–100）。结果只含 typed source 和 `{unit:"unicode_codepoints",start,end}` 定位；不把索引副本标题、正文或外部排名当作正式业务证据。start 为零起始、end 为排他边界。控制面从当前原文提取展示片段，并再次检查精确版本和权限。
 
-```json
-{"tenant_id":"tenant-1","project_id":"project-1","query":"发布","limit":10}
-```
+单份来源正文最多 1 MiB、标题最多 4096 UTF-8 字节；私有 index JSON 最多 8 MiB，以覆盖 Go JSON 转义开销。搜索 JSON 最多 16 KiB。分块为 1500 个 Unicode codepoint、重叠 150；emoji 不被 UTF-16 代理对截断。
 
-搜索返回 `{items:[{id,title,snippet,source_ref,revision,locator}],mode,index_watermark}`。limit 默认 10，上限 50。每个 chunk 保留原 source、revision 和字符位置 locator；snippet 最多 600 字符。每份源文档最大 1 MiB，JSON 请求最多 2 MiB。
+## 真实原生检索
 
-## Native 索引与更新
+LanceDB 使用已安装 `@lancedb/lancedb` 原生 FTS、向量查询及 `RRFReranker`：有 embedding 时实际执行 FTS 与向量双路融合，返回 `lancedb_hybrid`；无 embedding 时返回 `lancedb_fts`。所有召回均先应用 tenant/project/source_kind 过滤。ngram tokenizer 支持中英文，无词典下载；未声明已建立向量 ANN 索引。
 
-LanceDB 使用 `@lancedb/lancedb` 的持久表，FTS 使用 native `Index.fts`，查询使用 `MatchQuery(..., Operator.And)` 与 tenant/project 前置过滤。ngram tokenizer 支持中英文字符，避免依赖下载词典。没有 embedding 时不生成伪向量；配置后调用真实 embedding endpoint，按维数校验并执行 Lance 原生向量最近邻查询。当前本地向量查询是精确检索，没有声明已经建立 ANN 索引。参见 [LanceDB FTS 官方文档](https://docs.lancedb.com/search/full-text-search) 和 [FTS index options](https://docs.lancedb.com/indexing/fts-index)。
+OceanBase 通过 mysql2、原生全文索引和向量索引查询；有 embedding 时执行两个原生 SQL 召回并在应用层按 RRF 融合，返回 `oceanbase_hybrid`，否则 `oceanbase_fts`。连接先核验 OceanBase 身份，远程连接要求 TLS，不降级冒充其他数据库。本环境尚未进行 OceanBase 物理验收。
 
-OceanBase 适配器通过 mysql2 执行真正的 `FULLTEXT ... WITH PARSER IK`、`MATCH AGAINST`、`VECTOR(dim)`、HNSW `VECTOR INDEX` 与 `l2_distance ... APPROXIMATE LIMIT`。不会把 JSON 向量拉回 JavaScript 全量扫描。服务先检查 OceanBase 版本标识，再执行建表与 native 查询探针；不支持的数据库/版本会启动失败，不降级冒充 OceanBase。向量内存设置与数据库权限由管理员配置，本服务不执行 `ALTER SYSTEM`。参见 [OceanBase vector SQL quick start](https://github.com/oceanbase/oceanbase-doc/blob/master/en-US/640.ob-vector-search/120.ob-vector-search-quick-start/100.ob-vector-search-sql-quick-start.md) 和 [全文索引官方说明](https://github.com/oceanbase/oceanbase-doc/blob/master/zh-CN/700.reference/300.database-object-management/100.manage-object-of-mysql-mode/500.manage-indexes-of-mysql-mode/200.create-an-index-of-mysql-mode.md)。
+## 持久化与有界分代重建
 
-分块固定 1500 字符、重叠 150 字符。更新先将 manifest 标为 pending，再完整替换该源当前 profile 的所有 chunk；源变短时旧尾部不会残留。写入成功后激活 revision 并推进 watermark。进程崩溃留下的 pending revision 不对搜索可见，同 revision 事件重放可以修复；源原件仍在控制服务 SQL 中。manifest 只含源标识、版本与阶段元数据，不存可检索正文。搜索结果再次核对 manifest 的活跃 revision/tombstone，防止跨 profile 旧数据泄出。
+目录内采用小型 `catalog.json`、256 分片的 per-source head、内容寻址不可变 snapshots 和按处理配置绑定的 vectors。正常写入不会重写全库正文。head 更新先保存 durable inflight 意图，重启补全同一意图；来源先 pending、原生全替换成功后才 active。pending 或不属于当前 generation 的来源不会进入结果。旧格式 `manifest.json` 明确拒绝，不隐式转换或清空。
 
-模型名、维数、embedding 版本与 chunker 版本共同决定独立表名。切换配置会创建新 profile，需要控制服务重新投递所有存量源；不能混用旧向量，也不会自动假定重建已完成。旧 profile 表保留，当前没有自动 GC；容量管理必须保留 tombstone 元数据。每次应用事件串行执行；这是一进程索引服务，不支持多个实例同时写同一目录。
+处理配置包括后端、模型、维数、embedding 地址/版本及 chunker。配置变化进入 `rebuild_required`；必须明确提供以下四项才能开始真实新 generation：
 
-## 已验证与限制
+| 环境变量 | 必填预算 |
+| --- | --- |
+| `SUMA_KNOWLEDGE_REBUILD_OPERATION_ID` | 新的操作标识 |
+| `SUMA_KNOWLEDGE_REBUILD_MAX_SOURCES` | 最多处理来源数，1–10000000 |
+| `SUMA_KNOWLEDGE_REBUILD_MAX_EMBEDDING_REQUESTS` | 最多实际 embedding 请求数，0–10000000 |
+| `SUMA_KNOWLEDGE_REBUILD_MAX_DURATION_MS` | 总截止时间，1–604800000 ms |
 
-Windows 下已实际运行 LanceDB native 测试：租户隔离、源缩短全替换、删除与乱序重放、重启后 tombstone、内部 HTTP token 校验、native 向量检索、模型版本表隔离。embedding 测试使用本机协议 fixture，未调用付费模型。OceanBase SQL 适配器已通过 TypeScript 编译，但本环境没有 OceanBase 服务，兼容性与性能仍为 **unverified**；不得标注生产验证完成。
+重建后台串行遍历保存的 typed head 和准确来源快照，保留游标、已消费请求和原截止时间；同 operation 重启不重置预算。超额或失败进入 blocked，新的明确 operation 可继续恢复。已落盘且输入摘要/维数有效的向量批次可复用。正常 outbox 投递有每来源 32 次持久 embedding 尝试上限；明确批准的 rebuild 使用自己的总预算，不清除或受困于旧正常重试历史。
 
-当前一次搜索最多读取 10 倍 limit 的 native 候选，再排除 manifest 中的过期项；profile 切换后大量旧候选可能影响返回条数，运维应尽快完成存量重建。远程 embedding 失败会保留 pending 状态并由控制服务 outbox 重放；不会返回伪造的语义结果。没有实现混合检索/RRF、ACL 到文档级别的授权或自动源回填。
+只有全部当前来源均达到目标 generation，且 pending_count=0，才发布 active_generation。重建期间查询和投递明确返回 `503 index_rebuild_required|index_rebuilding|index_blocked`；控制面保留 outbox，用户可继续关键词发现。`index_watermark` 仅为本索引实例的持久投影位置，不是业务全库追平或权限水位。
+
+`GET /health` 不排在重建队列后。匿名访问只给状态/phase；携带内部 token 才返回 generation、来源数、pending 与重建预算进度。embedding_configured 与当前进程真实响应验证 embedding_verified 分开，健康检查不调用 embedding 服务。
+
+客户端离开会取消尚未开始的队列项，并中止 embedding HTTP。已进入的原生 SDK 查询无法强中止时，等待完成并丢弃取消结果；不声称原生树已被停止。重建与普通写入共用单目录 owner，不支持多主机共享目录或 HA；旧 generation 和不可变快照不自动 GC。
+
+## 验证范围
+
+T197 定向验证真实本机 LanceDB 的跨领域同 ID 隔离、乱序/重复/墓碑、缩短全替换、重启、混合检索、预算耗尽与显式恢复、队列取消/背压、原始 HTTP 字节回执与内部身份边界。embedding 使用自有 loopback 二维协议夹具，未调用商业模型。Go 控制面另核验 exact ACK、当前原文 codepoint 片段和本地化安全错误码。完整 HTTP/SQLite/原生索引纵向验收证据由主集成流程统一记录；OceanBase、商业 embedding 和规模验收分别列为待验，不以模拟通过代替。

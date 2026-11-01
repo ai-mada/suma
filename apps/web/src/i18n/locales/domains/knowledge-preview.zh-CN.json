@@ -12,5 +12,10 @@
  "knowledge-preview.state.source_changed":"来源已变化或不再符合采用条件。保留历史正文，不允许新的选择。",
  "knowledge-preview.state.unavailable":"此引用或当前资格尚未核实，请重新读取原引用。",
  "knowledge-preview.state.stale":"刷新失败，保留上次正文供参考；当前读取成功前暂停选择。",
- "knowledge-preview.state.denied":"当前无权读取，已清除受保护正文和来源。"
+ "knowledge-preview.state.denied":"当前无权读取，已清除受保护正文和来源。",
+ "knowledge-preview.invalid_location":"定位与此准确发布引用或原文范围不符。",
+ "knowledge-preview.state.invalid_location":"定位与此准确发布修订不符。保留原文供阅读，位置校正前禁止选择。",
+ "knowledge-preview.location_verified":"已按此准确发布原文核对位置。高亮不改变引用，也不增加选择资格。",
+ "knowledge-preview.locate":"定位到原文",
+ "knowledge-preview.whole_text":"查看全文"
 }

@@ -155,6 +155,43 @@
       ]
     },
     {
+      "name": "project.knowledge.index_search",
+      "mcp_name": "suma_project_knowledge_index_search",
+      "description": "通过已配置索引发现当前可采用的已发布知识并核验准确引用，不自动采用",
+      "description_key": "knowledge.agent_index_search",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "q": {
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "agent",
+        "api"
+      ]
+    },
+    {
       "name": "project.requirements",
       "mcp_name": "suma_project_requirements",
       "description": "分页读取当前项目需求",

@@ -18,6 +18,15 @@ import (
 
 var models = map[string]reflect.Type{}
 
+// Internal index types keep their concise Go package names while generated
+// contracts retain an explicit domain namespace across independently built apps.
+func wireModelName(t reflect.Type) string {
+	if t.PkgPath() == "github.com/ai-mada/suma/internal/indexcontract" {
+		return "KnowledgeIndex" + t.Name()
+	}
+	return t.Name()
+}
+
 func schema(t reflect.Type) map[string]any {
 	if t.Kind() == reflect.Pointer {
 		return map[string]any{"anyOf": []any{schema(t.Elem()), map[string]any{"type": "null"}}}
@@ -38,8 +47,9 @@ func schema(t reflect.Type) map[string]any {
 	case reflect.Interface:
 		return map[string]any{}
 	case reflect.Struct:
-		models[t.Name()] = t
-		return map[string]any{"$ref": "#/components/schemas/" + t.Name()}
+		name := wireModelName(t)
+		models[name] = t
+		return map[string]any{"$ref": "#/components/schemas/" + name}
 	}
 	return map[string]any{}
 }
@@ -106,7 +116,7 @@ func ts(t reflect.Type) string {
 	case reflect.Map:
 		return "{ [key: string]: " + ts(t.Elem()) + " }"
 	case reflect.Struct:
-		return t.Name()
+		return wireModelName(t)
 	}
 	return "unknown"
 }
@@ -320,6 +330,9 @@ func generate() (map[string]any, string) {
 	for _, v := range knowledgeDiscoveryModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range knowledgeProjectionModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range localizationModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -446,6 +459,7 @@ func generate() (map[string]any, string) {
 	notificationInboxContracts(add, api)
 	projectKnowledgeContracts(add, api)
 	knowledgeDiscoveryContracts(add, api)
+	knowledgeProjectionContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)
 	taskHandoffContracts(add, api)
@@ -531,6 +545,7 @@ func generate() (map[string]any, string) {
 				optional = "?"
 			}
 			wireType := ts(f.Type)
+			wireType = knowledgeProjectionWireType(t, f, wireType)
 			if t.Name() == "ProjectKnowledgeDiscovery" {
 				switch f.Name {
 				case "Mode":
@@ -631,6 +646,13 @@ func main() {
 	}
 	if err == nil {
 		err = emit("packages/contracts/src/index.ts", []byte(types), *check)
+	}
+	if err == nil {
+		var indexTypes []byte
+		indexTypes, err = knowledgeIndexRuntimeTypes(types)
+		if err == nil {
+			err = emit("packages/knowledge/src/contract.ts", indexTypes, *check)
+		}
 	}
 	if err == nil {
 		var catalogue []byte

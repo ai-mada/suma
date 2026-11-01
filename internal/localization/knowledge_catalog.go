@@ -2,6 +2,15 @@ package localization
 
 // Exact product diagnostics; knowledge text and immutable evidence are never translated.
 var knowledgeCatalog = []Definition{
+	{Key: "knowledge.index_busy", Texts: map[Locale]string{ZhCN: "检索请求较多，请稍后重试", EnUS: "The index is busy. Try again shortly."}},
+	{Key: "knowledge.index_rebuild_required", Texts: map[Locale]string{ZhCN: "索引需要重建；关键词发现仍可使用", EnUS: "The index requires rebuilding. Keyword discovery remains available."}},
+	{Key: "knowledge.index_rebuilding", Texts: map[Locale]string{ZhCN: "索引正在重建；关键词发现仍可使用", EnUS: "The index is rebuilding. Keyword discovery remains available."}},
+	{Key: "knowledge.index_blocked", Texts: map[Locale]string{ZhCN: "索引重建已阻塞；请联系管理员", EnUS: "Index rebuilding is blocked. Contact an administrator."}},
+	{Key: "knowledge.index_unavailable", Texts: map[Locale]string{ZhCN: "检索服务暂不可用；资料原件与关键词发现仍可访问", EnUS: "The index service is unavailable. Original materials and keyword discovery remain accessible."}},
+	{Key: "knowledge.index_request_invalid", Texts: map[Locale]string{ZhCN: "查询参数或来源范围无效", EnUS: "The index query or source scope is invalid."}},
+	{Key: "knowledge.index_source_invalid", Texts: map[Locale]string{ZhCN: "索引来源或正文超出当前合同范围", EnUS: "The index source or content exceeds the current contract limits."}},
+	{Key: "knowledge.index_query_invalid", Texts: map[Locale]string{ZhCN: "项目知识索引查询无效", EnUS: "The project knowledge index query is invalid."}},
+	{Key: "knowledge.agent_index_search", Texts: map[Locale]string{ZhCN: "通过已配置索引发现当前可采用的已发布知识并核验准确引用，不自动采用", EnUS: "Discover eligible published knowledge through the configured index and verify exact references without automatic adoption."}},
 	{Key: "knowledge.update_scope", Texts: map[Locale]string{ZhCN: "修改知识需要当前项目及预期版本", EnUS: "Updating knowledge requires the current project and expected version."}},
 	{Key: "knowledge.context_limit", Texts: map[Locale]string{ZhCN: "单次上下文最多选择16项知识", EnUS: "Select at most 16 knowledge revisions per context."}},
 	{Key: "knowledge.draft_required", Texts: map[Locale]string{ZhCN: "只有当前草稿可以发布", EnUS: "Only the current draft can be published."}},
