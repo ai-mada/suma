@@ -66,7 +66,7 @@ func newDriver(parent context.Context, o Options) (*Driver, error) {
 	return newTransport(parent, o, nil)
 }
 func newTransport(parent context.Context, o Options, discovery *discoveryState) (*Driver, error) {
-	if parent == nil || !filepath.IsAbs(o.Cwd) || len(o.Secrets) > 128 {
+	if parent == nil || !filepath.IsAbs(o.Cwd) || len(o.Secrets) > 128 || o.Runtime != "" && o.Runtime != "qoder" && o.Runtime != "cursor" {
 		return nil, errors.New("acp_options_invalid")
 	}
 	total := 0
@@ -125,7 +125,7 @@ func (d *Driver) run() {
 		d.result.Evidence.AgentName, _ = safeText(initialized.AgentInfo.Name, d.options.Secrets)
 		d.result.Evidence.AgentVersion, _ = safeText(initialized.AgentInfo.Version, d.options.Secrets)
 	}
-	if !text(d.result.Evidence.AgentName, 256, false) || !text(d.result.Evidence.AgentVersion, 256, false) {
+	if initialized.AgentInfo == nil && d.options.Runtime != "cursor" || initialized.AgentInfo != nil && (!text(d.result.Evidence.AgentName, 256, false) || !text(d.result.Evidence.AgentVersion, 256, false)) {
 		d.result.Evidence.AgentName = ""
 		d.result.Evidence.AgentVersion = ""
 		d.mu.Unlock()

@@ -97,9 +97,19 @@ func commandExecutable(spec CommandSpec) (string, string, error) {
 	return exe, hex.EncodeToString(h.Sum(nil)), nil
 }
 
-// For an interpreted runtime, pin the declared entry's bytes as well as
-// the interpreter. This intentionally does not attest all imported modules.
+// Pin each interpreter and its reviewed entry. Cursor additionally checks its
+// complete package closure; the other existing entry policies remain scoped.
 func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error) {
+	if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
+		// This function is also the final pre-spawn gate after workspace and
+		// network preparation. Node alone cannot attest its imported modules.
+		if err := validateACPExecutionSpec(spec); err != nil {
+			return "", err
+		}
+		if _, err := validateCursorPackage(*spec.ACP.CursorPackage); err != nil {
+			return "", err
+		}
+	}
 	if spec.CodexAppServer != nil {
 		return tc.ProfileDigest(struct {
 			Command             CommandSpec `json:"command"`

@@ -15,7 +15,16 @@ const request=()=>({path:'/tool-permissions/permission1/decision',method:'POST',
 describe('ACP execution and permission contracts',()=>{
  it('accepts only fixed administrator Qoder capability without claiming hard budget or vendor identity',()=>{
   expect(validACPCapability(cap())).toBe(true);
+  const cursor={...cap(),runtime:'cursor',auth_strategy:'explicit_api_key_env'};expect(validACPCapability(cursor)).toBe(true);expect(validACPCapability(cursor,'cursor')).toBe(true);expect(validACPCapability(cursor,'qoder')).toBe(false);expect(validACPCapability(cap(),'cursor')).toBe(false);
+  expect(validACPCapability({...cursor,auth_strategy:'existing_cli_login'})).toBe(false);expect(validACPCapability({...cap(),auth_strategy:'explicit_api_key_env'})).toBe(false);
   for(const patch of [{runtime:'other'},{sdk_version:'latest'},{budget_mode:'enforce'},{identity_evidence:'verified'},{permission_mode:'always'},{executable:'qoder'}])expect(validACPCapability({...cap(),...patch})).toBe(false);
+ });
+ it('keeps Cursor fixed capability in the original dispatch and model options without borrowing Qoder authentication or gateway selection',()=>{
+  const cursor={...cap(),runtime:'cursor',auth_strategy:'explicit_api_key_env'},body={project_id:'p1',task_id:'task1',expected_task_version:2,workflow_id:'workflow1',workflow_version:3,agent_node_id:'agent1',tool_profile_id:'cursor-profile',expected_tool_version:4};
+  const plan={id:'plan1',project_id:'p1',task_id:'task1',task_version:2,workflow_id:'workflow1',workflow_version:3,tool_profile_id:'cursor-profile',tool_profile_version:4,agent_node_id:'agent1',acp_execution:cursor,workflow:{nodes:[{id:'agent1',type:'agent',max_retries:0,config:{acp_execution:{...cursor}}}]}};
+  expect(validACPPlan(plan)).toBe(true);expect(validACPDispatchReceipt(plan,body)).toBe(true);expect(validACPPlan({...plan,workflow:{nodes:[{...plan.workflow.nodes[0],config:{acp_execution:cap()}}]}})).toBe(false);expect(validACPDispatchReceipt(plan,{...body,codex_execution_selection:{}})).toBe(false);
+  const modelScope={project:'p1',profile:'cursor-profile',version:4,sha256:hash},options={project_id:'p1',tool_profile_id:'cursor-profile',tool_profile_version:4,tool_profile_sha256:hash,observed_at:created,supported:false,reason:'fixed_by_tool',codex_supported:false,codex_reason:'',items:[],fixed_acp:cursor} as ModelExecutionOptions;
+  expect(validModelOptions(options,modelScope)).toBe(true);expect(validModelOptions({...options,fixed_acp:{...cursor,auth_strategy:'existing_cli_login'}},modelScope)).toBe(false);expect(validModelOptions({...options,supported:true},modelScope)).toBe(false);
  });
  it('separates model selection acknowledgement, prompt completion and host stop evidence',()=>{
   expect(validACPEvidence(proof())).toBe(true);

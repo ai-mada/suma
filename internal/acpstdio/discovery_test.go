@@ -8,11 +8,15 @@ import (
 	"time"
 )
 
-func discoveryFixture(t *testing.T, secrets []string, timeout time.Duration, reply func(*ModelDiscovery, map[string]json.RawMessage)) DiscoveryObservation {
+func discoveryFixture(t *testing.T, secrets []string, timeout time.Duration, reply func(*ModelDiscovery, map[string]json.RawMessage), runtimes ...string) DiscoveryObservation {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	d, err := NewModelDiscovery(ctx, DiscoveryOptions{Cwd: t.TempDir(), Secrets: secrets})
+	runtime := ""
+	if len(runtimes) == 1 {
+		runtime = runtimes[0]
+	}
+	d, err := NewModelDiscovery(ctx, DiscoveryOptions{Cwd: t.TempDir(), Runtime: runtime, Secrets: secrets})
 	if err != nil {
 		t.Fatal(err)
 	}

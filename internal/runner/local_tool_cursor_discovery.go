@@ -7,9 +7,33 @@ import (
 	"runtime"
 )
 
-// Cursor is a passive filename observation only. In particular, an arbitrary
-// program named agent is not vendor, protocol or execution evidence.
+// Named agent/editor/launcher entries remain passive observations. Only the
+// fixed Node+index package is closure-checked and given a read-only version
+// probe; neither observation supplies a model or execution configuration.
 func discoverLocalCursor(ctx context.Context, paths []string) InstalledToolDiscoveryItem {
+	return discoverCursorPackage(ctx, paths, func(ctx context.Context, spec CommandSpec) (string, error) { return probeCursorVersion(ctx, spec, nil) })
+}
+func discoverCursorPackage(ctx context.Context, paths []string, probe func(context.Context, CommandSpec) (string, error)) InstalledToolDiscoveryItem {
+	for _, root := range paths {
+		// Only the fixed package pair is active discovery. Editor entries and
+		// arbitrary programs named agent retain their original passive facts.
+		if _, err := os.Lstat(filepath.Join(root, "index.js")); err != nil {
+			continue
+		}
+		spec, err := BuildCursorACPCommand(root, "discovery-only", "discovery-only", "CURSOR_DISCOVERY_CREDENTIAL")
+		if err != nil {
+			continue
+		}
+		version, err := probe(ctx, spec)
+		if err != nil || !acpLocalText(version, 256) || !cursorPackageUnchanged(*spec.ACP.CursorPackage) {
+			return InstalledToolDiscoveryItem{AdapterID: "cursor-cli", Product: "Cursor", Installed: true, ReasonCode: "probe_failed"}
+		}
+		_, sha, err := qoderNativeTarget(ctx, spec.Executable)
+		if err != nil {
+			continue
+		}
+		return InstalledToolDiscoveryItem{AdapterID: "cursor-cli", Product: "Cursor", Installed: true, Executable: spec.Executable, ExecutableSHA256: sha, Version: version, ReasonCode: "acp_configuration_required"}
+	}
 	return scanLocalCursor(ctx, paths, runtime.GOOS, os.Lstat)
 }
 

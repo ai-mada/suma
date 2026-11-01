@@ -6,7 +6,7 @@ import type {ApiCaller} from './api';
 import {DesktopWorkspacePicker} from './DesktopWorkspacePicker';
 import {validWorkspaceMetadata} from './desktop-workspace-model';
 import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope,type DesktopToolAction,type DesktopToolBridge,type DesktopToolConnection,type DesktopToolPhase,type DesktopToolScope,type DesktopToolRequest} from './desktop-tool-connector-model';
-import {validDesktopACPSelection,type DesktopACPSelection} from './desktop-acp-connector-model';
+import {desktopACPRuntimeForAdapter,validDesktopACPSelection,type DesktopACPSelection} from './desktop-acp-connector-model';
 import {validDesktopCodexSelection,type DesktopCodexSelection} from './desktop-codex-connector-model';
 import {validDesktopOpenCodeSetup,type DesktopOpenCodeSetup} from './desktop-opencode-connector-model';
 import {openCodeEndpointOrigin} from './opencode-execution-model';
@@ -36,7 +36,7 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  // Receipt recovery is independent from the original credential lifecycle.
  // Losing a read/apply response must not turn authorization_required into a new issuance.
  const phase=current?.refusal??(renewalPending?'renewal_unknown':current?.uncertain&&!recoveryRequestPending?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
- const acp=scope.adapterID==='qoder-acp',codex=scope.adapterID==='codex-app-server',opencode=scope.adapterID==='opencode-sdk',native=acp||codex||opencode,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
+ const acp=!!desktopACPRuntimeForAdapter(scope.adapterID),codex=scope.adapterID==='codex-app-server',opencode=scope.adapterID==='opencode-sdk',native=acp||codex||opencode,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
  const selectionValid=(acp?validDesktopACPSelection(acpSelection):codex?validDesktopCodexSelection(codexSelection):opencode?validDesktopOpenCodeSetup(opencodeSetup):false)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
  const localBlocked=!!busy||workspaceBlocked||!!current?.uncertain||recoveryUnsettled||!!phase&&['prepared','issuance_unknown','renewal_unknown','starting','stopping','stop_unconfirmed'].includes(phase);
  useEffect(()=>{onBlockedChange?.(localBlocked);},[localBlocked,onBlockedChange]);

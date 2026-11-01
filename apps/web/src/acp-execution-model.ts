@@ -9,8 +9,8 @@ const text=(v:unknown,limit=32768):v is string=>typeof v==='string'&&wellFormed(
 const token=(v:unknown,limit=128):v is string=>text(v,limit)&&!!v&&v.trim()===v&&!/[\p{Cc}]/u.test(v);
 const hash=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
 const capabilityKeys=['runtime','protocol_version','sdk_version','configuration_sha256','model','model_source','budget_mode','identity_evidence','auth_strategy','permission_mode'] as const;
-export function validACPCapability(value:unknown):value is ACPExecutionCapability{
- return object(value)&&fields(value,capabilityKeys)&&value.runtime==='qoder'&&value.protocol_version===1&&value.sdk_version==='0.13.5'&&hash(value.configuration_sha256)&&token(value.model,256)&&value.model_source==='administrator_session_config'&&value.budget_mode==='observe_only'&&value.identity_evidence==='configuration_ack_only'&&value.auth_strategy==='existing_cli_login'&&value.permission_mode==='human_once';
+export function validACPCapability(value:unknown,expectedRuntime?:'qoder'|'cursor'):value is ACPExecutionCapability{
+ return object(value)&&fields(value,capabilityKeys)&&(expectedRuntime===undefined||value.runtime===expectedRuntime)&&(value.runtime==='qoder'&&value.auth_strategy==='existing_cli_login'||value.runtime==='cursor'&&value.auth_strategy==='explicit_api_key_env')&&value.protocol_version===1&&value.sdk_version==='0.13.5'&&hash(value.configuration_sha256)&&token(value.model,256)&&value.model_source==='administrator_session_config'&&value.budget_mode==='observe_only'&&value.identity_evidence==='configuration_ack_only'&&value.permission_mode==='human_once';
 }
 export function validACPEvidence(value:unknown):value is ACPExecutionEvidence{
  const required=['configuration_sha256','requested_model','model_selection_acknowledged','prompt_started','prompt_completed','tools_complete','permissions_requested','permissions_denied','cancel_requested','host_process_stopped','host_process_tree_stopped'];

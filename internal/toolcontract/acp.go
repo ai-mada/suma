@@ -11,15 +11,15 @@ import (
 )
 
 func acpProfileBase(p Profile) bool {
-	return p.Adapter == "qoder" && p.Protocol == ac.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == "" && p.ModelExecutionProtocol == "" && p.TerminalSessionProtocol == "" && p.TestReportProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.DispatchRecommendation == nil && p.TaskConversationReply == nil && p.ClaudeExecution == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil
+	return (p.Adapter == "qoder" || p.Adapter == "cursor") && p.Protocol == ac.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == "" && p.ModelExecutionProtocol == "" && p.TerminalSessionProtocol == "" && p.TestReportProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.DispatchRecommendation == nil && p.TaskConversationReply == nil && p.ClaudeExecution == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil
 }
 
 func SupportsACPExecutionProfile(p Profile) bool {
-	return acpProfileBase(p) && p.ACPExecution != nil && ac.ValidateCapability(*p.ACPExecution) == nil && ac.ValidFixedText(p.ToolVersion, 256)
+	return acpProfileBase(p) && p.ACPExecution != nil && p.ACPExecution.Runtime == p.Adapter && ac.ValidateCapability(*p.ACPExecution) == nil && ac.ValidFixedText(p.ToolVersion, 256)
 }
 
 func validateACPProfile(p Profile, complete bool) error {
-	if p.Adapter != "qoder" && p.Protocol != ac.Protocol && p.ACPExecution == nil {
+	if p.Adapter != "qoder" && p.Adapter != "cursor" && p.Protocol != ac.Protocol && p.ACPExecution == nil {
 		return nil
 	}
 	if SupportsACPExecutionProfile(p) || !complete && acpProfileBase(p) && p.ACPExecution == nil {
@@ -66,7 +66,7 @@ func DecodeACPNodeConfiguration(config map[string]any) (*ac.Capability, error) {
 
 func validateACPEvidence(e Evidence) error {
 	if e.ACPExecution == nil {
-		if e.Profile.Adapter == "qoder" || e.Profile.Protocol == ac.Protocol {
+		if e.Profile.Adapter == "qoder" || e.Profile.Adapter == "cursor" || e.Profile.Protocol == ac.Protocol {
 			return fmt.Errorf("ACP execution evidence is required")
 		}
 		return nil

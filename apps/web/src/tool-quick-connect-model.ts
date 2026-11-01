@@ -4,6 +4,7 @@ import type {AdapterDescriptor} from './AdapterConnections';
 import type {ToolObservation,ToolProfile} from './tool-model';
 import {wellFormed} from './i18n/catalog';
 import {validCodexCatalog} from './codex-execution-model';
+import {validACPCapability} from './acp-execution-model';
 import type {DesktopCodexConnectedProof} from './desktop-codex-connector-model';
 
 export function isCursorConnectionGuide(adapter:AdapterDescriptor):boolean{
@@ -11,17 +12,19 @@ export function isCursorConnectionGuide(adapter:AdapterDescriptor):boolean{
 }
 
 export function quickConnectAdapters(items:AdapterDescriptor[]){
- return items.filter(item=>item.id!=='cursor-cli'&&item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&!!item.adapter&&!!item.protocol);
+ return items.filter(item=>item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&!!item.adapter&&!!item.protocol&&(item.id!=='cursor-cli'||cursorACPDescriptor(item)));
 }
+const cursorACPDescriptor=(item:AdapterDescriptor)=>item.id==='cursor-cli'&&item.product==='Cursor'&&item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&item.adapter==='cursor'&&item.protocol==='acp-stdio-v1';
 export function quickConnectWorkers(local:readonly {worker_id:string;status:string}[],shared:readonly {worker_id:string;status:string}[]){
  return [...new Set([...local,...shared].filter(item=>item.status==='active').map(item=>item.worker_id))];
 }
 export type ConfirmedNativeToolProof=Pick<DesktopCodexConnectedProof,'configuration_sha256'|'executable_sha256'|'tool_version'|'catalog_sha256'>;
 export type ConfirmedOpenCodeToolProof=Omit<DesktopOpenCodeConnectedProof,'worker_id'>;
 export function matchingQuickTools(items:ToolObservation[],adapter:AdapterDescriptor,proof?:ConfirmedNativeToolProof|ConfirmedOpenCodeToolProof){
- if(adapter.id==='cursor-cli'||adapter.direction!=='suma_to_tool'||adapter.setup_kind!=='runner_profile'||adapter.implementation!=='implemented')return [];
+ if(adapter.direction!=='suma_to_tool'||adapter.setup_kind!=='runner_profile'||adapter.implementation!=='implemented'||adapter.id==='cursor-cli'&&!cursorACPDescriptor(adapter))return [];
  return items.filter(item=>{
   if(item.profile.adapter!==adapter.adapter||item.profile.protocol!==adapter.protocol)return false;
+  if(adapter.id==='cursor-cli'&&!validACPCapability(item.profile.acp_execution,'cursor'))return false;
   if(adapter.id==='opencode-sdk'&&proof!==undefined){
    const c=item.profile.opencode_execution;
    return 'model' in proof&&proof.tool_version==='1.19.4'&&/^[a-f0-9]{64}$/.test(proof.executable_sha256)&&item.available===true&&item.profile.tool_version==='suma-opencode-runtime 1.0.0'&&validOpenCodeCapability(c)&&c.configuration_sha256===proof.configuration_sha256&&c.provider_id===proof.provider_id&&c.model===proof.model&&c.endpoint_origin===proof.endpoint_origin;
@@ -55,11 +58,17 @@ function readCursorDiscovery(value:unknown):InstalledToolFact|undefined{
  const items=value.report.items;
  if(!Array.isArray(items)||Object.getPrototypeOf(items)!==Array.prototype||items.length!==1||Reflect.ownKeys(items).length!==2||!Object.hasOwn(items,'0'))return;
  const row=items[0];
- if(!cursorObject(row)||!cursorFields(row,['adapter_id','product','installed','launch_supported','reason_code'],['executable'])||row.adapter_id!=='cursor-cli'||row.product!=='Cursor'||typeof row.installed!=='boolean'||row.launch_supported!==false)return;
+ if(!cursorObject(row)||!cursorFields(row,['adapter_id','product','installed','launch_supported','reason_code'],['executable','version','executable_sha256'])||row.adapter_id!=='cursor-cli'||row.product!=='Cursor'||typeof row.installed!=='boolean'||row.launch_supported!==false)return;
+ const sourceFields=['executable','version','executable_sha256'];
+ const localPath=(value:unknown):value is string=>typeof value==='string'&&wellFormed(value)&&safeText(value,4096)&&(/^[a-z]:[\\/]/i.test(value)||/^\/(?!\/)/.test(value));
  if(['not_installed','cursor_editor_only','cursor_scan_incomplete'].includes(row.reason_code as string)){
-  if(row.installed||Object.hasOwn(row,'executable'))return;
+  if(row.installed||sourceFields.some(key=>Object.hasOwn(row,key)))return;
  }else if(row.reason_code==='cursor_agent_unverified'||row.reason_code==='cursor_launcher_unsupported'){
-  if(!row.installed||typeof row.executable!=='string'||!wellFormed(row.executable)||!safeText(row.executable,4096)||!(/^[a-z]:[\\/]/i.test(row.executable)||/^\/(?!\/)/.test(row.executable)))return;
+  if(!row.installed||!localPath(row.executable)||['version','executable_sha256'].some(key=>Object.hasOwn(row,key)))return;
+ }else if(row.reason_code==='acp_configuration_required'){
+  if(!row.installed||!localPath(row.executable)||row.executable.trim()!==row.executable||!/[\\/]node(?:\.exe)?$/i.test(row.executable)||typeof row.version!=='string'||!wellFormed(row.version)||!safeText(row.version,256)||row.version.trim()!==row.version||typeof row.executable_sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.executable_sha256))return;
+ }else if(row.reason_code==='probe_failed'){
+  if(!row.installed||sourceFields.some(key=>Object.hasOwn(row,key)))return;
  }else return;
  return row as InstalledToolFact;
 }

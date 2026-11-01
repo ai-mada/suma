@@ -5,7 +5,7 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {ApiViewProvider} from './api-context';
 import {setLocale} from './i18n';
 import {QoderLocalConnector} from './QoderLocalConnector';
-import type {DesktopACPRequest,DesktopACPResult,DesktopACPInstallation} from './desktop-acp-connector-model';
+import type {DesktopACPRequest,DesktopACPResult,DesktopACPInstallation,DesktopACPAdapterID} from './desktop-acp-connector-model';
 import type {DesktopToolRequest} from './desktop-tool-connector-model';
 
 const project='1'.repeat(32),user='2'.repeat(32),tenant='3'.repeat(32),installation='4'.repeat(32),probe='5'.repeat(32),worker='desktop-'+'6'.repeat(32);
@@ -25,11 +25,46 @@ beforeEach(async()=>{
 });
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function settle(){for(let index=0;index<5;index++)await act(async()=>{await new Promise(resolve=>settleTimeout(resolve,0));});}
-async function render(identity=session){await act(async()=>root.render(<ApiViewProvider session={identity}><QoderLocalConnector project={project} onConnected={onConnected}/></ApiViewProvider>));await settle();}
+async function render(identity=session,adapterID:DesktopACPAdapterID='qoder-acp'){await act(async()=>root.render(<ApiViewProvider session={identity}><QoderLocalConnector project={project} adapterID={adapterID} onConnected={onConnected}/></ApiViewProvider>));await settle();}
 function element<T extends HTMLElement=HTMLButtonElement>(selector:string){const value=host.querySelector<T>(selector);expect(value,selector).not.toBeNull();return value!;}
 async function click(selector:string){await act(async()=>element(selector).click());await settle();}
 async function select(selector:string,value:string){const input=element<HTMLSelectElement>(selector);await act(async()=>{Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')!.set!.call(input,value);input.dispatchEvent(new Event('change',{bubbles:true}));});await settle();}
 async function choose(model=modelA){await click('[data-acp-installations-inspect]');if(element<HTMLSelectElement>('[data-acp-installation-select]').value!==installation)await select('[data-acp-installation-select]',installation);await click('[data-acp-models-discover]');await select('[data-acp-model-select]',model);}
+
+// Synthetic authorized native proof exercises the shared UI; it is not a
+// statement that an installed Cursor host or vendor account was verified.
+function cursorObservation(result:DesktopACPResult):DesktopACPResult{
+ if(result.status!=='ok')return result;
+ const value=result.observation,discovery=value.probe?.discovery;
+ return {status:'ok',observation:{...value,adapter_id:'cursor-cli',installations:value.installations.map(item=>({...item,label:'Observed Cursor Agent',tool_version:item.tool_version?'Cursor Agent 1.2.3':undefined})),...(value.probe?{probe:{...value.probe,...(discovery?{discovery:{...discovery,runtime:'cursor',tool_version:'Cursor Agent 1.2.3'}}:{})}}:{})}};
+}
+async function credential(value:string){const input=element<HTMLInputElement>('[data-acp-credential-reference]');await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}));});await settle();}
+
+it('connects only the explicitly selected Cursor source and model using its own credential reference and exact Worker proof',async()=>{
+ const onReady=vi.fn(),cursorBase={...base,adapter_id:'cursor-cli'};
+ inspectReply=async request=>cursorObservation(request.action==='detect'?observation('detected'):request.action==='models'?ready(request.operation_id):observation());
+ manageReply=async()=>({status:'ok',connection:{project_id:project,adapter_id:'cursor-cli',phase:'unconfigured'}});
+ await act(async()=>root.render(<ApiViewProvider session={session}><QoderLocalConnector project={project} adapterID="cursor-cli" onConnected={onConnected} onRegistrationReadyChange={onReady}/></ApiViewProvider>));await settle();
+ expect(inspect.mock.calls.map(([request])=>request)).toEqual([{...cursorBase,action:'status'}]);expect(host.textContent).toContain('Cursor Agent quick connection');expect(host.textContent).not.toContain('local Qoder');expect(host.querySelector('a[href*="docs.qoder.com"]')).toBeNull();
+ await click('[data-acp-installations-inspect]');expect(element<HTMLButtonElement>('[data-acp-models-discover]').disabled).toBe(true);expect(host.textContent).not.toContain('leave blank to use the existing CLI login');await credential('PATH');expect(element<HTMLButtonElement>('[data-acp-models-discover]').disabled).toBe(true);expect(inspect.mock.calls.filter(([request])=>request.action==='models')).toHaveLength(0);
+ await credential('MY_CURSOR_TOKEN');await click('[data-acp-models-discover]');expect(inspect.mock.calls.at(-1)![0]).toMatchObject({...cursorBase,action:'models',installation_id:installation,credential_env_ref:'MY_CURSOR_TOKEN'});expect(element<HTMLSelectElement>('[data-acp-model-select]').value).toBe('');expect(onConnected).not.toHaveBeenCalled();
+ await select('[data-acp-model-select]',modelB);manageReply=async()=>managed('connected',modelB,shaB);await click('[data-local-tool-connect]');expect(onConnected).not.toHaveBeenCalled();expect(onReady).not.toHaveBeenLastCalledWith(true);
+ manageReply=async()=>({status:'ok',connection:{project_id:project,adapter_id:'cursor-cli',phase:'connected',worker_id:worker,model:modelB,configuration_sha256:shaB,tool_version:'Cursor Agent 1.2.3',executable_sha256:executable}});await click('[data-local-tool-status]');expect(onConnected).toHaveBeenCalledExactlyOnceWith(worker);expect(onReady).toHaveBeenLastCalledWith(true);
+ expect(manage.mock.calls.find(([request])=>request.action==='connect')![0]).toEqual({...cursorBase,action:'connect',acp_selection:{installation_id:installation,probe_id:probe,model_id:modelB},expected_configuration_sha256:shaB});
+ await credential('MY_OTHER_CURSOR_TOKEN');expect(onReady).toHaveBeenLastCalledWith(false);expect(element('[data-acp-models-state]').getAttribute('data-acp-models-state')).toBe('source_changed');expect(inspect.mock.calls.filter(([request])=>request.action==='models')).toHaveLength(1);expect(fetch).not.toHaveBeenCalled();
+});
+
+it('restores the original Cursor observation without reprobing and isolates Qoder recovery and late adapter responses',async()=>{
+ const cursorBase={...base,adapter_id:'cursor-cli'};let original='';
+ inspectReply=async request=>{if(request.action==='models'){original=request.operation_id;throw Error('Original Cursor observation response lost');}return cursorObservation(observation(request.action==='detect'?'detected':request.operation_id?'unknown':'unconfigured'));};
+ manageReply=async request=>({status:'ok',connection:{project_id:project,adapter_id:request.adapter_id,phase:'unconfigured'}});
+ await render(session,'cursor-cli');await click('[data-acp-installations-inspect]');await credential('MY_CURSOR_TOKEN');await click('[data-acp-models-discover]');
+ const key=Array.from({length:sessionStorage.length},(_,index)=>sessionStorage.key(index)!).find(value=>value.includes('desktop-acp:')&&value.includes('cursor-cli'))!,saved=sessionStorage.getItem(key);expect(JSON.parse(saved!)).toMatchObject({...cursorBase,action:'models',operation_id:original,credential_env_ref:'MY_CURSOR_TOKEN'});
+ await act(async()=>root.unmount());root=createRoot(host);await render(session,'cursor-cli');expect(inspect.mock.calls.at(-1)![0]).toEqual({...cursorBase,action:'status',operation_id:original});expect(inspect.mock.calls.filter(([request])=>request.action==='models')).toHaveLength(1);
+ let finish!:(value:unknown)=>void;inspectReply=()=>new Promise(resolve=>{finish=resolve;});await click('[data-acp-observation-recover]');const late=finish;
+ inspectReply=async()=>observation();await render(session,'qoder-acp');expect(inspect.mock.calls.at(-1)![0]).toEqual({...base,action:'status'});await act(async()=>late(cursorObservation(ready(original,user,'Private Cursor model'))));await settle();expect(host.textContent).not.toContain('Private Cursor model');expect(host.querySelector('[data-acp-model-select]')).toBeNull();expect(sessionStorage.getItem(key)).toBe(saved);
+ inspectReply=async()=>({status:'failed',code:'acp_discovery_authorization_changed'});await render(session,'cursor-cli');expect(host.querySelector('[data-acp-model-select],[data-local-tool-connect]')).toBeNull();expect(sessionStorage.getItem(key)).toBe(saved);expect(inspect.mock.calls.filter(([request])=>request.action==='models')).toHaveLength(1);expect(onConnected).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
+});
 
 it('disables installation detection until the initial status observation has settled',async()=>{
  let finishStatus!:(value:unknown)=>void;inspectReply=request=>request.action==='status'?new Promise(resolve=>{finishStatus=resolve;}):Promise.resolve(observation('detected'));
@@ -65,7 +100,7 @@ it('invalidates changed and expired drafts while preserving original status, sto
 
 it('reports model and managed uncertainty to the parent without disabling original recovery, and unlocks after confirmation',async()=>{
  const onBlocked=vi.fn(),onReady=vi.fn();
- function Parent(){const [blocked,setBlocked]=useState(false);return <ApiViewProvider session={session}><button data-parent-tool-picker disabled={blocked}>Choose tool</button><QoderLocalConnector project={project} onConnected={onConnected} onBlockedChange={value=>{onBlocked(value);setBlocked(value);}} onRegistrationReadyChange={onReady}/></ApiViewProvider>;}
+ function Parent(){const [blocked,setBlocked]=useState(false);return <ApiViewProvider session={session}><button data-parent-tool-picker disabled={blocked}>Choose tool</button><QoderLocalConnector project={project} adapterID="qoder-acp" onConnected={onConnected} onBlockedChange={value=>{onBlocked(value);setBlocked(value);}} onRegistrationReadyChange={onReady}/></ApiViewProvider>;}
  await act(async()=>root.render(<Parent/>));await settle();expect(element<HTMLButtonElement>('[data-parent-tool-picker]').disabled).toBe(false);
  await click('[data-acp-installations-inspect]');let finishModel!:(value:unknown)=>void,original='';inspectReply=request=>request.action==='models'?(original=request.operation_id,new Promise(resolve=>{finishModel=resolve;})):Promise.resolve(observation());
  await click('[data-acp-models-discover]');expect(onBlocked).toHaveBeenLastCalledWith(true);expect(element<HTMLButtonElement>('[data-parent-tool-picker]').disabled).toBe(true);

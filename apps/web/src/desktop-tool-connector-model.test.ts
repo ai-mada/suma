@@ -58,6 +58,14 @@ it('keeps Qoder fixed configuration facts scoped to the ACP connection',()=>{
  for(const patch of [{model:'bad\nmodel'},{model:'x'.repeat(257)},{tool_version:''},{executable_sha256:'bad'},{configuration_sha256:'A'.repeat(64)},{acp_selection:{installation_id:'private'}}])expect(readDesktopToolResult({status:'ok',connection:{...qoderConnection,...patch}},qoderScope)).toBeUndefined();
  expect(readDesktopToolResult({status:'ok',connection:{...qoderConnection,adapter_id:scope.adapterID}},scope)).toBeUndefined();
 });
+it('requires complete Cursor ACP connection proof and keeps the exact tool identity separate from Qoder and Codex',()=>{
+ const cursorScope={...scope,adapterID:'cursor-cli'},cursor={...connection,adapter_id:'cursor-cli',model:'cursor-observed-model',tool_version:'Cursor Agent fixture',executable_sha256:'a'.repeat(64),configuration_sha256:'b'.repeat(64)};
+ expect(validDesktopToolScope(cursorScope)).toBe(true);expect(readDesktopToolResult({status:'ok',connection:cursor},cursorScope)).toEqual({status:'ok',connection:cursor});
+ for(const key of ['model','tool_version','executable_sha256','configuration_sha256']){const missing:Record<string,unknown>={...cursor};delete missing[key];expect(readDesktopToolResult({status:'ok',connection:missing},cursorScope)).toBeUndefined();}
+ for(const patch of [{adapter_id:'qoder-acp'},{adapter_id:'codex-app-server'},{catalog_sha256:'c'.repeat(64)},{acp_configuration:{}},{credential_env_ref:'CURSOR_PRIVATE_KEY'},{model:'bad\nmodel'}])expect(readDesktopToolResult({status:'ok',connection:{...cursor,...patch}},cursorScope)).toBeUndefined();
+ expect(readDesktopToolResult({status:'ok',connection:{project_id:scope.project,adapter_id:'cursor-cli',phase:'unconfigured'}},cursorScope)).toBeDefined();
+ expect(readDesktopToolResult({status:'ok',connection:cursor},{...cursorScope,adapterID:'qoder-acp'})).toBeUndefined();
+});
 it('requires complete native Codex connection proof without inventing a fixed task model',()=>{
  const codexScope={...scope,adapterID:'codex-app-server'},native={...connection,adapter_id:codexScope.adapterID,tool_version:'codex-cli 0.134.0',executable_sha256:'a'.repeat(64),configuration_sha256:'b'.repeat(64),catalog_sha256:'c'.repeat(64)};
  expect(validDesktopToolScope(codexScope)).toBe(true);expect(readDesktopToolResult({status:'ok',connection:native},codexScope)).toEqual({status:'ok',connection:native});

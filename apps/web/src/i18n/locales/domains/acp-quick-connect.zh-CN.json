@@ -1,8 +1,8 @@
 {
-  "acp-quick-connect.title": "Qoder 快速连接",
+  "acp-quick-connect.title": "{{tool}} 快速连接",
   "acp-quick-connect.inspect": "检查本机入口",
   "acp-quick-connect.detecting": "正在检查入口…",
-  "acp-quick-connect.intro": "连接本机 Qoder，选择开发任务使用的模型。",
+  "acp-quick-connect.intro": "连接本机 {{tool}}，选择开发任务使用的模型。",
   "acp-quick-connect.installation": "本机安装入口",
   "acp-quick-connect.choose_installation": "选择已核实版本的原生入口",
   "acp-quick-connect.native_installation_guide": "查看原生安装说明",
@@ -45,8 +45,10 @@
   "acp-quick-connect.observation_failed": "未能读取工具观察，请检查当前入口或核对原观察。",
   "acp-quick-connect.access_changed": "当前身份或本机来源不可用，请重新核对项目访问权限。",
   "acp-quick-connect.credential_settings": "凭据设置（可选）",
+  "acp-quick-connect.cursor_credential_settings": "Cursor Agent 凭据引用（必填）",
   "acp-quick-connect.credential_reference": "本机环境变量名",
   "acp-quick-connect.credential_hint": "只填写本机环境变量名，不填写密钥；留空使用现有 CLI 登录。",
+  "acp-quick-connect.cursor_credential_hint": "填写存放 Cursor API 密钥的本机环境变量名，不填写密钥值。读取模型前必须明确填写，不使用现有 CLI 登录或其他工具凭据。",
   "acp-quick-connect.check_observation": "核对工具观察",
   "acp-quick-connect.draft_not_connected": "当前选择尚未连接，原连接仍可查询或停止。"
 }

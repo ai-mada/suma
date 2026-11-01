@@ -36,7 +36,7 @@ func (d *Driver) runModelDiscovery() {
 		d.result.Evidence.AgentName, _ = safeText(initialized.AgentInfo.Name, d.options.Secrets)
 		d.result.Evidence.AgentVersion, _ = safeText(initialized.AgentInfo.Version, d.options.Secrets)
 	}
-	validInfo := text(d.result.Evidence.AgentName, 256, false) && text(d.result.Evidence.AgentVersion, 256, false)
+	validInfo := initialized.AgentInfo == nil && d.options.Runtime == "cursor" || text(d.result.Evidence.AgentName, 256, false) && text(d.result.Evidence.AgentVersion, 256, false)
 	if !validInfo {
 		d.result.Evidence.AgentName = ""
 		d.result.Evidence.AgentVersion = ""

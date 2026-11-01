@@ -63,7 +63,7 @@ func (input DesktopManagedRunnerInput) validate() error {
 	if input.Protocol != DesktopManagedRunnerProtocol || !desktopManagedHex(input.ProjectID, 32) || !strings.HasPrefix(input.WorkerID, "desktop-") || !desktopManagedHex(strings.TrimPrefix(input.WorkerID, "desktop-"), 32) || !desktopManagedHex(input.Token, 64) || !commitID.MatchString(input.BaseCommit) || !desktopManagedPath(input.Repository) || !desktopManagedPath(input.StateDirectory) {
 		return invalid
 	}
-	if input.AdapterID != "opencode-sdk" && input.AdapterID != "codex-app-server" && input.AdapterID != "codex-jsonl" && input.AdapterID != "codebuddy-cli" && input.AdapterID != "dsh-multica" && input.AdapterID != "claude-code-cli" && input.AdapterID != "qoder-acp" {
+	if input.AdapterID != "opencode-sdk" && input.AdapterID != "codex-app-server" && input.AdapterID != "codex-jsonl" && input.AdapterID != "codebuddy-cli" && input.AdapterID != "dsh-multica" && input.AdapterID != "claude-code-cli" && input.AdapterID != "qoder-acp" && input.AdapterID != "cursor-cli" {
 		return invalid
 	}
 	if input.AdapterID == "opencode-sdk" {
@@ -73,8 +73,8 @@ func (input DesktopManagedRunnerInput) validate() error {
 	} else if input.OpenCodeConfiguration != nil {
 		return invalid
 	}
-	if input.AdapterID == "qoder-acp" {
-		if !validManagedACPConfiguration(input.ACPConfiguration) || input.CodexConfiguration != nil {
+	if input.AdapterID == "qoder-acp" || input.AdapterID == "cursor-cli" {
+		if !validManagedACPConfiguration(input.ACPConfiguration, input.AdapterID) || input.CodexConfiguration != nil {
 			return invalid
 		}
 	} else if input.ACPConfiguration != nil {
@@ -119,19 +119,19 @@ func DecodeDesktopManagedRunnerInput(raw []byte) (DesktopManagedRunnerInput, err
 		return DesktopManagedRunnerInput{}, invalid
 	}
 	if value, present := fields["acp_configuration"]; present {
-		if input.AdapterID != "qoder-acp" || value == nil {
+		if input.AdapterID != "qoder-acp" && input.AdapterID != "cursor-cli" || value == nil {
 			return DesktopManagedRunnerInput{}, invalid
 		}
 		raw, err := json.Marshal(value)
 		if err != nil {
 			return DesktopManagedRunnerInput{}, invalid
 		}
-		configuration, err := decodeManagedACPConfiguration(raw)
+		configuration, err := decodeManagedACPConfiguration(raw, input.AdapterID)
 		if err != nil {
 			return DesktopManagedRunnerInput{}, invalid
 		}
 		input.ACPConfiguration = configuration
-	} else if input.AdapterID == "qoder-acp" {
+	} else if input.AdapterID == "qoder-acp" || input.AdapterID == "cursor-cli" {
 		return DesktopManagedRunnerInput{}, invalid
 	}
 	if value, present := fields["codex_configuration"]; present {
@@ -204,22 +204,25 @@ func prepareDesktopManagedExecution(ctx context.Context, input DesktopManagedRun
 		}
 		return cfg, nil
 	}
-	if input.AdapterID == "qoder-acp" {
+	if input.AdapterID == "qoder-acp" || input.AdapterID == "cursor-cli" {
 		configuration := input.ACPConfiguration
 		directory, cleanup, err := newACPProbeDirectory()
 		if err != nil {
 			return ExecConfig{}, err
 		}
 		defer cleanup()
-		exe, err := checkedACPInstallation(ctx, ACPModelDiscoveryInput{AdapterID: "qoder-acp", Executable: configuration.Executable, ExecutableSHA256: configuration.ExecutableSHA256, ReviewedVersion: configuration.ReviewedVersion, CredentialEnvRef: configuration.CredentialEnvRef}, directory)
+		exe, err := checkedACPInstallation(ctx, ACPModelDiscoveryInput{AdapterID: input.AdapterID, Executable: configuration.Executable, ExecutableSHA256: configuration.ExecutableSHA256, ReviewedVersion: configuration.ReviewedVersion, CredentialEnvRef: configuration.CredentialEnvRef}, directory)
 		if err != nil {
 			return ExecConfig{}, err
 		}
-		spec := acpDiscoveryCommand(exe, configuration.ReviewedVersion, configuration.Model, configuration.CredentialEnvRef)
+		spec, err := acpCommandForAdapter(input.AdapterID, exe, configuration.ReviewedVersion, configuration.Model, configuration.CredentialEnvRef)
+		if err != nil {
+			return ExecConfig{}, err
+		}
 		if ACPConfigurationDigest(*spec.ACP) != configuration.ConfigurationSHA256 {
 			return ExecConfig{}, fmt.Errorf("desktop ACP configuration differs from the confirmed model")
 		}
-		cfg.Commands = map[string]CommandSpec{"desktop-qoder-acp": spec}
+		cfg.Commands = map[string]CommandSpec{"desktop-" + input.AdapterID: spec}
 		if ValidateToolConfiguration(cfg) != nil {
 			return ExecConfig{}, fmt.Errorf("desktop ACP configuration unavailable")
 		}

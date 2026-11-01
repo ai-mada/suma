@@ -40,6 +40,27 @@ type DesktopManagedACPConfiguration struct {
 func acpDiscoveryCommand(executable, version, model, credential string) CommandSpec {
 	return CommandSpec{Adapter: "qoder", Protocol: ac.Protocol, Executable: executable, Args: []string{"--acp"}, Input: "acp-stdio", ACP: &ACPExecutionSpec{Runtime: "qoder", ReviewedVersion: version, Model: model, CredentialEnvRef: credential}}
 }
+func acpCommandForAdapter(adapter, executable, version, model, credential string) (CommandSpec, error) {
+	if adapter == "cursor-cli" {
+		spec, err := BuildCursorACPCommand(filepath.Dir(executable), version, model, credential)
+		if err != nil || !sameACPPath(spec.Executable, executable) {
+			return CommandSpec{}, fmt.Errorf("Cursor requires its exact bundled Node entry")
+		}
+		return spec, nil
+	}
+	if adapter != "qoder-acp" {
+		return CommandSpec{}, fmt.Errorf("unsupported ACP installation")
+	}
+	spec := acpDiscoveryCommand(executable, version, model, credential)
+	return spec, validateACPExecutionSpec(spec)
+}
+func privateACPInstallationInput(adapter, executable, sha, version, credential string) bool {
+	if !desktopManagedPath(executable) || !tc.ValidDigest(sha) {
+		return false
+	}
+	_, err := acpCommandForAdapter(adapter, executable, version, "discovery-only", credential)
+	return err == nil
+}
 func acpInstallationInput(executable, sha, version, credential string) bool {
 	return desktopManagedPath(executable) && tc.ValidDigest(sha) && validateACPExecutionSpec(acpDiscoveryCommand(executable, version, "discovery-only", credential)) == nil
 }
@@ -74,17 +95,21 @@ func strictACPStrings(raw []byte, required, optional []string) bool {
 func DecodeACPModelDiscoveryInput(raw []byte) (ACPModelDiscoveryInput, error) {
 	var input ACPModelDiscoveryInput
 	invalid := fmt.Errorf("invalid private ACP model discovery input")
-	if !strictACPStrings(raw, []string{"adapter_id", "executable", "executable_sha256", "reviewed_version"}, []string{"credential_env_ref"}) || json.Unmarshal(raw, &input) != nil || input.AdapterID != "qoder-acp" || !acpInstallationInput(input.Executable, input.ExecutableSHA256, input.ReviewedVersion, input.CredentialEnvRef) {
+	if !strictACPStrings(raw, []string{"adapter_id", "executable", "executable_sha256", "reviewed_version"}, []string{"credential_env_ref"}) || json.Unmarshal(raw, &input) != nil || !privateACPInstallationInput(input.AdapterID, input.Executable, input.ExecutableSHA256, input.ReviewedVersion, input.CredentialEnvRef) {
 		return ACPModelDiscoveryInput{}, invalid
 	}
 	return input, nil
 }
-func validManagedACPConfiguration(value *DesktopManagedACPConfiguration) bool {
-	if value == nil || !acpInstallationInput(value.Executable, value.ExecutableSHA256, value.ReviewedVersion, value.CredentialEnvRef) || !acpLocalText(value.Model, 256) {
+func validManagedACPConfiguration(value *DesktopManagedACPConfiguration, adapters ...string) bool {
+	adapter := "qoder-acp"
+	if len(adapters) == 1 {
+		adapter = adapters[0]
+	}
+	if value == nil || !privateACPInstallationInput(adapter, value.Executable, value.ExecutableSHA256, value.ReviewedVersion, value.CredentialEnvRef) || !acpLocalText(value.Model, 256) {
 		return false
 	}
-	spec := acpDiscoveryCommand(value.Executable, value.ReviewedVersion, value.Model, value.CredentialEnvRef)
-	return tc.ValidDigest(value.ConfigurationSHA256) && value.ConfigurationSHA256 == ACPConfigurationDigest(*spec.ACP)
+	spec, err := acpCommandForAdapter(adapter, value.Executable, value.ReviewedVersion, value.Model, value.CredentialEnvRef)
+	return err == nil && tc.ValidDigest(value.ConfigurationSHA256) && value.ConfigurationSHA256 == ACPConfigurationDigest(*spec.ACP)
 }
 
 // Native Qoder candidates are local, regular files with no reparse/symlink
@@ -214,7 +239,16 @@ func checkedACPInstallation(ctx context.Context, input ACPModelDiscoveryInput, d
 	if err != nil || sha != input.ExecutableSHA256 {
 		return "", fmt.Errorf("ACP installation differs from its reviewed bytes")
 	}
-	version, err := probeQoderNativeVersion(ctx, exe, directory, nil)
+	var version string
+	if input.AdapterID == "cursor-cli" {
+		spec, e := acpCommandForAdapter(input.AdapterID, exe, input.ReviewedVersion, "discovery-only", input.CredentialEnvRef)
+		if e != nil {
+			return "", e
+		}
+		version, err = cursorVersion(ctx, spec, nil)
+	} else {
+		version, err = probeQoderNativeVersion(ctx, exe, directory, nil)
+	}
 	if err != nil || version != input.ReviewedVersion {
 		return "", fmt.Errorf("ACP installation differs from its complete reviewed version")
 	}
@@ -283,19 +317,37 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 	if err != nil {
 		return ac.ACPModelDiscoveryResult{}, err
 	}
-	spec := acpDiscoveryCommand(exe, input.ReviewedVersion, "discovery-only", input.CredentialEnvRef)
-	environment, secrets, err := acpExecutionEnvironment(spec)
+	spec, err := acpCommandForAdapter(input.AdapterID, exe, input.ReviewedVersion, "discovery-only", input.CredentialEnvRef)
+	if err != nil {
+		return ac.ACPModelDiscoveryResult{}, err
+	}
+	var environment, secrets []string
+	if spec.ACP.Runtime == "cursor" {
+		environment, secrets, err = cursorEnvironment(spec, filepath.Join(directory, "home"), filepath.Join(directory, "source"), true)
+	} else {
+		environment, secrets, err = acpExecutionEnvironment(spec)
+	}
 	if err != nil {
 		return ac.ACPModelDiscoveryResult{}, fmt.Errorf("ACP discovery credential unavailable")
 	}
-	result := ac.ACPModelDiscoveryResult{Protocol: ac.ModelDiscoveryProtocol, Runtime: "qoder", State: "unknown", ExecutableSHA256: input.ExecutableSHA256, ToolVersion: input.ReviewedVersion, ErrorCode: "acp_discovery_unknown"}
-	driver, err := acpstdio.NewModelDiscovery(ctx, acpstdio.DiscoveryOptions{Cwd: directory, Secrets: secrets})
+	result := ac.ACPModelDiscoveryResult{Protocol: ac.ModelDiscoveryProtocol, Runtime: spec.ACP.Runtime, State: "unknown", ExecutableSHA256: input.ExecutableSHA256, ToolVersion: input.ReviewedVersion, ErrorCode: "acp_discovery_unknown"}
+	source := directory
+	if spec.ACP.Runtime == "cursor" {
+		source = filepath.Join(directory, "source")
+		if err = safeMkdir(source); err != nil {
+			return result, nil
+		}
+		if err = validateCursorWorkspace(source); err != nil {
+			return result, nil
+		}
+	}
+	driver, err := acpstdio.NewModelDiscovery(ctx, acpstdio.DiscoveryOptions{Cwd: source, Runtime: spec.ACP.Runtime, Secrets: secrets})
 	if err != nil {
 		return result, nil
 	}
 	defer driver.Close()
-	cmd := exec.Command(exe, "--acp")
-	cmd.Dir, cmd.Env = directory, environment
+	cmd := exec.Command(exe, spec.Args...)
+	cmd.Dir, cmd.Env = source, environment
 	cmd.Stdout = driver
 	diagnostic := newOutput(64<<10, secrets)
 	cmd.Stderr = diagnostic
@@ -346,6 +398,8 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 		result.State, result.ErrorCode = "failed", "acp_discovery_failed"
 	} else if !sameACPProbeInstallation(ctx, exe, input.ExecutableSHA256) {
 		result.ErrorCode = "acp_discovery_unknown"
+	} else if spec.ACP.CursorPackage != nil && !cursorPackageUnchanged(*spec.ACP.CursorPackage) {
+		result.ErrorCode = "acp_discovery_unknown"
 	} else if observation.Catalogue != nil {
 		catalogue := *observation.Catalogue
 		catalogue.Models = append([]ac.ACPModelChoice{}, catalogue.Models...)
@@ -371,14 +425,14 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 
 // decode nested private configuration without accepting null, duplicated or
 // incorrectly cased fields through permissive encoding/json defaults.
-func decodeManagedACPConfiguration(raw []byte) (*DesktopManagedACPConfiguration, error) {
+func decodeManagedACPConfiguration(raw []byte, adapters ...string) (*DesktopManagedACPConfiguration, error) {
 	if !strictACPStrings(raw, []string{"executable", "executable_sha256", "reviewed_version", "model", "configuration_sha256"}, []string{"credential_env_ref"}) {
 		return nil, fmt.Errorf("invalid private ACP configuration")
 	}
 	var value DesktopManagedACPConfiguration
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
-	if decoder.Decode(&value) != nil || decoder.Decode(new(any)) != io.EOF || !validManagedACPConfiguration(&value) {
+	if decoder.Decode(&value) != nil || decoder.Decode(new(any)) != io.EOF || !validManagedACPConfiguration(&value, adapters...) {
 		return nil, fmt.Errorf("invalid private ACP configuration")
 	}
 	return &value, nil

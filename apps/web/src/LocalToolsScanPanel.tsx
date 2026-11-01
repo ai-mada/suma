@@ -4,6 +4,7 @@ import type {AdapterDescriptor} from './AdapterConnections';
 import {useApi,useApiView} from './api-context';
 import {isCursorConnectionGuide,quickConnectAdapters} from './tool-quick-connect-model';
 import {toolConnectionDiagnostic} from './tool-connection-diagnostics-model';
+import {desktopACPRuntimeForAdapter} from './desktop-acp-connector-model';
 import {localToolsScanBridge,readLocalToolsScanResult,validLocalToolsScanScope,type LocalToolsScanScope,type LocalToolsScanResult} from './local-tools-scan-model';
 import {tr,useLocale} from './i18n';
 import './LocalToolsScanPanel.css';
@@ -14,7 +15,7 @@ const cursorReasons=new Set(['cursor_editor_only','cursor_agent_unverified','cur
 function rowGuidance(adapterID:string,code:string){
  if(adapterID==='opencode-sdk'&&code==='version_unsupported')return {reason:tr('opencode-quick-connect.version_unsupported'),hint:'',install:true};
  if(adapterID==='cursor-cli'&&cursorReasons.has(code))return {reason:tr('cursor-connection.reason_'+code),hint:tr('cursor-connection.reason_'+code+'_hint'),install:false};
- const diagnostic=toolConnectionDiagnostic(adapterID==='qoder-acp'&&code==='acp_configuration_required'?'configuration_required':code),reason=diagnostic?.reason??'unknown';
+ const diagnostic=toolConnectionDiagnostic(desktopACPRuntimeForAdapter(adapterID)&&code==='acp_configuration_required'?'configuration_required':code),reason=diagnostic?.reason??'unknown';
  return {reason:tr('tool-connection-diagnostics.reason.'+reason),hint:tr('tool-connection-diagnostics.hint.'+reason),install:['not_installed','unsupported_launcher','invalid_package','node_unavailable'].includes(reason)};
 }
 export function LocalToolsScanPanel(props:LocalToolsScanPanelProps){

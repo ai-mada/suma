@@ -125,6 +125,7 @@ const protocols: Record<string, string> = {
   claude: "claude-jsonl-v1",
   octop: "octop-harness-acp-v1",
   qoder: "acp-stdio-v1",
+  cursor: "acp-stdio-v1",
 };
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -153,12 +154,12 @@ function publicOrigin(value: unknown): boolean {
 }
 const acpForbidden = ['workspace_tools_version','model_execution_protocol','terminal_session_protocol','test_report_protocol','conflict_repair_protocol','planning','knowledge_extraction','failure_diagnosis','intelligent_operations','dispatch_recommendation','task_conversation_reply','opencode_execution','octop_execution','claude_execution'] as const;
 function acpToolProfile(profile: Record<string, unknown> | ToolProfileDefinition) {
-  return profile.adapter === 'qoder' && profile.protocol === 'acp-stdio-v1' && profile.read_only === false && validACPCapability(profile.acp_execution) && !acpForbidden.some(key=>!!profile[key]);
+  return (profile.adapter === 'qoder'||profile.adapter === 'cursor') && profile.protocol === 'acp-stdio-v1' && profile.read_only === false && validACPCapability(profile.acp_execution,profile.adapter) && !acpForbidden.some(key=>!!profile[key]);
 }
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
   if (profile.user_input_protocol !== undefined && (typeof profile.user_input_protocol !== "string" || profile.user_input_protocol !== "" && (profile.user_input_protocol !== "codex-user-input-v1" || profile.adapter !== "codex" || profile.protocol !== "codex-app-server-v1" || profile.read_only !== false))) invalidCapability();
   const acp = acpToolProfile(profile);
-  if (profile.acp_execution !== undefined && !acp || profile.adapter === 'qoder' &&
+  if (profile.acp_execution !== undefined && !acp || (profile.adapter === 'qoder'||profile.adapter === 'cursor') &&
     (profile.protocol !== 'acp-stdio-v1' || profile.read_only !== false || acpForbidden.some(key=>!!profile[key]) || observation.available === true && !acp)) invalidCapability();
   const claude = profile.adapter === 'claude' && profile.protocol === 'claude-jsonl-v1' && validClaudeCapability(profile.claude_execution);
   if(profile.claude_execution!==undefined&&(!claude||!['2.1.314','2.1.314 (Claude Code)'].includes(String(profile.tool_version)))||profile.adapter==='claude'&&(profile.protocol!=='claude-jsonl-v1'||profile.read_only!==false||observation.available===true&&!claude||profile.workspace_tools_version||profile.model_execution_protocol||profile.terminal_session_protocol||profile.test_report_protocol||profile.conflict_repair_protocol||profile.planning||profile.knowledge_extraction||profile.failure_diagnosis||profile.intelligent_operations||profile.dispatch_recommendation||profile.task_conversation_reply||profile.opencode_execution||profile.octop_execution))invalidCapability();
@@ -327,9 +328,12 @@ export function toolBinding(
   if (!profile) return { config };
   if (!profile.id || !digest.test(profile.profile.profile_sha256))
     throw new UiError("development.model.choose_an_official_tool_with_a_fixed");
+  if (acpToolProfile(profile.profile)) {
+    for (const key of ['model_execution','codex_execution','opencode_execution','octop_execution']) delete config[key];
+  }
   return {
     command: [profile.profile.command_id],
-    ...(profile.profile.adapter==='claude'||profile.profile.adapter==='qoder'?{max_retries:0}:{}),
+    ...(profile.profile.adapter==='claude'||profile.profile.adapter==='qoder'||profile.profile.adapter==='cursor'?{max_retries:0}:{}),
     config: {
       ...config,
       tool_profile_id: profile.id,

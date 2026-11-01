@@ -1,8 +1,8 @@
 {
-  "acp-quick-connect.title": "Qoder quick connection",
+  "acp-quick-connect.title": "{{tool}} quick connection",
   "acp-quick-connect.inspect": "Inspect local installations",
   "acp-quick-connect.detecting": "Inspecting installations…",
-  "acp-quick-connect.intro": "Connect local Qoder and choose the model for development tasks.",
+  "acp-quick-connect.intro": "Connect local {{tool}} and choose the model for development tasks.",
   "acp-quick-connect.installation": "Local installation",
   "acp-quick-connect.choose_installation": "Choose a native entry with an observed version",
   "acp-quick-connect.native_installation_guide": "Native installation instructions",
@@ -45,8 +45,10 @@
   "acp-quick-connect.observation_failed": "The tool observation could not be read. Check the current installation or the original observation.",
   "acp-quick-connect.access_changed": "The current identity or local source is unavailable. Check your current project access.",
   "acp-quick-connect.credential_settings": "Credential settings (optional)",
+  "acp-quick-connect.cursor_credential_settings": "Cursor Agent credential reference (required)",
   "acp-quick-connect.credential_reference": "Local environment variable name",
   "acp-quick-connect.credential_hint": "Enter only a local environment variable name, never a secret; leave blank to use the existing CLI login.",
+  "acp-quick-connect.cursor_credential_hint": "Enter the local environment variable name containing your Cursor API key, never its value. It is required before reading models; existing CLI logins or other tools' credentials are not used.",
   "acp-quick-connect.check_observation": "Check tool observation",
   "acp-quick-connect.draft_not_connected": "The current selection is not connected. You can still check or stop the original connection."
 }

@@ -5,11 +5,11 @@ import {selectedQuickACPModel,validQuickACPCatalogue,type ACPQuickSelectionState
 import './ACPQuickConnectSelection.css';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('acp-quick-connect.'+key,values);
-export type ACPQuickConnectSelectionProps={state:ACPQuickSelectionState;disabled?:boolean;detecting?:boolean;canDiscover:boolean;onInspect:()=>void;onInstallationChange:(id:string)=>void;onDiscover:()=>void;onModelChange:(id:string)=>void;onRecover?:()=>void};
+export type ACPQuickConnectSelectionProps={toolName:'Qoder'|'Cursor Agent';installationGuideURL:'https://docs.qoder.com/cli/installation'|'https://cursor.com/docs/cli/installation';state:ACPQuickSelectionState;disabled?:boolean;detecting?:boolean;canDiscover:boolean;onInspect:()=>void;onInstallationChange:(id:string)=>void;onDiscover:()=>void;onModelChange:(id:string)=>void;onRecover?:()=>void};
 
 /** Controlled selection only. The owning desktop controller supplies exact
  * observed sources and performs authorized actions; rendering never probes. */
-export function ACPQuickConnectSelection({state,disabled=false,detecting=false,canDiscover,onInspect,onInstallationChange,onDiscover,onModelChange,onRecover}:ACPQuickConnectSelectionProps){
+export function ACPQuickConnectSelection({toolName,installationGuideURL,state,disabled=false,detecting=false,canDiscover,onInspect,onInstallationChange,onDiscover,onModelChange,onRecover}:ACPQuickConnectSelectionProps){
  useLocale();const installationID=useId(),modelID=useId(),hintID=useId(),[now,setNow]=useState(()=>Date.now());
  useEffect(()=>{
   const current=Date.now();setNow(current);if(state.phase!=='ready'||!state.expiresAt)return;
@@ -24,8 +24,8 @@ export function ACPQuickConnectSelection({state,disabled=false,detecting=false,c
  const choicesEnabled=!locked&&native&&state.phase==='ready'&&!!catalogue&&sourceMatches&&fresh;
  const choice=selectedQuickACPModel(state,currentTime),current=catalogue?.models.find(item=>item.id===catalogue.current_value);
  const status=state.phase!=='ready'?state.phase:!sourceMatches?'source_changed':!expiryKnown?'unverified':!fresh?'expired':!catalogue?'invalid_catalogue':!catalogue.models.length?'empty':'ready';
- return <section className="acp-quick-selection" aria-label={t('title')} data-acp-selection-ready={!!choice} aria-busy={detecting||state.phase==='reading'}>
-  <div className="acp-quick-selection-heading"><p className="acp-quick-selection-intro">{t('intro')}</p><button type="button" data-acp-installations-inspect disabled={locked} onClick={onInspect}><Search size={15}/>{t(detecting?'detecting':'inspect')}</button></div>
+ return <section className="acp-quick-selection" aria-label={t('title',{tool:toolName})} data-acp-selection-ready={!!choice} aria-busy={detecting||state.phase==='reading'}>
+  <div className="acp-quick-selection-heading"><p className="acp-quick-selection-intro">{t('intro',{tool:toolName})}</p><button type="button" data-acp-installations-inspect disabled={locked} onClick={onInspect}><Search size={15}/>{t(detecting?'detecting':'inspect')}</button></div>
   <div className="acp-quick-selection-field">
    <label htmlFor={installationID}>{t('installation')}</label>
    <select id={installationID} data-acp-installation-select value={state.installationID} disabled={locked||!state.installations.length} onChange={event=>{const found=state.installations.find(item=>item.id===event.target.value);if(!locked&&found?.kind==='native'&&found.version)onInstallationChange(found.id);}}>
@@ -33,7 +33,7 @@ export function ACPQuickConnectSelection({state,disabled=false,detecting=false,c
     {state.installations.map(item=><option key={item.id} value={item.id} disabled={item.kind!=='native'||!item.version}>{t('installation_option',{name:item.label,version:item.version||t('version_unknown'),kind:t('kind_'+item.kind)})}</option>)}
    </select>
    {!state.installations.length&&!detecting&&<p className="acp-quick-selection-hint">{t('no_installations')}</p>}
-   {!state.installations.some(item=>item.kind==='native'&&item.version)&&<a href="https://docs.qoder.com/cli/installation" target="_blank" rel="noreferrer">{t('native_installation_guide')}</a>}
+   {!state.installations.some(item=>item.kind==='native'&&item.version)&&<a href={installationGuideURL} target="_blank" rel="noreferrer">{t('native_installation_guide')}</a>}
    {installation&&<p className="acp-quick-selection-hint">{t('version')}: {installation.version?<code>{installation.version}</code>:t('version_unknown')}</p>}
   </div>
   <div className="acp-quick-models">

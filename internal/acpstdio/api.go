@@ -13,6 +13,7 @@ import (
 
 type Options struct {
 	Cwd, Goal, Model, ConfigSHA string
+	Runtime                     string
 	Secrets                     []string
 	Emit                        func(Event) error
 	Permission                  func(context.Context, ac.NativeSource) (ac.Choice, error)

@@ -620,7 +620,17 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	var environmentSecrets []string
 	cmd.Env, environmentSecrets, err = commandEnvironment(spec)
 	if spec.ACP != nil {
-		cmd.Env, environmentSecrets, err = acpExecutionEnvironment(spec)
+		if spec.ACP.Runtime == "cursor" {
+			if workspace == nil {
+				return fail("Cursor requires its original isolated writable attempt")
+			}
+			if err = validateCursorWorkspace(root); err != nil {
+				return fail(err.Error())
+			}
+			cmd.Env, environmentSecrets, err = cursorEnvironment(spec, filepath.Join(workspace.Directory, "cursor-home"), root, true)
+		} else {
+			cmd.Env, environmentSecrets, err = acpExecutionEnvironment(spec)
+		}
 	}
 	if codexBinding != nil {
 		// Replace the inherited home and authentication context before the
@@ -902,6 +912,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if digestErr != nil || latestDigest != profile.ProfileSHA256 || latestExecutable != executable {
 		return fail("tool profile changed before process launch")
 	}
+	if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
+		if err = validateCursorWorkspace(root); err != nil {
+			return fail(err.Error())
+		}
+	}
 	if skillBundle != nil {
 		if err = verifyCodexSkillFiles(cmd.Dir, skillBundle); err != nil {
 			skillEvidence.FailureCode = "files_changed"
@@ -945,10 +960,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}()
 		defer func() { _ = codexDriver.Close(); _ = codexPipe.Close(); <-stdinDone }()
 	}
+	var cursorInputClosed <-chan struct{}
 	if acpDriver != nil {
 		stdinDone := make(chan struct{})
 		go func() { defer close(stdinDone); _, _ = acpDriver.CopyInput(acpPipe); _ = acpPipe.Close() }()
 		defer func() { _ = acpDriver.Close(); _ = acpPipe.Close(); <-stdinDone }()
+		if spec.ACP.Runtime == "cursor" {
+			cursorInputClosed = stdinDone
+		}
 	}
 	done := make(chan error, 1)
 	processContainmentVerified := true
@@ -961,6 +980,40 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			r.ExitCode = cmd.ProcessState.ExitCode()
 			r.Error = "process exited unsuccessfully"
 		}
+	case <-cursorInputClosed:
+		// A completed or rejected SDK stack closes stdin. Cursor must then
+		// leave the foreground; never wait a whole task deadline or turn a
+		// forced host shutdown into a successful native exit.
+		grace := time.NewTimer(2 * time.Second)
+		select {
+		case err = <-done:
+			if err == nil {
+				r.ExitCode = 0
+			} else if cmd.ProcessState != nil {
+				r.ExitCode = cmd.ProcessState.ExitCode()
+				r.Error = "process exited unsuccessfully"
+			}
+		case <-grace.C:
+			stopErr := controller.Stop()
+			<-done
+			if cmd.ProcessState != nil {
+				r.ExitCode = cmd.ProcessState.ExitCode()
+			}
+			r.OutcomeUnknown = true
+			r.Error = "Cursor foreground did not close after the protocol stack ended"
+			if stopErr != nil {
+				processContainmentVerified = false
+			}
+		case <-ctx.Done():
+			stopErr := controller.Stop()
+			<-done
+			r.OutcomeUnknown = true
+			r.Error = ctx.Err().Error()
+			if stopErr != nil {
+				processContainmentVerified = false
+			}
+		}
+		grace.Stop()
 	case <-ctx.Done():
 		waited := false
 		if dshStdin != nil || codexDriver != nil || acpDriver != nil {

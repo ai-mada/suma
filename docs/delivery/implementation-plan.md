@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-CURSOR-ACP-189 优先完成统一工具连接与开发执行：在原 ACP 深模块中增加独立 Cursor runtime，复用固定派发、工作树、一次权限、Journal、候选、同提交独立测试及验收；桌面沿原连接组件明确选择包、凭据引用和真实目录模型。见[合同](../../contracts/cursor-acp-execution.md)、[架构与 AI SOP](../architecture/cursor-acp-execution.md)及[限定验证](../quality/cursor-acp-execution-verification.md)。完整平台、真实厂商模型与生命周期、多机／跨库／跨平台安装和规模验收持续实施，不以本阶段通过替代完整31／P0–P7／58／34／92目标。
+
 T-WORKBUDDY-CLOUD-152继续原Multica／团队开发范围：[本阶段交付](../quality/workbuddy-cloud-execution-verification.md)及[合同](../../contracts/workbuddy-cloud-execution.md)以真实来源和当前权限串联协作。原运行节点内的本人委派、准确来源和供应方任务核对已接通；控制面以原attempt机器资格提供持久一次创建，未知作用保留原操作。源码、定向检查、隔离构建及真实界面各自范围以专项报告为准，完整自动DAG领取／Execute、ACP协作、可信制品、独立测试和正式验收继续交付。 不关闭完整P0–P7、其他开发工具、分布式规模、安装或生产待办，58／34／92不变。
 
 

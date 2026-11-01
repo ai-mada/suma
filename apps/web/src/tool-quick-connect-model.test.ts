@@ -26,6 +26,15 @@ it('offers only implemented execution entries and distinct active authorized wor
 const cursorGuide={id:'cursor-cli',product:'Cursor',direction:'suma_to_tool',implementation:'planned',setup_kind:'manual_guide'} as AdapterDescriptor;
 const cursorRow=(reason_code='cursor_agent_unverified',executable:string|undefined='C:/tools/agent.exe')=>({adapter_id:'cursor-cli',product:'Cursor',installed:!!executable,launch_supported:false,reason_code,...(executable?{executable}:{})});
 const cursorReport=(row:unknown)=>({status:'observed',report:{protocol:'suma-installed-tools-v1',items:[row]}});
+it('routes only the implemented Cursor ACP descriptor and its exact current runtime inventory into configuration',()=>{
+ const active={...cursorGuide,implementation:'implemented',setup_kind:'runner_profile',adapter:'cursor',protocol:'acp-stdio-v1'} as AdapterDescriptor;
+ const capability={runtime:'cursor',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:'c'.repeat(64),model:'observed-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'explicit_api_key_env',permission_mode:'human_once'};
+ const item={profile:{...profile,adapter:'cursor',protocol:'acp-stdio-v1',acp_execution:capability},available:true,reason:''};
+ expect(quickConnectAdapters([adapter,cursorGuide,active])).toEqual([adapter,active]);expect(isCursorConnectionGuide(active)).toBe(false);expect(matchingQuickTools([item],active)).toEqual([item]);
+ for(const patch of [{adapter:'qoder'},{protocol:'codex-jsonl-v1'},{product:'Other'},{direction:'tool_to_suma'},{implementation:'planned'},{setup_kind:'manual_guide'}])expect(quickConnectAdapters([{...active,...patch} as AdapterDescriptor])).toEqual([]);
+ for(const patch of [{runtime:'qoder'},{auth_strategy:'existing_cli_login'}])expect(matchingQuickTools([{...item,profile:{...item.profile,acp_execution:{...capability,...patch}}}],active)).toEqual([]);
+ expect(matchingQuickTools([{...item,profile:{...item.profile,adapter:'qoder'}}],active)).toEqual([]);
+});
 it('offers the exact Cursor guide without admitting forged execution or other planned entries',()=>{
  expect(quickConnectAdapters([adapter,cursorGuide,{...cursorGuide,id:'other-planned'},{...adapter,id:'cursor-cli'}])).toEqual([adapter]);
  expect(isCursorConnectionGuide(cursorGuide)).toBe(true);expect(isCursorConnectionGuide({...cursorGuide,adapter:'',protocol:''})).toBe(true);
@@ -40,6 +49,12 @@ it('reads all five passive Cursor observations without claiming execution or ver
  for(const [reason,path] of [['cursor_agent_unverified','C:\\tools\\agent.exe'],['cursor_launcher_unsupported','/opt/tools/cursor-agent']]){
   const row=cursorRow(reason,path);expect(readInstalledToolDiscovery(cursorReport(row),'cursor-cli')).toEqual(row);
  }
+});
+it('reads the reviewed Cursor package Node fact while keeping passive candidates and failed version probes unusable as execution proof',()=>{
+ const row={adapter_id:'cursor-cli',product:'Cursor',installed:true,launch_supported:false,reason_code:'acp_configuration_required',executable:'C:/tools/cursor-agent/node.exe',version:'Cursor fixture exact version',executable_sha256:'b'.repeat(64)};
+ expect(readInstalledToolDiscovery(cursorReport(row),'cursor-cli')).toEqual(row);
+ expect(readInstalledToolDiscovery(cursorReport({adapter_id:'cursor-cli',product:'Cursor',installed:true,launch_supported:false,reason_code:'probe_failed'}),'cursor-cli')).toBeDefined();
+ for(const patch of [{executable:'C:/tools/cursor.cmd'},{executable:'C:/tools/agent.exe'},{executable_sha256:undefined},{version:undefined},{installed:false},{launch_supported:true},{command:['agent','acp']},{profile},{reason_code:'cursor_agent_unverified'},{reason_code:'probe_failed'}])expect(readInstalledToolDiscovery(cursorReport({...row,...patch}),'cursor-cli')).toBeUndefined();
 });
 it('rejects Cursor facts that invent execution, inconsistent reasons, paths or open wire fields',()=>{
  const row=cursorRow();

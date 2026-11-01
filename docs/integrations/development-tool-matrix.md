@@ -1,6 +1,6 @@
 # 开发工具与 Harness 接入矩阵
 
-T-TURN-STEERING-188更新Codex行及[Multica采用记录](multica-turn-steering.md)。其余产品行保留下面明确的T134检查基线，不能用旧的“未发现”描述当前全部源码；后续八类开发协议见[当前开发交接合同](../../contracts/developer-tool-handoff.md)，实际范围仍逐项以专项证据为准。
+T-CURSOR-ACP-189更新 Cursor 行及[Multica采用记录](multica-cursor-acp.md)；T-TURN-STEERING-188更新 Codex 行及[采用记录](multica-turn-steering.md)。其余产品行保留下面明确的T134检查基线，不能用旧的“未发现”描述当前全部源码；后续八类开发协议见[当前开发交接合同](../../contracts/developer-tool-handoff.md)，实际范围仍逐项以专项证据为准。
 
 阶段：T-PLATFORM-DESIGN-134；产品：速码 suma 1.0.0；核查日期：2026-10-29。
 
@@ -39,7 +39,7 @@ MCP、ACP、A2A 各自版本与产品 1.0.0 独立，不增加产品历史兼容
 
 | 产品与入口 | 官方协议方向 | 当前 suma 源码支持 | 拟接入路径 | 验证缺口与限制 | 官方直达来源 |
 | --- | --- | --- | --- | --- | --- |
-| Cursor Agent CLI | 本地 headless CLI；JSON/stream-json；指定会话恢复 | 当前工具协议集合未包含 Cursor | 新增独立 CLI 适配；Runner 固定可执行文件、版本、参数与工作树 | 官方页面存在 `agent` 与 `cursor-agent` 命名差异，按实际版本探测；缺专用取消、完整用量与真实任务证据 | [CLI入口](https://prod.cursor.com/help/integrations/cli)、[输出](https://docs.cursor.com/en/cli/reference/output-format)、[参数](https://docs.cursor.com/en/cli/reference/parameters) |
+| Cursor Agent CLI | 固定包 Node + index.js；官方 ACP stdio | T189：`cursor-cli` / `cursor` / `acp-stdio-v1`，复用 acp-go 0.13.5；完整包摘要、明确 API key 环境引用、准确模型配置 ACK、原一次权限、普通／Pool 派发和代码候选 | 桌面原 ACP 连接组件与托管 Worker；讨论／专家团队沿原固定工具模型和预算门；同提交独立测试及验收仍独立 | 真实 2026.10.22-27dcf5f 仅版本／help／初始化及认证拒绝已验；无账号 Prompt、真实模型或商业费用证明。受控 SDK／HTTP／SQLite／Git 质量旅程见限定报告，不等于厂商验收；专有阻塞扩展和旧会话恢复不冒充支持 | [合同](../../contracts/cursor-acp-execution.md)、[报告](../quality/cursor-acp-execution-verification.md)、[官方ACP](https://cursor.com/docs/cli/acp) |
 | Claude Code CLI／Claude Agent SDK | CLI print；官方 Python/TS Agent SDK；可连接 MCP | 未发现 Claude 执行适配；模型 API 接入不等于 Agent SDK | SDK 受控宿主为主，CLI 作为独立入口；约束配置、工具、会话和权限回调 | 需实际版本、鉴权、取消、子代理及费用覆盖；不能转供未经允许的个人订阅登录 | [Headless](https://code.claude.com/docs/en/headless)、[SDK](https://code.claude.com/docs/en/agent-sdk/overview)、[参数](https://code.claude.com/docs/en/cli-reference) |
 | Qoder CLI／ACP／Agent SDK | headless CLI；`qoder --acp` stdio server；官方 Python/TS SDK | 未发现 Qoder 执行适配 | 优先 ACP client 接入，必要时独立 SDK 配置；文件与终端经 suma 宿主授权 | 续接、取消与用量按实际握手核验；官方 ACP 页列 Windows arm64 暂不支持；不默认启用绕过权限模式 | [CLI](https://docs.qoder.com/cli/run-in-scripts)、[ACP](https://docs.qoder.com/cli/acp)、[SDK](https://docs.qoder.com/cli/sdk/overview) |
 | Codex app-server／CLI | app-server stdio线程／轮次协议；CLI JSONL为另一入口 | T188更新：明确on-request工具权限、T187显式实验性问答、T188同活turn追加已保存本人消息；独立codex-jsonl-v1入口继续保留 | 原Runner／Journal／单writer、当前模型预算及受保护任务运行；[当前合同](../../contracts/turn-steering.md) | [真实CLI＋自有模型限定验证](../quality/turn-steering-verification.md)；未知写不重发，持久thread恢复未实现，取消ACK不等于停止；厂商账户与生产另验 | [官方app-server](https://learn.chatgpt.com/docs/app-server) |

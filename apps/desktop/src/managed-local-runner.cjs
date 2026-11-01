@@ -2,7 +2,7 @@
 const {spawn:spawnChild}=require('node:child_process'),path=require('node:path'),crypto=require('node:crypto');
 const {PROTOCOL,createManagedRunnerJournal,scopeKey,validScope,validOrigin}=require('./managed-local-runner-journal.cjs');
 const {createLocalACPController,cleanEnvironment}=require('./local-acp.cjs');
-const {fields,validConfiguration}=require('./local-acp-validation.cjs');
+const {acpAdapter,fields,validConfiguration}=require('./local-acp-validation.cjs');
 const {createLocalCodexController,cleanCodexEnvironment}=require('./local-codex.cjs');
 const codexValidation=require('./local-codex-validation.cjs');
 const opencodeValidation=require('./local-opencode-validation.cjs');
@@ -10,7 +10,7 @@ const {resolveOpenCodeAssets}=require('./local-opencode-assets.cjs');
 const {RENEW_FIELDS,digest,validRenewReceipt,createRenewalReadinessChecker}=require('./managed-local-runner-renewal.cjs');
 const {SCOPE_FIELDS,planSHA,projection:recoveryProjection,createResultRecoveryController}=require('./managed-local-runner-recovery.cjs');
 const CHANNEL='suma:manage-local-runner';
-const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1'],'qoder-acp':['qoder','acp-stdio-v1'],'codex-app-server':['codex','codex-app-server-v1'],'opencode-sdk':['opencode','opencode-sdk-v1']});
+const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1'],'qoder-acp':['qoder','acp-stdio-v1'],'cursor-cli':['cursor','acp-stdio-v1'],'codex-app-server':['codex','codex-app-server-v1'],'opencode-sdk':['opencode','opencode-sdk-v1']});
 const HASH=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{32}$/;
 const gitUnavailable=error=>error?.status===422&&['desktop_runner_head_unavailable','desktop_runner_repository_unsafe','desktop_runner_repository_unavailable'].includes(error.code);
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
@@ -103,7 +103,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   const [adapter,protocol]=TOOL_PROTOCOLS[scope.adapter_id],matching=out.items.filter(item=>item?.available===true&&item.profile?.adapter===adapter&&item.profile.protocol===protocol&&HASH.test(item.profile.profile_sha256)&&HASH.test(item.profile.executable_sha256)&&typeof item.profile.command_id==='string'&&typeof item.profile.tool_version==='string'&&item.profile.tool_version.length>0&&item.profile.read_only===false);
   if(matching.length!==1)return false;
   const fixed=record.value.acp_configuration;
-  if(fixed){const profile=matching[0].profile,cap=profile.acp_execution;if(profile.executable_sha256!==fixed.executable_sha256||profile.tool_version!==fixed.reviewed_version||!exact(cap,['runtime','protocol_version','sdk_version','configuration_sha256','model','model_source','budget_mode','identity_evidence','auth_strategy','permission_mode'])||cap.runtime!=='qoder'||cap.protocol_version!==1||cap.sdk_version!=='0.13.5'||cap.configuration_sha256!==fixed.configuration_sha256||cap.model!==fixed.model||cap.model_source!=='administrator_session_config'||cap.budget_mode!=='observe_only'||cap.identity_evidence!=='configuration_ack_only'||cap.auth_strategy!=='existing_cli_login'||cap.permission_mode!=='human_once')return false;}
+  if(fixed){const profile=matching[0].profile,cap=profile.acp_execution,descriptor=acpAdapter(scope.adapter_id);if(!descriptor||profile.executable_sha256!==fixed.executable_sha256||profile.tool_version!==fixed.reviewed_version||!exact(cap,['runtime','protocol_version','sdk_version','configuration_sha256','model','model_source','budget_mode','identity_evidence','auth_strategy','permission_mode'])||cap.runtime!==descriptor.runtime||cap.protocol_version!==1||cap.sdk_version!=='0.13.5'||cap.configuration_sha256!==fixed.configuration_sha256||cap.model!==fixed.model||cap.model_source!=='administrator_session_config'||cap.budget_mode!=='observe_only'||cap.identity_evidence!=='configuration_ack_only'||cap.auth_strategy!==descriptor.authStrategy||cap.permission_mode!=='human_once')return false;}
   const codex=record.value.codex_configuration;
   if(codex){const profile=matching[0].profile,catalog=matching[0].codex_catalog,input=profile.user_input_protocol;if(profile.executable_sha256!==codex.executable_sha256||profile.tool_version!==codex.reviewed_version||!codexValidation.validCatalog(catalog)||catalog.configuration_sha256!==codex.configuration_sha256||(codex.enable_user_input===true?input!=='codex-user-input-v1':input!==undefined&&input!==''))return false;record.catalogSHA=catalog.catalog_sha256;}
   const open=record.value.opencode_configuration;
@@ -167,7 +167,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  }
  async function manage(event,request){
   if(request?.adapter_id==='codex-app-server'&&['detect','models','model-status'].includes(request?.action))return codex.inspect(event,request);
-  const qoder=request?.adapter_id==='qoder-acp',configurable=qoder&&request?.action==='connect';
+  const isACP=!!acpAdapter(request?.adapter_id),configurable=isACP&&request?.action==='connect';
   const nativeCodex=request?.adapter_id==='codex-app-server',codexConfigurable=nativeCodex&&request?.action==='connect';
   const openCode=request?.adapter_id==='opencode-sdk';
   if(!caller(event)||!fields(request,['action','project_id','user_id','tenant_id','adapter_id','locale'],configurable?['acp_selection','expected_configuration_sha256']:codexConfigurable?['codex_selection','expected_configuration_sha256']:openCode&&request?.action==='connect'?['opencode_setup']:[])||!['connect','status','stop','renew','recover','recovery-status'].includes(request.action)||!['zh-CN','en-US'].includes(request.locale)||!validScope(requestScope(request))||Object.hasOwn(request,'expected_configuration_sha256')&&!HASH.test(request.expected_configuration_sha256)||Object.hasOwn(request,'acp_selection')&&(!fields(request.acp_selection,['installation_id','probe_id','model_id'])||!ID.test(request.acp_selection.installation_id)||!ID.test(request.acp_selection.probe_id)||typeof request.acp_selection.model_id!=='string'||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'codex_selection')&&(!fields(request.codex_selection,['installation_id','probe_id'])||!ID.test(request.codex_selection.installation_id)||!ID.test(request.codex_selection.probe_id)||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'opencode_setup')&&!opencodeValidation.validSetup(request.opencode_setup))return failure('managed_runner_request_rejected');
@@ -194,7 +194,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
     else if(record?.closed&&record.value.phase==='authorization_required'&&record.value.worker&&await checkWorker(record)){await session(scope);phase(record,'prepared');}
     await session(scope);return connection(scope,record?.value.phase||'unconfigured',record);
    }
-   if(qoder){
+   if(isACP){
     if(request.acp_selection){
      const same=record?.value.acp_selection&&['installation_id','probe_id','model_id'].every(k=>record.value.acp_selection[k]===request.acp_selection[k]);
      if(same){configuration=record.value.acp_configuration;}
@@ -202,7 +202,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
       if(record&&(!record.closed||record.value.phase!=='stopped'))return connection(scope,'binding_changed',record);
       try{configuration=await acp.select({...scope,locale:request.locale},request.acp_selection,context,event);}catch{return failure('managed_runner_request_rejected');}
      }
-     if(!validConfiguration(configuration)||configuration.configuration_sha256!==request.expected_configuration_sha256)return connection(scope,'binding_changed',record);
+     if(!validConfiguration(configuration,scope.adapter_id)||configuration.configuration_sha256!==request.expected_configuration_sha256)return connection(scope,'binding_changed',record);
     }else{
      configuration=record?.value.acp_configuration;if(!configuration)return failure('managed_runner_request_rejected');
      if(request.expected_configuration_sha256&&request.expected_configuration_sha256!==configuration.configuration_sha256)return connection(scope,'binding_changed',record);
@@ -227,7 +227,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    }
    if(record?.value.phase==='stop_unconfirmed')return connection(scope,'stop_unconfirmed',record);
    if(record?.child&&!record.closed){await observe(record);return connection(scope,record.value.phase,record);}
-   const observed=qoder||nativeCodex?undefined:await discover(event,{...scope,locale:request.locale});
+   const observed=isACP||nativeCodex?undefined:await discover(event,{...scope,locale:request.locale});
    await session(scope);if(!caller(event))throw Error('authority');
    const item=observed?.status==='observed'&&observed.report?.protocol==='suma-installed-tools-v1'&&observed.report.items?.length===1?observed.report.items[0]:undefined;
    if(openCode){
@@ -239,9 +239,9 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
     const next={executable:item.executable,executable_sha256:item.executable_sha256,reviewed_version:item.version,...assets,provider_id:setup.provider_id,model:setup.model,base_url:setup.base_url,...(setup.api_key_env_ref?{api_key_env_ref:setup.api_key_env_ref}:{})};next.configuration_sha256=opencodeValidation.configurationDigest(next);
     if(!opencodeValidation.validConfiguration(next))return connection(scope,'unavailable',record);
     if(configuration&&!openChanged&&Object.keys(next).some(k=>next[k]!==configuration[k]))return connection(scope,'binding_changed',record);configuration=next;
-   }else if(!qoder&&!nativeCodex){if(!item||item.adapter_id!==scope.adapter_id)return connection(scope,'unavailable',record);if(!item.installed)return connection(scope,'not_installed',record);if(!item.launch_supported)return connection(scope,'unavailable',record);}
+   }else if(!isACP&&!nativeCodex){if(!item||item.adapter_id!==scope.adapter_id)return connection(scope,'unavailable',record);if(!item.installed)return connection(scope,'not_installed',record);if(!item.launch_supported)return connection(scope,'unavailable',record);}
    const current=await authorize(scope);if(!caller(event))throw Error('authority');if(record&&!sameContext(record,current)||JSON.stringify(current)!==JSON.stringify(context))return connection(scope,'binding_changed',record);
-   if(record&&qoder&&request.acp_selection&&!['installation_id','probe_id','model_id'].every(k=>record.value.acp_selection[k]===request.acp_selection[k])){record.value.acp_configuration={...configuration};record.value.acp_selection={...request.acp_selection};save(record);}
+   if(record&&isACP&&request.acp_selection&&!['installation_id','probe_id','model_id'].every(k=>record.value.acp_selection[k]===request.acp_selection[k])){record.value.acp_configuration={...configuration};record.value.acp_selection={...request.acp_selection};save(record);}
    if(record&&nativeCodex&&request.codex_selection&&!['installation_id','probe_id'].every(k=>record.value.codex_selection[k]===request.codex_selection[k])){record.value.codex_configuration={...configuration};record.value.codex_selection={...request.codex_selection};save(record);}
    if(record&&openChanged){record.value.opencode_configuration={...configuration};save(record);}
    record??=newRecord(scope,current,configuration,nativeCodex?request.codex_selection:request.acp_selection);

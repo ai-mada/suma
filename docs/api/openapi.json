@@ -3,35 +3,63 @@
     "schemas": {
       "ACPExecutionCapability": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "auth_strategy": {
+                "const": "existing_cli_login"
+              },
+              "runtime": {
+                "const": "qoder"
+              }
+            }
+          },
+          {
+            "properties": {
+              "auth_strategy": {
+                "const": "explicit_api_key_env"
+              },
+              "runtime": {
+                "const": "cursor"
+              }
+            }
+          }
+        ],
         "properties": {
           "auth_strategy": {
             "type": "string"
           },
           "budget_mode": {
+            "const": "observe_only",
             "type": "string"
           },
           "configuration_sha256": {
             "type": "string"
           },
           "identity_evidence": {
+            "const": "configuration_ack_only",
             "type": "string"
           },
           "model": {
             "type": "string"
           },
           "model_source": {
+            "const": "administrator_session_config",
             "type": "string"
           },
           "permission_mode": {
+            "const": "human_once",
             "type": "string"
           },
           "protocol_version": {
+            "const": 1,
             "type": "integer"
           },
           "runtime": {
             "type": "string"
           },
           "sdk_version": {
+            "const": "0.13.5",
             "type": "string"
           }
         },
@@ -251,7 +279,8 @@
           },
           "runtime": {
             "enum": [
-              "qoder"
+              "qoder",
+              "cursor"
             ],
             "type": "string"
           },

@@ -1,0 +1,10 @@
+import {expect,it} from 'vitest';
+import {parseToolManifest,taskToolProtocol,toolBinding,type ToolProfile} from './tool-model';
+const capability={runtime:'cursor',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:'a'.repeat(64),model:'exact-cursor-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'explicit_api_key_env',permission_mode:'human_once'};
+const definition={command_id:'cursor-develop',adapter:'cursor',protocol:'acp-stdio-v1',profile_sha256:'b'.repeat(64),executable_sha256:'c'.repeat(64),tool_version:'reviewed Cursor agent version',read_only:false,acp_execution:capability};
+const parse=(patch:Record<string,unknown>={},available=true)=>parseToolManifest(JSON.stringify([{profile:{...definition,...patch},available,reason:available?'observed':'not currently available'}]));
+it('imports only the exact Cursor ACP adapter/runtime/authentication pair and freezes that capability through the original tool binding',()=>{
+ expect(taskToolProtocol(parse()[0].profile)).toBe(true);expect(taskToolProtocol(parse({acp_execution:undefined},false)[0].profile)).toBe(false);
+ for(const patch of [{adapter:'qoder'},{protocol:'cursor-jsonl-v1'},{read_only:true},{acp_execution:undefined},{acp_execution:{...capability,runtime:'qoder',auth_strategy:'existing_cli_login'}},{acp_execution:{...capability,auth_strategy:'existing_cli_login'}},{acp_execution:{...capability,api_key:'private'}},{workspace_tools_version:'attempt-workspace-v1'},{model_execution_protocol:'suma-model-execution-v1'}])expect(()=>parse(patch)).toThrow();
+ const binding=toolBinding({config:{acp_execution:{model:'stale'},codex_execution:{model:'stale'},other:'kept'}},{id:'cursor-profile',profile:definition} as ToolProfile);expect(binding).toMatchObject({command:['cursor-develop'],max_retries:0,config:{acp_execution:capability,other:'kept'}});expect(binding.config).not.toHaveProperty('codex_execution');expect((binding.config as Record<string,unknown>).acp_execution).not.toBe(capability);expect(toolBinding(binding).config).toEqual({other:'kept'});
+});

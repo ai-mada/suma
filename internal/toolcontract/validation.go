@@ -46,7 +46,7 @@ func validText(s string, max int, multiline bool) bool {
 
 // Profiles and streamed events share one closed protocol directory so adding
 // an adapter cannot accidentally admit configuration but reject its first event.
-var adapterProtocols = map[string]string{"qoder": ac.Protocol, "claude": ClaudeProtocol, "octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}
+var adapterProtocols = map[string]string{"cursor": ac.Protocol, "qoder": ac.Protocol, "claude": ClaudeProtocol, "octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}
 
 func protocolPair(adapter, protocol string) bool {
 	if adapter == "codex" && protocol == cc.Protocol {

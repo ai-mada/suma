@@ -1,6 +1,7 @@
 package toolcontract
 
 import (
+	ac "github.com/ai-mada/suma/internal/acpcontract"
 	"strings"
 	"testing"
 )
@@ -104,15 +105,13 @@ func TestAdapterCatalogDoesNotInventResumeBillingOrInteractiveCLI(t *testing.T) 
 	}
 }
 
-func TestCursorConnectionGuidanceDoesNotAdmitExecution(t *testing.T) {
+func TestCursorCatalogPublishesACPWithoutPromotingPassiveDetection(t *testing.T) {
 	d := catalogEntry(t, "cursor-cli")
-	if d.Implementation != "planned" || d.SetupKind != "manual_guide" || d.Adapter != "" || d.Protocol != "" || len(d.SourceRefs) != 1 || d.SourceRefs[0] != "contracts/cursor-connection.md" {
-		t.Fatal("passive detection changed execution admission", d)
+	if d.Implementation != "implemented" || d.SetupKind != "runner_profile" || d.Adapter != "cursor" || d.Protocol != ac.Protocol || len(d.SourceRefs) != 2 || d.SourceRefs[0] != "contracts/cursor-acp-execution.md" || d.SourceRefs[1] != "internal/toolcontract/validation.go#protocolPair" {
+		t.Fatal("Cursor source support did not use the reviewed ACP contract", d)
 	}
-	for _, c := range d.Capabilities {
-		if c.Support == "supported" {
-			t.Fatal("passive connection invented capability", c)
-		}
+	if catalogCapability(t, d, "gateway_budget") != "unsupported" {
+		t.Fatal("a configured CLI acquired a hard gateway budget")
 	}
 	if _, err := DescribeAdapterProfile(Profile{CommandID: "cursor", Adapter: "cursor", Protocol: "cursor-jsonl-v1"}); err == nil {
 		t.Fatal("unreviewed Cursor profile became executable")

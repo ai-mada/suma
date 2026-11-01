@@ -36,7 +36,7 @@ func developmentContinuationSpec(a Assignment, spec CommandSpec) error {
 	spec = normalizedCommand(spec)
 	// These are the existing structured development adapters. The subsequent
 	// ordinary launch checks still prove their exact local profile and protocol.
-	structured := spec.Adapter == "suma" || spec.Adapter == "codex" || spec.Adapter == "harness" || spec.Adapter == "codebuddy" || spec.Adapter == "qoder" || spec.Adapter == "claude" || spec.Adapter == "opencode" || spec.Adapter == "octop"
+	structured := spec.Adapter == "suma" || spec.Adapter == "codex" || spec.Adapter == "harness" || spec.Adapter == "codebuddy" || spec.Adapter == "qoder" || spec.Adapter == "cursor" || spec.Adapter == "claude" || spec.Adapter == "opencode" || spec.Adapter == "octop"
 	if !structured || !tc.ValidCommandIdentity("development", spec.Adapter, spec.Protocol) || spec.ReadOnly || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations || spec.DispatchRecommendation || spec.TaskConversationReply || spec.TerminalSession || spec.CandidateComposition || spec.TestEvidence || spec.TestReport || spec.ArtifactInput || spec.ArtifactOutput != "" {
 		return fmt.Errorf("development continuation requires an ordinary isolated writable development profile")
 	}

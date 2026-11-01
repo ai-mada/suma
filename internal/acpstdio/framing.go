@@ -256,12 +256,39 @@ func (d *Driver) frame(raw []byte) error {
 	key := idKey(m["id"])
 	method := stringField(m, "method")
 	_, hasID := m["id"]
+	params := object(m["params"])
+	cursorCatalogue := d.options.Runtime == "cursor" && !hasID && method == "session/update" && stringField(object(params["update"]), "sessionUpdate") == "available_commands_update"
 	d.mu.Lock()
 	d.frames++
 	d.wireBytes += len(raw)
-	if d.bad != nil || d.frames > 4096 || d.wireBytes > 8<<20 || d.promptResponse || d.discovery != nil && d.discovery.complete {
+	if d.bad != nil || d.frames > 4096 || d.wireBytes > 8<<20 || d.promptResponse || d.discovery != nil && d.discovery.complete && !cursorCatalogue {
 		d.mu.Unlock()
 		return errors.New("acp_protocol_invalid")
+	}
+	if d.options.Runtime == "cursor" && !hasID && cursorNotification(method) {
+		session := d.result.Evidence.SessionID
+		if m["result"] != nil || m["error"] != nil || params == nil || session == "" || !d.result.Evidence.PromptStarted || d.discovery != nil {
+			d.mu.Unlock()
+			return errors.New("acp_protocol_invalid")
+		}
+		if rawSession, present := params["sessionId"]; present {
+			var supplied string
+			if json.Unmarshal(rawSession, &supplied) != nil || supplied != session {
+				d.mu.Unlock()
+				return errors.New("acp_protocol_invalid")
+			}
+		}
+		d.mu.Unlock()
+		return d.cursorObservation(method, session, m["params"])
+	}
+	if d.options.Runtime == "cursor" && hasID && (method == "cursor/ask_question" || method == "cursor/create_plan" || method == "cursor/task") {
+		session := d.result.Evidence.SessionID
+		started := d.result.Evidence.PromptStarted
+		d.mu.Unlock()
+		if session != "" && started {
+			_ = d.emit(Event{Kind: "notice", SessionID: session, Text: "Unsupported Cursor request: " + method})
+		}
+		return errors.New("acp_cursor_request_unsupported")
 	}
 	if method == "" {
 		original, exists := d.requests[key]
@@ -287,7 +314,11 @@ func (d *Driver) frame(raw []byte) error {
 				}
 			case "session/new":
 				session := stringField(r, "sessionId")
-				if !closed(r, "_meta", "sessionId", "configOptions", "modes") || !configOptionsValidMode(r["configOptions"], d.discovery != nil) || !token(session, 128) || hasSecret(session, d.options.Secrets) || d.result.Evidence.SessionID != "" {
+				keys := []string{"_meta", "sessionId", "configOptions", "modes"}
+				if d.options.Runtime == "cursor" {
+					keys = append(keys, "models")
+				}
+				if !closed(r, keys...) || r["models"] != nil && !cursorModelsValid(r["models"]) || !configOptionsValidMode(r["configOptions"], d.discovery != nil || d.options.Runtime == "cursor") || !token(session, 128) || hasSecret(session, d.options.Secrets) || d.result.Evidence.SessionID != "" {
 					d.mu.Unlock()
 					return errors.New("acp_protocol_invalid")
 				}
@@ -330,8 +361,7 @@ func (d *Driver) frame(raw []byte) error {
 			d.mu.Unlock()
 			return errors.New("acp_protocol_invalid")
 		}
-		params := object(m["params"])
-		if d.discovery != nil {
+		if d.discovery != nil && !cursorCatalogue {
 			d.discovery.evidence.UnexpectedActivity++
 			if method == "session/request_permission" {
 				d.discovery.evidence.PermissionRequests++
@@ -385,7 +415,7 @@ func (d *Driver) frame(raw []byte) error {
 				}
 			}
 			d.remote[key] = p
-		} else if method != "session/update" || d.discovery != nil {
+		} else if method != "session/update" || d.discovery != nil && !cursorCatalogue {
 			d.mu.Unlock()
 			return errors.New("acp_protocol_invalid")
 		}

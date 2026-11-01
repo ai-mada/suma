@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [Cursor ACP 开发执行](product/cursor-acp-execution.md) · [合同](../contracts/cursor-acp-execution.md) · [架构与 AI SOP](architecture/cursor-acp-execution.md) · [简洁接入交互](design/cursor-acp-execution.md) · [English](en/cursor-acp-execution.md) · [Multica 采用记录](integrations/multica-cursor-acp.md) · [限定验证](quality/cursor-acp-execution-verification.md)：受核包、明确模型与凭据引用接入原派发和独立质量链；实际账号与厂商模型分别验收。
+
 - [活回合追加指令](product/turn-steering.md) · [合同](../contracts/turn-steering.md) · [架构与AI SOP](architecture/turn-steering.md) · [数据](data/turn-steering.md) · [交互](design/turn-steering.md) · [English](en/turn-steering.md) · [采用记录](integrations/multica-turn-steering.md) · [限定验证](quality/turn-steering-verification.md)：T-TURN-STEERING-188贯通原消息、准确活目标与真实同turn送达。
 
 - [原执行问答](product/tool-inputs.md) · [合同](../contracts/tool-inputs.md) · [架构与AI SOP](architecture/tool-inputs.md) · [数据](data/tool-inputs.md) · [交互](design/tool-inputs.md) · [English](en/tool-inputs.md) · [限定验证](quality/tool-inputs-verification.md)：T-TOOL-INPUTS-187贯通原问题、明确回答、真实写出与异常核对。

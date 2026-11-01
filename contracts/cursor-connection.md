@@ -1,6 +1,6 @@
 # Cursor 接入核验合同
 
-T-CURSOR-CONNECTION-166，速码 1.0.0，2026-10-31。状态：被动连接核验限定完成；真实执行适配仍 planned。参考 Multica 的工具发现与统一接入方式，独立实现本合同，不复制当前受不同许可约束的 Cursor 源码。
+T-CURSOR-CONNECTION-166，速码 1.0.0，2026-10-31。本合同记录当时的被动发现范围；当前执行与受核 Node 包探测以 [Cursor ACP 执行合同](cursor-acp-execution.md)为准，不能把下文的历史 planned 状态当作当前目录状态。参考 Multica 的工具发现与统一接入方式，独立实现，不复制 Cursor 专有源码或分发包。
 
 ## 用户结果与边界
 

@@ -67,6 +67,7 @@ func AdapterCatalog() []AdapterDescriptor {
 		run("codebuddy-cli", "CodeBuddy", "cli", "codebuddy", "codebuddy-jsonl-v1", "contracts/team-cli-runtime.md", with("usage_observation"), []string{"foreground_only_no_resume", "provider_usage_may_be_partial", "workbuddy_not_codebuddy"}),
 		run("claude-code-cli", "Claude Code", "cli", "claude", ClaudeProtocol, "contracts/claude-cli.md", with("usage_observation"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "fixed_claude_cli_configuration", "claude_cli_not_sdk", "claude_permissions_require_admin_policy"}),
 		run("qoder-acp", "Qoder", "cli", "qoder", ac.Protocol, "contracts/acp-cli-execution.md", with("usage_observation", "human_input"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "fixed_acp_cli_configuration", "acp_human_once_permissions", "trusted_cli_not_os_sandbox"}),
+		run("cursor-cli", "Cursor", "cli", "cursor", ac.Protocol, "contracts/cursor-acp-execution.md", with("usage_observation", "human_input"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "fixed_acp_cli_configuration", "acp_human_once_permissions", "trusted_cli_not_os_sandbox"}),
 	}
 	for _, client := range []struct {
 		id, product string
@@ -95,13 +96,9 @@ func AdapterCatalog() []AdapterDescriptor {
 	}
 	rows = append(rows, adapterDescriptor("harness-guide", "Harness", "sdk", "suma_to_tool", "guide_only", "manual_guide", "", "", "docs/integrations/development-tool-matrix.md", nil, []string{"manual_runtime_verification"}))
 	rows = append(rows, adapterDescriptor("workbuddy-cloud", "WorkBuddy", "cloud_api", "suma_to_tool", "implemented", "manual_guide", "", "", "contracts/workbuddy-cloud-runner.md", []string{"task_start"}, []string{"workbuddy_not_codebuddy", "cloud_fixed_delegation_required", "cloud_start_only", "cloud_delivery_not_verified", "cloud_budget_not_enforced"}))
-	for _, entry := range []struct{ id, product, kind string }{{"cursor-cli", "Cursor", "cli"}, {"claude-code-sdk", "Claude Code", "sdk"}} {
+	for _, entry := range []struct{ id, product, kind string }{{"claude-code-sdk", "Claude Code", "sdk"}} {
 		limits := []string{"no_execution_adapter"}
 		source := "docs/integrations/development-tool-matrix.md"
-		if entry.id == "cursor-cli" {
-			// Passive connection guidance does not publish a dispatchable protocol.
-			source = "contracts/cursor-connection.md"
-		}
 		rows = append(rows, adapterDescriptor(entry.id, entry.product, entry.kind, "suma_to_tool", "planned", "manual_guide", "", "", source, nil, limits))
 	}
 	for i := range rows {
@@ -195,7 +192,8 @@ func refineAdapterSources(d *AdapterDescriptor) {
 		"dsh-multica":      "internal/runner/tool_dsh.go#toolStream.dsh",
 		"codebuddy-cli":    "internal/runner/tool_codebuddy.go#toolStream.codebuddy",
 		"claude-code-cli":  "internal/runner/tool_claude.go#toolStream.claude",
-		"qoder-acp":        "internal/runner/acp_stdio.go",
+		"qoder-acp":        "internal/runner/acp_execution.go",
+		"cursor-cli":       "internal/runner/acp_execution.go",
 	}[d.ID]
 	for i := range d.Capabilities {
 		c := &d.Capabilities[i]
@@ -226,8 +224,8 @@ func refineAdapterSources(d *AdapterDescriptor) {
 			if c.Support == "supported" {
 				c.SourceRefs = []string{"internal/toolcontract/terminal.go#SupportsTerminalSessionProfile"}
 				c.Limitations = []string{"profile_specific_capabilities"}
-				if d.ID == "qoder-acp" {
-					c.SourceRefs = []string{"internal/platform/tool_permission.go", "internal/runner/acp_stdio.go"}
+				if d.ID == "qoder-acp" || d.ID == "cursor-cli" {
+					c.SourceRefs = []string{"internal/platform/tool_permission.go", "internal/runner/acp_execution.go"}
 					c.Limitations = []string{"acp_human_once_permissions"}
 				}
 			}

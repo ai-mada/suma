@@ -74,11 +74,19 @@ func acpRuntimeContracts(add operationAdder, api map[string]any) {
 	result["description"] = "Explicit local native ACP model observation after actual host termination; no Prompt/configuration writes. Ready is adoptable only under the original desktop scope, installation and nonrenewable observation deadline. Not a provider/model health or billing claim."
 	props := result["properties"].(map[string]any)
 	props["protocol"] = map[string]any{"type": "string", "enum": []any{ac.ModelDiscoveryProtocol}}
-	props["runtime"] = map[string]any{"type": "string", "enum": []any{"qoder"}}
+	props["runtime"] = map[string]any{"type": "string", "enum": []any{"qoder", "cursor"}}
 	props["state"] = map[string]any{"type": "string", "enum": []any{"ready", "failed", "unknown"}}
 	catalogue := schemas["ACPModelCatalogue"].(map[string]any)["properties"].(map[string]any)
 	catalogue["source"] = map[string]any{"type": "string", "enum": []any{"acp_session_config"}}
 	catalogue["protocol_version"] = map[string]any{"type": "integer", "enum": []any{1}}
 	catalogue["models"].(map[string]any)["minItems"] = 1
 	catalogue["models"].(map[string]any)["maxItems"] = 256
+	capability := toolContractMap(schemas, "ACPExecutionCapability")
+	capability["oneOf"] = []any{
+		map[string]any{"properties": map[string]any{"runtime": map[string]any{"const": "qoder"}, "auth_strategy": map[string]any{"const": "existing_cli_login"}}},
+		map[string]any{"properties": map[string]any{"runtime": map[string]any{"const": "cursor"}, "auth_strategy": map[string]any{"const": "explicit_api_key_env"}}},
+	}
+	for field, value := range map[string]any{"protocol_version": 1, "sdk_version": ac.SDKVersion, "model_source": "administrator_session_config", "budget_mode": "observe_only", "identity_evidence": "configuration_ack_only", "permission_mode": "human_once"} {
+		toolContractMap(capability, "properties", field)["const"] = value
+	}
 }

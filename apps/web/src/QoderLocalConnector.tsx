@@ -10,10 +10,11 @@ import {DesktopToolConnector} from './DesktopToolConnector';
 import type {DesktopToolConnection} from './desktop-tool-connector-model';
 import {ACPQuickConnectSelection} from './ACPQuickConnectSelection';
 import {selectedQuickACPModel,validQuickACPCatalogue,type ACPQuickSelectionState} from './acp-quick-connect-selection-model';
-import {desktopACPBridge,desktopACPRecoveryScope,makeDesktopACPRequest,readDesktopACPResult,validDesktopACPRequest,validDesktopACPScope,type DesktopACPRequest,type DesktopACPObservation,type DesktopACPSelection,type DesktopACPScope,type DesktopACPBridge} from './desktop-acp-connector-model';
+import {desktopACPBridge,desktopACPRecoveryScope,desktopACPRuntimeForAdapter,makeDesktopACPRequest,readDesktopACPResult,validDesktopACPCredentialReference,validDesktopACPRequest,validDesktopACPScope,type DesktopACPAdapterID,type DesktopACPRequest,type DesktopACPObservation,type DesktopACPSelection,type DesktopACPScope,type DesktopACPBridge} from './desktop-acp-connector-model';
 
-const t=(key:string)=>tr('acp-quick-connect.'+key);
-export type QoderLocalConnectorProps={project:string;onConnected:(workerID:string)=>void;secondary?:boolean;disabled?:boolean;onBlockedChange?:(blocked:boolean)=>void;onRegistrationReadyChange?:(ready:boolean)=>void};
+const t=(key:string,values?:Record<string,unknown>)=>tr('acp-quick-connect.'+key,values);
+const tools={qoder:{name:'Qoder',installationGuideURL:'https://docs.qoder.com/cli/installation'},cursor:{name:'Cursor Agent',installationGuideURL:'https://cursor.com/docs/cli/installation'}} as const;
+export type QoderLocalConnectorProps={project:string;adapterID:DesktopACPAdapterID;onConnected:(workerID:string)=>void;secondary?:boolean;disabled?:boolean;onBlockedChange?:(blocked:boolean)=>void;onRegistrationReadyChange?:(ready:boolean)=>void};
 type SavedRequest=Extract<DesktopACPRequest,{action:'models'}>;
 type LocalRecord={request?:SavedRequest;error?:unknown};
 type Snapshot={observation?:DesktopACPObservation;error?:unknown};
@@ -36,7 +37,7 @@ function readRecord(key:string,scope:DesktopACPScope):LocalRecord{
 export function QoderLocalConnector(props:QoderLocalConnectorProps){
  const api=useApi(),view=useApiView(),bridge=desktopACPBridge(),owner=useRef({api,method:bridge?.inspectLocalACP,epoch:0});
  if(owner.current.api!==api||owner.current.method!==bridge?.inspectLocalACP)owner.current={api,method:bridge?.inspectLocalACP,epoch:owner.current.epoch+1};
- const scope:DesktopACPScope={project:props.project,userID:view?.userID||'',organizationID:view?.organizationID||'',adapterID:'qoder-acp'};
+ const scope:DesktopACPScope={project:props.project,userID:view?.userID||'',organizationID:view?.organizationID||'',adapterID:props.adapterID};
  const available=!!bridge&&validDesktopACPScope(scope);
  useEffect(()=>{if(!available){props.onBlockedChange?.(false);props.onRegistrationReadyChange?.(false);}},[available,props.onBlockedChange,props.onRegistrationReadyChange]);
  if(!bridge||!validDesktopACPScope(scope))return null;
@@ -45,6 +46,7 @@ export function QoderLocalConnector(props:QoderLocalConnectorProps){
 
 function LocalACPController({project,scope,bridge,onConnected,onBlockedChange,onRegistrationReadyChange,secondary=false,disabled=false}:QoderLocalConnectorProps&{scope:DesktopACPScope;bridge:DesktopACPBridge}){
  const locale=useLocale(),key='suma-desktop-acp-observation:'+desktopACPRecoveryScope(scope);
+ const runtime=desktopACPRuntimeForAdapter(scope.adapterID)!,tool=tools[runtime],needsCredential=runtime==='cursor';
  const [record,setRecord]=useState<LocalRecord>(()=>readRecord(key,scope)),[snapshot,setSnapshot]=useState<Snapshot>(),[busy,setBusy]=useState<DesktopACPRequest['action']|undefined>('status'),[uncertain,setUncertain]=useState(false),[clock,setClock]=useState(()=>Date.now());
  const [installationID,setInstallationID]=useState(''),[modelID,setModelID]=useState(''),[credentialRef,setCredentialRef]=useState(''),[draftEdited,setDraftEdited]=useState(false),[active,setActive]=useState<DesktopToolConnection>();
  const [selected,setSelected]=useState<{selection:DesktopACPSelection;sha:string;source:string}>(),[managedBlocked,setManagedBlocked]=useState(false);
@@ -68,7 +70,7 @@ function LocalACPController({project,scope,bridge,onConnected,onBlockedChange,on
    const result=readDesktopACPResult(raw,scope,operationID);
    if(!result)throw new UiError('acp-quick-connect.invalid_observation');
    if(result.status==='failed'){
-    if(['managed_runner_access_changed','authorization_required','desktop_acp_access_changed','acp_discovery_authorization_changed'].includes(result.code)){clearSelection();store({observation:{project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,adapter_id:'qoder-acp',phase:'authorization_required',installations:[]}});}
+    if(['managed_runner_access_changed','authorization_required','desktop_acp_access_changed','acp_discovery_authorization_changed'].includes(result.code)){clearSelection();store({observation:{project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,adapter_id:scope.adapterID as DesktopACPAdapterID,phase:'authorization_required',installations:[]}});}
     else store({observation:currentObservation.current,error:new UiError('acp-quick-connect.observation_failed')});
     if(original.current)setUncertain(true);return;
    }
@@ -110,13 +112,14 @@ function LocalACPController({project,scope,bridge,onConnected,onBlockedChange,on
  const choice=selectedQuickACPModel(selectionState,Math.max(clock,Date.now())),freshSelection=choice?.configuration_sha256&&probe?{installation_id:installationID,probe_id:probe.id,model_id:choice.id}:undefined;
  const expectedSHA=selected?.source===currentSource?selected.sha:!draftEdited?active?.configuration_sha256:undefined;
  const desiredMatches=!!expectedSHA&&active?.configuration_sha256===expectedSHA&&(!selected||active.model===selected.selection.model_id);
- const registrationReady=!!(!blocking&&!denied&&!record.error&&!snapshot?.error&&desiredMatches&&active?.phase==='connected'&&active.project_id===project&&active.adapter_id==='qoder-acp'&&active.worker_id&&active.model&&active.tool_version&&active.executable_sha256);
+ const registrationReady=!!(!blocking&&!denied&&!record.error&&!snapshot?.error&&desiredMatches&&active?.phase==='connected'&&active.project_id===project&&active.adapter_id===scope.adapterID&&active.worker_id&&active.model&&active.tool_version&&active.executable_sha256);
  useEffect(()=>{callbacks.current.onRegistrationReadyChange?.(registrationReady);},[registrationReady,onRegistrationReadyChange]);
  const editBlocked=disabled||!!busy||pending||managedBlocked||!!record.error;
+ const credentialReady=!needsCredential||validDesktopACPCredentialReference(credentialRef);
  function updateDraft(){setDraftEdited(true);setModelID('');setSelected(undefined);}
  async function detect(){if(editBlocked)return;updateDraft();reads.current=0;await performNow.current(makeDesktopACPRequest('detect',scope,{locale}));}
  async function discover(){
-  if(editBlocked||denied)return;
+  if(editBlocked||denied||!credentialReady)return;
   try{
    const request=makeDesktopACPRequest('models',scope,{locale,installation_id:installationID,operation_id:operation().replace(/-/g,''),...(credentialRef?{credential_env_ref:credentialRef}:{})}) as SavedRequest;
    const storage=toolSessionStorage();if(!storage)throw new UiError('acp-quick-connect.storage_failed');
@@ -131,20 +134,20 @@ function LocalACPController({project,scope,bridge,onConnected,onBlockedChange,on
   await performNow.current(makeDesktopACPRequest('status',scope,{locale,...(loaded.request?{operation_id:loaded.request.operation_id}:{})}));
  }
  const connection=useCallback((value:DesktopToolConnection)=>{if(alive.current)setActive(value);},[]);
- return <section className="desktop-tool-connector" aria-label={t('title')} aria-busy={!!busy}>
-  <details open={!secondary} className="qoder-local-configuration"><summary><Monitor size={16}/>{t('title')}<ChevronDown size={15}/></summary><div className="desktop-tool-content">
+ return <section className="desktop-tool-connector" aria-label={t('title',{tool:tool.name})} aria-busy={!!busy}>
+  <details open={!secondary} className="qoder-local-configuration"><summary><Monitor size={16}/>{t('title',{tool:tool.name})}<ChevronDown size={15}/></summary><div className="desktop-tool-content">
    {!!record.error&&<ErrorNotice error={record.error}/>}{!!snapshot?.error&&<ErrorNotice error={snapshot.error}/>}
    {denied?<p role="status">{t('access_changed')}</p>:<>
-    <ACPQuickConnectSelection state={selectionState} disabled={disabled||!!record.error||!!busy||managedBlocked} detecting={busy==='detect'} canDiscover={!editBlocked&&!denied&&!!installationID} onInspect={()=>void detect()} onDiscover={()=>void discover()} onRecover={()=>void recover()} onInstallationChange={value=>{if(!editBlocked){updateDraft();setInstallationID(value);}}} onModelChange={value=>{
+    <ACPQuickConnectSelection toolName={tool.name} installationGuideURL={tool.installationGuideURL} state={selectionState} disabled={disabled||!!record.error||!!busy||managedBlocked} detecting={busy==='detect'} canDiscover={!editBlocked&&!denied&&!!installationID&&credentialReady} onInspect={()=>void detect()} onDiscover={()=>void discover()} onRecover={()=>void recover()} onInstallationChange={value=>{if(!editBlocked){updateDraft();setInstallationID(value);}}} onModelChange={value=>{
      if(editBlocked||denied)return;
      const selectedChoice=selectedQuickACPModel({...selectionState,modelID:value});if(!selectedChoice?.configuration_sha256||!probe)return;
      setDraftEdited(true);setModelID(value);setSelected({source:currentSource,sha:selectedChoice.configuration_sha256,selection:{installation_id:installationID,probe_id:probe.id,model_id:value}});
     }}/>
-    <details className="qoder-local-credentials"><summary>{t('credential_settings')}</summary><label>{t('credential_reference')}<input data-acp-credential-reference autoComplete="off" spellCheck={false} value={credentialRef} disabled={editBlocked} onChange={event=>{if(!editBlocked){updateDraft();setCredentialRef(event.target.value);}}}/></label><p className="muted">{t('credential_hint')}</p></details>
+    <details open={needsCredential||undefined} className="qoder-local-credentials"><summary>{t(needsCredential?'cursor_credential_settings':'credential_settings')}</summary><label>{t('credential_reference')}<input data-acp-credential-reference autoComplete="off" spellCheck={false} value={credentialRef} required={needsCredential} aria-required={needsCredential} disabled={editBlocked} onChange={event=>{if(!editBlocked){updateDraft();setCredentialRef(event.target.value);}}}/></label><p className="muted">{t(needsCredential?'cursor_credential_hint':'credential_hint')}</p></details>
    </>}
    <button type="button" data-acp-observation-status disabled={disabled||!!busy} onClick={()=>void recover()}><RefreshCw size={14}/>{t('check_observation')}</button>
    {draftEdited&&active?.configuration_sha256&&!desiredMatches&&<p className="muted" role="status">{t('draft_not_connected')}</p>}
-   {!denied&&<DesktopToolConnector project={project} adapterID="qoder-acp" secondary={secondary} disabled={disabled} onConnected={onConnected} onConnection={connection} onBlockedChange={setManagedBlocked} acpSelection={freshSelection} expectedConfigurationSHA={expectedSHA}/>}
+   {!denied&&<DesktopToolConnector project={project} adapterID={scope.adapterID} secondary={secondary} disabled={disabled} onConnected={onConnected} onConnection={connection} onBlockedChange={setManagedBlocked} acpSelection={freshSelection} expectedConfigurationSHA={expectedSHA}/>}
   </div></details>
  </section>;
 }

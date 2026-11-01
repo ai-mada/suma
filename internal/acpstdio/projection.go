@@ -172,6 +172,15 @@ func (d *Driver) projectUpdate(params map[string]json.RawMessage) error {
 		}
 		return nil
 	}
+	if d.options.Runtime == "cursor" && tag == "available_commands_update" {
+		// The pinned Cursor session advertises commands after session/new.
+		// This catalogue neither executes a command nor changes model authority.
+		var commands []json.RawMessage
+		if !closed(update, "_meta", "sessionUpdate", "availableCommands") || json.Unmarshal(update["availableCommands"], &commands) != nil || commands == nil || len(commands) > 256 {
+			return errors.New("acp_update_invalid")
+		}
+		return nil
+	}
 	if !started {
 		return errors.New("acp_update_before_prompt")
 	}

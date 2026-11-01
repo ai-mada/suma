@@ -1,0 +1,342 @@
+{
+  "stage": "T-CURSOR-ACP-189",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Cursor独立runtime/auth配对加入原ACP共享合同、执行目录与生成Schema，固定模型／observe-only／一次权限沿原控制面，不新增派发器、表或HTTP。",
+    "原厂Node+index.js完整依赖闭包与原生宿主分别绑定；固定禁自动更新及sandbox参数，最终spawn前再次复核包摘要，拒绝依赖变化。",
+    "本机只接受明确凭据环境引用并映射CURSOR_API_KEY，使用新私有home／配置／临时目录；发现项目祖先执行设置和固定企业hooks则拒绝，不导入原登录。",
+    "原成熟acp-go0.13.5 SDK严格适配当前Cursor实际帧与缺省agentInfo，configOptions及准确ACK是模型唯一依据；普通通知有界脱敏，阻塞专有请求明确失败。",
+    "Cursor EOF／不支持请求有界结束，实际Wait、强制停止和unknown分别留证；不重发未知Prompt、不自动恢复旧session、不把强制停止当成功。",
+    "复用原任务、讨论、专家团队、普通／Pool Worker及候选续作；真实Git候选、同提交独立Node/JUnit与独立审阅账号沿原质量门贯通。",
+    "原桌面ACP选择器和托管连接支持明确Cursor来源、模型、凭据引用及原操作恢复；编辑器／脚本被动行不升权，正式包扫描只提供配置事实。",
+    "中英文、390px暗色、键盘和分步连接／暂停登记／独立启用复用既有组件；修复底部Qoder品牌残留，共同ACP事实标题中性化。"
+  ],
+  "verification": {
+    "distinct_top_level": 54,
+    "new_top_level": 36,
+    "affected_existing_top_level": 18,
+    "go_subcases": 32,
+    "platform_top_level": 4,
+    "formal_top_level": 1,
+    "runtime_top_level": 22,
+    "web_top_level": 20,
+    "desktop_top_level": 4,
+    "root_top_level": 3,
+    "root_receipts": [
+      {
+        "test": "TestCursorACPProfileCannotBorrowAnotherRuntimeOrLogin",
+        "command": ".cache/follow155/root-go/20261101T082739987Z.command.json",
+        "command_exit": 1,
+        "top_pass": true
+      },
+      {
+        "test": "TestCursorCatalogPublishesACPWithoutPromotingPassiveDetection",
+        "command": ".cache/follow155/root-go/20261101T082838105Z.command.json",
+        "command_exit": 0,
+        "top_pass": true
+      },
+      {
+        "test": "TestCursorACPContractKeepsRuntimeAuthenticationAndModelAuthority",
+        "command": ".cache/follow155/root-go/20261101T083700522Z.command.json",
+        "command_exit": 0,
+        "top_pass": true
+      }
+    ],
+    "contract_generation": ".cache/follow155/root-go/20261101T083715410Z.command.json",
+    "new_http_operations": 0,
+    "new_schema_types": 0,
+    "changed_schemas": [
+      "ACPExecutionCapability",
+      "ACPModelDiscoveryResult"
+    ],
+    "new_business_tables": 0,
+    "typecheck_exit": 0,
+    "typecheck_before_final_copy_only_fix": true,
+    "paired_locale_keys": 8805,
+    "production_hardcodes": 0,
+    "isolated_builds": 2,
+    "gui_distinct_checks": 4,
+    "gui_native_hosts": 4,
+    "gui_all_exit_zero": true,
+    "gui_page_errors": [],
+    "full_suite_repeated": false
+  },
+  "formal": {
+    "stage": "T-CURSOR-ACP-189",
+    "status": "controlled_vertical_confirmed",
+    "source_manifest_sha256": "0b36e4ff81f66073ad1e1e4470af2920ae523f15429e86219e95c101622723f1",
+    "source_sha256": "1a719428d5e8fee228acac79b7fc93bfacf62618a9ae5b087bcb5fe5138588f2",
+    "command_stamp": "20261101T083523007Z",
+    "exit_code": 0,
+    "command_attempts": 1,
+    "distinct_top_tests": 1,
+    "distinct_subtests": 0,
+    "controlled_native_host_version_probes": 3,
+    "controlled_native_host_prompt_processes": 1,
+    "acp_initialize": 1,
+    "acp_session_new": 1,
+    "acp_model_config_ack": 1,
+    "acp_prompt": 1,
+    "permission_responses": 1,
+    "vendor_requests": 0,
+    "model_requests": 0,
+    "real_cursor": false,
+    "real_node_development_host": false,
+    "real_node_independent_test": true,
+    "base_commit": "c0cd0a5f38c9d2ff569c171c944225b3fbbfb8c1",
+    "candidate_commit": "afa3b5b0b0dc9423debb255352cda9b347f14cc5",
+    "producer_worker": "cursor-formal-developer189",
+    "independent_worker": "cursor-formal-independent189",
+    "test_base_commit": "afa3b5b0b0dc9423debb255352cda9b347f14cc5",
+    "test_head_commit": "afa3b5b0b0dc9423debb255352cda9b347f14cc5",
+    "host_stopped": true,
+    "host_tree_stopped": true,
+    "controlled_host_pids_absent": true,
+    "usage_state": "unreported",
+    "quality_state": "passed",
+    "quality_current": true,
+    "quality_passed": 1,
+    "task_status": "accepted",
+    "fixture_review_by_distinct_invited_account": true,
+    "customer_human_signoff": false,
+    "administrator_checkout_retained": true,
+    "journals_pending": 0,
+    "native_facts_sha256": "867e510f525c196a69956c5d7ebf92ceaae7e511aabc9424e5efda9471af4e47",
+    "private_sqlite_sha256": "9944d3a1a242c2e1a8a256908aca1ab8c9b7354d802e45c1f0396f8158cb8c67",
+    "boundary": "Original Server/SQLite/ordinary Worker/ACP SDK/strict production package closure, controlled native package, real Git and independent real Node/JUnit/reviewer fixture. No vendor Node package, commercial account, real model, physical multi-host or customer signoff claim."
+  },
+  "actual": {
+    "stage": "T-CURSOR-ACP-189",
+    "status": "offline initialize verified; unauthenticated session/new rejected",
+    "product_source_changes": 0,
+    "global_install": false,
+    "archive_entries": 429,
+    "regular_package_files": 411,
+    "expanded_package_bytes": 267399576,
+    "all_archive_paths_validated_before_extract": true,
+    "link_entries": 0,
+    "version": "2026.10.22-27dcf5f",
+    "native_startups": 5,
+    "original_instrument_failures": 2,
+    "corrected_version_help_successes": 2,
+    "acp_handshakes": 1,
+    "initialize_protocol_version": 1,
+    "agent_info_present": false,
+    "auth_method_ids": [
+      "cursor_login"
+    ],
+    "session_new_error_code": -32000,
+    "session_new_error_message": "Authentication required",
+    "session_config_options_observed": false,
+    "session_models_observed": false,
+    "session_modes_observed": false,
+    "native_methods_sent": [
+      "initialize",
+      "session/new"
+    ],
+    "authenticate_calls": 0,
+    "login_calls": 0,
+    "prompt_calls": 0,
+    "commercial_model_calls": 0,
+    "user_credentials_supplied": false,
+    "user_home_or_config_supplied": false,
+    "owned_loopback_requests": 0,
+    "guard_event_counts": {
+      "child_process_blocked": 5,
+      "dns_blocked": 3,
+      "embedded_data_fetch_allowed": 3,
+      "fetch_blocked": 1,
+      "guard_loaded": 3
+    },
+    "network_boundary": "Probe-only Node API deny guard, private environment and endpoint refusal. Not an OS isolation or production security proof. Exact data: scheme permitted for embedded Yoga WASM; null origins in general not permitted.",
+    "privacy_boundary": "Designated HOME/USERPROFILE/APPDATA/LOCALAPPDATA/CURSOR_CONFIG_DIR/XDG/TEMP are task-owned and original credential env is omitted. No exhaustive filesystem or OS vault access trace is claimed. Existing per-attempt user_config_read=false summary is a probe setup assertion, not independent syscall evidence.",
+    "lifecycle": "Version/help (including original guard failures) closed without force. ACP received initialize and auth-required response, stdin EOF, then owned SIGTERM after 2.5s grace; exit_code=null/signal=SIGTERM, not normal exit. All five owned PIDs absent.",
+    "pid_facts": [
+      {
+        "pid": 201712,
+        "absent": true
+      },
+      {
+        "pid": 203180,
+        "absent": true
+      },
+      {
+        "pid": 219640,
+        "absent": true
+      },
+      {
+        "pid": 227108,
+        "absent": true
+      },
+      {
+        "pid": 200612,
+        "absent": true
+      }
+    ],
+    "owned_empty_cwd_entries": 0,
+    "private_generated_file_count": 33,
+    "original_failures_preserved": true,
+    "source_manifest_sha256": "130e4b33d6ed1a1fd01f2cdd599c0be2d5f2757a36904510304e89fcfe8ec27a",
+    "next_boundary": "No authentication/key/login/prompt probe authorized or executed. Account/model/config catalogue requires a separate explicit contract and actual authenticated acceptance."
+  },
+  "boundaries": [
+    "真实Windows Cursor 2026.10.22-27dcf5f仅核实版本、help、initialize和未认证session/new拒绝；无真实账号／API key／Prompt／商业模型调用，无动态模型目录或认证后生命周期证明。",
+    "真实包探测共5次启动：前2次是探测守卫错误拒绝data:嵌入WASM，修正后仅重版本／help及一次握手；ACP EOF后经定向SIGTERM，不能称正常退出。原数据与失败结果均保留，5个PID确认消失。",
+    "-e endpoint与禁自动更新均不等于网络隔离；探测守卫曾阻止启动DNS／fetch／子进程，属于探测用Node API guard，不是产品OS安全认证。",
+    "完整开发旅程使用经过生产完整包核验的自有Go原生fixture，明确不是Cursor或Node开发宿主；原SDK／HTTP／SQLite／Git与独立真实Node/JUnit是真执行，reviewer为隔离测试账号，不是客户签署。",
+    "GUI使用真实生产ToolQuickConnect／ACP／DesktopToolConnector，父级账号、桥、网络、模型目录与回执是合成；独立Enable只核实父回调，不冒充完整登录App或生产启用。",
+    "先通过全类型与8805对词条，再仅修正ToolQuickConnect的文案参数和两语言同key；受影响原双例、最终词条检查和隔离构建／只读视口复验，未重复整套类型或业务测试。",
+    "首GUI保留已通过的连接与恢复两项；第三页被原unknown离开保护阻止，剩余授权例在新宿主补验。首补验脚本错误期待已被父级隐藏的子notice，修正断言后仅重该项。四个GUI进程均退出0、无pageerror。",
+    "不支持的专有问题／计划请求不会默认同意；持久旧session恢复、真实厂商开发／完整扩展、其他OS安装、多机／跨库／规模和生产验收继续。完整31／P0–P7／58限定／34待交付／92总账保持active。"
+  ],
+  "review": {
+    "runtime_p2_fixed": "Final package dependency closure before spawn",
+    "ui_p2_fixed": "Wrong Qoder branding in Cursor advanced action",
+    "shared_confirmed_p1_p2": 0
+  },
+  "references": {
+    "multica_commit": "5a2cc891ac338eed1919aa11a1eef5957cd82cec",
+    "sdk": "github.com/coder/acp-go-sdk v0.13.5",
+    "cursor_version": "2026.10.22-27dcf5f",
+    "archive_sha256": "864a8f6a22f8c5ebedef8e0ceba529eae9a59b3d7f6fccb75e43e0f5efc3c147",
+    "source_copy": "No Multica Cursor/yolo, proprietary code or vendor package copied into product repository"
+  },
+  "evidence": [
+    {
+      "path": ".cache/cursor-acp-189/platform/source-manifest.json",
+      "sha256": "a27f1c296948269604e92e0794d3dbf51ed46508b1444be4dfad16deb2165644"
+    },
+    {
+      "path": ".cache/cursor-acp-189/platform/summary.json",
+      "sha256": "4d647a1ca222d2a8f56401dd8a47d8943533f4a56c656af94644f3c85058f287"
+    },
+    {
+      "path": ".cache/cursor-acp-189/platform/reuse-inputs-manifest.json",
+      "sha256": "4bdbfd3605aaf64abd224a3dd883fccdaf7c602915c2eb3490f234c37326afb2"
+    },
+    {
+      "path": ".cache/cursor-acp-189/formal/source-manifest.json",
+      "sha256": "0b36e4ff81f66073ad1e1e4470af2920ae523f15429e86219e95c101622723f1"
+    },
+    {
+      "path": ".cache/cursor-acp-189/formal/summary.json",
+      "sha256": "902f8197460e9c9e9aef9fc875091cc660de9de389587fb4255d9daba9eb5a5a"
+    },
+    {
+      "path": ".cache/cursor-acp-189/formal/artifact-manifest.json",
+      "sha256": "9d0b90e2261bd731b7d2a065671c78e8dc364ddee56ff7a2772274c68fe187f6"
+    },
+    {
+      "path": ".cache/cursor-acp-189/runtime/source-manifest.json",
+      "sha256": "f789da320e61a8c2963e16ae5fd680f8dc705ceeda95d1da72ab36c2dc0f480b"
+    },
+    {
+      "path": ".cache/cursor-acp-189/runtime/summary.json",
+      "sha256": "5ef3bbfb5c5165cc6a800305288c36082c40c79a283410f597c695a2e5a72785"
+    },
+    {
+      "path": ".cache/cursor-acp-189/runtime/test-results.json",
+      "sha256": "f9c44dd6a4982afaeaa512dd6b1d201117475fbe431bb1ad105c341179e18f22"
+    },
+    {
+      "path": ".cache/cursor-acp-189/runtime/scan-shape-example.json",
+      "sha256": "64126df85eedda5764e7805fa115a187d6bb303799e4e7838de8756a6b76174e"
+    },
+    {
+      "path": ".cache/cursor-acp-189/web/integration-summary.json",
+      "sha256": "19667f2b636d13fd28b56ac33f19eb01fe1cde07d0ad6eb763230ad5b105df3b"
+    },
+    {
+      "path": ".cache/cursor-acp-189/docs/source-manifest.json",
+      "sha256": "199ddb129931f183ebc900ab85c56083a4c92025672eac400d481768195b563e"
+    },
+    {
+      "path": ".cache/cursor-acp-189/root-review.json",
+      "sha256": "1199f2923ece0db3569c88a8ae3f4b547a86edcbad764098f47d84c1b6f09bd1"
+    },
+    {
+      "path": ".cache/cursor-acp-189/probe/final-summary.json",
+      "sha256": "bc9727aac48dacf49251d2f2b12e39c9fe69037887ea124964879bcc37f9ef54"
+    },
+    {
+      "path": ".cache/cursor-acp-189/probe/package-manifest.json",
+      "sha256": "d5dee200e9ae81f2b0ca3ec648d2c1255e02d0b27e42be2b40f07bb12ebaf6fc"
+    },
+    {
+      "path": ".cache/cursor-acp-189/probe/source-manifest.json",
+      "sha256": "130e4b33d6ed1a1fd01f2cdd599c0be2d5f2757a36904510304e89fcfe8ec27a"
+    },
+    {
+      "path": ".cache/cursor-acp-189/probe/evidence-manifest.json",
+      "sha256": "48edb27cb08bd7adcb915472ae05ad0e35ef3645df3bfcfd1259d5909ffabc31"
+    },
+    {
+      "path": ".cache/cursor-acp-189/visual/attempt1-result.json",
+      "sha256": "cb0aa37f64338e390e0a91edfce82f4b05d414c6f62f31cd6278967cf73a4dc1"
+    },
+    {
+      "path": ".cache/cursor-acp-189/visual/attempt2-result.json",
+      "sha256": "64e9d51ff9214f7c2a69fece912b3b02198eaea3a4c51bd5e33a273d14dc9376"
+    },
+    {
+      "path": ".cache/cursor-acp-189/visual/auth-result.json",
+      "sha256": "4c0dc3e56f5750e481e61e97ffbb2312e874fe928cad630cb2165a681b1adb9e"
+    },
+    {
+      "path": ".cache/cursor-acp-189/visual/footer-result.json",
+      "sha256": "568479adf7e75e9fbbadc92ecd1b0833cd285a8e6c84f6196323ae3caf4667c4"
+    },
+    {
+      "path": ".cache/cursor-acp-189/visual/source-manifest.json",
+      "sha256": "0302429142f1f86eed9125ddbeb8da13fbb6ac9ae16de92523bccdb611084761"
+    },
+    {
+      "path": ".cache/cursor-acp-189/types.command.json",
+      "sha256": "0bcbb5e1d9c78ffd5d4892d5857025c10052d1ede6d59c6d26dd0454f42d9bfe"
+    },
+    {
+      "path": ".cache/cursor-acp-189/i18n.command.json",
+      "sha256": "456c11c8ccb78e96b0f8a3d88fe645196b12c7a11c5f6798e8146206d69a19e1"
+    },
+    {
+      "path": ".cache/cursor-acp-189/i18n-final.command.json",
+      "sha256": "ec36974e05c3ad534ce390aa1b7cb05878c98792d07cf6bf31360c3d3beb477e"
+    },
+    {
+      "path": ".cache/cursor-acp-189/build.command.json",
+      "sha256": "4ed69ea0d006a31d92c5eec24ed66a41112a3a5c6eb5a320d93509eb8d36d0d0"
+    },
+    {
+      "path": ".cache/cursor-acp-189/build-final.command.json",
+      "sha256": "9c43932cbae19249935681449a2d09957d71fbc6b9f236c13c30ed2b1eff3c5d"
+    },
+    {
+      "path": ".cache/cursor-acp-189/gui.command.json",
+      "sha256": "07c76e4a9e8b834180ad31ae9f797cd2090d8efad39de93013579e9ed4fee722"
+    },
+    {
+      "path": ".cache/cursor-acp-189/gui-auth.command.json",
+      "sha256": "e818dd04c3dd2e627d1d530c03518f4c507fa01a1cb76bf0f56d7a22fbfb0ced"
+    },
+    {
+      "path": ".cache/cursor-acp-189/gui-footer.command.json",
+      "sha256": "59de1b0cc1b2992dd7e3853356a047d54c0fd9a6630241674f3e4c0b0a27bf94"
+    }
+  ],
+  "reuse_drift": [
+    {
+      "path": "contracts/cursor-acp-execution.md",
+      "reason": "Contract explanatory host/update/network details expanded after platform checks; production platform inputs unchanged."
+    }
+  ]
+}

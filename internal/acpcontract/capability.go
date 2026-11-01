@@ -25,7 +25,8 @@ func ValidFixedText(value string, limit int) bool {
 }
 
 func ValidateCapability(c Capability) error {
-	if c.Runtime != "qoder" || c.ProtocolVersion != 1 || c.SDKVersion != SDKVersion || !configurationDigest.MatchString(c.ConfigurationSHA256) || !ValidFixedText(c.Model, 256) || c.ModelSource != "administrator_session_config" || c.BudgetMode != "observe_only" || c.IdentityEvidence != "configuration_ack_only" || c.AuthStrategy != "existing_cli_login" || c.PermissionMode != "human_once" {
+	validRuntime := c.Runtime == "qoder" && c.AuthStrategy == "existing_cli_login" || c.Runtime == "cursor" && c.AuthStrategy == "explicit_api_key_env"
+	if !validRuntime || c.ProtocolVersion != 1 || c.SDKVersion != SDKVersion || !configurationDigest.MatchString(c.ConfigurationSHA256) || !ValidFixedText(c.Model, 256) || c.ModelSource != "administrator_session_config" || c.BudgetMode != "observe_only" || c.IdentityEvidence != "configuration_ack_only" || c.PermissionMode != "human_once" {
 		return fmt.Errorf("invalid fixed ACP execution capability")
 	}
 	return nil

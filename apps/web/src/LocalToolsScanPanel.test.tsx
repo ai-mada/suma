@@ -33,3 +33,10 @@ it('defers disabled auto-scan, locks selection, drops late scope results and rej
  const next='9'.repeat(32);scan.mockResolvedValueOnce(report(next));await render(false,next);await act(async()=>finish({...report(),report:{...report().report,items:report().report.items.map(item=>({...item,product:'Late private result'}))}}));expect(host.textContent).not.toContain('Late private result');expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(8);
  scan.mockResolvedValueOnce({...report(next),scan:{...report(next).scan,tenant_id:'8'.repeat(32)}});await click(rescan());expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(0);expect(host.textContent).toContain('could not be verified');expect(select).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
 });
+it('offers the reviewed Cursor Node package as configuration only and selects the precise ACP descriptor without connecting',async()=>{
+ const current={...cursor,implementation:'implemented',setup_kind:'runner_profile',adapter:'cursor',protocol:'acp-stdio-v1'} as AdapterDescriptor,value=report();
+ value.report.items[4]={...value.report.items[4],installed:true,reason_code:'acp_configuration_required',executable:'C:/tools/cursor-agent/node.exe',version:'Cursor fixture version',executable_sha256:'a'.repeat(64)} as typeof value.report.items[number];scan.mockResolvedValueOnce(value);
+ await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[current]} onSelect={select}/></ApiViewProvider>));
+ const row=host.querySelector('[data-local-tools-adapter="cursor-cli"]')!;expect(row).not.toBeNull();expect(row.textContent).toContain('Complete the connection configuration');expect(row.textContent).toContain('Cursor fixture version');
+ const choose=row.querySelector<HTMLButtonElement>('[data-local-tools-select="cursor-cli"]')!;expect(choose.textContent).toBe('Configure integration');await click(choose);expect(select).toHaveBeenCalledExactlyOnceWith(current);expect(scan).toHaveBeenCalledOnce();expect(fetch).not.toHaveBeenCalled();
+});

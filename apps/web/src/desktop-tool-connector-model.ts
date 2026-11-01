@@ -1,6 +1,6 @@
 import type {DesktopOpenCodeSetup} from './desktop-opencode-connector-model';
 import {validOpenCodeCapability} from './opencode-execution-model';
-import type {DesktopACPSelection} from './desktop-acp-connector-model';
+import {desktopACPRuntimeForAdapter,type DesktopACPSelection} from './desktop-acp-connector-model';
 import type {DesktopCodexSelection,DesktopCodexRequest} from './desktop-codex-connector-model';
 import {wellFormed} from './i18n/catalog';
 export type DesktopToolScope=Readonly<{project:string;userID:string;organizationID:string;adapterID:string}>;
@@ -13,7 +13,7 @@ export type DesktopToolRecovery={operation_id:string;phase:'prepared'|'checking'
 export type DesktopToolConnection={project_id:string;adapter_id:string;phase:DesktopToolPhase;recovery?:DesktopToolRecovery;renewal_reason?:DesktopToolRenewalReason;worker_id?:string;base_commit?:string;expires_at?:string;credential_expires_at?:string;credential_version?:number;repository_name?:string;model?:string;tool_version?:string;executable_sha256?:string;configuration_sha256?:string;catalog_sha256?:string;provider_id?:string;endpoint_origin?:string};
 export type DesktopToolResult={status:'ok';connection:DesktopToolConnection}|{status:'failed';code:string};
 export type DesktopToolBridge=Readonly<{platform:'win32'|'darwin'|'linux';version:'1.0.0';manageLocalTool:(request:DesktopToolRequest)=>Promise<unknown>}>;
-const adapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','qoder-acp','codex-app-server','opencode-sdk']);
+const adapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','qoder-acp','cursor-cli','codex-app-server','opencode-sdk']);
 const phases=new Set<DesktopToolPhase>(['unconfigured','needs_workspace','not_installed','unavailable','prepared','issuance_unknown','renewal_unknown','starting','connected','stopping','stopped','authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','failed']);
 const record=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value:Record<string,unknown>,keys:string[])=>Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
@@ -28,7 +28,8 @@ export function readDesktopToolResult(value:unknown,scope:DesktopToolScope):Desk
  if(!exact(value,['status','connection'])||value.status!=='ok'||!record(value.connection))return;
  const c=value.connection,allowed=['project_id','adapter_id','phase','worker_id','base_commit','expires_at','credential_expires_at','credential_version','renewal_reason','recovery','repository_name'];
  if(scope.adapterID==='opencode-sdk')allowed.push('model','tool_version','executable_sha256','configuration_sha256','provider_id','endpoint_origin');
- if(scope.adapterID==='qoder-acp')allowed.push('model','tool_version','executable_sha256','configuration_sha256');
+ const acp=!!desktopACPRuntimeForAdapter(scope.adapterID);
+ if(acp)allowed.push('model','tool_version','executable_sha256','configuration_sha256');
  if(scope.adapterID==='codex-app-server')allowed.push('tool_version','executable_sha256','configuration_sha256','catalog_sha256');
  if(!['project_id','adapter_id','phase'].every(key=>Object.hasOwn(c,key))||Object.keys(c).some(key=>!allowed.includes(key))||c.project_id!==scope.project||c.adapter_id!==scope.adapterID||!phases.has(c.phase as DesktopToolPhase))return;
  if(Object.hasOwn(c,'recovery')&&!validRecovery(c.recovery))return;
@@ -42,6 +43,7 @@ export function readDesktopToolResult(value:unknown,scope:DesktopToolScope):Desk
  if(Object.hasOwn(c,'repository_name')&&(typeof c.repository_name!=='string'||!c.repository_name.trim()||new TextEncoder().encode(c.repository_name).length>256||/[\x00-\x1f\x7f-\x9f\u2028\u2029]/.test(c.repository_name)))return;
  for(const key of ['model','tool_version'])if(Object.hasOwn(c,key)&&(typeof c[key]!=='string'||!c[key]||c[key].trim()!==c[key]||!wellFormed(c[key])||new TextEncoder().encode(c[key]).length>256||/\p{Cc}/u.test(c[key])))return;
  for(const key of ['executable_sha256','configuration_sha256','catalog_sha256'])if(Object.hasOwn(c,key)&&(typeof c[key]!=='string'||!/^[a-f0-9]{64}$/.test(c[key])))return;
+ if(acp&&c.phase==='connected'&&!['model','tool_version','executable_sha256','configuration_sha256'].every(key=>Object.hasOwn(c,key)))return;
  if(scope.adapterID==='codex-app-server'&&c.phase==='connected'&&!['tool_version','executable_sha256','configuration_sha256','catalog_sha256'].every(key=>Object.hasOwn(c,key)))return;
  if(scope.adapterID==='opencode-sdk'){
   const fields=['model','tool_version','executable_sha256','configuration_sha256','provider_id','endpoint_origin'];
