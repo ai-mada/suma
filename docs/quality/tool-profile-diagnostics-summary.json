@@ -1,0 +1,173 @@
+{
+  "stage": "T-TOOL-DOCTOR-181",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "timezone": "Asia/Shanghai",
+  "status": "scoped_source_actual_session_http_and_synthetic_ui_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Current read-only diagnostics share the original availability collector. Four independent prerequisites cover activation authority, runner identity, inventory freshness and exact complete configuration; old inventory leaves the final check not_checked.",
+    "Short database display deadlines are capped by fresh inventory expiry; consumers deduct monotonic network time, keep pending writes separate and discard stale identity/configuration/version results. No new ready permission or health score.",
+    "Suggestions navigate only to original versioned review, exact available worker management or quick configuration. No automatic probe, repair, renewal, enable, model call or dispatch.",
+    "Scoped CLI GET retains explicit expected-view headers. The server validates optional independent assertions on semantic reads, while original command requirements remain; matches POST is explicitly classified read-only."
+  ],
+  "focused": {
+    "distinct_top_level": 27,
+    "new": 22,
+    "affected_existing": 5,
+    "go": {
+      "platform_diagnostics": {
+        "distinct": 10,
+        "new": 7,
+        "affected_existing": 3,
+        "subcases": 19
+      },
+      "cli": {
+        "distinct": 4,
+        "new": 3,
+        "affected_existing": 1,
+        "subcases": 16
+      },
+      "shared_contract_and_read_view": {
+        "distinct": 3,
+        "new": 2,
+        "affected_existing": 1,
+        "subcases": 6
+      },
+      "distinct": 17,
+      "subcases_separate": 41
+    },
+    "web": {
+      "distinct": 10,
+      "new": 10,
+      "model": 3,
+      "reader": 6,
+      "workspace": 1
+    },
+    "repeats_not_counted": true
+  },
+  "integration": {
+    "full_typecheck_exit": 0,
+    "paired_locale_keys": 8520,
+    "production_hardcodes": 0,
+    "contract_generation_runs": 3,
+    "generated_files": [
+      "docs/api/openapi.json",
+      "packages/contracts/src/index.ts",
+      "packages/contracts/src/display-sources.ts"
+    ],
+    "application_builds": 0,
+    "sdk_builds": 0,
+    "full_go_suite": false,
+    "full_web_suite": false,
+    "component_builds": 1,
+    "gui_launches": 2,
+    "gui_feature_checks": 6,
+    "initial_passed_checks": 1,
+    "continued_passed_checks": 5,
+    "driver_exits": [
+      1,
+      0
+    ],
+    "native_exits": [
+      0,
+      0
+    ],
+    "root_viewed_images": 2
+  },
+  "real_http": {
+    "scope": "Production CLI Execute in a Go test binary with actual Service.Initialize, SQLite and normal test browser-session setup; not an installed release CLI, real account or vendor.",
+    "successful_diagnostic_gets": 1,
+    "denied_expected_views": 2,
+    "other_cli_requests": 0,
+    "profile_state_version_unchanged": true,
+    "wall_clock_offsets_checked": "DB plus/minus24 hours; monotonic network subtraction, no assumed client clock synchronization"
+  },
+  "history": [
+    "Early toolchain/environment and integration REDs remain; failed agent credential refresh had a terminal result. Successors continued existing files and terminal logs, without restarting a live task on observation timeout.",
+    "Pool credential test expected403 but the existing authentication entry returns401; only the new fixture assertion changed, not production authority.",
+    "A bounded Web review found an early-timer-wake expiry bug. Its new RED was fixed and only the new timer case plus affected latency case were rerun.",
+    "Real CLI rejected-view checks exposed ignored optional read assertions. The generic client/server read contract was fixed and its narrow safeguards plus real successful/denied views passed.",
+    "Initial UI driver required an explicit type=submit attribute on the original default-submit button and timed out after one passed case. Only the selector changed; the unchanged component build completed the remaining five cases.",
+    "Contract generation followed three explicit inputs: shared types/display sources, optional read headers/classification, and the enclosing-reason display description. After the functional metadata change only the original contract case was repeated; last prose-only generation added no tests."
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-doctor-181/platform/backend-summary.json",
+      "sha256": "699dbc69cc9079d5a402a048ad9424a7353921c1c0cc24bccf2394764c575b7e"
+    },
+    {
+      "path": ".cache/tool-doctor-181/cli/summary.json",
+      "sha256": "bc77fd53e85516df665c65524b3b32c6e82a9762f86cb359a87f5319e0044f4b"
+    },
+    {
+      "path": ".cache/tool-doctor-181/cli/source-manifest.json",
+      "sha256": "6ce0d6451e3e0f89aef1e1b4e68510b95e957f0e81feb7c6f9737a2c8b57bfda"
+    },
+    {
+      "path": ".cache/tool-doctor-181/web/web181-summary.json",
+      "sha256": "57bb575c8f5c23cb46a9f1c39b3fadc5d4fa645dc2f6766cfcb200b8d313fa03"
+    },
+    {
+      "path": ".cache/tool-doctor-181/visual/result.json",
+      "sha256": "9ae7ed471d3830bf7a0a731e255800bb0ba7a6e14eda6bcef640be6e79e7231b"
+    },
+    {
+      "path": ".cache/tool-doctor-181/visual/continuation-result.json",
+      "sha256": "5a70ba223fdddcfb96fac1963add4d67bee59a9d7241e2336434f7a0dfc8dd69"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T021545611Z.command.json",
+      "sha256": "21a3c7b3cf49d1903030daf78d843668942e4ff902db9a9b3d9e90ada0f16929"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T023114103Z.command.json",
+      "sha256": "3a47207766f7c3182531eff7083f9f36e17046e9f629f0caaa104b8b24fa075c"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T015342273Z.command.json",
+      "sha256": "bc79dbb9b4c6d668523287ba2bf02a3c636261b1e500cd35107303158734efa6"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T021741747Z.command.json",
+      "sha256": "9e0e849d9f6ad1c7220d811abebadce35c4797b0204bffb5b52546ea3a5e8fb6"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T023337920Z.command.json",
+      "sha256": "773762306d5340d70b931cb71d38ad44eaf650f62c6a0c7e5ebe207357e506ca"
+    }
+  ],
+  "images": [
+    {
+      "path": ".cache/tool-doctor-181/visual/cn-1366-checks.png",
+      "sha256": "f12afcc16b3b6e98f957ac17d8ab98e510d43a047f540236a7b1ca08b42445ab",
+      "root_viewed": true
+    },
+    {
+      "path": ".cache/tool-doctor-181/visual/en-390-checks.png",
+      "sha256": "fa8f808d8017a1a5393ff2817f919586470ca7388f7d9f665f4e98d2ec86ddd7",
+      "root_viewed": true
+    }
+  ],
+  "boundaries": [
+    "GUI uses real production Workspace/reader/card with synthetic GET responses, source-aware navigation and the original unchecked review form. No business write, actual credentials, CLI subprocess, model or real provider was used.",
+    "English interaction is checked at390x844 and captured at390x1200 in the same page; Chinese capture1366x1200. Fixture metadata was aligned only in the ignored copy, not in product source.",
+    "Diagnostics are observations, not model sign-in, budget, execution, acceptance or deployment proof. Canonical raw reason/message-key protocol is preserved for localized display.",
+    "Physical multi-host, OceanBase/PostgreSQL, full authenticated desktop, installer, production scale, other pending effects and all original31/P0-P7 requirements remain pending as applicable; stage171 explicit-stop GUI gap remains."
+  ],
+  "hygiene": {
+    "protected_original_files": 21,
+    "raw_unchanged": 21,
+    "partial_staging": false,
+    "cache_or_temp_in_git": false,
+    "secrets_in_git": false
+  }
+}

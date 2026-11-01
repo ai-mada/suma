@@ -7015,6 +7015,20 @@ export interface ToolProfileCreateRequest {
   profile: ToolExecutionProfile;
   idempotency_key: string;
 }
+export interface ToolProfileDiagnosticCheck {
+  code: string;
+  status: string;
+  reason: string;
+  reason_diagnostic?: DisplayDiagnostic | null;
+  next_action: string;
+}
+export interface ToolProfileDiagnostics {
+  tool: ToolProfile;
+  checked_at: string;
+  expires_at: string;
+  checks: (ToolProfileDiagnosticCheck)[];
+  next_action: string;
+}
 export interface ToolProfileList {
   items: (ToolProfile)[];
   total: number;

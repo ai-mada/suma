@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T180 exact profile reuse, transactional duplicate prevention, real-session CLI query, bilingual UI, source and scoped evidence; full original goal remains active",
+  "last_goal_turn_classification": "progress: T181 shared automatic diagnostics, exact current-view read protection, CLI session verification, bilingual Workspace and scoped source/evidence delivery; full goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-PROFILE-REUSE-180",
+    "stage": "T-TOOL-DOCTOR-181",
     "status": "scoped_verified",
-    "contract": "contracts/tool-profile-reuse.md",
+    "contract": "contracts/tool-profile-diagnostics.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "priority": "Parallel feature implementation; mature runtime reuse; simple bilingual onboarding; no repeated unrelated verification.",
-    "next": "Continue generic tool diagnostics, remote/distributed adapters and unresolved effect recovery, then remaining end-to-end project/team/knowledge/quality platform domains."
+    "priority": "Parallel implementation; mature domain/runtime reuse; simple bilingual onboarding; focused verification only.",
+    "next": "Continue remote/distributed adapters and effect recovery, complete tool/model handoff and the remaining project/team/knowledge/quality/operations platform domains."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1039,6 +1039,28 @@
       "GUI uses production components with controlled read responses and entry callbacks, not actual registration/enablement or a full authenticated desktop journey. Six interactions include 390x844; final complete image canvases are1366x1800 and390x2400.",
       "No real provider/model, physical multi-host, alternative database, cross-platform installer or production-scale acceptance. A matching profile is not dispatch health or permission.",
       "Full original31/P0-P7, all remaining platform domains, other effect/outbox recovery and stage171 explicit-stop UI gap remain active."
+    ]
+  },
+  "tool_profile_diagnostics": {
+    "stage": "T-TOOL-DOCTOR-181",
+    "status": "scoped_verified",
+    "contract": "contracts/tool-profile-diagnostics.md",
+    "report": "docs/quality/tool-profile-diagnostics-verification.md",
+    "summary": "docs/quality/tool-profile-diagnostics-summary.json",
+    "focused": 27,
+    "go_subcases": 41,
+    "synthetic_gui_checks": 6,
+    "implementation": [
+      "Current read-only diagnostics share the original availability collector. Four independent prerequisites cover activation authority, runner identity, inventory freshness and exact complete configuration; old inventory leaves the final check not_checked.",
+      "Short database display deadlines are capped by fresh inventory expiry; consumers deduct monotonic network time, keep pending writes separate and discard stale identity/configuration/version results. No new ready permission or health score.",
+      "Suggestions navigate only to original versioned review, exact available worker management or quick configuration. No automatic probe, repair, renewal, enable, model call or dispatch.",
+      "Scoped CLI GET retains explicit expected-view headers. The server validates optional independent assertions on semantic reads, while original command requirements remain; matches POST is explicitly classified read-only."
+    ],
+    "boundaries": [
+      "GUI uses real production Workspace/reader/card with synthetic GET responses, source-aware navigation and the original unchecked review form. No business write, actual credentials, CLI subprocess, model or real provider was used.",
+      "English interaction is checked at390x844 and captured at390x1200 in the same page; Chinese capture1366x1200. Fixture metadata was aligned only in the ignored copy, not in product source.",
+      "Diagnostics are observations, not model sign-in, budget, execution, acceptance or deployment proof. Canonical raw reason/message-key protocol is preserved for localized display.",
+      "Physical multi-host, OceanBase/PostgreSQL, full authenticated desktop, installer, production scale, other pending effects and all original31/P0-P7 requirements remain pending as applicable; stage171 explicit-stop GUI gap remains."
     ]
   }
 }

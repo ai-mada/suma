@@ -11279,6 +11279,27 @@
             "if": {
               "properties": {
                 "message_key": {
+                  "const": "display.tool.authorization_current"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
                   "const": "display.tool.command_missing"
                 }
               },
@@ -11301,6 +11322,27 @@
               "properties": {
                 "message_key": {
                   "const": "display.tool.dispatchable"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.inventory_fresh"
                 }
               },
               "required": [
@@ -11406,6 +11448,27 @@
               "properties": {
                 "message_key": {
                   "const": "display.tool.pool_unavailable"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.profile_matches"
                 }
               },
               "required": [
@@ -11545,6 +11608,27 @@
             "if": {
               "properties": {
                 "message_key": {
+                  "const": "display.tool.worker_current"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
                   "const": "display.tool.worker_expired"
                 }
               },
@@ -11584,23 +11668,27 @@
             }
           }
         ],
-        "description": "Optional source-bound current tool reason display identity. Full canonical equality with the same ToolProfile.reason is required. Never permission, model health, execution, test or acceptance evidence.",
+        "description": "Optional source-bound current tool reason display identity. Full canonical equality with its enclosing reason field (ToolProfile or diagnostic check) is required. Never permission, model health, execution, test or acceptance evidence.",
         "properties": {
           "message_key": {
             "enum": [
               "display.tool.activation_revoked",
+              "display.tool.authorization_current",
               "display.tool.command_missing",
               "display.tool.dispatchable",
+              "display.tool.inventory_fresh",
               "display.tool.inventory_missing",
               "display.tool.inventory_stale",
               "display.tool.pool_expired",
               "display.tool.pool_paused",
               "display.tool.pool_unavailable",
+              "display.tool.profile_matches",
               "display.tool.profile_mismatch",
               "display.tool.profile_paused",
               "display.tool.profile_revoked",
               "display.tool.reported_unavailable",
               "display.tool.worker_creator_revoked",
+              "display.tool.worker_current",
               "display.tool.worker_expired",
               "display.tool.worker_unregistered"
             ],
@@ -37536,6 +37624,111 @@
           "name",
           "profile",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ToolProfileDiagnosticCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "authorization",
+              "worker",
+              "inventory",
+              "profile"
+            ],
+            "type": "string"
+          },
+          "next_action": {
+            "description": "Display/navigation suggestion; never permission or an automatic write.",
+            "enum": [
+              "none",
+              "review_profile",
+              "open_worker",
+              "register_profile",
+              "refresh"
+            ],
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 4096,
+            "type": "string",
+            "x-max-utf8-bytes": 4096
+          },
+          "reason_diagnostic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DisplayDiagnostic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "blocked",
+              "not_checked"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "status",
+          "reason",
+          "next_action"
+        ],
+        "type": "object"
+      },
+      "ToolProfileDiagnostics": {
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/ToolProfileDiagnosticCheck"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array",
+            "x-ordered-codes": [
+              "authorization",
+              "worker",
+              "inventory",
+              "profile"
+            ]
+          },
+          "expires_at": {
+            "description": "At most checked_at+60 seconds and no later than a fresh inventory's expiry; a display deadline, never a credential.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "next_action": {
+            "description": "Display/navigation suggestion; never permission or an automatic write.",
+            "enum": [
+              "none",
+              "review_profile",
+              "open_worker",
+              "register_profile",
+              "refresh"
+            ],
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolProfile"
+          }
+        },
+        "required": [
+          "tool",
+          "checked_at",
+          "expires_at",
+          "checks",
+          "next_action"
         ],
         "type": "object"
       },
@@ -123629,32 +123822,6 @@
             }
           },
           {
-            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
-            "in": "header",
-            "name": "X-Suma-Expected-User",
-            "required": true,
-            "schema": {
-              "maxLength": 32,
-              "minLength": 32,
-              "pattern": "^[a-f0-9]{32}$",
-              "type": "string"
-            },
-            "x-required-for-credential-kind": "browser-session"
-          },
-          {
-            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
-            "in": "header",
-            "name": "X-Suma-Expected-Organization",
-            "required": true,
-            "schema": {
-              "maxLength": 32,
-              "minLength": 32,
-              "pattern": "^[a-f0-9]{32}$",
-              "type": "string"
-            },
-            "x-required-for-credential-kind": "browser-session"
-          },
-          {
             "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
             "in": "header",
             "name": "Accept-Language",
@@ -123793,28 +123960,6 @@
                 }
               }
             }
-          },
-          "428": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
           }
         },
         "security": [
@@ -123822,13 +123967,6 @@
             "cookieAuth": []
           }
         ],
-        "x-browser-original-view": {
-          "account_only": false,
-          "is_authorization": false,
-          "mismatch_status": 403,
-          "missing_status": 428,
-          "required": true
-        },
         "x-disallowed-token-scopes": [
           "api",
           "agent",
@@ -124232,6 +124370,193 @@
           "runner"
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/tool-profiles/{id}/diagnostics": {
+      "get": {
+        "description": "Current four-prerequisite diagnosis from the original availability evaluator and one authorized database snapshot. Runner identity is not online/model health. Fixed checks authorization, worker, inventory, profile; stale inventory leaves profile not_checked. A display deadline of at most60 seconds is never an execution/enable/repair grant. Suggestions only navigate to existing explicit workflows.",
+        "operationId": "get_tool-profiles_id_diagnostics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional current-view assertion; if supplied it must be a single valid ID matching the authenticated actor. It never selects an identity or grants authority.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional current-view assertion; if supplied it must be a single valid ID matching the authenticated actor. It never selects an identity or grants authority.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolProfileDiagnostics"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       }
     },
     "/usage": {

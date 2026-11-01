@@ -1,6 +1,6 @@
 # 速码 suma
 
-T-TOOL-PROFILE-REUSE-180补齐[已有工具配置复用](contracts/tool-profile-reuse.md)：快捷接入自动查找完整匹配，复用原档案并处理并发重复登记；CLI共享准确查询，中英界面区分暂停、启用、健康与撤销历史。[架构与AI SOP](docs/architecture/tool-profile-reuse.md)及[限定验证](docs/quality/tool-profile-reuse-verification.md)记录实际范围。
+T-TOOL-DOCTOR-181新增[工具配置自动体检](contracts/tool-profile-diagnostics.md)：当前授权、节点身份、库存及完整配置分别核对，直接进入原处理入口，避免逐处猜测。CLI与界面共享当前读取断言、单调期限和原写入门禁。[架构与AI SOP](docs/architecture/tool-profile-diagnostics.md)及[限定验证](docs/quality/tool-profile-diagnostics-verification.md)记录真实范围。
 
 **速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器、桌面与CLI入口。
 

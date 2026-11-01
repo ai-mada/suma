@@ -1,7 +1,7 @@
 import {useApi} from './api-context';
 import { Trans } from "./i18n/Trans";
 import { tr as t, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   ChevronRight,
   Plus,
@@ -42,6 +42,7 @@ import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {ToolQuickConnect} from './ToolQuickConnect';
+import {ToolProfileDoctor} from './ToolProfileDoctor';
 import {validQuickConnectReceipt} from './tool-quick-connect-model';
 import {AdapterConnections,type AdapterDescriptor} from './AdapterConnections';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
@@ -102,6 +103,7 @@ function ScopedToolWorkspace({
     [receipt, setReceipt] = useState<{key:string;name:string;scope:string}>();
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const guideID = useId();
+  const workerRows = useRef(new Map<string, HTMLElement>());
   const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'|'qoder'|'opencode';cloud?:boolean}>();
   const connection=connectionSelection?.context===contextKey?connectionSelection:undefined;
   const recovery = useMemo(
@@ -399,6 +401,12 @@ function ScopedToolWorkspace({
                       {t("development.tools.the_last_read_is_retained_current_connection")}</p>
                   )}
                   <ToolProfileFacts key={current.id} profile={current} confirmed={!stale}>
+                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={action.busy||pending}
+                    onReview={value=>{if(stale||action.busy||action.pending||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
+                    onRegister={()=>{if(!stale&&!action.busy&&!action.pending)openQuickConnect();}}
+                    onRefreshTool={()=>{if(!action.busy&&!action.pending)void detail.read();}}
+                    onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||action.busy||action.pending||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
+                  />
                   <div className="tool-action-bar">
                     {current.state !== "revoked" && (
                       <>
@@ -482,7 +490,7 @@ function ScopedToolWorkspace({
           ) : null
         ) : workers.data.items.length ? (
           workers.data.items.map((worker) => (
-            <article className="tool-worker-row" key={worker.id}>
+            <article className="tool-worker-row" key={worker.id} tabIndex={-1} data-tool-worker={worker.worker_id} ref={element=>{if(element)workerRows.current.set(worker.worker_id,element);else workerRows.current.delete(worker.worker_id);}}>
               <div>
                 <strong>
                   <Terminal size={14} /> {worker.worker_id}

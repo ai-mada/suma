@@ -48,7 +48,7 @@ func TestAuthorityHTTPOriginalView(t *testing.T) {
 }
 
 func TestAuthorityHTTPCommandClassification(t *testing.T) {
-	for _, path := range []string{"search", "workflows/validate", "agent/tools/invoke", "automations/preview", "release-plans/preview", "deployments/id/rollback-preview", "auth/logout"} {
+	for _, path := range []string{"search", "workflows/validate", "agent/tools/invoke", "automations/preview", "release-plans/preview", "deployments/id/rollback-preview", "auth/logout", "tool-profiles/matches"} {
 		if BrowserCommandRequiresView(http.MethodPost, path) {
 			t.Errorf("semantic read/logout requires command view: %s", path)
 		}
@@ -57,5 +57,39 @@ func TestAuthorityHTTPCommandClassification(t *testing.T) {
 		if !BrowserCommandRequiresView(http.MethodPost, path) {
 			t.Errorf("write bypassed view: %s", path)
 		}
+	}
+}
+
+func TestAuthorityHTTPOptionalReadView(t *testing.T) {
+	p := Principal{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", TenantID: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}
+	for _, tc := range []struct {
+		name, header string
+		values       []string
+		status       int
+	}{
+		{"omitted", "", nil, 0},
+		{"account-only", "X-Suma-Expected-User", []string{p.ID}, 0},
+		{"organization-only", "X-Suma-Expected-Organization", []string{p.TenantID}, 0},
+		{"duplicate", "X-Suma-Expected-User", []string{p.ID, p.ID}, 428},
+		{"changed", "X-Suma-Expected-User", []string{"cccccccccccccccccccccccccccccccc"}, 403},
+		{"invalid", "X-Suma-Expected-Organization", []string{""}, 428},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodGet, "/api/v1/tool-profiles/id/diagnostics", nil)
+			for _, value := range tc.values {
+				r.Header.Add(tc.header, value)
+			}
+			err := validateOptionalReadView(r, p)
+			if tc.status == 0 {
+				if err != nil {
+					t.Fatal(err)
+				}
+				return
+			}
+			var api *APIError
+			if !errors.As(err, &api) || api.Status != tc.status {
+				t.Fatalf("optional read assertion: got %v, want %d", err, tc.status)
+			}
+		})
 	}
 }

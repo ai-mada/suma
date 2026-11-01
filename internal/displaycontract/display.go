@@ -24,6 +24,8 @@ type SourceDefinition struct {
 // Explicit approval keeps future display domains and native keys out of tool
 // eligibility. Canonical prose lives only in the Go localization catalog.
 var toolKeys = map[string]bool{
+	"display.tool.authorization_current": true, "display.tool.worker_current": true,
+	"display.tool.inventory_fresh": true, "display.tool.profile_matches": true,
 	"display.tool.profile_revoked": true, "display.tool.profile_paused": true,
 	"display.tool.activation_revoked": true, "display.tool.worker_expired": true,
 	"display.tool.worker_creator_revoked": true, "display.tool.worker_unregistered": true,

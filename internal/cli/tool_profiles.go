@@ -22,13 +22,16 @@ const toolMatchesResponseInvalid = "tool matches response must preserve the requ
 const toolMatchesInputLimit = 256 << 10
 
 func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
-	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && args[0] == "matches" && (args[1] == "help" || args[1] == "--help") {
+	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[0] == "matches" || args[0] == "doctor") && (args[1] == "help" || args[1] == "--help") {
 		text := toolProfilesHelpZH
 		if c.locale == localization.EnUS {
 			text = toolProfilesHelpEN
 		}
 		_, err := io.WriteString(out, text)
 		return err
+	}
+	if len(args) > 0 && args[0] == "doctor" {
+		return toolDoctorCommand(ctx, c, args[1:], out)
 	}
 	if len(args) == 0 || args[0] != "matches" {
 		return usage(toolMatchesUsage)
@@ -101,7 +104,13 @@ func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Re
 	return writeJSON(out, response, c.token)
 }
 
-const toolProfilesHelpEN = `tools matches — find complete existing tool profiles
+const toolProfilesHelpEN = `tools doctor — read current tool profile diagnostics
+  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID
+  This GET reports four current facts and their display deadline of at most 60 seconds.
+  It never runs a suggestion, enables a profile or accesses tool credentials.
+  A valid worker identity does not prove online state, model login or execution.
+
+tools matches — find complete existing tool profiles
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools matches --file request.json
   Use --file - to read standard input; input is limited to 256 KiB.
 
@@ -112,7 +121,13 @@ This POST only reads current matches. No operation key or --confirm is needed.
 Paused/enabled matches require explicit reuse; revoked entries are history.
 This command never creates, enables, connects or executes a tool.
 `
-const toolProfilesHelpZH = `tools matches — 查询完整匹配的已有工具档案
+const toolProfilesHelpZH = `tools doctor — 读取当前工具档案体检
+  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID
+  此 GET 展示四项当前事实与最多 60 秒的展示期限。
+  不运行建议、不启用档案、不读取工具凭据。
+  节点身份有效不代表机器在线、模型已登录或已执行。
+
+tools matches — 查询完整匹配的已有工具档案
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools matches --file request.json
   --file - 从标准输入读取；正文最多 256 KiB。
 

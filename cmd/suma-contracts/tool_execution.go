@@ -6,7 +6,7 @@ import (
 )
 
 func toolExecutionModels() []any {
-	return []any{platform.ToolProfile{}, platform.ToolProfileCreateRequest{}, platform.ToolProfileCommandRequest{}, platform.ToolProfileList{}, platform.ToolProfileMatchRequest{}, platform.ToolProfileMatchList{}, platform.ToolInventoryRequest{}, platform.ToolInventoryReceipt{}, platform.TaskContextRecord{}, platform.TaskContext{}, platform.TaskDispatchPlan{}, platform.TaskDispatchPreviewRequest{}, platform.TaskDispatchStartRequest{}, toolcontract.Profile{}, toolcontract.Observation{}, toolcontract.Event{}, toolcontract.Evidence{}, toolcontract.Usage{}}
+	return []any{platform.ToolProfile{}, platform.ToolProfileCreateRequest{}, platform.ToolProfileCommandRequest{}, platform.ToolProfileList{}, platform.ToolProfileMatchRequest{}, platform.ToolProfileMatchList{}, platform.ToolProfileDiagnostics{}, platform.ToolProfileDiagnosticCheck{}, platform.ToolInventoryRequest{}, platform.ToolInventoryReceipt{}, platform.TaskContextRecord{}, platform.TaskContext{}, platform.TaskDispatchPlan{}, platform.TaskDispatchPreviewRequest{}, platform.TaskDispatchStartRequest{}, toolcontract.Profile{}, toolcontract.Observation{}, toolcontract.Event{}, toolcontract.Evidence{}, toolcontract.Usage{}}
 }
 
 func toolExecutionContracts(add operationAdder, paths map[string]any) {
@@ -20,6 +20,15 @@ func toolExecutionContracts(add operationAdder, paths map[string]any) {
 		}
 		op["description"] = "Immutable administrator configuration plus separately observed local availability. Freshness uses database time and expires after60 seconds. Neither installation nor available=true proves model authentication or successful task execution."
 	}
+	diagnostics := add("/tool-profiles/{id}/diagnostics", "get", "ToolProfileDiagnostics", false, false)
+	browserOnly(diagnostics)
+	successStatus(diagnostics, "200")
+	diagnostics["x-read-only"] = true
+	diagnostics["x-response-cache-control"] = "no-store"
+	for _, header := range []string{"X-Suma-Expected-User", "X-Suma-Expected-Organization"} {
+		diagnostics["parameters"] = append(diagnostics["parameters"].([]any), map[string]any{"in": "header", "name": header, "required": false, "description": "Optional current-view assertion; if supplied it must be a single valid ID matching the authenticated actor. It never selects an identity or grants authority.", "schema": map[string]any{"type": "string", "pattern": "^[a-f0-9]{32}$"}})
+	}
+	diagnostics["description"] = "Current four-prerequisite diagnosis from the original availability evaluator and one authorized database snapshot. Runner identity is not online/model health. Fixed checks authorization, worker, inventory, profile; stale inventory leaves profile not_checked. A display deadline of at most60 seconds is never an execution/enable/repair grant. Suggestions only navigate to existing explicit workflows."
 	match := add("/tool-profiles/matches", "post", "ToolProfileMatchList", false, false)
 	browserOnly(match)
 	successStatus(match, "200")
@@ -72,7 +81,7 @@ func enhanceToolExecutionSchemas(schemas map[string]any) {
 			value[k] = v
 		}
 	}
-	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "ToolProfileMatchRequest", "ToolProfileMatchList", "ToolInventoryRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest", "ToolEvent", "ToolUsage"} {
+	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "ToolProfileMatchRequest", "ToolProfileMatchList", "ToolProfileDiagnostics", "ToolProfileDiagnosticCheck", "ToolInventoryRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest", "ToolEvent", "ToolUsage"} {
 		toolContractMap(schemas, model)["additionalProperties"] = false
 	}
 	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest"} {
@@ -83,6 +92,15 @@ func enhanceToolExecutionSchemas(schemas map[string]any) {
 	field("ToolProfileCommandRequest", "action", map[string]any{"enum": []string{"enable", "pause", "revoke"}})
 	field("ToolProfileMatchList", "items", map[string]any{"maxItems": 1000})
 	field("ToolProfileMatchList", "total", map[string]any{"minimum": 0, "maximum": 1000, "description": "Equals items.length; the exact complete match set has no next cursor or silent truncation."})
+	field("ToolProfileDiagnostics", "checked_at", map[string]any{"format": "date-time"})
+	field("ToolProfileDiagnostics", "expires_at", map[string]any{"format": "date-time", "description": "At most checked_at+60 seconds and no later than a fresh inventory's expiry; a display deadline, never a credential."})
+	field("ToolProfileDiagnostics", "checks", map[string]any{"minItems": 4, "maxItems": 4, "x-ordered-codes": []string{"authorization", "worker", "inventory", "profile"}})
+	field("ToolProfileDiagnosticCheck", "code", map[string]any{"enum": []string{"authorization", "worker", "inventory", "profile"}})
+	field("ToolProfileDiagnosticCheck", "status", map[string]any{"enum": []string{"pass", "blocked", "not_checked"}})
+	field("ToolProfileDiagnosticCheck", "reason", map[string]any{"maxLength": 4096, "x-max-utf8-bytes": 4096})
+	for _, model := range []string{"ToolProfileDiagnostics", "ToolProfileDiagnosticCheck"} {
+		field(model, "next_action", map[string]any{"enum": []string{"none", "review_profile", "open_worker", "register_profile", "refresh"}, "description": "Display/navigation suggestion; never permission or an automatic write."})
+	}
 	field("ToolProfile", "state", map[string]any{"enum": []string{"paused", "enabled", "revoked"}})
 	field("ToolProfileCreateRequest", "name", map[string]any{"minLength": 1, "maxLength": 200, "x-max-utf8-bytes": 200})
 	field("ToolExecutionProfile", "command_id", map[string]any{"pattern": `^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`})

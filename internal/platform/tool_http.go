@@ -47,6 +47,9 @@ func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, actor 
 	case len(parts) == 2 && r.Method == http.MethodGet:
 		out, err := s.Service.GetToolProfile(r.Context(), actor, project, parts[1])
 		respond(w, 200, out, err)
+	case len(parts) == 3 && parts[2] == "diagnostics" && r.Method == http.MethodGet:
+		out, err := s.Service.GetToolProfileDiagnostics(r.Context(), actor, project, parts[1])
+		respond(w, http.StatusOK, out, err)
 	case len(parts) == 3 && parts[2] == "commands" && r.Method == http.MethodPost:
 		var req ToolProfileCommandRequest
 		if err := strictAutomation(m, &req); err != nil {

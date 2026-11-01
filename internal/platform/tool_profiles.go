@@ -123,81 +123,8 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 }
 
 func (s *Service) toolProfileObservationLockedTx(ctx context.Context, tx *sql.Tx, tenant, project string, out ToolProfile) (ToolProfile, error) {
-	p := Principal{TenantID: tenant} // projection/scope only; never an authority source
-	clock, err := s.toolInventoryClock(ctx, tx)
-	if err != nil {
-		return out, err
-	}
-	out.Available = false
-	out.ReasonDiagnostic = nil
-	var raw string
-	err = tx.QueryRowContext(ctx, s.q(`SELECT observed_at,items FROM suma_tool_inventories WHERE tenant_id=? AND project_id=? AND worker_id=?`), p.TenantID, project, out.WorkerID).Scan(&out.LastSeenAt, &raw)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return out, err
-	}
-	var items []toolcontract.Observation
-	if err == nil {
-		if err = json.Unmarshal([]byte(raw), &items); err != nil {
-			return out, err
-		}
-		for _, o := range items {
-			if o.Profile.CommandID == out.Profile.CommandID {
-				copy := o
-				out.Observation = &copy
-				break
-			}
-		}
-	}
-	switch out.State {
-	case "revoked":
-		out = withToolReason(out, "工具档案已永久撤销", "profile_revoked", nil)
-		return out, nil
-	case "paused":
-		out = withToolReason(out, "工具档案已暂停，尚未授权派发", "profile_paused", nil)
-		return out, nil
-	case "enabled":
-	default:
-		return out, invalid("工具档案状态无效")
-	}
-	if err = s.toolActivationLockedTx(ctx, tx, tenant, project, out); err != nil {
-		if automationAuthorityFailure(err) {
-			out = withToolReason(out, "工具档案启用人的当前审批权限已失效", "activation_revoked", nil)
-			return out, nil
-		}
-		return out, err
-	}
-	reason, err := s.toolWorkerReasonTx(ctx, tx, p, project, out.WorkerID, clock)
-	if err != nil {
-		return out, err
-	}
-	if reason.source != "" {
-		out.Reason, out.ReasonDiagnostic = reason.source, reason.diagnostic
-		return out, nil
-	}
-	observed, parseErr := time.Parse(time.RFC3339, out.LastSeenAt)
-	if out.LastSeenAt == "" {
-		out = withToolReason(out, "执行节点尚未上报工具清单", "inventory_missing", nil)
-		return out, nil
-	}
-	if parseErr != nil || observed.After(clock) || !clock.Before(observed.Add(60*time.Second)) {
-		out = withToolReason(out, "工具清单已过期，等待执行节点重新探测", "inventory_stale", nil)
-		return out, nil
-	}
-	if out.Observation == nil {
-		out = withToolReason(out, "当前执行节点未声明此命令", "command_missing", nil)
-		return out, nil
-	}
-	if !toolcontract.EqualProfile(out.Observation.Profile, out.Profile) {
-		out = withToolReason(out, "当前工具配置、版本或程序摘要与固定档案不匹配", "profile_mismatch", nil)
-		return out, nil
-	}
-	if !out.Observation.Available {
-		out = withToolReason(out, "执行节点报告工具不可用："+out.Observation.Reason, "reported_unavailable", map[string]any{"reason": out.Observation.Reason})
-		return out, nil
-	}
-	out.Available = true
-	out = withToolReason(out, "执行节点已报告可领取；模型认证、执行与验收结果需分别核验", "dispatchable", nil)
-	return out, nil
+	report, err := s.collectToolProfileObservationLockedTx(ctx, tx, tenant, project, out, false)
+	return report.Tool, err
 }
 
 func (s *Service) getToolProfileCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string) (ToolProfile, error) {

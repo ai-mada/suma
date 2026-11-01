@@ -123,7 +123,9 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 	if c.token != "" {
 		req.Header.Set("Authorization", "Bearer "+c.token)
 	}
-	if method != http.MethodGet && method != http.MethodHead && method != http.MethodOptions {
+	// Explicit expected-view assertions also bind scoped reads. A read-only
+	// method must not silently drop the user's requested account/project view.
+	if scoped || method != http.MethodGet && method != http.MethodHead && method != http.MethodOptions {
 		if c.expectedUser != "" {
 			req.Header.Set("X-Suma-Expected-User", c.expectedUser)
 		}

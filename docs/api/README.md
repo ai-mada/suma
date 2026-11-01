@@ -1,6 +1,8 @@
 # HTTP、事件与客户端合同
 
-当前阶段T-ROLLOUT-125提供[有序发布合同](../../contracts/application-release-rollouts.md)：`/application-release-sets/{set_id}/rollouts`预览／明确启动、父子运行读取、恢复预览及生命周期命令，复用各自已批准的原计划与唯一Go DAG，不授予集合级批准。见[领域架构](../architecture/application-release-rollouts.md)、[操作与AI SOP](../development/application-release-rollouts.md)、[待完成验收报告](../quality/application-release-rollouts-verification.md)与[摘要](../quality/application-release-rollouts-summary.json)；源码与合同不预先表示实际验证通过。原[业务依赖图](../../contracts/task-dependencies.md)、[任务交付与质量](../../contracts/task-delivery-chain.md)及[Runner只读诊断](../../contracts/runner-journal-inspection.md)继续保留各自权限和范围。
+T-TOOL-DOCTOR-181新增[工具配置体检](../../contracts/tool-profile-diagnostics.md)：`GET /tool-profiles/{id}/diagnostics`沿原可派发判定提供四项当前事实、短期观察期限和原管理入口，体检不执行建议。公开Schema与TypeScript共享同一Go类型，[限定验证](../quality/tool-profile-diagnostics-verification.md)区分实际会话HTTP与合成界面。
+
+T-ROLLOUT-125已有限定实现[有序发布合同](../../contracts/application-release-rollouts.md)：`/application-release-sets/{set_id}/rollouts`预览／明确启动、父子运行读取、恢复预览及生命周期命令，复用各自已批准的原计划与唯一Go DAG，不授予集合级批准。见[领域架构](../architecture/application-release-rollouts.md)、[操作与AI SOP](../development/application-release-rollouts.md)、[待完成验收报告](../quality/application-release-rollouts-verification.md)与[摘要](../quality/application-release-rollouts-summary.json)；源码与合同不预先表示实际验证通过。原[业务依赖图](../../contracts/task-dependencies.md)、[任务交付与质量](../../contracts/task-delivery-chain.md)及[Runner只读诊断](../../contracts/runner-journal-inspection.md)继续保留各自权限和范围。
 
 ## 多语言显示合同（实施中）
 
@@ -19,6 +21,8 @@ T-P4-007在共享池合同基础上增加账户／组织偏好，当前生成切
 应用服务接收从真实凭证解析的封闭 `Actor`，不接受客户端 Principal、角色、system 或授权标记。写入、成功回执重放、受保护读取和实时事件批次使用同一事务中的当前来源、凭证、组织／项目角色和数据库到期时间。无可信来源的旧会话保留审计记录，要求重新登录；旧 API／Runner／Agent 还需明确重新签发，不自动补造批准。
 
 浏览器命令必须携带操作发生时页面的 `X-Suma-Expected-User` 和 `X-Suma-Expected-Organization`，账户全局偏好仅携带前者。缺失、重复、格式错误返回 `428 view_context_required`，与实际身份不一致返回 `403 view_context_changed`；这些头只比较原页面身份，不选择或授予身份。纯读取、明确的 POST 查询、机器接口和幂等退出不强加浏览器头。合法项目 API 凭证仍按自身范围执行，无需浏览器视图。生成合同通过 `x-browser-original-view` 表达条件要求，分类与处理器共用函数。
+
+读取若显式提供上述任一视图头，服务端会独立检查该字段的单值、格式与真实当前身份，不要求另一字段存在。缺省仍按当前真实凭据读取，不能用头选择身份。CLI项目读取保留明确指定的期望账号／组织；工具体检的浏览器读取携带两者。正式`POST /tool-profiles/matches`属于只读查询，遵循同一可选读取断言。重复或无效断言返回428，身份变化返回403；不产生写权限或操作回执。
 
 `POST /auth/tokens` 必须给稳定 `idempotency_key`，明确签发独立 24 小时 Grant。同键同正文恢复时在同一固定到期 slot 轮换秘密、撤销上一次秘密；响应仍是 token／expiry／label／scope／project。秘密不存入成功回执。普通浏览器退出撤销该 session family，不撤销独立 token 或已批准的持久 activation。网络结果未知时保持原操作标识与正文，不读取新会话后悄悄切换请求身份。
 

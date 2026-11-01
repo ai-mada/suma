@@ -3,6 +3,10 @@ package localization
 // Display identities require an explicit producer binding; these definitions
 // never register reverse aliases for arbitrary stored or user text.
 var displayCatalog = []Definition{
+	{Key: "display.tool.authorization_current", SourceTemplate: "配置启用授权当前有效", Texts: map[Locale]string{ZhCN: "配置启用授权当前有效", EnUS: "The profile's activation authority is currently valid."}},
+	{Key: "display.tool.worker_current", SourceTemplate: "执行节点身份当前有效", Texts: map[Locale]string{ZhCN: "执行节点身份当前有效", EnUS: "The runner identity is currently valid."}},
+	{Key: "display.tool.inventory_fresh", SourceTemplate: "工具清单当前新鲜", Texts: map[Locale]string{ZhCN: "工具清单当前新鲜", EnUS: "The tool inventory is currently fresh."}},
+	{Key: "display.tool.profile_matches", SourceTemplate: "节点已报告完整相同配置可用", Texts: map[Locale]string{ZhCN: "节点已报告完整相同配置可用", EnUS: "The runner reported the exact complete configuration as available."}},
 	{Key: "display.tool.profile_revoked", SourceTemplate: "工具档案已永久撤销", Texts: map[Locale]string{ZhCN: "工具档案已永久撤销", EnUS: "The tool profile has been permanently revoked."}},
 	{Key: "display.tool.profile_paused", SourceTemplate: "工具档案已暂停，尚未授权派发", Texts: map[Locale]string{ZhCN: "工具档案已暂停，尚未授权派发", EnUS: "The tool profile is paused and is not authorized for dispatch."}},
 	{Key: "display.tool.activation_revoked", SourceTemplate: "工具档案启用人的当前审批权限已失效", Texts: map[Locale]string{ZhCN: "工具档案启用人的当前审批权限已失效", EnUS: "The person who enabled the tool profile no longer has approval authority."}},

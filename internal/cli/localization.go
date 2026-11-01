@@ -31,6 +31,8 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	toolDoctorUsage:               {"cli.tool_profiles.doctor_usage", "tools doctor 需要 --id 档案ID 和 --project；请查看 tools --help"},
+	toolDoctorResponseInvalid:     {"cli.tool_profiles.doctor_response", "工具体检响应必须保留请求项目、准确完整档案、四项检查及最多 60 秒的有效展示期限"},
 	toolMatchesUsage:              {"cli.tool_profiles.matches_usage", "tools matches 需要 --file 请求JSON 或 --file -；请查看 tools --help"},
 	toolMatchesInvalid:            {"cli.tool_profiles.matches_input", "工具匹配查询需要当前项目、worker_id 和完整准确的 profile"},
 	toolMatchesResponseInvalid:    {"cli.tool_profiles.matches_response", "工具匹配响应必须保留原项目、节点、完整档案及完整结果数量"},

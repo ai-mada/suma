@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [工具配置自动体检](product/tool-profile-diagnostics.md) · [合同](../contracts/tool-profile-diagnostics.md) · [架构与AI SOP](architecture/tool-profile-diagnostics.md) · [交互](design/tool-profile-diagnostics.md) · [English](en/tool-profile-diagnostics.md) · [限定报告](quality/tool-profile-diagnostics-verification.md)：T181自动核对四项当前事实，沿原版本审核和准确节点入口处理；27定向与6合成界面检查通过，完整目标保持进行中。
+
 - [工具配置复用](product/tool-profile-reuse.md) · [合同](../contracts/tool-profile-reuse.md) · [架构与AI SOP](architecture/tool-profile-reuse.md) · [交互](design/tool-profile-reuse.md) · [English](en/tool-profile-reuse.md) · [限定验证](quality/tool-profile-reuse-verification.md)：T180自动查找完整相同配置，保留原写入恢复与明确启用；22定向、真实CLI会话HTTP及6合成界面检查通过。
 
 - [原结果回执恢复](product/desktop-result-recovery.md) · [合同](../contracts/desktop-result-recovery.md) · [架构与AI SOP](architecture/desktop-result-recovery.md) · [交互](design/desktop-result-recovery.md) · [English](en/desktop-result-recovery.md) · [限定验证](quality/desktop-result-recovery-verification.md)：T179在原连接中核对已提交结果，丢响应复用原计划；27定向、3真实离线CLI观察及6合成界面检查通过，完整目标继续交付。

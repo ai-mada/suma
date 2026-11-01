@@ -8,6 +8,11 @@ export const displaySourceDefinitions=[
     "source_template": "工具档案启用人的当前审批权限已失效"
   },
   {
+    "key": "display.tool.authorization_current",
+    "parameters": [],
+    "source_template": "配置启用授权当前有效"
+  },
+  {
     "key": "display.tool.command_missing",
     "parameters": [],
     "source_template": "当前执行节点未声明此命令"
@@ -16,6 +21,11 @@ export const displaySourceDefinitions=[
     "key": "display.tool.dispatchable",
     "parameters": [],
     "source_template": "执行节点已报告可领取；模型认证、执行与验收结果需分别核验"
+  },
+  {
+    "key": "display.tool.inventory_fresh",
+    "parameters": [],
+    "source_template": "工具清单当前新鲜"
   },
   {
     "key": "display.tool.inventory_missing",
@@ -41,6 +51,11 @@ export const displaySourceDefinitions=[
     "key": "display.tool.pool_unavailable",
     "parameters": [],
     "source_template": "资源池当前状态不允许新派发"
+  },
+  {
+    "key": "display.tool.profile_matches",
+    "parameters": [],
+    "source_template": "节点已报告完整相同配置可用"
   },
   {
     "key": "display.tool.profile_mismatch",
@@ -71,6 +86,11 @@ export const displaySourceDefinitions=[
     "key": "display.tool.worker_creator_revoked",
     "parameters": [],
     "source_template": "执行节点登记人的当前项目权限已失效"
+  },
+  {
+    "key": "display.tool.worker_current",
+    "parameters": [],
+    "source_template": "执行节点身份当前有效"
   },
   {
     "key": "display.tool.worker_expired",

@@ -62,7 +62,7 @@ func displayDiagnosticContracts(api map[string]any) {
 	diagnostic := toolContractMap(schemas, "DisplayDiagnostic")
 	diagnostic["additionalProperties"] = false
 	diagnostic["x-max-utf8-bytes"] = 4096
-	diagnostic["description"] = "Optional source-bound current tool reason display identity. Full canonical equality with the same ToolProfile.reason is required. Never permission, model health, execution, test or acceptance evidence."
+	diagnostic["description"] = "Optional source-bound current tool reason display identity. Full canonical equality with its enclosing reason field (ToolProfile or diagnostic check) is required. Never permission, model health, execution, test or acceptance evidence."
 	toolContractMap(diagnostic, "properties", "schema_version")["const"] = 1
 	keys := []string{}
 	conditions := []any{}

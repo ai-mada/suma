@@ -299,6 +299,11 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, err)
 			return
 		}
+	} else if !BrowserCommandRequiresView(r.Method, path) {
+		if err := validateOptionalReadView(r, p); err != nil {
+			writeError(w, err)
+			return
+		}
 	}
 	s.applyLocalePreferences(w, r, actor)
 	if s.desktopRunnerHTTP(w, r, actor, scope, boundProject, path) {
