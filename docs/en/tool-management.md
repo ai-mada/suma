@@ -15,3 +15,9 @@ Optional diagnostic impact covers this project's running, paused and cancelling 
 Revocation does not prove existing processes stopped. A diagnostic read does not grant cancellation or repair authority. Mutations retain current permissions, expected versions, stable operation IDs and original receipts. Unknown effects require reconciliation of the original operation, preserving drafts rather than blindly issuing new requests.
 
 Chinese and English share concise states, keyboard behavior and narrow-screen flows. Source implementation, focused checks, actual HTTP, representative interface validation and production acceptance remain distinct evidence. This stage does not declare the full platform complete.
+
+## T-TOOL-EXPERIENCE-198: precise and actionable setup
+
+Advanced setup preserves the currently selected worker, including an explicit change made inside Quick Connect. A project’s most recently paired worker cannot replace it. Pairing credentials are reused only for the same worker; otherwise the original identity setup keeps the exact target. Actor, organization, project and API-caller changes invalidate the old selection and configuration request.
+
+Unavailable configurations show their safe precise diagnostic and an accurate configuration action. Diagnostic text never becomes a command or repair authorization. Existing discovery, inspection, reconciliation, paused registration, explicit enable and retirement remain authoritative; this stage adds no automatic installation or physical deletion. See the [scoped verification](../quality/tool-experience-verification.md) and [remaining tool work](../delivery/tool-management-next.md).

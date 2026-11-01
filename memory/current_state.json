@@ -594,8 +594,8 @@
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/knowledge-projection-verification.md",
-  "current_summary": "docs/quality/knowledge-projection-summary.json",
+  "current_evidence": "docs/quality/tool-experience-verification.md",
+  "current_summary": "docs/quality/tool-experience-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -703,11 +703,10 @@
   "last_goal_turn_classification": "progress: prior T196 source72/real HTTP and bilingual interactions committed/pushed and verified; T197 typed source projection and retrieval implementation advancing, full platform goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-KNOWLEDGE-PROJECTION-197",
+    "stage": "T-TOOL-EXPERIENCE-198",
     "status": "scoped_stage_verified_full_goal_active",
-    "contract": "contracts/knowledge-projection.md",
-    "next_stage": "T-TOOL-EXPERIENCE-198",
-    "next_priority": "Preserve exact worker in advanced tool setup, expose safe precise diagnostic and accurate configuration action; simplify existing lifecycle without creating duplicate CRUD.",
+    "next_priority": "Maintenance-aware Doctor next action and formal configuration replacement handoff",
+    "next_plan": "docs/delivery/tool-management-next.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92baseline"
   },
   "terminal_130_historical_work": {
@@ -2220,219 +2219,59 @@
       "distinct_top_level": 37,
       "new_top_level": 20,
       "affected_existing_top_level": 17,
-      "control": 7,
-      "projection": 12,
-      "consumer": 5,
-      "web": 10,
-      "root_contract": 2,
-      "actual": 1,
       "go_top_level": 21,
       "go_subcases": 13,
-      "go_results": [
-        {
-          "package": "github.com/ai-mada/suma/cmd/suma-contracts",
-          "test": "TestKnowledgeDiscoveryContractKeepsPublicationReferenceAndPartialCoverage",
-          "command": ".cache/follow155/root-go/20261101T170406975Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/cmd/suma-contracts",
-          "test": "TestKnowledgeProjectionContractsKeepNamespaceCurrentReferencesAndCoverage",
-          "command": ".cache/follow155/root-go/20261101T170802011Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestKnowledgeProjectionPublicationRetirementReceiptAndRollback",
-          "command": ".cache/follow155/root-go/20261101T171755149Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestKnowledgeProjectionIndexSearchCanonicalReferencesAndCurrentAuthority",
-          "command": ".cache/follow155/root-go/20261101T174227432Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestKnowledgeProjectionInitialSchemaRejectsUnknownBeforeDDL",
-          "command": ".cache/follow155/root-go/20261101T171134395Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestKnowledgeProjectionHTTPCurrentScopeAndLocalizedClosedQueries",
-          "command": ".cache/follow155/root-go/20261101T171924775Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestProjectKnowledgePublicationPreservesApprovedRevisionDuringDraftEdit",
-          "command": ".cache/follow155/root-go/20261101T171413516Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestDocumentRejectsCombinedIndexSourceOverOneMiB",
-          "command": ".cache/follow155/root-go/20261101T171413516Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestDocumentLimitCountsUTF8Bytes",
-          "command": ".cache/follow155/root-go/20261101T171413516Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/cli",
-          "test": "TestKnowledgeSearchPreservesPublishedReferencesAndReadScope",
-          "command": ".cache/follow155/root-go/20261101T171427930Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/cli",
-          "test": "TestKnowledgeSearchBoundedInputBilingualTableAndIncompleteEmptyPage",
-          "command": ".cache/follow155/root-go/20261101T171427930Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/cli",
-          "test": "TestKnowledgeIndexSearchPreservesSourceLocatorAndReadScope",
-          "command": ".cache/follow155/root-go/20261101T171635249Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/cli",
-          "test": "TestKnowledgeIndexSearchRejectsInvalidFactsAndSeparatesModes",
-          "command": ".cache/follow155/root-go/20261101T171427930Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestTypedProjectionRequiresExactOriginalACKBeforeAdvancing",
-          "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestTypedIndexUsesCanonicalCodepointsAndSafeRebuildErrors",
-          "command": ".cache/follow155/root-go/20261101T180432304Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestIndexPoisonEventIsDeadLetteredWithoutBlockingOtherSources",
-          "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestIndexTransientFailureRemainsReplayableAndOtherEventsAdvance",
-          "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestMalformedPersistedIndexEventDoesNotPoisonQueue",
-          "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestDocumentVisibilityTransitionsProduceMonotonicTombstones",
-          "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestDeletedSourceRejectsLateIndexHitAndProjectionSchemaIsInstalled",
-          "command": ".cache/follow155/root-go/20261101T173420263Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        },
-        {
-          "package": "github.com/ai-mada/suma/internal/platform",
-          "test": "TestKnowledgeProjectionActualNativeLifecycleAndExactTaskContext",
-          "command": ".cache/follow155/root-go/20261101T180558252Z.command.json",
-          "command_exit": 0,
-          "top_level": "pass"
-        }
-      ],
       "full_web_typecheck_exit": 0,
       "paired_locale_keys": 9248,
-      "production_hardcodes": 0,
-      "isolated_gui_builds": 1,
       "gui_groups": 2,
-      "gui_images": 2,
-      "gui_native_exit": 0,
       "actual_journeys": 2,
-      "actual_http_requests": 24,
-      "first_actual_http_requests": 25,
-      "native_lifetimes": 3,
-      "controlled_embedding_requests": 10,
-      "commercial_embedding_calls": 0,
-      "llm_calls": 0,
-      "successful_contract_generations": 1,
-      "contract_dependency_gap_attempts": 1,
-      "contract_checks": [
-        ".cache/follow155/root-go/20261101T174917392Z.command.json"
-      ],
-      "generation_commands": [
-        {
-          "path": ".cache/follow155/root-go/20261101T170940684Z.command.json",
-          "exit": 1
-        },
-        {
-          "path": ".cache/follow155/root-go/20261101T171153274Z.command.json",
-          "exit": 0
-        }
-      ],
-      "new_http_paths": [
-        "/project-knowledge/index-search",
-        "/project-knowledge/index-status"
-      ],
-      "new_schemas": [
-        "KnowledgeIndexLocator",
-        "KnowledgeIndexReceipt",
-        "KnowledgeIndexRequest",
-        "KnowledgeIndexSearchHit",
-        "KnowledgeIndexSearchRequest",
-        "KnowledgeIndexSearchResult",
-        "KnowledgeIndexSource",
-        "ProjectKnowledgeIndexHit",
-        "ProjectKnowledgeIndexQuery",
-        "ProjectKnowledgeIndexSearch",
-        "ProjectKnowledgeIndexStatus",
-        "ProjectKnowledgeProjectionEvent"
-      ],
-      "new_application_tool": "project.knowledge.index_search",
-      "new_business_tables": 0,
-      "current_outbox_columns": 14,
-      "full_suite_repeated": false
+      "details": "docs/quality/knowledge-projection-summary.json"
     },
     "remaining": [
       "Physical OceanBase/PostgreSQL, shared physical multi-host ownership and full-scale production acceptance were not performed.",
       "Native index directories have one controlled owner. Private service rebuild budgets and source32 attempt limits are distinct from full tenant-attributed embedding billing.",
       "Knowledge subtypes are filtered after bounded provider recall; provider_candidates does not assert complete corpus coverage. External bidirectional memory synchronization and actual model use remain separate."
+    ],
+    "full_platform_complete": false
+  },
+  "tool_experience": {
+    "stage": "T-TOOL-EXPERIENCE-198",
+    "status": "scoped_ui_handoff_and_diagnostics_verified",
+    "version": "1.0.0",
+    "contract": "contracts/tool-management.md",
+    "report": "docs/quality/tool-experience-verification.md",
+    "summary": "docs/quality/tool-experience-summary.json",
+    "implementation": {
+      "current_selected_worker_preserved": true,
+      "same_worker_pairing_only": true,
+      "current_caller_and_scope_bound": true,
+      "public_reason_plain_text": true,
+      "bilingual_source_label": true,
+      "existing_configuration_action": true,
+      "new_api_endpoints": 0,
+      "new_dispatchers": 0,
+      "new_dependencies": 0,
+      "automatic_installation": false,
+      "automatic_repair_execution": false
+    },
+    "verification": {
+      "distinct_top_level": 6,
+      "new_top_level": 0,
+      "directly_affected_existing": 6,
+      "full_web_typecheck_exit": 0,
+      "paired_locale_keys": 9250,
+      "production_hardcodes": 0,
+      "isolated_builds": 1,
+      "gui_groups": 2,
+      "gui_launches": 2,
+      "gui_images": 2,
+      "native_exit": 0,
+      "unchanged_go_or_vendor_tests_repeated": false
+    },
+    "remaining": [
+      "Doctor does not yet return a unified maintenance-aware next action. Existing real inspection and reconciliation operations remain available.",
+      "Replacing an existing configuration does not yet have one formal old-to-new atomic handoff receipt; existing create/matches/pause/revoke flows remain.",
+      "The GUI uses synthetic API responses. No actual tool installation, repair, model request, distributed execution, physical multi-host, scale or production acceptance was performed in T198."
     ],
     "full_platform_complete": false
   }

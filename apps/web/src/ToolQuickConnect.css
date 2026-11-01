@@ -3,3 +3,5 @@
 .tool-quick-secondary button{min-height:44px;font-size:14px}.tool-quick-warning{overflow-wrap:anywhere;font-size:14px}
 
 .tool-quick-target-mismatch{display:grid;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);font-size:14px;overflow-wrap:anywhere}.tool-quick-target-mismatch button{justify-self:start;min-height:44px}
+
+.tool-quick-unavailable{display:grid;gap:8px;min-width:0;padding:12px;border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:8px;background:var(--surface-soft);font-size:14px;overflow-wrap:anywhere}.tool-quick-unavailable strong{font-size:14px;font-weight:600}.tool-quick-unavailable p{white-space:pre-wrap}.tool-quick-unavailable button{justify-self:start;min-height:36px;max-width:100%;white-space:normal}@media(max-width:600px){.tool-quick-unavailable button{min-height:44px}}

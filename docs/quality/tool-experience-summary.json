@@ -1,0 +1,233 @@
+{
+  "stage": "T-TOOL-EXPERIENCE-198",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_ui_handoff_and_diagnostics_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": {
+    "current_selected_worker_preserved": true,
+    "same_worker_pairing_only": true,
+    "current_caller_and_scope_bound": true,
+    "public_reason_plain_text": true,
+    "bilingual_source_label": true,
+    "existing_configuration_action": true,
+    "new_api_endpoints": 0,
+    "new_dispatchers": 0,
+    "new_dependencies": 0,
+    "automatic_installation": false,
+    "automatic_repair_execution": false
+  },
+  "verification": {
+    "distinct_top_level": 6,
+    "new_top_level": 0,
+    "directly_affected_existing": 6,
+    "tests": [
+      {
+        "file": "D:/codes/ai-dev-os/suma/apps/web/src/ToolQuickConnect.test.tsx",
+        "title": "Qoder uses actual ACP inventory for paused registration without claiming local discovery or model health",
+        "status": "passed"
+      },
+      {
+        "file": "D:/codes/ai-dev-os/suma/apps/web/src/ToolQuickConnect.test.tsx",
+        "title": "carries the currently chosen tool into advanced setup after changing the initial catalog selection",
+        "status": "passed"
+      },
+      {
+        "file": "D:/codes/ai-dev-os/suma/apps/web/src/ToolQuickConnectDraft.test.tsx",
+        "title": "T193 restores only the public Quick draft after Advanced and rechecks fresh inventory and exact reuse without callback loops",
+        "status": "passed"
+      },
+      {
+        "file": "D:/codes/ai-dev-os/suma/apps/web/src/ToolQuickConnectTarget.test.tsx",
+        "title": "T194 keeps explicit and original targets across native status callbacks, permits an explicit switch, and preserves unpinned and unknown-proof flows",
+        "status": "passed"
+      },
+      {
+        "file": "D:/codes/ai-dev-os/suma/apps/web/src/ToolWorkspaceManagement.test.tsx",
+        "title": "takes Doctor to the exact original adapter and worker, then returns from advanced setup with its public draft",
+        "status": "passed"
+      },
+      {
+        "file": "D:/codes/ai-dev-os/suma/apps/web/src/RunnerPairingWorkspace.test.tsx",
+        "title": "continues an explicitly read approved node into its fixed preparation guide and discards that target on caller, actor or project changes without writing",
+        "status": "passed"
+      }
+    ],
+    "full_web_typecheck_exit": 0,
+    "paired_locale_keys": 9250,
+    "production_hardcodes": 0,
+    "isolated_builds": 1,
+    "gui_groups": 2,
+    "gui_launches": 2,
+    "gui_images": 2,
+    "native_exit": 0,
+    "unchanged_go_or_vendor_tests_repeated": false
+  },
+  "source_count": 12,
+  "sources": [
+    {
+      "path": "apps/web/src/ToolQuickConnect.tsx",
+      "sha256": "3568feabd8b3f9a0d00100a7c966fe600620f594e5195624a0c8f90f666821a0",
+      "bytes": 31251
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnect.css",
+      "sha256": "670c2b1498ba34a95ce6dfad953a2a3aa4764fd7add89bb3c06c6f9b84779f4d",
+      "bytes": 3903
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "e8bfb7ca7ee26e912b3fa8a85280f07bd7ace4a53c436d76dbc282d53f5f4402",
+      "bytes": 66787
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuide.tsx",
+      "sha256": "028811ba3fcda13964bb892b6c928701225ebf56f4403d356b568c5744e107a4",
+      "bytes": 15019
+    },
+    {
+      "path": "apps/web/src/RemoteRunnerSetupGuide.tsx",
+      "sha256": "e24ccf92c6b3e277314ae8e16eb1cb5f401153dea97d3edb257f901d7d57eb05",
+      "bytes": 11345
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnectTarget.test.tsx",
+      "sha256": "7838f1c69cf8e147b86365bc2270efcb83e27b7ab1b7074ba97ebce2c8d72709",
+      "bytes": 12065
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnect.test.tsx",
+      "sha256": "ad413433f45a5d1a8bfb1bdbc12b28a140ee5ffde7a464b8ff5dac6dc7d98000",
+      "bytes": 14974
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnectDraft.test.tsx",
+      "sha256": "23afe5505f98dc44b4575e9ffbdd7e96fad565a33ebbbd5105cac1cc68ddc8e7",
+      "bytes": 8677
+    },
+    {
+      "path": "apps/web/src/ToolWorkspaceManagement.test.tsx",
+      "sha256": "a777c5bc00caf9536c668806b52aeea7713f1c1695f0dce3f53a590bc75aa224",
+      "bytes": 16065
+    },
+    {
+      "path": "apps/web/src/RunnerPairingWorkspace.test.tsx",
+      "sha256": "419c795befb57a15e0d8a650fee99b4db146f60b6af14956fc4fd6723a7cb26b",
+      "bytes": 13333
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-quick-connect.zh-CN.json",
+      "sha256": "3bbcc25aa62bf7cb73b4a11b83af5cc9acf06a72b4854221a6fc0b4aaf895c64",
+      "bytes": 4165
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-quick-connect.en-US.json",
+      "sha256": "74cfc5b5414d012c161c43792ec14f24c702f620c3476e8d43665c3553e24b6e",
+      "bytes": 4597
+    }
+  ],
+  "gui_scope": "Two production ToolWorkspace/Quick groups using synthetic identities, original paired-node metadata, exact diagnostics, inventory and read-only matches. No desktop bridge, credentials, tool execution, automatic repair, real API, DB or business write.",
+  "gui_checks": [
+    "CN1366 real paired-node continuation establishes B, then original Qoder A Doctor adjustment keeps exact A through Advanced identity commands and return; unavailable original node text is inert, attributed and configures A without a business write.",
+    "EN390 dark real Quick explicitly switches A to B; Advanced uses exact current B and an inventory failure on return retains B and the authored public draft until an explicit successful read. Keyboard focus, original reason attribution and no overflow are checked."
+  ],
+  "failure_history": {
+    "environment": "Windows, Node, installed Vitest 3.0.5, jsdom; process-local TEMP/TMP=.cache/tool-experience-198/web/tmp",
+    "first_batch": "Five passing existing tests, one failed request-count assertion, fifteen unrelated skips; original JSON and log retained.",
+    "followup": "Only the failed existing RunnerPairingWorkspace test rerun: one pass, two unrelated skips. The five passes were reused.",
+    "failure_reason": "The expanded journey returns through a retained Codex draft before explicitly choosing Qoder/A; this adds one legitimate GET of B inventory. Expected sequence corrected from [B,A,B,A] to [B,A,B,B,A]. No product changes or business writes for this correction.",
+    "red": "Two genuine pre-fix failures: Quick Advanced lacked the worker argument; original A advanced guide used last-paired B. An earlier invalid fixture worker-format failure is retained separately and not counted as a behavior RED.",
+    "copy_only_after_green": "Added bilingual Original node report source label. Original reason remains the same plain-text value and selectors; no behavioral change or repeat of the six green tests.",
+    "review": "Independent peer reviewed Main Quick source/style; no P1/P2. Main reviewed expected-worker propagation, same-worker pairing and existing scope guards.",
+    "exclusions": "No new top-level tests, full old suites, full TSC/i18n, build, browser, native execution, model requests, Go or generated wire changes by this Web team.",
+    "gui_initial_failure": "EN driver attempted a responsive hidden list while the detail pane was active. Root used the existing Return to configuration list control and resumed only EN, reusing the original green CN image and snapshot. No product or bundle change; both native exits zero."
+  },
+  "review_scope": "Independent exact-target handoff and Quick/Workspace contract review; no whole-platform or real-vendor acceptance inference.",
+  "remaining": [
+    "Doctor does not yet return a unified maintenance-aware next action. Existing real inspection and reconciliation operations remain available.",
+    "Replacing an existing configuration does not yet have one formal old-to-new atomic handoff receipt; existing create/matches/pause/revoke flows remain.",
+    "The GUI uses synthetic API responses. No actual tool installation, repair, model request, distributed execution, physical multi-host, scale or production acceptance was performed in T198."
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-experience-198/web/integration-summary.json",
+      "sha256": "69903a7156ff7eea47cd38e2907bcca556d4019604b3ba72af1ebf552b86fb6d"
+    },
+    {
+      "path": ".cache/tool-experience-198/web/focused-green.json",
+      "sha256": "d76c97f603d7d9fa48ff0bf196b4f1a4f2a4adbee55efc4991366a23663942ed"
+    },
+    {
+      "path": ".cache/tool-experience-198/web/pairing-focused-green.json",
+      "sha256": "4f628f647199cb8b609e736cb6d8e04297b9ae8c2cb618d3f167edad98096415"
+    },
+    {
+      "path": ".cache/tool-experience-198/types.command.json",
+      "sha256": "34a7cddbb49f1317080859e78967df73d48302387b3a53b0ee50b0b7a355b1a9"
+    },
+    {
+      "path": ".cache/tool-experience-198/i18n.command.json",
+      "sha256": "af720841bf6b2bd62a346a0b2fcdb9a21961064e63c49a102c6cb04b402c6d7c"
+    },
+    {
+      "path": ".cache/tool-experience-198/build.command.json",
+      "sha256": "a16842dd75e57f27c1f82b8a45370287c3eaedb9263a7156683b2d348e1bc45e"
+    },
+    {
+      "path": ".cache/tool-experience-198/gui.command.json",
+      "sha256": "355f7fc9594668a101ca365c137af4b55649374575800c67140a15ba80919f75"
+    },
+    {
+      "path": ".cache/tool-experience-198/gui_en.command.json",
+      "sha256": "a0d4ace795ab6e6146686cb31b615d6aa6c0baef0e216952923d66f33819ed89"
+    },
+    {
+      "path": ".cache/tool-experience-198/visual/result-20261101T182047975Z.json",
+      "sha256": "6556507c414e101d92f587f993bfce59a1aaa32e1a21db1cc9e456bfe2a7682f"
+    },
+    {
+      "path": ".cache/tool-experience-198/visual/final-driver-source-manifest.json",
+      "sha256": "55fd4bab8a7c6796a9d2d80469b574d51c8d312e88770bc991d36e0d30a6f511"
+    },
+    {
+      "path": ".cache/tool-experience-198/visual/verify.first.cjs",
+      "sha256": "3bdeceaebf13fb39ed7d94b0c4122f00fb86dbffcc9dea9bed60e7ea9277effa"
+    },
+    {
+      "path": ".cache/tool-experience-198/visual/source-manifest.json",
+      "sha256": "5fb704999426c195b1307cf53e8edaa4e886358018daa9a6227ccf7e8387ae8e"
+    },
+    {
+      "path": ".cache/tool-experience-198/visual/result.json",
+      "sha256": "ed941d94fd993dde36d007d0938c353128023929763c1c201541e6538decb255"
+    },
+    {
+      "path": ".cache/tool-experience-198/review/target-handoff.json",
+      "sha256": "89f3c4f405e82397f3cd5bc080d0a6464007956bcbb2c1cefbf0cd14bd58ed26"
+    },
+    {
+      "path": ".cache/tool-experience-198/control/review.json",
+      "sha256": "e48447cab141d83dc2ee778dfae444643fafef1f7e4425b922d77b7cf14fe386"
+    },
+    {
+      "path": ".cache/tool-experience-198/control/next-slice.json",
+      "sha256": "8cf5fd76fa95aae77a70fb50eb640e34ff40a8e21332804eeeb67d4041aa85ff"
+    },
+    {
+      "path": ".cache/tool-experience-198/visual/cn-configure.png",
+      "sha256": "b1835a245223f02453837acf4ea709f71ae8467d7dc6ead64ebf9413040a9457"
+    },
+    {
+      "path": ".cache/tool-experience-198/visual/en-configure.png",
+      "sha256": "5f8b1680bac7232382de4913a58fbe75743dae89b908b73a1d56827364ea1994"
+    }
+  ]
+}

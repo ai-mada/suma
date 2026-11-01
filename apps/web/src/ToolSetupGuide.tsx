@@ -35,9 +35,10 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;presetRequest?:{preset:'harness'|'octop'|'qoder'|'opencode'|'cursor'|'claude-sdk';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,expectedWorkerID,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;presetRequest?:{preset:'harness'|'octop'|'qoder'|'opencode'|'cursor'|'claude-sdk';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
  useLocale();
- const caller=useApi(),view=useApiView(),scope=JSON.stringify([view?.userID,view?.organizationID,project,pairedRunner?.id,pairedRunner?.project_id,pairedRunner?.control_url,pairedRunner?.worker_id,pairedRunner?.version]),remoteGuide=useRef<HTMLDivElement>(null);
+ const targetPairing=!expectedWorkerID||pairedRunner?.worker_id===expectedWorkerID?pairedRunner:undefined;
+ const caller=useApi(),view=useApiView(),scope=JSON.stringify([view?.userID,view?.organizationID,project,expectedWorkerID,targetPairing?.id,targetPairing?.project_id,targetPairing?.control_url,targetPairing?.worker_id,targetPairing?.version]),remoteGuide=useRef<HTMLDivElement>(null);
  const [configurationRequest,setConfigurationRequest]=useState<{scope:string;caller:typeof caller;value:ConfigurationDraft&{nonce:number}}>();
  function useRunnerConfiguration(draft:ConfigurationDraft){
   if(disabled||!validCursorSetupDraft(draft)&&!validClaudeSDKSetupDraft(draft))return;
@@ -96,7 +97,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
-   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={scope} project={project} pairedRunner={pairedRunner} onPairRunner={onPairRunner} disabled={disabled} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')}/></div>
+   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={scope} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onPairRunner={onPairRunner} disabled={disabled} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')}/></div>
   </div>
  </details>;
 }

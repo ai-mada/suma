@@ -128,8 +128,8 @@ function ScopedToolWorkspace({
   const guideID = useId();
   const workerRows = useRef(new Map<string, HTMLElement>());
   const sharedWorkerRows=useRef(new Map<string,HTMLElement>());
-  const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'|'qoder'|'opencode'|'cursor'|'claude-sdk';cloud?:boolean}>();
-  const connection=connectionSelection?.context===contextKey?connectionSelection:undefined;
+  const [connectionSelection,setConnectionSelection]=useState<{context:string;caller:typeof api;generation:number;nonce:number;expectedWorkerID?:string;client?:DeveloperClientID;preset?:'harness'|'octop'|'qoder'|'opencode'|'cursor'|'claude-sdk';cloud?:boolean}>();
+  const connection=connectionSelection?.context===contextKey&&connectionSelection.caller===api&&connectionSelection.generation===pairingGeneration?connectionSelection:undefined;
   const recovery = useMemo(
     () =>
       new ToolWriteRecovery(session.organization.id +
@@ -255,7 +255,7 @@ function ScopedToolWorkspace({
   function preparePairedRunner(value:RunnerPairing) {
     if(writeBlocked||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||pairedRunner!==value||value.project_id!==project||value.state!=='approved'||!value.worker_id)return;
     try{readRunnerPairing(value,project);}catch{return;}
-    setConnectionSelection(undefined);setDialog(undefined);setGuideOpen(true);
+    setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,expectedWorkerID:value.worker_id}));setDialog(undefined);setGuideOpen(true);
     requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLElement>('[data-remote-runner-setup]>summary')?.focus());
   }
   function openGuide() {
@@ -265,14 +265,14 @@ function ScopedToolWorkspace({
   }
   function setupConnection(descriptor:AdapterDescriptor){
     if(writeBlocked||!canLeave()||descriptor.implementation==='planned')return;
-    if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,cloud:true}));return;}
+    if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,cloud:true}));return;}
     if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
       beginPublicDraft(publicDraft?.adapterID===descriptor.id?publicDraft:{adapterID:descriptor.id,workerID:'',commandID:'',name:'',nameEdited:false});
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:descriptor});return;
     }
     const clients:Record<string,DeveloperClientID>={'cursor-client':'cursor','claude-code-client':'claude-code','codex-client':'codex','opencode-client':'opencode','qoder-client':'qoder','zed-client':'zed','workbuddy-connector':'workbuddy'};
-    if(descriptor.direction==='tool_to_suma'&&clients[descriptor.id]){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,client:clients[descriptor.id]}));setGuideOpen(true);return;}
-    if(descriptor.id==='harness-guide'&&descriptor.setup_kind==='manual_guide'){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:'harness'}));setGuideOpen(true);}
+    if(descriptor.direction==='tool_to_suma'&&clients[descriptor.id]){setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,client:clients[descriptor.id]}));setGuideOpen(true);return;}
+    if(descriptor.id==='harness-guide'&&descriptor.setup_kind==='manual_guide'){setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,preset:'harness'}));setGuideOpen(true);}
   }
   function saved(path: string, value: unknown) {
     setDialog(undefined);
@@ -321,7 +321,7 @@ function ScopedToolWorkspace({
         <AdapterConnections project={project} onSetup={setupConnection}/>
       </details>
       {publicDraft&&guideOpen&&<div className="tool-connect-return"><p>{t('tool-workspace.draft_retained',{worker:publicDraft.workerID||t('tool-workspace.target_not_selected')})}</p><button type="button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button></div>}
-      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} disabled={writeBlocked}/>}
+      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} expectedWorkerID={connection?.expectedWorkerID} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} disabled={writeBlocked}/>}
       {returnRun && (
         <a
           onClick={(event) => {
@@ -690,7 +690,7 @@ function ScopedToolWorkspace({
           onOpen={profile=>{if(action.busy||action.pending)return;setReceipt(undefined);setDialog(undefined);onSelect(profile.id);}}
           onViewExisting={adapter=>{if(writeBlocked)return;setSearch(adapter.adapter||adapter.product);applyFilters({state:'active',query:adapter.adapter||adapter.product});setDialog(undefined);requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('[data-tools-query]')?.focus());}}
           onEnable={profile=>{action.clearError();setDialog({kind:'decision',action:'enable',profile});}}
-          onAdvanced={adapter=>{if(writeBlocked)return;action.clearError();const qoder=adapter?.id==='qoder-acp'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='qoder'&&adapter.protocol==='acp-stdio-v1',opencode=adapter?.id==='opencode-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='opencode'&&adapter.protocol==='opencode-sdk-v1',cursor=adapter?.id==='cursor-cli'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='cursor'&&adapter.protocol==='acp-stdio-v1',claudeSDK=adapter?.id==='claude-code-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='claude'&&adapter.protocol==='claude-sdk-v1';if(qoder||opencode||cursor||claudeSDK){setDialog(undefined);setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:claudeSDK?'claude-sdk':cursor?'cursor':opencode?'opencode':'qoder'}));setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector('summary')?.focus());}else setDialog({kind:'create',adapter,resumeQuick:true});}}
+          onAdvanced={(adapter,expectedWorkerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;action.clearError();const qoder=adapter?.id==='qoder-acp'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='qoder'&&adapter.protocol==='acp-stdio-v1',opencode=adapter?.id==='opencode-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='opencode'&&adapter.protocol==='opencode-sdk-v1',cursor=adapter?.id==='cursor-cli'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='cursor'&&adapter.protocol==='acp-stdio-v1',claudeSDK=adapter?.id==='claude-code-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='claude'&&adapter.protocol==='claude-sdk-v1';if(qoder||opencode||cursor||claudeSDK){setDialog(undefined);setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,expectedWorkerID,preset:claudeSDK?'claude-sdk':cursor?'cursor':opencode?'opencode':'qoder'}));setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector('summary')?.focus());}else setDialog({kind:'create',adapter,resumeQuick:true});}}
           onWorker={()=>{action.clearError();setDialog({kind:'worker'});}}
         />}
         {dialog?.kind === "worker" && <>

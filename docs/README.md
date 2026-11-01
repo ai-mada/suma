@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-TOOL-EXPERIENCE-198：[准确工具配置](product/tool-management.md)、[简洁交互](design/tool-management.md)、[限定验证](quality/tool-experience-verification.md)及[后续计划](delivery/tool-management-next.md)。当前节点、公开草稿和原始诊断一条接入路径，完整平台继续。
+
 T-KNOWLEDGE-PROJECTION-197：[知识索引同步](product/knowledge-projection.md)、[架构与AI SOP](architecture/knowledge-projection.md)、[交互](design/knowledge-projection.md)、[部署](deployment/knowledge-index.md)、[English](en/knowledge-projection.md)和[限定验证](quality/knowledge-projection-verification.md)。自动投影与真实混合检索、来源重新授权和准确任务引用；完整平台继续。
 
 T-KNOWLEDGE-DISCOVERY-196：[已发布知识发现](product/knowledge-discovery.md)、[架构与AI SOP](architecture/knowledge-discovery.md)、[交互](design/knowledge-discovery.md)、[English](en/knowledge-discovery.md)及[限定验证](quality/knowledge-discovery-verification.md)。准确发布预览与明确任务引用，语义投影见T197，外部同步继续。

@@ -42,3 +42,9 @@ diagnostics在原当前授权读取事务中复用四前提，并附加可选、
 6. 对未知回执保留原scope、版本、操作ID和草稿，先核对再继续；验证新增及直接受影响边界，不重复已绿SDK或正式质量链。
 
 Go类型、OpenAPI和TS合同由原生成器统一管理。源码、模拟源、实际HTTP、界面和生产证据分别归档；完整31项、P0–P7及分布式平台目标保持active。
+
+## T-TOOL-EXPERIENCE-198 目标交接与AI SOP
+
+目标沿Quick当前选择 → Workspace受scope约束的connectionSelection → ToolSetupGuide → RemoteRunnerSetupGuide传递。expectedWorker与配对worker一致才能使用配对草稿；否则目标固定并走原identity准备。公开配置的nonce和caller检查沿现有模型保留，不新建状态库或派发器。
+
+AI维护步骤：读取原诊断及目标 → 解释原因 → 用户明确打开准确配置 → 在原机器完成安装／账号／配置准备 → 原报告／matches／暂停登记 → 独立明确启用。失联或未知效果沿原检查／核对操作；不将打开指南、命令生成或界面刷新当作真实探测、修复完成。后续Doctor动作合同及配置换新原子交接仍待实现，不能由本次导航修复推导。

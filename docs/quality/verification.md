@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOL-EXPERIENCE-198：[工具管理需求](../product/tool-management.md)／[交互](../design/tool-management.md)／[限定验证](../quality/tool-experience-verification.md)。准确节点贯通高级配置与原命令，公开原始原因配准确配置入口，中英文及窄屏交互限定通过；原登记／重检／核对／启用门保持，完整31／P0–P7继续。
+
 T-KNOWLEDGE-PROJECTION-197：[合同](../../contracts/knowledge-projection.md)／[PRD](../product/knowledge-projection.md)／[架构与AI SOP](../architecture/knowledge-projection.md)／[限定验证](../quality/knowledge-projection-verification.md)。正式发布投影、墓碑、真实混合检索与预算重建贯通；原文定位和当前授权保持，真实数据库／原生索引重启链及双语代表界面限定通过，完整31／P0–P7继续。
 
 T-KNOWLEDGE-DISCOVERY-196：[合同](../../contracts/knowledge-discovery.md)／[PRD](../product/knowledge-discovery.md)／[架构与AI SOP](../architecture/knowledge-discovery.md)／[限定验证](../quality/knowledge-discovery-verification.md)。已发布记忆、SPEC与技能的关键词发现、准确预览和原任务明确引用贯通；有界分页、草稿隔离与当前资格保持，完整31／P0–P7继续。

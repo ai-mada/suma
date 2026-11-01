@@ -43,7 +43,7 @@ it('Qoder uses actual ACP inventory for paused registration without claiming loc
  const discoverInstalledTools=vi.fn(),manageLocalTool=vi.fn();vi.stubGlobal('sumaDesktop',{platform:'win32',version:'1.0.0',discoverInstalledTools,manageLocalTool});
  reply=async path=>Response.json(path.startsWith('/adapter-catalog')?{project_id:'p',as_of:'2026-10-30T08:00:20Z',items:[qoder]}:{...report(),items:[{profile:fixed,available:true,reason:'actual protocol observation'}]});
  await render();await change('[data-quick-tool]','qoder-acp');expect(props.action.run).not.toHaveBeenCalled();expect(discoverInstalledTools).not.toHaveBeenCalled();expect(manageLocalTool).not.toHaveBeenCalled();
- await click('[data-quick-advanced]');expect(props.onAdvanced).toHaveBeenCalledExactlyOnceWith(qoder);
+ await click('[data-quick-advanced]');expect(props.onAdvanced).toHaveBeenCalledExactlyOnceWith(qoder,'one');
  await click('[data-quick-register]');expect(props.action.run).toHaveBeenCalledExactlyOnceWith('/tool-profiles',{project_id:'p',worker_id:'one',name:'qoder-team',profile:fixed});expect(props.onEnable).not.toHaveBeenCalled();
  expect(host.querySelector('[data-quick-register]')).toBeNull();await click('[data-quick-enable]');expect(props.onEnable).toHaveBeenCalledOnce();
 });
@@ -82,7 +82,7 @@ it('shows a scoped desktop installation fact without creating a profile or node'
 it('carries the currently chosen tool into advanced setup after changing the initial catalog selection',async()=>{
  props.adapter=adapter as ToolQuickConnectProps['adapter'];const other={...adapter,id:'codebuddy-cli',product:'CodeBuddy Code',adapter:'codebuddy',protocol:'codebuddy-jsonl-v1'};
  const base=reply;reply=async path=>path.startsWith('/adapter-catalog')?Response.json({project_id:'p',as_of:'2026-10-30T08:00:20Z',items:[adapter,other]}):base(path);
- await render();await change('[data-quick-tool]','codebuddy-cli');await click('[data-quick-advanced]');expect(props.onAdvanced).toHaveBeenCalledExactlyOnceWith(other);expect(props.action.run).not.toHaveBeenCalled();
+ await render();await change('[data-quick-tool]','codebuddy-cli');await click('[data-quick-advanced]');expect(props.onAdvanced).toHaveBeenCalledExactlyOnceWith(other,'one');expect(props.action.run).not.toHaveBeenCalled();
 });
 it('retains a matched paused POST receipt during same-scope identity loading without exposing it or offering another registration',async()=>{
  let finish!:(value:unknown)=>void;const run=vi.fn(()=>new Promise(resolve=>{finish=resolve;}));props.action={...props.action,run} as unknown as ToolAction;
