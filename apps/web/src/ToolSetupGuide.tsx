@@ -28,7 +28,7 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetRequest}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;presetRequest?:{preset:'harness'|'octop'|'qoder'|'opencode';nonce:number}}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;presetRequest?:{preset:'harness'|'octop'|'qoder'|'opencode';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
  useLocale();
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
  useEffect(()=>{if(presetRequest){setSelected(presetRequest.preset);setCopied('');setFailed(false);}},[presetRequest?.preset,presetRequest?.nonce]);
@@ -78,7 +78,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetReque
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
-   <RemoteRunnerSetupGuide key={project||''} project={project}/>
+   <RemoteRunnerSetupGuide key={project||''} project={project} onPairRunner={onPairRunner} disabled={disabled}/>
   </div>
  </details>;
 }

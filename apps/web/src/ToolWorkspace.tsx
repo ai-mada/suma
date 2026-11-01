@@ -43,12 +43,14 @@ import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {ToolQuickConnect} from './ToolQuickConnect';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
+import {RunnerPairingPanel} from './RunnerPairingPanel';
+import {readRunnerPairing} from './runner-pairing-model';
 import {validQuickConnectReceipt} from './tool-quick-connect-model';
 import {AdapterConnections,type AdapterDescriptor} from './AdapterConnections';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {WorkBuddyConnections} from './WorkBuddyConnections';
 import type {DeveloperClientID} from './developer-client-connections-model';
-import type { ProjectPoolRunnerPage } from "../../../packages/contracts/src";
+import type { ProjectPoolRunnerPage, RunnerPairing } from "../../../packages/contracts/src";
 import {
   ToolIdentity,
   currentToolIdentity,
@@ -65,8 +67,8 @@ type Props = {
 };
 type Dialog =
   | { kind: "create"; adapter?:AdapterDescriptor }
-  | { kind: "quick"; adapter?:AdapterDescriptor }
-  | { kind: "worker" }
+  | { kind: "quick"; adapter?:AdapterDescriptor; preferredWorkerID?:string }
+  | { kind: "worker"; mode?:'manual'|'pairing' }
   | {
       kind: "decision";
       action: "enable" | "pause" | "revoke";
@@ -100,7 +102,9 @@ function ScopedToolWorkspace({
     [live, setLive] = useState(true),
     [filter, setFilter] = useState<ToolFilter>('all'),
     [guideOpen, setGuideOpen] = useState(false),
+    [pairingLocked, setPairingLocked] = useState(false),
     [receipt, setReceipt] = useState<{key:string;name:string;scope:string}>();
+  const pairingCaller = useRef(api); pairingCaller.current=api;
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const guideID = useId();
   const workerRows = useRef(new Map<string, HTMLElement>());
@@ -151,6 +155,7 @@ function ScopedToolWorkspace({
     return () => clearInterval(timer);
   }, [live, refreshAll]);
   const pending = !!action.pending,
+    writeBlocked = pending || action.busy || pairingLocked,
     current = detail.data,
     stale = detail.loading || !!detail.error,
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
@@ -170,16 +175,30 @@ function ScopedToolWorkspace({
     ...(workers.data?.items || []), ...(sharedWorkers.data?.items || []),
   ].filter(item => item.status === 'active').map(item => item.worker_id)).size;
   function openRegister() {
+    if(writeBlocked)return;
     action.clearError();
     void workers.read();
     void sharedWorkers.read();
     setDialog({kind:'create'});
   }
   function openQuickConnect() {
+    if(writeBlocked)return;
     action.clearError();
     void workers.read();
     void sharedWorkers.read();
     setDialog({kind:'quick'});
+  }
+  function openRunnerPairing() {
+    if(writeBlocked)return;
+    action.clearError();
+    setDialog({kind:'worker',mode:'pairing'});
+  }
+  function continueWithPairedRunner(value:RunnerPairing) {
+    if(writeBlocked||pairingCaller.current!==api||value.project_id!==project||value.state!=='approved'||!value.worker_id)return;
+    try{readRunnerPairing(value,project);}catch{return;}
+    setReceipt(undefined);
+    void workers.read();void sharedWorkers.read();
+    setDialog({kind:'quick',preferredWorkerID:value.worker_id});
   }
   function openGuide() {
     setConnectionSelection(undefined);
@@ -187,7 +206,7 @@ function ScopedToolWorkspace({
     requestAnimationFrame(() => document.getElementById(guideID)?.querySelector('summary')?.focus());
   }
   function setupConnection(descriptor:AdapterDescriptor){
-    if(pending||action.busy||!canLeave()||descriptor.implementation==='planned')return;
+    if(writeBlocked||!canLeave()||descriptor.implementation==='planned')return;
     if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,cloud:true}));return;}
     if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:descriptor});return;
@@ -232,7 +251,7 @@ function ScopedToolWorkspace({
         >
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
-      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
+      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} onWorker={() => { if(writeBlocked)return;action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
       <WorkBuddyConnections project={project} panel={panel} openRequest={connection?.cloud?connection.nonce:undefined}/>
       <details className="panel adapter-catalog-disclosure" key={contextKey}>
         <summary>
@@ -242,7 +261,7 @@ function ScopedToolWorkspace({
         </summary>
         <AdapterConnections project={project} onSetup={setupConnection}/>
       </details>
-      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined}/>}
+      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} disabled={writeBlocked}/>}
       {returnRun && (
         <a
           onClick={(event) => {
@@ -279,12 +298,12 @@ function ScopedToolWorkspace({
             <div className="inline">
               <button
                 className="primary"
-                disabled={pending || action.busy}
+                disabled={writeBlocked}
                 onClick={openQuickConnect}
               >
                 <Plus size={14} />
                 {t('tool-quick-connect.title')}</button>
-              <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" disabled={pending||action.busy} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
+              <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" disabled={writeBlocked} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
             </div>
           </div>
           <div className="tool-filter-tabs" role="group" aria-label={t('tool-workspace.filter')}>
@@ -401,11 +420,11 @@ function ScopedToolWorkspace({
                       {t("development.tools.the_last_read_is_retained_current_connection")}</p>
                   )}
                   <ToolProfileFacts key={current.id} profile={current} confirmed={!stale}>
-                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={action.busy||pending}
-                    onReview={value=>{if(stale||action.busy||action.pending||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
-                    onRegister={()=>{if(!stale&&!action.busy&&!action.pending)openQuickConnect();}}
-                    onRefreshTool={()=>{if(!action.busy&&!action.pending)void detail.read();}}
-                    onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||action.busy||action.pending||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
+                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={writeBlocked}
+                    onReview={value=>{if(stale||writeBlocked||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
+                    onRegister={()=>{if(!stale&&!writeBlocked)openQuickConnect();}}
+                    onRefreshTool={()=>{if(!writeBlocked)void detail.read();}}
+                    onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
                   />
                   <div className="tool-action-bar">
                     {current.state !== "revoked" && (
@@ -413,7 +432,7 @@ function ScopedToolWorkspace({
                         {current.state === "paused" ? (
                           <button
                             className="primary"
-                            disabled={stale || pending || action.busy}
+                            disabled={stale || writeBlocked}
                             onClick={() => {
                               action.clearError();
                               setDialog({
@@ -426,7 +445,7 @@ function ScopedToolWorkspace({
                             {t("development.tools.review_and_enable")}</button>
                         ) : (
                           <button
-                            disabled={stale || pending || action.busy}
+                            disabled={stale || writeBlocked}
                             onClick={() => {
                               action.clearError();
                               setDialog({
@@ -439,7 +458,7 @@ function ScopedToolWorkspace({
                             {t("development.tools.pause_configuration")}</button>
                         )}
                         <button
-                          disabled={stale || pending || action.busy}
+                          disabled={stale || writeBlocked}
                           onClick={() => {
                             action.clearError();
                             setDialog({
@@ -469,8 +488,9 @@ function ScopedToolWorkspace({
               {t("development.tools.reuse_a_runner_credential_bound_by_the")}</p>
           </div>
           <button
-            disabled={pending || action.busy}
+            disabled={writeBlocked}
             onClick={() => {
+              if(writeBlocked)return;
               action.clearError();
               setDialog({ kind: "worker" });
             }}
@@ -504,8 +524,9 @@ function ScopedToolWorkspace({
               </div>
               {worker.status === "active" && (
                 <button
-                  disabled={pending || action.busy}
+                  disabled={writeBlocked}
                   onClick={() => {
+                    if(writeBlocked)return;
                     action.clearError();
                     setDialog({ kind: "revoke-worker", worker });
                   }}
@@ -524,7 +545,7 @@ function ScopedToolWorkspace({
       <Modal
         open={!!dialog}
         onClose={() => {
-          if (!action.busy && !action.pending) setDialog(undefined);
+          if (!action.busy && !action.pending && !pairingLocked) setDialog(undefined);
         }}
         title={
           dialog?.kind === "quick"
@@ -532,7 +553,7 @@ function ScopedToolWorkspace({
             : dialog?.kind === "create"
             ? t("development.tools.register_fixed_tool_configuration")
             : dialog?.kind === "worker"
-              ? t("development.tools.register_execution_worker_identity")
+              ? t(dialog.mode==='pairing'?'runner-pairing.title':"development.tools.register_execution_worker_identity")
               : dialog?.kind === "revoke-worker"
                 ? t("development.tools.revoke_execution_worker_credential")
                 : dialog?.kind === "decision"
@@ -563,9 +584,10 @@ function ScopedToolWorkspace({
           />
         )}
         {dialog?.kind === 'quick' && <ToolQuickConnect
-          key={contextKey+':'+(dialog.adapter?.id||'')}
+          key={contextKey+':'+(dialog.adapter?.id||'')+':'+(dialog.preferredWorkerID||'')}
           project={project}
           adapter={dialog.adapter}
+          preferredWorkerID={dialog.preferredWorkerID}
           workers={workers}
           sharedWorkers={sharedWorkers}
           action={action}
@@ -575,14 +597,18 @@ function ScopedToolWorkspace({
           onAdvanced={adapter=>{action.clearError();const qoder=adapter?.id==='qoder-acp'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='qoder'&&adapter.protocol==='acp-stdio-v1',opencode=adapter?.id==='opencode-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='opencode'&&adapter.protocol==='opencode-sdk-v1';if(qoder||opencode){setDialog(undefined);setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:opencode?'opencode':'qoder'}));setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector('summary')?.focus());}else setDialog({kind:'create',adapter});}}
           onWorker={()=>{action.clearError();setDialog({kind:'worker'});}}
         />}
-        {dialog?.kind === "worker" && (
-          <WorkerForm
+        {dialog?.kind === "worker" && <>
+          <div className="tool-action-bar">
+            <button type="button" data-worker-mode="manual" aria-pressed={dialog.mode!=='pairing'} disabled={writeBlocked} onClick={()=>{if(!writeBlocked)setDialog({kind:'worker',mode:'manual'});}}>{t('runner-pairing.mode_manual')}</button>
+            <button type="button" data-worker-mode="pairing" aria-pressed={dialog.mode==='pairing'} disabled={writeBlocked} onClick={openRunnerPairing}>{t('runner-pairing.mode_remote')}</button>
+          </div>
+          {dialog.mode==='pairing'?<RunnerPairingPanel project={project} disabled={pending||action.busy} onLockChange={setPairingLocked} onPaired={continueWithPairedRunner}/>:<WorkerForm
             project={project}
             action={action}
             onSaved={(value) => saved("/release-workers", value)}
             onCancel={() => setDialog(undefined)}
-          />
-        )}
+          />}
+        </>}
         {dialog?.kind === "decision" && (
           <ProfileDecisionForm
             project={project}

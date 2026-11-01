@@ -1,0 +1,65 @@
+// @vitest-environment jsdom
+import {act,useState} from 'react';
+import {createRoot,type Root} from 'react-dom/client';
+import {afterEach,beforeEach,expect,it,vi} from 'vitest';
+import {ApiViewProvider} from './api-context';
+import type {Session} from './api';
+import {setLocale} from './i18n';
+import {ToolWorkspace} from './ToolWorkspace';
+import {ToolQuickConnect,type ToolQuickConnectProps} from './ToolQuickConnect';
+import type {ToolAction} from './tool-hooks';
+import type {IdentityRead,SharedIdentityRead} from './execution-pools/ToolIdentity';
+
+const project='a'.repeat(32),pairID='c'.repeat(32),workerID='remote-'+pairID,stamp='2026-11-01T04:00:00Z';
+const session:Session={user:{id:'b'.repeat(32),name:'Owner',email:'owner@example.test'},organization:{id:'d'.repeat(32),name:'Organization'},projects:[]};
+const adapter={id:'codex-jsonl',product:'Codex',entrypoint_kind:'cli',direction:'suma_to_tool',implementation:'implemented',setup_kind:'runner_profile',adapter:'codex',protocol:'codex-jsonl-v1',capabilities:[],source_refs:[],limitations:[]};
+const waiting={id:pairID,project_id:project,version:1,state:'waiting',control_url:'https://control.example.test/suma',created_at:stamp,expires_at:'2026-11-01T04:10:00Z',can_approve:false};
+const proposed={...waiting,version:2,state:'proposed',device_name:'Target build machine',credential_sha256:'e'.repeat(64),can_approve:true};
+const approved={...proposed,version:3,state:'approved',can_approve:false,worker_id:workerID,credential_expires_at:'2026-11-02T04:00:00Z'};
+const inventory=(worker:string)=>({project_id:project,worker_id:worker,state:'fresh',as_of:stamp,observed_at:stamp,expires_at:'2026-11-01T04:01:00Z',items:[]});
+const identity=(ids:string[])=>({path:'/release-workers',loading:false,error:'',data:{items:ids.map(worker_id=>({worker_id,status:'active'}))},read:vi.fn(async()=>{})}) as unknown as IdentityRead;
+let root:Root,host:HTMLDivElement;
+async function settle(){await act(async()=>{for(let i=0;i<28;i++)await Promise.resolve();});}
+async function click(selector:string){const button=document.querySelector<HTMLElement>(selector);expect(button,selector).not.toBeNull();await act(async()=>button!.click());await settle();}
+async function change(selector:string,value:string){const select=document.querySelector<HTMLSelectElement>(selector);expect(select,selector).not.toBeNull();await act(async()=>{Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')!.set!.call(select,value);select!.dispatchEvent(new Event('change',{bubbles:true}));});await settle();}
+beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);host=document.createElement('div');document.body.append(host);root=createRoot(host);});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();document.body.innerHTML='';sessionStorage.clear();vi.unstubAllGlobals();vi.restoreAllMocks();});
+
+function Workspace(){const[selected,onSelect]=useState('');return <ApiViewProvider session={session}><ToolWorkspace project={project} session={session} selected={selected} onSelect={onSelect} refresh={0} panel=""/></ApiViewProvider>;}
+
+it('locks the original workspace while approving and continues with the exact paired node without a token dialog or registration',async()=>{
+ let pair:typeof waiting|typeof proposed|typeof approved=waiting,releaseApproval!:(response:Response)=>void;const writes:{path:string;body:Record<string,unknown>}[]=[],discoveryWorkers:string[]=[];
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{
+  const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1',''),method=init.method||'GET',body=init.body?JSON.parse(String(init.body)):undefined;
+  if(method==='GET'){
+   if(path==='/tool-profiles')return Response.json({items:[],total:0});
+   if(path==='/release-workers')return Response.json({items:['other-node',...(pair.state==='approved'?[workerID]:[])].map((worker_id,i)=>({id:'worker-'+i,project_id:project,worker_id,status:'active',version:1,expires_at:'2026-11-02T04:00:00Z'}))});
+   if(path==='/project-execution/runners')return Response.json({items:[],as_of:stamp});
+   if(path==='/adapter-catalog')return Response.json({project_id:project,as_of:stamp,items:[adapter]});
+   if(path==='/runner-pairings/'+pairID)return Response.json(pair);
+   if(path==='/tool-discovery'){const target=url.searchParams.get('worker_id')!;discoveryWorkers.push(target);return Response.json(inventory(target));}
+   return Response.json({items:[]});
+  }
+  writes.push({path,body});
+  if(path==='/runner-pairings')return Response.json(waiting,{status:201});
+  if(path==='/runner-pairings/'+pairID+'/commands')return new Promise<Response>(resolve=>{releaseApproval=resolve;});
+  return Response.json({error:{code:'unexpected_write',message:'Unexpected fixture write'}},{status:400});
+ }));
+ await act(async()=>root.render(<Workspace/>));await settle();
+ await click('.tool-workers .tool-section-heading button');await click('[data-worker-mode="pairing"]');await click('[data-runner-pairing-create]');expect(writes).toHaveLength(1);
+ pair=proposed;await click('[data-runner-pairing-refresh]');await click('[data-runner-pairing-confirm]');await click('[data-runner-pairing-approve]');
+ expect(writes).toHaveLength(2);expect(writes[1].body).toMatchObject({project_id:project,expected_version:2,action:'approve'});
+ expect(document.querySelector<HTMLButtonElement>('[data-worker-mode="manual"]')?.disabled).toBe(true);expect(host.querySelector<HTMLButtonElement>('.tool-workers .tool-section-heading button')?.disabled).toBe(true);
+ await click('[role=dialog] .dialog-heading .icon-button');expect(document.querySelector('[data-runner-pairing-card]')).not.toBeNull();
+ pair=approved;await act(async()=>releaseApproval(Response.json(approved)));await settle();await click('[data-runner-pairing-continue]');
+ expect(document.querySelector('.tool-token')).toBeNull();await change('[data-quick-tool]',adapter.id);expect(discoveryWorkers).toEqual([workerID]);
+ expect(writes.map(write=>write.path)).toEqual(['/runner-pairings','/runner-pairings/'+pairID+'/commands']);expect(host.querySelector('[data-tool-receipt]')).toBeNull();
+});
+
+it('does not substitute the only other node when the approved preferred node is absent, but permits an explicit alternate choice',async()=>{
+ const discoveryWorkers:string[]=[],run=vi.fn(),props:ToolQuickConnectProps={project,preferredWorkerID:workerID,workers:identity(['other-node']),sharedWorkers:identity([]) as unknown as SharedIdentityRead,action:{run,busy:false,pending:undefined,conflict:false} as unknown as ToolAction,onRegistered:vi.fn(),onEnable:vi.fn(),onAdvanced:vi.fn(),onWorker:vi.fn()};
+ vi.stubGlobal('fetch',vi.fn(async(input:string)=>{const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1','');if(path==='/adapter-catalog')return Response.json({project_id:project,as_of:stamp,items:[adapter]});if(path==='/tool-discovery'){const worker=url.searchParams.get('worker_id')!;discoveryWorkers.push(worker);return Response.json(inventory(worker));}return Response.json({items:[]});}));
+ await act(async()=>root.render(<ApiViewProvider session={session}><ToolQuickConnect {...props}/></ApiViewProvider>));await settle();await change('[data-quick-tool]',adapter.id);
+ expect(discoveryWorkers).toEqual([]);expect(host.querySelector('[data-quick-preferred-worker-missing]')).not.toBeNull();expect(host.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('');expect(run).not.toHaveBeenCalled();
+ await change('[data-quick-worker]','other-node');expect(discoveryWorkers).toEqual(['other-node']);expect(host.querySelector('[data-quick-preferred-worker-missing]')).toBeNull();expect(run).not.toHaveBeenCalled();
+});

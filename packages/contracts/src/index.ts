@@ -5520,6 +5520,40 @@ export interface RunnerClaimRequest {
 export interface RunnerClaimResponse {
   assignment: Assignment | null;
 }
+export interface RunnerPairing {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  control_url: string;
+  created_at: string;
+  expires_at: string;
+  can_approve: boolean;
+  device_name?: string;
+  credential_sha256?: string;
+  worker_id?: string;
+  credential_expires_at?: string;
+}
+export interface RunnerPairingCommandRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+  action: string;
+}
+export interface RunnerPairingCreateRequest {
+  project_id: string;
+  idempotency_key: string;
+}
+export interface RunnerPairingProposalRequest {
+  project_id: string;
+  device_name: string;
+  credential_sha256: string;
+  idempotency_key: string;
+}
+export interface RunnerPairingStatusRequest {
+  project_id: string;
+  idempotency_key: string;
+}
 export interface RunnerProgressRequest {
   project_id: string;
   assignment: Assignment;

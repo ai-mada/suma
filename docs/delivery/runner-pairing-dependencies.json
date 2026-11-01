@@ -1,0 +1,66 @@
+{
+  "stage": "T-RUNNER-PAIRING-184",
+  "date": "2026-11-01",
+  "status": "Pinned source dependencies and original local license hashes; not a current binary SBOM or cross-platform acceptance",
+  "direct": "github.com/zalando/go-keyring@v0.2.6",
+  "primary_sources": [
+    "https://github.com/zalando/go-keyring/tree/v0.2.6",
+    "https://github.com/zalando/go-keyring/blob/v0.2.6/keyring_darwin.go"
+  ],
+  "dependencies": [
+    {
+      "module": "github.com/zalando/go-keyring",
+      "version": "v0.2.6",
+      "license": "MIT",
+      "license_sha256": "14bc00f1a298eb6af250216b9e60027a4386c8a84fa2c7ddc2b5c10908e06d0d",
+      "go_mod_sha256": "e6615bb12e2c6afbcf7751b7aaf56eaf755cefb30970b33f23b12e78b413f183",
+      "checksums": [
+        "github.com/zalando/go-keyring v0.2.6 h1:r7Yc3+H+Ux0+M72zacZoItR3UDxeWfKTcabvkI8ua9s=",
+        "github.com/zalando/go-keyring v0.2.6/go.mod h1:2TCrxYrbUNYfNS/Kgy/LSrkSQzZ5UPVH85RwfczwvcI="
+      ]
+    },
+    {
+      "module": "github.com/danieljoos/wincred",
+      "version": "v1.2.2",
+      "license": "MIT",
+      "license_sha256": "1702a813fa31858c0d6c7788216fa3dd202472265716998024654c252fc7bb41",
+      "go_mod_sha256": "cd5c1ab44ba9eb76f9cb5b2b7590a5fafe1ed4cfe3aee7681bf6d3df10ad3769",
+      "checksums": [
+        "github.com/danieljoos/wincred v1.2.2 h1:774zMFJrqaeYCK2W57BgAem/MLi6mtSE47MB6BOJ0i0=",
+        "github.com/danieljoos/wincred v1.2.2/go.mod h1:w7w4Utbrz8lqeMbDAK0lkNJUv5sAOkFi7nd/ogr0Uh8="
+      ]
+    },
+    {
+      "module": "github.com/godbus/dbus/v5",
+      "version": "v5.1.0",
+      "license": "BSD-2-Clause",
+      "license_sha256": "e4646a82a976369d7ae8f6ed5c11d35dc0af18433a8ccc24c85b459ad8b95128",
+      "go_mod_sha256": "8743ea72fed21cc143c4a067408e21f7787610e662fdbe8d5943312ea8ae8816",
+      "checksums": [
+        "github.com/godbus/dbus/v5 v5.1.0 h1:4KLkAxT3aOY8Li4FRJe/KvhoNFFxo0m6fNuFUO8QJUk=",
+        "github.com/godbus/dbus/v5 v5.1.0/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA="
+      ]
+    },
+    {
+      "module": "al.essio.dev/pkg/shellescape",
+      "version": "v1.5.1",
+      "license": "MIT",
+      "license_sha256": "01a4609ac3c7ac0a26d65a967c26c0deb146aa01bdcc8531048a70be52695556",
+      "go_mod_sha256": "7d6de8291eede1360281770447c3e862cacb6c4a2ddfdf96a0ab38d18cde1cbc",
+      "checksums": [
+        "al.essio.dev/pkg/shellescape v1.5.1 h1:86HrALUujYS/h+GtqoB26SBEdkWfmMI6FubjXlsXyho=",
+        "al.essio.dev/pkg/shellescape v1.5.1/go.mod h1:6sIqp7X2P6mThCQ7twERpZTuigpr6KbZWtls1U8I890="
+      ]
+    }
+  ],
+  "darwin_notice": {
+    "source_file": "keyring_darwin.go",
+    "source_sha256": "0516b74c846627914d5a78dc92abaec122404a9fa461301ea68ab5f310439434",
+    "header": "Original Google/Apache-2.0 notice is retained by the dependency; root module LICENSE is MIT.",
+    "secret_transport": "Fixed version uses /usr/bin/security -i and stdin, not a secret argv argument."
+  },
+  "boundaries": [
+    "Windows Credential Manager, macOS Keychain and Linux Secret Service use the original SDK providers. Actual OS availability and permission behavior must be verified separately.",
+    "No dependency source was copied into product code and no SDK binary or installer was rebuilt. Final distribution must include the original applicable notices."
+  ]
+}

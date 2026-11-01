@@ -225,6 +225,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.InitializeArtifacts(ctx); err != nil {
 		return err
 	}
+	if err := s.InitializeRunnerPairings(ctx); err != nil {
+		return err
+	}
 	if err := s.InitializeReleaseDeployment(ctx); err != nil {
 		return err
 	}

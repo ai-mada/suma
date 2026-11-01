@@ -19,6 +19,9 @@ func BrowserCommandRequiresView(method, path string) bool {
 			return false
 		}
 		parts := strings.Split(path, "/")
+		if len(parts) == 3 && parts[0] == "runner-pairings" && parts[1] != "" && parts[2] == "status" {
+			return false
+		}
 		if len(parts) == 3 && parts[0] == "deployments" && parts[1] != "" && parts[2] == "rollback-preview" {
 			return false
 		}

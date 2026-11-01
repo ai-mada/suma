@@ -19,6 +19,10 @@ const version = buildinfo.Version
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.LookupEnv)) }
 
 func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool)) int {
+	return runWithRunnerSecrets(args, out, stderr, lookup, runner.SystemRunnerSecretStore())
+}
+
+func runWithRunnerSecrets(args []string, out, stderr io.Writer, lookup func(string) (string, bool), secrets runner.RunnerSecretStore) int {
 	app := commandlocale.New("suma-runner", "速码执行器", "suma execution worker", out, stderr, lookup)
 	base := app.String("control", "http://127.0.0.1:4310", "控制面服务地址", "control service URL")
 	project := app.String("project", "", "项目标识", "project ID")
@@ -41,8 +45,20 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	describeACPModels := app.Bool("describe-acp-models-stdin", false, "由私有标准输入明确读取已选本机工具的模型目录；不派发任务", "explicitly discover the selected local tool model catalogue from private stdin; no task dispatch")
 	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli、qoder-acp、cursor-cli（仅被动文件检查）；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica, claude-code-cli, qoder-acp or cursor-cli (passive files only); empty selects all")
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
+	pairRunner := app.String("pair-runner", "", "连接浏览器已创建的远程配对待办；保存身份后退出，不领取任务", "join a browser-created remote pairing; save the identity and exit without tasks")
+	identityPath := app.String("identity", "", "系统凭据库所绑定的公开执行身份文件", "public runner identity file bound to the system credential store")
+	deviceName := app.String("device-name", "", "配对时自报的机器名称；默认本机名称", "self-reported pairing device name; defaults to the local hostname")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if app.FlagProvided("pair-runner") {
+		if *pairRunner == "" || !app.FlagProvided("control") || !app.FlagProvided("project") || *project == "" || app.FlagProvided("identity") && *identityPath == "" || app.FlagProvided("device-name") && *deviceName == "" || toolModeHasAnyFlag(app, "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "pool-config", "allow-exec", "describe-tools", "prepare-tools", "report-tools", "discover-installed-tools", "describe-acp-models-stdin", "local-tool") {
+			return app.Failure("配对参数无效，且不能与探测或执行模式混用", "Pairing options are invalid or cannot be combined with discovery or execution modes")
+		}
+		return runRemotePairing(app, *pairRunner, *base, *project, *identityPath, *deviceName, secrets)
+	}
+	if app.FlagProvided("device-name") || app.FlagProvided("identity") && (*identityPath == "" || toolModeHasAnyFlag(app, "inspect-state", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "pool-config", "merge-preflight", "local-tool", "prepare-tools") || app.FlagProvided("report-tools") && !*reportTools) {
+		return app.Failure("身份文件仅供单次上报或明确启动执行器使用；机器名称仅用于配对", "An identity file requires single reporting or explicit worker startup; device name is only for pairing")
 	}
 	if app.FlagProvided("prepare-tools") {
 		if toolModeHasAnyFlag(app, "control", "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "pool-config", "allow-exec", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "report-tools") {
@@ -106,11 +122,37 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		}
 		return 0
 	}
+	runnerToken := func() string { return app.Getenv("SUMA_RUNNER_TOKEN") }
+	if app.FlagProvided("identity") {
+		identity, loadErr := runner.LoadRunnerIdentity(*identityPath, secrets)
+		if loadErr != nil {
+			return app.Failure("执行身份或系统凭据不可用；保留原文件并核对原配对", "Runner identity or system credential is unavailable; preserve the file and review the original pairing")
+		}
+		defer identity.Close()
+		record := identity.Identity()
+		if record.WorkerID == "" {
+			return app.Failure("执行身份尚未获批准；请先完成原浏览器配对", "Runner identity is not approved; complete the original browser pairing first")
+		}
+		matchingControl := true
+		if app.FlagProvided("control") {
+			actual, scopeErr := runner.InventoryScopeSHA256(*base, record.ProjectID, record.WorkerID)
+			expected, identityErr := runner.InventoryScopeSHA256(record.ControlURL, record.ProjectID, record.WorkerID)
+			matchingControl = scopeErr == nil && identityErr == nil && actual == expected
+		}
+		if !matchingControl || app.FlagProvided("project") && *project != record.ProjectID || app.FlagProvided("worker") && *id != record.WorkerID {
+			return app.Failure("显式控制地址、项目或节点与保存身份不一致", "Explicit control, project or worker differs from the saved identity")
+		}
+		*base, *project, *id = record.ControlURL, record.ProjectID, record.WorkerID
+		if !app.FlagProvided("state") {
+			*state = identity.Path() + ".journal"
+		}
+		runnerToken = identity.Token
+	}
 	// A pending report needs only its original identity and locked journal. The
 	// current commands file may have moved or become invalid after the lost ACK.
 	var reportJournal *runner.Journal
 	if *reportTools {
-		if *project == "" || *id == "" || app.Getenv("SUMA_RUNNER_TOKEN") == "" {
+		if *project == "" || *id == "" || runnerToken() == "" {
 			return app.Failure("必须提供 --project、--worker 和 SUMA_RUNNER_TOKEN；执行器须持有已登记的执行凭证", "--project, --worker and SUMA_RUNNER_TOKEN are required; worker must have a registered execution credential")
 		}
 		var openErr error
@@ -122,7 +164,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		if reportJournal.PendingInventory() != nil {
 			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 			defer cancel()
-			worker := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: app.Getenv("SUMA_RUNNER_TOKEN"), ProjectID: *project}, Journal: reportJournal, ID: *id}
+			worker := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: runnerToken(), ProjectID: *project}, Journal: reportJournal, ID: *id}
 			return runToolReport(ctx, app, &worker)
 		}
 	}
@@ -164,7 +206,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		}
 		return 0
 	}
-	if *project == "" || *id == "" || app.Getenv("SUMA_RUNNER_TOKEN") == "" {
+	if *project == "" || *id == "" || runnerToken() == "" {
 		return app.Failure("必须提供 --project、--worker 和 SUMA_RUNNER_TOKEN；执行器须持有已登记的执行凭证", "--project, --worker and SUMA_RUNNER_TOKEN are required; worker must have a registered execution credential")
 	}
 	journal := reportJournal
@@ -187,7 +229,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
-	w := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: app.Getenv("SUMA_RUNNER_TOKEN"), ProjectID: *project}, Journal: journal, ID: *id, Exec: runner.ExecConfig{AllowExec: *allow, Workspace: root, Repository: *repository, BaseCommit: *baseCommit, WorktreeRoot: *worktrees, Commands: specs, ModelDeployments: localModels, External: external, Secrets: []string{app.Getenv("SUMA_RUNNER_TOKEN")}}}
+	w := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: runnerToken(), ProjectID: *project}, Journal: journal, ID: *id, Exec: runner.ExecConfig{AllowExec: *allow, Workspace: root, Repository: *repository, BaseCommit: *baseCommit, WorktreeRoot: *worktrees, Commands: specs, ModelDeployments: localModels, External: external, Secrets: []string{runnerToken()}}}
 	if *reportTools {
 		return runToolReport(ctx, app, &w)
 	}

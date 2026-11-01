@@ -1,0 +1,232 @@
+{
+  "stage": "T-RUNNER-PAIRING-184",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Current browser administration creates a10minute existing project pairing, machine proposes a locally held credential digest, browser explicitly approves the exact version/fingerprint, machine confirms current original Grant and saves a public identity. No token crosses browser/JSON/argv.",
+    "Original independent24hour Grant, registered Worker, current authority and metadata-only receipts are reused; desktop HMAC/loopback restrictions remain. Eight active pairings per project are checked atomically.",
+    "Fixed go-keyring v0.2.6 uses OS credential providers, no plaintext fallback or credential enumeration. Original identity/proposal is durable before HTTP, exact source/path/secret checks and local locks prevent blind replacement.",
+    "Pairing ends prepared without report/Claim/heartbeat/enable. Saved identity supports original report-tools and explicit Worker mode. Project guide report drafts also assert the current public service and project before any journal change.",
+    "Original Worker modal, exact-worker continuation and bilingual guide reuse existing scope/pending/reader controls. Original ACK snapshots remain separate from current reads and real online/inventory/acceptance facts."
+  ],
+  "verification": {
+    "distinct_top_level": 41,
+    "new_top_level": 36,
+    "affected_existing_top_level": 5,
+    "go_top_level": 30,
+    "web_top_level": 11,
+    "go_subcases": 41,
+    "backend": {
+      "top_level": 8,
+      "new": 7,
+      "old": 1,
+      "subcases": 9
+    },
+    "runtime": {
+      "top_level": 20,
+      "new": 17,
+      "old": 3,
+      "subcases": 32
+    },
+    "web": {
+      "top_level": 11,
+      "new": 10,
+      "old": 1
+    },
+    "root_contract_top_level": 1,
+    "root_actual_top_level": 1,
+    "actual_system_vault_invocations": 2,
+    "actual_system_vault_entries_created_and_cleaned": 2,
+    "actual_latest_exit": 0,
+    "actual_latest_skips": 0,
+    "contract_generations": 1,
+    "typescript_invocations": 2,
+    "typescript_final_exit": 0,
+    "i18n_invocations": 2,
+    "paired_keys": 8617,
+    "source_hardcodes": 0,
+    "component_builds": 2,
+    "synthetic_gui_checks": 6,
+    "gui_launches": 2,
+    "gui_native_exits": [
+      0,
+      0
+    ],
+    "gui_images_root_viewed": 2,
+    "full_suites": 0,
+    "sdk_asset_rebuilds": 0,
+    "standalone_business_builds": 0,
+    "installer_builds": 0,
+    "model_calls": 0,
+    "current_refresh_semantic_files": 2,
+    "current_refresh_semantic_diagnostics": 0,
+    "global_checks_after_refresh_only_fix": 0
+  },
+  "findings_fixed": [
+    "Public invalid machine requests initially acquired the global SQLite writer before proof qualification. An independent read-only preflight now rejects them first; the later original short transaction reacquires locks and rechecks all current facts. Six actual held-writer HTTP subcases prove rejection without a timing threshold.",
+    "Terminal output initially omitted the full credential fingerprint required by browser approval. The local pairing protocol now emits its saved credential_sha256 in every observed frame; only the affected CLI case was repeated.",
+    "Identity report drafts could silently adopt a different saved service/project. Final browser drafts include current public control/project assertions; mismatch is rejected by the existing identity loader before journal changes.",
+    "New consumer tests exposed write403 private-fact clearing and retry-after-pending-cleanup failure; both were fixed with affected-case RED/GREEN and no extra HTTP.",
+    "First full TSC found five typing diagnostics in one new test file, fixed by explicit mock parameter/this types. Final full TSC passed; other production sources had no initial diagnostics.",
+    "A confirmed400 error kept the original modal blocked after explicit refresh. Only known errors may now clear after the original pending/persistence/denial guards, including a create failure without a locator; unknown operations and protected refusals stay intact."
+  ],
+  "actual_scope": [
+    "Production SystemRunnerSecretStore/pinned SDK used; one initially absent own system credential set and reloaded, then exact known entry deleted and absence confirmed in test cleanup. No enumeration or existing user credentials.",
+    "Original browser fixture handlers create and explicitly approve one local project pairing; Runner transport calls a real loopback HTTP service, original current Grant status and original empty inventory report.",
+    "One actual Worker registration/Grant, public local identity contains no raw token, zero task/model calls."
+  ],
+  "gui_scope": [
+    "Real production Workspace, original modal, pairing controller and QuickConnect use synthetic account/backend/proposal/inventory facts. Original create body/key recovery, explicit fingerprint/version approval and exact Worker continuation were exercised.",
+    "English390px dark expired state supports keyboard focus and has no approval/continuation; current403 hides private facts. Chinese1366 and English390 viewport screenshots were root-viewed.",
+    "First driver treated selectedWorker:string as an array after the main flow completed. Captured exact-worker state was checked, then only the two remaining expired/denied views continued in a second native session; no product change or third build.",
+    "The two GUI builds predate only the final confirmed-error refresh handler correction. The six recorded layout/normal/pending/denial paths are unchanged by that narrow branch; its400 recovery is covered by the current targeted component case, not a new browser claim."
+  ],
+  "efficiency": [
+    "No unrelated full suites, installer, SDK asset regeneration or native-provider matrix repeated.",
+    "Final types/i18n/component refresh followed the concrete new test-typing and identity-scope inputs; unchanged functional checks were reused.",
+    "One actual Windows integration was repeated after the proof-lock and fingerprint fixes changed relevant inputs. Both owned credential entries were exactly deleted and absence verified.",
+    "After the final refresh-only consumer correction, only its original recovery case and two affected files semantic diagnostics were checked. No other functional case, global check, component build or GUI was repeated."
+  ],
+  "boundaries": [
+    "Actual system credential coverage is Windows; macOS Keychain/Linux Secret Service are SDK implementation paths, not real OS acceptance. Headless environments require an available secure backend; pairing does not fall back to plaintext.",
+    "Actual HTTP and SQLite use an owned local fixture; browser approval is by a fixture account. Synthetic GUI and real system-provider evidence are separate. Neither proves a physical remote machine, vendor model or production approval.",
+    "No current installer, full authenticated desktop/SaaS, scale, OceanBase/PostgreSQL or cross-platform runtime build was revalidated. Existing development/candidate/same-commit independent-test/review/release chains were not rerun.",
+    "Full original31/P0-P7/58limited/34pending/92total and prior171 explicit-stop GUI gap remain active. Two unrelated historical local audit documents remain byte-identical and unstaged."
+  ],
+  "evidence": [
+    {
+      "path": ".cache/runner-pairing-184/platform/summary.json",
+      "sha256": "d5373774a65bb86d028b07f3b91a0463bbeee383b08e8eb044340f7977ce6c64"
+    },
+    {
+      "path": ".cache/runner-pairing-184/platform/source-manifest.json",
+      "sha256": "dfd37c8a9fb644e5a75598dde5334c6be3b577399bbb797810fced0116f519a6"
+    },
+    {
+      "path": ".cache/runner-pairing-184/platform/EVIDENCE.md",
+      "sha256": "77e56dbd6eac5714413895ff30b7c9c092e90cc3857e6086b47c862401f948a3"
+    },
+    {
+      "path": ".cache/runner-pairing-184/runtime/summary.json",
+      "sha256": "56f69469a32e9fd30dbd578669be55b576acd794689a338c623976de98194820"
+    },
+    {
+      "path": ".cache/runner-pairing-184/runtime/source-manifest.json",
+      "sha256": "eb205edf4d00dc46dfe87b3fd22109e426ba573c93dc1c2ea8403e7be109f7a0"
+    },
+    {
+      "path": ".cache/runner-pairing-184/runtime/EVIDENCE.md",
+      "sha256": "1959847b12407c241ecb8365b535bde3daf55ec69e19ed513b2a4e5731bbea25"
+    },
+    {
+      "path": ".cache/runner-pairing-184/web/web184-summary.json",
+      "sha256": "719fd80b1dc905f3b403f64d3d5f5cc0a5d5865318f59ae616e466c5fbd6c0bf"
+    },
+    {
+      "path": ".cache/runner-pairing-184/web/remote-card184-summary.json",
+      "sha256": "0d78ab60450cc3fb01c2742d62e8e828b68dd18fdf1d64904045be6b79ac545c"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T035618635Z.command.json",
+      "sha256": "e7755ab0ec4840cd41ca0d7c77ca16384d0e2a73f042a676f2defaa9852d6e63"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T035815827Z.command.json",
+      "sha256": "408b267f1f624266277a6e933694bb7cceac6657c75cce4b814c9780ab31287b"
+    },
+    {
+      "path": ".cache/runner-pairing-184/actual/summary.json",
+      "sha256": "7892990dea56428824a9fe7cc8c095fac736c42d939e2a47aee33084c83133ee"
+    },
+    {
+      "path": ".cache/runner-pairing-184/actual/command.json",
+      "sha256": "6763137ba2b16e892b6c5092cc6a8f374e2bbe14a0f60f22f1a377c66d4e95ec"
+    },
+    {
+      "path": ".cache/runner-pairing-184/actual/stdout.jsonl",
+      "sha256": "d8d9aef1f0915d23acd9b29b61644762cdc3fea6cbf6c73fdfbf0b91c304bbc8"
+    },
+    {
+      "path": ".cache/runner-pairing-184/actual-before-lock-and-fingerprint-fixes/summary.json",
+      "sha256": "e4825e61fe72253ed61db541ef90966678c70c6113a9be017b6be907fa892ed0"
+    },
+    {
+      "path": ".cache/runner-pairing-184/types.command.json",
+      "sha256": "fb72b1fd6629bc44fca984049da8851ecd8f878599346fbfa2399c6b1caddb31"
+    },
+    {
+      "path": ".cache/runner-pairing-184/i18n.command.json",
+      "sha256": "e42628f19d2afb533d352132eea0c221c016e9fb1dbcd0920d2e6c59578c49e9"
+    },
+    {
+      "path": ".cache/runner-pairing-184/build.command.json",
+      "sha256": "98ae336c484a7e5550968d85c76c88be96e943fcfc18b0e4007ba8df762ddac3"
+    },
+    {
+      "path": ".cache/runner-pairing-184/types-before-final-web-fixes.command.json",
+      "sha256": "e7b3df0ef3d4ac1c7cdfeeed187ef9f1d9862412651ee1b88ca47520477b44e3"
+    },
+    {
+      "path": ".cache/runner-pairing-184/visual/first-result.json",
+      "sha256": "38a8eaa50785e6f6c9a643ca44c3c6f2a718f0532622d2c5c89c16d57386b0dc"
+    },
+    {
+      "path": ".cache/runner-pairing-184/visual/result.json",
+      "sha256": "8b7f55818d70f9472417d4a9404ffd0e06116c90345ae790a0a07bac0ee2e9cb"
+    },
+    {
+      "path": ".cache/runner-pairing-184/web/panel184-known-failure-red.log",
+      "sha256": "48b5bc819185c2d4d0ffe319d4785abe34d575305dcec5d0ac874f2eaa6a46c5"
+    },
+    {
+      "path": ".cache/runner-pairing-184/web/panel184-known-failure-green.log",
+      "sha256": "e85e1a8c8798e5d76baf80613e2824a09a8d4714e49be6527fb570ed95115393"
+    },
+    {
+      "path": ".cache/runner-pairing-184/web/panel184-semantic.log",
+      "sha256": "465c12bbc58cc6d0b0b83c02d5603c794398fca1d7fcf6ec337d0b6ebcbb8433"
+    },
+    {
+      "path": ".cache/runner-pairing-184/web-before-known-error-refresh.json",
+      "sha256": "bf6022f77f7fefab5775f768830cf028269c473fdf7b0a899380b786f2e72259"
+    },
+    {
+      "path": ".cache/runner-pairing-184/openapi-semantic-diff.json",
+      "sha256": "77295cf18e21739605cdda8e1066c734edd1e74db49978baa1718af7565533da"
+    }
+  ],
+  "images": [
+    {
+      "path": ".cache/runner-pairing-184/visual/cn-pairing-review.png",
+      "sha256": "9fcd42ee099c6894215e91d1441b13f6e52d420da32da6b837e0cab0675d8ae3",
+      "root_viewed": true
+    },
+    {
+      "path": ".cache/runner-pairing-184/visual/en-390-expired-pairing.png",
+      "sha256": "cc06a457f503857e6176f45a13561bbf503988dfee0160d36fb823d9da799d26",
+      "root_viewed": true
+    }
+  ],
+  "hygiene": {
+    "retained_local_audits": 2,
+    "cache_or_temp_in_git": false,
+    "secrets_in_git": false,
+    "unrelated_source_changes": false
+  },
+  "integration_api_diff": {
+    "existing_api_mutations": 0,
+    "existing_api_removals": 0,
+    "added_dtos": 5,
+    "added_paths": 5,
+    "added_proof_schemes": 1
+  }
+}

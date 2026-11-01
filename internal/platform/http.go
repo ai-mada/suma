@@ -210,6 +210,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if localizationCatalogHTTP(w, r, path) {
 		return
 	}
+	if s.runnerPairingMachineHTTP(w, r, parts) {
+		return
+	}
 	if path == "auth/setup" && r.Method == "POST" {
 		if s.SetupToken != "" && r.Header.Get("X-Suma-Setup-Token") != s.SetupToken {
 			writeError(w, forbidden())
@@ -307,6 +310,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	s.applyLocalePreferences(w, r, actor)
 	if s.desktopRunnerHTTP(w, r, actor, scope, boundProject, path) {
+		return
+	}
+	if s.runnerPairingBrowserHTTP(w, r, actor, parts) {
 		return
 	}
 	if s.toolPermissionsHTTP(w, r, actor, scope, boundProject, parts) {

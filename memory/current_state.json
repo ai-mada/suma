@@ -700,14 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: user requested remaining code review; parallel source review found and fixed startup no-write/schema-case guards, desktop temporary/i18n defects and knowledge identity regression; focused evidence and dev delivery, full goal active",
+  "last_goal_turn_classification": "progress: T184 implemented remote pairing through original authority, secure SDK identity storage, scoped report/Worker reuse, bilingual original modal and exact-worker continuation, real Windows keyring/HTTP plus focused source/GUI evidence; full goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-WIP-REVIEW-183",
-    "status": "scoped_reviewed_and_fixed",
-    "report": "docs/quality/remaining-code-review-verification.md",
+    "stage": "T-RUNNER-PAIRING-184",
+    "status": "scoped_verified",
+    "contract": "contracts/runner-pairing.md",
+    "report": "docs/quality/runner-pairing-verification.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Continue actual distributed tool registration and task development, and remaining project/team/knowledge/quality/operations capabilities."
+    "next": "Continue distributed tool execution and automatic configuration, simplify saved-identity reuse, and remaining project/team/knowledge/quality/operations capabilities."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1103,5 +1104,38 @@
       "Actual database coverage is SQLite; PostgreSQL/OceanBase startup and recovery require their own real-instance checks.",
       "No cache, test database, log, screenshot, artifact, credential, dependency directory or historical binary is committed."
     ]
+  },
+  "runner_pairing": {
+    "stage": "T-RUNNER-PAIRING-184",
+    "status": "scoped_verified",
+    "contract": "contracts/runner-pairing.md",
+    "report": "docs/quality/runner-pairing-verification.md",
+    "summary": "docs/quality/runner-pairing-summary.json",
+    "focused": 41,
+    "go_subcases": 41,
+    "synthetic_gui_checks": 6,
+    "implementation": [
+      "Current browser administration creates a10minute existing project pairing, machine proposes a locally held credential digest, browser explicitly approves the exact version/fingerprint, machine confirms current original Grant and saves a public identity. No token crosses browser/JSON/argv.",
+      "Original independent24hour Grant, registered Worker, current authority and metadata-only receipts are reused; desktop HMAC/loopback restrictions remain. Eight active pairings per project are checked atomically.",
+      "Fixed go-keyring v0.2.6 uses OS credential providers, no plaintext fallback or credential enumeration. Original identity/proposal is durable before HTTP, exact source/path/secret checks and local locks prevent blind replacement.",
+      "Pairing ends prepared without report/Claim/heartbeat/enable. Saved identity supports original report-tools and explicit Worker mode. Project guide report drafts also assert the current public service and project before any journal change.",
+      "Original Worker modal, exact-worker continuation and bilingual guide reuse existing scope/pending/reader controls. Original ACK snapshots remain separate from current reads and real online/inventory/acceptance facts."
+    ],
+    "boundaries": [
+      "Actual system credential coverage is Windows; macOS Keychain/Linux Secret Service are SDK implementation paths, not real OS acceptance. Headless environments require an available secure backend; pairing does not fall back to plaintext.",
+      "Actual HTTP and SQLite use an owned local fixture; browser approval is by a fixture account. Synthetic GUI and real system-provider evidence are separate. Neither proves a physical remote machine, vendor model or production approval.",
+      "No current installer, full authenticated desktop/SaaS, scale, OceanBase/PostgreSQL or cross-platform runtime build was revalidated. Existing development/candidate/same-commit independent-test/review/release chains were not rerun.",
+      "Full original31/P0-P7/58limited/34pending/92total and prior171 explicit-stop GUI gap remain active. Two unrelated historical local audit documents remain byte-identical and unstaged."
+    ],
+    "final_refresh_recovery": {
+      "scope": [
+        "apps/web/src/RunnerPairingPanel.test.tsx",
+        "apps/web/src/RunnerPairingPanel.tsx"
+      ],
+      "focused_case": "same original recovery top; no extra distinct test",
+      "semantic_diagnostics": 0,
+      "gui_repeated": false,
+      "protection": "unknown pending, storage failures and protected refusals cannot be cleared"
+    }
   }
 }

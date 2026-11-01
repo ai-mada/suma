@@ -1,6 +1,6 @@
 # 速码 suma
 
-T-DEVELOPER-TOOL-HANDOFF-182打通[讨论到正式开发工具](contracts/developer-tool-handoff.md)：复用当前模型与技能、保存预览后明确启动；远程节点可自动准备配置、单次上报并准确恢复原回执。[架构与AI SOP](docs/architecture/developer-tool-handoff.md)、[简洁接入交互](docs/design/developer-tool-handoff.md)及[限定验证](docs/quality/developer-tool-handoff-verification.md)说明实际支持范围。
+T-RUNNER-PAIRING-184新增[远程节点配对](contracts/runner-pairing.md)：创建待办、目标机器执行、完整指纹核对并明确批准；凭据由系统库保管，原身份可直接复用工具上报，浏览器不接收token。[架构与AI SOP](docs/architecture/runner-pairing.md)、[简洁双语交互](docs/design/runner-pairing.md)及[限定验证](docs/quality/runner-pairing-verification.md)记录实际范围。
 
 **速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器、桌面与CLI入口。
 

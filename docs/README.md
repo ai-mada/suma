@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [远程执行节点配对](product/runner-pairing.md) · [合同](../contracts/runner-pairing.md) · [架构与AI SOP](architecture/runner-pairing.md) · [交互](design/runner-pairing.md) · [English](en/runner-pairing.md) · [报告](quality/runner-pairing-verification.md)：原节点窗口完成无token配对，系统库持原凭据、当前授权与原回执贯通，完整平台继续交付。
+
 - [剩余代码检查与修复](quality/remaining-code-review-verification.md) · [摘要](quality/remaining-code-review-summary.json)：T183补齐共同初始化无写拒绝、桌面打包隔离与知识准确来源，按改动复用与定向验证后交付。
 
 - [开发工具交接与远端接入](product/developer-tool-handoff.md) · [合同](../contracts/developer-tool-handoff.md) · [架构与AI SOP](architecture/developer-tool-handoff.md) · [交互](design/developer-tool-handoff.md) · [English](en/developer-tool-handoff.md) · [报告](quality/developer-tool-handoff-verification.md)：讨论复用正式派发；自动配置、单次上报与作用域恢复各循原门禁，完整平台继续交付。
