@@ -308,6 +308,17 @@ func (s *Service) CreateToolProfile(ctx context.Context, actor Actor, project st
 	if replay {
 		return decodeToolProfileReceipt(hash)
 	}
+	// The exact immutable identity is checked under the same organization and
+	// current authority locks as INSERT. A prior matches read is not a reservation.
+	matches, err := s.toolProfileExactMatchesTx(auth, project, req.WorkerID, req.Profile)
+	if err != nil {
+		return out, err
+	}
+	for _, match := range matches {
+		if match.State == "paused" || match.State == "enabled" {
+			return out, toolProfileMatchExists()
+		}
+	}
 	clock, err := s.automationClock(ctx, tx)
 	if err != nil {
 		return out, err

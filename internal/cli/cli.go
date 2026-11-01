@@ -33,6 +33,7 @@ Read commands:
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   models options --tool ID --expected-tool-version N
+  tools matches --file JSON   Find exact existing profiles using a login session (no writes)
   workspace save-status ID [--wait]
   workspace targets | workspace observe --file request.json [--wait] | workspace observation ID [--wait]
   workspace files [--directory RELATIVE] [--limit 100] [--before CURSOR]
@@ -117,6 +118,9 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "tools" {
+		return toolProfilesCommand(ctx, c, args[1:], in, out)
+	}
 	if len(args) > 0 && args[0] == "worklogs" {
 		return worklogsCommand(ctx, c, args[1:], out)
 	}

@@ -1,0 +1,23 @@
+{
+  "tool-profile-reuse.title": "Existing matching configurations",
+  "tool-profile-reuse.intro": "These profiles match the complete fixed configuration. Enabled state and dispatch eligibility at this read are shown separately.",
+  "tool-profile-reuse.choose": "Choose an existing configuration",
+  "tool-profile-reuse.select_required": "Choose a configuration before explicitly enabling or opening it. The first match is not selected automatically.",
+  "tool-profile-reuse.state.paused": "Paused",
+  "tool-profile-reuse.state.enabled": "Enabled",
+  "tool-profile-reuse.state.revoked": "Revoked",
+  "tool-profile-reuse.version": "Version {{version}}",
+  "tool-profile-reuse.available": "Dispatchable at this read",
+  "tool-profile-reuse.unavailable": "Not dispatchable at this read",
+  "tool-profile-reuse.enable": "Explicitly enable existing configuration",
+  "tool-profile-reuse.open": "Open original configuration",
+  "tool-profile-reuse.history": "Revoked history ({{count}})",
+  "tool-profile-reuse.history_hint": "Revoked profiles are available for review and cannot be enabled directly. Explicitly create a new configuration through the existing registration flow.",
+  "tool-profile-reuse.history_open": "Open historical configuration",
+  "tool-profile-reuse.invalid_response": "The existing-configuration response could not be verified. Read it again.",
+  "tool-profile-reuse.loading": "Finding complete configuration matches for the current project and node…",
+  "tool-profile-reuse.read_again": "Read existing configurations again",
+  "tool-profile-reuse.query_failed": "Existing configurations could not be read. Read them again before choosing an existing configuration or creating one.",
+  "tool-profile-reuse.empty": "No reusable paused or enabled configuration was found. Explicitly register a new configuration through the existing flow.",
+  "tool-profile-reuse.existing_conflict": "An identical paused or enabled configuration already exists. Read current matches and choose explicitly; the name draft is retained."
+}

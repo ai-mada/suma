@@ -16,6 +16,9 @@ import {ErrorNotice,Field,Loading} from './ui';
 import {toolError,type ToolAction} from './tool-hooks';
 import type {IdentityRead,SharedIdentityRead} from './execution-pools/ToolIdentity';
 import type {ToolProfile} from './tool-model';
+import type {ToolProfileMatchList,ToolProfileMatchRequest} from '../../../packages/contracts/src';
+import {readToolProfileMatches,toolProfileMatchKey} from './tool-profile-reuse-model';
+import {ExistingToolProfiles} from './ExistingToolProfiles';
 import {DesktopToolConnector} from './DesktopToolConnector';
 import {desktopToolBridge,validDesktopToolScope} from './desktop-tool-connector-model';
 import {CursorConnectionGuide} from './CursorConnectionGuide';
@@ -24,7 +27,7 @@ import {localToolsScanBridge,validLocalToolsScanScope} from './local-tools-scan-
 import './ToolQuickConnect.css';
 
 const t=(key:string,params?:Record<string,unknown>)=>tr('tool-quick-connect.'+key,params);
-export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor)=>void;onWorker:()=>void};
+export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile)=>void;onOpen?:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor)=>void;onWorker:()=>void};
 export function ToolQuickConnect(props:ToolQuickConnectProps){
  const view=useApiView(),scope=JSON.stringify([props.project,view?.userID,view?.organizationID]);
  return <QuickConnectScope {...props} key={scope}/>;
@@ -54,13 +57,15 @@ function QuickConnectScope(props:ToolQuickConnectProps){
  </div>;
 }
 type InventorySnapshot={caller:ReturnType<typeof useApi>;key:string;view?:ToolDiscoveryView;deadline:number;error?:unknown};
+type MatchSnapshot={caller:ReturnType<typeof useApi>;key:string;data?:ToolProfileMatchList;error?:unknown};
 type QuickToolDraft=Readonly<{chosenWorker:string;chosenCommand:string;name:string;nameEdited:boolean}>;
-function QuickToolConfiguration({project,adapter,workers,sharedWorkers,action,onRegistered,onEnable,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onDraftChange:(draft:QuickToolDraft)=>void}){
+function QuickToolConfiguration({project,adapter,workers,sharedWorkers,action,onRegistered,onEnable,onOpen,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onDraftChange:(draft:QuickToolDraft)=>void}){
  useLocale();const api=useApi(),[chosenWorker,setChosenWorker]=useState(initialDraft?.chosenWorker||''),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<InventorySnapshot>(),[expired,setExpired]=useState(false),[chosenCommand,setChosenCommand]=useState(initialDraft?.chosenCommand||''),[name,setName]=useState(initialDraft?.name||''),[nameEdited,setNameEdited]=useState(initialDraft?.nameEdited||false),[registered,setRegistered]=useState<ToolProfile>();
  useLayoutEffect(()=>{onDraftChange({chosenWorker,chosenCommand,name,nameEdited});},[chosenWorker,chosenCommand,name,nameEdited,onDraftChange]);
  const [localOperationBlocked,setLocalOperationBlocked]=useState(false),[nativeRegistrationReady,setNativeRegistrationReady]=useState(true),[nativeConnection,setNativeConnection]=useState<{caller:typeof api;connection:DesktopCodexConnectedProof|DesktopOpenCodeConnectedProof}>(),currentCaller=useRef(api);currentCaller.current=api;
  const [qoderConnection,setQoderConnection]=useState<{caller:typeof api;workerID:string}>();
- useEffect(()=>{onLocalBlockedChange(localOperationBlocked);},[localOperationBlocked,onLocalBlockedChange]);
+ const [matchRevision,setMatchRevision]=useState(0),[matchSnapshot,setMatchSnapshot]=useState<MatchSnapshot>(),[existingChoice,setExistingChoice]=useState<{key:string;id:string}>(),[createAttempt,setCreateAttempt]=useState<{key:string;ticket:number}>();
+ const createSequence=useRef(0),recheckedConflict=useRef(0);
  useEffect(()=>()=>onLocalBlockedChange(false),[onLocalBlockedChange]);
  const confirmedNative=nativeConnection?.caller===api?nativeConnection.connection:undefined;
  const qoderWorker=qoderConnection?.caller===api?qoderConnection.workerID:undefined,localWorker=confirmedNative?.worker_id??qoderWorker;
@@ -80,15 +85,36 @@ function QuickToolConfiguration({project,adapter,workers,sharedWorkers,action,on
  const current=active&&snapshot?.caller===api&&snapshot.key===key?snapshot:undefined;
  useEffect(()=>{if(!current?.view||current.view.state!=='fresh')return;const timer=setTimeout(()=>setExpired(true),Math.max(0,current.deadline-performance.now()));return()=>clearTimeout(timer);},[current]);
  const expectedNative:ConfirmedNativeToolProof|ConfirmedOpenCodeToolProof|undefined=confirmedNative&&confirmedNative.worker_id===worker?'catalog_sha256' in confirmedNative?{configuration_sha256:confirmedNative.configuration_sha256,executable_sha256:confirmedNative.executable_sha256,tool_version:confirmedNative.tool_version,catalog_sha256:confirmedNative.catalog_sha256}:{configuration_sha256:confirmedNative.configuration_sha256,executable_sha256:confirmedNative.executable_sha256,tool_version:confirmedNative.tool_version,model:confirmedNative.model,provider_id:confirmedNative.provider_id,endpoint_origin:confirmedNative.endpoint_origin}:undefined;
- const view=current?.view,rows=view?.state==='fresh'&&!expired&&(!localWorker||nativeRegistrationReady)?matchingQuickTools(view.items,adapter,expectedNative):[],available=rows.filter(item=>item.available),selected=available.find(item=>item.profile.command_id===chosenCommand)||(available.length===1?available[0]:undefined),suggestedName=nameEdited?name:selected?.profile.command_id||'',writeBlocked=action.busy||!!action.pending,blocked=writeBlocked||localOperationBlocked,usable=!!selected&&!!current&&!expired&&performance.now()<current.deadline;
+ const view=current?.view,rows=view?.state==='fresh'&&!expired&&(!localWorker||nativeRegistrationReady)?matchingQuickTools(view.items,adapter,expectedNative):[],available=rows.filter(item=>item.available),selected=available.find(item=>item.profile.command_id===chosenCommand)||(available.length===1?available[0]:undefined),suggestedName=nameEdited?name:selected?.profile.command_id||'',writeBlocked=action.busy||!!action.pending,usable=!!selected&&!!current&&!expired&&performance.now()<current.deadline;
  const receipt=registered&&active&&registered.worker_id===worker?registered:undefined;
+ const matchRequest:ToolProfileMatchRequest|undefined=usable&&selected?{project_id:project,worker_id:worker,profile:selected.profile}:undefined;
+ const matchKey=matchRequest?JSON.stringify([adapter.id,key,current!.deadline,toolProfileMatchKey(matchRequest),matchRevision]):'',matchEligible=!!matchRequest&&!receipt&&!writeBlocked&&!localOperationBlocked;
+ const matches=matchEligible&&matchSnapshot?.caller===api&&matchSnapshot.key===matchKey?matchSnapshot:undefined,lookupBusy=matchEligible&&!matches,blocked=writeBlocked||localOperationBlocked||lookupBusy;
+ const reusable=matches?.data?.items.filter(item=>item.state!=='revoked')??[],selectedExisting=existingChoice?.key===matchKey&&reusable.some(item=>item.id===existingChoice.id)?existingChoice.id:reusable.length===1?reusable[0].id:'',canCreate=!!matches?.data&&!reusable.length;
+ useEffect(()=>{onLocalBlockedChange(localOperationBlocked||lookupBusy);},[localOperationBlocked,lookupBusy,onLocalBlockedChange]);
+ useEffect(()=>{
+  const controller=new AbortController();let latest=true;setMatchSnapshot(undefined);
+  if(matchEligible&&matchRequest){const request=matchRequest,deadline=current!.deadline;void api<unknown>('/tool-profiles/matches',request,'POST',undefined,controller.signal).then(value=>{
+   if(!latest||performance.now()>=deadline)return;
+   setMatchSnapshot({caller:api,key:matchKey,data:readToolProfileMatches(value,request)});
+  }).catch(error=>{if(latest&&!controller.signal.aborted&&performance.now()<deadline)setMatchSnapshot({caller:api,key:matchKey,error});});}
+  return()=>{latest=false;controller.abort();};
+ },[api,matchEligible,matchKey]);
+ // A confirmed create conflict has no unknown write to replay. Read the exact
+ // current set once; never substitute another operation's profile as our receipt.
+ useEffect(()=>{
+  if(!action.conflict||action.pending||!createAttempt||createAttempt.key!==matchKey||recheckedConflict.current===createAttempt.ticket)return;
+  recheckedConflict.current=createAttempt.ticket;setMatchRevision(value=>value+1);
+ },[action.conflict,action.pending,createAttempt,matchKey]);
+ function readMatches(){if(blocked)return;action.clearError();setMatchRevision(value=>value+1);}
  useEffect(()=>{
   if(!receipt||reportedReceipt.current===receipt.id)return;
   reportedReceipt.current=receipt.id;onRegistered(receipt);
  },[receipt,onRegistered]);
  async function register(){
-  if(blocked||action.conflict||!usable||!suggestedName.trim()||!selected||!current||performance.now()>=current.deadline){if(current&&performance.now()>=current.deadline)setExpired(true);return;}
+  if(blocked||action.conflict||!canCreate||!usable||!suggestedName.trim()||!selected||!current||performance.now()>=current.deadline){if(current&&performance.now()>=current.deadline)setExpired(true);return;}
   const body={project_id:project,worker_id:worker,name:suggestedName.trim(),profile:selected.profile};
+  setCreateAttempt({key:matchKey,ticket:++createSequence.current});
   const result=await action.run<ToolProfile>('/tool-profiles',body);
   // A transient node read must not erase an already matched original receipt.
   // The scoped component owns it; current authorization still guards display.
@@ -105,10 +131,14 @@ function QuickToolConfiguration({project,adapter,workers,sharedWorkers,action,on
      {(expired||view.state!=='fresh')?<p className="tool-quick-warning" role="status">{t(view.state==='unreported'?'unreported':'expired')}</p>:!rows.length?<p className="tool-quick-warning" role="status">{t('no_matching')}</p>:<>
       {available.length>1&&<Field label={t('configuration')}><select data-quick-configuration value={selected?.profile.command_id||''} disabled={blocked} onChange={event=>setChosenCommand(event.target.value)}><option value="">{t('choose_configuration')}</option>{available.map(item=><option key={item.profile.command_id} value={item.profile.command_id}>{item.profile.command_id} · {item.profile.tool_version}</option>)}</select></Field>}
       {rows.filter(item=>!item.available).map(item=><p className="tool-quick-warning" key={item.profile.command_id}>{t('unavailable',{command:item.profile.command_id})}</p>)}
-      {selected&&<><div className="tool-quick-facts"><span><ShieldCheck size={16} aria-hidden="true"/>{t('probe_confirmed')}</span><span>{adapter.product} · {selected.profile.tool_version}</span><span>{t(selected.profile.read_only?'read_only':'worktree_write')}</span></div><Field label={t('name')}><input data-quick-name required maxLength={200} value={suggestedName} disabled={blocked} onChange={event=>{setNameEdited(true);setName(event.target.value);}}/></Field><details className="tool-quick-technical"><summary>{t('technical')}</summary><p>{adapter.adapter} / {adapter.protocol}</p><code>{selected.profile.profile_sha256}</code></details></>}
+      {selected&&<><div className="tool-quick-facts"><span><ShieldCheck size={16} aria-hidden="true"/>{t('probe_confirmed')}</span><span>{adapter.product} · {selected.profile.tool_version}</span><span>{t(selected.profile.read_only?'read_only':'worktree_write')}</span></div>{!reusable.length&&<Field label={t('name')}><input data-quick-name required maxLength={200} value={suggestedName} disabled={blocked} onChange={event=>{setNameEdited(true);setName(event.target.value);}}/></Field>}<details className="tool-quick-technical"><summary>{t('technical')}</summary><p>{adapter.adapter} / {adapter.protocol}</p><code>{selected.profile.profile_sha256}</code></details></>}
      </>}
-     <p className="tool-quick-muted">{t('register_hint')}</p>
-     <button data-quick-register type="button" className="primary tool-quick-submit" disabled={blocked||action.conflict||!usable||!suggestedName.trim()} onClick={()=>void register()}>{t(action.busy?'registering':'register')}</button>
+     {lookupBusy&&<p role="status" className="tool-quick-muted">{tr('tool-profile-reuse.loading')}</p>}
+     {matches?.error&&<div><p className="tool-quick-warning">{tr('tool-profile-reuse.query_failed')}</p><ErrorNotice error={toolError(matches.error)}/></div>}
+     {matches?.data&&!!matches.data.items.length&&<ExistingToolProfiles items={matches.data.items} selectedID={selectedExisting} disabled={blocked} onSelect={id=>setExistingChoice({key:matchKey,id})} onEnable={onEnable} onOpen={onOpen}/>}
+     {!!matches&&<button data-quick-matches-refresh type="button" className="text-button" disabled={blocked} onClick={readMatches}><RefreshCw size={14} aria-hidden="true"/>{tr('tool-profile-reuse.read_again')}</button>}
+     {canCreate&&<p className="tool-quick-muted">{tr('tool-profile-reuse.empty')}</p>}
+     {!reusable.length&&<><p className="tool-quick-muted">{t('register_hint')}</p><button data-quick-register type="button" className="primary tool-quick-submit" disabled={blocked||action.conflict||!canCreate||!usable||!suggestedName.trim()} onClick={()=>void register()}>{t(action.busy?'registering':'register')}</button></>}
     </>}
    </>}
   </>}

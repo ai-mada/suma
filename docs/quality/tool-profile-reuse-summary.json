@@ -1,0 +1,150 @@
+{
+  "stage": "T-TOOL-PROFILE-REUSE-180",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "timezone": "Asia/Shanghai",
+  "status": "scoped_source_real_session_http_and_synthetic_ui_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Complete current tenant/project/worker/full-Profile match read, independent of pagination and installation/health observations; existing paused/enabled profiles require explicit reuse and revoked profiles remain history.",
+    "Create recovers its own original receipt first and then rejects an existing exact active registration under the original authority locks. A read is not a reservation; concurrent requests cannot create duplicate usable identities.",
+    "Quick connect automatically reads exact existing configurations, preserves authored names and original pending writes, discards stale scope/profile/deadline responses and performs one read after a confirmed conflict; open, enable and registration callbacks remain distinct.",
+    "CLI tools matches --file JSON or - reuses the same DTO, current login session and client. Strict original-byte parsing and complete response validation; read-only timeout is not an unknown write."
+  ],
+  "focused": {
+    "distinct_top_level": 22,
+    "new": 18,
+    "affected_existing": 4,
+    "go": {
+      "platform": {
+        "distinct": 5,
+        "new": 4,
+        "affected_existing": 1,
+        "subcases": 5
+      },
+      "cli": {
+        "distinct": 4,
+        "new": 3,
+        "affected_existing": 1
+      },
+      "contracts": {
+        "distinct": 1,
+        "new": 1
+      },
+      "distinct": 10,
+      "subcases_separate": 5
+    },
+    "web": {
+      "distinct": 12,
+      "new": 10,
+      "affected_existing": 2,
+      "unrelated_selected_out": 9
+    },
+    "repeats_not_counted": true
+  },
+  "integration": {
+    "full_typecheck_exit": 0,
+    "paired_locale_keys": 8493,
+    "production_hardcodes": 0,
+    "contract_generation_runs": 1,
+    "generated_files": [
+      "docs/api/openapi.json",
+      "packages/contracts/src/index.ts"
+    ],
+    "application_builds": 0,
+    "sdk_builds": 0,
+    "full_go_suite": false,
+    "full_web_suite": false,
+    "component_builds": 1,
+    "gui_feature_launches": 1,
+    "gui_feature_checks": 6,
+    "gui_total_launches": 5,
+    "additional_launches": "One geometry observation and three screenshot-only passes; no repeated feature checks.",
+    "all_native_exits_zero": true
+  },
+  "real_http": {
+    "cli_actual_login_session": true,
+    "scope": "Production Go Service/SQLite/normal setup with a test account; original CLI client reaches real matches route with the current session and user/organization view headers. Not an installed CLI executable or real vendor execution.",
+    "backend_concurrency": "Two goroutines against one real service/SQLite database under the original authority locks; not physical multi-host or OceanBase acceptance."
+  },
+  "history": [
+    "Meaningful Platform/CLI/Web REDs and precise GREENs remain in owner evidence. A bounded Web review found no confirmed P1/P2; repeat runs are not additional checks.",
+    "Initial local element captures appeared clipped. Geometry showed controls within bounds; viewport innerWidth and scrollbar clientWidth differed. The original six feature checks passed and were reused.",
+    "Three screenshot-only passes preserved the original captures, used full-page capture, fixed process-local device scale, then a tall no-scrollbar canvas. Final captures have clientWidth equal to 390; no product CSS changes or repeated component build.",
+    "A tool host reset made an observation handle stale after the final screenshot. Current HEAD, working files and completed result receipts were re-read; no browser process or test was restarted on that basis."
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-profile-reuse-180/platform/evidence.json",
+      "sha256": "edc40c87989887236697722a4af0e8b332b65c86ca74e7f70d8bb6ce3eadff82"
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/cli/evidence.json",
+      "sha256": "c3c355ecd18d3e731bec11e80496ca7e6bbf37560030c3a3ac2f69d568ff006b"
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/web/frontend-summary.json",
+      "sha256": "fb061ceb244494d264ec2aa27cdd4c4e8dc7ba787de03485e2945adadac6ea99"
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/visual/result.json",
+      "sha256": "3ec51f4ce20485f1e5f1c8a2835c4997025ef07d55adf0ea7aab979fd547cc4d"
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/visual/diagnose-result.json",
+      "sha256": "d85d0bfe62b543fe15ad2bc1450326dc5cd0958a15af7f3427ffabfb6363d33d"
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/visual/artifacts-result.json",
+      "sha256": "98e1a59ed526dd06573c891f83b34934de8013de505aae277fe1260a70782652"
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/visual/artifacts-dpi1-result.json",
+      "sha256": "019d3d75750fced19d5834ce30d09e4f00e0f21709dd54791e1c94a9d714488f"
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/visual/final-artifacts-result.json",
+      "sha256": "6b77b9235ff937d275dd3bfd34a4433707309499353beeaa67548e1d773e4cdf"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261031T171035434Z.command.json",
+      "sha256": "f8927591cc194dff8930d80efb068ed5edae6e53031a3ccd4b6fa4c517def03b"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261031T171235039Z.command.json",
+      "sha256": "167f2b8e7018637526b1df2080d9e7767e12d3c1af56b77074fb273e23e63ac9"
+    }
+  ],
+  "images": [
+    {
+      "path": ".cache/tool-profile-reuse-180/visual/cn-1366-evidence.png",
+      "sha256": "d249e4a1bd9d6ec4349a7336bf9f790327d0931472fb5c492613fa1a5efb210b",
+      "root_viewed": true
+    },
+    {
+      "path": ".cache/tool-profile-reuse-180/visual/en-390-evidence.png",
+      "sha256": "415cfabaf24b3bff0de2abb82b302fbecec6a0b103907b7fccc1c1d5cf13a974",
+      "root_viewed": true
+    }
+  ],
+  "boundaries": [
+    "GUI uses production components with controlled read responses and entry callbacks, not actual registration/enablement or a full authenticated desktop journey. Six interactions include 390x844; final complete image canvases are1366x1800 and390x2400.",
+    "No real provider/model, physical multi-host, alternative database, cross-platform installer or production-scale acceptance. A matching profile is not dispatch health or permission.",
+    "Full original31/P0-P7, all remaining platform domains, other effect/outbox recovery and stage171 explicit-stop UI gap remain active."
+  ],
+  "hygiene": {
+    "original_working_paths": 21,
+    "raw_original_files_unchanged": 21,
+    "partial_staging": false,
+    "cache_or_temp_in_git": false,
+    "credentials_in_git": false
+  }
+}

@@ -31,6 +31,9 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	toolMatchesUsage:              {"cli.tool_profiles.matches_usage", "tools matches 需要 --file 请求JSON 或 --file -；请查看 tools --help"},
+	toolMatchesInvalid:            {"cli.tool_profiles.matches_input", "工具匹配查询需要当前项目、worker_id 和完整准确的 profile"},
+	toolMatchesResponseInvalid:    {"cli.tool_profiles.matches_response", "工具匹配响应必须保留原项目、节点、完整档案及完整结果数量"},
 	worklogCLIUsage:               {"cli.worklog.action_required", "worklogs 需要 list、get、create、correct、void 或 history，请查看 worklogs --help"},
 	worklogCLIListInvalid:         {"cli.worklog.list_options", "工时列表须提供 --from-date 与 --to-date（YYYY-MM-DD，含首尾最多 31 天）、有效筛选参数及 1–50 的 --limit"},
 	worklogCLIReadInvalid:         {"cli.worklog.read_options", "读取／历史需要有效工时 ID；历史支持 1–50 的 --limit 与 --cursor"},
@@ -255,6 +258,7 @@ const helpZH = `suma — 速码控制面客户端
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   models options --tool 工具ID --expected-tool-version 当前版本
+  tools matches --file JSON   使用登录会话查询完整匹配的已有工具档案（只读）
   developer check            验证当前项目的真实MCP连接（只读）
   workspace save-status ID [--wait]
   workspace targets | workspace observe --file 请求JSON [--wait] | workspace observation ID [--wait]

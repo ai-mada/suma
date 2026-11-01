@@ -1,6 +1,11 @@
 package platform
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/ai-mada/suma/internal/strictjson"
+)
 
 func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
 	if s.toolDiscoveryHTTP(w, r, actor, scope, project, parts) {
@@ -14,6 +19,15 @@ func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, actor 
 		return true
 	}
 	switch {
+	case len(parts) == 2 && parts[1] == "matches" && r.Method == http.MethodPost:
+		var req ToolProfileMatchRequest
+		raw, err := json.Marshal(m)
+		if err != nil || strictjson.Decode(raw, &req, 2<<20) != nil {
+			writeError(w, invalid("工具名称、执行节点或项目无效"))
+			return true
+		}
+		out, err := s.Service.MatchToolProfiles(r.Context(), actor, project, req)
+		respond(w, http.StatusOK, out, err)
 	case len(parts) == 1 && r.Method == http.MethodPost:
 		var req ToolProfileCreateRequest
 		if err := strictAutomation(m, &req); err != nil {

@@ -1,0 +1,23 @@
+{
+  "tool-profile-reuse.title": "已有匹配配置",
+  "tool-profile-reuse.intro": "以下档案匹配本次完整固定配置。启用状态与本次读取的可派发性分别展示。",
+  "tool-profile-reuse.choose": "选择要使用的已有配置",
+  "tool-profile-reuse.select_required": "请选择一个已有配置，再明确启用或查看；不会自动选用第一项。",
+  "tool-profile-reuse.state.paused": "已暂停",
+  "tool-profile-reuse.state.enabled": "已启用",
+  "tool-profile-reuse.state.revoked": "已撤销",
+  "tool-profile-reuse.version": "版本 {{version}}",
+  "tool-profile-reuse.available": "本次读取可派发",
+  "tool-profile-reuse.unavailable": "本次读取不可派发",
+  "tool-profile-reuse.enable": "明确启用已有配置",
+  "tool-profile-reuse.open": "查看原配置",
+  "tool-profile-reuse.history": "已撤销历史（{{count}} 项）",
+  "tool-profile-reuse.history_hint": "已撤销档案仅供查看，不能直接启用。新配置需按原登记流程明确创建。",
+  "tool-profile-reuse.history_open": "查看历史配置",
+  "tool-profile-reuse.invalid_response": "已有配置查询结果无法核验，请重新读取。",
+  "tool-profile-reuse.loading": "正在查询当前项目和节点的完整配置匹配…",
+  "tool-profile-reuse.read_again": "重新读取已有配置",
+  "tool-profile-reuse.query_failed": "未能读取已有配置。请重新读取后，再决定使用已有配置或新建。",
+  "tool-profile-reuse.empty": "未找到可复用的暂停或已启用配置。可按原流程明确登记新配置。",
+  "tool-profile-reuse.existing_conflict": "已存在相同的暂停或已启用配置。请重新读取并明确选用，名称草稿会保留。"
+}

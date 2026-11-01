@@ -6,7 +6,7 @@ import (
 )
 
 func toolExecutionModels() []any {
-	return []any{platform.ToolProfile{}, platform.ToolProfileCreateRequest{}, platform.ToolProfileCommandRequest{}, platform.ToolProfileList{}, platform.ToolInventoryRequest{}, platform.ToolInventoryReceipt{}, platform.TaskContextRecord{}, platform.TaskContext{}, platform.TaskDispatchPlan{}, platform.TaskDispatchPreviewRequest{}, platform.TaskDispatchStartRequest{}, toolcontract.Profile{}, toolcontract.Observation{}, toolcontract.Event{}, toolcontract.Evidence{}, toolcontract.Usage{}}
+	return []any{platform.ToolProfile{}, platform.ToolProfileCreateRequest{}, platform.ToolProfileCommandRequest{}, platform.ToolProfileList{}, platform.ToolProfileMatchRequest{}, platform.ToolProfileMatchList{}, platform.ToolInventoryRequest{}, platform.ToolInventoryReceipt{}, platform.TaskContextRecord{}, platform.TaskContext{}, platform.TaskDispatchPlan{}, platform.TaskDispatchPreviewRequest{}, platform.TaskDispatchStartRequest{}, toolcontract.Profile{}, toolcontract.Observation{}, toolcontract.Event{}, toolcontract.Evidence{}, toolcontract.Usage{}}
 }
 
 func toolExecutionContracts(add operationAdder, paths map[string]any) {
@@ -20,11 +20,18 @@ func toolExecutionContracts(add operationAdder, paths map[string]any) {
 		}
 		op["description"] = "Immutable administrator configuration plus separately observed local availability. Freshness uses database time and expires after60 seconds. Neither installation nor available=true proves model authentication or successful task execution."
 	}
+	match := add("/tool-profiles/matches", "post", "ToolProfileMatchList", false, false)
+	browserOnly(match)
+	successStatus(match, "200")
+	request(match, "ToolProfileMatchRequest")
+	match["x-read-only"] = true
+	match["x-response-cache-control"] = "no-store"
+	match["description"] = "Complete non-paginated exact immutable profile matches for the current tenant/project/worker. Compares every capability field, not names or digests alone. Revoked entries are history; paused/enabled require explicit selection and original enable authority. A match never proves health, creates a receipt or authorizes dispatch."
 	op := add("/tool-profiles", "post", "ToolProfile", false, true)
 	browserOnly(op)
 	successStatus(op, "201")
 	request(op, "ToolProfileCreateRequest")
-	op["description"] = "Registers paused metadata for an existing bound execution worker. Requires live project write and approval authority. No executable, raw args, environment values or secrets are accepted in this public DTO."
+	op["description"] = "Registers paused metadata for an existing bound execution worker. Requires live project write and approval authority before original receipt recovery. In the same authority transaction, an existing paused/enabled exact profile rejects a new create with409 tool_profile_match_exists; only the original operation recovers its own201. Revoked history does not block explicit new registration. No executable, raw args, environment values or secrets are accepted in this public DTO."
 	op = add("/tool-profiles/{id}/commands", "post", "ToolProfile", false, true)
 	browserOnly(op)
 	successStatus(op, "200")
@@ -65,7 +72,7 @@ func enhanceToolExecutionSchemas(schemas map[string]any) {
 			value[k] = v
 		}
 	}
-	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "ToolInventoryRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest", "ToolEvent", "ToolUsage"} {
+	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "ToolProfileMatchRequest", "ToolProfileMatchList", "ToolInventoryRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest", "ToolEvent", "ToolUsage"} {
 		toolContractMap(schemas, model)["additionalProperties"] = false
 	}
 	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest"} {
@@ -74,6 +81,8 @@ func enhanceToolExecutionSchemas(schemas map[string]any) {
 	field("ToolInventoryRequest", "operation_id", map[string]any{"minLength": 8, "maxLength": 128})
 	field("ToolInventoryRequest", "items", map[string]any{"maxItems": 128})
 	field("ToolProfileCommandRequest", "action", map[string]any{"enum": []string{"enable", "pause", "revoke"}})
+	field("ToolProfileMatchList", "items", map[string]any{"maxItems": 1000})
+	field("ToolProfileMatchList", "total", map[string]any{"minimum": 0, "maximum": 1000, "description": "Equals items.length; the exact complete match set has no next cursor or silent truncation."})
 	field("ToolProfile", "state", map[string]any{"enum": []string{"paused", "enabled", "revoked"}})
 	field("ToolProfileCreateRequest", "name", map[string]any{"minLength": 1, "maxLength": 200, "x-max-utf8-bytes": 200})
 	field("ToolExecutionProfile", "command_id", map[string]any{"pattern": `^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`})

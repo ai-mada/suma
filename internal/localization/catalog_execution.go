@@ -116,6 +116,7 @@ var executionCatalog = []Definition{
 	{Key: "execution.tool_profile.state_invalid", Texts: map[Locale]string{ZhCN: "工具档案状态无效", EnUS: "The tool profile state is invalid."}},
 	{Key: "execution.tool_profile.scope_or_name_invalid", Texts: map[Locale]string{ZhCN: "工具名称、执行节点或项目无效", EnUS: "The tool name, runner, or project is invalid."}},
 	{Key: "execution.tool_profile.project_limit", Texts: map[Locale]string{ZhCN: "项目工具档案已达 1000 项限制", EnUS: "The project has reached the limit of 1000 tool profiles."}},
+	{Key: "execution.tool_profile.match_exists", Texts: map[Locale]string{ZhCN: "已存在相同工具档案，请读取并选择已有配置", EnUS: "An identical tool profile already exists. Refresh and select the existing configuration."}},
 	{Key: "execution.tool_profile.operation_invalid", Texts: map[Locale]string{ZhCN: "工具操作、项目或版本无效", EnUS: "The tool operation, project, or version is invalid."}},
 	{Key: "execution.tool_profile.version_changed_or_revoked", Texts: map[Locale]string{ZhCN: "工具档案版本已变化或已撤销", EnUS: "The tool profile version has changed or the profile has been revoked."}},
 	{Key: "execution.tool_profile.version_changed", Texts: map[Locale]string{ZhCN: "工具档案版本已变化", EnUS: "The tool profile version has changed."}},

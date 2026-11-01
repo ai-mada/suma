@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T179 source, exact historical receipt lookup, offline atomic ACK recovery, bilingual UI, focused checks and actual isolated CLI/component evidence delivered; full original goal active",
+  "last_goal_turn_classification": "progress: T180 exact profile reuse, transactional duplicate prevention, real-session CLI query, bilingual UI, source and scoped evidence; full original goal remains active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-DESKTOP-RESULT-RECOVERY-179",
+    "stage": "T-TOOL-PROFILE-REUSE-180",
     "status": "scoped_verified",
-    "contract": "contracts/desktop-result-recovery.md",
+    "contract": "contracts/tool-profile-reuse.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
     "priority": "Parallel feature implementation; mature runtime reuse; simple bilingual onboarding; no repeated unrelated verification.",
-    "next": "Continue uncommitted-effect/outbox recovery, generic tool diagnostics and remote/distributed onboarding, then original platform domains without reducing the full scope."
+    "next": "Continue generic tool diagnostics, remote/distributed adapters and unresolved effect recovery, then remaining end-to-end project/team/knowledge/quality platform domains."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1018,6 +1018,27 @@
       "Only already-committed main-journal results are reconciled. Uncommitted effects, other outboxes, full distributed/cloud/remote tool recovery and formal task acceptance remain separate.",
       "No OceanBase/PostgreSQL, physical multi-host, macOS/Linux, full installer or production-scale acceptance in this stage. The original31/P0-P7 scope and stage171 explicit-stop UI gap remain active.",
       "Original21 working paths are protected; main.go contributes only two exact initial-mode hunks to the commit. The real binary was built from the current working tree with the preserved unrelated main.go delta; it is not a clean release artifact."
+    ]
+  },
+  "tool_profile_reuse": {
+    "stage": "T-TOOL-PROFILE-REUSE-180",
+    "status": "scoped_verified",
+    "contract": "contracts/tool-profile-reuse.md",
+    "report": "docs/quality/tool-profile-reuse-verification.md",
+    "summary": "docs/quality/tool-profile-reuse-summary.json",
+    "focused": 22,
+    "synthetic_gui_feature_checks": 6,
+    "real_session_http": true,
+    "implementation": [
+      "Complete current tenant/project/worker/full-Profile match read, independent of pagination and installation/health observations; existing paused/enabled profiles require explicit reuse and revoked profiles remain history.",
+      "Create recovers its own original receipt first and then rejects an existing exact active registration under the original authority locks. A read is not a reservation; concurrent requests cannot create duplicate usable identities.",
+      "Quick connect automatically reads exact existing configurations, preserves authored names and original pending writes, discards stale scope/profile/deadline responses and performs one read after a confirmed conflict; open, enable and registration callbacks remain distinct.",
+      "CLI tools matches --file JSON or - reuses the same DTO, current login session and client. Strict original-byte parsing and complete response validation; read-only timeout is not an unknown write."
+    ],
+    "boundaries": [
+      "GUI uses production components with controlled read responses and entry callbacks, not actual registration/enablement or a full authenticated desktop journey. Six interactions include 390x844; final complete image canvases are1366x1800 and390x2400.",
+      "No real provider/model, physical multi-host, alternative database, cross-platform installer or production-scale acceptance. A matching profile is not dispatch health or permission.",
+      "Full original31/P0-P7, all remaining platform domains, other effect/outbox recovery and stage171 explicit-stop UI gap remain active."
     ]
   }
 }

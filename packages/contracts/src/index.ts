@@ -7020,6 +7020,18 @@ export interface ToolProfileList {
   total: number;
   next_cursor?: string;
 }
+export interface ToolProfileMatchList {
+  project_id: string;
+  worker_id: string;
+  profile: ToolExecutionProfile;
+  items: (ToolProfile)[];
+  total: number;
+}
+export interface ToolProfileMatchRequest {
+  project_id: string;
+  worker_id: string;
+  profile: ToolExecutionProfile;
+}
 export interface ToolUsage {
   input_tokens?: number;
   cached_input_tokens?: number;

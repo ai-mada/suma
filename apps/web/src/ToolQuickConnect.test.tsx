@@ -18,7 +18,7 @@ const identity=(ids:string[],loading=false)=>({loading,error:'',data:{items:ids.
 beforeEach(async()=>{
  await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);host=document.createElement('div');document.body.append(host);root=createRoot(host);paths=[];
  reply=async path=>Response.json(path.startsWith('/adapter-catalog')?{project_id:'p',as_of:'2026-10-30T08:00:20Z',items:[adapter]}:report(new URL(path,'https://example.test').searchParams.get('worker_id')!));
- vi.stubGlobal('fetch',vi.fn(async(input:string)=>{const path=String(input).replace('/api/v1','');paths.push(path);return reply(path);}));
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{const path=String(input).replace('/api/v1','');paths.push(path);if(path==='/tool-profiles/matches'){expect(init?.method).toBe('POST');const query=JSON.parse(String(init?.body));return Response.json({...query,items:[],total:0});}return reply(path);}));
  const run=vi.fn(async(_path:string,body:Record<string,unknown>)=>({...body,id:'registered',version:1,state:'paused',available:false}));
  props={project:'p',workers:identity(['one']),sharedWorkers:identity([]) as unknown as SharedIdentityRead,action:{run,busy:false,pending:undefined,conflict:false} as unknown as ToolAction,onRegistered:vi.fn(),onEnable:vi.fn(),onAdvanced:vi.fn(),onWorker:vi.fn()};
 });
@@ -29,7 +29,7 @@ async function change(selector:string,value:string){const field=host.querySelect
 async function click(selector:string){const button=host.querySelector<HTMLButtonElement>(selector)!;expect(button).not.toBeNull();await act(async()=>button.click());await settle();}
 it('automatically uses the sole authorized node and saves paused, requiring a separate explicit enable',async()=>{
  await render();await change('[data-quick-tool]','codex-jsonl');
- expect(paths).toEqual(['/adapter-catalog?project_id=p','/tool-discovery?project_id=p&worker_id=one']);
+ expect(paths).toEqual(['/adapter-catalog?project_id=p','/tool-discovery?project_id=p&worker_id=one','/tool-profiles/matches']);
  expect(host.querySelector<HTMLInputElement>('[data-quick-name]')?.value).toBe('codex-team');expect(props.action.run).not.toHaveBeenCalled();
  await change('[data-quick-name]','Team Codex');await click('[data-quick-register]');
  expect(props.action.run).toHaveBeenCalledExactlyOnceWith('/tool-profiles',{project_id:'p',worker_id:'one',name:'Team Codex',profile});
@@ -49,12 +49,12 @@ it('Qoder uses actual ACP inventory for paused registration without claiming loc
 });
 it('requires a node choice when several are authorized and never fans out reads',async()=>{
  props.workers=identity(['one','two']);await render();await change('[data-quick-tool]','codex-jsonl');expect(paths).toHaveLength(1);
- await change('[data-quick-worker]','two');expect(paths).toHaveLength(2);expect(paths[1]).toContain('worker_id=two');
+ await change('[data-quick-worker]','two');expect(paths).toHaveLength(3);expect(paths[1]).toContain('worker_id=two');expect(paths[2]).toBe('/tool-profiles/matches');
 });
 it('expires inventory and refuses registration without silently reading again',async()=>{
  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});await render();await change('[data-quick-tool]','codex-jsonl');
  expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(false);
- await act(async()=>vi.advanceTimersByTimeAsync(40001));expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(true);expect(paths).toHaveLength(2);
+ await act(async()=>vi.advanceTimersByTimeAsync(40001));expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(true);expect(paths).toHaveLength(3);expect(paths[2]).toBe('/tool-profiles/matches');
 });
 it('hides old facts on authorization loss and ignores a late response after a scope change',async()=>{
  let finish!:(value:Response)=>void;const base=reply;reply=path=>path.startsWith('/tool-discovery')?new Promise(resolve=>{finish=resolve;}):base(path);

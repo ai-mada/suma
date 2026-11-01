@@ -1,6 +1,6 @@
 # 速码 suma
 
-T-DESKTOP-RESULT-RECOVERY-179补齐[原结果回执恢复](contracts/desktop-result-recovery.md)：当前授权核对原提交，离线原子补齐ACK，丢响应沿原计划恢复；简洁中英界面区分部分恢复、续期与明确连接。[架构与AI SOP](docs/architecture/desktop-result-recovery.md)及[限定验证](docs/quality/desktop-result-recovery-verification.md)记录实际范围。
+T-TOOL-PROFILE-REUSE-180补齐[已有工具配置复用](contracts/tool-profile-reuse.md)：快捷接入自动查找完整匹配，复用原档案并处理并发重复登记；CLI共享准确查询，中英界面区分暂停、启用、健康与撤销历史。[架构与AI SOP](docs/architecture/tool-profile-reuse.md)及[限定验证](docs/quality/tool-profile-reuse-verification.md)记录实际范围。
 
 **速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器、桌面与CLI入口。
 
