@@ -42,6 +42,9 @@ type ToolInspection struct {
 	ObservedAt           string `json:"observed_at,omitempty"`
 	InventoryOperationID string `json:"inventory_operation_id,omitempty"`
 	ResultCode           string `json:"result_code,omitempty"`
+	RecoveryID           string `json:"recovery_id,omitempty"`
+	ClosedAt             string `json:"closed_at,omitempty"`
+	SourceChanged        bool   `json:"source_changed,omitempty"`
 }
 
 type ToolInspectionCreateRequest struct {
@@ -133,7 +136,7 @@ func ValidateInspection(v Inspection) error {
 		return fmt.Errorf("invalid tool inspection source")
 	}
 	switch v.State {
-	case "pending", "claimed", "completed", "failed", "unknown", "expired", "superseded":
+	case "pending", "claimed", "completed", "failed", "unknown", "expired", "superseded", "closed_unknown":
 	default:
 		return fmt.Errorf("invalid tool inspection state")
 	}
@@ -166,6 +169,9 @@ func ValidateInspection(v Inspection) error {
 	if v.State != "completed" && (v.ObservedAt != "" || v.InventoryOperationID != "") {
 		return fmt.Errorf("only a completed inspection has inventory facts")
 	}
+	if v.State != "closed_unknown" && (v.RecoveryID != "" || v.ClosedAt != "") {
+		return fmt.Errorf("only reconciled unknown has recovery facts")
+	}
 	switch v.State {
 	case "pending":
 		if claimed || v.ResultCode != "" {
@@ -192,12 +198,19 @@ func ValidateInspection(v Inspection) error {
 		if !claimed || (v.ResultCode != "probe_interrupted" && v.ResultCode != "probe_timeout" && v.ResultCode != "probe_failed") {
 			return fmt.Errorf("unknown inspection requires its original claim")
 		}
+	case "closed_unknown":
+		if !claimed || !ID(v.RecoveryID) || (v.ResultCode != "probe_interrupted" && v.ResultCode != "probe_timeout" && v.ResultCode != "probe_failed") {
+			return fmt.Errorf("closed unknown requires original unknown and recovery")
+		}
+		if _, err := time.Parse(time.RFC3339Nano, v.ClosedAt); err != nil {
+			return fmt.Errorf("closed unknown requires durable closure")
+		}
 	case "expired":
 		if claimed || v.ResultCode != "request_expired" {
 			return fmt.Errorf("expired inspection cannot have executed")
 		}
 	case "superseded":
-		if v.ResultCode != "source_changed" {
+		if claimed || v.ResultCode != "source_changed" {
 			return fmt.Errorf("superseded inspection requires source change")
 		}
 	}

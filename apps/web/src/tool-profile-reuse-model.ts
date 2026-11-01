@@ -1,6 +1,7 @@
 import type {ToolProfileMatchRequest,ToolProfileMatchList} from '../../../packages/contracts/src';
 import {UiError} from './i18n';
 import {parseToolManifest} from './tool-model';
+import {validToolMaintenanceStatus} from './tool-maintenance-model';
 
 function record(value:unknown):value is Record<string,unknown>{
  return !!value && typeof value==='object' && !Array.isArray(value) && [Object.prototype,null].includes(Object.getPrototypeOf(value));
@@ -37,10 +38,10 @@ function validList(value:unknown,request:ToolProfileMatchRequest):value is ToolP
  if(!record(value) || !closed(value,['project_id','worker_id','profile','items','total']) || value.project_id!==request.project_id || value.worker_id!==request.worker_id || !sameToolProfile(value.profile,request.profile) || !Array.isArray(value.items) || value.items.length>1000 || value.total!==value.items.length)return false;
  const seen=new Set<string>();
  return value.items.every(item=>{
-  if(!record(item) || !closed(item,['id','project_id','worker_id','name','version','state','profile','enabled_by','created_at','updated_at','available','reason'],['observation','last_seen_at','reason_diagnostic']))return false;
+  if(!record(item) || !closed(item,['id','project_id','worker_id','name','version','state','profile','enabled_by','created_at','updated_at','available','reason'],['observation','last_seen_at','reason_diagnostic','maintenance']))return false;
   if(typeof item.id!=='string' || !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$/.test(item.id) || seen.has(item.id) || item.project_id!==request.project_id || item.worker_id!==request.worker_id || !sameToolProfile(item.profile,request.profile))return false;
   if(!Number.isSafeInteger(item.version) || (item.version as number)<1 || typeof item.state!=='string' || !['paused','enabled','revoked'].includes(item.state) || typeof item.available!=='boolean' || !['name','enabled_by','created_at','updated_at','reason'].every(key=>typeof item[key]==='string'))return false;
-  if(Object.hasOwn(item,'last_seen_at') && typeof item.last_seen_at!=='string' || Object.hasOwn(item,'reason_diagnostic') && !validDiagnostic(item.reason_diagnostic) || Object.hasOwn(item,'observation') && !validObservation(item.observation))return false;
+  if(Object.hasOwn(item,'last_seen_at') && typeof item.last_seen_at!=='string' || Object.hasOwn(item,'reason_diagnostic') && !validDiagnostic(item.reason_diagnostic) || Object.hasOwn(item,'observation') && !validObservation(item.observation) || Object.hasOwn(item,'maintenance') && !validToolMaintenanceStatus(item.maintenance))return false;
   seen.add(item.id);return true;
  });
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/toolcontract"
+	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
 )
 
 // Inventory observations need the database's actual subsecond time so a new
@@ -31,6 +32,9 @@ func (s *Service) toolInventoryClock(ctx context.Context, q governanceQuery) (ti
 
 func (s *Service) ReportToolInventory(ctx context.Context, actor Actor, project string, req ToolInventoryRequest) (ToolInventoryReceipt, error) {
 	var out ToolInventoryReceipt
+	if req.Maintenance != nil && tic.ValidateMaintenanceCapability(*req.Maintenance) != nil {
+		return out, toolInspectionInvalid()
+	}
 	if req.ProjectID != project || !toolcontract.ValidCommandID(req.WorkerID) || len(req.Items) > 128 {
 		return out, invalid("项目、执行节点或工具清单大小无效")
 	}
@@ -90,6 +94,13 @@ func (s *Service) ReportToolInventory(ctx context.Context, actor Actor, project 
 		ref := *req.Inspection
 		out.Inspection = &ref
 		out.InspectionState = "completed"
+	}
+	if err = s.recordToolMaintenanceTx(ctx, tx, p.TenantID, project, req.WorkerID, out.ObservedAt, req.Maintenance); err != nil {
+		return out, err
+	}
+	if req.Maintenance != nil {
+		copy := *req.Maintenance
+		out.Maintenance = &copy
 	}
 	if err = s.saveCommandReceipt(ctx, auth, req.OperationID, hash, out); err != nil {
 		return out, err

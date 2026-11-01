@@ -43,6 +43,7 @@ func inspectionChangeClock194(t *testing.T, f *fixture, id string, change func(*
 }
 func TestToolInspectionLifecycleAtomicCorrelationAndRecovery(t *testing.T) {
 	f, token, p := toolFixture(t)
+	inspectionMaintenance194(t, f, token, p)
 	ctx := context.Background()
 	worker := toolActorForTest(t, f, token)
 	req := tic.CreateRequest{ProjectID: f.project, ExpectedVersion: p.Version, IdempotencyKey: newID()}
@@ -162,6 +163,7 @@ func TestToolInspectionLifecycleAtomicCorrelationAndRecovery(t *testing.T) {
 
 func TestToolInspectionCurrentAuthorityAndInitialSchema(t *testing.T) {
 	f, token, p := toolFixture(t)
+	inspectionMaintenance194(t, f, token, p)
 	ctx := context.Background()
 	// Two distinct browser intents contend for the same real worker, rather than
 	// only checking the one-request limit sequentially.
@@ -260,6 +262,7 @@ func TestToolInspectionPoolScopeFailureAndLateCompletion(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	inspectionMaintenance194(t, f, credential.Token, profile)
 	f.bearer("POST", "/pool-runner/tool-inventory", credential.Token, map[string]any{"tenant_id": scope.TenantID, "project_id": scope.ProjectID, "runner_id": credential.Runner.ID, "operation_id": newID(), "items": []tc.Observation{}, "inspection": nil}, 400)
 	created := inspectionCreate194(t, f, profile)
 	req := tic.PoolToolInspectionClaimRequest{TenantID: scope.TenantID, ProjectID: scope.ProjectID, RunnerID: credential.Runner.ID, ClaimID: newID()}

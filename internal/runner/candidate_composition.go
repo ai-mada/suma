@@ -38,7 +38,14 @@ func probeCompositionGit(ctx context.Context, executable string) (string, error)
 	out := newOutput(32<<10, nil)
 	cmd.Stdout = out
 	cmd.Stderr = out
-	_ = cmd.Run()
+	if toolProbeCollectorFrom(ctx) != nil {
+		_, stopErr := runProbeProcess(ctx, cmd)
+		if stopErr != nil {
+			return "", fmt.Errorf("candidate composition probe stop unverified")
+		}
+	} else {
+		_ = cmd.Run()
+	}
 	help := out.b.Bytes()
 	if ctx.Err() != nil || out.truncated || !strings.Contains(string(help), "--write-tree") || !strings.Contains(string(help), "--name-only") {
 		return "", fmt.Errorf("candidate composition requires Git merge-tree write-tree support")

@@ -8,8 +8,11 @@ import {useWriteAction} from './write-action';
 import {ErrorNotice} from './ui';
 import {buildToolReinspectionIntent,inspectionMatchesTool,readToolInspection,readToolInspections,toolInspectionListPath,toolInspectionPath,toolReinspectionRecoveryScope,validToolInspectionReceipt,validToolReinspectionIntent,validToolReinspectionRecovery,type ToolReinspectionIntent,type ToolReinspectionScope} from './tool-reinspection-model';
 import './ToolReinspectionPanel.css';
+import {readToolMaintenanceStatus} from './tool-maintenance-model';
+import {ToolMaintenanceCapabilities} from './ToolMaintenanceCapabilities';
+import {ToolInspectionRecoveryPanel} from './ToolInspectionRecoveryPanel';
 
-export type ToolReinspectionPanelProps={project:string;tool:ToolProfile;disabled?:boolean;accessBlocked?:boolean;onLockChange?:(locked:boolean)=>void;onAccessDenied?:()=>void;onObserved?:()=>void;onDefer?:()=>void};
+export type ToolReinspectionPanelProps={project:string;tool:ToolProfile;disabled?:boolean;accessBlocked?:boolean;maintenanceReadStartedAt?:number;onRefreshTool?:()=>void;onOpenWorker?:(workerID:string)=>void;onLockChange?:(locked:boolean)=>void;onAccessDenied?:()=>void;onObserved?:()=>void;onDefer?:()=>void};
 type IntentState={intent?:ToolReinspectionIntent;error?:unknown};
 type Snapshot={source:string;items:ToolInspection[];loading:boolean;error?:unknown;stale?:boolean;denied?:boolean};
 const t=(key:string)=>tr('tool-reinspection.'+key);
@@ -29,10 +32,13 @@ export function ToolReinspectionPanel(props:ToolReinspectionPanelProps){
  const scope:ToolReinspectionScope={project:props.project,toolID:props.tool.id,userID:view.userID,organizationID:view.organizationID};
  return <ReinspectionController key={JSON.stringify([toolReinspectionRecoveryScope(scope),owner.current.epoch])} {...props} scope={scope}/>;
 }
-function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,onLockChange,onAccessDenied,onObserved,onDefer}:ToolReinspectionPanelProps&{scope:ToolReinspectionScope}){
+function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,maintenanceReadStartedAt,onRefreshTool,onOpenWorker,onLockChange,onAccessDenied,onObserved,onDefer}:ToolReinspectionPanelProps&{scope:ToolReinspectionScope}){
  useLocale();const api=useApi(),storage=toolSessionStorage(),base=toolReinspectionRecoveryScope(scope),intentKey='suma-tool-reinspection-intent:'+base;
  const [intentState,setIntentState]=useState<IntentState>(()=>readIntent(storage,intentKey,scope)),intent=useRef(intentState.intent);
  const [selected,setSelected]=useState(''),selectedRef=useRef(selected);selectedRef.current=selected;
+ const [recoveryLocked,setRecoveryLocked]=useState(true),[,tickMaintenance]=useState(0);
+ const [recoveryBusy,setRecoveryBusy]=useState(false),recoveryBusyRef=useRef(false);
+ function updateRecoveryBusy(value:boolean){recoveryBusyRef.current=value;setRecoveryBusy(value);}
  const currentTool=useRef(tool),parent=useRef({disabled,accessBlocked});currentTool.current=tool;parent.current={disabled,accessBlocked};
  const source=canonical([intentState.intent?.tool??tool,selected]),sourceRef=useRef(source);sourceRef.current=source;
  const [snapshot,setSnapshot]=useState<Snapshot>({source,items:[],loading:!accessBlocked}),snapshotRef=useRef(snapshot);
@@ -76,10 +82,13 @@ function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,o
  const original=intentState.intent,requestMatches=!action.pending||!!original&&canonical(action.pending)===canonical(original.request);
  const intentUnavailable=!!intentState.error||!!action.pending&&(!original||!requestMatches);
  const locked=action.busy||!!original||!!action.pending||intentUnavailable||action.persistenceBlocked;
- useEffect(()=>{callbacks.current.onLockChange?.(locked);},[locked]);
+ useEffect(()=>{callbacks.current.onLockChange?.(locked||recoveryLocked);},[locked,recoveryLocked]);
  const rows=hidden?[]:visible.items,row=!original?(rows.find(value=>value.id===selected)??rows.find(unresolved)??rows[0]):undefined;
  const readBlocked=hidden||visible.loading||!!visible.error||!!visible.stale;
- const freshBlocked=disabled||readBlocked||locked||rows.some(unresolved)||tool.state==='revoked';
+ const maintenance=readToolMaintenanceStatus(tool.maintenance),maintenanceOriginKnown=typeof maintenanceReadStartedAt==='number'&&Number.isFinite(maintenanceReadStartedAt),maintenanceDeadline=maintenanceOriginKnown?maintenanceReadStartedAt!+(maintenance?.remainingMs??0):0;
+ const maintenanceFresh=maintenance?.status.state==='supported'&&maintenanceOriginKnown&&performance.now()<maintenanceDeadline;
+ useEffect(()=>{if(maintenance?.status.state!=='supported'||!maintenanceOriginKnown)return;let timer:ReturnType<typeof setTimeout>|undefined;function expire(){const remaining=maintenanceDeadline-performance.now();if(remaining<=0){tickMaintenance(value=>value+1);return;}timer=setTimeout(expire,Math.ceil(remaining));}expire();return()=>clearTimeout(timer);},[maintenance?.status.checked_at,maintenanceDeadline,maintenanceOriginKnown]);
+ const freshBlocked=disabled||readBlocked||locked||recoveryLocked||!maintenanceFresh||rows.some(unresolved)||tool.state==='revoked';
  const gate=useRef({freshBlocked,readBlocked,row,rows});gate.current={freshBlocked,readBlocked,row,rows};
  useEffect(()=>{
   if(original||disabled||hidden||visible.error||visible.loading||backgroundPaused||!row||!['pending','claimed'].includes(row.state))return;
@@ -121,7 +130,7 @@ function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,o
   }finally{commandBusy.current=false;if(alive.current&&caller.current===originalCaller)renderCommand(value=>value+1);}
  }
  function review(){const now=gate.current;if(!alive.current||caller.current!==api||parent.current.disabled||now.readBlocked||locked||!now.row||now.row.state!=='completed'||!inspectionMatchesTool(now.row,currentTool.current))return;callbacks.current.onObserved?.();}
- function defer(){if(!alive.current||caller.current!==api||action.busy||commandBusy.current)return;callbacks.current.onDefer?.();}
+ function defer(){if(!alive.current||caller.current!==api||action.busy||commandBusy.current||recoveryBusyRef.current)return;callbacks.current.onDefer?.();}
  const sourceTool=original?.tool??tool,sourceRow=row;
  const sourceFields:[string,string|number][]=[['worker',sourceRow?.worker_id??sourceTool.worker_id],['profile',sourceRow?.tool_profile_id??sourceTool.id],['revision',sourceRow?.tool_profile_version??sourceTool.version],['digest',sourceRow?.profile_sha256??sourceTool.profile.profile_sha256],['command',sourceRow?.command_id??sourceTool.profile.command_id]];
  if(sourceRow){sourceFields.push(['request',sourceRow.id],['fence',sourceRow.fence],['created',sourceRow.created_at]);if(sourceRow.inventory_operation_id)sourceFields.push(['inventory',sourceRow.inventory_operation_id]);}
@@ -131,19 +140,21 @@ function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,o
   {hidden?<p role="alert">{t('access_denied')}</p>:<>
    <div className="tool-reinspection-target"><strong>{sourceTool.name}</strong><span>{sourceRow?.worker_id??sourceTool.worker_id}</span></div>
    {original?<p role="status">{t('original_pending')}</p>:row?<div className="tool-reinspection-status" role="status" data-tool-reinspection-state={row.state}><p>{t('state.'+row.state)}</p>{row.result_code&&<p>{t('result.'+row.result_code)}</p>}</div>:<p role="status">{t(visible.loading?'loading':'empty')}</p>}
-   {row&&!inspectionMatchesTool(row,tool)&&<p>{t('changed')}</p>}
+   {row&&(!inspectionMatchesTool(row,tool)||row.source_changed)&&<p>{t('changed')}</p>}
+   <ToolMaintenanceCapabilities maintenance={tool.maintenance} expired={maintenance?.status.state==='supported'&&!maintenanceFresh} unverified={!maintenanceOriginKnown} disabled={action.busy||locked||accessBlocked} onRefresh={onRefreshTool?()=>{if(alive.current&&caller.current===api&&!commandBusy.current&&!parent.current.accessBlocked)onRefreshTool();}:undefined}/>
    <details data-tool-reinspection-source><summary>{t('source')}</summary><dl>{sourceFields.map(([label,value])=><div key={label}><dt>{t(label)}</dt><dd><code>{value}</code></dd></div>)}</dl></details>
    {rows.length>1&&!original&&<details><summary>{t('history')}</summary><ul className="tool-reinspection-history">{rows.filter(value=>value.id!==row?.id).map(value=><li key={value.id}><strong>{value.id}</strong><p>{t('state.'+value.state)}</p></li>)}</ul></details>}
   </>}
   {!hidden&&!!visible.error&&<ErrorNotice error={visible.error}/>}
   {!hidden&&(intentState.error||action.error)&&<ErrorNotice error={intentState.error??action.error}/>}
   {backgroundPaused&&<p role="status">{t('background_paused')}</p>}
+  <ToolInspectionRecoveryPanel scope={scope} tool={tool} inspection={row&&['unknown','closed_unknown'].includes(row.state)?row:undefined} disabled={disabled||locked||readBlocked} accessBlocked={hidden} onLockChange={setRecoveryLocked} onBusyChange={updateRecoveryBusy} onAccessDenied={deny} onChanged={id=>{if(!alive.current||caller.current!==api||parent.current.accessBlocked||intent.current)return;const changed=selectedRef.current!==id;selectedRef.current=id;setSelected(id);if(!changed)void readNow.current();}} onDefer={onDefer?defer:undefined} onOpenWorker={onOpenWorker}/>
   <div className="tool-reinspection-actions">
    {!hidden&&original&&<button type="button" className="primary" data-tool-reinspection-restore disabled={action.busy||readBlocked||!requestMatches} onClick={()=>void send(true)}>{t('restore')}</button>}
-   {!hidden&&!original&&<button type="button" className={row?.state==='completed'?'':'primary'} data-tool-reinspection-create disabled={freshBlocked} onClick={()=>void send()}>{t('create')}</button>}
+   {!hidden&&!original&&<button type="button" className={row&&['completed','unknown'].includes(row.state)?'':'primary'} data-tool-reinspection-create disabled={freshBlocked} onClick={()=>void send()}>{t('create')}</button>}
    {!hidden&&row?.state==='completed'&&inspectionMatchesTool(row,tool)&&onObserved&&<button type="button" className="primary" data-tool-reinspection-review disabled={disabled||readBlocked||locked} onClick={review}>{t('review')}</button>}
    <button type="button" data-tool-reinspection-refresh disabled={action.busy||visible.loading||accessBlocked} onClick={()=>void refresh()}>{t('refresh')}</button>
-   {onDefer&&<button type="button" data-tool-reinspection-defer disabled={action.busy||commandBusy.current} onClick={defer}>{t('defer')}</button>}
+   {onDefer&&<button type="button" data-tool-reinspection-defer disabled={action.busy||commandBusy.current||recoveryBusy} onClick={defer}>{t('defer')}</button>}
   </div>
  </section>;
 }

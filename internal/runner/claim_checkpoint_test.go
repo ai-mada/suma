@@ -36,7 +36,7 @@ func TestActualWorkerClaimLostACKAndClosedDispatchNeverStart(t *testing.T) {
 				case "/api/v1/runner/tool-inspections/claim":
 					_, _ = w.Write([]byte(`{"inspection":null}`))
 				case "/api/v1/runner/tool-inventory":
-					_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339)})
+					fixtureToolInventoryAck195(w, r, time.Now().UTC().Format(time.RFC3339))
 				case "/api/v1/runner/claim":
 					var body map[string]any
 					_ = json.NewDecoder(r.Body).Decode(&body)

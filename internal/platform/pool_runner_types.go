@@ -7,12 +7,13 @@ import (
 )
 
 type PoolToolInventoryRequest struct {
-	RunnerID    string           `json:"runner_id"`
-	TenantID    string           `json:"tenant_id"`
-	ProjectID   string           `json:"project_id"`
-	OperationID string           `json:"operation_id"`
-	Items       []tc.Observation `json:"items"`
-	Inspection  *tic.Reference   `json:"inspection,omitempty" wire:"nonnull"`
+	RunnerID    string                         `json:"runner_id"`
+	TenantID    string                         `json:"tenant_id"`
+	ProjectID   string                         `json:"project_id"`
+	OperationID string                         `json:"operation_id"`
+	Items       []tc.Observation               `json:"items"`
+	Inspection  *tic.Reference                 `json:"inspection,omitempty" wire:"nonnull"`
+	Maintenance *tic.ToolMaintenanceCapability `json:"maintenance,omitempty" wire:"nonnull"`
 }
 
 type PoolRunnerAssignmentRequest struct {

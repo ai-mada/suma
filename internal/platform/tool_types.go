@@ -22,6 +22,7 @@ type ToolProfile struct {
 	Available        bool                               `json:"available"`
 	Reason           string                             `json:"reason"`
 	ReasonDiagnostic *displaycontract.DisplayDiagnostic `json:"reason_diagnostic,omitempty"`
+	Maintenance      *tic.ToolMaintenanceStatus         `json:"maintenance,omitempty" wire:"nonnull"`
 }
 type ToolProfileCreateRequest struct {
 	ProjectID      string               `json:"project_id"`
@@ -42,15 +43,17 @@ type ToolProfileList struct {
 	NextCursor string        `json:"next_cursor,omitempty"`
 }
 type ToolInventoryRequest struct {
-	ProjectID   string                     `json:"project_id"`
-	WorkerID    string                     `json:"worker_id"`
-	OperationID string                     `json:"operation_id"`
-	Items       []toolcontract.Observation `json:"items"`
-	Inspection  *tic.Reference             `json:"inspection,omitempty" wire:"nonnull"`
+	ProjectID   string                         `json:"project_id"`
+	WorkerID    string                         `json:"worker_id"`
+	OperationID string                         `json:"operation_id"`
+	Items       []toolcontract.Observation     `json:"items"`
+	Inspection  *tic.Reference                 `json:"inspection,omitempty" wire:"nonnull"`
+	Maintenance *tic.ToolMaintenanceCapability `json:"maintenance,omitempty" wire:"nonnull"`
 }
 type ToolInventoryReceipt struct {
-	Acknowledged    bool           `json:"acknowledged"`
-	ObservedAt      string         `json:"observed_at"`
-	Inspection      *tic.Reference `json:"inspection,omitempty" wire:"nonnull"`
-	InspectionState string         `json:"inspection_state,omitempty"`
+	Acknowledged    bool                           `json:"acknowledged"`
+	ObservedAt      string                         `json:"observed_at"`
+	Inspection      *tic.Reference                 `json:"inspection,omitempty" wire:"nonnull"`
+	InspectionState string                         `json:"inspection_state,omitempty"`
+	Maintenance     *tic.ToolMaintenanceCapability `json:"maintenance,omitempty" wire:"nonnull"`
 }

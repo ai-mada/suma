@@ -44,7 +44,13 @@ func compositionGit(ctx context.Context, dir string, limit int, input io.Reader,
 	out := newOutput(limit, nil)
 	cmd.Stdout = out
 	cmd.Stderr = newOutput(8192, nil)
-	err := cmd.Run()
+	var err error
+	if toolProbeCollectorFrom(ctx) != nil {
+		waitErr, stopErr := runProbeProcess(ctx, cmd)
+		err = errors.Join(waitErr, stopErr)
+	} else {
+		err = cmd.Run()
+	}
 	if out.truncated {
 		return nil, fmt.Errorf("composition Git output exceeds its fixed bound")
 	}

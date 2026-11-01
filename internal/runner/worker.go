@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	ti "github.com/ai-mada/suma/internal/toolinspectioncontract"
 	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 	"sync"
@@ -23,6 +24,7 @@ type Worker struct {
 	inventoryReady                  bool
 	inventoryInterval               time.Duration
 	inventoryNext                   time.Time
+	maintenance                     *ti.ToolMaintenanceCapability
 }
 
 func (w *Worker) Run(ctx context.Context) error {
@@ -34,6 +36,10 @@ func (w *Worker) Run(ctx context.Context) error {
 	if err := ValidateToolConfiguration(w.Exec); err != nil {
 		return err
 	}
+	if err := w.enableToolMaintenance(); err != nil {
+		return err
+	}
+	defer func() { w.maintenance = nil }()
 	initialErr := w.tickToolInventory(ctx)
 	if initialErr != nil && permanentInventoryError(initialErr) {
 		return initialErr

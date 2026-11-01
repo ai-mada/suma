@@ -151,6 +151,9 @@ func (s *Service) CreateToolInspection(ctx context.Context, actor Actor, project
 	if p.Version != req.ExpectedVersion {
 		return out, toolInspectionChanged()
 	}
+	if _, _, err = s.requireToolMaintenanceTx(ctx, tx, auth.target.tenantID, project, p.WorkerID, true); err != nil {
+		return out, err
+	}
 	clock, err := s.toolInventoryClock(ctx, tx)
 	if err != nil {
 		return out, err
@@ -220,8 +223,11 @@ func (s *Service) toolInspectionPublicTx(ctx context.Context, tx *sql.Tx, row to
 		if err = s.toolInspectionCurrentTx(ctx, tx, row); err != nil {
 			var api *APIError
 			if automationAuthorityFailure(err) || errors.As(err, &api) && api.Code == "tool_inspection_source_changed" {
-				v.State = "superseded"
-				v.ResultCode = "source_changed"
+				v.SourceChanged = true
+				if v.State == "pending" {
+					v.State = "superseded"
+					v.ResultCode = "source_changed"
+				}
 			} else {
 				return tic.Inspection{}, err
 			}

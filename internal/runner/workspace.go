@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -206,7 +207,13 @@ func gitRun(ctx context.Context, dir string, args ...string) ([]byte, error) {
 	out := newOutput(4<<20, nil)
 	cmd.Stdout = out
 	cmd.Stderr = out
-	err := cmd.Run()
+	var err error
+	if toolProbeCollectorFrom(ctx) != nil {
+		waitErr, stopErr := runProbeProcess(ctx, cmd)
+		err = errors.Join(waitErr, stopErr)
+	} else {
+		err = cmd.Run()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("local git operation failed: %w", err)
 	}

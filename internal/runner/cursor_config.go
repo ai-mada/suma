@@ -140,21 +140,7 @@ func probeCursorVersion(parent context.Context, spec CommandSpec, secrets []stri
 	cmd.Dir, cmd.Env = source, env
 	out, diagnostic := newOutput(32<<10, secrets), newOutput(32<<10, secrets)
 	cmd.Stdout, cmd.Stderr = out, diagnostic
-	controller, err := startProcess(cmd)
-	if err != nil {
-		return "", fmt.Errorf("Cursor version process unavailable")
-	}
-	defer controller.Close()
-	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
-	var waitErr error
-	select {
-	case waitErr = <-done:
-	case <-ctx.Done():
-		_ = controller.Stop()
-		waitErr = <-done
-	}
-	stopErr := controller.Finish()
+	waitErr, stopErr := runProbeProcess(ctx, cmd)
 	out.mu.Lock()
 	raw, truncated := out.b.String(), out.truncated
 	out.mu.Unlock()

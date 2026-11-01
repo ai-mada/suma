@@ -23,14 +23,15 @@ function validTool(v:unknown,scope:ToolReinspectionScope):v is ToolProfile{
  try{readToolProfileMatches({project_id:scope.project,worker_id:v.worker_id,profile:v.profile,items:[v],total:1},{project_id:scope.project,worker_id:v.worker_id,profile:v.profile as ToolProfile['profile']});return true;}catch{return false;}
 }
 function validInspection(v:unknown,scope:ToolReinspectionScope,idExpected?:string):v is ToolInspection{
- if(!record(v)||!closed(v,['id','project_id','worker_id','tool_profile_id','tool_profile_version','profile_sha256','command_id','version','fence','state','requested_by','created_at','expires_at'],['claim_id','claimed_at','lease_until','observed_at','inventory_operation_id','result_code']))return false;
+ if(!record(v)||!closed(v,['id','project_id','worker_id','tool_profile_id','tool_profile_version','profile_sha256','command_id','version','fence','state','requested_by','created_at','expires_at'],['claim_id','claimed_at','lease_until','observed_at','inventory_operation_id','result_code','recovery_id','closed_at','source_changed']))return false;
  if(!['id','project_id','worker_id','tool_profile_id','command_id','requested_by'].every(key=>id(v[key]))||v.project_id!==scope.project||v.tool_profile_id!==scope.toolID||idExpected!==undefined&&v.id!==idExpected||!integer(v.tool_profile_version,1)||!integer(v.version,1)||!integer(v.fence,0)||typeof v.profile_sha256!=='string'||!/^[a-f0-9]{64}$/.test(v.profile_sha256))return false;
- if(typeof v.state!=='string'||!['pending','claimed','completed','failed','unknown','expired','superseded'].includes(v.state)||!time(v.created_at)||!time(v.expires_at)||Date.parse(v.expires_at)<=Date.parse(v.created_at))return false;
+ if(typeof v.state!=='string'||!['pending','claimed','completed','failed','unknown','expired','superseded','closed_unknown'].includes(v.state)||!time(v.created_at)||!time(v.expires_at)||Date.parse(v.expires_at)<=Date.parse(v.created_at)||Object.hasOwn(v,'source_changed')&&typeof v.source_changed!=='boolean')return false;
  if(['claimed_at','lease_until','observed_at'].some(key=>Object.hasOwn(v,key)&&!time(v[key]))||Object.hasOwn(v,'claim_id')&&!operation(v.claim_id)||Object.hasOwn(v,'inventory_operation_id')&&!operation(v.inventory_operation_id))return false;
  const claimed=(v.fence as number)>0;
  if(claimed&&(!operation(v.claim_id)||!time(v.claimed_at)||!time(v.lease_until))||!claimed&&['claim_id','claimed_at','lease_until'].some(key=>Object.hasOwn(v,key)))return false;
  if(claimed&&(Date.parse(v.claimed_at as string)<Date.parse(v.created_at)||Date.parse(v.lease_until as string)<=Date.parse(v.claimed_at as string)))return false;
  if(v.state!=='completed'&&['observed_at','inventory_operation_id'].some(key=>Object.hasOwn(v,key)))return false;
+ if(v.state!=='closed_unknown'&&['recovery_id','closed_at'].some(key=>Object.hasOwn(v,key)))return false;
  const result=v.result_code??'';
  switch(v.state){
   case 'pending':return !claimed&&result==='';
@@ -39,7 +40,8 @@ function validInspection(v:unknown,scope:ToolReinspectionScope,idExpected?:strin
   case 'failed':return claimed&&result==='not_started';
   case 'unknown':return claimed&&['probe_interrupted','probe_timeout','probe_failed'].includes(String(result));
   case 'expired':return !claimed&&result==='request_expired';
-  case 'superseded':return result==='source_changed';
+  case 'superseded':return !claimed&&result==='source_changed';
+  case 'closed_unknown':return claimed&&id(v.recovery_id)&&time(v.closed_at)&&['probe_interrupted','probe_timeout','probe_failed'].includes(String(result));
   default:return false;
  }
 }
@@ -65,5 +67,5 @@ export function validToolReinspectionIntent(value:unknown,scope:ToolReinspection
 }
 const canonical=(value:unknown)=>JSON.stringify(value,(_key,item)=>record(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 export function validToolInspectionReceipt(value:unknown,request:WriteRecoveryRequest,scope:ToolReinspectionScope,intent:ToolReinspectionIntent):boolean{
- return validToolReinspectionIntent(intent,scope)&&validToolReinspectionRecovery(request,scope)&&canonical(request)===canonical(intent.request)&&validInspection(value,scope)&&inspectionMatchesTool(value,intent.tool)&&value.requested_by===scope.userID&&value.version===1&&value.fence===0&&value.state==='pending'&&!['claim_id','claimed_at','lease_until','observed_at','inventory_operation_id','result_code'].some(key=>Object.hasOwn(value,key));
+ return validToolReinspectionIntent(intent,scope)&&validToolReinspectionRecovery(request,scope)&&canonical(request)===canonical(intent.request)&&validInspection(value,scope)&&inspectionMatchesTool(value,intent.tool)&&value.requested_by===scope.userID&&value.version===1&&value.fence===0&&value.state==='pending'&&!['claim_id','claimed_at','lease_until','observed_at','inventory_operation_id','result_code','recovery_id','closed_at','source_changed'].some(key=>Object.hasOwn(value,key));
 }

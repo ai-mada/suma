@@ -6,6 +6,20 @@ const profile={command_id:'codex-team',adapter:'codex',protocol:'codex-jsonl-v1'
 const tool={id:expected.toolID,project_id:expected.project,worker_id:'worker-one',name:'Team Codex',version:3,state:'paused',profile,enabled_by:'',created_at:'2026-11-01T00:00:00Z',updated_at:'2026-11-01T00:00:00Z',available:false,reason:'Profile paused'};
 const report=()=>({tool:{...tool},checked_at:'2026-11-01T00:00:00Z',expires_at:'2026-11-01T00:01:00Z',checks:['authorization','worker','inventory','profile'].map((code,index)=>({code,status:index===0?'blocked':'pass',reason:index===0?'Profile paused':'Checked',next_action:index===0?'review_profile':'none'})),next_action:'review_profile'});
 
+it('T195 preserves optional exact maintenance states in the diagnostic tool and rejects null or forged capability facts',()=>{
+ const value=report(),checked_at=value.checked_at;
+ const supported={state:'supported',checked_at,protocol:'suma-tool-maintenance-v1',instance_id:'maintenance-instance',observed_at:'2026-10-31T23:59:30Z',expires_at:'2026-11-01T00:00:30Z'};
+ const expired={...supported,state:'expired',observed_at:'2026-10-31T23:59:00Z',expires_at:checked_at};
+ const unsupported={...expired,state:'unsupported',protocol:'suma-tool-maintenance-v2'};
+ const unknown={state:'unknown',checked_at};
+ expect(readToolProfileDiagnostics(value,expected).report.tool).not.toHaveProperty('maintenance');
+ for(const maintenance of [supported,expired,unsupported,unknown]){
+  const result=readToolProfileDiagnostics({...value,tool:{...tool,maintenance}},expected);
+  expect(result.report.tool).toHaveProperty('maintenance',maintenance);expect(result.remainingMs).toBe(60000);
+ }
+ for(const maintenance of [null,{...unknown,protocol:supported.protocol},{...supported,checked_at:undefined},{...supported,expires_at:checked_at},{...expired,expires_at:supported.expires_at},{...unsupported,protocol:supported.protocol},{...supported,can_repair:true}])expect(()=>readToolProfileDiagnostics({...value,tool:{...tool,maintenance}},expected)).toThrow();
+});
+
 it('reads the exact four current facts without deriving eligibility or using the local clock',()=>{
  const value=report();expect(readToolProfileDiagnostics(value,expected)).toEqual({report:value,remainingMs:60000});
  expect(readToolProfileDiagnostics({...value,tool:{...tool,version:4}},expected).report.tool.version).toBe(4);

@@ -32,6 +32,30 @@ async function mount(){
 }
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();document.body.innerHTML='';vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState({},'','/');});
 
+it('T195 keeps maintenance freshness tied to the original profile read and refreshes that exact profile without losing the dialog',async()=>{
+ let monotonic=1000;vi.spyOn(performance,'now').mockImplementation(()=>monotonic);
+ await mount();const originalFetch=vi.mocked(fetch).getMockImplementation()!;
+ let profileReads=0,refreshed=false;
+ const maintenance=()=>({state:'supported',protocol:'suma-tool-maintenance-v1',instance_id:'continuous-owner-195',observed_at:refreshed?'2026-11-01T00:01:10Z':'2026-11-01T00:00:00Z',checked_at:refreshed?'2026-11-01T00:01:20Z':'2026-11-01T00:00:55Z',expires_at:refreshed?'2026-11-01T00:02:10Z':'2026-11-01T00:01:00Z'});
+ vi.mocked(fetch).mockImplementation(async(input,init={})=>{
+  const path=new URL(String(input),'http://local.test').pathname.replace('/api/v1','');
+  if(path==='/tool-profiles/existing'){profileReads++;return Response.json({...tool,maintenance:maintenance()});}
+  if(path==='/tool-profiles/existing/inspections'&&(!init.method||init.method==='GET'))return Response.json({items:[]});
+  return originalFetch(input,init);
+ });
+ await act(async()=>host!.querySelector<HTMLButtonElement>('.tool-resource')!.click());await settle();
+ expect(profileReads).toBe(1);monotonic=7001;
+ await act(async()=>host!.querySelector<HTMLButtonElement>('[data-tool-doctor-inspect]')!.click());await settle();
+ const dialog=document.querySelector('[role="dialog"]');expect(dialog).not.toBeNull();
+ expect(document.querySelector<HTMLButtonElement>('[data-tool-reinspection-create]')?.disabled).toBe(true);
+ const refreshCapability=document.querySelector<HTMLButtonElement>('[data-tool-maintenance-refresh]');expect(refreshCapability).not.toBeNull();
+ refreshed=true;await act(async()=>refreshCapability!.click());await settle();
+ expect(profileReads).toBe(2);expect(document.querySelector('[role="dialog"]')).toBe(dialog);
+ expect(document.querySelector<HTMLButtonElement>('[data-tool-reinspection-create]')?.disabled).toBe(false);
+ expect(host!.querySelector('.tool-resource.selected')?.textContent).toContain(tool.name);
+ expect(reads.some(url=>url.pathname.includes('/tool-profiles/inspection-'))).toBe(false);expect(writes).toEqual([]);
+});
+
 it('uses server tool filters without overwriting task status and searches only on an explicit action',async()=>{
  window.history.replaceState({},'','/?project=p&status=running&tools_state=revoked&tools_query=old');await mount();
  expect(reads.find(url=>url.pathname.endsWith('/tool-profiles'))?.searchParams.get('state')).toBe('revoked');
@@ -60,9 +84,10 @@ it('takes Doctor to the exact original adapter and worker, then returns from adv
 it('T194 requests inspection through a separate receipt and returns to the original profile without selecting the request as a tool',async()=>{
  await mount();const originalFetch=vi.mocked(fetch).getMockImplementation()!,inspectionWrites:Record<string,unknown>[]=[];
  let currentVersion=4;
+ const maintenance={state:'supported',protocol:'suma-tool-maintenance-v1',instance_id:'continuous-owner-194',observed_at:'2026-11-01T00:00:00Z',checked_at:'2026-11-01T00:00:20Z',expires_at:'2026-11-01T00:01:00Z'};
  const pending={id:'inspection-main194',project_id:'p',worker_id:tool.worker_id,tool_profile_id:tool.id,tool_profile_version:5,profile_sha256:definition.profile_sha256,command_id:definition.command_id,version:1,fence:0,state:'pending',requested_by:'u',created_at:'2026-11-01T00:00:00Z',expires_at:'2026-11-01T00:05:00Z'};
  const completed={...pending,version:3,fence:1,state:'completed',claim_id:'claim-main-194',claimed_at:'2026-11-01T00:00:10Z',lease_until:'2026-11-01T00:01:10Z',observed_at:'2026-11-01T00:00:12Z',inventory_operation_id:'inventory-main-194',result_code:'reported_unavailable'};
- vi.mocked(fetch).mockImplementation(async(input,init={})=>{const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1','');if(path==='/tool-profiles/existing')return Response.json({...tool,version:currentVersion});if(path==='/tool-profiles/existing/inspections'){if(init.method==='POST'){inspectionWrites.push(JSON.parse(String(init.body)));return Response.json(pending);}return Response.json({items:[]});}if(path==='/tool-inspections/inspection-main194')return Response.json(completed);return originalFetch(input,init);});
+ vi.mocked(fetch).mockImplementation(async(input,init={})=>{const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1','');if(path==='/tool-profiles/existing')return Response.json({...tool,version:currentVersion,maintenance});if(path==='/tool-profiles/existing/inspections'){if(init.method==='POST'){inspectionWrites.push(JSON.parse(String(init.body)));return Response.json(pending);}return Response.json({items:[]});}if(path==='/tool-inspections/inspection-main194')return Response.json(completed);return originalFetch(input,init);});
  await act(async()=>host!.querySelector<HTMLButtonElement>('.tool-resource')!.click());await settle();
  await act(async()=>host!.querySelector<HTMLButtonElement>('[data-tool-doctor-inspect]')!.click());await settle();
  expect(document.querySelector('[data-tool-reinspection-panel]')).not.toBeNull();expect(inspectionWrites).toEqual([]);

@@ -73,7 +73,7 @@ func TestPoolWorkerRunsTwoRealProjectProcessesInIndependentSlots(t *testing.T) {
 		case "/api/v1/pool-runner/tool-inspections/claim":
 			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/pool-runner/tool-inventory":
-			json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339)})
+			json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339), "maintenance": body["maintenance"]})
 		case "/api/v1/pool-runner/claim":
 			var req PoolClaimRequest
 			raw, _ := json.Marshal(body)
@@ -222,7 +222,7 @@ func TestPoolWorkerActuallyStopsProcessAfterScopedHeartbeatCancel(t *testing.T) 
 		case "/api/v1/pool-runner/tool-inspections/claim":
 			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/pool-runner/tool-inventory":
-			json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339)})
+			fixtureToolInventoryAck195(w, r, time.Now().UTC().Format(time.RFC3339))
 		case "/api/v1/pool-runner/claim":
 			mu.Lock()
 			defer mu.Unlock()

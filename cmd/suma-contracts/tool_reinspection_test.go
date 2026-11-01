@@ -39,7 +39,7 @@ func TestToolReinspectionContractsKeepExactAuthorityAndNullableEmptyClaim(t *tes
 			t.Fatal("known not-started and unknown effects became interchangeable")
 		}
 	}
-	if branches, ok := mapAt(schemas, "ToolInspection")["oneOf"].([]any); !ok || len(branches) != 7 {
+	if branches, ok := mapAt(schemas, "ToolInspection")["oneOf"].([]any); !ok || len(branches) != 8 {
 		t.Fatal("inspection states lost their paired claim, result and inventory facts")
 	}
 	for _, name := range []string{"ToolInventoryRequest", "PoolToolInventoryRequest", "ToolInventoryReceipt"} {

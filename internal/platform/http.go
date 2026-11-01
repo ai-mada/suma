@@ -1011,8 +1011,15 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 	if s.runnerToolInspectionsHTTP(w, r, actor, project, path, m) {
 		return
 	}
+	if s.runnerToolRecoveriesHTTP(w, r, actor, project, path, m) {
+		return
+	}
 	switch path {
 	case "runner/tool-inventory":
+		if value, present := m["maintenance"]; present && value == nil {
+			writeError(w, toolInspectionInvalid())
+			return
+		}
 		if value, present := m["inspection"]; present && value == nil {
 			writeError(w, toolInspectionInvalid())
 			return

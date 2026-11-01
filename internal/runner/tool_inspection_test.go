@@ -177,6 +177,8 @@ func TestToolInspectionStartedCheckpointBecomesUnknownAndRejectsFalseAck(t *test
 	var source ti.Inspection
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case "/api/v1/runner/tool-inspections/recovery":
+			_, _ = w.Write([]byte(`{"recovery":null}`))
 		case "/api/v1/runner/tool-inspections/results":
 			var body ti.FailureRequest
 			_ = json.NewDecoder(r.Body).Decode(&body)
@@ -326,7 +328,7 @@ func testPoolInspectionScopeFailure194(t *testing.T, rejectStatus int) {
 					t.Error(e)
 				}
 			}
-			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339Nano), "inspection": ref, "inspection_state": state})
+			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339Nano), "inspection": ref, "inspection_state": state, "maintenance": body["maintenance"]})
 		case "/api/v1/pool-runner/claim":
 			var request PoolClaimRequest
 			raw, _ := json.Marshal(body)

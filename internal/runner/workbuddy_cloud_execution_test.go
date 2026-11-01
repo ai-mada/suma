@@ -331,7 +331,7 @@ func TestWorkBuddyCloudWorkerRunClaimsNativeCapabilityAndReplaysWait(t *testing.
 		case strings.HasSuffix(r.URL.Path, "/tool-inspections/claim"):
 			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case strings.HasSuffix(r.URL.Path, "/tool-inventory"):
-			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339Nano)})
+			fixtureToolInventoryAck195(w, r, time.Now().UTC().Format(time.RFC3339Nano))
 		case strings.HasSuffix(r.URL.Path, "/claim"):
 			var req struct {
 				Capabilities []string `json:"capabilities"`
@@ -438,7 +438,7 @@ func TestWorkBuddyCloudWorkerCrashBeforeFinishRecoversOriginalAndReplaysLostResu
 		case strings.HasSuffix(r.URL.Path, "/tool-inspections/claim"):
 			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case strings.HasSuffix(r.URL.Path, "/tool-inventory"):
-			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339Nano)})
+			fixtureToolInventoryAck195(w, r, time.Now().UTC().Format(time.RFC3339Nano))
 		case strings.HasSuffix(r.URL.Path, "/claim"):
 			if claims.Add(1) == 1 {
 				_ = json.NewEncoder(w).Encode(map[string]any{"assignment": a})

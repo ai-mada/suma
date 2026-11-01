@@ -249,6 +249,9 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		client.Pool = &pool
 		client.ProjectID = scope.ProjectID
 		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments, External: scope.External, Secrets: []string{w.Client.Token}}}
+		if err = w.local[key].enableToolMaintenance(); err != nil {
+			return err
+		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

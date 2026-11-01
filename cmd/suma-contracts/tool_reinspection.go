@@ -109,7 +109,7 @@ func toolInspectionStateRelations() []any {
 	branches := make([]any, 0, 7)
 	for _, rule := range []struct {
 		state   string
-		claim   int // 0 unclaimed, 1 claimed, 2 either (superseded source)
+		claim   int // 0 unclaimed, 1 claimed; only unstarted work can be superseded.
 		results []string
 	}{
 		{"pending", 0, nil}, {"claimed", 1, nil},
@@ -117,7 +117,7 @@ func toolInspectionStateRelations() []any {
 		{"failed", 1, []string{"not_started"}},
 		{"unknown", 1, []string{"probe_interrupted", "probe_timeout", "probe_failed"}},
 		{"expired", 0, []string{"request_expired"}},
-		{"superseded", 2, []string{"source_changed"}},
+		{"superseded", 0, []string{"source_changed"}},
 	} {
 		properties := map[string]any{"state": map[string]any{"const": rule.state}}
 		required, absent := []string{}, []string{}
@@ -129,11 +129,6 @@ func toolInspectionStateRelations() []any {
 		} else if rule.claim == 1 {
 			properties["fence"] = map[string]any{"minimum": 1}
 			required = append(required, claimFields...)
-		} else {
-			branch["oneOf"] = []any{
-				map[string]any{"properties": map[string]any{"fence": map[string]any{"const": 0}}, "not": inspectionAnyPresence(claimFields...)},
-				map[string]any{"properties": map[string]any{"fence": map[string]any{"minimum": 1}}, "required": claimFields},
-			}
 		}
 		if rule.results == nil {
 			absent = append(absent, "result_code")

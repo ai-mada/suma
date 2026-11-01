@@ -17,16 +17,17 @@ import (
 // This checkpoint owns only an explicit read-only maintenance request. It is
 // separate from business claims and never confers permission to execute a task.
 type toolInspectionCheckpoint struct {
-	ScopeSHA256      string         `json:"scope_sha256"`
-	WorkerID         string         `json:"worker_id"`
-	ClaimID          string         `json:"claim_id"`
-	Responded        bool           `json:"responded"`
-	Inspection       *ti.Inspection `json:"inspection,omitempty"`
-	Started          bool           `json:"started"`
-	FailureOperation string         `json:"failure_operation,omitempty"`
-	FailureCode      string         `json:"failure_code,omitempty"`
-	FailureAcked     bool           `json:"failure_acked"`
-	Complete         bool           `json:"complete"`
+	ScopeSHA256      string                            `json:"scope_sha256"`
+	WorkerID         string                            `json:"worker_id"`
+	ClaimID          string                            `json:"claim_id"`
+	Responded        bool                              `json:"responded"`
+	Inspection       *ti.Inspection                    `json:"inspection,omitempty"`
+	Started          bool                              `json:"started"`
+	FailureOperation string                            `json:"failure_operation,omitempty"`
+	FailureCode      string                            `json:"failure_code,omitempty"`
+	FailureAcked     bool                              `json:"failure_acked"`
+	Complete         bool                              `json:"complete"`
+	Recovery         *toolInspectionRecoveryCheckpoint `json:"recovery,omitempty"`
 }
 
 func (j *Journal) toolInspectionPath() string {
@@ -56,7 +57,7 @@ func validateToolInspectionCheckpoint(p toolInspectionCheckpoint) error {
 	} else if p.FailureOperation != "" || p.FailureAcked {
 		return fmt.Errorf("missing tool inspection failure intent")
 	}
-	return nil
+	return validateToolRecoveryCheckpoint(p)
 }
 
 func (j *Journal) toolInspectionCheckpoint() (*toolInspectionCheckpoint, error) {
@@ -115,6 +116,11 @@ func (j *Journal) beginToolInspection(c *Client, worker string) (*toolInspection
 	}
 	if p != nil && !p.Complete {
 		return p, nil
+	}
+	if p != nil {
+		if err = j.archiveClosedToolInspection(*p); err != nil {
+			return nil, err
+		}
 	}
 	p = &toolInspectionCheckpoint{ScopeSHA256: scope, WorkerID: worker, ClaimID: operationID()}
 	if err = j.saveToolInspection(*p); err != nil {
@@ -277,6 +283,9 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 			w.inventoryNext = time.Time{}
 			return false, nil
 		}
+		if handled, e := w.recoverToolInspection(ctx, p); handled || e != nil {
+			return false, e
+		}
 	}
 	p, err = w.Journal.beginToolInspection(w.Client, w.ID)
 	if err != nil {
@@ -318,9 +327,18 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 			return false, err
 		}
 		probeCtx, cancel := context.WithDeadline(ctx, deadline)
+		collector, collectErr := newToolProbeCollector(w.Journal, *p)
+		if collectErr != nil {
+			cancel()
+			return false, w.finishInspectionFailure(ctx, p, "probe_failed")
+		}
+		probeCtx = collector.context(probeCtx)
 		items, probeErr := DescribeTools(probeCtx, w.Exec)
 		interrupted := probeCtx.Err()
 		cancel()
+		if collectErr = collector.closeReturned(); collectErr != nil || collector.hasUnverifiedNativeExit() {
+			probeErr = fmt.Errorf("native probe lifecycle was not fully persisted or stopped")
+		}
 		if probeErr != nil || interrupted != nil {
 			code := "probe_failed"
 			if interrupted == context.DeadlineExceeded {
@@ -332,7 +350,7 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 			return false, w.finishInspectionFailure(ctx, p, code)
 		}
 		ref := inspectionReference(*p.Inspection)
-		report, e := w.Journal.newInspectionInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items, &ref)
+		report, e := w.Journal.newToolInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items, &ref, w.maintenance)
 		if e != nil {
 			return false, e
 		}

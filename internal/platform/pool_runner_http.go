@@ -36,6 +36,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 	if s.poolToolInspectionsHTTP(w, r, token, path) {
 		return true
 	}
+	if s.poolToolRecoveriesHTTP(w, r, token, path) {
+		return true
+	}
 	if s.poolToolPermissionsHTTP(w, r, token, path) {
 		return true
 	}
@@ -71,6 +74,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return toolInspectionInvalid()
 			}
 			if value, present := fields["inspection"]; present && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+				return toolInspectionInvalid()
+			}
+			if value, present := fields["maintenance"]; present && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
 				return toolInspectionInvalid()
 			}
 		}

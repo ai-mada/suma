@@ -1,17 +1,19 @@
 import {useId} from 'react';
 import {ArrowRight,CheckCircle2,CircleHelp,ClipboardCheck,RefreshCw,TriangleAlert} from 'lucide-react';
-import type {ToolProfileDiagnostics} from '../../../packages/contracts/src';
+import type {ToolProfileDiagnosticCheck,ToolProfileDiagnostics} from '../../../packages/contracts/src';
 import {renderDisplayDiagnostic} from './display-diagnostic';
 import {formatDateTime,tr,useLocale} from './i18n';
 import {ErrorNotice} from './ui';
 import './ToolDoctorCard.css';
 
+export type ToolDoctorCheckActions=Partial<Record<ToolProfileDiagnosticCheck['code'],{action:'review_profile'|'open_worker'|'register_profile'|'refresh';onClick:()=>void}>>;
 export type ToolDoctorCardProps={
  report?:ToolProfileDiagnostics;
  state:'loading'|'ready'|'expired'|'changed'|'error'|'suspended';
  disabled?:boolean;
  error?:unknown;
  primaryAction?:{action:'review_profile'|'open_worker'|'register_profile';onClick:()=>void};
+ checkActions?:ToolDoctorCheckActions;
  onRefresh:()=>void;
  onRefreshTool?:()=>void;
 };
@@ -19,7 +21,7 @@ const t=(key:string)=>tr('tool-doctor.'+key);
 const stamp=(value:string)=>formatDateTime(value,{dateStyle:'short',timeStyle:'medium',hour12:false});
 
 /** Presentation only: the reader owns source matching, expiry and callbacks. */
-export function ToolDoctorCard({report,state,disabled=false,error,primaryAction,onRefresh,onRefreshTool}:ToolDoctorCardProps){
+export function ToolDoctorCard({report,state,disabled=false,error,primaryAction,checkActions,onRefresh,onRefreshTool}:ToolDoctorCardProps){
  useLocale();const headingID=useId(),visibleReport=state==='suspended'?undefined:report;
  const firstIssue=visibleReport?.checks.find(check=>check.status==='blocked')??visibleReport?.checks.find(check=>check.status==='not_checked');
  const ready=state==='ready'&&!!visibleReport,action=state==='ready'&&visibleReport&&primaryAction&&visibleReport.next_action===primaryAction.action?primaryAction:undefined;
@@ -34,7 +36,8 @@ export function ToolDoctorCard({report,state,disabled=false,error,primaryAction,
    {ready&&<p className="tool-doctor-availability">{t(visibleReport.tool.available?'available':'unavailable')}</p>}
    <details className="tool-doctor-details"><summary>{t('checks')}</summary><ol>{visibleReport.checks.map(check=>{
     const StatusIcon=check.status==='pass'?CheckCircle2:check.status==='blocked'?TriangleAlert:CircleHelp;
-    return <li key={check.code} data-tool-doctor-check={check.code} data-status={check.status}><div className="tool-doctor-check-heading"><strong>{t('check.'+check.code)}</strong><span><StatusIcon size={15} aria-hidden="true"/>{t('status.'+check.status)}</span></div><p>{renderDisplayDiagnostic(check.reason,check.reason_diagnostic).text}</p></li>;
+    const supplied=checkActions?.[check.code],checkAction=ready&&check.status!=='pass'&&supplied?.action===check.next_action?supplied:undefined;
+    return <li key={check.code} data-tool-doctor-check={check.code} data-status={check.status}><div className="tool-doctor-check-heading"><strong>{t('check.'+check.code)}</strong><span><StatusIcon size={15} aria-hidden="true"/>{t('status.'+check.status)}</span></div><p>{renderDisplayDiagnostic(check.reason,check.reason_diagnostic).text}</p>{checkAction&&<button type="button" className="text-button tool-doctor-check-action" data-tool-doctor-check-action={check.code} disabled={disabled} onClick={checkAction.onClick}>{t('action.'+checkAction.action)}{checkAction.action==='refresh'?<RefreshCw size={15} aria-hidden="true"/>:<ArrowRight size={15} aria-hidden="true"/>}</button>}</li>;
    })}</ol><p className="tool-doctor-boundary">{t('boundary')}</p></details>
   </>}
   <div className="tool-doctor-actions">

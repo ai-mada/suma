@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-TOOL-RECOVERY-195：[维护能力与未知恢复](product/tool-recovery.md)、[架构与AI SOP](architecture/tool-recovery.md)、[交互](design/tool-recovery.md)、[English](en/tool-recovery.md)及[限定验证](quality/tool-recovery-verification.md)。真实停止证明与原回执核对，不将释放维护占用冒充检查成功，完整平台继续。
+
 T-TOOL-REINSPECTION-194：[准确节点工具重检](product/tool-reinspection.md)、[架构与AI SOP](architecture/tool-reinspection.md)、[交互](design/tool-reinspection.md)、[English](en/tool-reinspection.md)及[限定验证](quality/tool-reinspection-verification.md)。新请求对应真实新探测，原回执恢复与当前fresh分开，完整平台继续。
 
 T-TOOL-MANAGEMENT-193：[简洁工具管理](product/tool-management.md)、[架构与AI SOP](architecture/tool-management.md)、[交互](design/tool-management.md)、[English](en/tool-management.md)及[限定验证](quality/tool-management-verification.md)。接入／调整／暂停／移除复用唯一配置与操作链，完整平台继续。

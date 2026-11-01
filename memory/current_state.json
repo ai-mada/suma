@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-TOOL-REINSPECTION-194",
-  "updated_at": "2026-11-01T14:36:53.881Z",
+  "stage": "T-TOOL-RECOVERY-195",
+  "updated_at": "2026-11-01T15:53:14.908Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/tool-reinspection-verification.md",
-  "current_summary": "docs/quality/tool-reinspection-summary.json",
+  "current_evidence": "docs/quality/tool-recovery-verification.md",
+  "current_summary": "docs/quality/tool-recovery-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -641,7 +641,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "Paired zh-CN/en-US9082 keys, production hardcodes0; representative tool-management UI verified, wider platform journeys remain independently pending.",
+    "internationalization": "Paired zh-CN/en-US9123 keys, production hardcodes0; representative maintenance recovery UI verified; wider journeys remain independently pending.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -692,7 +692,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "e0c00c7659a481c3f5817f29283be8030c80246c"
+    "previously_published_commit": "ab50190898d1d2f5e9df83fb8e2e872136c0a228"
   },
   "existing_preview": {
     "updated": false,
@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T194 real fixed-target reinspection request, original Worker/Journal inventory, lost-ACK recovery and isolated Pool scopes with bilingual UX; full goal remains active",
+  "last_goal_turn_classification": "progress: T195 versioned continuous maintenance capability, durable native stop evidence, original unknown closure and three Worker lifetimes with bilingual UX; full platform goal remains active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-REINSPECTION-194",
+    "stage": "T-TOOL-RECOVERY-195",
     "status": "scoped_verified",
-    "contract": "contracts/tool-reinspection.md",
-    "report": "docs/quality/tool-reinspection-verification.md",
-    "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Continue all original platform requirements; improve real tool capability discovery, recovery and distributed collaboration with simple professional UX."
+    "contract": "contracts/tool-recovery.md",
+    "report": "docs/quality/tool-recovery-verification.md",
+    "full_goal": "active original31/P0-P7/58limited/34pending/92baseline",
+    "next": "Continue all original platform scope; prioritize published memory/SPEC/skill discovery and exact task context reuse per docs/delivery/knowledge-discovery-next.md without repeating172/173."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -718,10 +718,10 @@
     "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
   },
   "previous_stage_verification": {
-    "stage": "T-TOOL-MANAGEMENT-193",
-    "report": "docs/quality/tool-management-verification.md",
-    "summary": "docs/quality/tool-management-summary.json",
-    "published_commit": "e0c00c7659a481c3f5817f29283be8030c80246c"
+    "stage": "T-TOOL-REINSPECTION-194",
+    "report": "docs/quality/tool-reinspection-verification.md",
+    "summary": "docs/quality/tool-reinspection-summary.json",
+    "published_commit": "ab50190898d1d2f5e9df83fb8e2e872136c0a228"
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",
@@ -1924,6 +1924,112 @@
       "OceanBase／PostgreSQL本阶段为初始Schema／方言源码与合同覆盖，未运行真实数据库环境；其他系统、安装包和规模继续独立验收。",
       "界面为真实产品组件与显著隔离的合成API／bridge；原错误、原始图及部分成功证据保留，未重已绿且输入未变的业务组。",
       "完整原31／P0–P7／58limited／34pending／92total保持active；本阶段不声明完整平台已交付。"
+    ]
+  },
+  "tool_recovery": {
+    "stage": "T-TOOL-RECOVERY-195",
+    "status": "scoped_verified",
+    "contract": "contracts/tool-recovery.md",
+    "report": "docs/quality/tool-recovery-verification.md",
+    "summary": "docs/quality/tool-recovery-summary.json",
+    "implementation": [
+      "原认证库存的持续维护协议与持久Journal逻辑owner声明；一次report-tools不宣支持，supported／expired／unsupported／unknown分明。",
+      "当前管理员一次300秒固定目的核对授权，原native停止证据→持久存证→节点先接纳原回执→同事务closed_unknown；不probe、kill、enable或接受任务。",
+      "原Windows Job与薄生命周期collector覆盖完整启动、normal／nonzero／cancel及有界Wait，原停止回执可跨重启读取，缺证据／Unix全树未知不假成功。",
+      "保留原unknown码及Started；source_changed不掩盖已开始状态，新管理员可处理旧发起人／配置变化，当前机器／Pool依据仍逐次核验。",
+      "中英维护能力及原请求恢复面板、准确体检次操作、单调时效与原详情显式刷新；打开弹窗不续期，不重建未知意图。"
+    ],
+    "verification": {
+      "distinct_top_level": 30,
+      "new_top_level": 17,
+      "affected_existing_top_level": 13,
+      "go_subcases": 3,
+      "control_top_level": 6,
+      "runner_top_level": 5,
+      "web_top_level": 16,
+      "root_contract_top_level": 2,
+      "actual_top_level": 1,
+      "root_receipts": [
+        {
+          "test": "TestToolRecoveryContractSeparatesProofClosureCapabilityAndExecution",
+          "command": ".cache/follow155/root-go/20261101T151428932Z.command.json",
+          "exit_code": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestToolReinspectionContractsKeepExactAuthorityAndNullableEmptyClaim",
+          "command": ".cache/follow155/root-go/20261101T151428932Z.command.json",
+          "exit_code": 0,
+          "package_passed": true
+        },
+        {
+          "test": "TestToolRecoveryActualWindowsWorkerRestartsAndLostClosureAcknowledgement",
+          "command": ".cache/follow155/root-go/20261101T154108536Z.command.json",
+          "exit_code": 0,
+          "package_passed": true
+        }
+      ],
+      "contract_generations": [
+        ".cache/follow155/root-go/20261101T151637264Z.command.json"
+      ],
+      "contract_checks": [
+        ".cache/follow155/root-go/20261101T154447972Z.command.json"
+      ],
+      "new_business_tables": 2,
+      "new_http_paths": [
+        "/pool-runner/tool-inspections/recovery",
+        "/pool-runner/tool-inspections/recovery/acknowledgements",
+        "/pool-runner/tool-inspections/recovery/proofs",
+        "/runner/tool-inspections/recovery",
+        "/runner/tool-inspections/recovery/acknowledgements",
+        "/runner/tool-inspections/recovery/proofs",
+        "/tool-inspection-recoveries/{id}",
+        "/tool-inspections/{id}/recoveries"
+      ],
+      "new_schemas": [
+        "PoolToolInspectionRecoveryAcknowledgementRequest",
+        "PoolToolInspectionRecoveryPollRequest",
+        "PoolToolInspectionRecoveryProofRequest",
+        "ToolInspectionRecovery",
+        "ToolInspectionRecoveryAcknowledgementRequest",
+        "ToolInspectionRecoveryCreateRequest",
+        "ToolInspectionRecoveryList",
+        "ToolInspectionRecoveryPoll",
+        "ToolInspectionRecoveryPollRequest",
+        "ToolInspectionRecoveryProofRequest",
+        "ToolInspectionStopProof",
+        "ToolMaintenanceCapability",
+        "ToolMaintenanceStatus"
+      ],
+      "initial_complete_typecheck_exit": 2,
+      "initial_type_diagnostics": 2,
+      "final_affected_semantic_diagnostics": 0,
+      "affected_semantic_files": [
+        "apps/web/src/tool-reinspection-model.ts",
+        "apps/web/src/tool-reinspection-model.test.ts",
+        "apps/web/src/ToolMaintenanceCapabilities.test.tsx"
+      ],
+      "paired_locale_keys": 9123,
+      "production_hardcodes": 0,
+      "isolated_component_builds": 2,
+      "gui_groups": 2,
+      "gui_native_hosts": 2,
+      "gui_native_exits": [
+        0,
+        0
+      ],
+      "actual_journeys": 2,
+      "first_actual_failure": "Acceptance fixture expected two native starts but collector correctly included three inventory Git probes; original five-tree source evidence retained, no product change.",
+      "final_actual_coverage_verified": true,
+      "full_suite_repeated": false,
+      "version_check": "Unchanged product1.0.0 packaging/identity sources reused"
+    },
+    "boundaries": [
+      "真实验收为本机Windows、SQLite、原Go Worker、Journal、Git及自有Node Harness探测；不是厂商账号／模型、完整Harness服务、其他OS或物理多机。",
+      "没有原durable stop receipt、完整启动覆盖或强树停止事实时，仍保持未知并引导显式隔离原身份／重新配对；隔离不声称停止外部进程。",
+      "当前凭证或Pool route／grant变化继续明确拒绝，不借历史能力扩大权限。过期last-known声明仅可用于有限核对，不用于新检查或健康认定。",
+      "OceanBase／PostgreSQL本轮为初始Schema及方言合同／源码覆盖，真实环境、安装包、规模与生产验收继续独立。",
+      "完整原31／P0–P7／58limited／34pending／92范围保持active；当前checkbox行与保留基线不等，不由局部阶段关闭整项。已发布知识检索断点另列下一切片，未虚报实现。"
     ]
   }
 }

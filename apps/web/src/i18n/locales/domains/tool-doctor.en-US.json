@@ -24,6 +24,7 @@
  "tool-doctor.action.review_profile":"Review original configuration",
  "tool-doctor.action.open_worker":"Open matching node",
  "tool-doctor.action.register_profile":"Adjust this node's configuration",
+ "tool-doctor.action.refresh":"Read checks again",
  "tool-doctor.refresh_tool":"Refresh original details",
  "tool-doctor.refresh":"Check again",
  "tool-doctor.selected_target":"Selected configuration",

@@ -24,6 +24,7 @@
  "tool-doctor.action.review_profile":"审核原配置",
  "tool-doctor.action.open_worker":"查看对应节点",
  "tool-doctor.action.register_profile":"调整此节点配置",
+ "tool-doctor.action.refresh":"重新读取体检",
  "tool-doctor.refresh_tool":"刷新原详情",
  "tool-doctor.refresh":"重新检查",
  "tool-doctor.selected_target":"已选配置",

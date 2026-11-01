@@ -206,25 +206,15 @@ func probeCommandStreams(ctx context.Context, exe string, args []string, spec Co
 		diagnostic = newOutput(32<<10, append(append([]string{}, secrets...), hidden...))
 		cmd.Stderr = diagnostic
 	}
-	ctl, err := startProcess(cmd)
-	if err != nil {
-		return "", fmt.Errorf("read-only CLI probe could not start")
-	}
-	defer ctl.Close()
-	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
-	select {
-	case err = <-done:
-	case <-ctx.Done():
-		_ = ctl.Stop()
-		<-done
+	err, stopErr := runProbeProcess(ctx, cmd)
+	if ctx.Err() != nil {
 		return "", fmt.Errorf("read-only CLI probe timed out")
+	}
+	if stopErr != nil {
+		return "", fmt.Errorf("read-only CLI probe descendants unverified")
 	}
 	if err != nil {
 		return "", fmt.Errorf("read-only CLI probe failed")
-	}
-	if err = ctl.Finish(); err != nil {
-		return "", fmt.Errorf("read-only CLI probe descendants unverified")
 	}
 	if out.truncated || diagnostic != nil && diagnostic.truncated {
 		return "", fmt.Errorf("read-only CLI probe exceeded 32 KiB")

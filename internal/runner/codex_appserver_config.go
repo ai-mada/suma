@@ -269,7 +269,7 @@ func probeCodexCatalog(ctx context.Context, exe string, spec CommandSpec, cfg Ex
 	defer pipe.Close()
 	cmd.Stdout = driver
 	cmd.Stderr = newOutput(32<<10, cfg.Secrets)
-	ctl, err := startProcess(cmd)
+	ctl, err := startProbeProcess(ctx, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("Codex app-server probe could not start")
 	}
@@ -277,14 +277,9 @@ func probeCodexCatalog(ctx context.Context, exe string, spec CommandSpec, cfg Ex
 	copied := make(chan struct{})
 	go func() { defer close(copied); _, _ = driver.CopyInput(pipe); _ = pipe.Close() }()
 	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
-	select {
-	case err = <-done:
-	case <-ctx.Done():
-		_ = ctl.Stop()
-		<-done
-		err = ctx.Err()
-	}
+	go func() { done <- ctl.Wait() }()
+	err = waitProbeProcess(ctx, ctl, done)
+	_ = pipe.Close()
 	_ = driver.Close()
 	<-copied
 	if finishErr := ctl.Finish(); finishErr != nil || err != nil {

@@ -21,7 +21,7 @@ export function toolSessionStorage() {
     return undefined;
   }
 }
-type ToolReadView<T>={path:string;data?:T;loading:boolean;error:string;failure?:unknown;read:()=>Promise<void>};
+type ToolReadView<T>={path:string;data?:T;readStartedAt?:number;loading:boolean;error:string;failure?:unknown;read:()=>Promise<void>};
 export function useToolRead<T>(path: string, refresh: number | string = 0):ToolReadView<T> {
   useLocale();
   const caller=useApi();
@@ -29,6 +29,7 @@ export function useToolRead<T>(path: string, refresh: number | string = 0):ToolR
       path: string;
       caller:typeof caller;
       data?: T;
+      readStartedAt?: number;
       loading: boolean;
       error: string;
       failure?: unknown;
@@ -42,10 +43,12 @@ export function useToolRead<T>(path: string, refresh: number | string = 0):ToolR
       setState({ path, caller, loading: false, error: "" });
       return;
     }
+    const readStartedAt=performance.now();
     setState((before) => ({
       path,
       caller,
       data: before.path === path&&before.caller===caller ? before.data : undefined,
+      readStartedAt:before.path===path&&before.caller===caller?before.readStartedAt:undefined,
       loading: true,
       error: "",
       failure: undefined,
@@ -53,12 +56,13 @@ export function useToolRead<T>(path: string, refresh: number | string = 0):ToolR
     try {
       const data = await caller<T>(path);
       if (generation === epoch.current)
-        setState({ path, caller, data, loading: false, error: "" });
+        setState({ path, caller, data, readStartedAt, loading: false, error: "" });
     } catch (error) {
       if (generation === epoch.current)
         setState((before) => ({
           ...before,
           data:error instanceof ApiError&&[401,403,404].includes(error.status)?undefined:before.data,
+          readStartedAt:error instanceof ApiError&&[401,403,404].includes(error.status)?undefined:before.readStartedAt,
           loading: false,
           error: toolError(error),
           failure: error,
@@ -75,6 +79,7 @@ export function useToolRead<T>(path: string, refresh: number | string = 0):ToolR
   return {
     path,
     data:current?state.data:undefined,
+    readStartedAt:current?state.readStartedAt:undefined,
     loading:current?state.loading:!!path,
     failure:current?state.failure:undefined,
     error:

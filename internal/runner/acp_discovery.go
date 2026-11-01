@@ -207,21 +207,7 @@ func probeQoderNativeVersion(ctx context.Context, exe, directory string, secrets
 	cmd.Env = env
 	out, diagnostic := newOutput(32<<10, secrets), newOutput(32<<10, secrets)
 	cmd.Stdout, cmd.Stderr = out, diagnostic
-	controller, err := startProcess(cmd)
-	if err != nil {
-		return "", fmt.Errorf("ACP version probe unavailable")
-	}
-	defer controller.Close()
-	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
-	var waitErr error
-	select {
-	case waitErr = <-done:
-	case <-ctx.Done():
-		_ = controller.Stop()
-		waitErr = <-done
-	}
-	stopErr := controller.Finish()
+	waitErr, stopErr := runProbeProcess(ctx, cmd)
 	out.mu.Lock()
 	raw, truncated := out.b.String(), out.truncated
 	out.mu.Unlock()
@@ -356,16 +342,16 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 		return result, nil
 	}
 	defer stdin.Close()
-	controller, err := startProcess(cmd)
+	controller, err := startProbeProcess(ctx, cmd)
 	if err != nil {
 		return result, nil
 	}
 	defer controller.Close()
 	inputDone := make(chan struct{})
 	go func() { defer close(inputDone); _, _ = driver.CopyInput(stdin); _ = stdin.Close() }()
-	defer func() { _ = driver.Close(); _ = stdin.Close(); <-inputDone }()
+	defer func() { _ = stdin.Close(); _ = driver.Close(); <-inputDone }()
 	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
+	go func() { done <- controller.Wait() }()
 	var waitErr error
 	interrupted := false
 	stoppedAfterRPC := false
@@ -387,7 +373,7 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 		_ = driver.Close()
 		_ = stdin.Close()
 		explicitStopErr = controller.Stop()
-		waitErr = <-done
+		waitErr = waitStoppedProbeProcess(controller, done)
 	}
 	stopErr := controller.Finish()
 	if explicitStopErr != nil {
@@ -396,12 +382,10 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 	stoppedAfterRPC = stoppedAfterRPC && driver.CanStopAfterRPC() && currentSource()
 	observation := driver.Finish()
 	result.AgentName, result.AgentVersion, result.Evidence = observation.AgentName, observation.AgentVersion, observation.Evidence
-	result.Evidence.HostProcessStopped = cmd.ProcessState != nil
+	parentStopped, exitCode := controller.waitFact()
+	result.Evidence.HostProcessStopped = parentStopped
 	result.Evidence.HostProcessTreeStopped = result.Evidence.HostProcessStopped && stopErr == nil
-	if cmd.ProcessState != nil {
-		code := cmd.ProcessState.ExitCode()
-		result.Evidence.HostProcessExitCode = &code
-	}
+	result.Evidence.HostProcessExitCode = exitCode
 	result.Evidence.HostStoppedAfterRPC = stoppedAfterRPC && result.Evidence.HostProcessTreeStopped
 	diagnostic.mu.Lock()
 	truncated := diagnostic.truncated

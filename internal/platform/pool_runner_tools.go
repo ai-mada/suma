@@ -9,6 +9,7 @@ import (
 
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
 )
 
 // Pool registry fallback is independent of the registering person's account.
@@ -38,6 +39,9 @@ func (s *Service) poolToolWorkerReasonTx(ctx context.Context, tx *sql.Tx, tenant
 
 func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req PoolToolInventoryRequest) (ToolInventoryReceipt, error) {
 	var out ToolInventoryReceipt
+	if req.Maintenance != nil && tic.ValidateMaintenanceCapability(*req.Maintenance) != nil {
+		return out, toolInspectionInvalid()
+	}
 	if len(req.OperationID) < 8 || len(req.OperationID) > 128 || len(req.Items) > 128 {
 		return out, invalid("工具清单操作标识或大小无效")
 	}
@@ -116,6 +120,13 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 		ref := *req.Inspection
 		out.Inspection = &ref
 		out.InspectionState = "completed"
+	}
+	if err = s.recordToolMaintenanceTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, out.ObservedAt, req.Maintenance); err != nil {
+		return out, err
+	}
+	if req.Maintenance != nil {
+		copy := *req.Maintenance
+		out.Maintenance = &copy
 	}
 	if err = proof.assertScope(tx, proof.scopes[0]); err != nil {
 		return out, err

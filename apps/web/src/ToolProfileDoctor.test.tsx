@@ -22,6 +22,40 @@ function deferred(){let resolve!:(value:Response)=>void;const promise=new Promis
 beforeEach(async()=>{await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
 
+it('T195 resolves each blocked check through the exact live destination while preserving the single primary and read-only recovery gates',async()=>{
+ let now=0;vi.spyOn(performance,'now').mockImplementation(()=>now);
+ const multiple=():ToolProfileDiagnostics=>({...report(),checks:[
+  {code:'authorization',status:'blocked',reason:'Review the original approval',next_action:'review_profile'},
+  {code:'worker',status:'blocked',reason:'Review this exact node',next_action:'open_worker'},
+  {code:'inventory',status:'not_checked',reason:'Read current inventory evidence',next_action:'refresh'},
+  {code:'profile',status:'blocked',reason:'The complete configuration differs',next_action:'register_profile'},
+ ],next_action:'review_profile'});
+ let value=multiple(),status=200;
+ const fetcher=vi.fn(async(_input:string,_init:RequestInit)=>Response.json(status===200?value:{error:{code:'forbidden',message:'Current diagnostic access denied'}},{status}));
+ vi.stubGlobal('fetch',fetcher);const onReview=vi.fn(),onWorker=vi.fn(),onRegister=vi.fn(),onSharedWorker=vi.fn();
+ const destinations={onReview,onWorker,onRegister};
+ await render(destinations);
+ const details=host.querySelector<HTMLDetailsElement>('.tool-doctor-details');expect(details).not.toBeNull();expect(details!.open).toBe(false);details!.open=true;
+ expect(host.querySelectorAll('[data-tool-doctor-check-action]')).toHaveLength(4);
+ expect(host.querySelectorAll('[data-tool-doctor-card] .primary')).toHaveLength(1);
+ expect(host.querySelector('[data-tool-doctor-action="review_profile"]')).not.toBeNull();
+ await click('[data-tool-doctor-action="review_profile"]');await click('[data-tool-doctor-check-action="authorization"]');expect(onReview).toHaveBeenCalledTimes(2);for(const [source] of onReview.mock.calls)expect(source).toEqual(tool);
+ await click('[data-tool-doctor-check-action="worker"]');expect(onWorker).toHaveBeenCalledExactlyOnceWith(tool.worker_id);
+ await click('[data-tool-doctor-check-action="profile"]');expect(onRegister).toHaveBeenCalledExactlyOnceWith(tool);
+ value={...multiple(),checks:multiple().checks.map(check=>check.code==='worker'?{...check,status:'pass',reason:''}:check)};
+ await click('[data-tool-doctor-check-action="inventory"]');expect(fetcher).toHaveBeenCalledTimes(2);expect(host.querySelector('[data-tool-doctor-check-action="worker"]')).toBeNull();
+ value=multiple();await click('[data-tool-doctor-check-action="inventory"]');
+ await render({onReview,onRegister,onSharedWorker});expect(host.textContent).toContain('read-only');await click('[data-tool-doctor-check-action="worker"]');expect(onSharedWorker).toHaveBeenCalledExactlyOnceWith(tool.worker_id);expect(onWorker).toHaveBeenCalledOnce();
+ await render({onReview});expect(host.querySelector('[data-tool-doctor-check-action="worker"]')).toBeNull();expect(host.querySelector('[data-tool-doctor-check-action="profile"]')).toBeNull();
+ await render(destinations);now=13000;await click('[data-tool-doctor-check-action="worker"]');expect(onWorker).toHaveBeenCalledOnce();expect(state()).toBe('expired');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();
+ await click('[data-tool-doctor-refresh]');expect(state()).toBe('ready');
+ status=403;await click('[data-tool-doctor-check-action="inventory"]');expect(state()).toBe('error');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();expect(host.querySelector('[data-tool-profile-doctor-target]')).toBeNull();
+ const reads=fetcher.mock.calls.length;await render({...destinations,pending:true});expect(state()).toBe('suspended');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();expect(fetcher).toHaveBeenCalledTimes(reads);
+ status=200;value={...multiple(),tool:{...tool,worker_id:'different-worker',profile:{...tool.profile,profile_sha256:'c'.repeat(64)}}};
+ await render(destinations);expect(state()).toBe('changed');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();expect(onRegister).toHaveBeenCalledOnce();
+ expect(fetcher.mock.calls.every(([,init])=>init.method==='GET'&&init.body===undefined)).toBe(true);
+});
+
 it('T194 opens a separate explicit inspection for the exact fresh profile and keeps reading, expiry and refusal distinct',async()=>{
  let now=0;vi.spyOn(performance,'now').mockImplementation(()=>now);const onInspect=vi.fn();let status=200;
  const fetcher=vi.fn(async()=>Response.json(status===200?report():{error:{code:'forbidden',message:'Forbidden'}},{status}));vi.stubGlobal('fetch',fetcher);

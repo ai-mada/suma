@@ -228,6 +228,16 @@ function ScopedToolWorkspace({
     if(stale||writeBlocked||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
     action.clearError();setInspectionLocked(false);setDialog({kind:'inspection',profile:value});
   }
+  function inspectionWorkerRow(workerID:string){
+    if(!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===workerID))return workerRows.current.get(workerID);
+    if(!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return sharedWorkerRows.current.get(workerID);
+  }
+  function locateInspectionWorker(workerID:string){
+    if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||dialog?.kind!=='inspection'||dialog.profile.project_id!==project||workerID!==dialog.profile.worker_id||pending||action.busy||pairingLocked)return;
+    const row=inspectionWorkerRow(workerID);if(!row)return;
+    setDialog(undefined);setInspectionLocked(false);
+    requestAnimationFrame(()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||!row.isConnected)return;row.scrollIntoView?.({block:'nearest'});row.focus({preventScroll:true});});
+  }
   function openRunnerPairing() {
     if(writeBlocked)return;
     action.clearError();
@@ -637,6 +647,9 @@ function ScopedToolWorkspace({
         {dialog?.kind==='inspection'&&<ToolReinspectionPanel
           project={project}
           tool={!stale&&current?.id===dialog.profile.id?current:dialog.profile}
+          maintenanceReadStartedAt={!stale&&current?.id===dialog.profile.id?detail.readStartedAt:undefined}
+          onRefreshTool={()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||selected!==dialog.profile.id||detail.loading)return;void detail.read();}}
+          onOpenWorker={inspectionWorkerRow(dialog.profile.worker_id)?locateInspectionWorker:undefined}
           disabled={pending||action.busy||pairingLocked||stale||current?.id!==dialog.profile.id}
           accessBlocked={detail.failure instanceof ApiError&&[401,403,404].includes(detail.failure.status)}
           onLockChange={setInspectionLocked}

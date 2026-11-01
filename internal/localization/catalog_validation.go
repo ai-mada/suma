@@ -4,6 +4,9 @@ package localization
 // identify their meaning safely; field identifiers and original decoder/tool
 // details are data, not templates. Invalid parameters retain the raw diagnostic.
 var validationCatalog = []Definition{
+	{Key: "validation.tool_recovery_changed", Texts: map[Locale]string{ZhCN: "核对依据已变化，请读取原记录；无法核实原节点时请隔离旧身份并重新配对", EnUS: "The reconciliation source changed. Read the original record; isolate and re-pair the node if its identity cannot be verified."}},
+	{Key: "validation.tool_recovery_busy", Texts: map[Locale]string{ZhCN: "本次检查已有未结束的核对，请先读取原核对记录", EnUS: "This inspection already has an unfinished reconciliation. Read its original record first."}},
+	{Key: "validation.tool_maintenance_required", Texts: map[Locale]string{ZhCN: "执行节点尚未声明当前维护协议，请连接支持该协议的连续执行节点", EnUS: "The node has not declared the required maintenance protocol. Connect a compatible continuous worker."}},
 	{Key: "validation.field_required", Parameters: []Parameter{{Name: "field", Kind: Identifier}}, Texts: map[Locale]string{ZhCN: "缺少{{.field}}", EnUS: "{{.field}} is required."}},
 	{Key: "validation.field_integer", Parameters: []Parameter{{Name: "field", Kind: Identifier}}, Texts: map[Locale]string{ZhCN: "{{.field}}必须为整数", EnUS: "{{.field}} must be an integer."}},
 	{Key: "validation.field_version_integer", Parameters: []Parameter{{Name: "field", Kind: Identifier}}, Texts: map[Locale]string{ZhCN: "{{.field}}必须为有效版本整数", EnUS: "{{.field}} must be a valid version integer."}},

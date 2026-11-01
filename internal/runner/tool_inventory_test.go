@@ -116,7 +116,7 @@ func TestWorkerClaimsOnlyAvailableCommandCapabilities(t *testing.T) {
 		case "/api/v1/runner/tool-inspections/claim":
 			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/runner/tool-inventory":
-			_, _ = w.Write([]byte(`{"acknowledged":true,"observed_at":"2026-10-24T03:00:00Z"}`))
+			fixtureToolInventoryAck195(w, r, "2026-10-24T03:00:00Z")
 		case "/api/v1/runner/claim":
 			var body struct {
 				Capabilities []string `json:"capabilities"`
@@ -178,7 +178,8 @@ func TestInventoryOutageKeepsCurrentProcessAndHeartbeatThenRecovers(t *testing.T
 			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/runner/tool-inventory":
 			var body struct {
-				OperationID string `json:"operation_id"`
+				OperationID string          `json:"operation_id"`
+				Maintenance json.RawMessage `json:"maintenance"`
 			}
 			_ = json.NewDecoder(r.Body).Decode(&body)
 			ops = append(ops, body.OperationID)
@@ -187,7 +188,7 @@ func TestInventoryOutageKeepsCurrentProcessAndHeartbeatThenRecovers(t *testing.T
 				w.WriteHeader(503)
 				return
 			}
-			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339)})
+			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339), "maintenance": body.Maintenance})
 		case "/api/v1/runner/claim":
 			n := claims.Add(1)
 			if n == 1 {

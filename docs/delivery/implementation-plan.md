@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-RECOVERY-195：[合同](../../contracts/tool-recovery.md)／[PRD](../product/tool-recovery.md)／[架构与AI SOP](../architecture/tool-recovery.md)／[限定验证](../quality/tool-recovery-verification.md)。真实维护能力、原停止证明、一次有限核对授权与持久ACK释放未知占用贯通；关闭保原未知事实、不重probe。30个不同定向、Windows父子进程／三次Worker及双语代表界面限定通过，完整31／P0–P7继续。
+
 T-TOOL-REINSPECTION-194：[合同](../../contracts/tool-reinspection.md)／[PRD](../product/tool-reinspection.md)／[架构与AI SOP](../architecture/tool-reinspection.md)／[限定验证](../quality/tool-reinspection-verification.md)。真实准确节点检查请求、新报告原子闭合及原回执恢复贯通；Pool满槽位可重检，单scope错误隔离。21个不同定向检查及受控实际链／3组双语界面限定通过，原31／P0–P7／58／34／92继续。
 
 T-TOOL-MANAGEMENT-193：[合同](../../contracts/tool-management.md)／[PRD](../product/tool-management.md)／[架构与AI SOP](../architecture/tool-management.md)／[限定验证](../quality/tool-management-verification.md)。简洁连接向导、当前／历史筛选、准确目标诊断、公开草稿及原生命周期命令贯通；活动影响明确完整／部分／未知，撤销不伪称进程停止。62个不同定向检查及真实HTTP／SQLite／CLI、双语代表界面限定通过，完整31／P0–P7／58／34／92继续。

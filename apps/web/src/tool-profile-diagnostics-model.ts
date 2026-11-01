@@ -3,6 +3,7 @@ import {UiError} from './i18n';
 import {sameToolProfile} from './tool-profile-reuse-model';
 import {parseToolManifest} from './tool-model';
 import {readToolProfileImpact} from './tool-profile-impact-model';
+import {validToolMaintenanceStatus} from './tool-maintenance-model';
 export type ToolDoctorAction='none'|'review_profile'|'open_worker'|'register_profile'|'refresh';
 export function isToolDoctorAction(value:unknown):value is ToolDoctorAction{
  return typeof value==='string' && ['none','review_profile','open_worker','register_profile','refresh'].includes(value);
@@ -19,8 +20,8 @@ function observation(value:unknown):boolean{
  try{parseToolManifest(JSON.stringify([value]));return true;}catch{return false;}
 }
 function validTool(value:unknown,expected:{project:string;toolID:string}):value is ToolProfile{
- if(!record(value) || !closed(value,['id','project_id','worker_id','name','version','state','profile','enabled_by','created_at','updated_at','available','reason'],['observation','last_seen_at','reason_diagnostic']))return false;
- return value.id===expected.toolID && value.project_id===expected.project && typeof value.id==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$/.test(value.id) && typeof value.worker_id==='string' && !!value.worker_id && Number.isSafeInteger(value.version) && (value.version as number)>0 && typeof value.state==='string' && ['paused','enabled','revoked'].includes(value.state) && sameToolProfile(value.profile,value.profile) && typeof value.available==='boolean' && ['name','enabled_by','created_at','updated_at','reason'].every(key=>typeof value[key]==='string') && (!Object.hasOwn(value,'last_seen_at') || typeof value.last_seen_at==='string') && (!Object.hasOwn(value,'reason_diagnostic') || diagnostic(value.reason_diagnostic)) && (!Object.hasOwn(value,'observation') || observation(value.observation));
+ if(!record(value) || !closed(value,['id','project_id','worker_id','name','version','state','profile','enabled_by','created_at','updated_at','available','reason'],['observation','last_seen_at','reason_diagnostic','maintenance']))return false;
+ return value.id===expected.toolID && value.project_id===expected.project && typeof value.id==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$/.test(value.id) && typeof value.worker_id==='string' && !!value.worker_id && Number.isSafeInteger(value.version) && (value.version as number)>0 && typeof value.state==='string' && ['paused','enabled','revoked'].includes(value.state) && sameToolProfile(value.profile,value.profile) && typeof value.available==='boolean' && ['name','enabled_by','created_at','updated_at','reason'].every(key=>typeof value[key]==='string') && (!Object.hasOwn(value,'last_seen_at') || typeof value.last_seen_at==='string') && (!Object.hasOwn(value,'reason_diagnostic') || diagnostic(value.reason_diagnostic)) && (!Object.hasOwn(value,'observation') || observation(value.observation)) && (!Object.hasOwn(value,'maintenance') || validToolMaintenanceStatus(value.maintenance));
 }
 function check(value:unknown,code:string):value is ToolProfileDiagnosticCheck{
  return record(value) && closed(value,['code','status','reason','next_action'],['reason_diagnostic']) && value.code===code && typeof value.status==='string' && ['pass','blocked','not_checked'].includes(value.status) && typeof value.reason==='string' && isToolDoctorAction(value.next_action) && (!Object.hasOwn(value,'reason_diagnostic') || diagnostic(value.reason_diagnostic));

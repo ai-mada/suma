@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import type {ToolProfile,ToolProfileDiagnostics} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi,useApiView} from './api-context';
-import {ToolDoctorCard} from './ToolDoctorCard';
+import {ToolDoctorCard,type ToolDoctorCheckActions} from './ToolDoctorCard';
 import {readToolProfileDiagnostics} from './tool-profile-diagnostics-model';
 import {sameToolProfile,toolProfileMatchKey} from './tool-profile-reuse-model';
 import {ToolProfileImpact} from './ToolProfileImpact';
@@ -56,13 +56,20 @@ function ToolDoctorReader({api,source,access,userID,organizationID,...props}:Pro
  function live(){return mounted.current&&intent.current.api===api&&intent.current.key===key&&state==='ready'&&!!current&&performance.now()<current.deadline;}
  function guarded(run:()=>void){if(live())run();else tick(value=>value+1);}
  const workerDestination=props.onWorker??props.onSharedWorker,sharedDestination=!props.onWorker&&!!props.onSharedWorker,denied=access.denied;
- const primaryAction=state!=='ready'||!report?undefined:
-  report.next_action==='review_profile'&&report.tool.state!=='revoked'&&props.onReview?{action:'review_profile' as const,onClick:()=>guarded(()=>props.onReview!(report.tool))}:
-  report.next_action==='open_worker'&&workerDestination?{action:'open_worker' as const,onClick:()=>guarded(()=>workerDestination(report.tool.worker_id))}:
-  report.next_action==='register_profile'&&props.onRegister?{action:'register_profile' as const,onClick:()=>guarded(()=>props.onRegister!(report.tool))}:undefined;
+ function refresh(){if(mounted.current&&intent.current.api===api&&intent.current.key===key)setRevision(value=>value+1);}
+ function resolveAction(action:ToolProfileDiagnostics['next_action']):ToolDoctorCheckActions[keyof ToolDoctorCheckActions]{
+  if(state!=='ready'||!report)return;
+  if(action==='review_profile'&&report.tool.state!=='revoked'&&props.onReview)return {action,onClick:()=>guarded(()=>props.onReview!(report.tool))};
+  if(action==='open_worker'&&workerDestination)return {action,onClick:()=>guarded(()=>workerDestination(report.tool.worker_id))};
+  if(action==='register_profile'&&props.onRegister)return {action,onClick:()=>guarded(()=>props.onRegister!(report.tool))};
+  if(action==='refresh')return {action,onClick:()=>guarded(refresh)};
+ }
+ const resolvedPrimary=resolveAction(report?.next_action??'none'),primaryAction=resolvedPrimary&&resolvedPrimary.action!=='refresh'?{action:resolvedPrimary.action,onClick:resolvedPrimary.onClick}:undefined;
+ const checkActions:ToolDoctorCheckActions={};
+ for(const check of report?.checks??[]){if(check.status==='pass')continue;const action=resolveAction(check.next_action);if(action)checkActions[check.code]=action;}
  return <div className="tool-profile-doctor">
   {!denied&&<div className="tool-profile-doctor-target" data-tool-profile-doctor-target><p><span>{t('selected_target')}</span><strong>{props.tool.name}</strong></p>{sharedDestination&&<p className="tool-profile-doctor-hint">{t('shared_readonly')}</p>}<details data-tool-profile-doctor-basis><summary>{t('target_details')}</summary><dl>{([['target_project',props.project],['target_worker',props.tool.worker_id],['target_adapter',props.tool.profile.adapter],['target_protocol',props.tool.profile.protocol],['target_profile',props.tool.id],['target_hash',props.tool.profile.profile_sha256]] as const).map(([label,value])=><div key={label}><dt>{t(label)}</dt><dd><code>{value}</code></dd></div>)}</dl></details></div>}
-  <ToolDoctorCard report={report} state={state} error={current?.error} primaryAction={primaryAction} onRefresh={()=>{if(mounted.current&&intent.current.api===api&&intent.current.key===key)setRevision(value=>value+1);}} onRefreshTool={state==='changed'&&props.onRefreshTool?()=>{if(mounted.current&&intent.current.api===api&&intent.current.key===key)props.onRefreshTool!();}:undefined}/>
+  <ToolDoctorCard report={report} state={state} error={current?.error} primaryAction={primaryAction} checkActions={checkActions} onRefresh={refresh} onRefreshTool={state==='changed'&&props.onRefreshTool?()=>{if(mounted.current&&intent.current.api===api&&intent.current.key===key)props.onRefreshTool!();}:undefined}/>
   {!denied&&state==='ready'&&report&&props.onInspect&&<div className="tool-profile-doctor-inspection"><button type="button" data-tool-doctor-inspect onClick={()=>guarded(()=>props.onInspect!(report.tool))}>{t('inspect_action')}</button><p>{t('inspect_hint')}</p></div>}
   {!denied&&<ToolProfileImpact impact={state==='ready'?report?.impact:undefined} onRun={state==='ready'&&props.onRun?(runID,nodeID)=>guarded(()=>props.onRun!(runID,nodeID)):undefined}/>}
  </div>;

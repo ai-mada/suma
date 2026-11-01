@@ -4366,6 +4366,30 @@ export interface PoolToolInspectionFailureRequest {
   outcome: string;
   failure_code: string;
 }
+export interface PoolToolInspectionRecoveryAcknowledgementRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  recovery_id: string;
+  expected_version: number;
+  idempotency_key: string;
+  proof_sha256: string;
+}
+export interface PoolToolInspectionRecoveryPollRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  inspection: ToolInspectionReference;
+}
+export interface PoolToolInspectionRecoveryProofRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  recovery_id: string;
+  expected_version: number;
+  idempotency_key: string;
+  proof: ToolInspectionStopProof;
+}
 export interface PoolToolInventoryRequest {
   runner_id: string;
   tenant_id: string;
@@ -4373,6 +4397,7 @@ export interface PoolToolInventoryRequest {
   operation_id: string;
   items: (ToolObservation)[];
   inspection?: ToolInspectionReference;
+  maintenance?: ToolMaintenanceCapability;
 }
 export interface PoolToolPermissionObservationRequest {
   runner_id: string;
@@ -7511,7 +7536,7 @@ export interface ToolInspection {
   command_id: string;
   version: number;
   fence: number;
-  state: "pending" | "claimed" | "completed" | "failed" | "unknown" | "expired" | "superseded";
+  state: "pending" | "claimed" | "completed" | "failed" | "unknown" | "expired" | "superseded" | "closed_unknown";
   requested_by: string;
   created_at: string;
   expires_at: string;
@@ -7521,6 +7546,9 @@ export interface ToolInspection {
   observed_at?: string;
   inventory_operation_id?: string;
   result_code?: string;
+  recovery_id?: string;
+  closed_at?: string;
+  source_changed?: boolean;
 }
 export interface ToolInspectionClaim {
   inspection: ToolInspection | null;
@@ -7546,16 +7574,79 @@ export interface ToolInspectionFailureRequest {
 export interface ToolInspectionList {
   items: (ToolInspection)[];
 }
+export interface ToolInspectionRecovery {
+  id: string;
+  project_id: string;
+  worker_id: string;
+  inspection: ToolInspectionReference;
+  inspection_version: number;
+  source_sha256: string;
+  version: number;
+  state: "requested" | "proof_stored" | "closed_unknown" | "expired";
+  requested_by: string;
+  created_at: string;
+  expires_at: string;
+  proof?: ToolInspectionStopProof;
+  proof_sha256?: string;
+  proof_stored_at?: string;
+  closed_at?: string;
+}
+export interface ToolInspectionRecoveryAcknowledgementRequest {
+  project_id: string;
+  worker_id: string;
+  recovery_id: string;
+  expected_version: number;
+  idempotency_key: string;
+  proof_sha256: string;
+}
+export interface ToolInspectionRecoveryCreateRequest {
+  project_id: string;
+  expected_version: number;
+  inspection: ToolInspectionReference;
+  idempotency_key: string;
+}
+export interface ToolInspectionRecoveryList {
+  items: (ToolInspectionRecovery)[];
+}
+export interface ToolInspectionRecoveryPoll {
+  recovery: ToolInspectionRecovery | null;
+}
+export interface ToolInspectionRecoveryPollRequest {
+  project_id: string;
+  worker_id: string;
+  inspection: ToolInspectionReference;
+}
+export interface ToolInspectionRecoveryProofRequest {
+  project_id: string;
+  worker_id: string;
+  recovery_id: string;
+  expected_version: number;
+  idempotency_key: string;
+  proof: ToolInspectionStopProof;
+}
 export interface ToolInspectionReference {
   inspection_id: string;
   claim_id: string;
   fence: number;
+}
+export interface ToolInspectionStopProof {
+  protocol: string;
+  inspection: ToolInspectionReference;
+  source_sha256: string;
+  receipt_sha256: string;
+  probe_returned: boolean;
+  all_native_trees_stopped: boolean;
+  no_pending_inventory: boolean;
+  native_process_count: number;
+  stopped_process_count: number;
+  observed_at: string;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;
   observed_at: string;
   inspection?: ToolInspectionReference;
   inspection_state?: string;
+  maintenance?: ToolMaintenanceCapability;
 }
 export interface ToolInventoryRequest {
   project_id: string;
@@ -7563,6 +7654,19 @@ export interface ToolInventoryRequest {
   operation_id: string;
   items: (ToolObservation)[];
   inspection?: ToolInspectionReference;
+  maintenance?: ToolMaintenanceCapability;
+}
+export interface ToolMaintenanceCapability {
+  protocol: string;
+  instance_id: string;
+}
+export interface ToolMaintenanceStatus {
+  state: "supported" | "expired" | "unsupported" | "unknown";
+  checked_at: string;
+  protocol?: string;
+  instance_id?: string;
+  observed_at?: string;
+  expires_at?: string;
 }
 export interface ToolObservation {
   profile: ToolExecutionProfile;
@@ -7665,6 +7769,7 @@ export interface ToolProfile {
   available: boolean;
   reason: string;
   reason_diagnostic?: DisplayDiagnostic | null;
+  maintenance?: ToolMaintenanceStatus;
 }
 export interface ToolProfileCommandRequest {
   project_id: string;

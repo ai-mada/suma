@@ -16,13 +16,14 @@ import (
 )
 
 type InventoryReport struct {
-	WorkerID    string           `json:"worker_id"`
-	OperationID string           `json:"operation_id"`
-	Items       []tc.Observation `json:"items"`
-	Acked       bool             `json:"acked"`
-	ObservedAt  string           `json:"observed_at,omitempty"`
-	ScopeSHA256 string           `json:"scope_sha256"`
-	Inspection  *ti.Reference    `json:"inspection,omitempty"`
+	WorkerID    string                        `json:"worker_id"`
+	OperationID string                        `json:"operation_id"`
+	Items       []tc.Observation              `json:"items"`
+	Acked       bool                          `json:"acked"`
+	ObservedAt  string                        `json:"observed_at,omitempty"`
+	ScopeSHA256 string                        `json:"scope_sha256"`
+	Inspection  *ti.Reference                 `json:"inspection,omitempty"`
+	Maintenance *ti.ToolMaintenanceCapability `json:"maintenance,omitempty"`
 }
 
 // InventoryScopeSHA256 binds local recovery to the original control endpoint,
@@ -83,6 +84,9 @@ func (j *Journal) loadInventory() error {
 	if report.Inspection != nil && ti.ValidateReference(*report.Inspection) != nil {
 		return fmt.Errorf("invalid inventory inspection reference")
 	}
+	if report.Maintenance != nil && ti.ValidateMaintenanceCapability(*report.Maintenance) != nil {
+		return fmt.Errorf("invalid inventory maintenance capability")
+	}
 	j.inventory = &report
 	return nil
 }
@@ -93,6 +97,9 @@ func (j *Journal) NewInventory(control, project, worker string, items []tc.Obser
 // The causal inspection reference and the full original inventory are written
 // together. A restart must not have to reconstruct which probe a report proves.
 func (j *Journal) newInspectionInventory(control, project, worker string, items []tc.Observation, inspection *ti.Reference) (InventoryReport, error) {
+	return j.newToolInventory(control, project, worker, items, inspection, nil)
+}
+func (j *Journal) newToolInventory(control, project, worker string, items []tc.Observation, inspection *ti.Reference, maintenance *ti.ToolMaintenanceCapability) (InventoryReport, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	if j.inventory != nil && !j.inventory.Acked {
@@ -108,6 +115,9 @@ func (j *Journal) newInspectionInventory(control, project, worker string, items 
 	if inspection != nil && ti.ValidateReference(*inspection) != nil {
 		return InventoryReport{}, fmt.Errorf("invalid inventory inspection reference")
 	}
+	if maintenance != nil && ti.ValidateMaintenanceCapability(*maintenance) != nil {
+		return InventoryReport{}, fmt.Errorf("invalid inventory maintenance capability")
+	}
 	seen := map[string]bool{}
 	for _, o := range items {
 		if err := tc.ValidateObservation(o); err != nil {
@@ -122,6 +132,7 @@ func (j *Journal) newInspectionInventory(control, project, worker string, items 
 		items = []tc.Observation{}
 	}
 	report := InventoryReport{WorkerID: worker, OperationID: operationID(), Items: cloneObservations(items), ScopeSHA256: scope}
+	report.Maintenance = cloneToolMaintenance(maintenance)
 	if inspection != nil {
 		copied := *inspection
 		report.Inspection = &copied
@@ -136,6 +147,7 @@ func (j *Journal) newInspectionInventory(control, project, worker string, items 
 	j.inventory = &report
 	returned := report
 	returned.Items = cloneObservations(report.Items)
+	returned.Maintenance = cloneToolMaintenance(report.Maintenance)
 	if report.Inspection != nil {
 		copied := *report.Inspection
 		returned.Inspection = &copied
@@ -150,6 +162,7 @@ func (j *Journal) PendingInventory() *InventoryReport {
 	}
 	report := *j.inventory
 	report.Items = cloneObservations(report.Items)
+	report.Maintenance = cloneToolMaintenance(report.Maintenance)
 	if report.Inspection != nil {
 		copied := *report.Inspection
 		report.Inspection = &copied
@@ -184,12 +197,19 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 		return "", fmt.Errorf("tool inventory belongs to a different or unknown control/project/worker scope")
 	}
 	var reply struct {
-		Acknowledged    bool          `json:"acknowledged"`
-		ObservedAt      string        `json:"observed_at"`
-		Inspection      *ti.Reference `json:"inspection"`
-		InspectionState string        `json:"inspection_state"`
+		Acknowledged    bool                          `json:"acknowledged"`
+		ObservedAt      string                        `json:"observed_at"`
+		Inspection      *ti.Reference                 `json:"inspection"`
+		InspectionState string                        `json:"inspection_state"`
+		Maintenance     *ti.ToolMaintenanceCapability `json:"maintenance"`
 	}
 	payload := map[string]any{"project_id": c.ProjectID, "worker_id": report.WorkerID, "operation_id": report.OperationID, "items": report.Items}
+	if report.Maintenance != nil {
+		if ti.ValidateMaintenanceCapability(*report.Maintenance) != nil {
+			return "", fmt.Errorf("invalid inventory maintenance capability")
+		}
+		payload["maintenance"] = report.Maintenance
+	}
 	if report.Inspection != nil {
 		if ti.ValidateReference(*report.Inspection) != nil {
 			return "", fmt.Errorf("invalid inventory inspection reference")
@@ -205,6 +225,13 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 	}
 	if !reply.Acknowledged {
 		return "", fmt.Errorf("inventory persistence was not acknowledged")
+	}
+	if report.Maintenance != nil {
+		if reply.Maintenance == nil || *reply.Maintenance != *report.Maintenance {
+			return "", fmt.Errorf("original maintenance capability was not acknowledged")
+		}
+	} else if reply.Maintenance != nil {
+		return "", fmt.Errorf("unrequested maintenance acknowledgement")
 	}
 	if report.Inspection != nil {
 		if reply.Inspection == nil || *reply.Inspection != *report.Inspection || reply.InspectionState != "completed" {
@@ -257,7 +284,7 @@ func (w *Worker) reportTools(ctx context.Context) (InventoryReport, bool, error)
 	if ctx.Err() != nil {
 		return InventoryReport{}, false, ctx.Err()
 	}
-	report, err := w.Journal.NewInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items)
+	report, err := w.Journal.newToolInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items, nil, w.maintenance)
 	if err != nil {
 		return InventoryReport{}, false, err
 	}

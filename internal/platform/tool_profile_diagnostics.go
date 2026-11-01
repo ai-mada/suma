@@ -48,6 +48,11 @@ func (s *Service) collectToolProfileObservationLockedTx(ctx context.Context, tx 
 		return finish(err)
 	}
 	report.CheckedAt = clock.UTC().Format(time.RFC3339Nano)
+	maintenance, _, err := s.toolMaintenanceStatusTx(ctx, tx, tenant, project, out.WorkerID, clock)
+	if err != nil {
+		return finish(err)
+	}
+	out.Maintenance = &maintenance
 	expires := clock.Add(60 * time.Second)
 	report.ExpiresAt = expires.UTC().Format(time.RFC3339Nano)
 	out.Available = false

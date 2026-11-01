@@ -1,0 +1,260 @@
+{
+  "stage": "T-TOOL-RECOVERY-195",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "checkbox_inventory": "Stable per-requirement mapping still required; current plan checkbox count is not the original baseline count."
+  },
+  "implementation": [
+    "原认证库存的持续维护协议与持久Journal逻辑owner声明；一次report-tools不宣支持，supported／expired／unsupported／unknown分明。",
+    "当前管理员一次300秒固定目的核对授权，原native停止证据→持久存证→节点先接纳原回执→同事务closed_unknown；不probe、kill、enable或接受任务。",
+    "原Windows Job与薄生命周期collector覆盖完整启动、normal／nonzero／cancel及有界Wait，原停止回执可跨重启读取，缺证据／Unix全树未知不假成功。",
+    "保留原unknown码及Started；source_changed不掩盖已开始状态，新管理员可处理旧发起人／配置变化，当前机器／Pool依据仍逐次核验。",
+    "中英维护能力及原请求恢复面板、准确体检次操作、单调时效与原详情显式刷新；打开弹窗不续期，不重建未知意图。"
+  ],
+  "verification": {
+    "distinct_top_level": 30,
+    "new_top_level": 17,
+    "affected_existing_top_level": 13,
+    "go_subcases": 3,
+    "control_top_level": 6,
+    "runner_top_level": 5,
+    "web_top_level": 16,
+    "root_contract_top_level": 2,
+    "actual_top_level": 1,
+    "root_receipts": [
+      {
+        "test": "TestToolRecoveryContractSeparatesProofClosureCapabilityAndExecution",
+        "command": ".cache/follow155/root-go/20261101T151428932Z.command.json",
+        "exit_code": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestToolReinspectionContractsKeepExactAuthorityAndNullableEmptyClaim",
+        "command": ".cache/follow155/root-go/20261101T151428932Z.command.json",
+        "exit_code": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestToolRecoveryActualWindowsWorkerRestartsAndLostClosureAcknowledgement",
+        "command": ".cache/follow155/root-go/20261101T154108536Z.command.json",
+        "exit_code": 0,
+        "package_passed": true
+      }
+    ],
+    "contract_generations": [
+      ".cache/follow155/root-go/20261101T151637264Z.command.json"
+    ],
+    "contract_checks": [
+      ".cache/follow155/root-go/20261101T154447972Z.command.json"
+    ],
+    "new_business_tables": 2,
+    "new_http_paths": [
+      "/pool-runner/tool-inspections/recovery",
+      "/pool-runner/tool-inspections/recovery/acknowledgements",
+      "/pool-runner/tool-inspections/recovery/proofs",
+      "/runner/tool-inspections/recovery",
+      "/runner/tool-inspections/recovery/acknowledgements",
+      "/runner/tool-inspections/recovery/proofs",
+      "/tool-inspection-recoveries/{id}",
+      "/tool-inspections/{id}/recoveries"
+    ],
+    "new_schemas": [
+      "PoolToolInspectionRecoveryAcknowledgementRequest",
+      "PoolToolInspectionRecoveryPollRequest",
+      "PoolToolInspectionRecoveryProofRequest",
+      "ToolInspectionRecovery",
+      "ToolInspectionRecoveryAcknowledgementRequest",
+      "ToolInspectionRecoveryCreateRequest",
+      "ToolInspectionRecoveryList",
+      "ToolInspectionRecoveryPoll",
+      "ToolInspectionRecoveryPollRequest",
+      "ToolInspectionRecoveryProofRequest",
+      "ToolInspectionStopProof",
+      "ToolMaintenanceCapability",
+      "ToolMaintenanceStatus"
+    ],
+    "initial_complete_typecheck_exit": 2,
+    "initial_type_diagnostics": 2,
+    "final_affected_semantic_diagnostics": 0,
+    "affected_semantic_files": [
+      "apps/web/src/tool-reinspection-model.ts",
+      "apps/web/src/tool-reinspection-model.test.ts",
+      "apps/web/src/ToolMaintenanceCapabilities.test.tsx"
+    ],
+    "paired_locale_keys": 9123,
+    "production_hardcodes": 0,
+    "isolated_component_builds": 2,
+    "gui_groups": 2,
+    "gui_native_hosts": 2,
+    "gui_native_exits": [
+      0,
+      0
+    ],
+    "actual_journeys": 2,
+    "first_actual_failure": "Acceptance fixture expected two native starts but collector correctly included three inventory Git probes; original five-tree source evidence retained, no product change.",
+    "final_actual_coverage_verified": true,
+    "full_suite_repeated": false,
+    "version_check": "Unchanged product1.0.0 packaging/identity sources reused"
+  },
+  "actual": {
+    "status": "actual_windows_http_sqlite_native_stop_and_three_worker_journal_lifetimes_confirmed",
+    "worker_lifetimes": 3,
+    "original_inspection_id": "f469fed266237f416f2c59bf5d486916",
+    "original_unknown_code": "probe_interrupted",
+    "closed_state": "closed_unknown",
+    "new_explicit_inspection_id": "bf65cf99656538c3275b1114b4ce46ed",
+    "new_state": "completed",
+    "probe_counts": {
+      "probe": 4,
+      "version": 4
+    },
+    "proof_owned_native_roots": 5,
+    "parent_handle_wait": 0,
+    "child_handle_wait": 0,
+    "ack_attempts": [
+      {
+        "operation": "c87296f22533315f4fcc215217dbffff",
+        "body_sha256": "c1374e9a9ced8b9ecf952e710acee3705ae540fb04a6785266fcbeeed71fa148",
+        "proof_sha256": "e34d7eb33a1bdf237d7130588f0e3f506a14e9a7220a82ef312b6d154e853cdf",
+        "expected_version": 2,
+        "probe_count": 2,
+        "status": 200
+      },
+      {
+        "operation": "c87296f22533315f4fcc215217dbffff",
+        "body_sha256": "c1374e9a9ced8b9ecf952e710acee3705ae540fb04a6785266fcbeeed71fa148",
+        "proof_sha256": "e34d7eb33a1bdf237d7130588f0e3f506a14e9a7220a82ef312b6d154e853cdf",
+        "expected_version": 2,
+        "probe_count": 2,
+        "status": 200
+      }
+    ],
+    "archive_retained": true,
+    "profile_state": "paused",
+    "business_runs": 0,
+    "commercial_calls": 0,
+    "customer_acceptance": false
+  },
+  "review": {
+    "remaining_confirmed_p1_p2": 0,
+    "started_superseded_contract_fixed": true,
+    "client_deadline_and_durable_intent_reviewed": true
+  },
+  "limits": [
+    "真实验收为本机Windows、SQLite、原Go Worker、Journal、Git及自有Node Harness探测；不是厂商账号／模型、完整Harness服务、其他OS或物理多机。",
+    "没有原durable stop receipt、完整启动覆盖或强树停止事实时，仍保持未知并引导显式隔离原身份／重新配对；隔离不声称停止外部进程。",
+    "当前凭证或Pool route／grant变化继续明确拒绝，不借历史能力扩大权限。过期last-known声明仅可用于有限核对，不用于新检查或健康认定。",
+    "OceanBase／PostgreSQL本轮为初始Schema及方言合同／源码覆盖，真实环境、安装包、规模与生产验收继续独立。",
+    "完整原31／P0–P7／58limited／34pending／92范围保持active；当前checkbox行与保留基线不等，不由局部阶段关闭整项。已发布知识检索断点另列下一切片，未虚报实现。"
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-recovery-195/control/summary.json",
+      "sha256": "b5f2a18e41cee45d13207b2c766798e98170f5c1790fbdbbf49f63426835baf2"
+    },
+    {
+      "path": ".cache/tool-recovery-195/control/source-manifest.json",
+      "sha256": "d58b79da619aa28b26428abd19ffef209813f874aace2e6432cdce2cf919bec6"
+    },
+    {
+      "path": ".cache/tool-recovery-195/control/actual-author-manifest.json",
+      "sha256": "92f5e5b7ea326ab083758d351759959a67d77ccae8c45591e7c98e8e32e8f2c4"
+    },
+    {
+      "path": ".cache/tool-recovery-195/runner/summary.json",
+      "sha256": "7a4bfeba05808e26b684f08ba93e1e4858535374a7957098a53666e33df1bccd"
+    },
+    {
+      "path": ".cache/tool-recovery-195/runner/source-manifest.json",
+      "sha256": "023bb462c97dd249b042c1fa0bb1d7aab89f63256fa41ef3a3cf0bdf464328d0"
+    },
+    {
+      "path": ".cache/tool-recovery-195/runner/verification.json",
+      "sha256": "07901578be08634768eea96967627492dfefb7daea04bd5f153824955a3850eb"
+    },
+    {
+      "path": ".cache/tool-recovery-195/web/integration-summary.json",
+      "sha256": "efd52afa209dec4dd895c9ba95dc85122e9006795a16ce10bcff6497aa39dfda"
+    },
+    {
+      "path": ".cache/tool-recovery-195/read-control.json",
+      "sha256": "dd1aecc74b56cca3e141d04661bedf779b98b8a04422e87d003a9ca010a39897"
+    },
+    {
+      "path": ".cache/tool-recovery-195/read-runner.json",
+      "sha256": "63f67eb56f6705490f106aba2911c2bd049680474068d88a99cebe1f9469d1a3"
+    },
+    {
+      "path": ".cache/tool-recovery-195/shared-review.json",
+      "sha256": "8279cd23ba37aa8d0bb3e6c4f58c195a44f99fcbcc3e03edd07d49e888ac5114"
+    },
+    {
+      "path": ".cache/tool-recovery-195/actual-source-before-count-fix.go",
+      "sha256": "24daf19ec4173f84ed6fe4ef29a002d21b472382296249102c1108cf01582bce"
+    },
+    {
+      "path": ".cache/tool-recovery-195/actual-final/receipt.json",
+      "sha256": "9900c51fc8ebe1623638df9af06e0a747a59df35a38bbfe523a4278d5aea7295"
+    },
+    {
+      "path": ".cache/tool-recovery-195/actual-final/private.sqlite",
+      "sha256": "a6ca4964cf858f0c2533867e5bdfb097f222e9ddc684f8f87485f49fd5ce1fa0"
+    },
+    {
+      "path": ".cache/tool-recovery-195/semantic-result.json",
+      "sha256": "da0c41743393d393b26801ee1184d809213585e7b6df6b5f97f27bef9a30f596"
+    },
+    {
+      "path": ".cache/tool-recovery-195/types.command.json",
+      "sha256": "26739d4b8f4e506a276fc6555a553bb88b59a76d275a8695a1722a86608cfe3f"
+    },
+    {
+      "path": ".cache/tool-recovery-195/i18n.command.json",
+      "sha256": "deb2257ee0abf533db6a723b07717705579f51ebf77a1c074c19e4ea0c50ce00"
+    },
+    {
+      "path": ".cache/tool-recovery-195/build-initial.command.json",
+      "sha256": "aec8124a81a19ccccd143429ac75bdd3569d53a9b8d04446a61ccffe51b80b38"
+    },
+    {
+      "path": ".cache/tool-recovery-195/build.command.json",
+      "sha256": "a3f17085572ffb34113669a1f9dcace0e687522af0336b96bd25c920936e4c33"
+    },
+    {
+      "path": ".cache/tool-recovery-195/gui-initial.command.json",
+      "sha256": "b2d414d22e8808db9f206eca8bccccc62535a1094913518218807a8556c45d4b"
+    },
+    {
+      "path": ".cache/tool-recovery-195/gui.command.json",
+      "sha256": "b0e43c058af7dcff4988f6cc1307c17d80ff449b1476abe085b23526ac5c1eab"
+    },
+    {
+      "path": ".cache/tool-recovery-195/visual/source-manifest.json",
+      "sha256": "7f90c48032cc06b6fb3b041cf3f21b432b98be38af0559abd21391131d3bf224"
+    },
+    {
+      "path": ".cache/tool-recovery-195/visual/result.json",
+      "sha256": "ef74afc063a227563c7270fef0c85ca13af212de5f2ac7bedada856eec2fe535"
+    },
+    {
+      "path": ".cache/tool-recovery-195/visual/result-final.json",
+      "sha256": "050a08663136595c1a02c4b99f14c5afa820b9d5a1f8e930387c8818f932a077"
+    },
+    {
+      "path": ".cache/tool-recovery-195/visual/cn-checks.png",
+      "sha256": "a4e6dab47ed94b56ad9995224addcc5f8035be0c908801c1f18ecf612dc8d6c3"
+    },
+    {
+      "path": ".cache/tool-recovery-195/visual/en-recovery.png",
+      "sha256": "2a7d95d90798e19fd94b69f8852fda32e6056893d8c9ec96c9b08f3927f2196c"
+    }
+  ]
+}
