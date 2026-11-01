@@ -227,7 +227,7 @@ func TestDesktopResultRecoveryLeavesMissingAndUnknownFacts(t *testing.T) {
 	if err = j.Accept(unfinished); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = j.NewInventory(worker, nil); err != nil {
+	if _, err = j.NewInventory("http://127.0.0.1:4310", project, worker, nil); err != nil {
 		t.Fatal(err)
 	}
 	_ = j.Close()

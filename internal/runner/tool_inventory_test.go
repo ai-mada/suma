@@ -16,29 +16,6 @@ import (
 )
 
 func TestToolInventoryLostAckKeepsOperationAcrossRestart(t *testing.T) {
-	dir := t.TempDir()
-	j, err := OpenJournal(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	items := []tc.Observation{{Profile: structuredProfile("suma-jsonl-v1"), Available: true}}
-	report, err := j.NewInventory("worker", items)
-	if err != nil {
-		t.Fatal(err)
-	}
-	old := report.OperationID
-	if _, err = j.NewInventory("worker", items); err == nil {
-		t.Fatal("pending operation overwritten")
-	}
-	_ = j.Close()
-	j, err = OpenJournal(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer j.Close()
-	if p := j.PendingInventory(); p == nil || p.OperationID != old {
-		t.Fatal("inventory replay identity lost")
-	}
 	received := []string{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/runner/tool-inventory" || r.Header.Get("Authorization") != "Bearer runner-token" {
@@ -58,6 +35,29 @@ func TestToolInventoryLostAckKeepsOperationAcrossRestart(t *testing.T) {
 		_, _ = w.Write([]byte(`{"acknowledged":true,"observed_at":"2026-10-24T03:00:00Z"}`))
 	}))
 	defer server.Close()
+	dir := t.TempDir()
+	j, err := OpenJournal(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := []tc.Observation{{Profile: structuredProfile("suma-jsonl-v1"), Available: true}}
+	report, err := j.NewInventory(server.URL, "p", "worker", items)
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := report.OperationID
+	if _, err = j.NewInventory(server.URL, "p", "worker", items); err == nil {
+		t.Fatal("pending operation overwritten")
+	}
+	_ = j.Close()
+	j, err = OpenJournal(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer j.Close()
+	if p := j.PendingInventory(); p == nil || p.OperationID != old {
+		t.Fatal("inventory replay identity lost")
+	}
 	c := Client{BaseURL: server.URL, Token: "runner-token", ProjectID: "p"}
 	observed, err := c.ToolInventory(context.Background(), *j.PendingInventory())
 	if err != nil {
@@ -66,7 +66,7 @@ func TestToolInventoryLostAckKeepsOperationAcrossRestart(t *testing.T) {
 	if err = j.AckInventory(old, observed); err != nil {
 		t.Fatal(err)
 	}
-	fresh, err := j.NewInventory("worker", items)
+	fresh, err := j.NewInventory(server.URL, "p", "worker", items)
 	if err != nil || fresh.OperationID == old {
 		t.Fatal("new TTL report reused old receipt")
 	}

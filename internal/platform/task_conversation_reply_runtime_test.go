@@ -459,7 +459,7 @@ func taskConversationReplyRuntimeHold(t *testing.T, f *fixture, code, source str
 						resultChannel <- taskConversationReplyRuntimeWorkerResult{Error: fmt.Errorf("GUI idle discovery: %w", e)}
 						return
 					}
-					report, e := journal.NewInventory(g.Profile.WorkerID, items)
+					report, e := journal.NewInventory(g.Client.BaseURL, g.Client.ProjectID, g.Profile.WorkerID, items)
 					if e == nil {
 						var observed string
 						observed, e = g.Client.ToolInventory(workerCtx, report)

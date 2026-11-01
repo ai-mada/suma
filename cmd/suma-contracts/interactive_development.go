@@ -49,6 +49,12 @@ func interactiveDevelopmentContracts(add operationAdder, api map[string]any) {
 			toolContractMap(schemas, model, "properties", name)[k] = v
 		}
 	}
+	// A discussion handoff uses the ordinary dispatcher's model policy. Fixed
+	// tool profiles may require neither selection; supplying both is forbidden
+	// by the shared schema generator and the current dispatch validation.
+	toolContractMap(schemas, "TaskDiscussionDevelopmentCreateRequest")["description"] = "Reviewed discussion handoff to a currently enabled writable development profile. Model selection is adapter-specific; fixed tool profiles may omit both selections. The server rechecks the original reply, knowledge pins and current dispatch authority before freezing the plan."
+	field("TaskDiscussionDevelopmentCreateRequest", "model_execution_selection", map[string]any{"description": "Platform model selection when required by the selected profile. Mutually exclusive with codex_execution_selection; absence is valid for a supported fixed-configuration tool."})
+	field("TaskDiscussionDevelopmentCreateRequest", "codex_execution_selection", map[string]any{"description": "Original Codex catalog selection when required by the selected profile. Mutually exclusive with model_execution_selection; Codex usage remains observe-only and does not imply a provider-enforced spending cap."})
 	for _, model := range []string{"WorkspaceTerminalCreateRequest", "WorkspaceTerminalCommandRequest", "TaskDiscussionDevelopmentCreateRequest", "WorkspaceTerminalRecoveryRequest", "WorkspaceTerminalCandidatePreviewRequest"} {
 		field(model, "project_id", map[string]any{"minLength": 1, "maxLength": 64})
 		field(model, "idempotency_key", map[string]any{"minLength": 1, "maxLength": 128})

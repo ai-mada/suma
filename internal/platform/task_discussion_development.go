@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 )
@@ -13,7 +14,7 @@ const (
 	discussionDevelopmentChanged = "The discussion development basis changed; review the current task and reply"
 	discussionDevelopmentSource  = "Select a verified completed assistant reply for the current task"
 	discussionDevelopmentConsent = "Confirm the reviewed plan, selected model budget and real workspace execution"
-	discussionDevelopmentProfile = "Select an enabled writable native workspace development profile"
+	discussionDevelopmentProfile = "Select an enabled writable workspace development profile"
 	discussionDevelopmentLimit   = "The reviewed development context exceeds 32000 UTF-8 bytes; reduce its scope"
 )
 
@@ -23,7 +24,9 @@ func validTaskDiscussionDevelopmentCreate(r TaskDiscussionDevelopmentCreateReque
 		r.ExpectedTaskVersion < 1 || r.ExpectedTaskVersion > 2147483646 || r.ExpectedReplyVersion < 1 || r.ExpectedReplyVersion > 2147483646 ||
 		r.WorkflowVersion < 1 || r.WorkflowVersion > 2147483646 || r.ExpectedToolVersion < 1 || r.ExpectedToolVersion > 2147483646 ||
 		!planningKey(r.IdempotencyKey) || !testPlanText(r.ReviewedGoal, 8000, true) ||
-		len(r.AcceptanceCriteria) < 1 || len(r.AcceptanceCriteria) > 32 || r.ModelExecutionSelection == nil || mc.ValidateSelection(*r.ModelExecutionSelection) != nil {
+		len(r.AcceptanceCriteria) < 1 || len(r.AcceptanceCriteria) > 32 ||
+		r.ModelExecutionSelection != nil && (r.CodexExecutionSelection != nil || mc.ValidateSelection(*r.ModelExecutionSelection) != nil) ||
+		r.CodexExecutionSelection != nil && cc.ValidateSelection(*r.CodexExecutionSelection) != nil {
 		return false
 	}
 	for _, criterion := range r.AcceptanceCriteria {
@@ -70,10 +73,13 @@ func (s *Service) CreateTaskDiscussionDevelopmentPlan(ctx context.Context, engin
 	if err != nil {
 		return out, err
 	}
-	if profile.State != "enabled" || profile.Profile.ReadOnly || profile.Profile.Adapter != "suma" || profile.Profile.Protocol != "suma-jsonl-v1" || profile.Profile.WorkspaceToolsVersion != "attempt-workspace-v1" || profile.Profile.ModelExecutionProtocol != mc.Protocol {
+	if profile.State != "enabled" || profile.Profile.ReadOnly {
 		return out, invalid(discussionDevelopmentProfile)
 	}
-	preview := TaskDispatchPreviewRequest{ProjectID: project, TaskID: request.TaskID, ExpectedTaskVersion: request.ExpectedTaskVersion, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: request.ToolProfileID, ExpectedToolVersion: request.ExpectedToolVersion, ModelExecutionSelection: request.ModelExecutionSelection, Knowledge: knowledgeReferences(reply.Source.Knowledge), IdempotencyKey: request.IdempotencyKey}
+	// The source helper has verified this exact assistant message and its sealed
+	// ordered dependencies. Feed only its original pins to the resolver before
+	// task context, model bindings and native skill attachments are frozen.
+	preview := TaskDispatchPreviewRequest{ProjectID: project, TaskID: request.TaskID, ExpectedTaskVersion: request.ExpectedTaskVersion, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: request.ToolProfileID, ExpectedToolVersion: request.ExpectedToolVersion, ModelExecutionSelection: request.ModelExecutionSelection, CodexExecutionSelection: request.CodexExecutionSelection, Knowledge: knowledgeReferences(reply.Source.Knowledge), IdempotencyKey: request.IdempotencyKey}
 	plan, err := s.buildTaskDispatchSnapshotTx(ctx, engine, auth, project, preview)
 	if err != nil {
 		return out, err
@@ -99,7 +105,7 @@ func (s *Service) CreateTaskDiscussionDevelopmentPlan(ctx context.Context, engin
 		node.Config["discussion_source_sha256"] = sourceDigest
 		found = true
 	}
-	if !found || plan.ModelExecution == nil || plan.ModelExecution.Protocol != mc.Protocol {
+	if !found {
 		return out, invalid(discussionDevelopmentProfile)
 	}
 	if err = dag.Compile(plan.Workflow); err != nil {
@@ -115,7 +121,7 @@ func (s *Service) CreateTaskDiscussionDevelopmentPlan(ctx context.Context, engin
 	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.commandActivity(ctx, auth, "task.discussion_development_prepared", out.TaskID, "Reviewed discussion plan prepared for native development"); err != nil {
+	if err = s.commandActivity(ctx, auth, "task.discussion_development_prepared", out.TaskID, "Reviewed discussion plan prepared for workspace development"); err != nil {
 		return out, err
 	}
 	return out, auth.tx.Commit()

@@ -35,12 +35,23 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	externalConfig := app.String("external-config", "", "管理员 JSON 配置：外部工作流插件端点和凭证环境变量名", "administrator JSON map of external workflow plugin endpoints and token environment names")
 	allow := app.Bool("allow-exec", false, "允许执行本地允许列表中的命令", "enable execution of local allowlisted commands")
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
+	prepareTools := app.String("prepare-tools", "", "将可自动配置的本机工具写入全新命令允许列表文件；不连接控制面或领取任务", "prepare local tool commands in a new allowlist file; no control connection or tasks")
+	reportTools := app.Bool("report-tools", false, "只上报或恢复一次原工具清单并退出，不领取任务", "report or recover exactly one tool inventory and exit without claiming tasks")
 	discoverInstalled := app.Bool("discover-installed-tools", false, "只读检测本机已安装的开发工具，不读取执行凭据或启动任务", "read-only detection of installed developer tools; no worker credentials or tasks")
 	describeACPModels := app.Bool("describe-acp-models-stdin", false, "由私有标准输入明确读取已选本机工具的模型目录；不派发任务", "explicitly discover the selected local tool model catalogue from private stdin; no task dispatch")
 	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli、qoder-acp、cursor-cli（仅被动文件检查）；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica, claude-code-cli, qoder-acp or cursor-cli (passive files only); empty selects all")
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if app.FlagProvided("prepare-tools") {
+		if toolModeHasAnyFlag(app, "control", "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "pool-config", "allow-exec", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "report-tools") {
+			return app.Failure("工具配置准备不能与执行器、工作区或其他模式混用", "Tool preparation cannot be combined with worker, workspace or another mode")
+		}
+		return runToolPreparation(app, *prepareTools, *localTool)
+	}
+	if app.FlagProvided("report-tools") && (!*reportTools || toolModeHasAnyFlag(app, "inspect-state", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "pool-config", "merge-preflight", "external-config", "local-tool")) {
+		return app.Failure("单次工具清单上报不能与其他模式、本机检测选择或外部流程配置混用", "Single tool inventory reporting cannot be combined with another mode, local discovery selection or external workflow configuration")
 	}
 	if *describeACPModels {
 		if *base != "http://127.0.0.1:4310" || *project != "" || *id != "" || *workspace != "." || *repository != "" || *baseCommit != "" || *worktrees != "" || *preflight != "" || *state != ".cache/runner" || *inspectState || *commands != "" || *modelDeployments != "" || *externalConfig != "" || *poolConfig != "" || *allow || *describe || *discoverInstalled || *localTool != "" {
@@ -55,7 +66,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		return runInstalledToolDiscovery(app, *localTool)
 	}
 	if *localTool != "" {
-		return app.Failure("--local-tool 只能与 --discover-installed-tools 使用", "--local-tool requires --discover-installed-tools")
+		return app.Failure("--local-tool 只能与 --discover-installed-tools 或 --prepare-tools 使用", "--local-tool requires --discover-installed-tools or --prepare-tools")
 	}
 	// This branch must precede every credential/configuration read and runtime
 	// OpenJournal call: opening a live journal can itself mutate durable state.
@@ -94,6 +105,26 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 			return fail(e)
 		}
 		return 0
+	}
+	// A pending report needs only its original identity and locked journal. The
+	// current commands file may have moved or become invalid after the lost ACK.
+	var reportJournal *runner.Journal
+	if *reportTools {
+		if *project == "" || *id == "" || app.Getenv("SUMA_RUNNER_TOKEN") == "" {
+			return app.Failure("必须提供 --project、--worker 和 SUMA_RUNNER_TOKEN；执行器须持有已登记的执行凭证", "--project, --worker and SUMA_RUNNER_TOKEN are required; worker must have a registered execution credential")
+		}
+		var openErr error
+		reportJournal, openErr = runner.OpenJournal(*state)
+		if openErr != nil {
+			return fail(openErr)
+		}
+		defer reportJournal.Close()
+		if reportJournal.PendingInventory() != nil {
+			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+			defer cancel()
+			worker := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: app.Getenv("SUMA_RUNNER_TOKEN"), ProjectID: *project}, Journal: reportJournal, ID: *id}
+			return runToolReport(ctx, app, &worker)
+		}
 	}
 	root, err := filepath.Abs(*workspace)
 	if err != nil {
@@ -136,11 +167,14 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	if *project == "" || *id == "" || app.Getenv("SUMA_RUNNER_TOKEN") == "" {
 		return app.Failure("必须提供 --project、--worker 和 SUMA_RUNNER_TOKEN；执行器须持有已登记的执行凭证", "--project, --worker and SUMA_RUNNER_TOKEN are required; worker must have a registered execution credential")
 	}
-	journal, err := runner.OpenJournal(*state)
-	if err != nil {
-		return fail(err)
+	journal := reportJournal
+	if journal == nil {
+		journal, err = runner.OpenJournal(*state)
+		if err != nil {
+			return fail(err)
+		}
+		defer journal.Close()
 	}
-	defer journal.Close()
 	external := map[string]runner.ExternalSpec{}
 	if *externalConfig != "" {
 		b, e := os.ReadFile(*externalConfig)
@@ -154,6 +188,9 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 	w := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: app.Getenv("SUMA_RUNNER_TOKEN"), ProjectID: *project}, Journal: journal, ID: *id, Exec: runner.ExecConfig{AllowExec: *allow, Workspace: root, Repository: *repository, BaseCommit: *baseCommit, WorktreeRoot: *worktrees, Commands: specs, ModelDeployments: localModels, External: external, Secrets: []string{app.Getenv("SUMA_RUNNER_TOKEN")}}}
+	if *reportTools {
+		return runToolReport(ctx, app, &w)
+	}
 	if err = w.Run(ctx); err != nil && ctx.Err() == nil {
 		return fail(err)
 	}

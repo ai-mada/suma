@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T181 shared automatic diagnostics, exact current-view read protection, CLI session verification, bilingual Workspace and scoped source/evidence delivery; full goal active",
+  "last_goal_turn_classification": "progress: T182 ordinary discussion development handoff, automatic Runner configuration and exact scoped single-report recovery, professional bilingual guide, focused checks and isolated GUI; full goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-DOCTOR-181",
+    "stage": "T-DEVELOPER-TOOL-HANDOFF-182",
     "status": "scoped_verified",
-    "contract": "contracts/tool-profile-diagnostics.md",
+    "contract": "contracts/developer-tool-handoff.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "priority": "Parallel implementation; mature domain/runtime reuse; simple bilingual onboarding; focused verification only.",
-    "next": "Continue remote/distributed adapters and effect recovery, complete tool/model handoff and the remaining project/team/knowledge/quality/operations platform domains."
+    "priority": "Parallel implementation; mature SDK/domain/runtime reuse; simple bilingual onboarding; only changed-contract checks.",
+    "next": "Continue automatic registration and configuration for remote/distributed tools, actual vendor/continuous development and remaining project/team/knowledge/quality/operations domains."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1061,6 +1061,30 @@
       "English interaction is checked at390x844 and captured at390x1200 in the same page; Chinese capture1366x1200. Fixture metadata was aligned only in the ignored copy, not in product source.",
       "Diagnostics are observations, not model sign-in, budget, execution, acceptance or deployment proof. Canonical raw reason/message-key protocol is preserved for localized display.",
       "Physical multi-host, OceanBase/PostgreSQL, full authenticated desktop, installer, production scale, other pending effects and all original31/P0-P7 requirements remain pending as applicable; stage171 explicit-stop GUI gap remains."
+    ]
+  },
+  "developer_tool_handoff": {
+    "stage": "T-DEVELOPER-TOOL-HANDOFF-182",
+    "status": "scoped_verified",
+    "contract": "contracts/developer-tool-handoff.md",
+    "report": "docs/quality/developer-tool-handoff-verification.md",
+    "summary": "docs/quality/developer-tool-handoff-summary.json",
+    "focused": 39,
+    "go_subcases": 35,
+    "synthetic_gui_checks": 5,
+    "implementation": [
+      "Reviewed discussion uses the ordinary dispatcher for eight currently supported structured writable development classes; platform/Codex model selections are mutually exclusive but fixed profiles may omit both. Exact original reply, knowledge, skill and current authority checks precede the immutable plan; Start remains explicit.",
+      "Runner prepares new non-secret command allowlists using the existing eight-entry detector; only four entries currently provide automatic commands. No overwrite, missing parents, links or empty success.",
+      "Single inventory report uses the registered credential, original locked journal and exact operation/ACK, never Worker.Run/Claim/task heartbeats. Pending recovery precedes reading a possibly missing or corrupt current configuration.",
+      "Inventory journal, normal report, single report, Client and read-only sidecar inspectors bind accurate control endpoint path/project/worker scope; missing or changed scope is preserved and rejected without backfill.",
+      "Original guide provides target-shell literal quoting, public scope and absolute repository/workspace/full baseline, credential environment reference and loopback guidance; copying never executes."
+    ],
+    "boundaries": [
+      "Runtime application/HTTP/SQLite tests use controlled local fixtures; GUI accounts, model directories, plans and run receipts are synthetic. No real vendor model, login, account, worker task or production approval was exercised.",
+      "Automatic command preparation currently supports codex-jsonl, codebuddy-cli, dsh-multica and claude-code-cli. Qoder ACP, Codex App Server and OpenCode SDK need their original configuration; Cursor remains detection-only.",
+      "Codex usage is observe-only; enforced-budget policies continue to block unsupported execution. Tool-owned defaults are not presented as a known fixed provider model.",
+      "Creation, real execution progress, candidate sealing, independent same-commit tests, formal acceptance, release and deployment are separate facts. Existing quality and handoff paths were preserved, not newly production-accepted by this stage.",
+      "Physical remote/distributed hosts, full authenticated desktop/SaaS, cross-platform install, databases/scale, other pending effects and the original31/P0-P7 remain in progress. The prior171 explicit-stop GUI gap remains."
     ]
   }
 }

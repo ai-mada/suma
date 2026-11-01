@@ -1,6 +1,9 @@
 package platform
 
-import mc "github.com/ai-mada/suma/internal/modelcontract"
+import (
+	cc "github.com/ai-mada/suma/internal/codexcontract"
+	mc "github.com/ai-mada/suma/internal/modelcontract"
+)
 
 // A reviewed discussion plan is an explicit development handoff. It reuses
 // TaskDispatchPlan, its fixed model budget, and the existing quality workflow.
@@ -17,7 +20,8 @@ type TaskDiscussionDevelopmentCreateRequest struct {
 	AgentNodeID             string        `json:"agent_node_id"`
 	ToolProfileID           string        `json:"tool_profile_id"`
 	ExpectedToolVersion     int           `json:"expected_tool_version"`
-	ModelExecutionSelection *mc.Selection `json:"model_execution_selection" wire:"nonnull"`
+	ModelExecutionSelection *mc.Selection `json:"model_execution_selection,omitempty" wire:"nonnull"`
+	CodexExecutionSelection *cc.Selection `json:"codex_execution_selection,omitempty" wire:"nonnull"`
 	ReviewedGoal            string        `json:"reviewed_goal"`
 	AcceptanceCriteria      []string      `json:"acceptance_criteria"`
 	AcknowledgeExecution    bool          `json:"acknowledge_execution"`

@@ -109,7 +109,7 @@ func TestPlanningInventoryPointerSnapshots(t *testing.T) {
 	p := structuredProfile("suma-jsonl-v1")
 	p.Planning = &tc.PlanningCapability{Protocol: tc.PlanningProtocol, Model: "fixed", EndpointOrigin: "https://models.example"}
 	items := []tc.Observation{{Profile: p, Available: true, Reason: "fixture"}}
-	report, err := j.NewInventory("worker", items)
+	report, err := j.NewInventory("http://127.0.0.1:4310", "project", "worker", items)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,6 @@
 # 速码 suma
 
-T-TOOL-DOCTOR-181新增[工具配置自动体检](contracts/tool-profile-diagnostics.md)：当前授权、节点身份、库存及完整配置分别核对，直接进入原处理入口，避免逐处猜测。CLI与界面共享当前读取断言、单调期限和原写入门禁。[架构与AI SOP](docs/architecture/tool-profile-diagnostics.md)及[限定验证](docs/quality/tool-profile-diagnostics-verification.md)记录真实范围。
+T-DEVELOPER-TOOL-HANDOFF-182打通[讨论到正式开发工具](contracts/developer-tool-handoff.md)：复用当前模型与技能、保存预览后明确启动；远程节点可自动准备配置、单次上报并准确恢复原回执。[架构与AI SOP](docs/architecture/developer-tool-handoff.md)、[简洁接入交互](docs/design/developer-tool-handoff.md)及[限定验证](docs/quality/developer-tool-handoff-verification.md)说明实际支持范围。
 
 **速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器、桌面与CLI入口。
 

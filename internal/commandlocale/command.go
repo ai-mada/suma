@@ -69,6 +69,18 @@ func (c *Command) Bool(name string, value bool, zh, en string) *bool {
 	return c.flags.Bool(name, value, en)
 }
 
+// FlagProvided distinguishes an explicit empty/false mode from an omitted flag.
+// Values and diagnostics remain owned by the original parser.
+func (c *Command) FlagProvided(name string) bool {
+	provided := false
+	c.flags.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			provided = true
+		}
+	})
+	return provided
+}
+
 // Parse resolves language before emitting diagnostics. The standard parser owns
 // value handling; help and version are ordinary flags so parsing remains read-only.
 // Raw parser errors are never echoed, because they can contain secret values.

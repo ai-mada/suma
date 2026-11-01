@@ -8,6 +8,7 @@ import {OpenCodeSetupGuide} from './OpenCodeSetupGuide';
 import {octopHarnessPreset} from './octop-execution-model';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {claudeCLIConfiguration,claudeCLIModel} from './claude-cli-model';
+import {RemoteRunnerSetupGuide} from './RemoteRunnerSetupGuide';
 
 type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation'|'claude'|'qoder'|'opencode';
 // These are local administrator templates, never a registration or live
@@ -77,6 +78,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetReque
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
+   <RemoteRunnerSetupGuide key={project||''} project={project}/>
   </div>
  </details>;
 }

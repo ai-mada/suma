@@ -198,7 +198,7 @@ func openDesktopRecovery(stateDir, project, worker, temp string) (*desktopRecove
 			}
 		case "tool-inventory.json":
 			var value InventoryReport
-			if desktopRenewalDecode(data, &value) != nil || !value.Acked {
+			if desktopRenewalDecode(data, &value) != nil || !desktopManagedHex(value.ScopeSHA256, 64) || !value.Acked {
 				s.unsupported = true
 			}
 		case "workspace-observations.json":

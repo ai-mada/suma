@@ -6194,7 +6194,8 @@ export interface TaskDiscussionDevelopmentCreateRequest {
   agent_node_id: string;
   tool_profile_id: string;
   expected_tool_version: number;
-  model_execution_selection: ModelSelection;
+  model_execution_selection?: ModelSelection;
+  codex_execution_selection?: CodexSelection;
   reviewed_goal: string;
   acceptance_criteria: (string)[];
   acknowledge_execution: boolean;

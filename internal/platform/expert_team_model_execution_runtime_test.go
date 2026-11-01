@@ -234,7 +234,11 @@ func TestExpertTeamModelSelectionActualRuntimeAndUsageLedger(t *testing.T) {
 				if e != nil {
 					t.Fatal(e)
 				}
-				if _, e = client.ToolInventory(ctx, runner.InventoryReport{WorkerID: profile.WorkerID, OperationID: newID(), Items: fresh}); e != nil {
+				scope, e := runner.InventoryScopeSHA256(client.BaseURL, client.ProjectID, profile.WorkerID)
+				if e != nil {
+					t.Fatal(e)
+				}
+				if _, e = client.ToolInventory(ctx, runner.InventoryReport{WorkerID: profile.WorkerID, OperationID: newID(), Items: fresh, ScopeSHA256: scope}); e != nil {
 					t.Fatal(e)
 				}
 				nextInventory = time.Now().Add(30 * time.Second)

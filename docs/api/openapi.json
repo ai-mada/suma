@@ -31291,6 +31291,13 @@
       },
       "TaskDiscussionDevelopmentCreateRequest": {
         "additionalProperties": false,
+        "description": "Reviewed discussion handoff to a currently enabled writable development profile. Model selection is adapter-specific; fixed tool profiles may omit both selections. The server rechecks the original reply, knowledge pins and current dispatch authority before freezing the plan.",
+        "not": {
+          "required": [
+            "model_execution_selection",
+            "codex_execution_selection"
+          ]
+        },
         "properties": {
           "acceptance_criteria": {
             "items": {
@@ -31303,6 +31310,10 @@
           },
           "agent_node_id": {
             "type": "string"
+          },
+          "codex_execution_selection": {
+            "$ref": "#/components/schemas/CodexSelection",
+            "description": "Original Codex catalog selection when required by the selected profile. Mutually exclusive with model_execution_selection; Codex usage remains observe-only and does not imply a provider-enforced spending cap."
           },
           "expected_reply_version": {
             "type": "integer"
@@ -31319,7 +31330,8 @@
             "type": "string"
           },
           "model_execution_selection": {
-            "$ref": "#/components/schemas/ModelSelection"
+            "$ref": "#/components/schemas/ModelSelection",
+            "description": "Platform model selection when required by the selected profile. Mutually exclusive with codex_execution_selection; absence is valid for a supported fixed-configuration tool."
           },
           "project_id": {
             "maxLength": 64,
@@ -31356,7 +31368,6 @@
           "agent_node_id",
           "tool_profile_id",
           "expected_tool_version",
-          "model_execution_selection",
           "reviewed_goal",
           "acceptance_criteria",
           "acknowledge_execution",

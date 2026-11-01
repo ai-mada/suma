@@ -128,7 +128,7 @@ func TestDesktopRunnerRenewalCheckPreservesUnknownAndPendingReceipts(t *testing.
 					want = "unknown_outcome"
 				}
 			case "pending-inventory":
-				_, err = j.NewInventory("worker178", nil)
+				_, err = j.NewInventory("http://127.0.0.1:44178", "project178", "worker178", nil)
 			case "pending-claim":
 				_, err = j.BeginClaim("http://127.0.0.1:44178", "project178", "worker178", nil)
 			}

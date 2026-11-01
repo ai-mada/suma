@@ -286,7 +286,7 @@ func TestModelExecutionJournalPreservesOriginalInventoryAndReceipt(t *testing.T)
 	}
 	defer journal.Close()
 	items := []tc.Observation{{Profile: profile, Available: true, ModelDeployments: []mc.Deployment{binding.Deployment}}}
-	report, err := journal.NewInventory("worker", items)
+	report, err := journal.NewInventory("http://127.0.0.1:4310", "project", "worker", items)
 	if err != nil {
 		t.Fatal(err)
 	}

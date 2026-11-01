@@ -45,7 +45,7 @@ var interactiveDevelopmentCatalog = func() []Definition {
 		{"handoff_changed", "The discussion development basis changed; review the current task and reply", "讨论开发依据已变化，请审阅当前任务和回复"},
 		{"handoff_source", "Select a verified completed assistant reply for the current task", "请选择当前任务已核验完成的智能体回复"},
 		{"handoff_consent", "Confirm the reviewed plan, selected model budget and real workspace execution", "请确认审阅后的计划、模型预算及实际工作区执行"},
-		{"handoff_profile", "Select an enabled writable native workspace development profile", "请选择已启用且支持原生工作区写入的开发配置"},
+		{"handoff_profile", "Select an enabled writable workspace development profile", "请选择已启用且支持工作区写入的开发配置"},
 		{"handoff_limit", "The reviewed development context exceeds 32000 UTF-8 bytes; reduce its scope", "已审阅的开发上下文超过32000个UTF-8字节，请缩小范围"},
 		{"recovery_approved", "The original terminal was reviewed and closed without replay", "原终端已审阅并结束，未重放输入"},
 		{"recovery_wait", "Wait for the original terminal attempt to require reconciliation", "请等待原终端执行进入待核对状态"},

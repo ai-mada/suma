@@ -167,7 +167,7 @@ func InspectDesktopRunnerRenewalState(stateDirectory string) DesktopRunnerRenewa
 	}
 	if raw := rawFiles["tool-inventory.json"]; raw != nil {
 		var inventory InventoryReport
-		if desktopRenewalDecode(raw, &inventory) != nil || inventory.WorkerID == "" || len(inventory.OperationID) != 32 || inventory.Items == nil || len(inventory.Items) > 128 {
+		if desktopRenewalDecode(raw, &inventory) != nil || inventory.WorkerID == "" || len(inventory.OperationID) != 32 || !tc.ValidDigest(inventory.ScopeSHA256) || inventory.Items == nil || len(inventory.Items) > 128 {
 			add("invalid_state")
 		} else {
 			for _, item := range inventory.Items {

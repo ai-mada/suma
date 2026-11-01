@@ -113,7 +113,7 @@ func TestFailureDiagnosisActualProbeFullFinalUsageDriftAndInventoryClone(t *test
 		t.Fatal(err)
 	}
 	defer j.Close()
-	report, err := j.NewInventory("worker", items)
+	report, err := j.NewInventory("http://127.0.0.1:4310", "project", "worker", items)
 	if err != nil {
 		t.Fatal(err)
 	}

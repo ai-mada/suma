@@ -1,0 +1,182 @@
+{
+  "stage": "T-DEVELOPER-TOOL-HANDOFF-182",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Reviewed discussion uses the ordinary dispatcher for eight currently supported structured writable development classes; platform/Codex model selections are mutually exclusive but fixed profiles may omit both. Exact original reply, knowledge, skill and current authority checks precede the immutable plan; Start remains explicit.",
+    "Runner prepares new non-secret command allowlists using the existing eight-entry detector; only four entries currently provide automatic commands. No overwrite, missing parents, links or empty success.",
+    "Single inventory report uses the registered credential, original locked journal and exact operation/ACK, never Worker.Run/Claim/task heartbeats. Pending recovery precedes reading a possibly missing or corrupt current configuration.",
+    "Inventory journal, normal report, single report, Client and read-only sidecar inspectors bind accurate control endpoint path/project/worker scope; missing or changed scope is preserved and rejected without backfill.",
+    "Original guide provides target-shell literal quoting, public scope and absolute repository/workspace/full baseline, credential environment reference and loopback guidance; copying never executes."
+  ],
+  "verification": {
+    "distinct_top_level": 39,
+    "new_top_level": 27,
+    "affected_existing_top_level": 12,
+    "go_top_level": 28,
+    "web_top_level": 11,
+    "go_subcases": 35,
+    "backend": {
+      "top_level": 7,
+      "new": 3,
+      "affected": 4,
+      "subcases": 6
+    },
+    "runtime": {
+      "top_level": 20,
+      "new": 14,
+      "affected": 6,
+      "subcases": 29
+    },
+    "web": {
+      "top_level": 11,
+      "new": 9,
+      "affected": 2
+    },
+    "root_contract": {
+      "top_level": 1,
+      "new": 1
+    },
+    "typescript_runs": 1,
+    "typescript_exit": 0,
+    "i18n_runs": 1,
+    "paired_keys": 8559,
+    "source_hardcodes": 0,
+    "contract_generation_runs": 1,
+    "gui_checks": 5,
+    "gui_native_launches": 1,
+    "gui_exit": 0,
+    "gui_images_root_viewed": 2,
+    "full_suite_runs": 0,
+    "provider_model_calls": 0,
+    "independent_candidate_chain": "unchanged evidence reused; not rerun"
+  },
+  "integration": {
+    "generated_files": [
+      "docs/api/openapi.json",
+      "packages/contracts/src/index.ts"
+    ],
+    "formatting": [
+      {
+        "path": "cmd/suma-runner/main.go",
+        "owner_sha256": "d17dbc232b3556e4c414715438af99e861bf0f539def751f59f13ea29f9876dd",
+        "integrated_sha256": "08c830b37fe4d39300da3135b290eddce9d3b60d50ca9e5dd9a90143b14c8d74",
+        "change": "Root gofmt only; no semantic source edits"
+      }
+    ],
+    "component_bundle_invocations": 2,
+    "first_bundle": "Completed before the late exact-workspace source fix.",
+    "second_bundle": "Final assets emitted after the changed workspace input; helper exclusive HTML copy reported EEXIST. Existing HTML was byte-identical and hashes were checked, without a third build.",
+    "sdk_rebuilds": 0,
+    "business_binary_builds": 0
+  },
+  "failures_retained": [
+    "Initial default Go/toolchain lock/network failures occurred before tests; subsequent commands used the pinned offline wrapper.",
+    "Expected RED demonstrated discussion native-only and mandatory model gates, missing Runner modes and required workspace flags. Only affected cases were repeated after fixes.",
+    "An initial test fixture omitted Accept before Finish; the fixture was corrected. Windows os.Symlink privilege failure was replaced by an owned real junction fixture and the exact case passed.",
+    "The platform test binary link failed when D was full after source compilation; selected cmd/runner tests passed in the same batch. No platform suite was repeated. Subsequent public contract generation and contract test linked current production platform successfully.",
+    "Only24 verified old reproducible Go cache objects were removed with path/size/SHA audit, freeing1420071400 bytes; no source, unique evidence or original WIP was removed.",
+    "Initial GUI driver access to the host Playwright installation was denied by the workspace boundary; the authorized isolated host-browser run completed normally."
+  ],
+  "boundaries": [
+    "Runtime application/HTTP/SQLite tests use controlled local fixtures; GUI accounts, model directories, plans and run receipts are synthetic. No real vendor model, login, account, worker task or production approval was exercised.",
+    "Automatic command preparation currently supports codex-jsonl, codebuddy-cli, dsh-multica and claude-code-cli. Qoder ACP, Codex App Server and OpenCode SDK need their original configuration; Cursor remains detection-only.",
+    "Codex usage is observe-only; enforced-budget policies continue to block unsupported execution. Tool-owned defaults are not presented as a known fixed provider model.",
+    "Creation, real execution progress, candidate sealing, independent same-commit tests, formal acceptance, release and deployment are separate facts. Existing quality and handoff paths were preserved, not newly production-accepted by this stage.",
+    "Physical remote/distributed hosts, full authenticated desktop/SaaS, cross-platform install, databases/scale, other pending effects and the original31/P0-P7 remain in progress. The prior171 explicit-stop GUI gap remains."
+  ],
+  "hygiene": {
+    "protected_original_files": 21,
+    "raw_unchanged": 21,
+    "partial_staging": false,
+    "secrets_in_git": false,
+    "cache_or_temporary_files_in_git": false
+  },
+  "evidence": [
+    {
+      "path": ".cache/developer-handoff-182/platform/summary.json",
+      "sha256": "30108524453b49d69a41fbe41a4289b2a9a1cbe33a63e1f558169e95cf4d5393"
+    },
+    {
+      "path": ".cache/developer-handoff-182/platform/source-manifest.json",
+      "sha256": "4314ac934bf10da0126cb1497d6ad30e6fd3975403fa9c1a8ade569d0fc52495"
+    },
+    {
+      "path": ".cache/developer-handoff-182/platform/EVIDENCE.md",
+      "sha256": "ed26df45a162d79747bed2013be044ca54d98efa26812b54ad346ca79738eee7"
+    },
+    {
+      "path": ".cache/developer-handoff-182/runtime/summary.json",
+      "sha256": "7d063ec18569df92e482ddc596e565855b8ccd5d6c8b828e14bb5ed4bf87695b"
+    },
+    {
+      "path": ".cache/developer-handoff-182/runtime/source-manifest.json",
+      "sha256": "46d7087b4baa7dc7cbb80b4fce9c4f8751e9b8cc9813c364b81fa8b9eb3b244a"
+    },
+    {
+      "path": ".cache/developer-handoff-182/runtime/EVIDENCE.md",
+      "sha256": "864d1e19ffc13aa47b3055579244ef42ed5184c249d85a30d6d1e108f4cb6538"
+    },
+    {
+      "path": ".cache/developer-handoff-182/web/web182-summary.json",
+      "sha256": "a10bd95e1b61d38d7fce8d859bfdd687ce998b79f27717d3a99abcbb221f1e35"
+    },
+    {
+      "path": ".cache/developer-handoff-182/web/discussion182-summary.json",
+      "sha256": "c6fb8f8d0fbf34fce509fe61d3069dc5d1b29b0d64916d0c5f2337a466ccc8fd"
+    },
+    {
+      "path": ".cache/developer-handoff-182/web/remote182-summary.json",
+      "sha256": "cf1703c075c1522ad4c26fa2ea46596948aa0925e098899cf8699408d0f90043"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T030851507Z.command.json",
+      "sha256": "d07c2c8690d933455cf9efdb9e43f513e635395ce92e18819004a259d67e6de0"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T030919417Z.command.json",
+      "sha256": "9e5841987b0fb4ffa7214bd26c661185007b47ac4accb24ea8c30d8e99860bc6"
+    },
+    {
+      "path": ".cache/developer-handoff-182/types.command.json",
+      "sha256": "da60657a44fd7456ebc96b5c48a7b773b863c286a1e212faa843f6cf43b98eb4"
+    },
+    {
+      "path": ".cache/developer-handoff-182/i18n.command.json",
+      "sha256": "b274f73f1d5dd92bc08ba69a8a02b61b871767b25f95a668bd88809c101ec973"
+    },
+    {
+      "path": ".cache/developer-handoff-182/visual/result.json",
+      "sha256": "5cae176a86727754abb84039e06828bcada0e545aa4c23f55a328788d426980b"
+    },
+    {
+      "path": ".cache/developer-handoff-182/visual/bundle-finalization.json",
+      "sha256": "6144a0ed3a3f20dc5df51b314826f3bcd70cd9e3d5013a5ef8e27024ab640788"
+    },
+    {
+      "path": ".cache/developer-handoff-182/cache-cleanup-audit.json",
+      "sha256": "8d33979a28d4d5f9ee493ba6d43ce9685a921aa41e87150d619d68046408408f"
+    }
+  ],
+  "images": [
+    {
+      "path": ".cache/developer-handoff-182/visual/cn-discussion-preview.png",
+      "sha256": "a52bb2f1c539026abd3f347f97d6a31fb7cfe01b3192ca7222d773868c25ec5d",
+      "root_viewed": true
+    },
+    {
+      "path": ".cache/developer-handoff-182/visual/en-390-remote-guide.png",
+      "sha256": "a8181a92821fed60e3d611b1a0dc67c154676650bcc162299a6969b80c929b35",
+      "root_viewed": true
+    }
+  ]
+}

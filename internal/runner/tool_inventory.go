@@ -20,6 +20,22 @@ type InventoryReport struct {
 	Items       []tc.Observation `json:"items"`
 	Acked       bool             `json:"acked"`
 	ObservedAt  string           `json:"observed_at,omitempty"`
+	ScopeSHA256 string           `json:"scope_sha256"`
+}
+
+// InventoryScopeSHA256 binds local recovery to the original control endpoint,
+// project and registered worker. Credentials may renew without changing scope.
+func InventoryScopeSHA256(control, project, worker string) (string, error) {
+	origin, err := cloudControlOrigin(control)
+	if err != nil || !localToolSafeText(project, 100) || !localToolSafeText(worker, 100) {
+		return "", fmt.Errorf("invalid inventory control/project/worker scope")
+	}
+	raw, _ := json.Marshal(struct {
+		Control string `json:"control_url"`
+		Project string `json:"project_id"`
+		Worker  string `json:"worker_id"`
+	}{origin, project, worker})
+	return digest(raw), nil
 }
 
 func cloneObservations(items []tc.Observation) []tc.Observation {
@@ -54,7 +70,7 @@ func (j *Journal) loadInventory() error {
 		return err
 	}
 	var report InventoryReport
-	if err = json.Unmarshal(b, &report); err != nil || report.WorkerID == "" || report.OperationID == "" || len(report.Items) > 128 {
+	if err = json.Unmarshal(b, &report); err != nil || report.WorkerID == "" || report.OperationID == "" || !tc.ValidDigest(report.ScopeSHA256) || len(report.Items) > 128 {
 		return fmt.Errorf("invalid inventory journal")
 	}
 	for _, o := range report.Items {
@@ -65,11 +81,15 @@ func (j *Journal) loadInventory() error {
 	j.inventory = &report
 	return nil
 }
-func (j *Journal) NewInventory(worker string, items []tc.Observation) (InventoryReport, error) {
+func (j *Journal) NewInventory(control, project, worker string, items []tc.Observation) (InventoryReport, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	if j.inventory != nil && !j.inventory.Acked {
 		return InventoryReport{}, fmt.Errorf("pending inventory must recover its original operation")
+	}
+	scope, err := InventoryScopeSHA256(control, project, worker)
+	if err != nil {
+		return InventoryReport{}, err
 	}
 	if worker == "" || len(worker) > 100 || len(items) > 128 {
 		return InventoryReport{}, fmt.Errorf("invalid inventory identity or size")
@@ -87,7 +107,7 @@ func (j *Journal) NewInventory(worker string, items []tc.Observation) (Inventory
 	if items == nil {
 		items = []tc.Observation{}
 	}
-	report := InventoryReport{WorkerID: worker, OperationID: operationID(), Items: cloneObservations(items)}
+	report := InventoryReport{WorkerID: worker, OperationID: operationID(), Items: cloneObservations(items), ScopeSHA256: scope}
 	b, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {
 		return InventoryReport{}, err
@@ -133,6 +153,10 @@ func (j *Journal) AckInventory(operationID, observed string) error {
 	return nil
 }
 func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (string, error) {
+	scope, err := InventoryScopeSHA256(c.BaseURL, c.ProjectID, report.WorkerID)
+	if err != nil || report.ScopeSHA256 != scope {
+		return "", fmt.Errorf("tool inventory belongs to a different or unknown control/project/worker scope")
+	}
 	var reply struct {
 		Acknowledged bool   `json:"acknowledged"`
 		ObservedAt   string `json:"observed_at"`
@@ -141,7 +165,7 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 	if c.Pool != nil {
 		delete(payload, "worker_id")
 	}
-	err := c.post(ctx, "tool-inventory", payload, &reply)
+	err = c.post(ctx, "tool-inventory", payload, &reply)
 	if err != nil {
 		return "", err
 	}
@@ -153,36 +177,64 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 	}
 	return reply.ObservedAt, nil
 }
-func (w *Worker) refreshInventory(ctx context.Context) error {
+
+// ReportTools persists or recovers exactly one inventory operation and returns.
+// It never starts the Worker loop, claims work, or replays another journal.
+// A recovered ACK is returned as-is, without probing or issuing a fresh report.
+func (w *Worker) ReportTools(ctx context.Context) (InventoryReport, bool, error) {
+	if w.Client == nil || w.Journal == nil {
+		return InventoryReport{}, false, fmt.Errorf("Runner client and durable journal are required")
+	}
+	scope, err := InventoryScopeSHA256(w.Client.BaseURL, w.Client.ProjectID, w.ID)
+	if err != nil {
+		return InventoryReport{}, false, err
+	}
 	if pending := w.Journal.PendingInventory(); pending != nil {
-		if pending.WorkerID != w.ID {
-			return fmt.Errorf("pending tool inventory belongs to another worker")
+		if pending.WorkerID != w.ID || pending.ScopeSHA256 != scope {
+			return InventoryReport{}, true, fmt.Errorf("pending tool inventory belongs to a different or unknown control/project/worker scope")
 		}
-		observed, err := w.Client.ToolInventory(ctx, *pending)
-		if err != nil {
-			return fmt.Errorf("recover tool inventory (registered worker credential required): %w", err)
-		}
-		if err = w.Journal.AckInventory(pending.OperationID, observed); err != nil {
-			return err
-		}
+		report, err := w.acknowledgeInventory(ctx, *pending)
+		return report, true, err
 	}
 	items, err := DescribeTools(ctx, w.Exec)
 	if err != nil {
-		return err
+		return InventoryReport{}, false, err
 	}
-	report, err := w.Journal.NewInventory(w.ID, items)
+	report, err := w.Journal.NewInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items)
 	if err != nil {
-		return err
+		return InventoryReport{}, false, err
 	}
+	report, err = w.acknowledgeInventory(ctx, report)
+	return report, false, err
+}
+
+func (w *Worker) acknowledgeInventory(ctx context.Context, report InventoryReport) (InventoryReport, error) {
 	observed, err := w.Client.ToolInventory(ctx, report)
 	if err != nil {
-		return fmt.Errorf("report tool inventory (registered worker credential required): %w", err)
+		return InventoryReport{}, fmt.Errorf("report tool inventory (registered worker credential required): %w", err)
 	}
 	if err = w.Journal.AckInventory(report.OperationID, observed); err != nil {
+		return InventoryReport{}, err
+	}
+	report.Acked, report.ObservedAt = true, observed
+	return report, nil
+}
+
+func (w *Worker) refreshInventory(ctx context.Context) error {
+	report, recovered, err := w.ReportTools(ctx)
+	if err != nil {
 		return err
 	}
+	// The continuous worker still refreshes current observations after recovering
+	// an older report. Only the explicit single-step mode stops at that ACK.
+	if recovered {
+		report, _, err = w.ReportTools(ctx)
+		if err != nil {
+			return err
+		}
+	}
 	w.inventoryMu.Lock()
-	w.inventory = items
+	w.inventory = report.Items
 	w.inventoryReady = true
 	w.inventoryMu.Unlock()
 	return nil

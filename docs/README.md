@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [开发工具交接与远端接入](product/developer-tool-handoff.md) · [合同](../contracts/developer-tool-handoff.md) · [架构与AI SOP](architecture/developer-tool-handoff.md) · [交互](design/developer-tool-handoff.md) · [English](en/developer-tool-handoff.md) · [报告](quality/developer-tool-handoff-verification.md)：讨论复用正式派发；自动配置、单次上报与作用域恢复各循原门禁，完整平台继续交付。
+
 - [工具配置自动体检](product/tool-profile-diagnostics.md) · [合同](../contracts/tool-profile-diagnostics.md) · [架构与AI SOP](architecture/tool-profile-diagnostics.md) · [交互](design/tool-profile-diagnostics.md) · [English](en/tool-profile-diagnostics.md) · [限定报告](quality/tool-profile-diagnostics-verification.md)：T181自动核对四项当前事实，沿原版本审核和准确节点入口处理；27定向与6合成界面检查通过，完整目标保持进行中。
 
 - [工具配置复用](product/tool-profile-reuse.md) · [合同](../contracts/tool-profile-reuse.md) · [架构与AI SOP](architecture/tool-profile-reuse.md) · [交互](design/tool-profile-reuse.md) · [English](en/tool-profile-reuse.md) · [限定验证](quality/tool-profile-reuse-verification.md)：T180自动查找完整相同配置，保留原写入恢复与明确启用；22定向、真实CLI会话HTTP及6合成界面检查通过。

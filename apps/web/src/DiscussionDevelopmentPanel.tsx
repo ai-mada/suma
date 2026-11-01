@@ -15,6 +15,9 @@ import {useReplyRead} from './task-conversation-reply-hooks';
 import {dispatchOptionsPath, validDispatchOptions, type DispatchOptionsScope} from './task-dispatch-options-model';
 import {developmentCriteria, developmentGoal, validDiscussionDevelopment, validDiscussionDevelopmentReceipt, validDiscussionDevelopmentRequest} from './discussion-development-model';
 import {validManagedTaskDispatchRun} from './task-dispatch-response';
+import {sameToolProfile} from './tool-profile-reuse-model';
+import {ExecutionModelFacts} from './ExecutionModelFacts';
+import {CodexNativeSkillFacts} from './CodexNativeSkillFacts';
 import './DiscussionDevelopmentPanel.css';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('discussion-development.' + key, values);
@@ -25,9 +28,6 @@ const object = (value: unknown): value is Record<string, unknown> => !!value && 
 const validWorkflows = (value: unknown): value is {items: Workflow[]} => object(value) && Array.isArray(value.items) &&
   value.items.length <= 1000 && value.items.every(item => object(item) && identifier(item.id) && Number.isSafeInteger(item.version) &&
     Number(item.version) > 0 && typeof item.name === 'string' && Array.isArray(item.nodes) && item.nodes.every(node => object(node) && typeof node.id === 'string' && typeof node.type === 'string'));
-const nativeCoding = (tool: ToolProfile) => tool.state === 'enabled' && tool.available && tool.profile.adapter === 'suma' &&
-  tool.profile.protocol === 'suma-jsonl-v1' && !tool.profile.read_only && tool.profile.workspace_tools_version === 'attempt-workspace-v1' &&
-  tool.profile.model_execution_protocol === 'suma-model-execution-v1';
 
 /** A reviewed reply becomes provenance for the original dispatch preview. The
  * fixed development run starts only through the separate explicit action. */
@@ -70,13 +70,16 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
   const planRead = useReplyRead('/task-discussion-development-plans/' + encodeURIComponent(selected) + query(project),
     !!selected && !blocked, (value): value is TaskDiscussionDevelopmentPlan => validDiscussionDevelopment(value, project, taskId), refuse, refresh);
   const plan = planRead.value || (created?.id === selected ? created : undefined);
-  const tools = options.value?.items.filter(item => item.eligible && nativeCoding(item.tool)).map(item => item.tool) || [];
+  const tools = options.value?.items.filter(item => item.eligible && !item.tool.profile.read_only).map(item => item.tool) || [];
+  const currentProfile = profile && tools.find(tool => tool.id === profile.id && tool.version === profile.version && tool.worker_id === profile.worker_id && sameToolProfile(tool.profile, profile.profile));
+  const modelRequired = profile?.profile.model_execution_protocol === 'suma-model-execution-v1', codexRequired = profile?.profile.protocol === 'codex-app-server-v1';
+  const modelReady = !(modelRequired && codexRequired) && (modelRequired ? model.ready && !!model.selection && !model.codexSelection : codexRequired ? model.ready && !!model.codexSelection && !model.selection : !model.selection && !model.codexSelection);
   const message = page?.items.find(item => item.id === reply.message_id && item.reply_id === reply.id && item.actor_kind === 'assistant');
   const seeded = useRef(false);
   const checks = criteria.split('\n').map(value => value.trim()).filter(Boolean);
   const readyReply = reply.state === 'completed' && reply.basis_current && !!page?.can_post && page.task_id === taskId;
   const canPrepare = !blocked && !disabled && !locked && !action.conflict && !action.persistenceBlocked && readyReply &&
-    !!flow && !!agent && !!profile && !!model.selection && model.ready && consent && developmentGoal(goal) && developmentCriteria(checks) &&
+    !!flow && !!agent && !!currentProfile && modelReady && consent && developmentGoal(goal) && developmentCriteria(checks) &&
     !options.loading && !options.error && !workflows.loading && !workflows.error;
   const modelChange = useCallback((value: ModelChoice) => {setModel(value); setConsent(false);}, []);
   useEffect(() => {alive.current = true; return () => {alive.current = false; callback.current.onLockChange(false);};}, []);
@@ -92,12 +95,13 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
     try {storage?.setItem(locator, value.id);} catch {action.setError(new UiError('task-reply.locator_unavailable'));}
   }
   async function prepare() {
-    if (!canPrepare || !page || !flow || !profile || !model.selection) return;
+    if (!canPrepare || !page || !flow || !currentProfile) return;
     const caller = api;
     const value = await action.run<TaskDiscussionDevelopmentPlan>('/task-discussion-development-plans', {project_id: project, task_id: taskId,
       expected_task_version: page.task_version, reply_id: reply.id, expected_reply_version: reply.version,
       workflow_id: flow.id, workflow_version: flow.version, agent_node_id: agent, tool_profile_id: profile.id,
-      expected_tool_version: profile.version, model_execution_selection: model.selection, reviewed_goal: goal,
+      expected_tool_version: profile.version, ...(modelRequired && model.selection ? {model_execution_selection: model.selection} : {}),
+      ...(codexRequired && model.codexSelection ? {codex_execution_selection: model.codexSelection} : {}), reviewed_goal: goal,
       acceptance_criteria: checks, acknowledge_execution: true});
     if (value && alive.current && owner.current === caller) remember(value);
   }
@@ -124,13 +128,15 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
       <p className="discussion-development-note">{t('intro')}</p>
       {blocked ? <p role="alert" className="discussion-development-warning">{t('access')}</p> : <>
         <WriteNotice action={action} onRebase={async () => {await planRead.read(); setRefresh(value => value + 1); setConsent(false); setStartConsent(false);}}/>
-        {action.pending && <div role="status"><p>{t('pending')}</p><button type="button" disabled={action.busy || disabled} onClick={() => void restore()}>{t('original')}</button></div>}
+        {action.pending && <div role="status"><p>{t('pending')}</p><button type="button" data-development-restore disabled={action.busy || disabled} onClick={() => void restore()}>{t('original')}</button></div>}
         {plan ? <div className="discussion-development-plan"><header><strong>{t(plan.dispatch_plan.state === 'started' ? 'started' : 'created')}</strong>
           <button type="button" disabled={locked || planRead.loading} onClick={() => void planRead.read()}><RefreshCw size={13}/>{t('refresh')}</button></header>
           {!!planRead.error && <ErrorNotice error={planRead.error}/>}
           <p className="discussion-development-note">{t('boundary')}</p>
           <details><summary>{t('source_body')}</summary><p className="task-reply-copy">{plan.message.body}</p><code>{plan.source_sha256}</code></details>
           <details><summary>{t('review_plan')}</summary><TaskDispatchFacts plan={plan.dispatch_plan}/></details>
+          <ExecutionModelFacts binding={plan.dispatch_plan.model_execution} codex={plan.dispatch_plan.codex_execution} openCode={plan.dispatch_plan.opencode_execution} claude={plan.dispatch_plan.claude_execution} acp={plan.dispatch_plan.acp_execution}/>
+          {plan.dispatch_plan.codex_execution ? <CodexNativeSkillFacts mode="plan" bundle={plan.dispatch_plan.execution_skills}/> : plan.dispatch_plan.context.knowledge?.some(item => item.kind === 'skill') && <CodexNativeSkillFacts mode="text"/>}
           {!!plan.dispatch_plan.context.knowledge?.length && <div onClickCapture={event => {if (event.target instanceof Element && event.target.closest('a[href]')) follow(event);}}><KnowledgeContextFacts project={project} items={plan.dispatch_plan.context.knowledge}/></div>}
           {plan.dispatch_plan.state === 'started' ? <a href={'?' + new URLSearchParams({project, view: 'development', sub: 'runs', run: plan.dispatch_plan.run_id})}
             onClick={follow}>{t('open_run')} <ArrowUpRight size={12}/></a> : <>
@@ -163,13 +169,13 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
             {dispatchScope && <section className="discussion-development-profile" aria-label={t('tools')}><div><strong>{t('tools')}</strong><button type="button" disabled={locked || options.loading}
               onClick={() => {setProfile(undefined); setBefore(''); setRefresh(value => value + 1);}}><RefreshCw size={13}/>{t('refresh')}</button></div>
               {options.loading && <Loading/>}{!!options.error && <ErrorNotice error={options.error} onRetry={() => void options.read()}/>}
-              {options.value && <><p className="discussion-development-note">{t('page', {loaded: formatNumber(options.value.items.length), total: formatNumber(options.value.total)})}</p>
+              {options.value && <><p className="discussion-development-note">{t('tools_hint')}</p><p className="discussion-development-note">{t('page', {loaded: formatNumber(options.value.items.length), total: formatNumber(options.value.total)})}</p>
                 {tools.length ? <ul className="discussion-development-tools">{tools.map(tool => <li key={tool.id}><button type="button" aria-pressed={profile?.id === tool.id} disabled={disabled || locked}
-                  onClick={() => {setProfile(tool); setModel({ready: false}); setConsent(false);}}><span>{tool.name}</span><small>{t('tool_basis', {worker: tool.worker_id, version: formatNumber(tool.version)})}</small></button></li>)}</ul>
+                  data-development-tool={tool.id} onClick={() => {setProfile(tool); setModel({ready: false}); setConsent(false);}}><span><strong>{tool.name}</strong><small>{tool.profile.adapter} · {tool.profile.protocol}</small></span><small>{t('tool_basis', {worker: tool.worker_id, version: formatNumber(tool.version)})}</small></button></li>)}</ul>
                   : <p>{t('no_tool')}</p>}{options.value.next_cursor && <button type="button" disabled={locked || options.loading} onClick={() => {setProfile(undefined); setBefore(options.value!.next_cursor);}}>{t('more')}</button>}</>}
             </section>}
-            {profile && <ModelExecutionPanel key={profile.id + ':' + profile.version} scope={{project, profile: profile.id, version: profile.version, sha256: profile.profile.profile_sha256}}
-              supported allowCodex={false} disabled={disabled || locked} onChange={modelChange}/>}
+            {profile && <div className="discussion-development-model"><p className="discussion-development-note">{t(codexRequired ? 'selection_codex' : modelRequired ? 'selection_platform' : 'selection_fixed')}</p><ModelExecutionPanel key={JSON.stringify([profile.id,profile.version,profile.profile.profile_sha256])} scope={{project, profile: profile.id, version: profile.version, sha256: profile.profile.profile_sha256}}
+              supported={modelRequired} codex={codexRequired} fixedOpenCode={profile.profile.opencode_execution} fixedClaude={profile.profile.claude_execution} fixedACP={profile.profile.acp_execution} disabled={disabled || locked} onChange={modelChange}/></div>}
             <label className="discussion-development-consent"><input type="checkbox" checked={consent} disabled={disabled || locked || !readyReply} onChange={event => setConsent(event.target.checked)}/><span>{t('consent')}</span></label>
             <div className="discussion-development-actions"><button type="button" className="primary" data-development-create disabled={!canPrepare} onClick={() => void prepare()}><Code2 size={14}/>{t('prepare')}</button></div>
           </>}
