@@ -2,6 +2,7 @@ import {expect,it} from 'vitest';
 import type {WriteRecoveryRequest} from './write-action';
 import {modelBinding} from './model-execution.test-support';
 import {validDiscussionDevelopment,validDiscussionDevelopmentReceipt,validDiscussionDevelopmentRequest} from './discussion-development-model';
+import {continuationBinding,continuationSource} from './development-continuation.test-support';
 
 const project='project-a',task='task-a',user='user-a',sha='a'.repeat(64),stamp='2026-11-01T00:00:00Z';
 const nativeSelection={deployment_id:modelBinding.deployment.deployment_id,deployment_revision:modelBinding.deployment.revision,deployment_sha256:modelBinding.deployment.deployment_sha256,parameters:modelBinding.parameters,budget:modelBinding.budget};
@@ -27,6 +28,19 @@ function packet(selection:'native'|'codex'|'fixed'='codex',skills=false):Record<
    workflow:{id:'flow-a',version:4,name:'Develop and verify',nodes:[{id:'develop',type:'agent',command:['fixed-command'],max_retries:0,config:{tool_profile_id:'profile-a',tool_profile_sha256:sha,...structuredClone(binding),...structuredClone(skillFacts)}},{id:'verify',type:'test',depends_on:['develop'],config:{candidate_from:'develop'}}],edges:[{from:'develop',to:'verify'}]}}};
 }
 const accepts=(value:unknown,req=request())=>validDiscussionDevelopmentReceipt(value,req,project,task,user);
+
+it('keeps an explicit code continuation identical across the reviewed wrapper, typed plan and original producer marker',()=>{
+ const value=packet('codex',true),binding={...structuredClone(continuationBinding),id:value.id,task_version:3,source_task_version:2},original=request();
+ const selected={...original,body:{...original.body,continuation_source:structuredClone(continuationSource)}};
+ value.development_continuation=binding;value.dispatch_plan.development_continuation=structuredClone(binding);value.dispatch_plan.workflow.nodes[0].config.development_continuation_id=binding.id;
+ value.dispatch_plan.context.code_baseline={protocol:'suma.code-baseline.v1',id:'ancestor',project_id:project,task_id:task,task_version:1,composition_id:'accepted-composition',composition_version:1,accepted_basis_sha256:sha,binding_sha256:sha,source:binding.source};
+ expect(validDiscussionDevelopmentRequest(selected,project,task)).toBe(true);expect(validDiscussionDevelopment(value,project,task)).toBe(true);expect(accepts(value,selected)).toBe(true);
+ expect(validDiscussionDevelopmentRequest({...selected,body:{...selected.body,continuation_source:binding}},project,task)).toBe(false);
+ expect(accepts(value,original)).toBe(false);expect(accepts(packet('codex',true),selected)).toBe(false);
+ for(const mutate of [(v:Record<string,any>)=>{delete v.development_continuation;},(v:Record<string,any>)=>{v.dispatch_plan.development_continuation.binding_sha256='9'.repeat(64);},(v:Record<string,any>)=>{v.dispatch_plan.workflow.nodes[0].config.development_continuation_id='other-plan';},(v:Record<string,any>)=>{v.dispatch_plan.workflow.nodes[0].config.code_baseline=v.dispatch_plan.context.code_baseline;},(v:Record<string,any>)=>{v.dispatch_plan.workflow.nodes[0].config.development_continuation=binding;},(v:Record<string,any>)=>{v.dispatch_plan.workflow.nodes[0].config.codex_execution.model='other-model';}]){const changed=structuredClone(value);mutate(changed);expect(accepts(changed,selected)).toBe(false);}
+ for(const purpose of ['',null]){const changed=structuredClone(value);changed.dispatch_plan.workflow.nodes[0].config.purpose=purpose;expect(accepts(changed,selected)).toBe(false);}
+ expect(accepts(value,{...selected,body:{...selected.body,continuation_source:{...continuationSource,attempt:3}}})).toBe(false);
+});
 
 it('admits mutually exclusive explicit model choices or fixed tools without granting arbitrary source pins',()=>{
  for(const kind of ['native','codex','fixed'] as const)expect(validDiscussionDevelopmentRequest(request(kind),project,task)).toBe(true);

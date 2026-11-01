@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	dc "github.com/ai-mada/suma/internal/developmentcontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
@@ -19,6 +20,7 @@ type Assignment struct {
 	CandidateConflictRepair *ccc.CandidateConflictRepairExecution `json:"candidate_conflict_repair,omitempty"`
 	CandidateComposition    *ccc.CandidateCompositionExecution    `json:"candidate_composition,omitempty"`
 	CodeBaseline            *ccc.CodeBaselineBinding              `json:"code_baseline,omitempty"`
+	DevelopmentContinuation *dc.DevelopmentContinuationBinding    `json:"development_continuation,omitempty"`
 	RepositoryIntegration   *rc.RepositoryExecution               `json:"repository_integration,omitempty"`
 	TenantID                string                                `json:"tenant_id,omitempty"`
 	ProjectID               string                                `json:"project_id,omitempty"`

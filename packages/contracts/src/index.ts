@@ -906,6 +906,7 @@ export interface Assignment {
   candidate_composition?: CandidateCompositionExecution | null;
   candidate_conflict_repair?: CandidateConflictRepairExecution | null;
   code_baseline?: CodeBaselineBinding | null;
+  development_continuation?: DevelopmentContinuationBinding | null;
   repository_integration?: RepositoryExecution | null;
   tenant_id?: string;
   project_id?: string;
@@ -2140,6 +2141,25 @@ export interface DeveloperConnectionMetadata {
   expected_organization_id: string;
   client_connection_verified: false;
   tools: (ApplicationToolDefinition)[];
+}
+export interface DevelopmentContinuationBinding {
+  protocol: string;
+  id: string;
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  source_task_run_id: string;
+  source_task_version: number;
+  source_run_version: number;
+  source: CandidateBinding;
+  binding_sha256: string;
+}
+export interface DevelopmentContinuationSource {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  expected_run_version: number;
 }
 export interface DispatchRecommendation {
   id: string;
@@ -6228,7 +6248,27 @@ export interface TaskDesignContextView {
   current_design_version: number;
   current_published_revision: number;
 }
+export interface TaskDevelopmentContinuationOption {
+  selection: DevelopmentContinuationSource;
+  candidate: CandidateBinding;
+  node_name: string;
+}
+export interface TaskDevelopmentContinuationOptions {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  source_task_run_id: string;
+  source_run_version: number;
+  source_run_state: string;
+  items: (TaskDevelopmentContinuationOption)[];
+  total: number;
+  limit: number;
+  next_cursor?: string;
+  complete: boolean;
+  reason?: string;
+}
 export interface TaskDiscussionDevelopmentCreateRequest {
+  continuation_source?: DevelopmentContinuationSource;
   project_id: string;
   task_id: string;
   expected_task_version: number;
@@ -6247,6 +6287,7 @@ export interface TaskDiscussionDevelopmentCreateRequest {
   idempotency_key: string;
 }
 export interface TaskDiscussionDevelopmentPlan {
+  development_continuation?: DevelopmentContinuationBinding | null;
   id: string;
   project_id: string;
   task_id: string;
@@ -6287,6 +6328,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  development_continuation?: DevelopmentContinuationBinding | null;
   execution_skills?: ExecutionSkillBundle | null;
   acp_execution?: ACPExecutionCapability | null;
   recommendation?: DispatchRecommendationProvenance;

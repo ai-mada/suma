@@ -4076,6 +4076,18 @@
             "additionalProperties": {},
             "type": "object"
           },
+          "development_continuation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DevelopmentContinuationBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Protected original same-task code input; independent tests and human acceptance remain new facts. Workflow config cannot grant this authority.",
+            "readOnly": true
+          },
           "dispatch_id": {
             "type": "string"
           },
@@ -9489,7 +9501,8 @@
             "enum": [
               "composition",
               "code_baseline",
-              "conflict_repair"
+              "conflict_repair",
+              "development_continuation"
             ],
             "type": "string"
           },
@@ -10556,6 +10569,97 @@
           "expected_organization_id",
           "client_connection_verified",
           "tools"
+        ],
+        "type": "object"
+      },
+      "DevelopmentContinuationBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "binding_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-task-development-continuation-v1",
+            "readOnly": true,
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CandidateBinding",
+            "readOnly": true
+          },
+          "source_run_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "source_task_run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_task_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "protocol",
+          "id",
+          "project_id",
+          "task_id",
+          "task_version",
+          "source_task_run_id",
+          "source_task_version",
+          "source_run_version",
+          "source",
+          "binding_sha256"
+        ],
+        "type": "object"
+      },
+      "DevelopmentContinuationSource": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_run_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "fence": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "expected_run_version"
         ],
         "type": "object"
       },
@@ -31541,6 +31645,105 @@
         ],
         "type": "object"
       },
+      "TaskDevelopmentContinuationOption": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate": {
+            "$ref": "#/components/schemas/CandidateBinding",
+            "readOnly": true
+          },
+          "node_name": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/DevelopmentContinuationSource",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "selection",
+          "candidate",
+          "node_name"
+        ],
+        "type": "object"
+      },
+      "TaskDevelopmentContinuationOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskDevelopmentContinuationOption"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "limit": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reason": {
+            "description": "Closed product-owned reason code, localized by the client. Omitted when a source is available.",
+            "enum": [
+              "task_accepted",
+              "no_run",
+              "run_not_terminal",
+              "no_sealed_candidate"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_run_state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_run_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "source_task_run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "task_version",
+          "source_task_run_id",
+          "source_run_version",
+          "source_run_state",
+          "items",
+          "total",
+          "limit",
+          "complete"
+        ],
+        "type": "object"
+      },
       "TaskDiscussionDevelopmentCreateRequest": {
         "additionalProperties": false,
         "description": "Reviewed discussion handoff to a currently enabled writable development profile. Model selection is adapter-specific; fixed tool profiles may omit both selections. The server rechecks the original reply, knowledge pins and current dispatch authority before freezing the plan.",
@@ -31566,6 +31769,10 @@
           "codex_execution_selection": {
             "$ref": "#/components/schemas/CodexSelection",
             "description": "Original Codex catalog selection when required by the selected profile. Mutually exclusive with model_execution_selection; Codex usage remains observe-only and does not imply a provider-enforced spending cap."
+          },
+          "continuation_source": {
+            "$ref": "#/components/schemas/DevelopmentContinuationSource",
+            "description": "Optional explicit source selection; current authority resolves all candidate and evidence fields. Never submit a complete binding or inherit old acceptance."
           },
           "expected_reply_version": {
             "type": "integer"
@@ -31644,6 +31851,18 @@
           "created_by": {
             "readOnly": true,
             "type": "string"
+          },
+          "development_continuation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DevelopmentContinuationBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Protected original same-task code input; independent tests and human acceptance remain new facts. Workflow config cannot grant this authority.",
+            "readOnly": true
           },
           "dispatch_plan": {
             "$ref": "#/components/schemas/TaskDispatchPlan",
@@ -31854,6 +32073,18 @@
           "created_at": {
             "format": "date-time",
             "type": "string"
+          },
+          "development_continuation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DevelopmentContinuationBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Protected original same-task code input; independent tests and human acceptance remain new facts. Workflow config cannot grant this authority.",
+            "readOnly": true
           },
           "execution_route": {
             "anyOf": [
@@ -119555,6 +119786,212 @@
             "bearerAuth": []
           }
         ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/tasks/{id}/development-continuation-options": {
+      "get": {
+        "description": "Current task readers inspect sealed code from its latest terminal run. A selected source is development input, not an accepted baseline or inherited test result. The cursor binds current actor, task version and original run version; refresh after drift. A reviewed new discussion reply and explicit original plan/Start are required to execute.",
+        "operationId": "get_tasks_id_development-continuation-options",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default20, maximum100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque current-actor/project/task/run-version cursor.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDevelopmentContinuationOptions"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDevelopmentContinuationOptions"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },

@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-DEVELOPMENT-CONTINUATION-186新增[同任务候选续作](contracts/task-development-continuation.md)：新审阅计划明确采用上一轮封存代码，在独立工作树继续开发，重新独立测试和人工验收。[交互](docs/design/task-development-continuation.md)及[限定证据](docs/quality/task-development-continuation-verification.md)区分代码连续性与工具会话。
+
 T-RUNNER-INBOX-185新增[项目配对收件箱](contracts/runner-inbox.md)：查找并接续现有请求，准确目标带入原向导，通过配对ID复用本机身份；准备、上报、持续启动分别复制。[交互](docs/design/runner-inbox.md)及[限定验证](docs/quality/runner-inbox-verification.md)保留实际边界，完整平台继续交付。
 
 T-RUNNER-PAIRING-184新增[远程节点配对](contracts/runner-pairing.md)：创建待办、目标机器执行、完整指纹核对并明确批准；凭据由系统库保管，原身份可直接复用工具上报，浏览器不接收token。[架构与AI SOP](docs/architecture/runner-pairing.md)、[简洁双语交互](docs/design/runner-pairing.md)及[限定验证](docs/quality/runner-pairing-verification.md)记录实际范围。

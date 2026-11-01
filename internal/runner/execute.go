@@ -265,6 +265,11 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	// Reject mixed or configuration-only continuation inputs before special
+	// executors can enter a journal, network or non-development workspace.
+	if err := developmentContinuationInput(a); err != nil {
+		return Result{Assignment: a, ExitCode: -1, Error: err.Error()}
+	}
 	if cloudReserved(a) || a.WorkBuddyCloud != nil {
 		return executeWorkBuddyCloud(ctx, a, cfg)
 	}
@@ -328,6 +333,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if !ok {
 		return fail("command is not in the local allowlist")
 	}
+	if err := developmentContinuationSpec(a, spec); err != nil {
+		return fail(err.Error())
+	}
 	if err := validateTestReportSpec(spec); err != nil {
 		return fail(err.Error())
 	}
@@ -341,6 +349,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if !codeBaselineInputNode(a) || spec.ReadOnly || spec.ArtifactInput || spec.ArtifactOutput != "" || a.Type == "command" && (!terminalCandidateBaseline(a) || spec.NativeWorkspace != nil || spec.TerminalSession || spec.TestEvidence || spec.TestReport || spec.Input != "" || normalizedCommand(spec).Adapter != "command" || normalizedCommand(spec).Protocol != "text-v1") {
 			return fail("code baseline requires isolated development")
 		}
+	}
+	if a.CodeBaseline != nil || a.DevelopmentContinuation != nil {
 		ctx = context.WithValue(ctx, nativeGitScope{}, true)
 		baselineDuration := time.Duration(a.TimeoutSeconds) * time.Second
 		if baselineDuration <= 0 {
@@ -1166,7 +1176,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		var captureErr error
 		workspace.nativeEvidence = nativeEvidence
 		captureCtx := context.Background()
-		if native != nil || a.CodeBaseline != nil {
+		if native != nil || a.CodeBaseline != nil || a.DevelopmentContinuation != nil {
 			captureCtx = context.WithValue(captureCtx, nativeGitScope{}, true)
 		}
 		sealTerminalCandidate(ctx, a, workspace, &r)

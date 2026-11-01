@@ -21,7 +21,8 @@ import './TaskConversationReply.css';
 const t = (key: string, values?: Record<string, unknown>) => tr('task-reply.' + key, values);
 type Props = {session: Session; project: string; taskId: string; page?: TaskConversationPage; accessBlocked: boolean;
   disabled: boolean; refresh: number; onMessagesRefresh: () => Promise<unknown>; onLockChange: (locked: boolean) => void;
-  onDevelopmentStarted?: () => Promise<unknown> | void};
+  onDevelopmentStarted?: () => Promise<unknown> | void;
+  onContinueDevelopment?: (origin: {planID: string; runID?: string}) => void};
 const runHref = (project: string, run: string) => '?' + new URLSearchParams({project, view: 'development', sub: 'runs', run});
 const navigate = () => window.dispatchEvent(new Event('suma:navigate', {cancelable: true}));
 
@@ -34,7 +35,7 @@ export function TaskConversationReply(props: Props) {
   return <ReplyScope key={scope + ':' + owner.current.epoch} {...props} scope={scope}/>;
 }
 
-function ReplyScope({session, project, taskId, page, accessBlocked, disabled, refresh, onMessagesRefresh, onLockChange, onDevelopmentStarted,
+function ReplyScope({session, project, taskId, page, accessBlocked, disabled, refresh, onMessagesRefresh, onLockChange, onDevelopmentStarted, onContinueDevelopment,
   scope}: Props & {scope: string}) {
   const api = useApi(), locale = useLocale(), id = useId(), storage = toolSessionStorage();
   const locator = 'suma-task-reply-locator:' + scope;
@@ -43,7 +44,7 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
   const [selected, setSelected] = useState(() => {try {const value = storage?.getItem(locator); return replyID(value) ? value : '';} catch {return '';}});
   const [revoked, setRevoked] = useState(false), [retry, setRetry] = useState(0), [notice, setNotice] = useState('');
   const [connection, setConnection] = useState<RunConnectionState>();
-  const callbacks = useRef({onMessagesRefresh, onLockChange, onDevelopmentStarted}); callbacks.current = {onMessagesRefresh, onLockChange, onDevelopmentStarted};
+  const callbacks = useRef({onMessagesRefresh, onLockChange, onDevelopmentStarted, onContinueDevelopment}); callbacks.current = {onMessagesRefresh, onLockChange, onDevelopmentStarted, onContinueDevelopment};
   const alive = useRef(true), owner = useRef(api); owner.current = api;
   useEffect(() => {alive.current = true; return () => {alive.current = false; callbacks.current.onLockChange(false);};}, []);
   const action = useWriteAction({scope: 'task-reply:' + scope, storage,
@@ -60,6 +61,17 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
     !!selected && !blocked, value => validReply(value, project, taskId, session.organization.id), refuse, refresh + retry);
   const [developmentLocked,setDevelopmentLocked]=useState(false);
   const current = detail.value, locked = action.busy || !!action.pending;
+  // A dirty composer disables a new analysis, but does not prevent returning
+  // to that same draft. Only the current reader and real write locks govern it.
+  const continuationReady = !!onContinueDevelopment && !blocked && !locked && !developmentLocked &&
+    !action.conflict && !action.persistenceBlocked && !!page?.can_post && page.project_id === project && page.task_id === taskId &&
+    current?.state === 'completed' && current.id === selected && !detail.loading && !detail.error && !history.loading && !history.error;
+  const continuation = useRef({ready: continuationReady, reply: current?.id});
+  continuation.current = {ready: continuationReady, reply: current?.id};
+  const continueDevelopment = useCallback((origin: {planID: string; runID?: string}) => {
+    if (!alive.current || owner.current !== api || !continuation.current.ready || continuation.current.reply !== current?.id) return;
+    callbacks.current.onContinueDevelopment?.(origin);
+  }, [api, current?.id]);
   const candidates = inventory.value?.items.filter(replyProfile) || [], profile = candidates.find(item => item.id === profileID);
   const head = page?.items[page.items.length - 1];
   const turn = page?.items.slice().reverse().find(message => message.actor_kind === 'human' || message.actor_kind === 'api');
@@ -185,7 +197,8 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
             <p>{t('source_basis', {task: formatNumber(current.source.task.version), turn: formatNumber(current.source.reply_to_sequence)})}</p>
             <code>{current.source.sha256}</code>{!!current.source.knowledge?.length && <div onClickCapture={event => {if (event.target instanceof Element && event.target.closest('a[href]') && !navigate()) event.preventDefault();}}><KnowledgeContextFacts project={project} items={current.source.knowledge}/></div>}</details>
           <details><summary>{t('model_basis')}</summary><ModelExecutionFacts binding={current.model_execution}/></details>
-          {current.state==='completed'&&<DiscussionDevelopmentPanel session={session} project={project} taskId={taskId} reply={current} page={page} disabled={disabled||locked} accessBlocked={blocked} onLockChange={setDevelopmentLocked} onRun={developmentStarted}/>}
+          {current.state==='completed'&&<DiscussionDevelopmentPanel session={session} project={project} taskId={taskId} reply={current} page={page} disabled={disabled||locked} accessBlocked={blocked} onLockChange={setDevelopmentLocked} onRun={developmentStarted}
+            onContinue={continuationReady ? continueDevelopment : undefined}/>}
         </div>}
         {!!selected && detail.loading && !current && <Loading/>}
         {!!selected && !!detail.error && !current && <ErrorNotice error={detail.error} onRetry={() => void detail.read()}/>}

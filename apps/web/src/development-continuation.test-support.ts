@@ -1,0 +1,8 @@
+import type {CandidateBinding,DevelopmentContinuationBinding,DevelopmentContinuationSource,TaskDevelopmentContinuationOptions} from '../../../packages/contracts/src';
+
+// Public protocol fixtures only. These hashes are shape fixtures; their current
+// authenticity and authorization remain the server's responsibility.
+export const continuationSource:DevelopmentContinuationSource={run_id:'previous-run',node_id:'develop',attempt:2,fence:9,expected_run_version:8};
+export const continuationCandidate:CandidateBinding={schema_version:1,project_id:'project-a',transfer_id:'transfer-one',state:'sealed',source:{run_id:continuationSource.run_id,node_id:continuationSource.node_id,attempt:continuationSource.attempt,fence:continuationSource.fence,worker_id:'previous-worker'},base_commit:'1'.repeat(40),bundle_base_commit:'1'.repeat(40),head_commit:'2'.repeat(40),evidence_sha256:'3'.repeat(64),bundle_sha256:'4'.repeat(64),size_bytes:2048};
+export const continuationBinding:DevelopmentContinuationBinding={protocol:'suma-task-development-continuation-v1',id:'development-plan',project_id:'project-a',task_id:'task-a',task_version:7,source_task_run_id:continuationSource.run_id,source_task_version:5,source_run_version:continuationSource.expected_run_version,source:continuationCandidate,binding_sha256:'5'.repeat(64)};
+export const continuationOptions:TaskDevelopmentContinuationOptions={project_id:'project-a',task_id:'task-a',task_version:7,source_task_run_id:continuationSource.run_id,source_run_version:continuationSource.expected_run_version,source_run_state:'failed',items:[{selection:continuationSource,candidate:continuationCandidate,node_name:'Previous successful code producer'}],total:1,limit:20,complete:true};

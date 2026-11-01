@@ -345,6 +345,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.workspaceTerminalHTTP(w, r, actor, scope, boundProject, path, parts) {
 		return
 	}
+	if s.taskDevelopmentContinuationHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.taskDiscussionDevelopmentHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}

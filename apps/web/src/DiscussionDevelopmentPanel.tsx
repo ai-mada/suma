@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useId, useRef, useState, type MouseEvent} from 'react';
 import {ArrowUpRight, ChevronDown, Code2, Play, RefreshCw} from 'lucide-react';
-import type {TaskConversationPage, TaskConversationReply, TaskDiscussionDevelopmentPlan, TaskDispatchOptions} from '../../../packages/contracts/src';
+import type {DevelopmentContinuationSource, TaskConversationPage, TaskConversationReply, TaskDiscussionDevelopmentPlan, TaskDispatchOptions} from '../../../packages/contracts/src';
 import {query, type Session, type Workflow} from './api';
 import {useApi} from './api-context';
 import {formatNumber, renderDiagnostic, tr, UiError, useLocale} from './i18n';
@@ -18,11 +18,13 @@ import {validManagedTaskDispatchRun} from './task-dispatch-response';
 import {sameToolProfile} from './tool-profile-reuse-model';
 import {ExecutionModelFacts} from './ExecutionModelFacts';
 import {CodexNativeSkillFacts} from './CodexNativeSkillFacts';
+import {DevelopmentContinuationFacts,DevelopmentContinuationSelector} from './DevelopmentContinuationSelector';
 import './DiscussionDevelopmentPanel.css';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('discussion-development.' + key, values);
 type Props = {session: Session; project: string; taskId: string; reply: TaskConversationReply; page?: TaskConversationPage;
-  disabled: boolean; accessBlocked: boolean; onLockChange: (locked: boolean) => void; onRun?: (run: string) => void};
+  disabled: boolean; accessBlocked: boolean; onLockChange: (locked: boolean) => void; onRun?: (run: string) => void;
+  onContinue?: (origin:{planID:string;runID?:string})=>void};
 const identifier = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(value);
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const validWorkflows = (value: unknown): value is {items: Workflow[]} => object(value) && Array.isArray(value.items) &&
@@ -38,7 +40,7 @@ export function DiscussionDevelopmentPanel(props: Props) {
   return <DevelopmentScope key={scope + ':' + owner.current.epoch} {...props} scope={scope}/>;
 }
 
-function DevelopmentScope({session, project, taskId, reply, page, disabled, accessBlocked, onLockChange, onRun, scope}: Props & {scope: string}) {
+function DevelopmentScope({session, project, taskId, reply, page, disabled, accessBlocked, onLockChange, onRun, onContinue, scope}: Props & {scope: string}) {
   const api = useApi(); useLocale(); const id = useId(), storage = toolSessionStorage();
   const locator = 'suma-discussion-development:' + scope;
   const [selected, setSelected] = useState(() => {try {const saved = storage?.getItem(locator); return identifier(saved) ? saved : '';} catch {return '';}});
@@ -46,7 +48,8 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
   const [goal, setGoal] = useState(''), [criteria, setCriteria] = useState(''), [flowKey, setFlowKey] = useState(''), [agent, setAgent] = useState('');
   const [before, setBefore] = useState(''), [profile, setProfile] = useState<ToolProfile>(), [model, setModel] = useState<ModelChoice>({ready: false});
   const [consent, setConsent] = useState(false), [startConsent, setStartConsent] = useState(false), [created, setCreated] = useState<TaskDiscussionDevelopmentPlan>();
-  const callback = useRef({onLockChange, onRun}); callback.current = {onLockChange, onRun};
+  const [continuation,setContinuation]=useState<{source?:DevelopmentContinuationSource;ready:boolean}>({ready:true});
+  const callback = useRef({onLockChange, onRun,onContinue}); callback.current = {onLockChange, onRun,onContinue};
   const alive = useRef(true), owner = useRef(api); owner.current = api;
   const refuse = useCallback(() => setDenied(true), []);
   const action = useWriteAction({scope: 'discussion-development:' + scope, storage,
@@ -77,11 +80,12 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
   const message = page?.items.find(item => item.id === reply.message_id && item.reply_id === reply.id && item.actor_kind === 'assistant');
   const seeded = useRef(false);
   const checks = criteria.split('\n').map(value => value.trim()).filter(Boolean);
-  const readyReply = reply.state === 'completed' && reply.basis_current && !!page?.can_post && page.task_id === taskId;
+  const readyReply = reply.state === 'completed' && reply.basis_current && !!page?.can_post && page.task_id === taskId && reply.source.task.id===taskId && reply.source.task.version===page.task_version;
   const canPrepare = !blocked && !disabled && !locked && !action.conflict && !action.persistenceBlocked && readyReply &&
-    !!flow && !!agent && !!currentProfile && modelReady && consent && developmentGoal(goal) && developmentCriteria(checks) &&
+    !!flow && !!agent && !!currentProfile && modelReady && continuation.ready && consent && developmentGoal(goal) && developmentCriteria(checks) &&
     !options.loading && !options.error && !workflows.loading && !workflows.error;
   const modelChange = useCallback((value: ModelChoice) => {setModel(value); setConsent(false);}, []);
+  const continuationChange=useCallback((value:{source?:DevelopmentContinuationSource;ready:boolean})=>{setContinuation(value);setConsent(false);},[]);
   useEffect(() => {alive.current = true; return () => {alive.current = false; callback.current.onLockChange(false);};}, []);
   useEffect(() => {callback.current.onLockChange(locked);}, [locked]);
   useEffect(() => {if (action.pending) setOpen(true);}, [!!action.pending]);
@@ -102,6 +106,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
       workflow_id: flow.id, workflow_version: flow.version, agent_node_id: agent, tool_profile_id: profile.id,
       expected_tool_version: profile.version, ...(modelRequired && model.selection ? {model_execution_selection: model.selection} : {}),
       ...(codexRequired && model.codexSelection ? {codex_execution_selection: model.codexSelection} : {}), reviewed_goal: goal,
+      ...(continuation.source?{continuation_source:continuation.source}:{}),
       acceptance_criteria: checks, acknowledge_execution: true});
     if (value && alive.current && owner.current === caller) remember(value);
   }
@@ -121,6 +126,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
     else if (object(value) && typeof value.id === 'string') {await planRead.read(); callback.current.onRun?.(value.id);}
   }
   function follow(event: MouseEvent) {if (!window.dispatchEvent(new Event('suma:navigate', {cancelable: true}))) event.preventDefault();}
+  function continueDiscussion(){if(!plan||blocked||locked||action.persistenceBlocked||planRead.loading||planRead.error||!alive.current||owner.current!==api)return;callback.current.onContinue?.({planID:plan.id,...(plan.dispatch_plan.state==='started'?{runID:plan.dispatch_plan.run_id}:{})});}
   return <section className="discussion-development" aria-label={t('title')}>
     <button type="button" className="discussion-development-toggle" data-development-toggle aria-expanded={open} aria-controls={id}
       disabled={open && locked} onClick={() => setOpen(value => !value)}><Code2 size={15}/><span>{t('title')}</span><ChevronDown size={15}/></button>
@@ -133,6 +139,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
           <button type="button" disabled={locked || planRead.loading} onClick={() => void planRead.read()}><RefreshCw size={13}/>{t('refresh')}</button></header>
           {!!planRead.error && <ErrorNotice error={planRead.error}/>}
           <p className="discussion-development-note">{t('boundary')}</p>
+          {plan.development_continuation&&<DevelopmentContinuationFacts binding={plan.development_continuation} project={project} taskID={taskId}/>}
           <details><summary>{t('source_body')}</summary><p className="task-reply-copy">{plan.message.body}</p><code>{plan.source_sha256}</code></details>
           <details><summary>{t('review_plan')}</summary><TaskDispatchFacts plan={plan.dispatch_plan}/></details>
           <ExecutionModelFacts binding={plan.dispatch_plan.model_execution} codex={plan.dispatch_plan.codex_execution} openCode={plan.dispatch_plan.opencode_execution} claude={plan.dispatch_plan.claude_execution} acp={plan.dispatch_plan.acp_execution}/>
@@ -147,6 +154,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
             <button type="button" className="primary" data-development-start disabled={disabled || locked || !startConsent || !plan.dispatch_plan.valid || planRead.loading || !!planRead.error}
               onClick={() => void start()}><Play size={14}/>{t('start')}</button>
           </>}
+          {onContinue&&<button type="button" data-development-continue disabled={blocked||locked||action.persistenceBlocked||planRead.loading||!!planRead.error} onClick={continueDiscussion}>{t('continue_discussion')}</button>}
         </div> : <>
           {selected && planRead.loading && <Loading/>}{!!planRead.error && <ErrorNotice error={planRead.error} onRetry={() => void planRead.read()}/>}
           {!selected && <>
@@ -155,6 +163,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
             {!readyReply && <p role="status" className="discussion-development-warning">{t('not_ready')}</p>}
             <Field label={t('goal')} hint={t('goal_hint')}><textarea data-development-goal value={goal} disabled={disabled || locked} onChange={event => {setGoal(event.target.value); setConsent(false);}}/></Field>
             <Field label={t('criteria')} hint={t('criteria_hint')}><textarea data-development-criteria value={criteria} disabled={disabled || locked} onChange={event => {setCriteria(event.target.value); setConsent(false);}}/></Field>
+            {page&&<DevelopmentContinuationSelector project={project} taskID={taskId} taskVersion={page.task_version} disabled={disabled||locked||action.persistenceBlocked} accessBlocked={blocked} refresh={refresh} onChange={continuationChange} onAccessDenied={refuse}/>}
             {developmentCriteria(reply.source.task.acceptance_criteria) && <button type="button" disabled={disabled || locked}
               onClick={() => {setCriteria(reply.source.task.acceptance_criteria.join('\n')); setConsent(false);}}>{t('copy_task_criteria')}</button>}
             {workflows.loading && <Loading/>}{!!workflows.error && <ErrorNotice error={workflows.error} onRetry={() => void workflows.read()}/>}

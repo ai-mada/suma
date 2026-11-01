@@ -5,6 +5,7 @@ import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	dc "github.com/ai-mada/suma/internal/developmentcontract"
 	"github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -32,33 +33,34 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
-	ExecutionSkills    *cc.ExecutionSkillBundle          `json:"execution_skills,omitempty"`
-	ACPExecution       *ac.Capability                    `json:"acp_execution,omitempty"`
-	Recommendation     *DispatchRecommendationProvenance `json:"recommendation,omitempty" wire:"nonnull"`
-	OpenCodeExecution  *tc.OpenCodeExecutionCapability   `json:"opencode_execution,omitempty"`
-	ClaudeExecution    *tc.ClaudeExecutionCapability     `json:"claude_execution,omitempty"`
-	CodexExecution     *cc.Binding                       `json:"codex_execution,omitempty"`
-	ModelExecution     *modelcontract.Binding            `json:"model_execution,omitempty"`
-	CodeBaseline       *ccmp.CodeBaselineBinding         `json:"code_baseline,omitempty"`
-	ID                 string                            `json:"id"`
-	ProjectID          string                            `json:"project_id"`
-	Version            int                               `json:"version"`
-	State              string                            `json:"state"`
-	TaskID             string                            `json:"task_id"`
-	TaskVersion        int                               `json:"task_version"`
-	RequirementID      string                            `json:"requirement_id,omitempty"`
-	RequirementVersion int                               `json:"requirement_version,omitempty"`
-	WorkflowID         string                            `json:"workflow_id"`
-	WorkflowVersion    int                               `json:"workflow_version"`
-	AgentNodeID        string                            `json:"agent_node_id"`
-	ToolProfileID      string                            `json:"tool_profile_id"`
-	ToolProfileVersion int                               `json:"tool_profile_version"`
-	ToolProfileSHA256  string                            `json:"tool_profile_sha256"`
-	RunID              string                            `json:"run_id"`
-	CreatedAt          string                            `json:"created_at"`
-	ExpiresAt          string                            `json:"expires_at"`
-	Context            TaskContext                       `json:"context"`
-	Workflow           dag.Workflow                      `json:"workflow"`
+	DevelopmentContinuation *dc.DevelopmentContinuationBinding `json:"development_continuation,omitempty"`
+	ExecutionSkills         *cc.ExecutionSkillBundle           `json:"execution_skills,omitempty"`
+	ACPExecution            *ac.Capability                     `json:"acp_execution,omitempty"`
+	Recommendation          *DispatchRecommendationProvenance  `json:"recommendation,omitempty" wire:"nonnull"`
+	OpenCodeExecution       *tc.OpenCodeExecutionCapability    `json:"opencode_execution,omitempty"`
+	ClaudeExecution         *tc.ClaudeExecutionCapability      `json:"claude_execution,omitempty"`
+	CodexExecution          *cc.Binding                        `json:"codex_execution,omitempty"`
+	ModelExecution          *modelcontract.Binding             `json:"model_execution,omitempty"`
+	CodeBaseline            *ccmp.CodeBaselineBinding          `json:"code_baseline,omitempty"`
+	ID                      string                             `json:"id"`
+	ProjectID               string                             `json:"project_id"`
+	Version                 int                                `json:"version"`
+	State                   string                             `json:"state"`
+	TaskID                  string                             `json:"task_id"`
+	TaskVersion             int                                `json:"task_version"`
+	RequirementID           string                             `json:"requirement_id,omitempty"`
+	RequirementVersion      int                                `json:"requirement_version,omitempty"`
+	WorkflowID              string                             `json:"workflow_id"`
+	WorkflowVersion         int                                `json:"workflow_version"`
+	AgentNodeID             string                             `json:"agent_node_id"`
+	ToolProfileID           string                             `json:"tool_profile_id"`
+	ToolProfileVersion      int                                `json:"tool_profile_version"`
+	ToolProfileSHA256       string                             `json:"tool_profile_sha256"`
+	RunID                   string                             `json:"run_id"`
+	CreatedAt               string                             `json:"created_at"`
+	ExpiresAt               string                             `json:"expires_at"`
+	Context                 TaskContext                        `json:"context"`
+	Workflow                dag.Workflow                       `json:"workflow"`
 	// ExecutionRoute is the original reviewed display snapshot, never input
 	// authority. Nil means older history did not record a public route view.
 	ExecutionRoute *dag.ProjectExecutionRoute `json:"execution_route,omitempty"`

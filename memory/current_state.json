@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T184 implemented remote pairing through original authority, secure SDK identity storage, scoped report/Worker reuse, bilingual original modal and exact-worker continuation, real Windows keyring/HTTP plus focused source/GUI evidence; full goal active",
+  "last_goal_turn_classification": "progress: T186 implemented explicit same-task sealed-code continuation, current authority and ancestor revocation checks, new independent execution/quality, bilingual interaction, focused actual evidence and stage Git delivery; full goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-RUNNER-PAIRING-184",
+    "stage": "T-DEVELOPMENT-CONTINUATION-186",
     "status": "scoped_verified",
-    "contract": "contracts/runner-pairing.md",
-    "report": "docs/quality/runner-pairing-verification.md",
+    "contract": "contracts/task-development-continuation.md",
+    "report": "docs/quality/task-development-continuation-verification.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Continue distributed tool execution and automatic configuration, simplify saved-identity reuse, and remaining project/team/knowledge/quality/operations capabilities."
+    "next": "Continue persistent interactive tool sessions and the remaining project/team/knowledge/quality/operations, distributed deployment and full acceptance capabilities."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -1160,6 +1160,31 @@
       "GUI uses actual production components with a synthetic account/backend/inventory and a synthetic clipboard boundary. It does not run the CLI, create real credentials, start tasks or certify full authenticated desktop/SaaS installation.",
       "No full suite, provider SDK assets, installers, scale or existing candidate/independent-test/acceptance/release journeys were repeated. Original31/P0-P7/58limited/34pending/92total and prior171 explicit-stop GUI gap remain active.",
       "Two unrelated historical local audit files remain byte-identical and unstaged. Cache, DB, log, screenshot, credential, dependency and binary files are excluded from this delivery."
+    ]
+  },
+  "task_development_continuation": {
+    "stage": "T-DEVELOPMENT-CONTINUATION-186",
+    "status": "scoped_verified",
+    "contract": "contracts/task-development-continuation.md",
+    "report": "docs/quality/task-development-continuation-verification.md",
+    "summary": "docs/quality/task-development-continuation-summary.json",
+    "focused": 26,
+    "go_subcases": 27,
+    "synthetic_gui_checks": 5,
+    "implementation": [
+      "当前任务的新已核验讨论回复可以明确选择上一终态运行的成功封存代码，创建新预览并单独Start；新工具、模型预算、技能、执行路由和当前权限沿原派发。",
+      "独立DevelopmentContinuation类型固定原任务运行、attempt/fence/worker、候选证据及完整包；原计划唯一持久来源，节点仅有ID marker，客户端与可编辑流程不能制造代码权限。",
+      "新运行启动后通过原任务运行provenance核验旧来源，原broker在原件读取前后复核当前消费资格；已验收祖先来源撤回会阻止新的Claim与导入，原结果/停止事实仍可保存。",
+      "真实隔离Git链以M为输入形成N、以B为包锚点；即使M本地已存在，新attempt仍走当前授权HTTP。不同Worker按原candidate_from真实测试准确N。",
+      "原讨论入口、明确候选选择和本轮来源事实已双语接通；新预览不执行，Start独立确认，旧计划/草稿/未知写入和来源漂移保护保留。",
+      "原架构HTML、讨论交接合同及产品/架构/交互/English文档同步；不再用旧native-only文字描述当前八类开发协议。"
+    ],
+    "boundaries": [
+      "控制面证据使用实际HTTP/SQLite/DAG/凭据/Review接口与受控候选字节；Runner另以真实自有Git仓库、bundle和子进程测试证明M→N/B。两层分别留证，不冒充一次真实厂商模型端到端执行。",
+      "界面使用实际生产Panel/Selector/Facts和合成API/模型/计划、明确父级焦点harness；真实TaskConversation父接缝另有消费者检查。不是完整登录App、真实任务、模型调用或客户人工验收。",
+      "Codex当前仍每attempt新thread/turn；未实现旧隐藏会话迁移或持久多turn恢复。本轮不重复模型SDK、配对系统库、全套、安装包或部署矩阵。",
+      "实际数据库覆盖SQLite；OceanBase/PostgreSQL、物理多机器、真实厂商、跨平台运行/安装、规模和生产仍需各自证据。原31/P0-P7/58limited/34pending/92total及171显式GUI停止缺口继续。",
+      "两份无关本地历史审计保持原SHA且不提交；缓存、数据库、日志、截图、秘密、依赖和二进制不入Git。"
     ]
   }
 }

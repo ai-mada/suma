@@ -205,7 +205,8 @@ func cloneModelAssignment(value Assignment) Assignment {
 	value = cloneCloudAssignment(value)
 	value.ExecutionSkills = cc.CloneExecutionSkillBundle(value.ExecutionSkills)
 	value.CodeBaseline = cloneTerminalCodeBaseline(value.CodeBaseline)
-	for _, field := range []string{"model_execution", "codex_execution", "execution_skills", "opencode_execution", "octop_execution", "code_baseline", "terminal_candidate_source"} {
+	value.DevelopmentContinuation = cloneDevelopmentContinuation(value.DevelopmentContinuation)
+	for _, field := range []string{"model_execution", "codex_execution", "execution_skills", "opencode_execution", "octop_execution", "code_baseline", "terminal_candidate_source", "development_continuation_id"} {
 		selected, present := value.Config[field]
 		if !present {
 			continue

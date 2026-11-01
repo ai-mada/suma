@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
+	dc "github.com/ai-mada/suma/internal/developmentcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -34,6 +35,10 @@ func taskContextRecord(r Record) TaskContextRecord {
 }
 
 func (s *Service) taskContextTx(ctx context.Context, tx *sql.Tx, p Principal, project, taskID string) (TaskContext, error) {
+	return s.taskContextWithAncestorTx(ctx, tx, p, project, taskID, false)
+}
+
+func (s *Service) taskContextWithAncestorTx(ctx context.Context, tx *sql.Tx, p Principal, project, taskID string, ancestor bool) (TaskContext, error) {
 	var out TaskContext
 	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, taskID))
 	if errors.Is(err, sql.ErrNoRows) {
@@ -69,7 +74,7 @@ func (s *Service) taskContextTx(ctx context.Context, tx *sql.Tx, p Principal, pr
 		return out, err
 	}
 	if baseline != nil {
-		if baseline.TaskVersion != task.Version {
+		if baseline.TaskVersion != task.Version && (!ancestor || baseline.TaskVersion > task.Version || task.RunID == "") {
 			return out, compositionError(409, "baseline_changed", compositionBaseline)
 		}
 		if err = s.checkTaskCodeBaselineTx(ctx, tx, p.TenantID, project, *baseline); err != nil {
@@ -127,7 +132,7 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if automationStamp(clock) >= plan.ExpiresAt {
 		return conflict("派发预览已过期，请根据当前任务重新预览")
 	}
-	current, err := s.taskContextForDispatchTx(ctx, auth, project, plan.TaskID, knowledgeReferences(plan.Context.Knowledge))
+	current, err := s.taskContextForDispatchWithAncestorTx(ctx, auth, project, plan.TaskID, knowledgeReferences(plan.Context.Knowledge), plan.DevelopmentContinuation != nil)
 	if err != nil {
 		return err
 	}
@@ -150,8 +155,30 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if stringify(current.TestPlan) != stringify(plan.Context.TestPlan) {
 		return conflict("The published test plan changed; preview dispatch again")
 	}
-	if stringify(current.CodeBaseline) != stringify(plan.CodeBaseline) || stringify(plan.Context.CodeBaseline) != stringify(plan.CodeBaseline) {
+	if stringify(current.CodeBaseline) != stringify(plan.Context.CodeBaseline) || plan.DevelopmentContinuation == nil && stringify(current.CodeBaseline) != stringify(plan.CodeBaseline) {
 		return compositionError(409, "baseline_changed", compositionBaseline)
+	}
+	if plan.DevelopmentContinuation != nil {
+		b := plan.DevelopmentContinuation
+		if plan.CodeBaseline != nil || b.ID != plan.ID || b.TaskID != plan.TaskID || b.TaskVersion != plan.TaskVersion || b.ProjectID != project || dc.ValidateBinding(*b) != nil {
+			return continuationError()
+		}
+		resolved, e := s.resolveDevelopmentContinuationTx(ctx, auth, project, plan.TaskID, plan.ID, plan.TaskVersion, dc.DevelopmentContinuationSource{RunID: b.SourceTaskRunID, NodeID: b.Source.Source.NodeID, Attempt: b.Source.Source.Attempt, Fence: b.Source.Source.Fence, ExpectedRunVersion: b.SourceRunVersion})
+		if e != nil {
+			return e
+		}
+		if *resolved != *b {
+			return continuationError()
+		}
+		found := false
+		for _, node := range plan.Workflow.Nodes {
+			if node.ID == plan.AgentNodeID {
+				found = developmentContinuationNode(node, b.ID)
+			}
+		}
+		if !found {
+			return continuationError()
+		}
 	}
 	profile, err := s.validateToolDispatchTx(ctx, tx, auth, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
 	if err != nil {
@@ -235,6 +262,10 @@ func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.E
 // source is a previously persisted, reviewed snapshot used only for current
 // semantic revalidation. Public requests cannot supply a frozen binding.
 func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest, source *TaskDispatchPlan) (out TaskDispatchPlan, err error) {
+	return s.buildTaskDispatchSnapshotInputsTx(ctx, engine, auth, project, request, source, nil)
+}
+
+func (s *Service) buildTaskDispatchSnapshotInputsTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest, source *TaskDispatchPlan, continuation *dc.DevelopmentContinuationBinding) (out TaskDispatchPlan, err error) {
 	if engine == nil || auth == nil {
 		return out, invalid("任务调度器未配置")
 	}
@@ -245,7 +276,7 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 	if err = s.rejectReservedCandidateRepairTaskTx(ctx, tx, p.TenantID, project, request.TaskID, ""); err != nil {
 		return out, err
 	}
-	context, err := s.taskContextForDispatchTx(ctx, auth, project, request.TaskID, request.Knowledge)
+	context, err := s.taskContextForDispatchWithAncestorTx(ctx, auth, project, request.TaskID, request.Knowledge, continuation != nil)
 	if err != nil {
 		return out, err
 	}
@@ -278,7 +309,7 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 	if err = json.Unmarshal([]byte(raw), &workflow); err != nil {
 		return out, err
 	}
-	derived, err := buildTaskDispatchWorkflow(workflow, request.AgentNodeID, profile.ID, profile.Profile, context)
+	derived, err := buildTaskDispatchWorkflowInputs(workflow, request.AgentNodeID, profile.ID, profile.Profile, context, continuation)
 	if err != nil {
 		return out, err
 	}
@@ -304,6 +335,10 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 		return out, err
 	}
 	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Workflow: derived, ExecutionRoute: &route, Valid: true}
+	out.DevelopmentContinuation = continuation
+	if continuation != nil {
+		out.CodeBaseline = nil
+	}
 	out.ModelExecution = modelBinding
 	out.CodexExecution = codexBinding
 	out.ExecutionSkills = executionSkills

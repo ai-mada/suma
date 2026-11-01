@@ -66,7 +66,7 @@ func candidateCompositionContracts(add operationAdder, api map[string]any) {
 	field("CandidateCompositionExecution", "protocol", map[string]any{"const": ccmp.CandidateCompositionProtocol})
 	field("CandidateCompositionEvidence", "protocol", map[string]any{"const": ccmp.CandidateCompositionProtocol})
 	field("CodeBaselineBinding", "protocol", map[string]any{"const": ccmp.CodeBaselineProtocol})
-	field("CodeInputRequest", "input_kind", map[string]any{"enum": []string{"composition", "code_baseline", "conflict_repair"}})
+	field("CodeInputRequest", "input_kind", map[string]any{"enum": []string{"composition", "code_baseline", "conflict_repair", "development_continuation"}})
 	field("CandidateConflictRepairExecution", "protocol", map[string]any{"const": ccmp.CandidateConflictRepairProtocol})
 	field("CandidateConflictRepairEvidence", "protocol", map[string]any{"const": ccmp.CandidateConflictRepairProtocol})
 	field("CandidateCompositionRepairCreateRequest", "expected_conflict_sha256", map[string]any{"type": "string", "pattern": "^[0-9a-f]{64}$"})

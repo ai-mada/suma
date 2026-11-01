@@ -81,6 +81,9 @@ func probeKnowledgeExtraction(ctx context.Context, exe string, spec CommandSpec,
 }
 
 func modelPurposeRequest(a Assignment, spec CommandSpec, profile tc.Profile) (map[string]any, error) {
+	if err := developmentContinuationSpec(a, spec); err != nil {
+		return nil, err
+	}
 	if spec.TaskConversationReply || profile.TaskConversationReply != nil || a.Config["purpose"] == "task_conversation_reply" {
 		return taskConversationReplyRequest(a, spec, profile)
 	}

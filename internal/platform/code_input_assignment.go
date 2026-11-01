@@ -35,7 +35,10 @@ func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenan
 	declaredComposition := spec.Config["purpose"] == "candidate_composition" || len(spec.Command) == 1 && spec.Command[0] == ccmp.CompositionCommand
 	declaredBaseline := spec.Config["code_baseline"] != nil
 	declaredRepair := spec.Config["purpose"] == "candidate_conflict_repair" || spec.Config["candidate_conflict_repair"] != nil
-	if !declaredComposition && !declaredBaseline && !declaredRepair {
+	_, continuationIDDeclared := spec.Config["development_continuation_id"]
+	_, continuationValueDeclared := spec.Config["development_continuation"]
+	declaredContinuation := continuationIDDeclared || continuationValueDeclared
+	if !declaredComposition && !declaredBaseline && !declaredRepair && !declaredContinuation {
 		return true, nil
 	}
 	composition, err := s.readCandidateCompositionExecutionTx(ctx, tx, tenant, project, run, node)
@@ -50,13 +53,17 @@ func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenan
 	if err != nil {
 		return false, err
 	}
+	continuation, err := s.readDevelopmentContinuationExecutionTx(ctx, tx, tenant, project, run, node)
+	if err != nil {
+		return false, err
+	}
 	modes := 0
-	for _, present := range []bool{composition != nil, baseline != nil, repair != nil} {
+	for _, present := range []bool{composition != nil, baseline != nil, repair != nil, continuation != nil} {
 		if present {
 			modes++
 		}
 	}
-	if declaredComposition != (composition != nil) || declaredBaseline != (baseline != nil) || declaredRepair != (repair != nil) || modes > 1 {
+	if declaredComposition != (composition != nil) || declaredBaseline != (baseline != nil) || declaredRepair != (repair != nil) || declaredContinuation != (continuation != nil) || modes > 1 {
 		return false, nil
 	}
 	if composition != nil && (spec.Type != "command" || len(spec.Command) != 1 || spec.Command[0] != ccmp.CompositionCommand || spec.Config["candidate_from"] != nil) {
@@ -69,6 +76,9 @@ func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenan
 		}
 	}
 	if repair != nil && (spec.Type != "agent" || spec.Config["purpose"] != "candidate_conflict_repair" || spec.Config["candidate_from"] != nil) {
+		return false, nil
+	}
+	if continuation != nil && !developmentContinuationNode(spec, continuation.ID) {
 		return false, nil
 	}
 	return true, nil
@@ -86,12 +96,28 @@ func (s *Service) checkCodeInputExecutionTx(ctx context.Context, tx *sql.Tx, ten
 	if err := s.checkCandidateCompositionExecutionTx(ctx, tx, tenant, project, run, fresh); err != nil {
 		return err
 	}
-	return s.checkCodeBaselineExecutionTx(ctx, tx, tenant, project, run, node, fresh)
+	if err := s.checkCodeBaselineExecutionTx(ctx, tx, tenant, project, run, node, fresh); err != nil {
+		return err
+	}
+	return s.checkDevelopmentContinuationExecutionTx(ctx, tx, tenant, project, run, node, fresh)
 }
 
 // Only a durable baseline can distinguish a selected development base from
 // the bundle's administrator prerequisite; a manifest cannot grant inheritance.
 func (s *Service) validateCandidateInputAnchorTx(ctx context.Context, tx *sql.Tx, tenant, project string, request cc.StartRequest) error {
+	continuation, err := s.readDevelopmentContinuationExecutionTx(ctx, tx, tenant, project, request.Assignment.RunID, request.Assignment.NodeID)
+	if err != nil {
+		return err
+	}
+	if continuation != nil {
+		if err = s.checkDevelopmentContinuationExecutionTx(ctx, tx, tenant, project, request.Assignment.RunID, request.Assignment.NodeID, true); err != nil {
+			return err
+		}
+		if request.BaseCommit != continuation.Source.HeadCommit || request.BundleBase() != continuation.Source.BundleBase() {
+			return continuationError()
+		}
+		return nil
+	}
 	baseline, err := s.readCodeBaselineExecutionTx(ctx, tx, tenant, project, request.Assignment.RunID, request.Assignment.NodeID)
 	if err != nil {
 		return err
@@ -129,8 +155,9 @@ func (s *Service) decorateCodeInputAssignment(ctx context.Context, subject candi
 		return nil
 	}
 	a.ExecutionSkills = nil
+	a.DevelopmentContinuation = nil
 	_, skillsDeclared := a.Config["execution_skills"]
-	if !skillsDeclared && a.Config["purpose"] != "candidate_composition" && a.Config["purpose"] != "candidate_conflict_repair" && a.Config["code_baseline"] == nil {
+	if !skillsDeclared && a.Config["purpose"] != "candidate_composition" && a.Config["purpose"] != "candidate_conflict_repair" && a.Config["code_baseline"] == nil && a.Config["development_continuation_id"] == nil && a.Config["development_continuation"] == nil {
 		return nil
 	}
 	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
@@ -163,6 +190,9 @@ func (s *Service) decorateCodeInputAssignment(ctx context.Context, subject candi
 	if err = s.checkCodeBaselineExecutionTx(ctx, tx, subject.tenant, subject.project, a.RunID, a.NodeID, true); err != nil {
 		return err
 	}
+	if err = s.checkDevelopmentContinuationExecutionTx(ctx, tx, subject.tenant, subject.project, a.RunID, a.NodeID, true); err != nil {
+		return err
+	}
 	a.CandidateComposition, err = s.readCandidateCompositionExecutionTx(ctx, tx, subject.tenant, subject.project, a.RunID, a.NodeID)
 	if err != nil {
 		return err
@@ -175,12 +205,22 @@ func (s *Service) decorateCodeInputAssignment(ctx context.Context, subject candi
 	if err != nil {
 		return err
 	}
+	a.DevelopmentContinuation, err = s.readDevelopmentContinuationExecutionTx(ctx, tx, subject.tenant, subject.project, a.RunID, a.NodeID)
+	if err != nil {
+		return err
+	}
+	if a.DevelopmentContinuation != nil && !developmentContinuationNode(dag.Node{Type: a.Type, Config: a.Config}, a.DevelopmentContinuation.ID) {
+		return forbidden()
+	}
 	return tx.Commit()
 }
 
 // Genuine completion binds the received workspace to its frozen baseline, not
 // to a new current source. Revocation/source drift does not erase completed facts.
 func (s *Service) validateCodeBaselineResultTx(ctx context.Context, tx *sql.Tx, tenant, project string, result dag.Result) error {
+	if err := s.validateDevelopmentContinuationResultTx(ctx, tx, tenant, project, result); err != nil {
+		return err
+	}
 	baseline, err := s.readCodeBaselineExecutionTx(ctx, tx, tenant, project, result.RunID, result.NodeID)
 	if err != nil {
 		return err

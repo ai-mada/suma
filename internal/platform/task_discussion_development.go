@@ -6,6 +6,7 @@ import (
 
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	dc "github.com/ai-mada/suma/internal/developmentcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 )
 
@@ -27,6 +28,9 @@ func validTaskDiscussionDevelopmentCreate(r TaskDiscussionDevelopmentCreateReque
 		len(r.AcceptanceCriteria) < 1 || len(r.AcceptanceCriteria) > 32 ||
 		r.ModelExecutionSelection != nil && (r.CodexExecutionSelection != nil || mc.ValidateSelection(*r.ModelExecutionSelection) != nil) ||
 		r.CodexExecutionSelection != nil && cc.ValidateSelection(*r.CodexExecutionSelection) != nil {
+		return false
+	}
+	if r.ContinuationSource != nil && dc.ValidateSource(*r.ContinuationSource) != nil {
 		return false
 	}
 	for _, criterion := range r.AcceptanceCriteria {
@@ -80,11 +84,19 @@ func (s *Service) CreateTaskDiscussionDevelopmentPlan(ctx context.Context, engin
 	// ordered dependencies. Feed only its original pins to the resolver before
 	// task context, model bindings and native skill attachments are frozen.
 	preview := TaskDispatchPreviewRequest{ProjectID: project, TaskID: request.TaskID, ExpectedTaskVersion: request.ExpectedTaskVersion, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: request.ToolProfileID, ExpectedToolVersion: request.ExpectedToolVersion, ModelExecutionSelection: request.ModelExecutionSelection, CodexExecutionSelection: request.CodexExecutionSelection, Knowledge: knowledgeReferences(reply.Source.Knowledge), IdempotencyKey: request.IdempotencyKey}
-	plan, err := s.buildTaskDispatchSnapshotTx(ctx, engine, auth, project, preview)
+	id := newID()
+	var continuation *dc.DevelopmentContinuationBinding
+	if request.ContinuationSource != nil {
+		continuation, err = s.resolveDevelopmentContinuationTx(ctx, auth, project, request.TaskID, id, request.ExpectedTaskVersion, *request.ContinuationSource)
+		if err != nil {
+			return out, err
+		}
+	}
+	plan, err := s.buildTaskDispatchSnapshotInputsTx(ctx, engine, auth, project, preview, nil, continuation)
 	if err != nil {
 		return out, err
 	}
-	plan.ID, plan.RunID = newID(), newID()
+	plan.ID, plan.RunID = id, newID()
 	sourceDigest := digest(stringify(map[string]any{"reply_id": reply.ID, "reply_version": reply.Version, "reply_source_sha256": reply.Source.SHA256, "message": message}))
 	// JSON escapes markup in human-edited text. It is an explicit engineering
 	// objective, never an extra tool, shell, workspace or approval capability.
@@ -115,6 +127,7 @@ func (s *Service) CreateTaskDiscussionDevelopmentPlan(ctx context.Context, engin
 		return out, err
 	}
 	out = TaskDiscussionDevelopmentPlan{ID: plan.ID, ProjectID: project, TaskID: request.TaskID, Version: plan.Version, ReplyID: reply.ID, ReplyVersion: reply.Version, SourceSHA256: sourceDigest, Message: message, ReviewedGoal: request.ReviewedGoal, AcceptanceCriteria: append([]string{}, request.AcceptanceCriteria...), CreatedBy: auth.currentPrincipal.ID, CreatedAt: plan.CreatedAt, DispatchPlan: plan}
+	out.DevelopmentContinuation = continuation
 	if _, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_discussion_development_plans(id,tenant_id,project_id,task_id,reply_id,message_id,payload)VALUES(?,?,?,?,?,?,?)`), out.ID, auth.target.tenantID, project, out.TaskID, out.ReplyID, out.Message.ID, stringify(out)); err != nil {
 		return out, err
 	}

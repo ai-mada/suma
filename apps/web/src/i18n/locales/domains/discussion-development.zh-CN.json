@@ -1,5 +1,6 @@
 {
   "discussion-development.title": "从讨论转为开发",
+  "discussion-development.continue_discussion": "补充想法，继续开发",
   "discussion-development.intro": "审阅助手回复和开发说明，选择开发工具及其当前模型配置。先创建计划，再单独确认启动。",
   "discussion-development.source": "助手回复 {{sequence}} · 任务版本 {{version}}",
   "discussion-development.source_body": "原始助手回复",

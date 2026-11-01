@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-DEVELOPMENT-CONTINUATION-186：[合同](../../contracts/task-development-continuation.md)／[限定验证](../quality/task-development-continuation-verification.md)。同任务终态封存代码接续到新讨论计划、原派发、M→N/B与准确N独测/Review；祖先验收撤回fresh门已修复。26不同定向/27Go子例、最终类型及8710对词条、一次组件构建/5合成交互通过。Codex旧thread恢复、物理多机/其他数据库/生产与完整31/P0–P7/58/34/92继续。
+
 T-RUNNER-INBOX-185：[合同](../../contracts/runner-inbox.md)／[限定验证](../quality/runner-inbox-verification.md)。实时项目配对收件箱、准确目标交接、公开ID复用身份与独立持续启动草稿贯通；32不同定向／39Go子例、一次类型及8683对词条、一次组件构建／5代表合成交互通过。当前Grant、在线、库存、启用与验收仍分别表达，完整31／P0–P7／58／34／92与实际多机／生产继续。
 
 T-RUNNER-PAIRING-184：[合同](../../contracts/runner-pairing.md)、[产品](../product/runner-pairing.md)、[架构与AI SOP](../architecture/runner-pairing.md)、[交互](../design/runner-pairing.md)、[报告](../quality/runner-pairing-verification.md)／[摘要](../quality/runner-pairing-summary.json)。项目十分钟待办→机器系统库原凭据／摘要提议→浏览器当前CAS明确批准→原Grant核验后prepared；复用原Worker、24小时Grant及原report/显式Worker，不Claim或启用。修复无效public请求先拿writer、终端漏指纹和identity指南缺当前范围；原窗口准确接续工具配置，双语完整。41不同顶层（36新5旧）／41Go子例通过；一次合同生成，首新test5型错及最终scope输入后TSC／8617目录／组件收口通过。Windows专有系统库和真实HTTP集成同1例修后复验，两entry确认清理；6合成GUI／2图Root复核／两原生退出0。最后确定错误刷新仅复验原单例及2文件语义0，既有GUI分支不重；OpenAPI语义仅11项新增。其他OS／物理多机／厂商／安装／规模及原31／P0–P7／58／34／92继续。

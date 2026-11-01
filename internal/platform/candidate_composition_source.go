@@ -127,6 +127,8 @@ func (s *Service) codeInputBindingTx(ctx context.Context, tx *sql.Tx, a *candida
 	case "code_baseline":
 		// Only the platform's immutable run/node baseline record may grant this mode.
 		return s.codeBaselineInputBindingTx(ctx, tx, a, req)
+	case "development_continuation":
+		return s.developmentContinuationInputBindingTx(ctx, tx, a, req)
 	case "conflict_repair":
 		return s.conflictRepairInputBindingTx(ctx, tx, a, req)
 	default:

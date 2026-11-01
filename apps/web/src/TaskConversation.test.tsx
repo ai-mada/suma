@@ -2,14 +2,23 @@
 import {act} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import type {TaskConversationMessage, TaskConversationPage, WorkspaceTaskContext} from '../../../packages/contracts/src';
+import type {TaskConversationMessage, TaskConversationPage, TaskConversationReply as Reply, WorkspaceTaskContext} from '../../../packages/contracts/src';
 import {TaskConversation} from './TaskConversation';
 import {WorkbenchTaskContext} from './WorkbenchTaskContext';
 import {validConversationBody, validConversationMessage} from './task-conversation-model';
 import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
 import {setLocale} from './i18n';
+import {conversationDraftKey, saveConversationDraft} from './task-conversation-mentions-model';
 vi.mock('./TaskSubscriptionControl',()=>({TaskSubscriptionControl:()=>null}));
+const continuationPanel = vi.hoisted(() => ({current: undefined as undefined | ((origin: {planID: string; runID?: string}) => void)}));
+vi.mock('./DiscussionDevelopmentPanel', () => ({DiscussionDevelopmentPanel: (props: {
+  onContinue?: (origin: {planID: string; runID?: string}) => void;
+}) => {
+  continuationPanel.current = props.onContinue;
+  return <section data-original-development-plan="plan-a"><p>Original fixed development plan</p>
+    <button type="button" data-continue-original-plan onClick={() => props.onContinue?.({planID: 'plan-a', runID: 'delivery-run-a'})}>Add an idea and continue</button></section>;
+}}));
 
 const session = (id = 'user-a'): Session => ({user: {id, name: id, email: id + '@example.test'},
   organization: {id: 'org-' + id, name: 'Organization'}, projects: []});
@@ -31,7 +40,7 @@ let writes: {path: string; body: Record<string, unknown>; headers: Headers}[];
 beforeEach(async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   await setLocale('en-US', {persist: false});
-  sessionStorage.clear(); reads = []; writes = [];
+  sessionStorage.clear(); reads = []; writes = []; continuationPanel.current = undefined;
   host = document.createElement('div'); document.body.append(host); root = createRoot(host);
 });
 afterEach(async () => {
@@ -212,4 +221,66 @@ it('T127 keeps the same-owner draft and navigation guard across parent context d
   const leave = new Event('suma:navigate', {cancelable: true});
   await act(async () => window.dispatchEvent(leave)); expect(leave.defaultPrevented).toBe(false);
   expect(host.textContent).not.toContain('Authorized private history'); expect(writes).toHaveLength(0);
+});
+
+it('T186 returns from an original plan to the existing same-task draft without writing or carrying its references into another source or caller', async () => {
+  const hash = (letter: string) => letter.repeat(64), current = session(), stamp = '2026-10-29T04:00:00Z';
+  const original: Reply = {id: 'reply-a', project_id: 'project-a', task_id: 'task-a', version: 1, state: 'completed', locale: 'en-US',
+    run_id: 'reply-run-a', run_version: 1, run_state: 'succeeded',
+    source: {sha256: hash('1'), task: {id: 'task-a', version: 7, title: 'Task', description: 'Original task', acceptance_criteria: []},
+      requirement: null, task_run_id: '', messages: [message()], coverage: {total: 1, included: 1, first_sequence: 1, last_sequence: 1, complete: true},
+      reply_to_sequence: 1, execution_route: {tenant_id: current.organization.id, project_id: 'project-a', version: 0, pool_id: '', grant_id: '', grant_version: 0}},
+    tool_profile_id: 'reply-profile', tool_profile_version: 2, tool_profile_sha256: hash('c'), assistant_name: 'Reply expert',
+    model_execution: {protocol: 'suma-model-execution-v1', deployment: {deployment_id: 'model-a', revision: 1, deployment_sha256: hash('a'),
+      protocol: 'openai-chat-completions-v1', model: 'Explicit model', endpoint_origin: 'https://provider.example.test',
+      endpoint_config_sha256: hash('b'), context_window: 32}, parameters: {max_steps: 1, max_output_tokens: 512}, parameters_sha256: hash('e'),
+      binding_sha256: hash('f'), input_token_reservation: 32, output_token_reservation: 512},
+    message_id: 'assistant-a', message_sequence: 2, created_by: current.user.id, created_at: stamp, updated_at: stamp,
+    basis_current: true, reason: '', allowed_actions: []};
+  const key = conversationDraftKey(current.user.id, current.organization.id, 'project-a', 'task-a');
+  const existing = {body: 'Keep my extra idea exactly as typed', mention_resource_ids: ['member-a'],
+    knowledge: [{id: 'knowledge-a', revision: 2, sha256: hash('a')}]};
+  saveConversationDraft(sessionStorage, key, existing);
+  const scope = JSON.stringify([current.user.id, current.organization.id, 'project-a', 'task-a']);
+  sessionStorage.setItem('suma-task-reply-locator:' + scope, original.id);
+  transport(async path => {
+    if (path.startsWith('/task-conversation-replies/')) return Response.json(original);
+    if (path.startsWith('/task-conversation-replies?')) return Response.json({items: [original], total: 1, limit: 20, next_cursor: ''});
+    if (path.startsWith('/tool-profiles?')) return Response.json({items: [], total: 0, next_cursor: ''});
+    if (path.startsWith('/task-conversations?')) {
+      const params = new URL(path, 'https://fixture.test').searchParams;
+      return Response.json({...page([message()]), project_id: params.get('project_id'), task_id: params.get('task_id')});
+    }
+    // A temporarily unavailable optional directory cannot discard local selections.
+    return Response.json({error: {code: 'unavailable', message: 'Fixture directory temporarily unavailable'}}, {status: 503});
+  });
+  await render(); await click('[data-reply-toggle]');
+  expect(host.querySelector('[data-original-development-plan="plan-a"]')).not.toBeNull();
+  const button = host.querySelector<HTMLButtonElement>('[data-continue-original-plan]')!;
+  const field = host.querySelector<HTMLTextAreaElement>('[name=conversation_body]')!;
+  button.focus(); await click('[data-continue-original-plan]');
+  expect(document.activeElement).toBe(field); expect(field.value).toBe(existing.body);
+  expect(JSON.parse(sessionStorage.getItem(key)!)).toEqual({format: 'suma-task-conversation-draft-v1', ...existing});
+  expect(host.querySelector('[data-original-development-plan="plan-a"]')).not.toBeNull();
+  expect(sessionStorage.getItem('suma-task-reply-locator:' + scope)).toBe(original.id);
+  expect(writes).toHaveLength(0);
+  const oldContinue = continuationPanel.current; expect(oldContinue).toBeTypeOf('function');
+  const sentinel = document.createElement('button'); document.body.append(sentinel);
+  try {
+    const otherKey = conversationDraftKey(current.user.id, current.organization.id, 'project-b', 'task-b');
+    saveConversationDraft(sessionStorage, otherKey, {body: 'Other task draft', mention_resource_ids: []});
+    await render('user-a', 'project-b', 'task-b'); sentinel.focus();
+    await act(async () => oldContinue?.({planID: 'plan-a', runID: 'delivery-run-a'}));
+    expect(document.activeElement).toBe(sentinel);
+    expect(host.querySelector<HTMLTextAreaElement>('textarea')?.value).toBe('Other task draft');
+    expect(host.querySelector('[data-original-development-plan]')).toBeNull();
+    const otherActor = session('user-b'), actorKey = conversationDraftKey(otherActor.user.id, otherActor.organization.id, 'project-a', 'task-a');
+    saveConversationDraft(sessionStorage, actorKey, {body: 'Other person draft', mention_resource_ids: []});
+    await render('user-b'); sentinel.focus();
+    await act(async () => oldContinue?.({planID: 'plan-a', runID: 'delivery-run-a'}));
+    expect(document.activeElement).toBe(sentinel);
+    expect(host.querySelector<HTMLTextAreaElement>('textarea')?.value).toBe('Other person draft');
+    expect(writes).toHaveLength(0);
+    expect(JSON.parse(sessionStorage.getItem(key)!)).toEqual({format: 'suma-task-conversation-draft-v1', ...existing});
+  } finally {sentinel.remove();}
 });

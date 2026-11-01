@@ -43,7 +43,7 @@ func taskConversationReplyRequest(a Assignment, spec CommandSpec, profile tc.Pro
 	bad := func() (map[string]any, error) {
 		return nil, fmt.Errorf("task conversation reply requires its dedicated purpose and frozen single-call host model binding")
 	}
-	if err != nil || expected == nil || a.Type != "agent" || a.Config["purpose"] != "task_conversation_reply" || !tc.SupportsTaskConversationReplyProfile(profile) || tc.ValidateProfile(profile, true) != nil || *profile.TaskConversationReply != *expected || a.CandidateConflictRepair != nil || a.CandidateComposition != nil || a.CodeBaseline != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a) {
+	if err != nil || expected == nil || a.Type != "agent" || a.Config["purpose"] != "task_conversation_reply" || !tc.SupportsTaskConversationReplyProfile(profile) || tc.ValidateProfile(profile, true) != nil || *profile.TaskConversationReply != *expected || a.CandidateConflictRepair != nil || a.CandidateComposition != nil || a.CodeBaseline != nil || a.DevelopmentContinuation != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a) {
 		return bad()
 	}
 	goal, ok := a.Config["goal"].(string)

@@ -62,6 +62,17 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   const locked = action.busy || !!action.pending;
   const denied = accessBlocked || !!read.denied || !!located.denied || writeDenied || revoked;
   const page = denied ? undefined : read.page;
+  const draftField = useRef<HTMLTextAreaElement>(null), continuationReady = useRef(false);
+  continuationReady.current = !!page && page.project_id === project && page.task_id === taskId && page.can_post &&
+    !denied && !locked && !replyLocked && !invalidDraft && !draftStorageFailed && !action.conflict && !action.persistenceBlocked &&
+    !read.loading && !read.error && !located.loading && !located.error;
+  const continueDevelopment = useCallback(() => {
+    const field = draftField.current;
+    if (!alive.current || owner.current !== api || !continuationReady.current || !field?.isConnected || field.disabled) return;
+    // Continuing an idea is navigation within this task. The original draft,
+    // mentions and knowledge remain owner-authored until explicitly saved.
+    field.focus(); field.scrollIntoView?.({block: 'nearest'});
+  }, [api]);
   const dirty = !!draft || !!mentionIDs.length || !!knowledge.length || invalidDraft;
   const mentionsReady = !mentionIDs.length || mentionValidity?.key === mentionSelectionKey(mentionIDs, refresh + accessRetry) && mentionValidity.valid;
   const knowledgeReady = !knowledge.length || knowledgeValidity?.key === knowledgeSelectionKey(knowledge, refresh + accessRetry) && knowledgeValidity.valid;
@@ -191,7 +202,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
           <form onSubmit={event => void submit(event)} data-conversation-form>
             <label htmlFor={bodyID + '-draft'}>{t('draft_label')}</label>
             <small className="task-conversation-hint">{t('task_version', {version: formatNumber(page.task_version)})}</small>
-            <textarea id={bodyID + '-draft'} name="conversation_body" value={text} maxLength={16000}
+            <textarea ref={draftField} id={bodyID + '-draft'} name="conversation_body" value={text} maxLength={16000}
               rows={3} disabled={locked || invalidDraft || !page.can_post || action.conflict} placeholder={t('placeholder')}
               aria-describedby={bodyID + '-hint'} onChange={event => {setDraft(event.target.value); setSaved(undefined);}}/>
             <TaskConversationMentions project={project} taskID={taskId} userID={session.user.id} organizationID={session.organization.id}
@@ -209,7 +220,8 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
       </>}
       <TaskConversationReply session={session} project={project} taskId={taskId} page={page}
         accessBlocked={denied} disabled={locked || dirty || !!text || !!selectedIDs.length || !!selectedKnowledge.length || !!read.error || !!read.loading || !page?.can_post}
-        refresh={refresh} onMessagesRefresh={read.read} onLockChange={setReplyLocked} onDevelopmentStarted={onDevelopmentStarted}/>
+        refresh={refresh} onMessagesRefresh={read.read} onLockChange={setReplyLocked} onDevelopmentStarted={onDevelopmentStarted}
+        onContinueDevelopment={continueDevelopment}/>
     </div>}
   </section>;
 }

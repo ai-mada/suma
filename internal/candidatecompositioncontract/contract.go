@@ -134,7 +134,7 @@ func ValidateCodeBaselineBinding(b CodeBaselineBinding) error {
 	return nil
 }
 func ValidateCodeInputRequest(r CodeInputRequest) error {
-	if !validID(r.ProjectID, 64) || !r.Assignment.Valid() || r.InputKind != "composition" && r.InputKind != "code_baseline" && r.InputKind != "conflict_repair" || !validID(r.BindingID, 64) || !validID(r.TransferID, 64) {
+	if !validID(r.ProjectID, 64) || !r.Assignment.Valid() || r.InputKind != "composition" && r.InputKind != "code_baseline" && r.InputKind != "conflict_repair" && r.InputKind != "development_continuation" || !validID(r.BindingID, 64) || !validID(r.TransferID, 64) {
 		return fmt.Errorf("invalid current-assignment code input request")
 	}
 	return nil

@@ -1,0 +1,320 @@
+{
+  "stage": "T-DEVELOPMENT-CONTINUATION-186",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "当前任务的新已核验讨论回复可以明确选择上一终态运行的成功封存代码，创建新预览并单独Start；新工具、模型预算、技能、执行路由和当前权限沿原派发。",
+    "独立DevelopmentContinuation类型固定原任务运行、attempt/fence/worker、候选证据及完整包；原计划唯一持久来源，节点仅有ID marker，客户端与可编辑流程不能制造代码权限。",
+    "新运行启动后通过原任务运行provenance核验旧来源，原broker在原件读取前后复核当前消费资格；已验收祖先来源撤回会阻止新的Claim与导入，原结果/停止事实仍可保存。",
+    "真实隔离Git链以M为输入形成N、以B为包锚点；即使M本地已存在，新attempt仍走当前授权HTTP。不同Worker按原candidate_from真实测试准确N。",
+    "原讨论入口、明确候选选择和本轮来源事实已双语接通；新预览不执行，Start独立确认，旧计划/草稿/未知写入和来源漂移保护保留。",
+    "原架构HTML、讨论交接合同及产品/架构/交互/English文档同步；不再用旧native-only文字描述当前八类开发协议。"
+  ],
+  "verification": {
+    "distinct_top_level": 26,
+    "new_top_level": 20,
+    "affected_existing_top_level": 6,
+    "go_subcases": 27,
+    "backend_top_level": 7,
+    "runtime_top_level": 7,
+    "web_top_level": 9,
+    "root_top_level": 3,
+    "final_types_exit": 0,
+    "paired_i18n_keys": 8710,
+    "hardcodes": 0,
+    "production_component_builds": 1,
+    "synthetic_gui_checks": 5,
+    "root_viewed_images": 2,
+    "native_exit": 0
+  },
+  "retained_failures": [
+    "保留各域新功能RED、控制面compile/fixture迭代与祖先验收撤回实际RED；只重跑受影响检查。",
+    "Runner首批两项Git夹具generic128失败保留；改进程本地短TMP后仅重原两红通过，未保存原底层精确诊断，不能证明具体Win32长度根因。",
+    "首个全Web类型检查仅发现Selector.useRef缺初值；改为显式undefined后单文件语义0及最终全类型0。其余17Web源未改、词条不重跑。"
+  ],
+  "boundaries": [
+    "控制面证据使用实际HTTP/SQLite/DAG/凭据/Review接口与受控候选字节；Runner另以真实自有Git仓库、bundle和子进程测试证明M→N/B。两层分别留证，不冒充一次真实厂商模型端到端执行。",
+    "界面使用实际生产Panel/Selector/Facts和合成API/模型/计划、明确父级焦点harness；真实TaskConversation父接缝另有消费者检查。不是完整登录App、真实任务、模型调用或客户人工验收。",
+    "Codex当前仍每attempt新thread/turn；未实现旧隐藏会话迁移或持久多turn恢复。本轮不重复模型SDK、配对系统库、全套、安装包或部署矩阵。",
+    "实际数据库覆盖SQLite；OceanBase/PostgreSQL、物理多机器、真实厂商、跨平台运行/安装、规模和生产仍需各自证据。原31/P0-P7/58limited/34pending/92total及171显式GUI停止缺口继续。",
+    "两份无关本地历史审计保持原SHA且不提交；缓存、数据库、日志、截图、秘密、依赖和二进制不入Git。"
+  ],
+  "contract_changes": {
+    "new_schemas": [
+      "DevelopmentContinuationBinding",
+      "DevelopmentContinuationSource",
+      "TaskDevelopmentContinuationOption",
+      "TaskDevelopmentContinuationOptions"
+    ],
+    "new_paths": [
+      "/tasks/{id}/development-continuation-options get"
+    ],
+    "changed_existing_operations": [],
+    "removed_schemas": []
+  },
+  "owner_source_manifest": [
+    {
+      "path": "internal/platform/task_development_continuation.go",
+      "sha256": "c09f5226a21fdb523cc57f4934b790e1b9aa874cb6c1eeb7d50cbd5d3e666a19",
+      "bytes": 10942
+    },
+    {
+      "path": "internal/platform/task_development_continuation_options.go",
+      "sha256": "5d8b2ec864dc990233cc4deec2bd36b92100b0b5e8c1cb0831fca3ac90dd24a7",
+      "bytes": 6409
+    },
+    {
+      "path": "internal/platform/task_development_continuation_types.go",
+      "sha256": "ebb80dea6d4c70c6a828d592a604c3f985d0a0c125911cf4e9c3b87bed3e3bcc",
+      "bytes": 1346
+    },
+    {
+      "path": "internal/platform/task_development_continuation_test.go",
+      "sha256": "aa849d90107b7eb390356995a7e4b6407a37809060be83920595edee15c6be67",
+      "bytes": 24663
+    },
+    {
+      "path": "internal/platform/task_dispatch.go",
+      "sha256": "1c61515f16f3e40c01246c904c2f91c47350657ccb6ff107a0a8ce980e50520d",
+      "bytes": 20558
+    },
+    {
+      "path": "internal/platform/task_dispatch_build.go",
+      "sha256": "969cdac21f3ff4f13dfa39ea414587d42f6c0aa6be316884d4657a6144e0d0f3",
+      "bytes": 7073
+    },
+    {
+      "path": "internal/platform/task_dispatch_types.go",
+      "sha256": "56e0fa5791ccea31e7ce6960bcba43504704138412d8707e3ab81999a29a08f8",
+      "bytes": 5526
+    },
+    {
+      "path": "internal/platform/task_knowledge_context.go",
+      "sha256": "07f87fd1889bcd3169cc597a309eada3fafc442ba0470c6afbe47e965f1710f9",
+      "bytes": 1675
+    },
+    {
+      "path": "internal/platform/task_discussion_development.go",
+      "sha256": "04d2c955567aaac19e65e23f5fd8c9d01b794900c2c8bd8bcea7511fd2b43b04",
+      "bytes": 7562
+    },
+    {
+      "path": "internal/platform/task_discussion_development_types.go",
+      "sha256": "117ef14cfba8557d797d479277956641cbedf3630fb078d2df7e30cc56263fa1",
+      "bytes": 3265
+    },
+    {
+      "path": "internal/platform/task_discussion_development_store.go",
+      "sha256": "76f1d5c5dd681c9d9675cacb0bef2f28c672c942b614dc9b9b7496dc5835da50",
+      "bytes": 5609
+    },
+    {
+      "path": "internal/platform/code_input_assignment.go",
+      "sha256": "1cbcf881d7209545e133ac33faf99e8158f6b462809aa1c2f93407b0e30cf07c",
+      "bytes": 12195
+    },
+    {
+      "path": "internal/platform/candidate_composition_source.go",
+      "sha256": "c6e15f4e37750794a464c475e77f808cec06dc494f35ebfe88932af2f46d7b41",
+      "bytes": 10827
+    },
+    {
+      "path": "internal/platform/http.go",
+      "sha256": "b368246e9580ac87b8c06faf2d5b3448df29dfbb3617c75d72195d1ac786ef4d",
+      "bytes": 52482
+    },
+    {
+      "path": "internal/runner/development_continuation.go",
+      "sha256": "67aef061ad165bbd2f3d36b1b91f03124eb7cfa5219ac45906f71307f39cb9be",
+      "bytes": 3649
+    },
+    {
+      "path": "internal/runner/development_continuation_guard_test.go",
+      "sha256": "1558f1534b933d2c449828e7634d2c7cbe305e818a908b6281cdd1dde0542f06",
+      "bytes": 4321
+    },
+    {
+      "path": "internal/runner/development_continuation_test.go",
+      "sha256": "9396218b81fb5b5b16d5966631be14d43d7fb1ad1a02730872a98a968b3c9baa",
+      "bytes": 13569
+    },
+    {
+      "path": "internal/runner/workspace.go",
+      "sha256": "f89398ca7a745500c744201e922911954333e35e543e9c9cfb5518cf3148ea09",
+      "bytes": 25630
+    },
+    {
+      "path": "internal/runner/execute.go",
+      "sha256": "bfcd0ec481cc7a2104e623944f6290e068e8132e7624915e2ad171f71270e91c",
+      "bytes": 45746
+    },
+    {
+      "path": "internal/runner/model_execution.go",
+      "sha256": "01db56aed0f2afaf0b2280b7e5226d45df3df4ad9715bc12ab41ebeda5153784",
+      "bytes": 9000
+    },
+    {
+      "path": "internal/runner/terminal_session.go",
+      "sha256": "c5c4251b65157eaa6c290c7e97f369a0b802c9fa2327a9a9f5557d821863520c",
+      "bytes": 15712
+    },
+    {
+      "path": "internal/runner/workbuddy_cloud_journal.go",
+      "sha256": "0a3b558f84e0086e5dcafda6a8f2b3e5195e8bd8c2141b758adf00894345f6e8",
+      "bytes": 12248
+    },
+    {
+      "path": "internal/runner/knowledge_extraction.go",
+      "sha256": "4187182c8462e0ffdc298c08d3bc26f20f52828f09e29be9448bc9045acfc4e4",
+      "bytes": 6274
+    },
+    {
+      "path": "internal/runner/task_conversation_reply.go",
+      "sha256": "6e2bfd34c96aa9acf5bf9da6e967bb91e67fba189274dc6920d195b313931a94",
+      "bytes": 3697
+    },
+    {
+      "path": "apps/web/src/development-continuation-model.ts",
+      "sha256": "35663a633e28e02de36a0f46e141dbb64e4930f47123af3909e3e25836b6322f"
+    },
+    {
+      "path": "apps/web/src/development-continuation-model.test.ts",
+      "sha256": "5fd6b1dc83ae14e69a94c78e4dd77e508b3179659ca183f5fb0572fc888bda0b"
+    },
+    {
+      "path": "apps/web/src/development-continuation.test-support.ts",
+      "sha256": "0d2da6310bb2315c978c55d8afcd31eba2cb675acd506d47246eaa28ae5624c3"
+    },
+    {
+      "path": "apps/web/src/discussion-development-model.ts",
+      "sha256": "e0112472f2290e823ab41356c00403892480369dea834bcba07544683d5430ab"
+    },
+    {
+      "path": "apps/web/src/discussion-development-model182.test.ts",
+      "sha256": "4722fad8338750b651427805ec092781e288692d621774f3870a4dc28aba3891"
+    },
+    {
+      "path": "apps/web/src/DevelopmentContinuationSelector.tsx",
+      "sha256": "e76a8569145d9d2424d3b56abf1c7578d9e84c96f8407abe859495e2020ede74"
+    },
+    {
+      "path": "apps/web/src/DevelopmentContinuationSelector.css",
+      "sha256": "973163520dc630926861360dc11930e36a0c3893b02f3030c9ed994e5d3ad32b"
+    },
+    {
+      "path": "apps/web/src/DevelopmentContinuationSelector.test.tsx",
+      "sha256": "61f62de33d36f01e07c81de28773b102614274c412b76eae81375a78c3cde36d"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/development-continuation.zh-CN.json",
+      "sha256": "a4c1d1c2ae42b91a3e72a78be3a22ee127e3334f6f7e9f2962a4a6216af171c2"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/development-continuation.en-US.json",
+      "sha256": "700e61a76037568da22b5f6614baead6950d3065c3f5b2c3410226700fbbb767"
+    },
+    {
+      "path": "apps/web/src/TaskConversation.tsx",
+      "sha256": "769ecb1d38550dfe1950f42032c5dd332302fa8ef216df8f15e26ea75efe508f"
+    },
+    {
+      "path": "apps/web/src/TaskConversationReply.tsx",
+      "sha256": "a9c97f25e1be75b083dea70eefa30da8a6864b9c4da1f12a29f265132526a9e3"
+    },
+    {
+      "path": "apps/web/src/TaskConversation.test.tsx",
+      "sha256": "d1afd623e615edb98355f55d342e6336bb69ad5bab7d24349be89fa4b3b30914"
+    },
+    {
+      "path": "apps/web/src/DiscussionDevelopmentPanel.tsx",
+      "sha256": "b5ea11a0edebb6ec736a42029fb4df45c02c1ed9fe7359b82c944a358c5193d5"
+    },
+    {
+      "path": "apps/web/src/DiscussionDevelopmentPanel.test.tsx",
+      "sha256": "9372f9341d80ab8fa1333af44c6cb058128d3a63dc22319cfa9f987a8dc3cba6"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/discussion-development.zh-CN.json",
+      "sha256": "f401948e3b71d5ba0ad0993f89878aae3d5aac75aaa7ec74da04e7b5719ffe97"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/discussion-development.en-US.json",
+      "sha256": "28d8db211511f23738a05f9a10ff293b4b35306c3c4e369eed6f7198d1ed8b5c"
+    },
+    {
+      "path": "apps/web/src/TaskDispatch.tsx",
+      "sha256": "a2a68444980de0ff28730a5891a5260f382e2b5b1b754cc71a1240ce8edde720"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/development-continuation-186/platform/summary.json",
+      "sha256": "45a53f1dd06afaf5b98eadf6b608fca066b7db11a46bd70b5acb60f6ac2fb1b2"
+    },
+    {
+      "path": ".cache/development-continuation-186/platform/source-manifest.json",
+      "sha256": "d2e60414787160f1e7d3e6521d151e7fb99bfa1045f05bbd2e36402466f45789"
+    },
+    {
+      "path": ".cache/development-continuation-186/platform/EVIDENCE.md",
+      "sha256": "f832c0cdd9d351235af264c7720644ade84e298d4cc2b39443cc5e73f5c45494"
+    },
+    {
+      "path": ".cache/task-development-continuation-186/runtime/summary.json",
+      "sha256": "0f967df4537643f323b98421a3e9afd90905b8305a379ad0af75adaf365c729e"
+    },
+    {
+      "path": ".cache/task-development-continuation-186/runtime/source-manifest.json",
+      "sha256": "c7cd3e8089e5b22b0a8fd1865cb469a7fc540121e41d9ed318e306d40df0474d"
+    },
+    {
+      "path": ".cache/development-continuation-186/web/web186-summary.json",
+      "sha256": "6ac1e9c181a7220e42ba519507d9cbb29ade973145c50c0229687e8a2ea16c97"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T054724893Z.command.json",
+      "sha256": "cf2333d1d416ae09d2ef4f4348c3e46c311b736095d5974e2f68d73f19401784"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T055925901Z.command.json",
+      "sha256": "6f991af2cc1373dd681d3f71ecc4999d293221b9be721bfc2d7ea2d76cd22d1c"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T055845897Z.command.json",
+      "sha256": "55ee23341f68d9feeefbac5c93c6009b6c0906f5c4acbd28afb07ef9957f875f"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261101T055918370Z.command.json",
+      "sha256": "ccac450baf7579ac4001a671b7ead094ed1b5920a1571083064bd1d63184a0ca"
+    },
+    {
+      "path": ".cache/development-continuation-186/types-before-ref-fix.command.json",
+      "sha256": "993b1860b68344944681592c612773ea7f861a82d94eb7de1a775ca0e531e9ab"
+    },
+    {
+      "path": ".cache/development-continuation-186/types.command.json",
+      "sha256": "525a0fe743752527ef792f89ddc87da52f0daf3d07f184404fa76ac8f59d0a6e"
+    },
+    {
+      "path": ".cache/development-continuation-186/i18n.command.json",
+      "sha256": "aae222bd2a205eddb7d733bb32648d20f572e3442b7d410940a2de2e2e040c42"
+    },
+    {
+      "path": ".cache/development-continuation-186/build.command.json",
+      "sha256": "cd73982ff3b76f16c761bdbf8d6b41a5cad0566063eb17cce61cd2b2b0c963fc"
+    },
+    {
+      "path": ".cache/development-continuation-186/visual/result.json",
+      "sha256": "f8cc6596be5b9b6b07377bd6af9db3c2a1dd4ab3d83c9bf51e0a1d94ad71d025"
+    }
+  ]
+}

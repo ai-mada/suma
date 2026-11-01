@@ -9,6 +9,7 @@ import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
 import {setLocale} from './i18n';
 import {modelBinding} from './model-execution.test-support';
+import {continuationBinding,continuationOptions,continuationSource} from './development-continuation.test-support';
 
 const project = 'project-a', task = 'task-a', stamp = '2026-10-29T05:00:00Z';
 const knowledgePin = {id: 'knowledge-a', revision: 2, sha256: 'a'.repeat(64)};
@@ -58,15 +59,19 @@ const models: ModelExecutionOptions = {project_id: project, tool_profile_id: too
 
 // Exercises the real panel, option/model selectors, durable write validation
 // and original-run receipt read. HTTP/model facts here are protocol fixtures.
-it('T129 reviews fresh coding selection and edited instructions, creates only a preview, then explicitly starts without accepting work', async () => {
+it.each([{continued:false,name:'T129 reviews fresh coding selection and edited instructions, creates only a preview, then explicitly starts without accepting work'},
+  {continued:true,name:'T186 explicitly selects sealed code for a fresh reviewed preview and separate execution without inheriting old acceptance'}])('$name', async ({continued}) => {
   await setLocale('en-US', {persist: false}); sessionStorage.clear(); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   const host = document.createElement('div'); document.body.append(host); const root = createRoot(host);
   const writes: {path: string; body: Record<string, any>; headers: Headers}[] = [];
   let saved: TaskDiscussionDevelopmentPlan | undefined, originalWorkflowReceipt = true;
-  const onRun = vi.fn(), lock = vi.fn();
+  const onRun = vi.fn(), lock = vi.fn(), onContinue=vi.fn();let sourceReads=0;
+  const currentNote={...note,run_id:continued?continuationSource.run_id:''},currentAssistant={...assistant,run_id:continued?continuationSource.run_id:''};
+  const currentReply={...previousReply,source:{...previousReply.source,task_run_id:continued?continuationSource.run_id:'',messages:[currentNote]}};
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
     const path = String(input).replace('/api/v1', ''), body = init?.body ? JSON.parse(String(init.body)) : undefined;
     if (body) writes.push({path, body, headers: new Headers(init?.headers)});
+    if(path.startsWith('/tasks/task-a/development-continuation-options?')){sourceReads++;return Response.json(continuationOptions);}
     if (path.startsWith('/workflows?')) return Response.json({items: [workflow]});
     if (path.startsWith('/tasks/task-a/dispatch-options?')) return Response.json(dispatchOptions);
     if (path.startsWith('/model-execution/options?')) return Response.json(models);
@@ -76,11 +81,11 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
         workflow_id: workflow.id, workflow_version: 2, agent_node_id: 'code', tool_profile_id: tool.id, tool_profile_version: tool.version,
         tool_profile_sha256: tool.profile.profile_sha256, run_id: 'development-run', created_at: stamp, expires_at: '2099-10-29T06:00:00Z', context: {task: sourceTask, knowledge: [fixedKnowledge]},
         workflow: {...workflow, nodes: [{...workflow.nodes[0], max_retries: 0,
-          config: {goal: body.reviewed_goal, tool_profile_id: tool.id, tool_profile_sha256: tool.profile.profile_sha256, model_execution: binding}}, workflow.nodes[1]]},
-        model_execution: binding, valid: true, reason: ''};
+          config: {goal: body.reviewed_goal, tool_profile_id: tool.id, tool_profile_sha256: tool.profile.profile_sha256, model_execution: binding,...(continued?{development_continuation_id:continuationBinding.id}:{})}}, workflow.nodes[1]]},
+        model_execution: binding, valid: true, reason: '',...(continued?{development_continuation:continuationBinding}:{})};
       saved = {id: plan.id, project_id: project, task_id: task, version: plan.version, reply_id: previousReply.id, reply_version: previousReply.version,
-        source_sha256: '5'.repeat(64), message: {...assistant, knowledge: [{...knowledgePin, title_at_post: fixedKnowledge.title, kind_at_post: fixedKnowledge.kind}]}, reviewed_goal: body.reviewed_goal, acceptance_criteria: body.acceptance_criteria,
-        created_by: 'user-a', created_at: stamp, dispatch_plan: plan};
+        source_sha256: '5'.repeat(64), message: {...currentAssistant, knowledge: [{...knowledgePin, title_at_post: fixedKnowledge.title, kind_at_post: fixedKnowledge.kind}]}, reviewed_goal: body.reviewed_goal, acceptance_criteria: body.acceptance_criteria,
+        created_by: 'user-a', created_at: stamp, dispatch_plan: plan,...(continued?{development_continuation:continuationBinding}:{})};
       return Response.json(saved, {status: 201});
     }
     if (path === '/task-discussion-development-plans/development-plan/start' && body && saved) {
@@ -92,7 +97,7 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
   }));
   const settle = async () => {for (let index = 0; index < 5; index++) await act(async () => {await new Promise(resolve => setTimeout(resolve, 0));});};
   const render = async (version = 7) => {await act(async () => root.render(<ApiViewProvider session={identity}><DiscussionDevelopmentPanel session={identity}
-    project={project} taskId={task} reply={previousReply} page={discussion(version)} disabled={false} accessBlocked={false} onLockChange={lock} onRun={onRun}/></ApiViewProvider>)); await settle();};
+    project={project} taskId={task} reply={currentReply} page={{...discussion(version),items:[currentNote,currentAssistant]}} disabled={false} accessBlocked={false} onLockChange={lock} onRun={onRun} onContinue={onContinue}/></ApiViewProvider>)); await settle();};
   const click = async (selector: string) => {const element = host.querySelector<HTMLElement>(selector); expect(element).not.toBeNull(); await act(async () => element!.click()); await settle();};
   const change = async (selector: string, value: string) => {
     const element = host.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(selector); expect(element).not.toBeNull();
@@ -107,6 +112,8 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
     await click('.discussion-development-tools button');
     await change('[data-model-select]', modelBinding.deployment.deployment_sha256);
     await change('[data-model-token-budget]', '400000');
+    expect(sourceReads).toBe(0);
+    if(continued){await click('[data-continuation-toggle]');expect(sourceReads).toBe(1);expect(host.querySelector<HTMLButtonElement>('[data-development-create]')!.disabled).toBe(true);await click('[data-continuation-source="'+continuationSource.node_id+'"]');}
     await click('.discussion-development-consent input');
     expect(writes).toHaveLength(0);
     expect(host.querySelector<HTMLButtonElement>('[data-development-create]')!.disabled).toBe(false);
@@ -119,6 +126,7 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
     expect(writes[0].headers.get('X-Suma-Expected-User')).toBe('user-a');
     expect(host.textContent).toContain(fixedKnowledge.content);
     expect(Object.hasOwn(writes[0].body, 'knowledge')).toBe(false); // canonical preview inherits the original reply, never a second client selection
+    if(continued){expect(writes[0].body.continuation_source).toEqual(continuationSource);expect(writes[0].body).not.toHaveProperty('development_continuation');expect(host.querySelector('[data-development-continuation-facts]')).not.toBeNull();expect(host.textContent).toContain(continuationBinding.source.head_commit);}else{expect(writes[0].body).not.toHaveProperty('continuation_source');expect(sourceReads).toBe(0);}
     expect(host.querySelector<HTMLButtonElement>('[data-development-start]')!.disabled).toBe(true); expect(onRun).not.toHaveBeenCalled();
     await click('.discussion-development-consent input'); await click('[data-development-start]');
     expect(writes).toHaveLength(2); expect(writes[1].path).toBe('/task-discussion-development-plans/development-plan/start');
@@ -133,5 +141,6 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
     await render(8); // A current-context refresh retains the original plan/run.
     expect(host.querySelector('a[href*="run=development-run"]')).not.toBeNull(); expect(writes).toHaveLength(3);
     expect(host.textContent).toContain('Original assistant proposal');
+    await click('[data-development-continue]');expect(onContinue).toHaveBeenCalledExactlyOnceWith({planID:'development-plan',runID:'development-run'});expect(writes).toHaveLength(3);
   } finally {await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); vi.restoreAllMocks(); await setLocale('zh-CN', {persist: false});}
 });

@@ -24,6 +24,9 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 	a = cloneModelAssignment(a)
 	r := Result{Assignment: a, ExitCode: -1}
 	fail := func(err error) Result { r.Error = err.Error(); return r }
+	if err := developmentContinuationInput(a); err != nil {
+		return fail(err)
+	}
 	if !cfg.AllowExec || cfg.TerminalClient == nil || a.Type != "terminal_session" || len(a.Command) != 1 || a.Idempotent || a.Attempt != 1 || a.Fence < 1 || a.DispatchID == "" {
 		return fail(fmt.Errorf("Terminal execution requires its original non-retryable assignment and control client"))
 	}

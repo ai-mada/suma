@@ -9,6 +9,7 @@ import {validExecutionSkillPlan} from './codex-native-skills-model';
 import {validOpenCodeDispatchReceipt,validOpenCodePlan} from './opencode-execution-model';
 import {validClaudeDispatchReceipt,validClaudePlan} from './claude-cli-model';
 import {validACPDispatchReceipt,validACPPlan} from './acp-execution-model';
+import {validDevelopmentContinuationBinding,validDevelopmentContinuationSource} from './development-continuation-model';
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const closed = (value: Record<string, unknown>, names: string[]) => Object.keys(value).sort().join(',') === [...names].sort().join(',');
@@ -20,6 +21,19 @@ const text = (value: unknown, limit: number): value is string => typeof value ==
   !value.includes('\0') && !/[\uD800-\uDFFF]/u.test(value) && new TextEncoder().encode(value).length <= limit;
 export const developmentGoal = (value: unknown): value is string => text(value, 8000);
 export const developmentCriteria = (value: unknown): value is string[] => Array.isArray(value) && value.length > 0 && value.length <= 32 && value.every(item => text(item, 1000));
+const canonical=(value:unknown):string=>JSON.stringify(value,(_key,item)=>object(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
+
+/** The typed plan owns the code input. A config marker merely links its exact
+ * producer; it can never supply a second binding or an accepted baseline. */
+function validDiscussionContinuation(value:Record<string,unknown>,plan:Record<string,unknown>,project:string,task:string):boolean{
+ if(!object(plan.workflow)||!Array.isArray(plan.workflow.nodes))return false;
+ const marked=plan.workflow.nodes.filter(node=>object(node)&&object(node.config)&&(Object.hasOwn(node.config,'development_continuation_id')||Object.hasOwn(node.config,'development_continuation')));
+ const wrapper=Object.hasOwn(value,'development_continuation'),dispatch=Object.hasOwn(plan,'development_continuation');
+ if(!wrapper&&!dispatch)return marked.length===0;
+ if(!wrapper||!dispatch||!positive(plan.task_version)||!validDevelopmentContinuationBinding(value.development_continuation,project,task,plan.task_version)||!validDevelopmentContinuationBinding(plan.development_continuation,project,task,plan.task_version))return false;
+ const binding=value.development_continuation,node=marked[0];
+ return binding.id===plan.id&&canonical(binding)===canonical(plan.development_continuation)&&marked.length===1&&object(node)&&node.id===plan.agent_node_id&&object(node.config)&&node.config.development_continuation_id===binding.id&&!Object.hasOwn(node.config,'development_continuation')&&!Object.hasOwn(node.config,'code_baseline')&&!Object.hasOwn(node.config,'purpose');
+}
 
 /** The dispatcher owns eligibility. A readable preview still needs one exact
  * producer and mutually exclusive, complete bindings before exposing actions. */
@@ -45,8 +59,8 @@ function validDevelopmentExecution(plan:Record<string,unknown>):boolean {
 /** The reply is provenance. Only the freshly reviewed task, tool and model
  * binding can authorize the separate code-development plan. */
 export function validDiscussionDevelopment(value: unknown, project: string, task: string): value is TaskDiscussionDevelopmentPlan {
-  if (!object(value) || !closed(value, ['id', 'project_id', 'task_id', 'version', 'reply_id', 'reply_version', 'message',
-    'source_sha256', 'reviewed_goal', 'acceptance_criteria', 'created_by', 'created_at', 'dispatch_plan']) ||
+  if (!object(value) || !fields(value, ['id', 'project_id', 'task_id', 'version', 'reply_id', 'reply_version', 'message',
+    'source_sha256', 'reviewed_goal', 'acceptance_criteria', 'created_by', 'created_at', 'dispatch_plan'],['development_continuation']) ||
     !id(value.id) || value.project_id !== project || value.task_id !== task || !positive(value.version) ||
     !id(value.reply_id) || !positive(value.reply_version) || !hash(value.source_sha256) || !validConversationMessage(value.message) ||
     value.message.actor_kind !== 'assistant' || value.message.reply_id !== value.reply_id || !developmentGoal(value.reviewed_goal) ||
@@ -61,7 +75,7 @@ export function validDiscussionDevelopment(value: unknown, project: string, task
     typeof plan.valid === 'boolean' && typeof plan.reason === 'string' &&
     ['ready', 'started'].includes(String(plan.state)) && typeof plan.run_id === 'string' && !!plan.run_id &&
     object(plan.workflow) && typeof plan.workflow.id === 'string' && positive(plan.workflow.version) &&
-    Array.isArray(plan.workflow.nodes) && validDevelopmentExecution(plan);
+    Array.isArray(plan.workflow.nodes) && validDevelopmentExecution(plan) && validDiscussionContinuation(value,plan,project,task);
 }
 
 export function validDiscussionDevelopmentRequest(request: WriteRecoveryRequest, project: string, task: string): boolean {
@@ -69,12 +83,13 @@ export function validDiscussionDevelopmentRequest(request: WriteRecoveryRequest,
   if (request.method !== 'POST' || body.project_id !== project || body.idempotency_key !== request.idempotency_key) return false;
   if (request.path === '/task-discussion-development-plans') return fields(body, ['project_id', 'task_id', 'expected_task_version',
     'reply_id', 'expected_reply_version', 'workflow_id', 'workflow_version', 'agent_node_id', 'tool_profile_id', 'expected_tool_version',
-    'reviewed_goal', 'acceptance_criteria', 'acknowledge_execution', 'idempotency_key'],['model_execution_selection','codex_execution_selection']) &&
+    'reviewed_goal', 'acceptance_criteria', 'acknowledge_execution', 'idempotency_key'],['model_execution_selection','codex_execution_selection','continuation_source']) &&
     body.task_id === task && positive(body.expected_task_version) && id(body.reply_id) && positive(body.expected_reply_version) &&
     id(body.workflow_id) && positive(body.workflow_version) && id(body.agent_node_id) && id(body.tool_profile_id) &&
     positive(body.expected_tool_version) && !(Object.hasOwn(body,'model_execution_selection')&&Object.hasOwn(body,'codex_execution_selection')) &&
     (!Object.hasOwn(body,'model_execution_selection')||validModelSelection(body.model_execution_selection)) &&
-    (!Object.hasOwn(body,'codex_execution_selection')||validCodexSelection(body.codex_execution_selection)) && developmentGoal(body.reviewed_goal) &&
+    (!Object.hasOwn(body,'codex_execution_selection')||validCodexSelection(body.codex_execution_selection)) &&
+    (!Object.hasOwn(body,'continuation_source')||validDevelopmentContinuationSource(body.continuation_source)) && developmentGoal(body.reviewed_goal) &&
     developmentCriteria(body.acceptance_criteria) && body.acknowledge_execution === true;
   return /^\/task-discussion-development-plans\/[A-Za-z0-9_.-]{1,64}\/start$/.test(request.path) &&
     closed(body, ['project_id', 'expected_version', 'idempotency_key']) && positive(body.expected_version);
@@ -84,6 +99,11 @@ export function validDiscussionDevelopmentReceipt(value: unknown, request: Write
   if (!validDiscussionDevelopmentRequest(request,project,task)||request.path!=='/task-discussion-development-plans'||!validDiscussionDevelopment(value, project, task)) return false;
   const body = request.body;
   const plan=value.dispatch_plan;
+  if(Object.hasOwn(body,'continuation_source')!==Object.hasOwn(value,'development_continuation'))return false;
+  if(Object.hasOwn(body,'continuation_source')){
+    const source=body.continuation_source,binding=value.development_continuation;
+    if(!validDevelopmentContinuationSource(source)||!binding||binding.source_task_run_id!==source.run_id||binding.source_run_version!==source.expected_run_version||binding.source.source.run_id!==source.run_id||binding.source.source.node_id!==source.node_id||binding.source.source.attempt!==source.attempt||binding.source.source.fence!==source.fence)return false;
+  }
   // Only pins already checked against the protected assistant message may be
   // projected for the ordinary Codex receipt guard; never accept request pins.
   const codexBody={...body,knowledge:(plan.context.knowledge||[]).map(({id,revision,sha256})=>({id,revision,sha256}))};

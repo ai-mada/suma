@@ -1,5 +1,7 @@
 # HTTP、事件与客户端合同
 
+T-DEVELOPMENT-CONTINUATION-186新增[同任务候选续作](../../contracts/task-development-continuation.md)：当前任务来源分页、原讨论Create可选来源选择、原计划只读typed binding、CodeInputRequest新增development_continuation。SourceRef不是导入权限，原控制面/current lease/provenance与broker独立核验。
+
 T-RUNNER-INBOX-185新增[项目配对收件箱](../../contracts/runner-inbox.md)：GET /runner-pairings 由当前真实浏览器项目管理员读取，实时筛选总数／游标与来源绑定；RunnerPairingPage及浏览器只读reason_code由共享Go合同生成，不扩大机器权限。
 
 T-TOOL-DOCTOR-181新增[工具配置体检](../../contracts/tool-profile-diagnostics.md)：`GET /tool-profiles/{id}/diagnostics`沿原可派发判定提供四项当前事实、短期观察期限和原管理入口，体检不执行建议。公开Schema与TypeScript共享同一Go类型，[限定验证](../quality/tool-profile-diagnostics-verification.md)区分实际会话HTTP与合成界面。

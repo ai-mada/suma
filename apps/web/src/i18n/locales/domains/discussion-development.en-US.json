@@ -1,5 +1,6 @@
 {
   "discussion-development.title": "Turn discussion into development",
+  "discussion-development.continue_discussion": "Add an idea and continue development",
   "discussion-development.intro": "Review the assistant reply and development instructions, then choose a tool and its current model configuration. Create a plan before separately confirming execution.",
   "discussion-development.source": "Assistant reply {{sequence}} · task version {{version}}",
   "discussion-development.source_body": "Original assistant reply",

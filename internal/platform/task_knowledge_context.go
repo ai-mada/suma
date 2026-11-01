@@ -6,11 +6,15 @@ import "context"
 // same resolver is used before dispatch acceptance, so a retired publication,
 // changed source or different revision cannot silently enter the reviewed goal.
 func (s *Service) taskContextForDispatchTx(ctx context.Context, auth *authorizedCommand, project, taskID string, refs []ProjectKnowledgeReference) (TaskContext, error) {
+	return s.taskContextForDispatchWithAncestorTx(ctx, auth, project, taskID, refs, false)
+}
+
+func (s *Service) taskContextForDispatchWithAncestorTx(ctx context.Context, auth *authorizedCommand, project, taskID string, refs []ProjectKnowledgeReference, ancestor bool) (TaskContext, error) {
 	var out TaskContext
 	if err := assertProjectRead(auth, project); err != nil {
 		return out, err
 	}
-	out, err := s.taskContextTx(auth.ctx, auth.tx, auth.currentPrincipal, project, taskID)
+	out, err := s.taskContextWithAncestorTx(auth.ctx, auth.tx, auth.currentPrincipal, project, taskID, ancestor)
 	if err != nil {
 		return out, err
 	}

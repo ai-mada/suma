@@ -62,6 +62,16 @@ func hasCandidate(a Assignment) bool {
 // Only the authenticated scheduler's complete envelope may select a candidate.
 // A workflow config commit or an unresolved source never changes the admin pin.
 func candidateBase(ctx context.Context, repo string, a Assignment, cfg ExecConfig) (string, error) {
+	if err := developmentContinuationInput(a); err != nil {
+		return "", err
+	}
+	if a.DevelopmentContinuation != nil {
+		base, receipt, err := importDevelopmentContinuation(ctx, repo, a, cfg)
+		if err == nil && cfg.candidateImport != nil {
+			*cfg.candidateImport = *receipt
+		}
+		return base, err
+	}
 	if a.CodeBaseline != nil {
 		base, receipt, err := importCodeBaseline(ctx, repo, a, cfg)
 		if err == nil && cfg.candidateImport != nil {
@@ -252,6 +262,12 @@ func workspaceConfig(ctx context.Context, cfg ExecConfig) (string, string, error
 }
 func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (*attemptWorkspace, error) {
 	a = cloneModelAssignment(a)
+	if err := developmentContinuationSpec(a, spec); err != nil {
+		return nil, err
+	}
+	if a.DevelopmentContinuation != nil {
+		ctx = context.WithValue(ctx, nativeGitScope{}, true)
+	}
 	if a.CandidateConflictRepair != nil {
 		return prepareConflictRepairWorkspace(ctx, a, cfg, spec)
 	}
@@ -268,7 +284,7 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 	if err != nil {
 		return nil, err
 	}
-	if spec.NativeWorkspace != nil || spec.CandidateComposition || a.CodeBaseline != nil {
+	if spec.NativeWorkspace != nil || spec.CandidateComposition || a.CodeBaseline != nil || a.DevelopmentContinuation != nil {
 		if err = nativeBaseAttributes(ctx, repo, base); err != nil {
 			return nil, err
 		}
@@ -477,6 +493,9 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	}
 	if a.Assignment.CodeBaseline != nil {
 		evidence["code_baseline"] = a.Assignment.CodeBaseline
+	}
+	if a.Assignment.DevelopmentContinuation != nil {
+		evidence["development_continuation"] = a.Assignment.DevelopmentContinuation
 	}
 	if a.CompositionEvidence != nil {
 		evidence["candidate_composition"] = a.CompositionEvidence

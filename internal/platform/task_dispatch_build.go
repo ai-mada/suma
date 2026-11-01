@@ -7,11 +7,16 @@ import (
 
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"github.com/ai-mada/suma/internal/dag"
+	dc "github.com/ai-mada/suma/internal/developmentcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
 // A dispatch preview changes a copied definition, never the published template.
 func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, profile tc.Profile, task TaskContext) (dag.Workflow, error) {
+	return buildTaskDispatchWorkflowInputs(source, agentID, profileID, profile, task, nil)
+}
+
+func buildTaskDispatchWorkflowInputs(source dag.Workflow, agentID, profileID string, profile tc.Profile, task TaskContext, continuation *dc.DevelopmentContinuationBinding) (dag.Workflow, error) {
 	var w dag.Workflow
 	encoded, err := json.Marshal(source)
 	if err != nil {
@@ -22,6 +27,8 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	}
 	for i := range w.Nodes {
 		delete(w.Nodes[i].Config, "execution_skills")
+		delete(w.Nodes[i].Config, "development_continuation")
+		delete(w.Nodes[i].Config, "development_continuation_id")
 	}
 	if source.ID == "" || source.Version < 1 || profileID == "" || profile.CommandID == "" || len(profile.ProfileSHA256) != 64 {
 		return w, invalid("请固定流程版本与完整执行工具配置")
@@ -97,7 +104,13 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 		}
 		n.Config["opencode_execution"] = fixed
 	}
-	if task.CodeBaseline != nil {
+	if continuation != nil {
+		_, purpose := n.Config["purpose"]
+		if dc.ValidateBinding(*continuation) != nil || continuation.TaskID != task.Task.ID || continuation.TaskVersion != task.Task.Version || n.Config["candidate_from"] != nil || purpose {
+			return w, continuationError()
+		}
+		n.Config["development_continuation_id"] = continuation.ID
+	} else if task.CodeBaseline != nil {
 		if n.Config["candidate_from"] != nil {
 			return w, compositionError(409, "baseline_changed", compositionBaseline)
 		}
