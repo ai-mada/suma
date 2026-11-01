@@ -69,3 +69,18 @@ it('T194 isolates late caller reads, latches current access denial and refuses w
  const corruptKey='suma-tool-reinspection-intent:'+JSON.stringify(['org-a','user-a','p','tool-a']);sessionStorage.setItem(corruptKey,'not valid JSON');await act(async()=>root.unmount());root=createRoot(host);await render({accessBlocked:true});expect(locked).toHaveBeenLastCalledWith(true);
  const raw=journals();await click('[data-tool-reinspection-defer]');expect(deferred).toHaveBeenCalledOnce();expect(journals()).toEqual(raw);expect(writes()).toHaveLength(0);
 });
+
+it('T199 reads the explicitly located inspection and recovery while preserving an original local receipt before another locator',async()=>{
+ const {observed_at:_observed,inventory_operation_id:_inventory,...source}=completed,unknown={...source,state:'unknown',result_code:'probe_timeout'};
+ const sourceSHA=createHash('sha256').update(JSON.stringify({ID:unknown.id,ProjectID:'p',WorkerID:'worker-a',ToolProfileID:'tool-a',ToolProfileVersion:3,ProfileSHA256:'a'.repeat(64),CommandID:'codex-team',RequestedBy:'user-a',CreatedAt:unknown.created_at,ExpiresAt:unknown.expires_at,ClaimID:unknown.claim_id,ClaimedAt:unknown.claimed_at,LeaseUntil:unknown.lease_until,Fence:1})).digest('hex');
+ reply=async request=>request.path.startsWith('/tool-inspection-recoveries/recovery-original?')?Response.json({id:'recovery-original',project_id:'p',worker_id:'worker-a',inspection:{inspection_id:unknown.id,claim_id:unknown.claim_id,fence:1},inspection_version:unknown.version,source_sha256:sourceSHA,version:1,state:'requested',requested_by:'user-a',created_at:'2026-11-01T00:02:00Z',expires_at:'2026-11-01T00:07:00Z'}):request.path.startsWith('/tool-inspections/inspection-a?')?Response.json(unknown):Response.json({items:[pending]});
+ await render({locator:{inspectionID:unknown.id,recoveryID:'recovery-original'}});
+ expect(requests[0].path).toBe('/tool-inspections/inspection-a?project_id=p');
+ expect(requests.some(request=>request.path==='/tool-inspection-recoveries/recovery-original?project_id=p')).toBe(true);expect(state()).toBe('unknown');expect(host.querySelector('[data-tool-recovery-state]')?.getAttribute('data-tool-recovery-state')).toBe('requested');expect(writes()).toEqual([]);
+ await act(async()=>root.unmount());root=createRoot(host);requests=[];
+ const scope={project:'p',toolID:'tool-a',userID:'user-a',organizationID:'org-a'},request={path:'/tool-profiles/tool-a/inspections',method:'POST',idempotency_key:'original-199-operation',body:{project_id:'p',expected_version:3,idempotency_key:'original-199-operation'}},base=JSON.stringify(['org-a','user-a','p','tool-a']),metadata=JSON.stringify({scope,tool,request});
+ sessionStorage.setItem('suma-tool-reinspection-intent:'+base,metadata);sessionStorage.setItem('suma-write-recovery-v1:tool-reinspection:'+base,JSON.stringify(request));
+ reply=normal;items=[pending];await render({locator:{inspectionID:'another-server-inspection'},disabled:true});
+ expect(host.querySelector('[data-tool-reinspection-restore]')).not.toBeNull();expect(requests.some(item=>item.path.includes('another-server-inspection'))).toBe(false);expect(writes()).toEqual([]);
+ expect(sessionStorage.getItem('suma-tool-reinspection-intent:'+base)).toBe(metadata);
+});

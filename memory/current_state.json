@@ -594,8 +594,8 @@
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/tool-experience-verification.md",
-  "current_summary": "docs/quality/tool-experience-summary.json",
+  "current_evidence": "docs/quality/tool-doctor-maintenance-verification.md",
+  "current_summary": "docs/quality/tool-doctor-maintenance-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -700,12 +700,16 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: prior T196 source72/real HTTP and bilingual interactions committed/pushed and verified; T197 typed source projection and retrieval implementation advancing, full platform goal active",
+  "last_goal_turn_classification": {
+    "classification": "progress",
+    "evidence": "T197 and T198 completed and normally pushed to dev; HEAD bcfa6f96281678c059c87bf628b78cfb9776c0ba",
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558"
+  },
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-EXPERIENCE-198",
+    "stage": "T-TOOL-DOCTOR-199",
     "status": "scoped_stage_verified_full_goal_active",
-    "next_priority": "Maintenance-aware Doctor next action and formal configuration replacement handoff",
+    "next_priority": "Formal immutable old-to-new tool configuration handoff using existing gates",
     "next_plan": "docs/delivery/tool-management-next.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92baseline"
   },
@@ -2272,6 +2276,51 @@
       "Doctor does not yet return a unified maintenance-aware next action. Existing real inspection and reconciliation operations remain available.",
       "Replacing an existing configuration does not yet have one formal old-to-new atomic handoff receipt; existing create/matches/pause/revoke flows remain.",
       "The GUI uses synthetic API responses. No actual tool installation, repair, model request, distributed execution, physical multi-host, scale or production acceptance was performed in T198."
+    ],
+    "full_platform_complete": false
+  },
+  "tool_doctor_maintenance": {
+    "stage": "T-TOOL-DOCTOR-199",
+    "status": "scoped_current_maintenance_resolution_original_operations_and_bilingual_ui_verified",
+    "version": "1.0.0",
+    "contract": "contracts/tool-doctor-maintenance.md",
+    "report": "docs/quality/tool-doctor-maintenance-verification.md",
+    "summary": "docs/quality/tool-doctor-maintenance-summary.json",
+    "implementation": {
+      "required_maintenance_resolution": true,
+      "original_four_checks_and_next_action_retained": true,
+      "worker_slot_and_original_recovery_indexed": true,
+      "cross_profile_original_navigation": true,
+      "local_unknown_journal_precedes_locator": true,
+      "cli_formats": [
+        "json",
+        "table"
+      ],
+      "automatic_get_effects": false,
+      "new_api_paths": 0,
+      "new_business_tables": 0,
+      "new_dependencies": 0,
+      "new_schemas": [
+        "ToolProfileMaintenanceResolution"
+      ]
+    },
+    "verification": {
+      "distinct_top_level": 29,
+      "new": 7,
+      "direct_old": 22,
+      "go_top_level": 9,
+      "go_subcases": 31,
+      "web_top_level": 20,
+      "full_web_types": 0,
+      "locale_pairs": 9272,
+      "actual_http_requests": 22,
+      "gui_groups": 2,
+      "visual_polish_only_en": true
+    },
+    "remaining": [
+      "Formal old-to-new configuration replacement handoff is still pending; existing create/matches/pause/revoke remains available.",
+      "Maintenance suggestions grant no installation, model, task, stop or approval authority. Real native containment remains separately evidenced by T195; this actual uses an owned zero-process HTTP fixture.",
+      "Physical multi-host, real vendor accounts/models, OceanBase/PostgreSQL, scale, cross-platform installers and full31/P0-P7 production acceptance remain separate."
     ],
     "full_platform_complete": false
   }

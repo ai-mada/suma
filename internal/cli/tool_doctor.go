@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
@@ -13,8 +14,8 @@ import (
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
-const toolDoctorUsage = "tools doctor requires --id PROFILE_ID and --project; use tools --help"
-const toolDoctorResponseInvalid = "tool diagnostics response must preserve the requested project, exact complete tool, four checks and a current display deadline of at most 60 seconds"
+const toolDoctorUsage = "tools doctor requires --id PROFILE_ID and --project; --format must be json or table; use tools --help"
+const toolDoctorResponseInvalid = "tool diagnostics response must preserve the requested project, exact complete tool, four checks, exact maintenance resolution and a current display deadline of at most 60 seconds"
 
 func toolDoctorID(id string) bool {
 	return len(id) <= 100 && contextID(id) && !strings.ContainsFunc(id, unicode.IsControl)
@@ -23,7 +24,8 @@ func toolDoctorID(id string) bool {
 func toolDoctorCommand(ctx context.Context, c *client, args []string, out io.Writer) error {
 	flags := commandFlags("tools doctor")
 	id := flags.String("id", "", "exact existing tool profile ID")
-	if flags.Parse(args) != nil || flags.NArg() != 0 || !toolDoctorID(*id) || !toolDoctorID(c.project) {
+	format := flags.String("format", "json", "json or table")
+	if flags.Parse(args) != nil || flags.NArg() != 0 || !toolDoctorID(*id) || !toolDoctorID(c.project) || *format != "json" && *format != "table" {
 		return usage(toolDoctorUsage)
 	}
 	// Capture this invocation's source before the read. This report never
@@ -35,15 +37,42 @@ func toolDoctorCommand(ctx context.Context, c *client, args []string, out io.Wri
 		return err
 	}
 	var report platform.ToolProfileDiagnostics
-	if strictjson.Decode(raw, &report, 16<<20) != nil || !validToolDiagnostics(report, project, toolID, time.Since(started)) {
+	if strictjson.Decode(raw, &report, 16<<20) != nil || !validToolDiagnostics(report, project, toolID, time.Since(started)) || !toolDoctorMaintenanceIDsPresent(raw) {
 		return &failure{Code: "response", Message: toolDoctorResponseInvalid}
 	}
+	if *format == "table" {
+		return writeToolDoctorTable(out, report, c.locale, c.token)
+	}
 	return writeJSON(out, raw, c.token)
+}
+
+// The shared value validator owns identity, ID shape and the closed matrix.
+// Retain only this wire-presence check locally: optional string decoding alone
+// cannot distinguish an omitted ID from an explicitly empty one.
+func toolDoctorMaintenanceIDsPresent(raw []byte) bool {
+	var envelope struct {
+		MaintenanceResolution map[string]json.RawMessage `json:"maintenance_resolution"`
+	}
+	if json.Unmarshal(raw, &envelope) != nil || envelope.MaintenanceResolution == nil {
+		return false
+	}
+	for _, key := range []string{"inspection_id", "recovery_id"} {
+		if value, present := envelope.MaintenanceResolution[key]; present {
+			var id string
+			if json.Unmarshal(value, &id) != nil || id == "" {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func validToolDiagnostics(report platform.ToolProfileDiagnostics, project, id string, elapsed time.Duration) bool {
 	tool := report.Tool
 	if tool.ID != id || tool.ProjectID != project || !tc.ValidCommandID(tool.WorkerID) || strings.TrimSpace(tool.Name) == "" || tool.Version < 1 || tc.ValidateProfile(tool.Profile, true) != nil || (tool.State != "paused" && tool.State != "enabled" && tool.State != "revoked") {
+		return false
+	}
+	if !platform.ValidToolProfileMaintenanceResolution(report.MaintenanceResolution, tool) {
 		return false
 	}
 	for _, stamp := range []string{tool.CreatedAt, tool.UpdatedAt} {

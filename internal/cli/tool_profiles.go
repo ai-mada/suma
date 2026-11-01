@@ -116,9 +116,11 @@ const toolProfilesHelpEN = `tools list — read current tool connections or thei
   Profile changes retain the explicit enable/pause/revoke command API; revoke keeps history.
 
 tools doctor — read current tool profile diagnostics
-  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID
+  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID [--format json|table]
   This GET reports four current facts and their display deadline of at most 60 seconds.
-  It never runs a suggestion, enables a profile or accesses tool credentials.
+  The separate maintenance suggestion locates the exact worker and original inspection/recovery.
+  Default JSON preserves machine facts; table labels use the selected language.
+  It never runs a suggestion, creates a request, enables a profile or accesses tool credentials.
   A valid worker identity does not prove online state, model login or execution.
 
 tools matches — find complete existing tool profiles
@@ -140,9 +142,11 @@ const toolProfilesHelpZH = `tools list — 查看当前工具接入或已移除�
   配置变更仍使用原 enable/pause/revoke 命令 API；revoke 移除接入并保留历史。
 
 tools doctor — 读取当前工具档案体检
-  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID
+  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID [--format json|table]
   此 GET 展示四项当前事实与最多 60 秒的展示期限。
-  不运行建议、不启用档案、不读取工具凭据。
+  独立维护建议定位准确节点及原检查／核对记录。
+  默认 JSON 保留机器事实；table 表格标题随选择语言展示。
+  不运行建议、不创建请求、不启用档案、不读取工具凭据。
   节点身份有效不代表机器在线、模型已登录或已执行。
 
 tools matches — 查询完整匹配的已有工具档案

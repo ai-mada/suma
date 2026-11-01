@@ -6,13 +6,13 @@ import {tr,UiError,useLocale} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {useWriteAction} from './write-action';
 import {ErrorNotice} from './ui';
-import {buildToolReinspectionIntent,inspectionMatchesTool,readToolInspection,readToolInspections,toolInspectionListPath,toolInspectionPath,toolReinspectionRecoveryScope,validToolInspectionReceipt,validToolReinspectionIntent,validToolReinspectionRecovery,type ToolReinspectionIntent,type ToolReinspectionScope} from './tool-reinspection-model';
+import {buildToolReinspectionIntent,inspectionMatchesTool,readToolInspection,readToolInspections,toolInspectionListPath,toolInspectionPath,toolReinspectionRecoveryScope,validToolInspectionReceipt,validToolReinspectionIntent,validToolReinspectionRecovery,type ToolInspectionLocator,type ToolReinspectionIntent,type ToolReinspectionScope} from './tool-reinspection-model';
 import './ToolReinspectionPanel.css';
 import {readToolMaintenanceStatus} from './tool-maintenance-model';
 import {ToolMaintenanceCapabilities} from './ToolMaintenanceCapabilities';
 import {ToolInspectionRecoveryPanel} from './ToolInspectionRecoveryPanel';
 
-export type ToolReinspectionPanelProps={project:string;tool:ToolProfile;disabled?:boolean;accessBlocked?:boolean;maintenanceReadStartedAt?:number;onRefreshTool?:()=>void;onOpenWorker?:(workerID:string)=>void;onLockChange?:(locked:boolean)=>void;onAccessDenied?:()=>void;onObserved?:()=>void;onDefer?:()=>void};
+export type ToolReinspectionPanelProps={project:string;tool:ToolProfile;locator?:ToolInspectionLocator;disabled?:boolean;accessBlocked?:boolean;maintenanceReadStartedAt?:number;onRefreshTool?:()=>void;onOpenWorker?:(workerID:string)=>void;onLockChange?:(locked:boolean)=>void;onAccessDenied?:()=>void;onObserved?:()=>void;onDefer?:()=>void};
 type IntentState={intent?:ToolReinspectionIntent;error?:unknown};
 type Snapshot={source:string;items:ToolInspection[];loading:boolean;error?:unknown;stale?:boolean;denied?:boolean};
 const t=(key:string)=>tr('tool-reinspection.'+key);
@@ -32,10 +32,10 @@ export function ToolReinspectionPanel(props:ToolReinspectionPanelProps){
  const scope:ToolReinspectionScope={project:props.project,toolID:props.tool.id,userID:view.userID,organizationID:view.organizationID};
  return <ReinspectionController key={JSON.stringify([toolReinspectionRecoveryScope(scope),owner.current.epoch])} {...props} scope={scope}/>;
 }
-function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,maintenanceReadStartedAt,onRefreshTool,onOpenWorker,onLockChange,onAccessDenied,onObserved,onDefer}:ToolReinspectionPanelProps&{scope:ToolReinspectionScope}){
+function ReinspectionController({scope,tool,locator,disabled=false,accessBlocked=false,maintenanceReadStartedAt,onRefreshTool,onOpenWorker,onLockChange,onAccessDenied,onObserved,onDefer}:ToolReinspectionPanelProps&{scope:ToolReinspectionScope}){
  useLocale();const api=useApi(),storage=toolSessionStorage(),base=toolReinspectionRecoveryScope(scope),intentKey='suma-tool-reinspection-intent:'+base;
  const [intentState,setIntentState]=useState<IntentState>(()=>readIntent(storage,intentKey,scope)),intent=useRef(intentState.intent);
- const [selected,setSelected]=useState(''),selectedRef=useRef(selected);selectedRef.current=selected;
+ const [selected,setSelected]=useState(locator?.inspectionID||''),selectedRef=useRef(selected);selectedRef.current=selected;
  const [recoveryLocked,setRecoveryLocked]=useState(true),[,tickMaintenance]=useState(0);
  const [recoveryBusy,setRecoveryBusy]=useState(false),recoveryBusyRef=useRef(false);
  function updateRecoveryBusy(value:boolean){recoveryBusyRef.current=value;setRecoveryBusy(value);}
@@ -52,6 +52,7 @@ function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,m
  const store=(value:Snapshot)=>{snapshotRef.current=value;setSnapshot(value);};
  const setIntent=(value:IntentState)=>{intent.current=value.intent;setIntentState(value);};
  const action=useWriteAction({scope:'tool-reinspection:'+base,storage,validateRequest:request=>validToolReinspectionRecovery(request,scope),validateResponse:(value,request)=>!!intent.current&&validToolInspectionReceipt(value,request,scope,intent.current)});
+ useEffect(()=>{if(intent.current||action.pending||intentState.error)return;selectedRef.current=locator?.inspectionID||'';setSelected(selectedRef.current);},[locator?.inspectionID,locator?.recoveryID]);
  const writeDenied=!!action.errorStatus&&[401,403,404].includes(action.errorStatus);
  const deny=useCallback(()=>{
   accessDenied.current=true;++epoch.current;controller.current?.abort();flight.current=undefined;store({source:sourceRef.current,items:[],loading:false,denied:true});
@@ -148,7 +149,7 @@ function ReinspectionController({scope,tool,disabled=false,accessBlocked=false,m
   {!hidden&&!!visible.error&&<ErrorNotice error={visible.error}/>}
   {!hidden&&(intentState.error||action.error)&&<ErrorNotice error={intentState.error??action.error}/>}
   {backgroundPaused&&<p role="status">{t('background_paused')}</p>}
-  <ToolInspectionRecoveryPanel scope={scope} tool={tool} inspection={row&&['unknown','closed_unknown'].includes(row.state)?row:undefined} disabled={disabled||locked||readBlocked} accessBlocked={hidden} onLockChange={setRecoveryLocked} onBusyChange={updateRecoveryBusy} onAccessDenied={deny} onChanged={id=>{if(!alive.current||caller.current!==api||parent.current.accessBlocked||intent.current)return;const changed=selectedRef.current!==id;selectedRef.current=id;setSelected(id);if(!changed)void readNow.current();}} onDefer={onDefer?defer:undefined} onOpenWorker={onOpenWorker}/>
+  <ToolInspectionRecoveryPanel scope={scope} tool={tool} inspection={row&&['unknown','closed_unknown'].includes(row.state)?row:undefined} recoveryID={row?.id===locator?.inspectionID?locator?.recoveryID:undefined} disabled={disabled||locked||readBlocked} accessBlocked={hidden} onLockChange={setRecoveryLocked} onBusyChange={updateRecoveryBusy} onAccessDenied={deny} onChanged={id=>{if(!alive.current||caller.current!==api||parent.current.accessBlocked||intent.current)return;const changed=selectedRef.current!==id;selectedRef.current=id;setSelected(id);if(!changed)void readNow.current();}} onDefer={onDefer?defer:undefined} onOpenWorker={onOpenWorker}/>
   <div className="tool-reinspection-actions">
    {!hidden&&original&&<button type="button" className="primary" data-tool-reinspection-restore disabled={action.busy||readBlocked||!requestMatches} onClick={()=>void send(true)}>{t('restore')}</button>}
    {!hidden&&!original&&<button type="button" className={row&&['completed','unknown'].includes(row.state)?'':'primary'} data-tool-reinspection-create disabled={freshBlocked} onClick={()=>void send()}>{t('create')}</button>}

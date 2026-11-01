@@ -45,6 +45,12 @@ small { font-size: var(--font-secondary); }
   min-width: var(--control-height);
   min-height: var(--control-height);
 }
+/* A multi-line dialog heading must not stretch its close control to the
+   description's height. Keep the existing accessible square touch target. */
+:root body .dialog-heading > .icon-button {
+  align-self: flex-start;
+  height: var(--control-height);
+}
 :root body :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;

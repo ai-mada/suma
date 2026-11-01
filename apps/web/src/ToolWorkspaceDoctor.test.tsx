@@ -24,7 +24,7 @@ it('opens original versioned review for an enabled tool and locates only its exa
   reads.push(path);
   if(path==='/tool-profiles')return Response.json({items:[tool],total:1});
   if(path==='/tool-profiles/existing')return Response.json(tool);
-  if(path==='/tool-profiles/existing/diagnostics')return Response.json({tool,checked_at:'2026-10-30T08:00:20Z',expires_at:'2026-10-30T08:01:00Z',checks:[
+  if(path==='/tool-profiles/existing/diagnostics')return Response.json({tool,maintenance_resolution:{profile_id:tool.id,profile_version:tool.version,worker_id:tool.worker_id,action:'open_worker',reason:'maintenance_unknown'},checked_at:'2026-10-30T08:00:20Z',expires_at:'2026-10-30T08:01:00Z',checks:[
    {code:'authorization',status:workerIssue?'pass':'blocked',reason:workerIssue?'':tool.reason,next_action:workerIssue?'none':'review_profile'},
    {code:'worker',status:workerIssue?'blocked':'pass',reason:workerIssue?'Worker credential needs review':'',next_action:workerIssue?'open_worker':'none'},
    {code:'inventory',status:'pass',reason:'',next_action:'none'},
@@ -42,7 +42,7 @@ it('opens original versioned review for an enabled tool and locates only its exa
  const checkbox=dialog?.querySelector<HTMLInputElement>('input[type="checkbox"]');expect(checkbox?.checked).toBe(false);expect(dialog?.querySelector<HTMLButtonElement>('.dialog-actions button.primary')?.disabled).toBe(true);expect(writes).toEqual([]);
  const cancel=[...dialog!.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent?.trim()==='Cancel');expect(cancel).toBeDefined();await act(async()=>cancel!.click());await settle();
  workerIssue=true;const refresh=host.querySelector<HTMLButtonElement>('[data-tool-doctor-refresh]');expect(refresh).not.toBeNull();await act(async()=>refresh!.click());await settle();
- const worker=host.querySelector<HTMLButtonElement>('[data-tool-doctor-action="open_worker"]');expect(worker).not.toBeNull();await act(async()=>worker!.click());
+ const worker=host.querySelector<HTMLButtonElement>('[data-tool-doctor-maintenance-action="open_worker"]');expect(worker).not.toBeNull();await act(async()=>worker!.click());
  expect(document.activeElement).toBe(host.querySelector('[data-tool-worker="runner"]'));expect(document.activeElement).not.toBe(host.querySelector('[data-tool-worker="other-runner"]'));
  expect(document.querySelector('[role="dialog"]')).toBeNull();expect(writes).toEqual([]);
 });

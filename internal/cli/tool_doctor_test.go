@@ -26,6 +26,83 @@ func toolDoctorReport181(t *testing.T) platform.ToolProfileDiagnostics {
 		Tool:      platform.ToolProfile{ID: "profile181", ProjectID: "project-one", WorkerID: "worker181", Name: "Controlled tool", Version: 2, State: "enabled", Profile: profile, EnabledBy: strings.Repeat("a", 32), CreatedAt: at.Add(-time.Hour).Format(time.RFC3339), UpdatedAt: at.Add(-time.Minute).Format(time.RFC3339), Observation: &tc.Observation{Profile: profile, Available: true}, LastSeenAt: at.Format(time.RFC3339), Available: true, Reason: "Current inventory only; model login remains separate"},
 		CheckedAt: at.Format(time.RFC3339), ExpiresAt: at.Add(60 * time.Second).Format(time.RFC3339),
 		Checks: []platform.ToolProfileDiagnosticCheck{{Code: "authorization", Status: "pass", Reason: "Current approval", NextAction: "none"}, {Code: "worker", Status: "pass", Reason: "Current identity; online state unknown", NextAction: "none"}, {Code: "inventory", Status: "pass", Reason: "Fresh inventory", NextAction: "none"}, {Code: "profile", Status: "pass", Reason: "Exact full profile", NextAction: "none"}}, NextAction: "none",
+		MaintenanceResolution: platform.ToolProfileMaintenanceResolution{ProfileID: "profile181", ProfileVersion: 2, WorkerID: "worker181", Action: "inspect", Reason: "maintenance_supported"},
+	}
+}
+
+func TestToolDoctorCLIMaintenanceResolutionReadOnly(t *testing.T) {
+	report := toolDoctorReport181(t)
+	report.MaintenanceResolution = platform.ToolProfileMaintenanceResolution{ProfileID: report.Tool.ID, ProfileVersion: report.Tool.Version, WorkerID: report.Tool.WorkerID, Action: "view_recovery", Reason: "recovery_requested", InspectionID: "inspection199", RecoveryID: "recovery199"}
+	raw, _ := json.Marshal(report)
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		body, _ := io.ReadAll(r.Body)
+		if r.Method != http.MethodGet || r.URL.Path != "/api/v1/tool-profiles/profile181/diagnostics" || r.URL.Query().Get("project_id") != "project-one" || len(body) != 0 {
+			t.Error("maintenance suggestion caused a write or changed exact target")
+		}
+		_, _ = w.Write(raw)
+	}))
+	defer server.Close()
+	run := func(language string, args ...string) (int, string, string) {
+		var out, stderr bytes.Buffer
+		code := Execute(context.Background(), append([]string{"--control", server.URL, "--project", "project-one", "--token", "doctor199-token", "--language", language, "tools", "doctor", "--id", "profile181"}, args...), nil, &out, &stderr)
+		return code, out.String(), stderr.String()
+	}
+	for _, language := range []string{"zh-CN", "en-US"} {
+		code, out, stderr := run(language)
+		if code != 0 || stderr != "" || !strings.Contains(out, `"maintenance_resolution"`) || !strings.Contains(out, `"next_action": "none"`) || !strings.Contains(out, `"available": true`) {
+			t.Fatalf("maintenance changed independent availability JSON: %d %s %s", code, out, stderr)
+		}
+		code, out, stderr = run(language, "--format", "table")
+		header := "Maintenance suggestion"
+		if language == "zh-CN" {
+			header = "维护建议"
+		}
+		if code != 0 || stderr != "" || !strings.Contains(out, header) || !strings.Contains(out, "inspection199") || !strings.Contains(out, "recovery199") || !strings.Contains(out, "worker181") || !strings.Contains(out, "profile181") || !strings.Contains(out, "view_recovery") {
+			t.Fatalf("exact localized maintenance target missing: %d %s %s", code, out, stderr)
+		}
+	}
+	before := calls
+	if code, out, _ := run("en-US", "--format", "html"); code != 2 || out != "" || calls != before {
+		t.Fatal("invalid table format reached API")
+	}
+	for _, test := range []struct {
+		name string
+		edit func(*platform.ToolProfileDiagnostics)
+	}{
+		{"profile", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.ProfileID = "another" }},
+		{"version", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.ProfileVersion++ }},
+		{"worker", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.WorkerID = "other" }},
+		{"action", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.Action = "repair_automatically" }},
+		{"reason", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.Reason = "looks_healthy" }},
+		{"recovery_without_inspection", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.InspectionID = "" }},
+		{"missing_recovery", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.RecoveryID = "" }},
+		{"inspect_with_ids", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.Action = "inspect" }},
+		{"unsafe_id", func(r *platform.ToolProfileDiagnostics) { r.MaintenanceResolution.InspectionID = "../escaped" }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			bad := report
+			test.edit(&bad)
+			raw, _ = json.Marshal(bad)
+			if code, out, _ := run("en-US"); code != 1 || out != "" {
+				t.Fatalf("unbound maintenance accepted: %d %s", code, out)
+			}
+		})
+	}
+	valid, _ := json.Marshal(report)
+	var fields map[string]json.RawMessage
+	_ = json.Unmarshal(valid, &fields)
+	for _, value := range []json.RawMessage{nil, []byte("null"), []byte(`{"profile_id":"profile181","profile_version":2,"worker_id":"worker181","action":"none","reason":"profile_revoked","inspection_id":""}`)} {
+		if value == nil {
+			delete(fields, "maintenance_resolution")
+		} else {
+			fields["maintenance_resolution"] = value
+		}
+		raw, _ = json.Marshal(fields)
+		if code, out, _ := run("en-US"); code != 1 || out != "" {
+			t.Fatal("missing/null/empty maintenance fields accepted", code, out)
+		}
 	}
 }
 

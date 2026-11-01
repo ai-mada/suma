@@ -1,6 +1,6 @@
 import {useApi} from './api-context';
 import { Trans } from "./i18n/Trans";
-import { tr as t, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
+import { tr as t, UiError, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronRight,
@@ -45,6 +45,8 @@ import {ToolSetupGuide} from './ToolSetupGuide';
 import {ToolQuickConnect,type ToolConnectDraft} from './ToolQuickConnect';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
 import {ToolReinspectionPanel} from './ToolReinspectionPanel';
+import {hasToolInspectionLocalOperation,readToolInspectionTarget,toolInspectionPath,validToolInspectionLocator,type ToolInspectionLocator} from './tool-reinspection-model';
+import {readToolProfileDiagnostics} from './tool-profile-diagnostics-model';
 import {RunnerPairingPanel} from './RunnerPairingPanel';
 import {readRunnerPairing} from './runner-pairing-model';
 import {validQuickConnectReceipt} from './tool-quick-connect-model';
@@ -71,7 +73,7 @@ type Dialog =
   | { kind: "create"; adapter?:AdapterDescriptor; resumeQuick?:boolean }
   | { kind: "quick"; adapter?:AdapterDescriptor; preferredWorkerID?:string }
   | { kind: "worker"; mode?:'manual'|'pairing' }
-  | { kind: "inspection"; profile:ToolProfile }
+  | { kind: "inspection"; profile:ToolProfile;locator?:ToolInspectionLocator }
   | {
       kind: "decision";
       action: "enable" | "pause" | "revoke";
@@ -117,6 +119,7 @@ function ScopedToolWorkspace({
   function setDialog(value:Dialog|undefined){if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setDialogState(value?{caller:api,generation:pairingGeneration,value}:undefined);}
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft}|undefined>(undefined);
+  const inspectionLookup=useRef<AbortController|undefined>(undefined);
   const [,renderDraft]=useState(0),[connecting,setConnecting]=useState(false),[connectError,setConnectError]=useState<unknown>();
   const activeWorkspace=useRef(true);
   useEffect(()=>{activeWorkspace.current=true;return()=>{activeWorkspace.current=false;connectIntent.current++;};},[]);
@@ -158,6 +161,7 @@ function ScopedToolWorkspace({
       refresh + revision,
     );
   const detailBasis=JSON.stringify([selected,detail.data?.id,detail.data?.version,detail.data?.worker_id,detail.data?.profile.profile_sha256]),latestDetailBasis=useRef(detailBasis);latestDetailBasis.current=detailBasis;
+  useEffect(()=>()=>inspectionLookup.current?.abort(),[api,detailBasis]);
   const refreshAll = useCallback(() => {
     if (!profiles.loading) void profiles.read();
     if (!workers.loading) void workers.read();
@@ -224,9 +228,25 @@ function ScopedToolWorkspace({
     }catch(error){if(activeWorkspace.current&&nonce===connectIntent.current&&pairingCaller.current.api===api)setConnectError(error);}
     finally{if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
   }
-  function inspectProfile(value:ToolProfile){
+  async function inspectProfile(value:ToolProfile,locator?:ToolInspectionLocator){
     if(stale||writeBlocked||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
-    action.clearError();setInspectionLocked(false);setDialog({kind:'inspection',profile:value});
+    const scope={project,toolID:value.id,userID:session.user.id,organizationID:session.organization.id};
+    if(!locator||hasToolInspectionLocalOperation(scope,toolSessionStorage())){action.clearError();setInspectionLocked(false);setDialog({kind:'inspection',profile:value});return;}
+    if(!validToolInspectionLocator(locator)){setConnectError(new UiError('tool-reinspection.invalid_read'));return;}
+    const nonce=++connectIntent.current,basis=detailBasis,controller=new AbortController();inspectionLookup.current?.abort();inspectionLookup.current=controller;setConnecting(true);setConnectError(undefined);
+    const owns=()=>activeWorkspace.current&&!controller.signal.aborted&&nonce===connectIntent.current&&latestDetailBasis.current===basis&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration;
+    try{
+      const raw=await api<unknown>(toolInspectionPath(scope,locator.inspectionID),undefined,'GET',undefined,controller.signal);if(!owns())return;
+      const inspection=readToolInspectionTarget(raw,scope,locator);if(inspection.worker_id!==value.worker_id)throw new UiError('tool-reinspection.invalid_read');
+      const {report}=readToolProfileDiagnostics(await api<unknown>('/tool-profiles/'+encodeURIComponent(inspection.tool_profile_id)+'/diagnostics'+query(project),undefined,'GET',undefined,controller.signal),{project,toolID:inspection.tool_profile_id});if(!owns())return;
+      if(report.tool.worker_id!==inspection.worker_id)throw new UiError('tool-reinspection.invalid_read');
+      action.clearError();setInspectionLocked(false);
+      // A journal appearing during the read still owns this tab's original target.
+      if(hasToolInspectionLocalOperation(scope,toolSessionStorage())){setDialog({kind:'inspection',profile:value});return;}
+      if(report.tool.id!==selected)onSelect(report.tool.id);
+      setDialog({kind:'inspection',profile:report.tool,locator:{...locator}});
+    }catch(error){if(owns())setConnectError(error);}
+    finally{if(inspectionLookup.current===controller)inspectionLookup.current=undefined;if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration){setConnecting(false);}}
   }
   function inspectionWorkerRow(workerID:string){
     if(!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===workerID))return workerRows.current.get(workerID);
@@ -647,6 +667,7 @@ function ScopedToolWorkspace({
         {dialog?.kind==='inspection'&&<ToolReinspectionPanel
           project={project}
           tool={!stale&&current?.id===dialog.profile.id?current:dialog.profile}
+          locator={dialog.locator}
           maintenanceReadStartedAt={!stale&&current?.id===dialog.profile.id?detail.readStartedAt:undefined}
           onRefreshTool={()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||selected!==dialog.profile.id||detail.loading)return;void detail.read();}}
           onOpenWorker={inspectionWorkerRow(dialog.profile.worker_id)?locateInspectionWorker:undefined}

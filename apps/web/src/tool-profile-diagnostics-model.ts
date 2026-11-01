@@ -1,4 +1,4 @@
-import type {ToolProfile,ToolProfileDiagnosticCheck,ToolProfileDiagnostics} from '../../../packages/contracts/src';
+import type {ToolProfile,ToolProfileDiagnosticCheck,ToolProfileDiagnostics,ToolProfileMaintenanceResolution} from '../../../packages/contracts/src';
 import {UiError} from './i18n';
 import {sameToolProfile} from './tool-profile-reuse-model';
 import {parseToolManifest} from './tool-model';
@@ -26,6 +26,26 @@ function validTool(value:unknown,expected:{project:string;toolID:string}):value 
 function check(value:unknown,code:string):value is ToolProfileDiagnosticCheck{
  return record(value) && closed(value,['code','status','reason','next_action'],['reason_diagnostic']) && value.code===code && typeof value.status==='string' && ['pass','blocked','not_checked'].includes(value.status) && typeof value.reason==='string' && isToolDoctorAction(value.next_action) && (!Object.hasOwn(value,'reason_diagnostic') || diagnostic(value.reason_diagnostic));
 }
+const maintenanceReasons={
+ inspect:['maintenance_supported'],
+ view_inspection:['inspection_pending','inspection_claimed','inspection_unknown'],
+ recover_inspection:['inspection_unknown','recovery_expired'],
+ view_recovery:['recovery_requested','recovery_proof_stored'],
+ open_worker:['maintenance_expired','maintenance_unsupported','maintenance_unknown','worker_unavailable'],
+ none:['profile_revoked'],
+} satisfies Record<ToolProfileMaintenanceResolution['action'],readonly ToolProfileMaintenanceResolution['reason'][]>;
+const inspectionID=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9][A-Za-z0-9._:/@+\-]{0,149}$/.test(value);
+/** A recommendation locates an original operation. It cannot carry commands,
+ * authorize a repair, or replace the source stored in a local write journal. */
+function maintenanceResolution(value:unknown,tool:ToolProfile):value is ToolProfileMaintenanceResolution{
+ if(!record(value)||!closed(value,['profile_id','profile_version','worker_id','action','reason'],['inspection_id','recovery_id'])||value.profile_id!==tool.id||value.profile_version!==tool.version||value.worker_id!==tool.worker_id||typeof value.action!=='string'||!Object.hasOwn(maintenanceReasons,value.action))return false;
+ const action=value.action as ToolProfileMaintenanceResolution['action'];
+ if(!(maintenanceReasons[action] as readonly unknown[]).includes(value.reason))return false;
+ const hasInspection=Object.hasOwn(value,'inspection_id'),hasRecovery=Object.hasOwn(value,'recovery_id');
+ if(action==='view_recovery')return hasInspection&&inspectionID(value.inspection_id)&&hasRecovery&&inspectionID(value.recovery_id);
+ if(action==='view_inspection'||action==='recover_inspection')return hasInspection&&inspectionID(value.inspection_id)&&!hasRecovery;
+ return !hasInspection&&!hasRecovery;
+}
 /** UTC instants must describe an actual calendar date, not Date.parse rollover. */
 function instant(value:unknown):number|undefined{
  if(typeof value!=='string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,9})?Z$/.test(value))return;
@@ -34,7 +54,7 @@ function instant(value:unknown):number|undefined{
  return whole+(value[19]==='.'?Number('0'+value.slice(19,-1))*1000:0);
 }
 function validReport(value:unknown,expected:{project:string;toolID:string}):value is ToolProfileDiagnostics{
- return record(value) && closed(value,['tool','checked_at','expires_at','checks','next_action'],['impact']) && (!Object.hasOwn(value,'impact') || !!readToolProfileImpact(value.impact)) && validTool(value.tool,expected) && isToolDoctorAction(value.next_action) && Array.isArray(value.checks) && value.checks.length===4 && ['authorization','worker','inventory','profile'].every((code,index)=>check(value.checks instanceof Array?value.checks[index]:undefined,code));
+ return record(value) && closed(value,['tool','checked_at','expires_at','checks','next_action','maintenance_resolution'],['impact']) && (!Object.hasOwn(value,'impact') || !!readToolProfileImpact(value.impact)) && validTool(value.tool,expected) && maintenanceResolution(value.maintenance_resolution,value.tool) && isToolDoctorAction(value.next_action) && Array.isArray(value.checks) && value.checks.length===4 && ['authorization','worker','inventory','profile'].every((code,index)=>check(value.checks instanceof Array?value.checks[index]:undefined,code));
 }
 /** The caller deducts elapsed request time using its monotonic clock. No action
  * or dispatch eligibility is inferred from a reason or presentation identity. */

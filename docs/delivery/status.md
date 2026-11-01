@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-DOCTOR-199：[合同](../../contracts/tool-doctor-maintenance.md)／[PRD](../product/tool-doctor-maintenance.md)／[架构与AI SOP](../architecture/tool-doctor-maintenance.md)／[限定验证](../quality/tool-doctor-maintenance-verification.md)。准确维护建议、原检查／核对进度、跨配置定位与CLI双语表格贯通；29不同定向、真实22HTTP及代表界面限定通过，完整31／P0–P7继续。
+
 T-TOOL-EXPERIENCE-198：[工具管理需求](../product/tool-management.md)／[交互](../design/tool-management.md)／[限定验证](../quality/tool-experience-verification.md)。准确节点贯通高级配置与原命令，公开原始原因配准确配置入口，中英文及窄屏交互限定通过；原登记／重检／核对／启用门保持，完整31／P0–P7继续。
 
 T-KNOWLEDGE-PROJECTION-197：[合同](../../contracts/knowledge-projection.md)／[PRD](../product/knowledge-projection.md)／[架构与AI SOP](../architecture/knowledge-projection.md)／[限定验证](../quality/knowledge-projection-verification.md)。正式发布投影、墓碑、真实混合检索与预算重建贯通；原文定位和当前授权保持，真实数据库／原生索引重启链及双语代表界面限定通过，完整31／P0–P7继续。

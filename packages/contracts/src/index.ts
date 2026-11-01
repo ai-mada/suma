@@ -7924,6 +7924,7 @@ export interface ToolProfileDiagnostics {
   checks: (ToolProfileDiagnosticCheck)[];
   next_action: string;
   impact?: ToolProfileImpact;
+  maintenance_resolution: ToolProfileMaintenanceResolution;
 }
 export interface ToolProfileImpact {
   scope: "active_project_runs";
@@ -7955,6 +7956,15 @@ export interface ToolProfileListQuery {
   query?: string;
   limit?: number;
   cursor?: string;
+}
+export interface ToolProfileMaintenanceResolution {
+  profile_id: string;
+  profile_version: number;
+  worker_id: string;
+  action: "inspect" | "view_inspection" | "recover_inspection" | "view_recovery" | "open_worker" | "none";
+  reason: "inspection_pending" | "inspection_claimed" | "inspection_unknown" | "recovery_requested" | "recovery_proof_stored" | "recovery_expired" | "maintenance_supported" | "maintenance_expired" | "maintenance_unsupported" | "maintenance_unknown" | "profile_revoked" | "worker_unavailable";
+  inspection_id?: string;
+  recovery_id?: string;
 }
 export interface ToolProfileMatchList {
   project_id: string;

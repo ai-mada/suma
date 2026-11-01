@@ -565,6 +565,14 @@ func generate() (map[string]any, string) {
 			if t.Name() == "ToolInspection" && f.Name == "State" {
 				wireType = `"pending" | "claimed" | "completed" | "failed" | "unknown" | "expired" | "superseded" | "closed_unknown"`
 			}
+			if t.Name() == "ToolProfileMaintenanceResolution" {
+				switch f.Name {
+				case "Action":
+					wireType = `"inspect" | "view_inspection" | "recover_inspection" | "view_recovery" | "open_worker" | "none"`
+				case "Reason":
+					wireType = `"inspection_pending" | "inspection_claimed" | "inspection_unknown" | "recovery_requested" | "recovery_proof_stored" | "recovery_expired" | "maintenance_supported" | "maintenance_expired" | "maintenance_unsupported" | "maintenance_unknown" | "profile_revoked" | "worker_unavailable"`
+				}
+			}
 			if t.Name() == "ToolInspectionRecovery" && f.Name == "State" {
 				wireType = `"requested" | "proof_stored" | "closed_unknown" | "expired"`
 			}

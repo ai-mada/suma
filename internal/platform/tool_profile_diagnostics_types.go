@@ -15,12 +15,27 @@ type ToolProfileDiagnosticCheck struct {
 // ToolProfileDiagnostics shares the original availability evaluation. Its short
 // display deadline grants no right to execute, renew, repair or enable a tool.
 type ToolProfileDiagnostics struct {
-	Tool       ToolProfile                  `json:"tool"`
-	CheckedAt  string                       `json:"checked_at"`
-	ExpiresAt  string                       `json:"expires_at"`
-	Checks     []ToolProfileDiagnosticCheck `json:"checks"`
-	NextAction string                       `json:"next_action"`
-	Impact     *ToolProfileImpact           `json:"impact,omitempty" wire:"nonnull"`
+	Tool                  ToolProfile                      `json:"tool"`
+	CheckedAt             string                           `json:"checked_at"`
+	ExpiresAt             string                           `json:"expires_at"`
+	Checks                []ToolProfileDiagnosticCheck     `json:"checks"`
+	NextAction            string                           `json:"next_action"`
+	Impact                *ToolProfileImpact               `json:"impact,omitempty" wire:"nonnull"`
+	MaintenanceResolution ToolProfileMaintenanceResolution `json:"maintenance_resolution"`
+}
+
+// ToolProfileMaintenanceResolution is a current read of the original worker's
+// maintenance occupancy. It is separate from the four dispatch prerequisites.
+// The enclosing report binds this recommendation to the exact current profile
+// and display deadline; IDs locate original operations and grant no write right.
+type ToolProfileMaintenanceResolution struct {
+	ProfileID      string `json:"profile_id"`
+	ProfileVersion int    `json:"profile_version"`
+	WorkerID       string `json:"worker_id"`
+	Action         string `json:"action"`
+	Reason         string `json:"reason"`
+	InspectionID   string `json:"inspection_id,omitempty"`
+	RecoveryID     string `json:"recovery_id,omitempty"`
 }
 
 // Impact describes observed references in the current authorized project's

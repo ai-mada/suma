@@ -23,6 +23,9 @@ func (s *Service) GetToolProfileDiagnostics(ctx context.Context, actor Actor, pr
 		if err != nil {
 			return err
 		}
+		if err = s.toolDoctorMaintenanceTx(auth.ctx, auth, &out); err != nil {
+			return err
+		}
 		impact, err := s.toolProfileImpactTx(auth.ctx, auth.tx, auth.currentPrincipal.TenantID, project, profile, out.CheckedAt)
 		if err != nil {
 			return err

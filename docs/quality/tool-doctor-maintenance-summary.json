@@ -1,0 +1,379 @@
+{
+  "stage": "T-TOOL-DOCTOR-199",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_current_maintenance_resolution_original_operations_and_bilingual_ui_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": {
+    "required_maintenance_resolution": true,
+    "original_four_checks_and_next_action_retained": true,
+    "worker_slot_and_original_recovery_indexed": true,
+    "cross_profile_original_navigation": true,
+    "local_unknown_journal_precedes_locator": true,
+    "cli_formats": [
+      "json",
+      "table"
+    ],
+    "automatic_get_effects": false,
+    "new_api_paths": 0,
+    "new_business_tables": 0,
+    "new_dependencies": 0,
+    "new_schemas": [
+      "ToolProfileMaintenanceResolution"
+    ]
+  },
+  "verification": {
+    "distinct_top_level": 29,
+    "new_top_level": 7,
+    "directly_affected_existing": 22,
+    "go_top_level": 9,
+    "go_subcases": 31,
+    "web_top_level": 20,
+    "web_unrelated_skips": 4,
+    "go_results": [
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestToolDoctorCLIMaintenanceResolutionReadOnly",
+        "command": ".cache/follow155/root-go/20261101T184946083Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestToolDoctorCLIReadOnlyAndStrictSource",
+        "command": ".cache/follow155/root-go/20261101T183418722Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestToolDoctorCLIDeadlineTimeoutAndHelp",
+        "command": ".cache/follow155/root-go/20261101T183418722Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "test": "TestToolProfileDiagnosticsContractKeepsOriginalAvailabilityAndFourFacts",
+        "command": ".cache/follow155/root-go/20261101T184333804Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolDoctorMaintenanceFollowsOriginalOccupancyAndRecovery",
+        "command": ".cache/follow155/root-go/20261101T183747300Z.command.json",
+        "exit": 1
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolDoctorMaintenanceCapabilityScopeAndCurrentAuthority",
+        "command": ".cache/follow155/root-go/20261101T184204645Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolDiagnosticsPausedRetainsIndependentFactsAndReadOnly",
+        "command": ".cache/follow155/root-go/20261101T183948267Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolDiagnosticsFreshExactAndDrift",
+        "command": ".cache/follow155/root-go/20261101T183948267Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolDoctorMaintenanceActualHTTPOriginalOperationJourney",
+        "command": ".cache/follow155/root-go/20261101T184155886Z.command.json",
+        "exit": 0
+      }
+    ],
+    "web_tests": [
+      {
+        "file": "apps/web/src/tool-profile-diagnostics-model.test.ts",
+        "title": "T199 reads only an exact closed maintenance recommendation and preserves original operation locators independently of dispatch prerequisites",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-profile-diagnostics-model.test.ts",
+        "title": "T195 preserves optional exact maintenance states in the diagnostic tool and rejects null or forged capability facts",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-profile-diagnostics-model.test.ts",
+        "title": "reads the exact four current facts without deriving eligibility or using the local clock",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-profile-diagnostics-model.test.ts",
+        "title": "rejects cross-scope, private payloads and incomplete or reordered diagnostic collections",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-profile-diagnostics-model.test.ts",
+        "title": "preserves closed optional display diagnostics and historical tool observations without converting them to actions",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolInspectionTarget.test.tsx",
+        "title": "T199 opens the exact cross-profile maintenance record and isolates late callers, current refusal and an original local receipt",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "T195 resolves each blocked check through the exact live destination while preserving the single primary and read-only recovery gates",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "T194 opens a separate explicit inspection for the exact fresh profile and keeps reading, expiry and refusal distinct",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "T193 carries the exact original profile into configuration and offers only a supplied read-only shared-node destination",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "reads exact scoped facts and offers only an explicit supplied destination without writing",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "requires refreshing the original detail when the returned version or complete profile changes",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "deducts request latency from the monotonic observation deadline and expires without polling",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "suspends during an original write and ignores a late diagnostic rather than replacing the write",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "rearms an early timer wake so an expired suggestion cannot remain visible",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileDoctor.test.tsx",
+        "title": "discards old-account and old-project responses while exposing only the new source",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolReinspectionPanel.test.tsx",
+        "title": "T199 reads the explicitly located inspection and recovery while preserving an original local receipt before another locator",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolWorkspaceDoctor.test.tsx",
+        "title": "opens original versioned review for an enabled tool and locates only its exact existing worker without writing",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolWorkspaceManagement.test.tsx",
+        "title": "T195 keeps maintenance freshness tied to the original profile read and refreshes that exact profile without losing the dialog",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolWorkspaceManagement.test.tsx",
+        "title": "takes Doctor to the exact original adapter and worker, then returns from advanced setup with its public draft",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolWorkspaceManagement.test.tsx",
+        "title": "T194 requests inspection through a separate receipt and returns to the original profile without selecting the request as a tool",
+        "status": "passed"
+      }
+    ],
+    "full_web_typecheck_exit": 0,
+    "paired_locale_keys": 9272,
+    "production_hardcodes": 0,
+    "actual_http_requests": 22,
+    "doctor_reads": 8,
+    "native_probe_model_vendor_business_runs": 0,
+    "gui_groups": 2,
+    "gui_final_images": 2,
+    "gui_retained_images": 3,
+    "isolated_builds": 2,
+    "gui_launches": 2,
+    "second_build_reason": "Root observed stretched close button in the first green EN image; CSS-only square target fix, then only EN continued, original CN reused. No functional suite, types or locale repeat.",
+    "close_target": {
+      "width": 44,
+      "height": 44
+    },
+    "native_exits": [
+      0,
+      0
+    ],
+    "successful_contract_generations": 1,
+    "contract_checks": 1,
+    "full_old_suite_repeated": false
+  },
+  "actual": {
+    "scope": "owned HTTP contract fixture with zero-process proof; no native probe or containment repeated",
+    "original_inspection": "2a16bedd5bbf8eb92e9f53d890146cb0",
+    "recovery": "e290b9e7f26b1d7d78807d5575a2d684",
+    "next_inspection": "0ade79c076dd7fa8476829b28123ed82",
+    "maintenance_actions": [
+      "inspect",
+      "view_inspection",
+      "view_inspection",
+      "view_inspection",
+      "recover_inspection",
+      "view_recovery",
+      "view_recovery",
+      "inspect"
+    ],
+    "original_dispatch_next_action": "review_profile",
+    "business_runs": 0,
+    "native_processes": 0,
+    "model_calls": 0,
+    "vendor_calls": 0
+  },
+  "failure_history": [
+    "Control new maintenance recommendations and Root closed-schema check first failed behavior assertions, then passed. CLI first rejected its new table format, then passed. Web original model/locator failures are retained.",
+    "The first directly affected old Doctor checks compared whole Tool JSON across independent database clocks. Only the test comparison normalized checked_at after independently checking validity and monotonic time; product clocks and permissions did not change. One unchanged new top passed inside that combined failing command; its individual result was reused, not called a whole-command pass.",
+    "One Root contract top passed while its command vet observed a concurrent helper publication gap. After source freeze the same contract top completed with exit0. No placeholder or vet suppression was used.",
+    "After the shared original inspection identifier validation was finalized, only the new affected CLI consumer top was rechecked. Other passing CLI checks were reused.",
+    "Both initial GUI groups passed. Root retained their reports and screenshots, fixed the observed close-button stretch, rebuilt only the isolated bundle and continued EN. This was visual polish, not an initial failing GUI assertion."
+  ],
+  "remaining": [
+    "Formal old-to-new configuration replacement handoff is still pending; existing create/matches/pause/revoke remains available.",
+    "Maintenance suggestions grant no installation, model, task, stop or approval authority. Real native containment remains separately evidenced by T195; this actual uses an owned zero-process HTTP fixture.",
+    "Physical multi-host, real vendor accounts/models, OceanBase/PostgreSQL, scale, cross-platform installers and full31/P0-P7 production acceptance remain separate."
+  ],
+  "reference": {
+    "local_multica_pin": "5a2cc891ac338eed1919aa11a1eef5957cd82cec",
+    "source_copy": false,
+    "remote_latest_locked": false
+  },
+  "evidence": [
+    {
+      "path": ".cache/tool-doctor-199/control/source-manifest.json",
+      "sha256": "cfce64a2929a9bf1087f901a5b3613e98c95fb29df8347322a419c2c26943a05"
+    },
+    {
+      "path": ".cache/tool-doctor-199/consumer/source-manifest.json",
+      "sha256": "6063ec7d8cb0f7f0da7d9fbd6cd40c03343d6f938269330fe6f34e676bebe0d8"
+    },
+    {
+      "path": ".cache/tool-doctor-199/web/integration-summary.json",
+      "sha256": "07b0baeeecaedfa885ce9542c104c40bb1eac4669a216f93ae3e17c276066303"
+    },
+    {
+      "path": ".cache/tool-doctor-199/control/summary.json",
+      "sha256": "29a4f915e720562e228ef7be70bfcd64aab60d222fac7371fa4058299572971b"
+    },
+    {
+      "path": ".cache/tool-doctor-199/consumer/summary.json",
+      "sha256": "c5e4c8d8a483b1003a7d75251da7a157d24c74155d4e3aa4d07b71c922f6bfc1"
+    },
+    {
+      "path": ".cache/tool-doctor-199/web/source-manifest.json",
+      "sha256": "9c48b4a7b6df69fb58c18cba41f7eeb8949348ea0a11f9010fccf89b7e1fdc07"
+    },
+    {
+      "path": ".cache/tool-doctor-199/web/main/green.json",
+      "sha256": "a28c8d2d1c894d0186b01db7c0d19c819d9b740feabde164c4e9a36dadad5837"
+    },
+    {
+      "path": ".cache/tool-doctor-199/web/main/red.json",
+      "sha256": "15f1501b3c50b31f2c41e896e6b8344dba041657361127bfc9dd89bf7e87a7a4"
+    },
+    {
+      "path": ".cache/tool-doctor-199/go-evidence.json",
+      "sha256": "77c7dc48f247b56c8730b52d46ecba25d12771e374c50a760d5a5bea759d5a90"
+    },
+    {
+      "path": ".cache/tool-doctor-199/actual/inputs.json",
+      "sha256": "01c540b7eaa114feb253ddc5fab0f0ab25e20fc0ad832b08708b548e100befc8"
+    },
+    {
+      "path": ".cache/tool-doctor-199/actual/receipt.json",
+      "sha256": "8472ffb4b7752586e42f7430d08ef01994404faaa70561278740453cf1b5eae2"
+    },
+    {
+      "path": ".cache/tool-doctor-199/actual/private.sqlite",
+      "sha256": "70834c840c05441e03696176fe2efa2696a87814ce862b1de1c63f375f83e2e0"
+    },
+    {
+      "path": ".cache/tool-doctor-199/types.command.json",
+      "sha256": "f6804718db6c75bd28dcab73054467b6d7555f0f6324cfad51e55358ee626bd9"
+    },
+    {
+      "path": ".cache/tool-doctor-199/i18n.command.json",
+      "sha256": "4c4cacfa101a860fe460207c8aade834ad5442edc7c396857a930b15c726236a"
+    },
+    {
+      "path": ".cache/tool-doctor-199/build.command.json",
+      "sha256": "7c6a87dadd53ffbaaa36979f3642e338b6aeee2a715fd8c74cae1410a28286ff"
+    },
+    {
+      "path": ".cache/tool-doctor-199/gui.command.json",
+      "sha256": "d419a8f2ea392b045770b5bb0ea6cd15ca4d54de479927625d389bb35f6b8554"
+    },
+    {
+      "path": ".cache/tool-doctor-199/build_polish.command.json",
+      "sha256": "384cf1c7027eae223c7da45184b0ed46200c745d429630ab672478b618db2651"
+    },
+    {
+      "path": ".cache/tool-doctor-199/gui_en_polish.command.json",
+      "sha256": "c36aa6fbc8b634ffff07d31b829b9541da9790f98aa6d8b456a3f80a180562a5"
+    },
+    {
+      "path": ".cache/tool-doctor-199/visual/source-manifest.json",
+      "sha256": "9ab599aa0697ff2158cdacb621195bc46326758408e958f3e6a327ee092659a0"
+    },
+    {
+      "path": ".cache/tool-doctor-199/visual/polish-inputs.json",
+      "sha256": "7e08f3ffabdd71750e518cb027c498a56107ec0f0006ab8f946ae05489d18ec6"
+    },
+    {
+      "path": ".cache/tool-doctor-199/visual/result-20261101T185629690Z.json",
+      "sha256": "9ecfb964e75034a4c6319bd938e078b397585091bbab025c43ddaffb7b04ea08"
+    },
+    {
+      "path": ".cache/tool-doctor-199/visual/result.json",
+      "sha256": "4d8931f296e55205597bc1b0c5b6ec5b0e345dc73992cd0297cca418601813f8"
+    },
+    {
+      "path": ".cache/tool-doctor-199/review/reference.json",
+      "sha256": "ff1c6cbe4473975352f94c7287526941820c235ab797fbebf9a03a05b5ca3be0"
+    },
+    {
+      "path": ".cache/tool-doctor-199/review/control-review.json",
+      "sha256": "5973acfb7da6d82ba35310721447cdf1a17fdd424378269eab955402b391d96c"
+    },
+    {
+      "path": ".cache/tool-doctor-199/review/consumer-contract-review.json",
+      "sha256": "62b20ae208fac44cf184f7947f90298cb10d14974bc0fb330841c33217257ed8"
+    },
+    {
+      "path": ".cache/tool-doctor-199/review/web-review.json",
+      "sha256": "e62f562dc2aab84d69c9964d4a786aad082165d2113096b4da02dd2b92258751"
+    },
+    {
+      "path": ".cache/tool-doctor-199/visual/cn-next-step.png",
+      "sha256": "d9ad858a19a64f2c9f6cea584118f4a69d32fda074d5d72470a0bd60e1972f98"
+    },
+    {
+      "path": ".cache/tool-doctor-199/visual/en-original-final.png",
+      "sha256": "1ae49d8b5064cbb8b18d64f0bce18877c465942642bf2b792c6097cd49b5c6a0"
+    },
+    {
+      "path": ".cache/tool-doctor-199/visual/en-original.png",
+      "sha256": "9169afabc5c7976fafbb927cff4d6d4fa1f9f3f3beecf3f27699d2739258e317"
+    }
+  ]
+}

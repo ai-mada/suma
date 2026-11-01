@@ -43702,6 +43702,10 @@
             "$ref": "#/components/schemas/ToolProfileImpact",
             "description": "Observed references, separate from the four original availability prerequisites. Partial/unknown coverage cannot become zero total or prove external processes stopped."
           },
+          "maintenance_resolution": {
+            "$ref": "#/components/schemas/ToolProfileMaintenanceResolution",
+            "description": "Current maintenance observation bound to tool.id/version/worker and the enclosing checked_at/expires_at. An original inspection can belong to another profile on the same worker: read it and its original profile before navigation. No GET effects, new probe, repair or permission."
+          },
           "next_action": {
             "description": "Display/navigation suggestion; never permission or an automatic write.",
             "enum": [
@@ -43722,7 +43726,8 @@
           "checked_at",
           "expires_at",
           "checks",
-          "next_action"
+          "next_action",
+          "maintenance_resolution"
         ],
         "type": "object"
       },
@@ -43966,6 +43971,174 @@
           }
         },
         "required": [],
+        "type": "object"
+      },
+      "ToolProfileMaintenanceResolution": {
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "action": {
+                "const": "inspect"
+              },
+              "inspection_id": false,
+              "reason": {
+                "enum": [
+                  "maintenance_supported"
+                ]
+              },
+              "recovery_id": false
+            }
+          },
+          {
+            "properties": {
+              "action": {
+                "const": "view_inspection"
+              },
+              "reason": {
+                "enum": [
+                  "inspection_pending",
+                  "inspection_claimed",
+                  "inspection_unknown"
+                ]
+              },
+              "recovery_id": false
+            },
+            "required": [
+              "inspection_id"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "const": "recover_inspection"
+              },
+              "reason": {
+                "enum": [
+                  "inspection_unknown",
+                  "recovery_expired"
+                ]
+              },
+              "recovery_id": false
+            },
+            "required": [
+              "inspection_id"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "const": "view_recovery"
+              },
+              "reason": {
+                "enum": [
+                  "recovery_requested",
+                  "recovery_proof_stored"
+                ]
+              }
+            },
+            "required": [
+              "inspection_id",
+              "recovery_id"
+            ]
+          },
+          {
+            "properties": {
+              "action": {
+                "const": "open_worker"
+              },
+              "inspection_id": false,
+              "reason": {
+                "enum": [
+                  "maintenance_expired",
+                  "maintenance_unsupported",
+                  "maintenance_unknown",
+                  "worker_unavailable"
+                ]
+              },
+              "recovery_id": false
+            }
+          },
+          {
+            "properties": {
+              "action": {
+                "const": "none"
+              },
+              "inspection_id": false,
+              "reason": {
+                "enum": [
+                  "profile_revoked"
+                ]
+              },
+              "recovery_id": false
+            }
+          }
+        ],
+        "properties": {
+          "action": {
+            "enum": [
+              "inspect",
+              "view_inspection",
+              "recover_inspection",
+              "view_recovery",
+              "open_worker",
+              "none"
+            ],
+            "type": "string"
+          },
+          "inspection_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "profile_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
+          },
+          "profile_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "maintenance_supported",
+              "inspection_pending",
+              "inspection_claimed",
+              "inspection_unknown",
+              "recovery_expired",
+              "recovery_requested",
+              "recovery_proof_stored",
+              "maintenance_expired",
+              "maintenance_unsupported",
+              "maintenance_unknown",
+              "worker_unavailable",
+              "profile_revoked"
+            ],
+            "type": "string"
+          },
+          "recovery_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "worker_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_id",
+          "profile_version",
+          "worker_id",
+          "action",
+          "reason"
+        ],
         "type": "object"
       },
       "ToolProfileMatchList": {

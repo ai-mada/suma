@@ -10,7 +10,7 @@ import {toolReinspectionRecoveryScope,type ToolReinspectionScope} from './tool-r
 import {readToolMaintenanceStatus} from './tool-maintenance-model';
 import {buildToolInspectionRecoveryIntent,readToolInspectionRecoveries,readToolInspectionRecovery,readToolInspectionRecoveryIntent,validToolInspectionRecoveryReceipt,validToolInspectionRecoveryWrite,type ToolInspectionRecoveryIntent} from './tool-inspection-recovery-model';
 
-export type ToolInspectionRecoveryPanelProps={scope:ToolReinspectionScope;tool:ToolProfile;inspection?:ToolInspection;disabled?:boolean;accessBlocked?:boolean;onLockChange:(locked:boolean)=>void;onBusyChange?:(busy:boolean)=>void;onAccessDenied?:()=>void;onChanged?:(inspectionID:string)=>void;onDefer?:()=>void;onOpenWorker?:(workerID:string)=>void};
+export type ToolInspectionRecoveryPanelProps={scope:ToolReinspectionScope;tool:ToolProfile;inspection?:ToolInspection;recoveryID?:string;disabled?:boolean;accessBlocked?:boolean;onLockChange:(locked:boolean)=>void;onBusyChange?:(busy:boolean)=>void;onAccessDenied?:()=>void;onChanged?:(inspectionID:string)=>void;onDefer?:()=>void;onOpenWorker?:(workerID:string)=>void};
 type Saved={ready:boolean;intent?:ToolInspectionRecoveryIntent;error?:unknown};
 type Snapshot={source:string;rows:ToolInspectionRecovery[];loading:boolean;error?:unknown;denied?:boolean;stale?:boolean};
 const t=(key:string,values?:Record<string,string|number>)=>tr('tool-reinspection.recovery.'+key,values);
@@ -21,10 +21,10 @@ export function ToolInspectionRecoveryPanel(props:ToolInspectionRecoveryPanelPro
  if(!view||view.userID!==props.scope.userID||view.organizationID!==props.scope.organizationID)return null;
  return <RecoveryController key={JSON.stringify([toolReinspectionRecoveryScope(props.scope),owner.current.epoch])} {...props}/>;
 }
-function RecoveryController({scope,tool,inspection,disabled=false,accessBlocked=false,onLockChange,onBusyChange,onAccessDenied,onChanged,onDefer,onOpenWorker}:ToolInspectionRecoveryPanelProps){
+function RecoveryController({scope,tool,inspection,recoveryID,disabled=false,accessBlocked=false,onLockChange,onBusyChange,onAccessDenied,onChanged,onDefer,onOpenWorker}:ToolInspectionRecoveryPanelProps){
  useLocale();const api=useApi(),storage=toolSessionStorage(),base=toolReinspectionRecoveryScope(scope),intentKey='suma-tool-inspection-recovery-intent:'+base;
- const [saved,setSaved]=useState<Saved>({ready:false}),original=useRef<ToolInspectionRecoveryIntent|undefined>(undefined),[selected,setSelected]=useState(''),selectedRef=useRef(selected);selectedRef.current=selected;
- const target=saved.intent?.inspection??inspection,source=canonical([target,selected]),sourceRef=useRef(source);sourceRef.current=source;
+ const [saved,setSaved]=useState<Saved>({ready:false}),original=useRef<ToolInspectionRecoveryIntent|undefined>(undefined),[selected,setSelected]=useState(recoveryID||''),selectedRef=useRef(selected);selectedRef.current=selected||recoveryID||'';
+ const target=saved.intent?.inspection??inspection,source=canonical([target,selectedRef.current]),sourceRef=useRef(source);sourceRef.current=source;
  const [snapshot,setSnapshot]=useState<Snapshot>({source,rows:[],loading:!!target}),current=useRef(snapshot),[confirming,setConfirming]=useState(false),[busy,setBusy]=useState(false),[paused,setPaused]=useState(false);
  const alive=useRef(true),caller=useRef(api),epoch=useRef(0),abort=useRef<AbortController|undefined>(undefined),flight=useRef<Promise<boolean>|undefined>(undefined),commandBusy=useRef(false),refused=useRef(false),reportedDenied=useRef(false),polls=useRef(0),reportedClosed=useRef('');caller.current=api;
  const incoming=useRef({inspection,tool,disabled,accessBlocked});incoming.current={inspection,tool,disabled,accessBlocked};
@@ -34,6 +34,7 @@ function RecoveryController({scope,tool,inspection,disabled=false,accessBlocked=
  const action=useWriteAction({scope:'tool-inspection-recovery:'+base,storage,validateRequest:r=>validToolInspectionRecoveryWrite(r,scope),validateResponse:(value,r)=>original.current?validToolInspectionRecoveryReceipt(value,r,scope,original.current):false});
  async function loadSaved():Promise<Saved>{try{if(!storage)throw Error();const raw=storage.getItem(intentKey);if(raw===null)return {ready:true};if(new TextEncoder().encode(raw).length>1048576)throw Error();const intent=await readToolInspectionRecoveryIntent(JSON.parse(raw),scope);if(storage.getItem(intentKey)!==raw)throw Error();return {ready:true,intent};}catch{return {ready:true,error:new UiError('tool-reinspection.recovery.intent_unavailable')};}}
  useEffect(()=>{let live=true;void loadSaved().then(value=>{if(live&&alive.current&&caller.current===api)save(value);});return()=>{live=false;};},[api,base]);
+ useEffect(()=>{if(!original.current){selectedRef.current=recoveryID||'';setSelected(selectedRef.current);}},[recoveryID]);
  const deny=useCallback(()=>{refused.current=true;++epoch.current;abort.current?.abort();flight.current=undefined;store({source:sourceRef.current,rows:[],loading:false,denied:true});setConfirming(false);if(!reportedDenied.current){reportedDenied.current=true;callbacks.current.onAccessDenied?.();}},[]);
  const writeDenied=!!action.errorStatus&&[401,403,404].includes(action.errorStatus);
  useLayoutEffect(()=>{if(writeDenied)deny();},[writeDenied,deny]);
@@ -56,7 +57,7 @@ function RecoveryController({scope,tool,inspection,disabled=false,accessBlocked=
  const matches=!action.pending||!!saved.intent&&canonical(action.pending)===canonical(saved.intent.request),intentError=!!saved.error||!!action.pending&&(!saved.intent||!matches),locked=!saved.ready||busy||action.busy||!!saved.intent||!!action.pending||intentError||action.persistenceBlocked;
  useLayoutEffect(()=>{callbacks.current.onLockChange(locked);},[locked]);
  useLayoutEffect(()=>{callbacks.current.onBusyChange?.(busy||action.busy||commandBusy.current);},[busy,action.busy]);
- const rows=hidden?[]:visible.rows,row=!saved.intent?(rows.find(value=>value.id===selected)??rows.find(active)??rows[0]):undefined,readBlocked=hidden||visible.loading||!!visible.error||!!visible.stale;
+ const rows=hidden?[]:visible.rows,row=!saved.intent?(rows.find(value=>value.id===selectedRef.current)??rows.find(active)??rows[0]):undefined,readBlocked=hidden||visible.loading||!!visible.error||!!visible.stale;
  const status=readToolMaintenanceStatus(tool.maintenance)?.status,known=tool.worker_id===target?.worker_id&&status?.protocol==='suma-tool-maintenance-v1'&&(status.state==='supported'||status.state==='expired');
  const freshBlocked=disabled||locked||readBlocked||!target||target.state!=='unknown'||!known||rows.some(active)||row?.state==='closed_unknown';
  const gate=useRef({freshBlocked,readBlocked,target});gate.current={freshBlocked,readBlocked,target};

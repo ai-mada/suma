@@ -70,10 +70,7 @@ func TestToolDiagnosticsPausedRetainsIndependentFactsAndReadOnly(t *testing.T) {
 	if expires.After(observed.Add(60 * time.Second)) {
 		t.Fatal("report outlived its fresh inventory")
 	}
-	current, err := f.s.GetToolProfile(context.Background(), f.actor, f.project, p.ID)
-	if err != nil || stringify(current) != stringify(out.Tool) {
-		t.Fatalf("diagnostic changed original availability: %+v / %+v / %v", current, out.Tool, err)
-	}
+	toolDiagnosticsSameObservation(t, f, p, out)
 	after := []int{}
 	for _, table := range []string{"suma_operations", "suma_tool_profiles", "suma_tool_inventories", "suma_activity", "dag_runs", "dag_nodes"} {
 		after = append(after, domainACount(t, f.s, table))
@@ -95,7 +92,25 @@ func toolDiagnosticsEnable(t *testing.T, f *fixture, p ToolProfile) ToolProfile 
 func toolDiagnosticsSameObservation(t *testing.T, f *fixture, p ToolProfile, out ToolProfileDiagnostics) {
 	t.Helper()
 	current, err := f.s.GetToolProfile(context.Background(), f.actor, f.project, p.ID)
-	if err != nil || stringify(current) != stringify(out.Tool) {
+	if err != nil {
+		t.Fatal(err)
+	}
+	// These are two independent current reads. Their server checked_at values
+	// must be valid and nondecreasing, not byte-identical. Every stable fact,
+	// including capability state, owner, original watermark and expiry, remains
+	// strictly equal; only the comparison copy's observation clock is normalized.
+	if current.Maintenance == nil || out.Tool.Maintenance == nil || out.Tool.Maintenance.CheckedAt != out.CheckedAt {
+		t.Fatal("maintenance observation lost the report clock", current.Maintenance, out.Tool.Maintenance, out.CheckedAt)
+	}
+	checked, parseErr := time.Parse(time.RFC3339Nano, current.Maintenance.CheckedAt)
+	previous, previousErr := time.Parse(time.RFC3339Nano, out.Tool.Maintenance.CheckedAt)
+	if parseErr != nil || previousErr != nil || checked.Before(previous) {
+		t.Fatal("invalid independent maintenance clocks", current.Maintenance.CheckedAt, out.Tool.Maintenance.CheckedAt)
+	}
+	comparison := *current.Maintenance
+	comparison.CheckedAt = out.Tool.Maintenance.CheckedAt
+	current.Maintenance = &comparison
+	if stringify(current) != stringify(out.Tool) {
 		t.Fatalf("diagnostic diverged from original observation: %+v / %+v / %v", current, out.Tool, err)
 	}
 }
