@@ -3,7 +3,8 @@ import {act,useState} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {ApiViewProvider} from './api-context';
-import type {Session} from './api';
+import * as ApiContext from './api-context';
+import {api,type Session} from './api';
 import {setLocale} from './i18n';
 import {ToolWorkspace} from './ToolWorkspace';
 import {ToolQuickConnect,type ToolQuickConnectProps} from './ToolQuickConnect';
@@ -26,6 +27,7 @@ beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.cle
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();document.body.innerHTML='';sessionStorage.clear();vi.unstubAllGlobals();vi.restoreAllMocks();});
 
 function Workspace(){const[selected,onSelect]=useState('');return <ApiViewProvider session={session}><ToolWorkspace project={project} session={session} selected={selected} onSelect={onSelect} refresh={0} panel=""/></ApiViewProvider>;}
+function ContextWorkspace({identity,activeProject}:{identity:Session;activeProject:string}){const[selected,onSelect]=useState('');return <ApiViewProvider session={identity}><ToolWorkspace project={activeProject} session={identity} selected={selected} onSelect={onSelect} refresh={0} panel=""/></ApiViewProvider>;}
 
 it('locks the original workspace while approving and continues with the exact paired node without a token dialog or registration',async()=>{
  let pair:typeof waiting|typeof proposed|typeof approved=waiting,releaseApproval!:(response:Response)=>void;const writes:{path:string;body:Record<string,unknown>}[]=[],discoveryWorkers:string[]=[];
@@ -62,4 +64,39 @@ it('does not substitute the only other node when the approved preferred node is 
  await act(async()=>root.render(<ApiViewProvider session={session}><ToolQuickConnect {...props}/></ApiViewProvider>));await settle();await change('[data-quick-tool]',adapter.id);
  expect(discoveryWorkers).toEqual([]);expect(host.querySelector('[data-quick-preferred-worker-missing]')).not.toBeNull();expect(host.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('');expect(run).not.toHaveBeenCalled();
  await change('[data-quick-worker]','other-node');expect(discoveryWorkers).toEqual(['other-node']);expect(host.querySelector('[data-quick-preferred-worker-missing]')).toBeNull();expect(run).not.toHaveBeenCalled();
+});
+
+it('continues an explicitly read approved node into its fixed preparation guide and discards that target on caller, actor or project changes without writing',async()=>{
+ let activeSession=session,activeProject=project,caller=ApiContext.bindApiView(activeSession,api);const writes:string[]=[],discoveryWorkers:string[]=[];
+ vi.spyOn(ApiContext,'useApi').mockImplementation(()=>caller);
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{
+  const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1',''),targetProject=url.searchParams.get('project_id')||project;
+  if((init.method||'GET')!=='GET'){writes.push(path);return Response.json({error:{code:'unexpected_write',message:'Preparation is explicit and read-only'}},{status:400});}
+  if(path==='/tool-profiles')return Response.json({items:[],total:0});
+  if(path==='/release-workers')return Response.json({items:['other-node',...(targetProject===project?[workerID]:[])].map((worker_id,i)=>({id:'worker-'+i,project_id:targetProject,worker_id,status:'active',version:1,expires_at:'2026-11-02T04:00:00Z'}))});
+  if(path==='/project-execution/runners')return Response.json({items:[],as_of:stamp});
+  if(path==='/adapter-catalog')return Response.json({project_id:targetProject,as_of:stamp,items:[adapter]});
+  if(path==='/runner-pairings')return Response.json({project_id:targetProject,status:url.searchParams.get('status')||'all',q:url.searchParams.get('q')||'',items:targetProject===project?[approved]:[],total:targetProject===project?1:0,limit:Number(url.searchParams.get('limit')||20),next_cursor:'',as_of:stamp});
+  if(path==='/runner-pairings/'+pairID)return targetProject===project?Response.json(approved):Response.json({error:{code:'not_found',message:'Different project'}},{status:404});
+  if(path==='/tool-discovery'){const worker=url.searchParams.get('worker_id')!;discoveryWorkers.push(worker);return Response.json(inventory(worker));}
+  return Response.json({items:[]});
+ }));
+ const render=async()=>{await act(async()=>root.render(<ContextWorkspace identity={activeSession} activeProject={activeProject}/>));await settle();};
+ const seed=()=>sessionStorage.setItem('suma-runner-pairing:'+JSON.stringify([activeSession.user.id,activeSession.organization.id,activeProject]),pairID);
+ const prepare=async()=>{
+  seed();await click('.tool-workers .tool-section-heading button');await click('[data-worker-mode="pairing"]');await click('[data-runner-pairing-continue]');await change('[data-quick-tool]',adapter.id);
+  expect(document.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe(workerID);
+  await change('[data-quick-worker]','other-node');expect(document.querySelector('[data-quick-prepare-runner]')).toBeNull();
+  await change('[data-quick-worker]',workerID);await click('[data-quick-prepare-runner]');
+  expect(document.querySelector('[role="dialog"]')).toBeNull();expect(host.querySelector<HTMLDetailsElement>('.tool-cli-setup')?.open).toBe(true);expect(host.querySelector<HTMLDetailsElement>('[data-remote-runner-setup]')?.open).toBe(true);
+  const fields={control:approved.control_url,project,worker:workerID,pairingID:pairID};
+  for(const [key,value] of Object.entries(fields)){const field=host.querySelector<HTMLInputElement>('[name="remote-runner-'+key+'"]');expect(field?.value,key).toBe(value);expect(field?.readOnly,key).toBe(true);}
+  expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-mode"]')?.value).toBe('paired');expect(writes).toEqual([]);
+ };
+ const noOldTarget=()=>{for(const key of ['control','worker','pairingID'])expect(host.querySelector<HTMLInputElement>('[name="remote-runner-'+key+'"]')?.value||'').toBe('');expect(document.querySelector('[data-quick-prepare-runner]')).toBeNull();};
+ seed();await render();await prepare();expect(discoveryWorkers).toEqual([workerID,'other-node',workerID]);
+ caller=ApiContext.bindApiView(activeSession,api);await render();noOldTarget();
+ await prepare();activeSession={...session,user:{...session.user,id:'e'.repeat(32)}};caller=ApiContext.bindApiView(activeSession,api);await render();noOldTarget();
+ await prepare();activeProject='f'.repeat(32);caller=ApiContext.bindApiView(activeSession,api);await render();noOldTarget();
+ expect(writes).toEqual([]);
 });

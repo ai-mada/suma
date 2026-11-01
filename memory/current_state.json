@@ -1137,5 +1137,29 @@
       "gui_repeated": false,
       "protection": "unknown pending, storage failures and protected refusals cannot be cleared"
     }
+  },
+  "runner_inbox": {
+    "stage": "T-RUNNER-INBOX-185",
+    "status": "scoped_verified",
+    "contract": "contracts/runner-inbox.md",
+    "report": "docs/quality/runner-inbox-verification.md",
+    "summary": "docs/quality/runner-inbox-summary.json",
+    "focused": 32,
+    "go_subcases": 39,
+    "synthetic_gui_checks": 5,
+    "implementation": [
+      "Current browser project administrators search and resume original pairings through a live bounded collection with full filtered counts, current database time, scope-bound seek cursors and the existing scope/state/expiry index. No columns or backfills.",
+      "Browser-only current reason codes stay outside stored payloads, original ACKs and machine responses. Operator URL drift only permits original current-admin CAS rejection of unexpired pending intent.",
+      "The public --paired-runner selector reuses an existing default identity, checks the exact metadata pairing before any vault read, and retains explicit control/project/worker assertions before journal or network. Original path mode and SDK are reused.",
+      "The original tool dialog and QuickConnect pass an exact approved public target to paired preparation/report/start drafts. Continuous startup is a separate terminal copy action, never browser execution. Commands and technical details fold after proposal; explicit full-fingerprint consent remains.",
+      "Resolved three concrete integration gaps: existing pairing diagnostics lacked exact source aliases; identity-path mode could omit a bound expected Worker; a fresh existing selection needed a safe new-pairing action for another machine."
+    ],
+    "boundaries": [
+      "Actual database coverage is controlled HTTP and SQLite; OceanBase/PostgreSQL query paths and indices require real-instance verification. JSON created_at sorting is not claimed to be index-covered.",
+      "Runtime checks use real task-owned files, injected secrets and controlled HTTP; the unchanged Windows system-provider check from184 is reused, not counted as a new actual vault run. macOS/Linux, physical multi-host, real vendor/model and production acceptance remain unverified here.",
+      "GUI uses actual production components with a synthetic account/backend/inventory and a synthetic clipboard boundary. It does not run the CLI, create real credentials, start tasks or certify full authenticated desktop/SaaS installation.",
+      "No full suite, provider SDK assets, installers, scale or existing candidate/independent-test/acceptance/release journeys were repeated. Original31/P0-P7/58limited/34pending/92total and prior171 explicit-stop GUI gap remain active.",
+      "Two unrelated historical local audit files remain byte-identical and unstaged. Cache, DB, log, screenshot, credential, dependency and binary files are excluded from this delivery."
+    ]
   }
 }

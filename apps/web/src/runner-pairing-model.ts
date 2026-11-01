@@ -1,4 +1,4 @@
-import type {RunnerPairing} from '../../../packages/contracts/src';
+import type {RunnerPairing,RunnerPairingPage} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
 import {UiError} from './i18n';
 import {wellFormed} from './i18n/catalog';
@@ -26,9 +26,10 @@ function controlURL(value:unknown):value is string{
  }catch{return false;}
 }
 function publicPairing(value:unknown,project:string):value is RunnerPairing{
- if(!projectID(project)||!object(value)||!closed(value,['id','project_id','version','state','control_url','created_at','expires_at','can_approve'],['device_name','credential_sha256','worker_id','credential_expires_at'])||
+ if(!projectID(project)||!object(value)||!closed(value,['id','project_id','version','state','control_url','created_at','expires_at','can_approve'],['reason_code','device_name','credential_sha256','worker_id','credential_expires_at'])||
   !id(value.id)||value.project_id!==project||!positive(value.version)||!['waiting','proposed','approved','rejected','expired'].includes(String(value.state))||!controlURL(value.control_url)||
   !instant(value.created_at)||!instant(value.expires_at)||typeof value.can_approve!=='boolean'||value.can_approve&&value.state!=='proposed')return false;
+ if(Object.hasOwn(value,'reason_code')&&(typeof value.reason_code!=='string'||!['awaiting_machine','approval_required','control_changed','identity_approved','pairing_rejected','pairing_expired'].includes(value.reason_code)))return false;
  const proposal=Object.hasOwn(value,'device_name')||Object.hasOwn(value,'credential_sha256');
  if(proposal&&(!text(value.device_name,100)||!digest(value.credential_sha256)))return false;
  if(value.state==='waiting'&&proposal||(value.state==='proposed'||value.state==='approved')&&!proposal)return false;
@@ -41,6 +42,38 @@ function publicPairing(value:unknown,project:string):value is RunnerPairing{
 export function readRunnerPairing(value:unknown,project:string):RunnerPairing{
  if(publicPairing(value,project))return value;
  throw new UiError('runner-pairing.invalid_read');
+}
+
+export const runnerPairingInboxStatuses=['active','waiting','proposed','approved','rejected','expired','all'] as const;
+export type RunnerPairingInboxStatus=(typeof runnerPairingInboxStatuses)[number];
+export type RunnerPairingInboxQuery={project:string;status:RunnerPairingInboxStatus;q:string;limit:number;cursor?:string};
+const opaqueCursor=(value:unknown):value is string=>typeof value==='string'&&value.length>0&&wellFormed(value)&&new TextEncoder().encode(value).length<=4096;
+/** Match the server's strings.TrimSpace and UTF-8 bound, not UTF-16 length. */
+export function runnerPairingInboxSearch(value:unknown):string|undefined{
+ if(typeof value!=='string'||!wellFormed(value))return;
+ const normalized=value.replace(/^[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\u0009-\u000d\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
+ if(new TextEncoder().encode(normalized).length<=200)return normalized;
+}
+function inboxQuery(value:unknown):value is RunnerPairingInboxQuery{
+ return object(value)&&closed(value,['project','status','q','limit'],['cursor'])&&projectID(value.project)&&runnerPairingInboxStatuses.some(status=>status===value.status)&&typeof value.q==='string'&&runnerPairingInboxSearch(value.q)===value.q&&positive(value.limit)&&value.limit<=100&&(!Object.hasOwn(value,'cursor')||value.cursor===''||opaqueCursor(value.cursor));
+}
+export function runnerPairingInboxPath(query:RunnerPairingInboxQuery):string{
+ if(!inboxQuery(query))throw new UiError('runner-pairing-inbox.invalid_query');
+ const parameters=new URLSearchParams({project_id:query.project,status:query.status,q:query.q,limit:String(query.limit)});
+ if(query.cursor)parameters.set('cursor',query.cursor);
+ return '/runner-pairings?'+parameters;
+}
+/** This is one current authorized page, not a frozen collection or a node
+ * health assessment. The opaque cursor is only echoed into the next read. */
+export function readRunnerPairingPage(value:unknown,query:RunnerPairingInboxQuery):RunnerPairingPage{
+ if(inboxQuery(query)&&object(value)&&closed(value,['project_id','status','q','items','total','limit','as_of'],['next_cursor'])&&value.project_id===query.project&&value.status===query.status&&value.q===query.q&&value.limit===query.limit&&Number.isSafeInteger(value.total)&&Number(value.total)>=0&&Array.isArray(value.items)&&value.items.length<=query.limit&&Number(value.total)>=value.items.length&&instant(value.as_of)&&(!Object.hasOwn(value,'next_cursor')||opaqueCursor(value.next_cursor)&&value.items.length>0&&value.next_cursor!==query.cursor)){
+  const seen=new Set<string>();
+  if(value.items.every(item=>{
+   if(!publicPairing(item,query.project)||seen.has(item.id)||query.status==='active'&&!['waiting','proposed'].includes(item.state)||!['active','all'].includes(query.status)&&item.state!==query.status)return false;
+   seen.add(item.id);return true;
+  }))return value as unknown as RunnerPairingPage;
+ }
+ throw new UiError('runner-pairing-inbox.invalid_read');
 }
 export function validRunnerPairingRequest(request:WriteRecoveryRequest,project:string):boolean{
  if(!projectID(project)||!object(request)||!closed(request,['path','method','idempotency_key','body'])||request.method!=='POST'||!operation(request.idempotency_key)||!object(request.body)||request.body.project_id!==project||request.body.idempotency_key!==request.idempotency_key)return false;

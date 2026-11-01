@@ -5529,6 +5529,7 @@ export interface RunnerPairing {
   created_at: string;
   expires_at: string;
   can_approve: boolean;
+  reason_code?: string;
   device_name?: string;
   credential_sha256?: string;
   worker_id?: string;
@@ -5543,6 +5544,16 @@ export interface RunnerPairingCommandRequest {
 export interface RunnerPairingCreateRequest {
   project_id: string;
   idempotency_key: string;
+}
+export interface RunnerPairingPage {
+  project_id: string;
+  status: string;
+  q: string;
+  items: (RunnerPairing)[];
+  total: number;
+  limit: number;
+  next_cursor?: string;
+  as_of: string;
 }
 export interface RunnerPairingProposalRequest {
   project_id: string;

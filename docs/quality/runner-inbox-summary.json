@@ -1,0 +1,245 @@
+{
+  "stage": "T-RUNNER-INBOX-185",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Current browser project administrators search and resume original pairings through a live bounded collection with full filtered counts, current database time, scope-bound seek cursors and the existing scope/state/expiry index. No columns or backfills.",
+    "Browser-only current reason codes stay outside stored payloads, original ACKs and machine responses. Operator URL drift only permits original current-admin CAS rejection of unexpired pending intent.",
+    "The public --paired-runner selector reuses an existing default identity, checks the exact metadata pairing before any vault read, and retains explicit control/project/worker assertions before journal or network. Original path mode and SDK are reused.",
+    "The original tool dialog and QuickConnect pass an exact approved public target to paired preparation/report/start drafts. Continuous startup is a separate terminal copy action, never browser execution. Commands and technical details fold after proposal; explicit full-fingerprint consent remains.",
+    "Resolved three concrete integration gaps: existing pairing diagnostics lacked exact source aliases; identity-path mode could omit a bound expected Worker; a fresh existing selection needed a safe new-pairing action for another machine."
+  ],
+  "verification": {
+    "distinct_top_level": 32,
+    "new_top_level": 22,
+    "affected_existing_top_level": 10,
+    "backend_top_level": 5,
+    "runtime_top_level": 8,
+    "root_top_level": 2,
+    "web_top_level": 17,
+    "go_subcases": 39,
+    "paired_i18n_keys": 8683,
+    "synthetic_gui_checks": 5,
+    "production_component_builds": 1,
+    "full_types_exit": 0,
+    "i18n_exit": 0
+  },
+  "retained_failures": [
+    "Expected new-feature REDs remain with each owner; only affected checks were rerun.",
+    "One full Web type check found a Record-to-Page assertion diagnostic; the already-validated return gained a type-only refinement, then exact-file semantic and final full types were checked. Runtime output did not change.",
+    "The first GUI attempt passed four interactions and produced two images, then the verifier waited for a filter intentionally hidden after current access denial. Only the final denial check was continued with the same assets; both native processes exited0.",
+    "A page503 recovery needed Previous navigation without a successful page; the original same consumer case was repaired without adding a distinct test."
+  ],
+  "boundaries": [
+    "Actual database coverage is controlled HTTP and SQLite; OceanBase/PostgreSQL query paths and indices require real-instance verification. JSON created_at sorting is not claimed to be index-covered.",
+    "Runtime checks use real task-owned files, injected secrets and controlled HTTP; the unchanged Windows system-provider check from184 is reused, not counted as a new actual vault run. macOS/Linux, physical multi-host, real vendor/model and production acceptance remain unverified here.",
+    "GUI uses actual production components with a synthetic account/backend/inventory and a synthetic clipboard boundary. It does not run the CLI, create real credentials, start tasks or certify full authenticated desktop/SaaS installation.",
+    "No full suite, provider SDK assets, installers, scale or existing candidate/independent-test/acceptance/release journeys were repeated. Original31/P0-P7/58limited/34pending/92total and prior171 explicit-stop GUI gap remain active.",
+    "Two unrelated historical local audit files remain byte-identical and unstaged. Cache, DB, log, screenshot, credential, dependency and binary files are excluded from this delivery."
+  ],
+  "owner_source_manifest": [
+    {
+      "path": "internal/platform/runner_pairing.go",
+      "sha256": "c33065c053d799d222866ec4c59969f13f9541066f1b8e13823b45f36b718b93"
+    },
+    {
+      "path": "internal/platform/runner_pairing_http.go",
+      "sha256": "b8a554b0364c9b787f077766d8c86bfeb03edfbf3804bba92c98831f3b0db831"
+    },
+    {
+      "path": "internal/platform/runner_pairing_store.go",
+      "sha256": "9801f2084051854571d602e14d06523bb4eb91ccb40aee038bc24b929dd0cdf4"
+    },
+    {
+      "path": "internal/platform/runner_pairing_inbox.go",
+      "sha256": "537221ff6d5dc85e33a185c3c84f07b7f58f1800c282dca036e73ee2bb36e5d5"
+    },
+    {
+      "path": "internal/platform/runner_pairing_inbox_test.go",
+      "sha256": "a5a91635a14f96b4fdd1be631d78b185d0ad0b30c9ca11446c6e4fcb3e0660da"
+    },
+    {
+      "path": "cmd/suma-runner/main.go",
+      "sha256": "fd6334e0573f7915396652d77eb181666846554dea1e2a70269f8e84c9f08651"
+    },
+    {
+      "path": "cmd/suma-runner/paired_runner_test.go",
+      "sha256": "0c23615783eff333797af40037f749987c46d8ab21c2240f857ee7ddb1fb1210"
+    },
+    {
+      "path": "internal/runner/remote_identity.go",
+      "sha256": "877e681c66f86348fe97f263ff38b4b717a551af62a233e80ad152f51d8b7570"
+    },
+    {
+      "path": "internal/runner/remote_identity_test.go",
+      "sha256": "1c00d1fc29b3b5c5d4dbe4d83cedb86c4c4e2a96c4785b28c1509d1b4718d2c3"
+    },
+    {
+      "path": "apps/web/src/remote-runner-setup-model.ts",
+      "sha256": "08a1b32dc68c4e969cd4380a5b29686102dc001701b60f4107c9b9541488388a"
+    },
+    {
+      "path": "apps/web/src/remote-runner-setup-model.test.ts",
+      "sha256": "1ab459af86e87bd88e327ed9d9471a506ff271394440e03fae236f3f4c591d95"
+    },
+    {
+      "path": "apps/web/src/RemoteRunnerSetupGuide.tsx",
+      "sha256": "18d9f67986be761569623479a4508b1c0435a6de2c2ba1d7fcc7d21039d4d31a"
+    },
+    {
+      "path": "apps/web/src/RemoteRunnerSetupGuide.test.tsx",
+      "sha256": "b6bbb09cecc4b73c0580f9c55d00d6b98bf35092e67ae5ccdf45de359b5bf70f"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/remote-runner-setup.zh-CN.json",
+      "sha256": "9ea237fff5e0e7ee5c81f2630604256ec7839027d12eb420176b3a9137682ff5"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/remote-runner-setup.en-US.json",
+      "sha256": "dd4bc7881695237b064f082198295c83f3916f025ef5a229f7840e30af19e866"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingCard.tsx",
+      "sha256": "35a5133bef3765bbfd758ab5082c714189db18402e339547f1d8e06820226e7e"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingCard.css",
+      "sha256": "772a4e4c061b425c9357307208b7b77550f20a12db32928d7a94a08507d45671"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingCard.test.tsx",
+      "sha256": "e4bd066490e8567e63bed75daba8e62246eacf34eea8ade88a9e959d5469870e"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/runner-pairing.zh-CN.json",
+      "sha256": "782f5cff4bd2054939e3e61679cf557808ffc7d2665811b968251bacf8250254"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/runner-pairing.en-US.json",
+      "sha256": "d100339cea610ca04b3f9673dcbf73a25698d0f3e2b3d9dea61e411badd4214a"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingInbox.tsx",
+      "sha256": "1de6e7c2b6b586077fd2de425aa3c0394fc8477999dfd5538ea0a8b900f01567"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingInbox.css",
+      "sha256": "f3c4308acb342115fa2210763344a7edfdb1931829fdce99326b7d9a7406876b"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingInbox.test.tsx",
+      "sha256": "ee631f35c831b6b7cb8c1bd1a414f602a61081de9fd05b9a998830513a07ec4e"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/runner-pairing-inbox.zh-CN.json",
+      "sha256": "da3250a37886f15f63093126a8e861c68d3d0f626e18b8785e17a8c8717592b3"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/runner-pairing-inbox.en-US.json",
+      "sha256": "58ffed1e61ec7b3353bdd4ced9a8c1c654911b6769cfe1bc3b790c1e636c9520"
+    },
+    {
+      "path": "apps/web/src/runner-pairing-model.ts",
+      "sha256": "c196dd9edfa4299b6e9f321b0987af883042491eea16694c05ccaddfe318ea54"
+    },
+    {
+      "path": "apps/web/src/runner-pairing-model.test.ts",
+      "sha256": "20ed1f21a26298dfd7e66d312e67474c5668964e4c671827eb713cf5a6ac0e44"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "3f50810459623b3aa056df0194eb3d12672afbf0dd9104ce276b127c07865db6"
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnect.tsx",
+      "sha256": "3a2f86bb905f027a3b92020b5781e5436ccd69bb2d0fa1b36122d5fa421e1d1a"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuide.tsx",
+      "sha256": "bbd275d3fae7bf6dc95561669875b28f5df503a7d83d40ed8f8ff25c88533f34"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingWorkspace.test.tsx",
+      "sha256": "42dff9f85882ad99f8a2ae488fe064900a6e56a0e0d9e5d92e32254b3b54a2e8"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingPanel.tsx",
+      "sha256": "728cfdf26854434118c6f49ecd5516996a758402c1d74f8ea3f68ef09848354e"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingPanel.test.tsx",
+      "sha256": "d743692beac4ddea3f26c7b18d942e1adda7b3064e8c81d006ecfd4847a7b8d7"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/runner-inbox-185/platform/summary.json",
+      "sha256": "ef6d90bc5c497b1b9db3e58d23871ccb62deb6bc597724eee95ab880840b55a5"
+    },
+    {
+      "path": ".cache/runner-inbox-185/platform/source-manifest.json",
+      "sha256": "054b72d699412e336a55c90d959ff50ab5f870062cee15cd59259a29a7290be9"
+    },
+    {
+      "path": ".cache/runner-inbox-185/platform/EVIDENCE.md",
+      "sha256": "e0b7418c52f64d4200635ec319a08ff24e37166cec36c31a399e43e47d4f57bb"
+    },
+    {
+      "path": ".cache/runner-inbox-185/runtime/summary.json",
+      "sha256": "b6126613dec4e01fb83f8dd455d840d84c710bd8914a1e7195aa9bd28bd4131e"
+    },
+    {
+      "path": ".cache/runner-inbox-185/runtime/source-manifest.json",
+      "sha256": "31da047d5c0315fceab916bada378a99f137875572bf9db3bc65afd8a3d082c3"
+    },
+    {
+      "path": ".cache/runner-inbox-185/runtime/EVIDENCE.md",
+      "sha256": "18118117eebe4db3dcd6b7e2b30ef57496355c5b845ba0cfebb6e4d6cf1a9c50"
+    },
+    {
+      "path": ".cache/runner-inbox-185/root-summary.json",
+      "sha256": "68aec9ea3a6bd047563e3d135f289c0e42d11d2cdc1316a36309e44557c42d2a"
+    },
+    {
+      "path": ".cache/runner-inbox-185/web/web185-summary.json",
+      "sha256": "6e490ba972d20629733cf7272cdb99ef1097897665b7ad840d2ee0cf041852a4"
+    },
+    {
+      "path": ".cache/runner-inbox-185/types.command.json",
+      "sha256": "267e8c84ef6ea55cebab739f8b6d8859e019c81cd54813a70ee99463a5c38a17"
+    },
+    {
+      "path": ".cache/runner-inbox-185/i18n.command.json",
+      "sha256": "b10297f368d378756e08f94f9d7cf910dbf84fef9ef023c3f0251b7310a89bdb"
+    },
+    {
+      "path": ".cache/runner-inbox-185/build.command.json",
+      "sha256": "ae02aa3a94f373765725dd19b3f025f9a79e5b2c71f61196d5fe3b0a516d6f51"
+    },
+    {
+      "path": ".cache/runner-inbox-185/visual/result.json",
+      "sha256": "432f6127a0bd4f58118d0afc8422edf75299ed65f6d9caf00fa9c4f8c28ee2ea"
+    },
+    {
+      "path": ".cache/runner-inbox-185/types-before-assertion-fix.command.json",
+      "sha256": "a3ab53bf1570b1d0fb3640a99d44d2db10779df0721e46d968a955cbb63cbba0"
+    },
+    {
+      "path": ".cache/runner-inbox-185/visual/first-result.json",
+      "sha256": "8c1b6e2efe89a5c46d01de958b820a1f672a0805768a885e7af23ae4e8c438b6"
+    },
+    {
+      "path": ".cache/runner-inbox-185/web/model-semantic.log",
+      "sha256": "09d97627e9c98179477e1a6002e389cf1db9b4a7ebfd42822cb88ba23d0cd052"
+    }
+  ]
+}

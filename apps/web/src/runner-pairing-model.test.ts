@@ -1,6 +1,6 @@
 import {expect,it} from 'vitest';
 import type {WriteRecoveryRequest} from './write-action';
-import {readRunnerPairing,runnerPairingCommand,validRunnerPairingReceipt,validRunnerPairingRequest} from './runner-pairing-model';
+import {readRunnerPairing,readRunnerPairingPage,runnerPairingInboxPath,runnerPairingInboxSearch,runnerPairingCommand,validRunnerPairingReceipt,validRunnerPairingRequest} from './runner-pairing-model';
 
 const project='a'.repeat(32),id='b'.repeat(32),sha='c'.repeat(64),worker='remote-'+'d'.repeat(32);
 const waiting=()=>({id,project_id:project,version:1,state:'waiting',control_url:'https://control.example.test/suma',created_at:'2026-11-01T00:00:00Z',expires_at:'2026-11-01T00:10:00Z',can_approve:false});
@@ -11,6 +11,10 @@ function command(action:'approve'|'reject'='approve',version=2):WriteRecoveryReq
 
 it('reads only the closed non-secret current pairing shape with exact scope and independent state qualification',()=>{
  expect(readRunnerPairing(waiting(),project)).toEqual(waiting());expect(readRunnerPairing(proposed(),project)).toEqual(proposed());expect(readRunnerPairing({...proposed(),can_approve:false},project).can_approve).toBe(false);expect(readRunnerPairing(approved(),project)).toEqual(approved());
+ for(const [reason_code,value] of [['awaiting_machine',waiting()],['approval_required',proposed()],['control_changed',{...proposed(),can_approve:false}],['identity_approved',approved()],['pairing_rejected',{...proposed(),state:'rejected',can_approve:false}],['pairing_expired',{...proposed(),state:'expired',can_approve:false}]] as const)expect(readRunnerPairing({...value,reason_code},project).reason_code).toBe(reason_code);
+ expect(()=>readRunnerPairing({...proposed(),reason_code:'healthy'},project)).toThrow();
+ const item={...proposed(),reason_code:'approval_required'};
+ expect(readRunnerPairingPage({project_id:project,status:'active',q:'',items:[item],total:1,limit:20,as_of:'2026-11-01T00:00:00Z'},{project,status:'active',q:'',limit:20}).items).toEqual([item]);
  for(const project_id of ['p','project-a','项'.repeat(21)])expect(readRunnerPairing({...waiting(),project_id},project_id).project_id).toBe(project_id);
  for(const project_id of ['a'.repeat(65),'项'.repeat(22),'has space','slash/project','back\\project','delete\u007f','bad\ud800'])expect(()=>readRunnerPairing({...waiting(),project_id},project_id)).toThrow();
  for(const device_name of ['a'.repeat(100),'项'.repeat(33)])expect(readRunnerPairing({...proposed(),device_name},project).device_name).toBe(device_name);
@@ -18,6 +22,20 @@ it('reads only the closed non-secret current pairing shape with exact scope and 
  for(const state of ['rejected','expired'])for(const base of [waiting(),proposed()])expect(readRunnerPairing({...base,state,can_approve:false},project).state).toBe(state);
  const invalid=[{...waiting(),project_id:'e'.repeat(32)},{...waiting(),id:id.toUpperCase()},{...waiting(),version:0},{...waiting(),state:'connected'},{...waiting(),can_approve:true},{...waiting(),device_name:'Extra device',credential_sha256:sha},{...proposed(),credential_sha256:undefined},{...proposed(),device_name:''},{...proposed(),credential_sha256:'not-a-digest'},{...proposed(),worker_id:worker},{...approved(),can_approve:true},{...approved(),credential_expires_at:undefined},{...approved(),worker_id:'pool-'+id},{...waiting(),token:'never-public'},{...waiting(),secret:'never-public'},{...waiting(),checked_at:'2026-11-01T00:00:00Z'},{...waiting(),created_at:'2026-02-30T00:00:00Z'},{...waiting(),expires_at:'not-a-date'}];
  for(const value of invalid)expect(()=>readRunnerPairing(value,project)).toThrow();
+});
+
+it('validates a live pairing page against its exact query and treats UTF-8 cursors as opaque data',()=>{
+ const query={project,status:'active' as const,q:'项目',limit:2},cursor='next:opaque/中文%&=';
+ const page={project_id:project,status:'active',q:query.q,items:[waiting(),{...proposed(),id:'e'.repeat(32)}],total:7,limit:2,next_cursor:cursor,as_of:'2026-11-01T00:00:00.125Z'};
+ expect(readRunnerPairingPage(page,query)).toEqual(page);
+ expect(runnerPairingInboxSearch('\u0085 \t项目\n')).toBe('项目');expect(runnerPairingInboxSearch('😀'.repeat(50))).toBe('😀'.repeat(50));expect(runnerPairingInboxSearch('😀'.repeat(51))).toBeUndefined();expect(runnerPairingInboxSearch('bad\ud800')).toBeUndefined();
+ const path=runnerPairingInboxPath({...query,cursor}),parameters=new URL('https://local.test'+path).searchParams;
+ expect(parameters.get('q')).toBe(query.q);expect(parameters.get('cursor')).toBe(cursor);expect(parameters.get('limit')).toBe('2');expect(parameters.get('status')).toBe('active');
+ const empty:Record<string,unknown>={...page,items:[],total:0};delete empty.next_cursor;expect(readRunnerPairingPage(empty,query).items).toEqual([]);
+ expect(readRunnerPairingPage({...page,next_cursor:'界'.repeat(1365)},query).next_cursor).toHaveLength(1365);
+ for(const patch of [{project_id:'another-project'},{status:'all'},{q:'other'},{limit:3},{limit:0},{total:1},{total:-1},{total:Number.MAX_SAFE_INTEGER+1},{items:[waiting(),waiting()]},{items:[...page.items,approved()]},{items:[approved()]},{next_cursor:''},{next_cursor:'界'.repeat(1366)},{next_cursor:123},{as_of:'2026-02-30T00:00:00Z'},{as_of:'2026-11-01T00:00:00+00:00'},{token:'secret'}])expect(()=>readRunnerPairingPage({...page,...patch},query)).toThrow();
+ expect(()=>readRunnerPairingPage({...page,next_cursor:cursor},{...query,cursor})).toThrow();
+ expect(()=>runnerPairingInboxPath({...query,q:'项'.repeat(67)})).toThrow();expect(()=>runnerPairingInboxPath({...query,q:' 项目 '})).toThrow();expect(()=>runnerPairingInboxPath({...query,limit:101})).toThrow();
 });
 
 it('recovers only the original create or exact CAS decision with its closed request and expected result',()=>{

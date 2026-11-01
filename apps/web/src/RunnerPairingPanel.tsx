@@ -2,10 +2,11 @@ import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {RunnerPairing} from '../../../packages/contracts/src';
 import {ApiError} from './api';
 import {useApi,useApiView} from './api-context';
-import {UiError} from './i18n';
+import {tr,UiError} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {useWriteAction,WriteNotice} from './write-action';
 import {RunnerPairingCard} from './RunnerPairingCard';
+import {RunnerPairingInbox} from './RunnerPairingInbox';
 import {readRunnerPairing,validRunnerPairingReceipt,validRunnerPairingRequest} from './runner-pairing-model';
 
 export type RunnerPairingPanelProps={project:string;disabled?:boolean;onLockChange:(locked:boolean)=>void;onPaired:(pairing:RunnerPairing)=>void};
@@ -23,7 +24,7 @@ export function RunnerPairingPanel(props:RunnerPairingPanelProps){
 function PairingScope({project,disabled=false,onLockChange,onPaired,userID,organizationID}:RunnerPairingPanelProps&{userID:string;organizationID:string}){
  const api=useApi(),storage=toolSessionStorage(),scope=JSON.stringify([userID,organizationID,project]),locatorKey='suma-runner-pairing:'+scope;
  const [selected,setSelected]=useState(()=>{try{return storage?.getItem(locatorKey)||'';}catch{return 'unreadable-locator';}});
- const [revision,setRevision]=useState(0),[read,setRead]=useState<Read>(),[created,setCreated]=useState<RunnerPairing>(),[localError,setLocalError]=useState<unknown>(),[denied,setDenied]=useState(false);
+ const [revision,setRevision]=useState(0),[listRevision,setListRevision]=useState(0),[read,setRead]=useState<Read>(),[created,setCreated]=useState<RunnerPairing>(),[localError,setLocalError]=useState<unknown>(),[denied,setDenied]=useState(false);
  const callback=useRef({onLockChange,onPaired});callback.current={onLockChange,onPaired};
  const alive=useRef(false),caller=useRef(api);caller.current=api;
  const path=locatorID(selected)?'/runner-pairings/'+encodeURIComponent(selected)+'?project_id='+encodeURIComponent(project):'';
@@ -67,15 +68,22 @@ function PairingScope({project,disabled=false,onLockChange,onPaired,userID,organ
  const error=!hasView?new UiError('runner-pairing.view_required'):invalidLocator?new UiError('runner-pairing.invalid_locator'):localError||action.error||current?.error;
  const viewBlocked=disabled||!hasView||denied||writeRefused||invalidLocator;
  const blocked=viewBlocked||action.persistenceBlocked;
- function refresh(){if(blocked||locked)return;if(action.error)action.clearConflict();setLocalError(undefined);if(!path)return;setRead(before=>before?.caller===api&&before.path===path?{...before,loading:true,error:undefined}:undefined);setRevision(value=>value+1);}
- function remember(value:RunnerPairing){setCreated(value);setSelected(value.id);setLocalError(undefined);setRead({caller:api,path:'/runner-pairings/'+encodeURIComponent(value.id)+'?project_id='+encodeURIComponent(project),loading:true,value});setRevision(number=>number+1);}
+ function refresh(){if(blocked||locked)return;if(action.error)action.clearConflict();setLocalError(undefined);setListRevision(value=>value+1);if(!path)return;setRead(before=>before?.caller===api&&before.path===path?{...before,loading:true,error:undefined}:undefined);setRevision(value=>value+1);}
+ function remember(value:RunnerPairing){setCreated(value);setSelected(value.id);setLocalError(undefined);setRead({caller:api,path:'/runner-pairings/'+encodeURIComponent(value.id)+'?project_id='+encodeURIComponent(project),loading:true,value});setRevision(number=>number+1);setListRevision(number=>number+1);}
+ function selectExisting(id:string){
+  if(blocked||locked||!locatorID(id))return;
+  try{if(!storage)throw new Error();if(storage.getItem(locatorKey)!==id)storage.setItem(locatorKey,id);}catch{setLocalError(new UiError('runner-pairing.locator_failed'));return;}
+  intent.current={api,path:'/runner-pairings/'+encodeURIComponent(id)+'?project_id='+encodeURIComponent(project)};
+  action.clearConflict();setLocalError(undefined);setCreated(undefined);setRead(undefined);setSelected(id);setRevision(number=>number+1);
+ }
+ function listDenied(){setDenied(true);setCreated(undefined);setRead(undefined);setLocalError(new UiError('runner-pairing-inbox.access_changed'));}
  async function run(path:string,body:Record<string,unknown>,method='POST'){
   const owner=api;callback.current.onLockChange(true);
   const value=await action.run<unknown>(path,body,method);
   if(value&&alive.current&&caller.current===owner)remember(readRunnerPairing(value,project));
  }
  async function create(){
-  if(blocked||locked||action.conflict||action.persistenceBlocked||selected&&(!current?.value||!['rejected','expired'].includes(current.value.state)||stale))return;
+  if(blocked||locked||action.conflict||action.persistenceBlocked||selected&&(!current?.value||stale))return;
   await run('/runner-pairings',{project_id:project});
  }
  async function command(actionName:'approve'|'reject'){
@@ -88,5 +96,5 @@ function PairingScope({project,disabled=false,onLockChange,onPaired,userID,organ
   const original=action.pending;await run(original.path,original.body,original.method);
  }
  function proceed(){const value=current?.value;if(!blocked&&!locked&&!stale&&!loading&&value?.state==='approved'&&value.worker_id&&alive.current&&intent.current.api===api)callback.current.onPaired(value);}
- return <><WriteNotice action={{...action,error:''}} onRebase={async()=>{refresh();}}/><RunnerPairingCard pairing={pairing} loading={loading} stale={stale} disabled={action.busy||(action.pending?viewBlocked:blocked)} error={error} pending={!!action.pending} onCreate={()=>void create()} onRefresh={refresh} onApprove={()=>void command('approve')} onReject={()=>void command('reject')} onRestore={()=>void restore()} onContinue={proceed}/></>;
+ return <><RunnerPairingInbox project={project} disabled={blocked||locked} accessBlocked={viewBlocked} selectedID={selected} refreshToken={listRevision} onSelect={selectExisting} onDenied={listDenied}/>{pairing&&['waiting','proposed','approved'].includes(pairing.state)&&<div className="runner-pairing-actions"><button type="button" data-runner-pairing-new disabled={blocked||locked||stale||loading||!!error} onClick={()=>void create()}>{tr('runner-pairing.create_another')}</button></div>}<WriteNotice action={{...action,error:''}} onRebase={async()=>{refresh();}}/><RunnerPairingCard pairing={pairing} loading={loading} stale={stale} disabled={action.busy||(action.pending?viewBlocked:blocked)} error={error} pending={!!action.pending} onCreate={()=>void create()} onRefresh={refresh} onApprove={()=>void command('approve')} onReject={()=>void command('reject')} onRestore={()=>void restore()} onContinue={proceed}/></>;
 }

@@ -39,6 +39,9 @@ var commonCatalog = []Definition{
 // that reviewed domain; SourceTemplate elsewhere never becomes a global alias.
 var sourceAliases = func() map[string]string {
 	out := map[string]string{"登录已过期": "auth.session_expired"}
+	for _, d := range runnerPairingCatalog {
+		out[d.SourceTemplate] = d.Key
+	}
 	for _, d := range taskSubscriptionCatalog {
 		out[d.SourceTemplate] = d.Key
 	}

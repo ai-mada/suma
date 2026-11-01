@@ -104,8 +104,12 @@ function ScopedToolWorkspace({
     [guideOpen, setGuideOpen] = useState(false),
     [pairingLocked, setPairingLocked] = useState(false),
     [receipt, setReceipt] = useState<{key:string;name:string;scope:string}>();
-  const pairingCaller = useRef(api); pairingCaller.current=api;
+  const pairingCaller = useRef({api,generation:0});
+  if(pairingCaller.current.api!==api)pairingCaller.current={api,generation:pairingCaller.current.generation+1};
+  const pairingGeneration=pairingCaller.current.generation;
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
+  const [pairedSelection,setPairedSelection]=useState<{caller:typeof api;generation:number;context:string;value:RunnerPairing}>();
+  const pairedRunner=pairedSelection?.caller===api&&pairedSelection.generation===pairingGeneration&&pairedSelection.context===contextKey?pairedSelection.value:undefined;
   const guideID = useId();
   const workerRows = useRef(new Map<string, HTMLElement>());
   const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'|'qoder'|'opencode';cloud?:boolean}>();
@@ -194,11 +198,18 @@ function ScopedToolWorkspace({
     setDialog({kind:'worker',mode:'pairing'});
   }
   function continueWithPairedRunner(value:RunnerPairing) {
-    if(writeBlocked||pairingCaller.current!==api||value.project_id!==project||value.state!=='approved'||!value.worker_id)return;
+    if(writeBlocked||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||value.project_id!==project||value.state!=='approved'||!value.worker_id)return;
     try{readRunnerPairing(value,project);}catch{return;}
+    setPairedSelection({caller:api,generation:pairingGeneration,context:contextKey,value});
     setReceipt(undefined);
     void workers.read();void sharedWorkers.read();
     setDialog({kind:'quick',preferredWorkerID:value.worker_id});
+  }
+  function preparePairedRunner(value:RunnerPairing) {
+    if(writeBlocked||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||pairedRunner!==value||value.project_id!==project||value.state!=='approved'||!value.worker_id)return;
+    try{readRunnerPairing(value,project);}catch{return;}
+    setConnectionSelection(undefined);setDialog(undefined);setGuideOpen(true);
+    requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLElement>('[data-remote-runner-setup]>summary')?.focus());
   }
   function openGuide() {
     setConnectionSelection(undefined);
@@ -261,7 +272,7 @@ function ScopedToolWorkspace({
         </summary>
         <AdapterConnections project={project} onSetup={setupConnection}/>
       </details>
-      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} disabled={writeBlocked}/>}
+      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} disabled={writeBlocked}/>}
       {returnRun && (
         <a
           onClick={(event) => {
@@ -588,6 +599,8 @@ function ScopedToolWorkspace({
           project={project}
           adapter={dialog.adapter}
           preferredWorkerID={dialog.preferredWorkerID}
+          pairedRunner={pairedRunner}
+          onPrepareRunner={preparePairedRunner}
           workers={workers}
           sharedWorkers={sharedWorkers}
           action={action}

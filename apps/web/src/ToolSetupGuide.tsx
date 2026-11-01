@@ -9,6 +9,7 @@ import {octopHarnessPreset} from './octop-execution-model';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {claudeCLIConfiguration,claudeCLIModel} from './claude-cli-model';
 import {RemoteRunnerSetupGuide} from './RemoteRunnerSetupGuide';
+import type {RunnerPairing} from '../../../packages/contracts/src';
 
 type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation'|'claude'|'qoder'|'opencode';
 // These are local administrator templates, never a registration or live
@@ -28,7 +29,7 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;presetRequest?:{preset:'harness'|'octop'|'qoder'|'opencode';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;presetRequest?:{preset:'harness'|'octop'|'qoder'|'opencode';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
  useLocale();
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
  useEffect(()=>{if(presetRequest){setSelected(presetRequest.preset);setCopied('');setFailed(false);}},[presetRequest?.preset,presetRequest?.nonce]);
@@ -78,7 +79,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetReque
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
-   <RemoteRunnerSetupGuide key={project||''} project={project} onPairRunner={onPairRunner} disabled={disabled}/>
+   <RemoteRunnerSetupGuide key={project||''} project={project} pairedRunner={pairedRunner} onPairRunner={onPairRunner} disabled={disabled}/>
   </div>
  </details>;
 }

@@ -381,3 +381,123 @@ func TestRunnerIdentityApprovalRefusesRenamedParentWithCopiedMetadata(t *testing
 		t.Fatal("approval wrote through the substituted parent", err)
 	}
 }
+
+type identitySelectorStore struct {
+	RunnerSecretStore
+	gets, sets int
+}
+
+func (s *identitySelectorStore) Get(service, account string) (string, error) {
+	s.gets++
+	return s.RunnerSecretStore.Get(service, account)
+}
+func (s *identitySelectorStore) Set(service, account, secret string) error {
+	s.sets++
+	return s.RunnerSecretStore.Set(service, account, secret)
+}
+
+func pairedIdentityTestPath(t *testing.T) string {
+	t.Helper()
+	config := t.TempDir()
+	if runtime.GOOS == "windows" {
+		t.Setenv("AppData", config)
+	} else {
+		t.Setenv("XDG_CONFIG_HOME", config)
+		t.Setenv("HOME", config)
+	}
+	file, err := DefaultRunnerIdentityPath(identityTestPair)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return file
+}
+
+func TestLoadPairedRunnerIdentityReusesApprovedDefaultIdentityWithoutSecretWrite(t *testing.T) {
+	file := pairedIdentityTestPath(t)
+	store := newIdentityMemoryStore()
+	h := prepareIdentityFixture(t, file, store)
+	if err := h.SaveApproved("remote-33333333333333333333333333333333", "2026-11-01T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+	want, token := h.Identity(), h.Token()
+	if err := h.Close(); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reader := &identitySelectorStore{RunnerSecretStore: store}
+	h, err = LoadPairedRunnerIdentity(identityTestPair, reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer h.Close()
+	if h.Identity() != want || h.Token() != token || reader.gets != 1 || reader.sets != 0 || store.sets != 1 {
+		t.Fatal("selector replaced the original identity/secret or accessed extra accounts")
+	}
+	after, err := os.ReadFile(file)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatal("selector rewrote public identity metadata", err)
+	}
+}
+
+func TestLoadPairedRunnerIdentityRejectsWrongMissingCorruptOrInvalidSelectorBeforeSecretRead(t *testing.T) {
+	for _, kind := range []string{"pair_mismatch", "missing", "corrupt", "invalid_selector"} {
+		t.Run(kind, func(t *testing.T) {
+			file := pairedIdentityTestPath(t)
+			store := newIdentityMemoryStore()
+			pair := identityTestPair
+			var before []byte
+			switch kind {
+			case "pair_mismatch":
+				h := prepareIdentityFixture(t, file, store)
+				if err := h.Close(); err != nil {
+					t.Fatal(err)
+				}
+				raw, err := os.ReadFile(file)
+				if err != nil {
+					t.Fatal(err)
+				}
+				var value map[string]any
+				if err = json.Unmarshal(raw, &value); err != nil {
+					t.Fatal(err)
+				}
+				value["pairing_id"] = strings.Repeat("4", 32)
+				before, err = json.Marshal(value)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err = os.WriteFile(file, before, 0600); err != nil {
+					t.Fatal(err)
+				}
+			case "corrupt":
+				if err := os.MkdirAll(filepath.Dir(file), 0700); err != nil {
+					t.Fatal(err)
+				}
+				before = []byte(`{"protocol":"broken"}`)
+				if err := os.WriteFile(file, before, 0600); err != nil {
+					t.Fatal(err)
+				}
+			case "invalid_selector":
+				pair = "../other"
+			}
+			reader := &identitySelectorStore{RunnerSecretStore: store}
+			if loaded, err := LoadPairedRunnerIdentity(pair, reader); err == nil {
+				_ = loaded.Close()
+				t.Fatal("unsafe selector was loaded")
+			}
+			if reader.gets != 0 || reader.sets != 0 {
+				t.Fatalf("rejected selector accessed credential store: Get=%d Set=%d", reader.gets, reader.sets)
+			}
+			if before != nil {
+				after, err := os.ReadFile(file)
+				if err != nil || !bytes.Equal(before, after) {
+					t.Fatal("rejected selector changed original metadata", err)
+				}
+			} else if _, err := os.Lstat(filepath.Dir(file)); !os.IsNotExist(err) {
+				t.Fatal("unknown or invalid selector created a default directory", err)
+			}
+		})
+	}
+}

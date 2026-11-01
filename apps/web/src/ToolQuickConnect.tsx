@@ -16,7 +16,8 @@ import {ErrorNotice,Field,Loading} from './ui';
 import {toolError,type ToolAction} from './tool-hooks';
 import type {IdentityRead,SharedIdentityRead} from './execution-pools/ToolIdentity';
 import type {ToolProfile} from './tool-model';
-import type {ToolProfileMatchList,ToolProfileMatchRequest} from '../../../packages/contracts/src';
+import type {ToolProfileMatchList,ToolProfileMatchRequest,RunnerPairing} from '../../../packages/contracts/src';
+import {readRunnerPairing} from './runner-pairing-model';
 import {readToolProfileMatches,toolProfileMatchKey} from './tool-profile-reuse-model';
 import {ExistingToolProfiles} from './ExistingToolProfiles';
 import {DesktopToolConnector} from './DesktopToolConnector';
@@ -27,7 +28,7 @@ import {localToolsScanBridge,validLocalToolsScanScope} from './local-tools-scan-
 import './ToolQuickConnect.css';
 
 const t=(key:string,params?:Record<string,unknown>)=>tr('tool-quick-connect.'+key,params);
-export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;preferredWorkerID?:string;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile)=>void;onOpen?:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor)=>void;onWorker:()=>void};
+export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;preferredWorkerID?:string;pairedRunner?:RunnerPairing;onPrepareRunner?:(pairing:RunnerPairing)=>void;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile)=>void;onOpen?:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor)=>void;onWorker:()=>void};
 export function ToolQuickConnect(props:ToolQuickConnectProps){
  const view=useApiView(),scope=JSON.stringify([props.project,view?.userID,view?.organizationID,props.preferredWorkerID]);
  return <QuickConnectScope {...props} key={scope}/>;
@@ -59,7 +60,7 @@ function QuickConnectScope(props:ToolQuickConnectProps){
 type InventorySnapshot={caller:ReturnType<typeof useApi>;key:string;view?:ToolDiscoveryView;deadline:number;error?:unknown};
 type MatchSnapshot={caller:ReturnType<typeof useApi>;key:string;data?:ToolProfileMatchList;error?:unknown};
 type QuickToolDraft=Readonly<{chosenWorker:string;chosenCommand:string;name:string;nameEdited:boolean}>;
-function QuickToolConfiguration({project,adapter,preferredWorkerID,workers,sharedWorkers,action,onRegistered,onEnable,onOpen,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onDraftChange:(draft:QuickToolDraft)=>void}){
+function QuickToolConfiguration({project,adapter,preferredWorkerID,pairedRunner,onPrepareRunner,workers,sharedWorkers,action,onRegistered,onEnable,onOpen,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onDraftChange:(draft:QuickToolDraft)=>void}){
  useLocale();const api=useApi(),[chosenWorker,setChosenWorker]=useState(preferredWorkerID||initialDraft?.chosenWorker||''),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<InventorySnapshot>(),[expired,setExpired]=useState(false),[chosenCommand,setChosenCommand]=useState(initialDraft?.chosenCommand||''),[name,setName]=useState(initialDraft?.name||''),[nameEdited,setNameEdited]=useState(initialDraft?.nameEdited||false),[registered,setRegistered]=useState<ToolProfile>();
  useLayoutEffect(()=>{onDraftChange({chosenWorker,chosenCommand,name,nameEdited});},[chosenWorker,chosenCommand,name,nameEdited,onDraftChange]);
  const [localOperationBlocked,setLocalOperationBlocked]=useState(false),[nativeRegistrationReady,setNativeRegistrationReady]=useState(true),[nativeConnection,setNativeConnection]=useState<{caller:typeof api;connection:DesktopCodexConnectedProof|DesktopOpenCodeConnectedProof}>(),currentCaller=useRef(api);currentCaller.current=api;
@@ -74,6 +75,8 @@ function QuickToolConfiguration({project,adapter,preferredWorkerID,workers,share
  const identitiesKnown=!!workers.data&&!workers.loading&&!workers.error&&!!sharedWorkers.data&&!sharedWorkers.loading&&!sharedWorkers.error;
  const nodes=identitiesKnown?quickConnectWorkers(workers.data!.items,sharedWorkers.data!.items):[],worker=localWorker?(nodes.includes(localWorker)?localWorker:''):nodes.includes(chosenWorker)?chosenWorker:!preferredWorkerID&&nodes.length===1?nodes[0]:'',active=identitiesKnown&&!!worker;
  const preferredMissing=identitiesKnown&&!!preferredWorkerID&&!worker&&!nodes.includes(preferredWorkerID);
+ let prepareTarget:RunnerPairing|undefined;
+ if(onPrepareRunner&&pairedRunner?.project_id===project&&pairedRunner.worker_id===worker)try{const value=readRunnerPairing(pairedRunner,project);if(value.state==='approved')prepareTarget=value;}catch{/* Only an exact approved public source can seed the remote guide. */}
  const key=JSON.stringify([worker,active,revision]),reportedReceipt=useRef('');
  const alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  useEffect(()=>{
@@ -127,6 +130,7 @@ function QuickToolConfiguration({project,adapter,preferredWorkerID,workers,share
   {!identitiesKnown?<div className="tool-quick-node-state" role="status"><p>{t('reading_nodes')}</p>{workers.error&&<ErrorNotice error={workers.error} onRetry={()=>void workers.read()}/>} {sharedWorkers.error&&<ErrorNotice error={sharedWorkers.error} onRetry={()=>void sharedWorkers.read()}/>}</div>:!nodes.length&&!preferredWorkerID?<div className="tool-quick-empty"><Server size={22} aria-hidden="true"/><div><strong>{t('no_node')}</strong><p>{t('no_node_hint')}</p><button data-quick-connect-worker type="button" className={managesLocal?'text-button':'primary'} disabled={blocked} onClick={onWorker}>{t('connect_node')}<ArrowRight size={15} aria-hidden="true"/></button></div>{!managesLocal&&!scansLocal&&<LocalInstallation project={project} adapter={adapter} onGuide={()=>onAdvanced(adapter)}/>}</div>:<>
    {preferredMissing&&<p className="tool-quick-warning" data-quick-preferred-worker-missing role="status">{tr('runner-pairing.worker_not_current')}</p>}
    {nodes.length>1||!!preferredWorkerID&&!worker?<Field label={t('node')}><select data-quick-worker value={worker} disabled={blocked||!!receipt} onChange={event=>{setNativeConnection(undefined);setQoderConnection(undefined);setChosenWorker(event.target.value);}}><option value="">{t('choose_node')}</option>{nodes.map(node=><option key={node} value={node}>{node}</option>)}</select></Field>:<p className="tool-quick-node"><Server size={15} aria-hidden="true"/>{t('using_node',{node:worker})}</p>}
+    {prepareTarget&&<button type="button" className="text-button" data-quick-prepare-runner disabled={blocked} onClick={()=>{const target=prepareTarget;if(!blocked&&alive.current&&currentCaller.current===api&&target&&target===pairedRunner&&target.worker_id===worker)onPrepareRunner?.(target);}}>{tr('remote-runner-setup.prepare_node')}<ArrowRight size={15} aria-hidden="true"/></button>}
    {receipt?<div className="tool-quick-saved" role="status"><CheckCircle2 size={22} aria-hidden="true"/><div><strong>{t('registered',{name:receipt.name})}</strong><p>{t('paused_hint')}</p><button data-quick-enable type="button" className="primary" disabled={blocked} onClick={()=>onEnable(receipt)}>{t('enable')}<ArrowRight size={15} aria-hidden="true"/></button></div></div>:worker&&<>
     {!current?<Loading/>:current.error?<ErrorNotice error={toolError(current.error)} onRetry={()=>setRevision(value=>value+1)}/>:view&&<>
      <div className="tool-quick-inventory-heading"><strong>{t('detected')}</strong><button type="button" className="text-button" disabled={blocked} onClick={()=>setRevision(value=>value+1)}><RefreshCw size={14} aria-hidden="true"/>{t('refresh')}</button></div>

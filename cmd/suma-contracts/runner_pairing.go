@@ -3,10 +3,19 @@ package main
 import pc "github.com/ai-mada/suma/internal/runnerpairingcontract"
 
 func runnerPairingModels() []any {
-	return []any{pc.RunnerPairing{}, pc.RunnerPairingCreateRequest{}, pc.RunnerPairingCommandRequest{}, pc.RunnerPairingProposalRequest{}, pc.RunnerPairingStatusRequest{}}
+	return []any{pc.RunnerPairing{}, pc.RunnerPairingPage{}, pc.RunnerPairingCreateRequest{}, pc.RunnerPairingCommandRequest{}, pc.RunnerPairingProposalRequest{}, pc.RunnerPairingStatusRequest{}}
 }
 
 func runnerPairingContracts(add operationAdder, api map[string]any) {
+	inbox := add("/runner-pairings", "get", "RunnerPairingPage", false, false)
+	inbox["security"] = []any{map[string]any{"cookieAuth": []string{}}}
+	inbox["x-disallowed-token-scopes"] = []string{"api", "runner", "agent"}
+	inbox["x-read-only"] = true
+	inbox["description"] = "Current browser project administration reads a live filtered pairing collection. Each page reauthorizes and uses current database time; as_of is not a frozen snapshot. A cursor only seeks after the last created_at/id and cannot confer access. Approval is not online execution or current inventory."
+	appendQuery(inbox, queryParameter("status", "Current logical state; active is unexpired waiting/proposed.", map[string]any{"type": "string", "enum": []string{"active", "waiting", "proposed", "approved", "rejected", "expired", "all"}, "default": "active"}))
+	appendQuery(inbox, queryParameter("q", "Trimmed literal ID, self-reported device name or worker ID; at most200 UTF-8 bytes.", map[string]any{"type": "string", "x-max-utf8-bytes": 200}))
+	appendQuery(inbox, queryParameter("limit", "Default20, maximum100.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
+	appendQuery(inbox, queryParameter("cursor", "Original actor/tenant/project/filter/limit-bound last-item cursor.", map[string]any{"type": "string", "maxLength": 4096}))
 	for _, route := range []struct{ path, method, input, status string }{
 		{"/runner-pairings", "post", "RunnerPairingCreateRequest", "201"},
 		{"/runner-pairings/{id}", "get", "", "200"},
@@ -53,6 +62,8 @@ func runnerPairingContracts(add operationAdder, api map[string]any) {
 		}
 	}
 	properties := toolContractMap(schemas, "RunnerPairing", "properties")
+	toolContractMap(properties, "reason_code")["enum"] = []string{"awaiting_machine", "approval_required", "control_changed", "identity_approved", "pairing_rejected", "pairing_expired"}
+	toolContractMap(properties, "reason_code")["description"] = "Current browser-only diagnostic projection, omitted from machine responses and original operation receipts. It grants no authority."
 	for _, field := range properties {
 		field.(map[string]any)["readOnly"] = true
 	}
@@ -70,4 +81,14 @@ func runnerPairingContracts(add operationAdder, api map[string]any) {
 	}
 	toolContractMap(schemas, "RunnerPairingCommandRequest", "properties", "action")["enum"] = []string{"approve", "reject"}
 	toolContractMap(schemas, "RunnerPairingCommandRequest", "properties", "expected_version")["minimum"] = 1
+	page := toolContractMap(schemas, "RunnerPairingPage")
+	page["additionalProperties"] = false
+	pageProperties := toolContractMap(page, "properties")
+	for _, field := range pageProperties {
+		field.(map[string]any)["readOnly"] = true
+	}
+	toolContractMap(pageProperties, "as_of")["format"] = "date-time"
+	toolContractMap(pageProperties, "total")["minimum"] = 0
+	toolContractMap(pageProperties, "limit")["minimum"] = 1
+	toolContractMap(pageProperties, "limit")["maximum"] = 100
 }

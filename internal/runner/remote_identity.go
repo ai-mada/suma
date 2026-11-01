@@ -126,12 +126,30 @@ func PrepareRunnerPairingIdentity(path, control, project, pair, device string, s
 }
 
 func LoadRunnerIdentity(path string, store RunnerSecretStore) (*RunnerIdentityHandle, error) {
+	return loadRunnerIdentity(path, "", store)
+}
+
+// LoadPairedRunnerIdentity selects an existing default identity only. Validate
+// its complete metadata and original pairing before accessing the secret store.
+func LoadPairedRunnerIdentity(pair string, store RunnerSecretStore) (*RunnerIdentityHandle, error) {
+	path, err := DefaultRunnerIdentityPath(pair)
+	if err != nil {
+		return nil, err
+	}
+	return loadRunnerIdentity(path, pair, store)
+}
+
+func loadRunnerIdentity(path, expectedPair string, store RunnerSecretStore) (*RunnerIdentityHandle, error) {
 	if store == nil {
 		return nil, fmt.Errorf("system credential storage is required")
 	}
 	h, err := openRunnerIdentity(path, store, false)
 	if err != nil {
 		return nil, err
+	}
+	if expectedPair != "" && h.identity.PairingID != expectedPair {
+		_ = h.Close()
+		return nil, fmt.Errorf("Runner identity belongs to a different pairing selector")
 	}
 	if err = h.loadSecret(); err != nil {
 		_ = h.Close()

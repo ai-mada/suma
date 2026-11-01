@@ -1,5 +1,7 @@
 # HTTP、事件与客户端合同
 
+T-RUNNER-INBOX-185新增[项目配对收件箱](../../contracts/runner-inbox.md)：GET /runner-pairings 由当前真实浏览器项目管理员读取，实时筛选总数／游标与来源绑定；RunnerPairingPage及浏览器只读reason_code由共享Go合同生成，不扩大机器权限。
+
 T-TOOL-DOCTOR-181新增[工具配置体检](../../contracts/tool-profile-diagnostics.md)：`GET /tool-profiles/{id}/diagnostics`沿原可派发判定提供四项当前事实、短期观察期限和原管理入口，体检不执行建议。公开Schema与TypeScript共享同一Go类型，[限定验证](../quality/tool-profile-diagnostics-verification.md)区分实际会话HTTP与合成界面。
 
 T-ROLLOUT-125已有限定实现[有序发布合同](../../contracts/application-release-rollouts.md)：`/application-release-sets/{set_id}/rollouts`预览／明确启动、父子运行读取、恢复预览及生命周期命令，复用各自已批准的原计划与唯一Go DAG，不授予集合级批准。见[领域架构](../architecture/application-release-rollouts.md)、[操作与AI SOP](../development/application-release-rollouts.md)、[待完成验收报告](../quality/application-release-rollouts-verification.md)与[摘要](../quality/application-release-rollouts-summary.json)；源码与合同不预先表示实际验证通过。原[业务依赖图](../../contracts/task-dependencies.md)、[任务交付与质量](../../contracts/task-delivery-chain.md)及[Runner只读诊断](../../contracts/runner-journal-inspection.md)继续保留各自权限和范围。

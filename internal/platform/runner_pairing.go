@@ -15,7 +15,7 @@ func jsonPairingReceipt(raw string, out *RunnerPairing) error {
 	if err := json.Unmarshal([]byte(raw), out); err != nil {
 		return err
 	}
-	if !desktopWorkspaceHex(out.ID, 32) || !handoffID(out.ProjectID, false) || out.Version < 1 || out.CanApprove {
+	if !desktopWorkspaceHex(out.ID, 32) || !handoffID(out.ProjectID, false) || out.Version < 1 || out.CanApprove || out.ReasonCode != "" {
 		return runnerPairingError(409, "changed")
 	}
 	return nil
@@ -157,7 +157,7 @@ func (s *Service) CommandRunnerPairing(parent context.Context, actor Actor, id s
 	if err != nil {
 		return out, err
 	}
-	if !runnerPairingSameControl(record.ControlURL, control) {
+	if request.Action == "approve" && !runnerPairingSameControl(record.ControlURL, control) {
 		return out, runnerPairingError(409, "changed")
 	}
 	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"runner_pairing_command": id, "request": request})

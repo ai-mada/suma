@@ -47,17 +47,24 @@ func runWithRunnerSecrets(args []string, out, stderr io.Writer, lookup func(stri
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
 	pairRunner := app.String("pair-runner", "", "连接浏览器已创建的远程配对待办；保存身份后退出，不领取任务", "join a browser-created remote pairing; save the identity and exit without tasks")
 	identityPath := app.String("identity", "", "系统凭据库所绑定的公开执行身份文件", "public runner identity file bound to the system credential store")
+	pairedRunner := app.String("paired-runner", "", "复用该配对标识默认位置的已保存执行身份，不重新配对", "reuse the saved default identity for this pairing ID without pairing again")
 	deviceName := app.String("device-name", "", "配对时自报的机器名称；默认本机名称", "self-reported pairing device name; defaults to the local hostname")
 	if stop, code := app.Parse(args, version); stop {
 		return code
 	}
+	pairedProvided := app.FlagProvided("paired-runner")
+	identityProvided := app.FlagProvided("identity")
+	if pairedProvided && (*pairedRunner == "" || identityProvided || app.FlagProvided("pair-runner")) {
+		return app.Failure("已配对节点标识不能为空，且不能与身份路径或新配对模式混用", "Saved pairing ID must be nonempty and cannot be combined with an identity path or new pairing")
+	}
+	savedIdentity := identityProvided || pairedProvided
 	if app.FlagProvided("pair-runner") {
 		if *pairRunner == "" || !app.FlagProvided("control") || !app.FlagProvided("project") || *project == "" || app.FlagProvided("identity") && *identityPath == "" || app.FlagProvided("device-name") && *deviceName == "" || toolModeHasAnyFlag(app, "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "pool-config", "allow-exec", "describe-tools", "prepare-tools", "report-tools", "discover-installed-tools", "describe-acp-models-stdin", "local-tool") {
 			return app.Failure("配对参数无效，且不能与探测或执行模式混用", "Pairing options are invalid or cannot be combined with discovery or execution modes")
 		}
 		return runRemotePairing(app, *pairRunner, *base, *project, *identityPath, *deviceName, secrets)
 	}
-	if app.FlagProvided("device-name") || app.FlagProvided("identity") && (*identityPath == "" || toolModeHasAnyFlag(app, "inspect-state", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "pool-config", "merge-preflight", "local-tool", "prepare-tools") || app.FlagProvided("report-tools") && !*reportTools) {
+	if app.FlagProvided("device-name") || savedIdentity && (identityProvided && *identityPath == "" || toolModeHasAnyFlag(app, "inspect-state", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "pool-config", "merge-preflight", "local-tool", "prepare-tools") || app.FlagProvided("report-tools") && !*reportTools) {
 		return app.Failure("身份文件仅供单次上报或明确启动执行器使用；机器名称仅用于配对", "An identity file requires single reporting or explicit worker startup; device name is only for pairing")
 	}
 	if app.FlagProvided("prepare-tools") {
@@ -123,8 +130,14 @@ func runWithRunnerSecrets(args []string, out, stderr io.Writer, lookup func(stri
 		return 0
 	}
 	runnerToken := func() string { return app.Getenv("SUMA_RUNNER_TOKEN") }
-	if app.FlagProvided("identity") {
-		identity, loadErr := runner.LoadRunnerIdentity(*identityPath, secrets)
+	if savedIdentity {
+		var identity *runner.RunnerIdentityHandle
+		var loadErr error
+		if pairedProvided {
+			identity, loadErr = runner.LoadPairedRunnerIdentity(*pairedRunner, secrets)
+		} else {
+			identity, loadErr = runner.LoadRunnerIdentity(*identityPath, secrets)
+		}
 		if loadErr != nil {
 			return app.Failure("执行身份或系统凭据不可用；保留原文件并核对原配对", "Runner identity or system credential is unavailable; preserve the file and review the original pairing")
 		}

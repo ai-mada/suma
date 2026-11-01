@@ -1,6 +1,8 @@
 import {useId,useState} from 'react';
 import {Check,Copy,Network} from 'lucide-react';
+import type {RunnerPairing} from '../../../packages/contracts/src';
 import {tr,useLocale} from './i18n';
+import {readRunnerPairing} from './runner-pairing-model';
 import {remoteRunnerLocalTools,remoteRunnerSetupCommands,type RemoteRunnerSetupInput} from './remote-runner-setup-model';
 import './RemoteRunnerSetupGuide.css';
 
@@ -9,16 +11,26 @@ const toolNames:Record<(typeof remoteRunnerLocalTools)[number],string>={'codex-j
 
 /** The target machine and its original Runner remain the only execution
  * authority. This guide builds public drafts and never sends or runs them. */
-export function RemoteRunnerSetupGuide({project,onPairRunner,disabled=false}:{project?:string;onPairRunner?:()=>void;disabled?:boolean}){
- useLocale();const hint=useId(),[input,setInput]=useState<RemoteRunnerSetupInput>({mode:'environment',identityPath:'',shell:'',control:'',project:project||'',worker:'',commands:'',state:'',localTool:'',repository:'',baseCommit:''}),[copied,setCopied]=useState(''),[failed,setFailed]=useState(''),commands=remoteRunnerSetupCommands(input.mode==='identity'?{...input,project:project||''}:input);
- function update(name:keyof RemoteRunnerSetupInput,value:string){if(disabled||name==='project'&&input.mode==='identity')return;setInput(current=>({...current,[name]:value}));setFailed('');}
- function field(name:'control'|'project'|'worker'|'commands'|'state'|'repository'|'baseCommit'|'identityPath',maxLength=4096){const fixedProject=name==='project'&&input.mode==='identity';return <label className="remote-runner-field">{t('field.'+name)}<input name={'remote-runner-'+name} value={fixedProject?project||'':input[name]} type={name==='control'?'url':'text'} maxLength={maxLength} disabled={disabled} readOnly={fixedProject} autoComplete="off" spellCheck={false} aria-describedby={hint} onChange={event=>update(name,event.target.value)}/></label>;}
- async function copy(kind:'prepare'|'report'){const command=commands[kind];if(disabled||!command)return;try{await navigator.clipboard.writeText(command);setCopied(command);setFailed('');}catch{setFailed(command);}}
- function command(kind:'prepare'|'report'){const value=commands[kind];return <div className="remote-runner-command"><div className="remote-runner-command-heading"><strong>{t('command.'+kind)}</strong><button type="button" data-remote-runner-copy={kind} disabled={disabled||!value} onClick={()=>void copy(kind)}>{value&&copied===value?<Check size={15} aria-hidden="true"/>:<Copy size={15} aria-hidden="true"/>}{t(value&&copied===value?'copied':'copy')}</button></div>{value?<pre tabIndex={0} data-remote-runner-command={kind} aria-label={t('command.'+kind)}>{value}</pre>:<p className="remote-runner-incomplete" role="status">{t(kind==='report'&&input.mode==='identity'?'incomplete.identity':'incomplete.'+kind)}</p>}{value&&failed===value&&<p className="remote-runner-warning" role="alert">{t('copy_failed')}</p>}</div>;}
- return <details className="remote-runner-setup" data-remote-runner-setup>
+type Props={project?:string;pairedRunner?:RunnerPairing;onPairRunner?:()=>void;disabled?:boolean};
+export function RemoteRunnerSetupGuide(props:Props){
+ let target:RunnerPairing|undefined;
+ if(props.pairedRunner)try{const value=readRunnerPairing(props.pairedRunner,props.project||'');if(value.state==='approved'&&value.worker_id)target=value;}catch{/* A foreign or malformed source cannot seed a connection draft. */}
+ const scope=JSON.stringify([props.project,props.pairedRunner?.id,props.pairedRunner?.project_id,props.pairedRunner?.control_url,props.pairedRunner?.worker_id,props.pairedRunner?.version]);
+ return <RemoteRunnerSetupScope key={scope} {...props} pairedRunner={target} disabled={props.disabled||!!props.pairedRunner&&!target} invalidTarget={!!props.pairedRunner&&!target}/>;
+}
+function RemoteRunnerSetupScope({project,pairedRunner,onPairRunner,disabled=false,invalidTarget=false}:Props&{invalidTarget?:boolean}){
+ useLocale();const hint=useId(),[input,setInput]=useState<RemoteRunnerSetupInput>({mode:'paired',pairingID:pairedRunner?.id||'',identityPath:'',shell:'',control:pairedRunner?.control_url||'',project:project||'',worker:pairedRunner?.worker_id||'',commands:'',state:'',localTool:'',repository:'',baseCommit:''}),[copied,setCopied]=useState(''),[failed,setFailed]=useState('');
+ const effective={...input,...(input.mode!=='environment'?{project:project||''}:{}),...(input.mode==='identity'&&!pairedRunner?{worker:''}:{}),...(pairedRunner?{control:pairedRunner.control_url,project:pairedRunner.project_id,worker:pairedRunner.worker_id||'',pairingID:pairedRunner.id}:{})},commands=remoteRunnerSetupCommands(effective);
+ function fixed(name:keyof RemoteRunnerSetupInput){return name==='project'&&input.mode!=='environment'||!!pairedRunner&&['control','project','worker','pairingID'].includes(name);}
+ function update(name:keyof RemoteRunnerSetupInput,value:string){if(disabled||fixed(name))return;setInput(current=>({...current,[name]:value}));setFailed('');}
+ function field(name:'control'|'project'|'worker'|'commands'|'state'|'repository'|'baseCommit'|'identityPath'|'pairingID',maxLength=4096){return <label className="remote-runner-field">{t('field.'+name)}<input name={'remote-runner-'+name} value={effective[name]} type={name==='control'?'url':'text'} maxLength={maxLength} disabled={disabled} readOnly={fixed(name)} autoComplete="off" spellCheck={false} aria-describedby={hint} onChange={event=>update(name,event.target.value)}/></label>;}
+ async function copy(kind:'prepare'|'report'|'start'){const command=commands[kind];if(disabled||!command)return;try{await navigator.clipboard.writeText(command);setCopied(command);setFailed('');}catch{setFailed(command);}}
+ function command(kind:'prepare'|'report'|'start'){const value=commands[kind];return <div className="remote-runner-command"><div className="remote-runner-command-heading"><strong>{t('command.'+kind)}</strong><button type="button" data-remote-runner-copy={kind} disabled={disabled||!value} onClick={()=>void copy(kind)}>{value&&copied===value?<Check size={15} aria-hidden="true"/>:<Copy size={15} aria-hidden="true"/>}{t(value&&copied===value?'copied':kind==='start'?'start.copy':'copy')}</button></div>{value?<pre tabIndex={0} data-remote-runner-command={kind} aria-label={t('command.'+kind)}>{value}</pre>:<p className="remote-runner-incomplete" role="status">{t(kind==='report'&&input.mode!=='environment'?'incomplete.'+input.mode:'incomplete.'+kind)}</p>}{value&&failed===value&&<p className="remote-runner-warning" role="alert">{t('copy_failed')}</p>}</div>;}
+ return <details className="remote-runner-setup" data-remote-runner-setup open={!!pairedRunner}>
   <summary><Network size={17} aria-hidden="true"/>{t('title')}</summary>
   <div className="remote-runner-body">
    <p>{t('intro')}</p><p id={hint} className="remote-runner-help">{t('public_only')}</p>
+   {pairedRunner&&<p className="remote-runner-help" data-remote-runner-target>{t('target_hint')}</p>}{invalidTarget&&<p className="remote-runner-warning" role="alert">{t('invalid_target')}</p>}
    {onPairRunner&&<div className="remote-runner-command"><p>{t('pair_intro')}</p><div className="remote-runner-command-heading"><button type="button" data-remote-runner-pair disabled={disabled} onClick={()=>{if(!disabled)onPairRunner();}}><Network size={15} aria-hidden="true"/>{t('pair')}</button></div></div>}
    <ol className="remote-runner-steps">
     <li><h4>{t('prepare.title')}</h4><p>{t('prepare.intro')}</p>
@@ -28,8 +40,8 @@ export function RemoteRunnerSetupGuide({project,onPairRunner,disabled=false}:{pr
      {command('prepare')}<p className="remote-runner-help">{t('prepare.boundary')}</p>
     </li>
     <li><h4>{t('report.title')}</h4><p>{t('report.intro')}</p>
-     <label className="remote-runner-field">{t('field.mode')}<select name="remote-runner-mode" value={input.mode} disabled={disabled} onChange={event=>update('mode',event.target.value)}><option value="environment">{t('mode.environment')}</option><option value="identity">{t('mode.identity')}</option></select></label>
-     {input.mode==='identity'?<>{field('control',2048)}{field('project',200)}{field('identityPath')}<p className="remote-runner-help">{t('identity_help')}</p></>:<>{field('control',2048)}
+     <label className="remote-runner-field">{t('field.mode')}<select name="remote-runner-mode" value={input.mode} disabled={disabled} onChange={event=>update('mode',event.target.value)}><option value="paired">{t('mode.paired')}</option><option value="identity">{t('mode.identity')}</option><option value="environment">{t('mode.environment')}</option></select></label>
+     {input.mode==='paired'?<>{field('control',2048)}{field('project',200)}{field('pairingID',32)}{field('worker',200)}<p className="remote-runner-help">{t('paired_help')}</p></>:input.mode==='identity'?<>{field('control',2048)}{field('project',200)}{field('identityPath')}<p className="remote-runner-help">{t('identity_help')}</p></>:<>{field('control',2048)}
       <div className="remote-runner-fields">{field('project',200)}{field('worker',200)}</div>{field('state')}
      </>}
      {commands.loopback&&<p className="remote-runner-warning" data-remote-runner-loopback role="status">{t('loopback')}</p>}
@@ -38,6 +50,7 @@ export function RemoteRunnerSetupGuide({project,onPairRunner,disabled=false}:{pr
     </li>
     <li><h4>{t('reuse.title')}</h4><p>{t('reuse.intro')}</p></li>
     <li><h4>{t('enable.title')}</h4><p>{t('enable.intro')}</p></li>
+    <li data-remote-runner-start><h4>{t('start.title')}</h4><p>{t('start.intro')}</p>{command('start')}<p className="remote-runner-help">{t('start.boundary')}</p></li>
    </ol>
   </div>
  </details>;

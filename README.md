@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-RUNNER-INBOX-185新增[项目配对收件箱](contracts/runner-inbox.md)：查找并接续现有请求，准确目标带入原向导，通过配对ID复用本机身份；准备、上报、持续启动分别复制。[交互](docs/design/runner-inbox.md)及[限定验证](docs/quality/runner-inbox-verification.md)保留实际边界，完整平台继续交付。
+
 T-RUNNER-PAIRING-184新增[远程节点配对](contracts/runner-pairing.md)：创建待办、目标机器执行、完整指纹核对并明确批准；凭据由系统库保管，原身份可直接复用工具上报，浏览器不接收token。[架构与AI SOP](docs/architecture/runner-pairing.md)、[简洁双语交互](docs/design/runner-pairing.md)及[限定验证](docs/quality/runner-pairing-verification.md)记录实际范围。
 
 **速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器、桌面与CLI入口。
