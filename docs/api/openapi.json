@@ -22361,9 +22361,122 @@
         ],
         "type": "object"
       },
+      "PoolToolInspectionClaimRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "runner_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "tenant_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "runner_id",
+          "claim_id"
+        ],
+        "type": "object"
+      },
+      "PoolToolInspectionFailureRequest": {
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "failure_code": {
+                "const": "not_started"
+              },
+              "outcome": {
+                "const": "failed"
+              }
+            }
+          },
+          {
+            "properties": {
+              "failure_code": {
+                "enum": [
+                  "probe_interrupted",
+                  "probe_timeout",
+                  "probe_failed"
+                ]
+              },
+              "outcome": {
+                "const": "unknown"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "failure_code": {
+            "enum": [
+              "not_started",
+              "probe_interrupted",
+              "probe_timeout",
+              "probe_failed"
+            ],
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "inspection": {
+            "$ref": "#/components/schemas/ToolInspectionReference"
+          },
+          "outcome": {
+            "enum": [
+              "failed",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "runner_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "tenant_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "runner_id",
+          "inspection",
+          "idempotency_key",
+          "outcome",
+          "failure_code"
+        ],
+        "type": "object"
+      },
       "PoolToolInventoryRequest": {
         "additionalProperties": false,
         "properties": {
+          "inspection": {
+            "$ref": "#/components/schemas/ToolInspectionReference"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ToolObservation"
@@ -40236,10 +40349,647 @@
         ],
         "type": "object"
       },
+      "ToolInspection": {
+        "additionalProperties": false,
+        "description": "A fixed-purpose current-authority inspection, pending at most300 seconds and claimed for60 seconds. Unknown effects are reconciled against the original claim and report, never automatically re-executed. Source changes supersede authority. Completed means only the associated inventory was persisted; it does not authorize tasks, installation or enablement.",
+        "oneOf": [
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "claim_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "claimed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "lease_until"
+                  ]
+                },
+                {
+                  "required": [
+                    "result_code"
+                  ]
+                },
+                {
+                  "required": [
+                    "observed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "inventory_operation_id"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "fence": {
+                "const": 0
+              },
+              "state": {
+                "const": "pending"
+              }
+            }
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "result_code"
+                  ]
+                },
+                {
+                  "required": [
+                    "observed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "inventory_operation_id"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "fence": {
+                "minimum": 1
+              },
+              "state": {
+                "const": "claimed"
+              }
+            },
+            "required": [
+              "claim_id",
+              "claimed_at",
+              "lease_until"
+            ]
+          },
+          {
+            "properties": {
+              "fence": {
+                "minimum": 1
+              },
+              "result_code": {
+                "enum": [
+                  "reported_available",
+                  "reported_unavailable",
+                  "profile_changed",
+                  "command_missing"
+                ]
+              },
+              "state": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "claim_id",
+              "claimed_at",
+              "lease_until",
+              "result_code",
+              "observed_at",
+              "inventory_operation_id"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "observed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "inventory_operation_id"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "fence": {
+                "minimum": 1
+              },
+              "result_code": {
+                "enum": [
+                  "not_started"
+                ]
+              },
+              "state": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "claim_id",
+              "claimed_at",
+              "lease_until",
+              "result_code"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "observed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "inventory_operation_id"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "fence": {
+                "minimum": 1
+              },
+              "result_code": {
+                "enum": [
+                  "probe_interrupted",
+                  "probe_timeout",
+                  "probe_failed"
+                ]
+              },
+              "state": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "claim_id",
+              "claimed_at",
+              "lease_until",
+              "result_code"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "claim_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "claimed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "lease_until"
+                  ]
+                },
+                {
+                  "required": [
+                    "observed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "inventory_operation_id"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "fence": {
+                "const": 0
+              },
+              "result_code": {
+                "enum": [
+                  "request_expired"
+                ]
+              },
+              "state": {
+                "const": "expired"
+              }
+            },
+            "required": [
+              "result_code"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "observed_at"
+                  ]
+                },
+                {
+                  "required": [
+                    "inventory_operation_id"
+                  ]
+                }
+              ]
+            },
+            "oneOf": [
+              {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "claim_id"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "claimed_at"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "lease_until"
+                      ]
+                    }
+                  ]
+                },
+                "properties": {
+                  "fence": {
+                    "const": 0
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "fence": {
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "claim_id",
+                  "claimed_at",
+                  "lease_until"
+                ]
+              }
+            ],
+            "properties": {
+              "result_code": {
+                "enum": [
+                  "source_changed"
+                ]
+              },
+              "state": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "result_code"
+            ]
+          }
+        ],
+        "properties": {
+          "claim_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "claimed_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "command_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fence": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "inventory_operation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "lease_until": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "profile_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "requested_by": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "result_code": {
+            "enum": [
+              "reported_available",
+              "reported_unavailable",
+              "profile_changed",
+              "command_missing",
+              "probe_interrupted",
+              "probe_timeout",
+              "probe_failed",
+              "not_started",
+              "request_expired",
+              "source_changed"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "claimed",
+              "completed",
+              "failed",
+              "unknown",
+              "expired",
+              "superseded"
+            ],
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "tool_profile_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "worker_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "worker_id",
+          "tool_profile_id",
+          "tool_profile_version",
+          "profile_sha256",
+          "command_id",
+          "version",
+          "fence",
+          "state",
+          "requested_by",
+          "created_at",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "ToolInspectionClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "inspection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolInspection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "inspection"
+        ],
+        "type": "object"
+      },
+      "ToolInspectionClaimRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "worker_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "worker_id",
+          "claim_id"
+        ],
+        "type": "object"
+      },
+      "ToolInspectionCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ToolInspectionFailureRequest": {
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "failure_code": {
+                "const": "not_started"
+              },
+              "outcome": {
+                "const": "failed"
+              }
+            }
+          },
+          {
+            "properties": {
+              "failure_code": {
+                "enum": [
+                  "probe_interrupted",
+                  "probe_timeout",
+                  "probe_failed"
+                ]
+              },
+              "outcome": {
+                "const": "unknown"
+              }
+            }
+          }
+        ],
+        "properties": {
+          "failure_code": {
+            "enum": [
+              "not_started",
+              "probe_interrupted",
+              "probe_timeout",
+              "probe_failed"
+            ],
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "inspection": {
+            "$ref": "#/components/schemas/ToolInspectionReference"
+          },
+          "outcome": {
+            "enum": [
+              "failed",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          },
+          "worker_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "worker_id",
+          "inspection",
+          "idempotency_key",
+          "outcome",
+          "failure_code"
+        ],
+        "type": "object"
+      },
+      "ToolInspectionList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ToolInspection"
+            },
+            "maxItems": 10,
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "ToolInspectionReference": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "fence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "inspection_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,149}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "inspection_id",
+          "claim_id",
+          "fence"
+        ],
+        "type": "object"
+      },
       "ToolInventoryReceipt": {
+        "oneOf": [
+          {
+            "required": [
+              "inspection",
+              "inspection_state"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "inspection"
+                  ]
+                },
+                {
+                  "required": [
+                    "inspection_state"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
         "properties": {
           "acknowledged": {
             "type": "boolean"
+          },
+          "inspection": {
+            "$ref": "#/components/schemas/ToolInspectionReference"
+          },
+          "inspection_state": {
+            "const": "completed",
+            "type": "string"
           },
           "observed_at": {
             "type": "string"
@@ -40254,6 +41004,9 @@
       "ToolInventoryRequest": {
         "additionalProperties": false,
         "properties": {
+          "inspection": {
+            "$ref": "#/components/schemas/ToolInspectionReference"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ToolObservation"
@@ -85345,6 +86098,316 @@
         "x-response-cache-control": "no-store"
       }
     },
+    "/pool-runner/tool-inspections/claim": {
+      "post": {
+        "description": "The original authenticated outbound inventory owner uses a persisted claim nonce and fence. A repeated nonce recovers its original claim; no pending item is represented by inspection:null. Expired claims become unknown without reassignment. Failure reports preserve the original reference and never trigger another probe. Pool identity and project grant remain exact. Successful inspection is committed through its referenced original tool-inventory operation.",
+        "operationId": "post_pool-runner_tool-inspections_claim",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolToolInspectionClaimRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInspectionClaim"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "pool"
+      }
+    },
+    "/pool-runner/tool-inspections/results": {
+      "post": {
+        "description": "The original authenticated outbound inventory owner uses a persisted claim nonce and fence. A repeated nonce recovers its original claim; no pending item is represented by inspection:null. Expired claims become unknown without reassignment. Failure reports preserve the original reference and never trigger another probe. Pool identity and project grant remain exact. Successful inspection is committed through its referenced original tool-inventory operation.",
+        "operationId": "post_pool-runner_tool-inspections_results",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolToolInspectionFailureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInspection"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "pool"
+      }
+    },
     "/pool-runner/tool-inventory": {
       "post": {
         "operationId": "post_pool-runner_tool-inventory",
@@ -108882,6 +109945,332 @@
         "x-response-cache-control": "no-store"
       }
     },
+    "/runner/tool-inspections/claim": {
+      "post": {
+        "description": "The original authenticated outbound inventory owner uses a persisted claim nonce and fence. A repeated nonce recovers its original claim; no pending item is represented by inspection:null. Expired claims become unknown without reassignment. Failure reports preserve the original reference and never trigger another probe. Pool identity and project grant remain exact. Successful inspection is committed through its referenced original tool-inventory operation.",
+        "operationId": "post_runner_tool-inspections_claim",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolInspectionClaimRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInspectionClaim"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "runner"
+      }
+    },
+    "/runner/tool-inspections/results": {
+      "post": {
+        "description": "The original authenticated outbound inventory owner uses a persisted claim nonce and fence. A repeated nonce recovers its original claim; no pending item is represented by inspection:null. Expired claims become unknown without reassignment. Failure reports preserve the original reference and never trigger another probe. Pool identity and project grant remain exact. Successful inspection is committed through its referenced original tool-inventory operation.",
+        "operationId": "post_runner_tool-inspections_results",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolInspectionFailureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInspection"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "runner"
+      }
+    },
     "/runner/tool-inventory": {
       "post": {
         "description": "Bound registered worker identity reports at most128 nonsecret local command observations. Exact operation replay recovers the original database timestamp and does not renew expiry. Reports cannot grant profile approval or deployment authority.",
@@ -131362,6 +132751,172 @@
         "x-response-cache-control": "no-store"
       }
     },
+    "/tool-inspections/{id}": {
+      "get": {
+        "description": "Current project tool-management authority binds the exact immutable profile version, full digest, worker and applicable pool grant. A repeated creation key returns its original pending snapshot; GET the original ID for its current head. The bounded list returns at most10 current/recent records and never replaces an unresolved local intent. Inspection completion is not enablement, model health, task execution or acceptance.",
+        "operationId": "get_tool-inspections_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInspection"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
+      }
+    },
     "/tool-permissions/{id}/decision": {
       "post": {
         "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
@@ -132767,6 +134322,401 @@
         ],
         "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/tool-profiles/{id}/inspections": {
+      "get": {
+        "description": "Current project tool-management authority binds the exact immutable profile version, full digest, worker and applicable pool grant. A repeated creation key returns its original pending snapshot; GET the original ID for its current head. The bounded list returns at most10 current/recent records and never replaces an unresolved local intent. Inspection completion is not enablement, model health, task execution or acceptance.",
+        "operationId": "get_tool-profiles_id_inspections",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInspectionList"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
+      },
+      "post": {
+        "description": "Current project tool-management authority binds the exact immutable profile version, full digest, worker and applicable pool grant. A repeated creation key returns its original pending snapshot; GET the original ID for its current head. The bounded list returns at most10 current/recent records and never replaces an unresolved local intent. Inspection completion is not enablement, model health, task execution or acceptance.",
+        "operationId": "post_tool-profiles_id_inspections",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolInspectionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolInspection"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
         "x-response-cache-control": "no-store"
       }
     },

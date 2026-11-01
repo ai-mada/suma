@@ -328,6 +328,8 @@ func TestWorkBuddyCloudWorkerRunClaimsNativeCapabilityAndReplaysWait(t *testing.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
+		case strings.HasSuffix(r.URL.Path, "/tool-inspections/claim"):
+			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case strings.HasSuffix(r.URL.Path, "/tool-inventory"):
 			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339Nano)})
 		case strings.HasSuffix(r.URL.Path, "/claim"):
@@ -433,6 +435,8 @@ func TestWorkBuddyCloudWorkerCrashBeforeFinishRecoversOriginalAndReplaysLostResu
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
+		case strings.HasSuffix(r.URL.Path, "/tool-inspections/claim"):
+			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case strings.HasSuffix(r.URL.Path, "/tool-inventory"):
 			_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339Nano)})
 		case strings.HasSuffix(r.URL.Path, "/claim"):

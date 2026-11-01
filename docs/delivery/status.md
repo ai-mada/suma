@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-REINSPECTION-194：[合同](../../contracts/tool-reinspection.md)／[PRD](../product/tool-reinspection.md)／[架构与AI SOP](../architecture/tool-reinspection.md)／[限定验证](../quality/tool-reinspection-verification.md)。真实准确节点检查请求、新报告原子闭合及原回执恢复贯通；Pool满槽位可重检，单scope错误隔离。21个不同定向检查及受控实际链／3组双语界面限定通过，原31／P0–P7／58／34／92继续。
+
 T-TOOL-MANAGEMENT-193：[合同](../../contracts/tool-management.md)／[PRD](../product/tool-management.md)／[架构与AI SOP](../architecture/tool-management.md)／[限定验证](../quality/tool-management-verification.md)。简洁连接向导、当前／历史筛选、准确目标诊断、公开草稿及原生命周期命令贯通；活动影响明确完整／部分／未知，撤销不伪称进程停止。62个不同定向检查及真实HTTP／SQLite／CLI、双语代表界面限定通过，完整31／P0–P7／58／34／92继续。
 
 T-CLAUDE-SDK-192：[合同](../../contracts/claude-sdk.md)／[PRD](../product/claude-sdk.md)／[架构与AI SOP](../architecture/claude-sdk.md)／[限定验证](../quality/claude-sdk-verification.md)。官方SDK原生一次许可、提问、固定配置、原Runner及同提交质量贯通；CLI／SDK／MCP、配置与真实厂商、送达与验收分别记录。下一优先简化工具新增／调整／移除与自动检测修复，原31／P0–P7／58／34／92继续。

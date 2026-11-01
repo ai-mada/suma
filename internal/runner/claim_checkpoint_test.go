@@ -33,6 +33,8 @@ func TestActualWorkerClaimLostACKAndClosedDispatchNeverStart(t *testing.T) {
 			claims, results := 0, 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				switch r.URL.Path {
+				case "/api/v1/runner/tool-inspections/claim":
+					_, _ = w.Write([]byte(`{"inspection":null}`))
 				case "/api/v1/runner/tool-inventory":
 					_ = json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339)})
 				case "/api/v1/runner/claim":

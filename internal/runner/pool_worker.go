@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -124,12 +123,13 @@ type PoolWorker struct {
 	AllowExec                       bool
 	PollInterval, HeartbeatInterval time.Duration
 	Diagnostic                      func(PoolDiagnostic)
-	mu                              sync.Mutex
 	local                           map[string]*Worker
-	lastInventory                   time.Time
 	configSHA                       string
 	credentialVersion               int
+	inventoryRetry                  map[string]time.Time
 }
+
+var errPoolInventoryIdentity = errors.New("pool inventory machine identity changed")
 
 func scopeKey(tenant, project string) string { return digest([]byte(tenant + "\x00" + project)) }
 func (w *PoolWorker) notice(code, slot string) {
@@ -252,12 +252,15 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	done := make(chan error, w.Config.Slots)
+	done := make(chan error, w.Config.Slots+1)
+	// One owner services all project inventories independently of occupied
+	// execution slots. Slots only read the resulting readiness gates.
+	go func() { done <- w.runInventoryOwner(ctx) }()
 	for i := 0; i < w.Config.Slots; i++ {
 		go func(slot string) { done <- w.runSlot(ctx, slot, session.Runner.WorkerID) }(strconv.Itoa(i))
 	}
 	var first error
-	for i := 0; i < w.Config.Slots; i++ {
+	for i := 0; i < w.Config.Slots+1; i++ {
 		e := <-done
 		if e != nil && !errors.Is(e, context.Canceled) && !errors.Is(e, context.DeadlineExceeded) && first == nil {
 			first = e
@@ -271,22 +274,78 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 }
 
 func (w *PoolWorker) refreshInventories(ctx context.Context) error {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	if !w.lastInventory.IsZero() && time.Since(w.lastInventory) < 30*time.Second {
-		return nil
+	session, err := w.Client.PoolSession(ctx)
+	if err != nil {
+		return err
 	}
-	for _, local := range w.local {
-		if err := local.refreshInventory(ctx); err != nil {
+	if session.Runner.CredentialVersion != w.credentialVersion {
+		return fmt.Errorf("%w: credential generation changed", errPoolInventoryIdentity)
+	}
+	if w.inventoryRetry == nil {
+		w.inventoryRetry = map[string]time.Time{}
+	}
+	active := map[string]bool{}
+	for _, s := range session.Scopes {
+		active[scopeKey(s.TenantID, s.ProjectID)] = true
+	}
+	for key, local := range w.local {
+		if local.ID != session.Runner.WorkerID {
+			return fmt.Errorf("%w: worker changed", errPoolInventoryIdentity)
+		}
+		if !session.PoolActive || !active[key] {
 			local.setInventoryUnavailable()
-			w.notice("inventory_unavailable", "")
+			local.inventoryNext = time.Time{}
+			continue
+		}
+		if time.Now().Before(w.inventoryRetry[key]) {
+			local.setInventoryUnavailable()
+			continue
+		}
+		if err := local.tickToolInventory(ctx); err != nil {
+			local.setInventoryUnavailable()
+			// A project report/inspection can lose its grant or source while
+			// another project's attempt remains authorized. Retain the original
+			// checkpoint, quarantine this scope, and never cancel sibling slots.
+			delay := 5 * time.Second
 			if permanentInventoryError(err) {
-				return err
+				delay = 30 * time.Second
 			}
+			w.inventoryRetry[key] = time.Now().Add(delay)
+			if w.Diagnostic != nil {
+				w.Diagnostic(PoolDiagnostic{Code: "inventory_scope_unavailable", TenantID: local.Client.Pool.TenantID, ProjectID: local.Client.ProjectID})
+			}
+			continue
+		}
+		delete(w.inventoryRetry, key)
+	}
+	return nil
+}
+
+func (w *PoolWorker) runInventoryOwner(ctx context.Context) error {
+	poll := w.PollInterval
+	if poll <= 0 {
+		poll = 2 * time.Second
+		if w.Config.PollIntervalMS != 0 {
+			poll = time.Duration(w.Config.PollIntervalMS) * time.Millisecond
 		}
 	}
-	w.lastInventory = time.Now()
-	return nil
+	for ctx.Err() == nil {
+		if err := w.refreshInventories(ctx); err != nil {
+			for _, local := range w.local {
+				local.setInventoryUnavailable()
+				local.inventoryNext = time.Time{}
+			}
+			var status *runnerHTTPStatusError
+			if errors.Is(err, errPoolInventoryIdentity) || errors.As(err, &status) && (status.Status == 401 || status.Status == 403) {
+				return err
+			}
+			w.notice("inventory_unavailable", "")
+		}
+		if !wait(ctx, poll) {
+			break
+		}
+	}
+	return ctx.Err()
 }
 
 func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
@@ -366,9 +425,6 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 		}
 		if session.Runner.CredentialVersion != w.credentialVersion || session.Runner.WorkerID != worker {
 			return fmt.Errorf("pool credential generation changed")
-		}
-		if err = w.refreshInventories(ctx); err != nil {
-			return err
 		}
 		active := map[string]bool{}
 		for _, scope := range session.Scopes {

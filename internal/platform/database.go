@@ -143,6 +143,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateToolPermissionsInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateToolInspectionsInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateToolInputsInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -244,6 +247,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeToolProfiles(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeToolInspections(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeTaskDispatch(ctx); err != nil {

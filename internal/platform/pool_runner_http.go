@@ -33,6 +33,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 	if s.poolToolInputsHTTP(w, r, token, path) {
 		return true
 	}
+	if s.poolToolInspectionsHTTP(w, r, token, path) {
+		return true
+	}
 	if s.poolToolPermissionsHTTP(w, r, token, path) {
 		return true
 	}
@@ -61,6 +64,15 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 		}
 		if err = RejectDuplicateReleaseJSON(raw); err != nil {
 			return err
+		}
+		if _, inventory := out.(*PoolToolInventoryRequest); inventory {
+			var fields map[string]json.RawMessage
+			if json.Unmarshal(raw, &fields) != nil {
+				return toolInspectionInvalid()
+			}
+			if value, present := fields["inspection"]; present && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+				return toolInspectionInvalid()
+			}
 		}
 		d := json.NewDecoder(bytes.NewReader(raw))
 		d.DisallowUnknownFields()

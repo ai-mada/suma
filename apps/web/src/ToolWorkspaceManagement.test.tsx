@@ -56,3 +56,20 @@ it('takes Doctor to the exact original adapter and worker, then returns from adv
  expect(document.querySelector<HTMLSelectElement>('[data-quick-tool]')?.value).toBe('codex-jsonl');expect(document.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('original-runner');
  expect(document.querySelector('[data-existing-tool-open="existing"]')).not.toBeNull();expect(writes).toEqual([]);
 });
+
+it('T194 requests inspection through a separate receipt and returns to the original profile without selecting the request as a tool',async()=>{
+ await mount();const originalFetch=vi.mocked(fetch).getMockImplementation()!,inspectionWrites:Record<string,unknown>[]=[];
+ let currentVersion=4;
+ const pending={id:'inspection-main194',project_id:'p',worker_id:tool.worker_id,tool_profile_id:tool.id,tool_profile_version:5,profile_sha256:definition.profile_sha256,command_id:definition.command_id,version:1,fence:0,state:'pending',requested_by:'u',created_at:'2026-11-01T00:00:00Z',expires_at:'2026-11-01T00:05:00Z'};
+ const completed={...pending,version:3,fence:1,state:'completed',claim_id:'claim-main-194',claimed_at:'2026-11-01T00:00:10Z',lease_until:'2026-11-01T00:01:10Z',observed_at:'2026-11-01T00:00:12Z',inventory_operation_id:'inventory-main-194',result_code:'reported_unavailable'};
+ vi.mocked(fetch).mockImplementation(async(input,init={})=>{const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1','');if(path==='/tool-profiles/existing')return Response.json({...tool,version:currentVersion});if(path==='/tool-profiles/existing/inspections'){if(init.method==='POST'){inspectionWrites.push(JSON.parse(String(init.body)));return Response.json(pending);}return Response.json({items:[]});}if(path==='/tool-inspections/inspection-main194')return Response.json(completed);return originalFetch(input,init);});
+ await act(async()=>host!.querySelector<HTMLButtonElement>('.tool-resource')!.click());await settle();
+ await act(async()=>host!.querySelector<HTMLButtonElement>('[data-tool-doctor-inspect]')!.click());await settle();
+ expect(document.querySelector('[data-tool-reinspection-panel]')).not.toBeNull();expect(inspectionWrites).toEqual([]);
+ currentVersion=5;await act(async()=>host!.querySelector<HTMLButtonElement>('.tool-refresh-bar button[aria-label]')!.click());await settle();
+ await act(async()=>document.querySelector<HTMLButtonElement>('[data-tool-reinspection-create]')!.click());await settle();
+ expect(inspectionWrites).toHaveLength(1);expect(inspectionWrites[0]).toMatchObject({project_id:'p',expected_version:5});expect(typeof inspectionWrites[0].idempotency_key).toBe('string');
+ expect(document.querySelector('[data-tool-reinspection-state]')?.getAttribute('data-tool-reinspection-state')).toBe('completed');
+ await act(async()=>document.querySelector<HTMLButtonElement>('[data-tool-reinspection-review]')!.click());await settle();
+ expect(document.querySelector('[role="dialog"]')).toBeNull();expect(host!.querySelector('.tool-resource.selected')?.textContent).toContain(tool.name);expect(reads.some(url=>url.pathname.endsWith('/tool-profiles/inspection-main194'))).toBe(false);expect(writes).toEqual([]);
+});

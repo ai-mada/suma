@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-TOOL-REINSPECTION-194：[准确节点工具重检](product/tool-reinspection.md)、[架构与AI SOP](architecture/tool-reinspection.md)、[交互](design/tool-reinspection.md)、[English](en/tool-reinspection.md)及[限定验证](quality/tool-reinspection-verification.md)。新请求对应真实新探测，原回执恢复与当前fresh分开，完整平台继续。
+
 T-TOOL-MANAGEMENT-193：[简洁工具管理](product/tool-management.md)、[架构与AI SOP](architecture/tool-management.md)、[交互](design/tool-management.md)、[English](en/tool-management.md)及[限定验证](quality/tool-management-verification.md)。接入／调整／暂停／移除复用唯一配置与操作链，完整平台继续。
 
 T-CLAUDE-SDK-192：[SDK原生协作](product/claude-sdk.md)、[架构与AI SOP](architecture/claude-sdk.md)、[交互](design/claude-sdk.md)及[限定验证](quality/claude-sdk-verification.md)。原控制面、固定来源、候选／独测／验收一条链，完整平台与工具管理优化继续。

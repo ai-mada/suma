@@ -12,6 +12,7 @@ import (
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	ti "github.com/ai-mada/suma/internal/toolinspectioncontract"
 )
 
 type InventoryReport struct {
@@ -21,6 +22,7 @@ type InventoryReport struct {
 	Acked       bool             `json:"acked"`
 	ObservedAt  string           `json:"observed_at,omitempty"`
 	ScopeSHA256 string           `json:"scope_sha256"`
+	Inspection  *ti.Reference    `json:"inspection,omitempty"`
 }
 
 // InventoryScopeSHA256 binds local recovery to the original control endpoint,
@@ -78,10 +80,19 @@ func (j *Journal) loadInventory() error {
 			return fmt.Errorf("invalid inventory journal observation")
 		}
 	}
+	if report.Inspection != nil && ti.ValidateReference(*report.Inspection) != nil {
+		return fmt.Errorf("invalid inventory inspection reference")
+	}
 	j.inventory = &report
 	return nil
 }
 func (j *Journal) NewInventory(control, project, worker string, items []tc.Observation) (InventoryReport, error) {
+	return j.newInspectionInventory(control, project, worker, items, nil)
+}
+
+// The causal inspection reference and the full original inventory are written
+// together. A restart must not have to reconstruct which probe a report proves.
+func (j *Journal) newInspectionInventory(control, project, worker string, items []tc.Observation, inspection *ti.Reference) (InventoryReport, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	if j.inventory != nil && !j.inventory.Acked {
@@ -93,6 +104,9 @@ func (j *Journal) NewInventory(control, project, worker string, items []tc.Obser
 	}
 	if worker == "" || len(worker) > 100 || len(items) > 128 {
 		return InventoryReport{}, fmt.Errorf("invalid inventory identity or size")
+	}
+	if inspection != nil && ti.ValidateReference(*inspection) != nil {
+		return InventoryReport{}, fmt.Errorf("invalid inventory inspection reference")
 	}
 	seen := map[string]bool{}
 	for _, o := range items {
@@ -108,6 +122,10 @@ func (j *Journal) NewInventory(control, project, worker string, items []tc.Obser
 		items = []tc.Observation{}
 	}
 	report := InventoryReport{WorkerID: worker, OperationID: operationID(), Items: cloneObservations(items), ScopeSHA256: scope}
+	if inspection != nil {
+		copied := *inspection
+		report.Inspection = &copied
+	}
 	b, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {
 		return InventoryReport{}, err
@@ -118,6 +136,10 @@ func (j *Journal) NewInventory(control, project, worker string, items []tc.Obser
 	j.inventory = &report
 	returned := report
 	returned.Items = cloneObservations(report.Items)
+	if report.Inspection != nil {
+		copied := *report.Inspection
+		returned.Inspection = &copied
+	}
 	return returned, nil
 }
 func (j *Journal) PendingInventory() *InventoryReport {
@@ -128,6 +150,10 @@ func (j *Journal) PendingInventory() *InventoryReport {
 	}
 	report := *j.inventory
 	report.Items = cloneObservations(report.Items)
+	if report.Inspection != nil {
+		copied := *report.Inspection
+		report.Inspection = &copied
+	}
 	return &report
 }
 func (j *Journal) AckInventory(operationID, observed string) error {
@@ -158,10 +184,18 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 		return "", fmt.Errorf("tool inventory belongs to a different or unknown control/project/worker scope")
 	}
 	var reply struct {
-		Acknowledged bool   `json:"acknowledged"`
-		ObservedAt   string `json:"observed_at"`
+		Acknowledged    bool          `json:"acknowledged"`
+		ObservedAt      string        `json:"observed_at"`
+		Inspection      *ti.Reference `json:"inspection"`
+		InspectionState string        `json:"inspection_state"`
 	}
 	payload := map[string]any{"project_id": c.ProjectID, "worker_id": report.WorkerID, "operation_id": report.OperationID, "items": report.Items}
+	if report.Inspection != nil {
+		if ti.ValidateReference(*report.Inspection) != nil {
+			return "", fmt.Errorf("invalid inventory inspection reference")
+		}
+		payload["inspection"] = report.Inspection
+	}
 	if c.Pool != nil {
 		delete(payload, "worker_id")
 	}
@@ -171,6 +205,13 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 	}
 	if !reply.Acknowledged {
 		return "", fmt.Errorf("inventory persistence was not acknowledged")
+	}
+	if report.Inspection != nil {
+		if reply.Inspection == nil || *reply.Inspection != *report.Inspection || reply.InspectionState != "completed" {
+			return "", fmt.Errorf("original inspection persistence was not acknowledged")
+		}
+	} else if reply.Inspection != nil || reply.InspectionState != "" {
+		return "", fmt.Errorf("unrequested inspection acknowledgement")
 	}
 	if _, err = time.Parse(time.RFC3339, reply.ObservedAt); err != nil {
 		return "", fmt.Errorf("invalid inventory persistence timestamp")
@@ -182,6 +223,12 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 // It never starts the Worker loop, claims work, or replays another journal.
 // A recovered ACK is returned as-is, without probing or issuing a fresh report.
 func (w *Worker) ReportTools(ctx context.Context) (InventoryReport, bool, error) {
+	w.inventoryOpMu.Lock()
+	defer w.inventoryOpMu.Unlock()
+	return w.reportTools(ctx)
+}
+
+func (w *Worker) reportTools(ctx context.Context) (InventoryReport, bool, error) {
 	if w.Client == nil || w.Journal == nil {
 		return InventoryReport{}, false, fmt.Errorf("Runner client and durable journal are required")
 	}
@@ -196,9 +243,19 @@ func (w *Worker) ReportTools(ctx context.Context) (InventoryReport, bool, error)
 		report, err := w.acknowledgeInventory(ctx, *pending)
 		return report, true, err
 	}
+	checkpoint, err := w.Journal.toolInspectionCheckpoint()
+	if err != nil {
+		return InventoryReport{}, false, err
+	}
+	if checkpoint != nil && !checkpoint.Complete && checkpoint.Inspection != nil {
+		return InventoryReport{}, false, fmt.Errorf("pending tool inspection requires its original reconciliation")
+	}
 	items, err := DescribeTools(ctx, w.Exec)
 	if err != nil {
 		return InventoryReport{}, false, err
+	}
+	if ctx.Err() != nil {
+		return InventoryReport{}, false, ctx.Err()
 	}
 	report, err := w.Journal.NewInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items)
 	if err != nil {

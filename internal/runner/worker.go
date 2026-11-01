@@ -18,9 +18,11 @@ type Worker struct {
 	Exec                            ExecConfig
 	PollInterval, HeartbeatInterval time.Duration
 	inventoryMu                     sync.Mutex
+	inventoryOpMu                   sync.Mutex
 	inventory                       []tc.Observation
 	inventoryReady                  bool
 	inventoryInterval               time.Duration
+	inventoryNext                   time.Time
 }
 
 func (w *Worker) Run(ctx context.Context) error {
@@ -32,28 +34,17 @@ func (w *Worker) Run(ctx context.Context) error {
 	if err := ValidateToolConfiguration(w.Exec); err != nil {
 		return err
 	}
-	initialErr := w.refreshInventory(ctx)
+	initialErr := w.tickToolInventory(ctx)
 	if initialErr != nil && permanentInventoryError(initialErr) {
 		return initialErr
-	}
-	interval := w.inventoryInterval
-	if interval <= 0 {
-		interval = 30 * time.Second
 	}
 	inventoryDone := make(chan struct{})
 	go func() {
 		defer close(inventoryDone)
-		delay := interval
-		if initialErr != nil {
-			delay = min(interval, 5*time.Second)
-		}
-		for wait(ctx, delay) {
-			if err := w.refreshInventory(ctx); err != nil {
-				w.setInventoryUnavailable()
-				delay = min(interval, 5*time.Second)
-			} else {
-				delay = interval
-			}
+		// The existing inventory owner also consumes maintenance requests while
+		// the business executor is busy. Each pass uses the same Journal owner.
+		for wait(ctx, w.inventoryPollInterval()) {
+			_ = w.tickToolInventory(ctx)
 		}
 	}()
 	defer func() { cancel(); <-inventoryDone }()

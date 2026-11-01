@@ -34,5 +34,7 @@
  "tool-doctor.target_adapter":"适配器",
  "tool-doctor.target_protocol":"协议",
  "tool-doctor.target_profile":"原配置档案 ID",
- "tool-doctor.target_hash":"完整配置摘要"
+ "tool-doctor.target_hash":"完整配置摘要",
+ "tool-doctor.inspect_action":"重新检测此节点",
+ "tool-doctor.inspect_hint":"提交检查请求，等待这个节点重新上报，再复核当前配置。"
 }

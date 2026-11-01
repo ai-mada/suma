@@ -70,6 +70,8 @@ func TestPoolWorkerRunsTwoRealProjectProcessesInIndependentSlots(t *testing.T) {
 			return
 		}
 		switch r.URL.Path {
+		case "/api/v1/pool-runner/tool-inspections/claim":
+			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/pool-runner/tool-inventory":
 			json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339)})
 		case "/api/v1/pool-runner/claim":
@@ -217,6 +219,8 @@ func TestPoolWorkerActuallyStopsProcessAfterScopedHeartbeatCancel(t *testing.T) 
 		switch r.URL.Path {
 		case "/api/v1/pool-runner/session":
 			w.Write([]byte(`{"runner":{"id":"runner","pool_id":"pool","worker_id":"pool-runner","max_slots":1,"credential_version":1},"pool_active":true,"scopes":[{"tenant_id":"tenant","project_id":"project"}]}`))
+		case "/api/v1/pool-runner/tool-inspections/claim":
+			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/pool-runner/tool-inventory":
 			json.NewEncoder(w).Encode(map[string]any{"acknowledged": true, "observed_at": time.Now().UTC().Format(time.RFC3339)})
 		case "/api/v1/pool-runner/claim":

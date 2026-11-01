@@ -113,6 +113,8 @@ func TestWorkerClaimsOnlyAvailableCommandCapabilities(t *testing.T) {
 	defer cancel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case "/api/v1/runner/tool-inspections/claim":
+			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/runner/tool-inventory":
 			_, _ = w.Write([]byte(`{"acknowledged":true,"observed_at":"2026-10-24T03:00:00Z"}`))
 		case "/api/v1/runner/claim":
@@ -120,7 +122,13 @@ func TestWorkerClaimsOnlyAvailableCommandCapabilities(t *testing.T) {
 				Capabilities []string `json:"capabilities"`
 			}
 			_ = json.NewDecoder(r.Body).Decode(&body)
-			if len(body.Capabilities) != 1 || body.Capabilities[0] != "command:local" {
+			commands := []string{}
+			for _, capability := range body.Capabilities {
+				if strings.HasPrefix(capability, "command:") {
+					commands = append(commands, capability)
+				}
+			}
+			if len(commands) != 1 || commands[0] != "command:local" {
 				t.Errorf("unsupported claim capabilities: %v", body.Capabilities)
 			}
 			seenClaim = true
@@ -166,6 +174,8 @@ func TestInventoryOutageKeepsCurrentProcessAndHeartbeatThenRecovers(t *testing.T
 	ops := []string{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case "/api/v1/runner/tool-inspections/claim":
+			_, _ = w.Write([]byte(`{"inspection":null}`))
 		case "/api/v1/runner/tool-inventory":
 			var body struct {
 				OperationID string `json:"operation_id"`

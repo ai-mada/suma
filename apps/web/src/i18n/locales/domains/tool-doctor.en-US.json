@@ -34,5 +34,7 @@
  "tool-doctor.target_adapter":"Adapter",
  "tool-doctor.target_protocol":"Protocol",
  "tool-doctor.target_profile":"Original profile ID",
- "tool-doctor.target_hash":"Complete configuration digest"
+ "tool-doctor.target_hash":"Complete configuration digest",
+ "tool-doctor.inspect_action":"Recheck this node",
+ "tool-doctor.inspect_hint":"Request a new check from this exact node, wait for its report, then review the configuration."
 }

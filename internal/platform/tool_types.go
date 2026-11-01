@@ -3,6 +3,7 @@ package platform
 import (
 	"github.com/ai-mada/suma/internal/displaycontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
+	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
 )
 
 type ToolProfile struct {
@@ -45,8 +46,11 @@ type ToolInventoryRequest struct {
 	WorkerID    string                     `json:"worker_id"`
 	OperationID string                     `json:"operation_id"`
 	Items       []toolcontract.Observation `json:"items"`
+	Inspection  *tic.Reference             `json:"inspection,omitempty" wire:"nonnull"`
 }
 type ToolInventoryReceipt struct {
-	Acknowledged bool   `json:"acknowledged"`
-	ObservedAt   string `json:"observed_at"`
+	Acknowledged    bool           `json:"acknowledged"`
+	ObservedAt      string         `json:"observed_at"`
+	Inspection      *tic.Reference `json:"inspection,omitempty" wire:"nonnull"`
+	InspectionState string         `json:"inspection_state,omitempty"`
 }

@@ -44,5 +44,7 @@
  "tool-quick-connect.next_hint":"Use a connected node's fresh inventory, review the configuration, then register and explicitly enable it.",
  "tool-quick-connect.view_existing":"View existing connections",
  "tool-quick-connect.saved_node_missing":"The previously selected node {{node}} is currently unavailable. Check that node or explicitly choose another.",
- "tool-quick-connect.saved_configuration_missing":"The previously selected configuration {{command}} is absent from the current available report. Check the original node configuration or explicitly choose another."
+ "tool-quick-connect.saved_configuration_missing":"The previously selected configuration {{command}} is absent from the current available report. Check the original node configuration or explicitly choose another.",
+ "tool-quick-connect.native_target_mismatch":"This computer returned node {{node}}, which differs from the selected target {{target}}. The target has been kept. To use the local node, explicitly select it under Execution node first.",
+ "tool-quick-connect.choose_target":"Choose execution node"
 }

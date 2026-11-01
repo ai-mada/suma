@@ -90,6 +90,9 @@ func OpenJournal(dir string) (*Journal, error) {
 	if err = j.loadInventory(); err != nil {
 		return nil, err
 	}
+	if _, err = j.toolInspectionCheckpoint(); err != nil {
+		return nil, err
+	}
 	if err = j.loadClaim(); err != nil {
 		return nil, err
 	}

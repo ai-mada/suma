@@ -9,7 +9,7 @@ import {ToolProfileImpact} from './ToolProfileImpact';
 import {tr,useLocale} from './i18n';
 import './ToolProfileDoctor.css';
 
-export type ToolProfileDoctorProps={project:string;tool:ToolProfile;confirmed?:boolean;pending?:boolean;disabled?:boolean;onReview?:(tool:ToolProfile)=>void;onWorker?:(workerID:string)=>void;onSharedWorker?:(workerID:string)=>void;onRegister?:(tool:ToolProfile)=>void;onRun?:(runID:string,nodeID:string)=>void;onRefreshTool?:()=>void};
+export type ToolProfileDoctorProps={project:string;tool:ToolProfile;confirmed?:boolean;pending?:boolean;disabled?:boolean;onReview?:(tool:ToolProfile)=>void;onWorker?:(workerID:string)=>void;onSharedWorker?:(workerID:string)=>void;onRegister?:(tool:ToolProfile)=>void;onInspect?:(tool:ToolProfile)=>void;onRun?:(runID:string,nodeID:string)=>void;onRefreshTool?:()=>void};
 type Props=ToolProfileDoctorProps;
 const t=(key:string)=>tr('tool-doctor.'+key);
 type Snapshot={caller:ApiCaller;key:string;deadline:number;report?:ToolProfileDiagnostics;error?:unknown};
@@ -63,6 +63,7 @@ function ToolDoctorReader({api,source,access,userID,organizationID,...props}:Pro
  return <div className="tool-profile-doctor">
   {!denied&&<div className="tool-profile-doctor-target" data-tool-profile-doctor-target><p><span>{t('selected_target')}</span><strong>{props.tool.name}</strong></p>{sharedDestination&&<p className="tool-profile-doctor-hint">{t('shared_readonly')}</p>}<details data-tool-profile-doctor-basis><summary>{t('target_details')}</summary><dl>{([['target_project',props.project],['target_worker',props.tool.worker_id],['target_adapter',props.tool.profile.adapter],['target_protocol',props.tool.profile.protocol],['target_profile',props.tool.id],['target_hash',props.tool.profile.profile_sha256]] as const).map(([label,value])=><div key={label}><dt>{t(label)}</dt><dd><code>{value}</code></dd></div>)}</dl></details></div>}
   <ToolDoctorCard report={report} state={state} error={current?.error} primaryAction={primaryAction} onRefresh={()=>{if(mounted.current&&intent.current.api===api&&intent.current.key===key)setRevision(value=>value+1);}} onRefreshTool={state==='changed'&&props.onRefreshTool?()=>{if(mounted.current&&intent.current.api===api&&intent.current.key===key)props.onRefreshTool!();}:undefined}/>
+  {!denied&&state==='ready'&&report&&props.onInspect&&<div className="tool-profile-doctor-inspection"><button type="button" data-tool-doctor-inspect onClick={()=>guarded(()=>props.onInspect!(report.tool))}>{t('inspect_action')}</button><p>{t('inspect_hint')}</p></div>}
   {!denied&&<ToolProfileImpact impact={state==='ready'?report?.impact:undefined} onRun={state==='ready'&&props.onRun?(runID,nodeID)=>guarded(()=>props.onRun!(runID,nodeID)):undefined}/>}
  </div>;
 }

@@ -68,6 +68,11 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 	if err = proof.assertScope(tx, proof.scopes[0]); err != nil {
 		return out, err
 	}
+	if req.Inspection != nil {
+		if _, err = s.toolInspectionReferenceTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, req.Inspection); err != nil {
+			return out, err
+		}
+	}
 	// Machine operations use an explicitly namespaced SQL receipt. No human
 	// Principal is synthesized to pass business authorization helpers.
 	op := digest("pool-inventory/" + req.RunnerID + "/" + req.OperationID)
@@ -103,6 +108,14 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 	}
 	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_execution_pool_runners SET last_seen_at=? WHERE id=?`), out.ObservedAt, runner.ID); err != nil {
 		return out, err
+	}
+	if req.Inspection != nil {
+		if err = s.completeToolInspectionTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, req.OperationID, out.ObservedAt, req.Inspection, req.Items); err != nil {
+			return out, err
+		}
+		ref := *req.Inspection
+		out.Inspection = &ref
+		out.InspectionState = "completed"
 	}
 	if err = proof.assertScope(tx, proof.scopes[0]); err != nil {
 		return out, err

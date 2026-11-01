@@ -55,6 +55,11 @@ func (s *Service) ReportToolInventory(ctx context.Context, actor Actor, project 
 		return out, err
 	}
 	p := auth.currentPrincipal
+	if req.Inspection != nil {
+		if _, err = s.toolInspectionReferenceTx(ctx, tx, p.TenantID, project, req.WorkerID, req.Inspection); err != nil {
+			return out, err
+		}
+	}
 	hash, replay, err := s.commandReceipt(ctx, auth, req.OperationID, map[string]any{"tool_inventory": req})
 	if err != nil {
 		return out, err
@@ -77,6 +82,14 @@ func (s *Service) ReportToolInventory(ctx context.Context, actor Actor, project 
 	}
 	if err != nil {
 		return out, err
+	}
+	if req.Inspection != nil {
+		if err = s.completeToolInspectionTx(ctx, tx, p.TenantID, project, req.WorkerID, req.OperationID, out.ObservedAt, req.Inspection, req.Items); err != nil {
+			return out, err
+		}
+		ref := *req.Inspection
+		out.Inspection = &ref
+		out.InspectionState = "completed"
 	}
 	if err = s.saveCommandReceipt(ctx, auth, req.OperationID, hash, out); err != nil {
 		return out, err

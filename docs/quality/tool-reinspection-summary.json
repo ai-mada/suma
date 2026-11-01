@@ -1,0 +1,241 @@
+{
+  "stage": "T-TOOL-REINSPECTION-194",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "准确工具、版本、摘要与执行节点的持久重检请求，原幂等创建快照与当前head读取分开。",
+    "普通与Pool Worker通过原库存唯一拥有者执行新探测，原request/claim/fence关联库存与完成同事务保存；周期旧库存不能完成新请求。",
+    "丢创建／上报回执恢复原操作；旧ACK不当作当前fresh，恢复后以独立无ref周期报告重新开放本地门禁。",
+    "Pool全部槽位忙时仍可重检；单项目403/409只隔离该scope并有界退避，保原记录，其他授权项目与任务继续。",
+    "简洁中英检查进度、原操作恢复与稍后核对；筛选空页不误称没有接入，本机状态回调不能夺取显式远程目标。"
+  ],
+  "verification": {
+    "distinct_top_level": 21,
+    "new_top_level": 17,
+    "affected_existing_top_level": 4,
+    "go_subcases": 2,
+    "control_top_level": 3,
+    "runner_top_level": 6,
+    "web_top_level": 10,
+    "root_contract_top_level": 1,
+    "actual_top_level": 1,
+    "root_receipts": [
+      {
+        "test": "TestToolReinspectionContractsKeepExactAuthorityAndNullableEmptyClaim",
+        "command": ".cache/follow155/root-go/20261101T135726700Z.command.json",
+        "command_exit": 0,
+        "package_passed": true,
+        "final_actual": false
+      },
+      {
+        "test": "TestToolReinspectionActualWorkerJournalAndLostAcknowledgements",
+        "command": ".cache/follow155/root-go/20261101T140248135Z.command.json",
+        "command_exit": 0,
+        "package_passed": true,
+        "final_actual": true
+      }
+    ],
+    "contract_generations": [
+      ".cache/follow155/root-go/20261101T140045018Z.command.json",
+      ".cache/follow155/root-go/20261101T135109182Z.command.json"
+    ],
+    "new_business_tables": 1,
+    "new_indexes": 2,
+    "new_http_paths": [
+      "/pool-runner/tool-inspections/claim",
+      "/pool-runner/tool-inspections/results",
+      "/runner/tool-inspections/claim",
+      "/runner/tool-inspections/results",
+      "/tool-inspections/{id}",
+      "/tool-profiles/{id}/inspections"
+    ],
+    "new_schemas": [
+      "PoolToolInspectionClaimRequest",
+      "PoolToolInspectionFailureRequest",
+      "ToolInspection",
+      "ToolInspectionClaim",
+      "ToolInspectionClaimRequest",
+      "ToolInspectionCreateRequest",
+      "ToolInspectionFailureRequest",
+      "ToolInspectionList",
+      "ToolInspectionReference"
+    ],
+    "initial_complete_typecheck_exit": 2,
+    "initial_type_diagnostics": 1,
+    "final_affected_semantic_diagnostics": 0,
+    "affected_semantic_files": [
+      "apps/web/src/ToolReinspectionPanel.tsx",
+      "apps/web/src/ToolReinspectionPanel.test.tsx"
+    ],
+    "paired_locale_keys": 9082,
+    "production_hardcodes": 0,
+    "successful_isolated_component_builds": 3,
+    "distinct_gui_groups": 3,
+    "gui_native_hosts": 3,
+    "gui_native_exits": [
+      0,
+      0,
+      0
+    ],
+    "actual_journeys": 2,
+    "final_actual_accepts_corrected_source": true,
+    "full_suite_repeated": false,
+    "version_check": "Reused unchanged product1.0.0 identity; no packaging/version source change"
+  },
+  "actual": {
+    "status": "actual_http_sqlite_worker_journal_probe_and_ack_recovery_confirmed",
+    "inspection_id": "b1580f23d03dc9fca3d08e67d7bf38a2",
+    "inventory_operation_id": "a2e9e5dacdaaea6defa9d027eef6f5dd",
+    "fence": 1,
+    "probe_counts": {
+      "probe": 3,
+      "version": 3
+    },
+    "new_requested_probes": 1,
+    "post_recovery_periodic_probes": 1,
+    "original_inventory_posts": 2,
+    "original_inventory_distinct_operations": 1,
+    "journal_pending": false,
+    "profile_state": "paused",
+    "business_runs": 0,
+    "commercial_calls": 0,
+    "customer_acceptance": false
+  },
+  "review": {
+    "remaining_confirmed_p1_p2": 0,
+    "optional_null_reference_fixed": true,
+    "stale_ack_readiness_fixed": true,
+    "pool_scope_isolation_fixed": true,
+    "web_target_and_recovery_traps_fixed": true
+  },
+  "limits": [
+    "只检查已登记配置；不接受任意执行输入，不安装／改模型密钥／启用工具／派发开发任务或代替人工验收。",
+    "真实Windows本地HTTP／SQLite／Worker／Journal／Git及自有Node Harness协议探测；不是厂商账号、模型、真实Harness服务或多机生产验收。",
+    "OceanBase／PostgreSQL本阶段为初始Schema／方言源码与合同覆盖，未运行真实数据库环境；其他系统、安装包和规模继续独立验收。",
+    "界面为真实产品组件与显著隔离的合成API／bridge；原错误、原始图及部分成功证据保留，未重已绿且输入未变的业务组。",
+    "完整原31／P0–P7／58limited／34pending／92total保持active；本阶段不声明完整平台已交付。"
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-reinspection-194/control/summary.json",
+      "sha256": "5fcf3c6c1e170aa8b4c0f0f34ea38ef485f2c50c73009980b9215ab16d30caad"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/control/source-manifest.json",
+      "sha256": "5afaae332baf13c7fc17dc29fc63730a58e77f1e59575cd87d0564f404b48b61"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/runner/summary.json",
+      "sha256": "ed726e2c31f7c6e5838720b41f749b46671d8bf067019beb049394a257d02b65"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/runner/source-manifest.json",
+      "sha256": "639dceaca1eab09314854b447ebe65100ad7096baba246a26f09be52cb5b73db"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/runner/verification.json",
+      "sha256": "fa0f1732c54244a34c147a0df74081d84c367477957da54403ab4f554c563bbf"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/web/integration-summary.json",
+      "sha256": "6c599b845a32ed962dc0f4f9676210b7e02bbc8d04c08283f4f93144235601c3"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/read-control.json",
+      "sha256": "cefcf69eb5e61f89a209f1cffc176e3a7cbcaef078b3297c64893fa688f09539"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/read-runner.json",
+      "sha256": "db0b91aa03925e710d00569f0b0d1dfd20e2a0c6fc576a29d9de24b5b180de48"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/read-reference.json",
+      "sha256": "ba7dd7aa6c40be2bcb45faae68d67bffffe9e6bda1514aba9a694cc7717a089c"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/shared-review.json",
+      "sha256": "2ce2b04ce12fe739bc2bee16e82d2e55f2e9597b90025eb3180988983a519d08"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/actual/receipt.json",
+      "sha256": "a70b4ff350b64c0862cc65ed70b2385f3cfe11c0cbd8e1f984b9bd83ef99de96"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/actual-final/receipt.json",
+      "sha256": "8b22397bb2912d177be77ccdcd564a7f602fb89dc123f673cf47ecccf71a59ca"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/actual-final/private.sqlite",
+      "sha256": "fcc5bd40f30bfeda857177034b4cfc261abe0110c97300d2172296abe6af442b"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/semantic-result.json",
+      "sha256": "0880f0b7f8ab8ab799e40c82d332141124834e5a035afaaab87de8da78f545d2"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/types.command.json",
+      "sha256": "c79a1c77328a77af3f1834ae5041fd849bc2c092acba5f04069f77129ee2bb3f"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/i18n.command.json",
+      "sha256": "111493a50eef56e63fdfd5193491a4db6a96f3a4f2352f145ac10cfb4c80d18f"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/build-initial.command.json",
+      "sha256": "5f3858239f4e686b93f5791900f5df7bc337d6851838f073a56ea7e3840ce624"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/build-second.command.json",
+      "sha256": "83b924f15bb794b90844049a774ad442aaa10d1d61e2cb0f43a4583362722436"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/build.command.json",
+      "sha256": "1e7d737403106badd1a839ce8fe959bb89a648abfef2183646af36c466d2f129"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/gui-initial.command.json",
+      "sha256": "9162d234ccf304359c5f07b978d420306d5dd21865dfb9580ebed29031aa5326"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/gui-second.command.json",
+      "sha256": "a295b75667279000ecfb0f3e3107d4422c8dc2b9b0137bd3a4c1501917dc6abc"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/gui.command.json",
+      "sha256": "109e0e1e17acb123902c70409d5ab5d79a3b6fc50e1d98357b1a69cbecdc3475"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/visual/source-manifest.json",
+      "sha256": "e8f851febd9000381a1fa5cf54bda4a636c2d8c3fd8e045b2e52ea9a911dcfb7"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/visual/result.json",
+      "sha256": "a8afb6d4c8e2165e8b5f0a38833984136224b11d59a17508213ad425134c0914"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/visual/result-final.json",
+      "sha256": "5a09104a7d97701fb49ef8b503c0acd682d2c0c8bd307bc3a4e53977895b9c0c"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/visual/result-complete.json",
+      "sha256": "376674536854337b3a120729cf58d89dd8fc4c633e0144c24d276e1a8aa76f96"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/visual/cn-current.png",
+      "sha256": "59d590a2545d2aecf82feacf233ce5eef64d6338b287f981fd1e253ee5a506d9"
+    },
+    {
+      "path": ".cache/tool-reinspection-194/visual/en-unknown.png",
+      "sha256": "dd5a2f77730f6f18438e156668b731e51e1b50a17001f4b4fc9c21c54b9e2949"
+    }
+  ]
+}

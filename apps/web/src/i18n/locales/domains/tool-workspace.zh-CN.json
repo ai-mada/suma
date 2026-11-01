@@ -60,6 +60,7 @@
   "tool-workspace.identity_unknown": "执行身份待确认",
   "tool-workspace.unconfirmed": "状态待确认",
   "tool-workspace.loaded_scope": "当前窗口 {{count}} / {{total}} 项配置",
+  "tool-workspace.filtered_scope": "当前筛选窗口 {{count}} / {{total}} 项配置，仅代表此筛选范围",
   "tool-workspace.setup_guide": "查看接入指南",
   "tool-workspace.setup_journey": "工具接入流程",
   "tool-workspace.step.identity": "登记节点",

@@ -1008,8 +1008,15 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 		writeError(w, forbidden())
 		return
 	}
+	if s.runnerToolInspectionsHTTP(w, r, actor, project, path, m) {
+		return
+	}
 	switch path {
 	case "runner/tool-inventory":
+		if value, present := m["inspection"]; present && value == nil {
+			writeError(w, toolInspectionInvalid())
+			return
+		}
 		var request ToolInventoryRequest
 		if err := strictAutomation(m, &request); err != nil {
 			writeError(w, err)

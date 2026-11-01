@@ -60,6 +60,7 @@
   "tool-workspace.identity_unknown": "Execution identities unconfirmed",
   "tool-workspace.unconfirmed": "Status unconfirmed",
   "tool-workspace.loaded_scope": "Current window: {{count}} / {{total}} configurations",
+  "tool-workspace.filtered_scope": "Current filter: {{count}} / {{total}} configurations in this window; this scope only",
   "tool-workspace.setup_guide": "View setup guide",
   "tool-workspace.setup_journey": "Tool setup journey",
   "tool-workspace.step.identity": "Register worker",

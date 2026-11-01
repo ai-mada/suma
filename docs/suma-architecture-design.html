@@ -698,6 +698,7 @@
     <section id="s5">
       <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>5 · 调度与执行引擎（深潜）</h2>
+<p><strong>T-TOOL-REINSPECTION-194：</strong>工具管理请求绑定准确节点、原配置与当前授权；原Worker串行新探测，库存与请求同事务保存。原ACK恢复不续新鲜度，Pool满槽位仍检查、单项目错误不取消其他项目。<a href="product/tool-reinspection.md">需求</a> · <a href="architecture/tool-reinspection.md">架构与AI SOP</a> · <a href="quality/tool-reinspection-verification.md">限定验证</a>；完整平台目标继续。</p>
 <p><strong>T-TOOL-MANAGEMENT-193：</strong>工具连接保持一个明确入口、准确节点和可保留的公开草稿；状态搜索与历史独立，原暂停／撤销保留证据。诊断仅声明有界当前项目活动运行覆盖，完整／部分／未知分明，不将移除配置等同停止进程。<a href="product/tool-management.md">需求</a> · <a href="architecture/tool-management.md">架构与AI SOP</a> · <a href="quality/tool-management-verification.md">限定验证</a>；完整目标继续。</p>
       <p><strong>T-CLAUDE-SDK-192 原生团队协作：</strong>官方SDK接通原权限、结构化问答、固定模型／预算边界、原Worker与同提交独立质量。准确来源及本机写入不冒供应方ACK，拒绝／取消与未知效果不被伪成功绕过；原CLI、SDK和反向MCP各自保留真实方向。参见 <a href="../contracts/claude-sdk.md">合同</a>、<a href="architecture/claude-sdk.md">架构与AI SOP</a>和<a href="quality/claude-sdk-verification.md">限定验证</a>。下一优先简化工具管理接入／调整／移除及可解释自动修复，完整31／P0–P7目标继续。</p>
       <p><strong>T-CURSOR-SETUP-191 接入与宿主生命周期：</strong>原高级入口通过唯一Cursor表单生成逐字UTF8准备命令，由目标Go节点核完整包并独占创建新配置，再复用原身份、库存、暂停登记与明确启用。成功RPC后的受控停止与真实OS退出值分别记录；未完成请求、部分写、取消或树停止未证实仍保持未知。参见 <a href="../contracts/cursor-setup.md">合同</a>、<a href="architecture/cursor-setup.md">架构与AI SOP</a>及<a href="quality/cursor-setup-verification.md">限定验证</a>；不将文件准备或宿主停止当作模型健康、代码验收或生产交付。</p>

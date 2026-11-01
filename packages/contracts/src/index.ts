@@ -4351,12 +4351,28 @@ export interface PoolToolInputPollRequest {
   assignment: Assignment;
   input_id: string;
 }
+export interface PoolToolInspectionClaimRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  claim_id: string;
+}
+export interface PoolToolInspectionFailureRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  inspection: ToolInspectionReference;
+  idempotency_key: string;
+  outcome: string;
+  failure_code: string;
+}
 export interface PoolToolInventoryRequest {
   runner_id: string;
   tenant_id: string;
   project_id: string;
   operation_id: string;
   items: (ToolObservation)[];
+  inspection?: ToolInspectionReference;
 }
 export interface PoolToolPermissionObservationRequest {
   runner_id: string;
@@ -7485,15 +7501,68 @@ export interface ToolInputRequest {
   cursor?: CursorInputRequest;
   claude?: ClaudeInputRequest;
 }
+export interface ToolInspection {
+  id: string;
+  project_id: string;
+  worker_id: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  profile_sha256: string;
+  command_id: string;
+  version: number;
+  fence: number;
+  state: "pending" | "claimed" | "completed" | "failed" | "unknown" | "expired" | "superseded";
+  requested_by: string;
+  created_at: string;
+  expires_at: string;
+  claim_id?: string;
+  claimed_at?: string;
+  lease_until?: string;
+  observed_at?: string;
+  inventory_operation_id?: string;
+  result_code?: string;
+}
+export interface ToolInspectionClaim {
+  inspection: ToolInspection | null;
+}
+export interface ToolInspectionClaimRequest {
+  project_id: string;
+  worker_id: string;
+  claim_id: string;
+}
+export interface ToolInspectionCreateRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface ToolInspectionFailureRequest {
+  project_id: string;
+  worker_id: string;
+  inspection: ToolInspectionReference;
+  idempotency_key: string;
+  outcome: string;
+  failure_code: string;
+}
+export interface ToolInspectionList {
+  items: (ToolInspection)[];
+}
+export interface ToolInspectionReference {
+  inspection_id: string;
+  claim_id: string;
+  fence: number;
+}
 export interface ToolInventoryReceipt {
   acknowledged: boolean;
   observed_at: string;
+  inspection?: ToolInspectionReference;
+  inspection_state?: string;
 }
 export interface ToolInventoryRequest {
   project_id: string;
   worker_id: string;
   operation_id: string;
   items: (ToolObservation)[];
+  inspection?: ToolInspectionReference;
 }
 export interface ToolObservation {
   profile: ToolExecutionProfile;

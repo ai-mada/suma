@@ -22,6 +22,15 @@ function deferred(){let resolve!:(value:Response)=>void;const promise=new Promis
 beforeEach(async()=>{await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
 
+it('T194 opens a separate explicit inspection for the exact fresh profile and keeps reading, expiry and refusal distinct',async()=>{
+ let now=0;vi.spyOn(performance,'now').mockImplementation(()=>now);const onInspect=vi.fn();let status=200;
+ const fetcher=vi.fn(async()=>Response.json(status===200?report():{error:{code:'forbidden',message:'Forbidden'}},{status}));vi.stubGlobal('fetch',fetcher);
+ await render({onInspect});expect(onInspect).not.toHaveBeenCalled();await click('[data-tool-doctor-inspect]');expect(onInspect).toHaveBeenCalledExactlyOnceWith(tool);
+ expect(fetcher.mock.calls).toHaveLength(1);expect(host.querySelector('[data-tool-doctor-inspect]')?.classList.contains('primary')).toBe(false);
+ now=13000;await click('[data-tool-doctor-inspect]');expect(onInspect).toHaveBeenCalledTimes(1);
+ status=403;await click('[data-tool-doctor-refresh]');expect(host.querySelector('[data-tool-doctor-inspect]')).toBeNull();
+ await render({onInspect,pending:true});expect(host.querySelector('[data-tool-doctor-inspect]')).toBeNull();expect(onInspect).toHaveBeenCalledTimes(1);
+});
 it('T193 carries the exact original profile into configuration and offers only a supplied read-only shared-node destination',async()=>{
  const original={...tool,reason:'The reported configuration differs from this profile'};
  let current:ToolProfileDiagnostics={...report(original),checks:report(original).checks.map(check=>({...check,status:check.code==='profile'?'blocked' as const:'pass' as const,reason:check.code==='profile'?original.reason:'',next_action:check.code==='profile'?'register_profile':'none'})),next_action:'register_profile'};

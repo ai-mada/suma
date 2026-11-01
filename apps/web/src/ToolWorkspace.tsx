@@ -15,7 +15,7 @@ import {
   CircleHelp,
   CheckCircle2,
 } from "lucide-react";
-import { api, query, type Session } from "./api";
+import { ApiError, api, query, type Session } from "./api";
 import { Empty, ErrorNotice, Field, Loading, Modal } from "./ui";
 import { ToolWriteRecovery } from "./tool-write";
 import {
@@ -44,6 +44,7 @@ import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {ToolQuickConnect,type ToolConnectDraft} from './ToolQuickConnect';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
+import {ToolReinspectionPanel} from './ToolReinspectionPanel';
 import {RunnerPairingPanel} from './RunnerPairingPanel';
 import {readRunnerPairing} from './runner-pairing-model';
 import {validQuickConnectReceipt} from './tool-quick-connect-model';
@@ -70,6 +71,7 @@ type Dialog =
   | { kind: "create"; adapter?:AdapterDescriptor; resumeQuick?:boolean }
   | { kind: "quick"; adapter?:AdapterDescriptor; preferredWorkerID?:string }
   | { kind: "worker"; mode?:'manual'|'pairing' }
+  | { kind: "inspection"; profile:ToolProfile }
   | {
       kind: "decision";
       action: "enable" | "pause" | "revoke";
@@ -106,6 +108,7 @@ function ScopedToolWorkspace({
     [filter, setFilter] = useState<ToolFilter>('all'),
     [guideOpen, setGuideOpen] = useState(false),
     [pairingLocked, setPairingLocked] = useState(false),
+    [inspectionLocked,setInspectionLocked]=useState(false),
     [receipt, setReceipt] = useState<{key:string;name:string;scope:string}>();
   const pairingCaller = useRef({api,generation:0});
   if(pairingCaller.current.api!==api)pairingCaller.current={api,generation:pairingCaller.current.generation+1};
@@ -169,7 +172,7 @@ function ScopedToolWorkspace({
     return () => clearInterval(timer);
   }, [live, refreshAll]);
   const pending = !!action.pending,
-    writeBlocked = pending || action.busy || pairingLocked || connecting,
+    writeBlocked = pending || action.busy || pairingLocked || inspectionLocked || connecting,
     current = detail.data,
     stale = detail.loading || !!detail.error,
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
@@ -220,6 +223,10 @@ function ScopedToolWorkspace({
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:matches[0],preferredWorkerID:value.worker_id});
     }catch(error){if(activeWorkspace.current&&nonce===connectIntent.current&&pairingCaller.current.api===api)setConnectError(error);}
     finally{if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
+  }
+  function inspectProfile(value:ToolProfile){
+    if(stale||writeBlocked||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
+    action.clearError();setInspectionLocked(false);setDialog({kind:'inspection',profile:value});
   }
   function openRunnerPairing() {
     if(writeBlocked)return;
@@ -293,7 +300,7 @@ function ScopedToolWorkspace({
         >
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
-      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} onWorker={() => { if(writeBlocked)return;action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
+      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={filters.state!=='active'||!!filters.query} onClearFilters={()=>{setSearch('');applyFilters({state:'active',query:''});}} onWorker={() => { if(writeBlocked)return;action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
       <WorkBuddyConnections project={project} panel={panel} openRequest={connection?.cloud?connection.nonce:undefined}/>
       <details className="panel adapter-catalog-disclosure" key={contextKey}>
         <summary>
@@ -472,6 +479,7 @@ function ScopedToolWorkspace({
                   <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={writeBlocked}
                     onReview={value=>{if(stale||writeBlocked||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
                     onRegister={value=>{if(!stale&&!writeBlocked)void configureProfile(value);}}
+                    onInspect={inspectProfile}
                     onRefreshTool={()=>{if(!writeBlocked)void detail.read();}}
                     onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
                     onSharedWorker={!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=sharedWorkerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
@@ -598,11 +606,13 @@ function ScopedToolWorkspace({
       <Modal
         open={!!dialog}
         onClose={() => {
-          if (!action.busy && !action.pending && !pairingLocked) setDialog(undefined);
+          if (!action.busy && !action.pending && !pairingLocked && !inspectionLocked) setDialog(undefined);
         }}
         title={
           dialog?.kind === "quick"
             ? t('tool-quick-connect.title')
+            : dialog?.kind === 'inspection'
+              ? t('tool-doctor.inspect_action')
             : dialog?.kind === "create"
             ? t("development.tools.register_fixed_tool_configuration")
             : dialog?.kind === "worker"
@@ -617,13 +627,23 @@ function ScopedToolWorkspace({
                     }[dialog.action]
                   : t("development.tools.execution_tools")
         }
-        description={t("development.tools.use_the_current_project_s_actual_identity")}
+        description={t(dialog?.kind==='inspection'?'tool-doctor.inspect_hint':"development.tools.use_the_current_project_s_actual_identity")}
       >
         {action.pending ? (
           <ToolRecoveryNotice action={action} onRestored={saved} />
         ) : (
           action.error && <ErrorNotice error={action.error} />
         )}
+        {dialog?.kind==='inspection'&&<ToolReinspectionPanel
+          project={project}
+          tool={!stale&&current?.id===dialog.profile.id?current:dialog.profile}
+          disabled={pending||action.busy||pairingLocked||stale||current?.id!==dialog.profile.id}
+          accessBlocked={detail.failure instanceof ApiError&&[401,403,404].includes(detail.failure.status)}
+          onLockChange={setInspectionLocked}
+          onAccessDenied={()=>{if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)void detail.read();}}
+          onDefer={()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;setDialog(undefined);setInspectionLocked(false);}}
+          onObserved={()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||dialog.profile.project_id!==project)return;const original=dialog.profile.id;setDialog(undefined);setInspectionLocked(false);setRevision(value=>value+1);if(selected!==original)onSelect(original);requestAnimationFrame(()=>document.querySelector<HTMLElement>('.tool-detail .detail-top button')?.focus({preventScroll:true}));}}
+        />}
         {dialog?.kind === "create" && (
           <>
           {dialog.resumeQuick&&publicDraft&&<button type="button" className="text-button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button>}

@@ -3,6 +3,7 @@ package platform
 import (
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
 )
 
 type PoolToolInventoryRequest struct {
@@ -11,6 +12,7 @@ type PoolToolInventoryRequest struct {
 	ProjectID   string           `json:"project_id"`
 	OperationID string           `json:"operation_id"`
 	Items       []tc.Observation `json:"items"`
+	Inspection  *tic.Reference   `json:"inspection,omitempty" wire:"nonnull"`
 }
 
 type PoolRunnerAssignmentRequest struct {
