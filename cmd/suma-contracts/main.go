@@ -128,6 +128,9 @@ func generate() (map[string]any, string) {
 	for _, v := range toolExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range toolProfileReplacementModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range toolReinspectionModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -437,6 +440,7 @@ func generate() (map[string]any, string) {
 	automationContracts(add, paths)
 	automationIngressContracts(add)
 	toolExecutionContracts(add, paths)
+	toolProfileReplacementRoutes(add)
 	toolReinspectionRoutes(add)
 	toolRecoveryRoutes(add)
 	schedulingContracts(add, paths)
@@ -572,6 +576,12 @@ func generate() (map[string]any, string) {
 				case "Reason":
 					wireType = `"inspection_pending" | "inspection_claimed" | "inspection_unknown" | "recovery_requested" | "recovery_proof_stored" | "recovery_expired" | "maintenance_supported" | "maintenance_expired" | "maintenance_unsupported" | "maintenance_unknown" | "profile_revoked" | "worker_unavailable"`
 				}
+			}
+			if t.Name() == "ToolProfileReplacement" && f.Name == "Disposition" {
+				wireType = `"created" | "reused"`
+			}
+			if (t.Name() == "ToolProfileReplacementList" || t.Name() == "ToolProfileReplacementListQuery") && f.Name == "Direction" {
+				wireType = `"outgoing" | "incoming"`
 			}
 			if t.Name() == "ToolInspectionRecovery" && f.Name == "State" {
 				wireType = `"requested" | "proof_stored" | "closed_unknown" | "expired"`

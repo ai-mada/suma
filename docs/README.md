@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-TOOL-REPLACEMENT-200：[配置换新](product/tool-profile-replacement.md)／[架构与AI SOP](architecture/tool-profile-replacement.md)／[数据](data/tool-profile-replacement.md)／[交互](design/tool-profile-replacement.md)／[限定验证](quality/tool-profile-replacement-verification.md)。一次确认完成准确旧→新原子交接、可选暂停、原回执恢复与双向历史；21不同定向、真实22HTTP及双语代表界面通过，完整31／P0–P7继续。
+
 T-TOOL-DOCTOR-199：[维护建议](product/tool-doctor-maintenance.md)、[架构与AI SOP](architecture/tool-doctor-maintenance.md)、[交互](design/tool-doctor-maintenance.md)、[English](en/tool-doctor-maintenance.md)和[限定验证](quality/tool-doctor-maintenance-verification.md)。原操作进度、失联核对及准确跨配置定位统一到Doctor，完整平台继续。
 
 T-TOOL-EXPERIENCE-198：[准确工具配置](product/tool-management.md)、[简洁交互](design/tool-management.md)、[限定验证](quality/tool-experience-verification.md)及[后续计划](delivery/tool-management-next.md)。当前节点、公开草稿和原始诊断一条接入路径，完整平台继续。

@@ -1,0 +1,376 @@
+{
+  "stage": "T-TOOL-REPLACEMENT-200",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_atomic_tool_configuration_handoff_history_and_bilingual_ui_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": {
+    "new_api_paths": 2,
+    "new_http_operations": 3,
+    "new_tables": 1,
+    "new_dependencies": 0,
+    "explicit_target_creation_or_reuse": true,
+    "optional_original_pause": true,
+    "immutable_actor_attributed_snapshots": true,
+    "original_operation_recovery": true,
+    "history_directions": [
+      "outgoing",
+      "incoming"
+    ],
+    "relationship_bytes_limit": 2097152,
+    "history_items_bytes_budget": 8388608,
+    "automatic_activation": false,
+    "automatic_process_stop": false
+  },
+  "verification": {
+    "distinct_top_level": 21,
+    "new_top_level": 12,
+    "directly_affected_existing": 9,
+    "go_top_level": 9,
+    "go_subcases": 10,
+    "web_top_level": 12,
+    "go_results": [
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestToolMatchesCLIReadOnlyTimeoutAndHelp",
+        "command": ".cache/follow155/root-go/20261101T191823485Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "test": "TestToolReplacementCLIConfirmedOriginalOperationAndHistory",
+        "command": ".cache/follow155/root-go/20261101T191823485Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolProfileReplacementAtomicCreationReceiptAndHistory",
+        "command": ".cache/follow155/root-go/20261101T193248583Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "test": "TestToolProfileReplacementContractKeepsExplicitIntentAndImmutableHistory",
+        "command": ".cache/follow155/root-go/20261101T194414867Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolProfileReplacementExplicitReuseMigrationAndAtomicRollback",
+        "command": ".cache/follow155/root-go/20261101T192455788Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolProfileReplacementHistoryCursorAndInitialSchema",
+        "command": ".cache/follow155/root-go/20261101T193248583Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolProfileReuseConcurrentCreatesSerializeExactIdentity",
+        "command": ".cache/follow155/root-go/20261101T193622318Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolProfileInventoryExpiryReplayAndCAS",
+        "command": ".cache/follow155/root-go/20261101T193622318Z.command.json",
+        "exit": 0
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "test": "TestToolProfileReplacementActualAtomicHTTPHistoryAndReceipt",
+        "command": ".cache/follow155/root-go/20261101T194036745Z.command.json",
+        "exit": 0
+      }
+    ],
+    "web_tests": [
+      {
+        "file": "apps/web/src/tool-profile-replacement-model.test.ts",
+        "title": "T200 binds explicit configuration replacement to its original immutable receipt without granting activation",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-profile-replacement-model.test.ts",
+        "title": "T200 reads only exact scoped replacement history and preserves cursor coverage and handoff snapshots",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-write-model-execution.test.ts",
+        "title": "restores the exact non-secret model budget with the original operation after an uncertain acknowledgement",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-write-model-execution.test.ts",
+        "title": "still rejects credentials, disguised numeric fields and allowances outside the exact dispatch selection path",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/tool-write-replacement.test.ts",
+        "title": "T200 restores only the original atomic handoff body and key and retains an uncertain or mismatched receipt",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileReplacementHistory.test.tsx",
+        "title": "T200 reads explicit handoff directions and continuation as snapshots while protecting stale, refused and late-caller history",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileReplacementIntegration.test.tsx",
+        "title": "T200 confirms one cross-worker replacement and explicitly reuses an enabled target without activating or mutating history",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolProfileReplacementIntegration.test.tsx",
+        "title": "T200 keeps an uncertain original replacement body and key through caller changes, invalid receipts and a later known CAS refusal",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolQuickConnectDraft.test.tsx",
+        "title": "T193 restores only the public Quick draft after Advanced and rechecks fresh inventory and exact reuse without callback loops",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolQuickConnectDraft.test.tsx",
+        "title": "T193 never substitutes a sole different node or command for a restored target and offers an explicit existing-connections route",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolQuickConnectTarget.test.tsx",
+        "title": "T194 keeps explicit and original targets across native status callbacks, permits an explicit switch, and preserves unpinned and unknown-proof flows",
+        "status": "passed"
+      },
+      {
+        "file": "apps/web/src/ToolWorkspaceManagement.test.tsx",
+        "title": "takes Doctor to the exact original adapter and worker, then returns from advanced setup with its public draft",
+        "status": "passed"
+      }
+    ],
+    "contract_generations": [
+      {
+        "path": ".cache/follow155/root-go/20261101T192329007Z.command.json",
+        "exit": 0
+      },
+      {
+        "path": ".cache/follow155/root-go/20261101T194419975Z.command.json",
+        "exit": 0
+      }
+    ],
+    "contract_checks": [
+      {
+        "path": ".cache/follow155/root-go/20261101T194142865Z.command.json",
+        "exit": 0
+      },
+      {
+        "path": ".cache/follow155/root-go/20261101T194423804Z.command.json",
+        "exit": 0
+      }
+    ],
+    "typescript_full_checks": 1,
+    "i18n_paired_keys": 9344,
+    "production_hardcoded_text_violations": 0,
+    "isolated_web_builds": 2,
+    "actual_http": {
+      "requests": 22,
+      "relations": 3,
+      "atomic_rollback": true,
+      "expired_inventory_original_receipt_replay": true,
+      "worker_credential_receipt_replay_denied": true,
+      "native_processes": 0,
+      "model_calls": 0,
+      "business_runs": 0
+    },
+    "gui": {
+      "distinct_groups": 2,
+      "groups": [
+        "CN1366 light explicit creation/pause/current-version enable review and history",
+        "EN390 dark explicit reuse/lost ACK/reload/exact original receipt recovery"
+      ],
+      "launches": 4,
+      "final_result_passed": true,
+      "page_errors": 0,
+      "unexpected_requests": 0,
+      "final_native_exit": {
+        "code": 0,
+        "signal": null
+      },
+      "first_native_exit": "unrecorded; later original PID absent, not an inferred successful exit",
+      "second_native_exit": {
+        "code": 0,
+        "signal": null
+      },
+      "explicit_native_reload_confirmations": 1,
+      "images": [
+        {
+          "path": ".cache/tool-replacement-200/visual/cn-confirm-layout.png",
+          "sha256": "aee9795683b60851dcdce0ba0f11ec9437d77e4dc0b6ae3f60aac76e1158e0fc",
+          "root_viewed": true
+        },
+        {
+          "path": ".cache/tool-replacement-200/visual/en-receipt-layout.png",
+          "sha256": "a26af1f9a86f4a8bd5be17a4bf9d8b1b10bb34d8974ea25df9c05073e17f0665",
+          "root_viewed": true
+        }
+      ],
+      "application_bundle_changed_for_driver_fixes": false,
+      "additional_css_layout_rebuild": true,
+      "checkbox_layouts": {
+        "cn": {
+          "width": 18,
+          "height": 18,
+          "flexBasis": "18px"
+        },
+        "en": {
+          "width": 18,
+          "height": 18,
+          "flexBasis": "18px"
+        }
+      },
+      "en_receipt_layout": {
+        "viewport": 390,
+        "document_width": 373,
+        "root": {
+          "left": 12,
+          "right": 361,
+          "width": 349
+        },
+        "visible_text_ranges_outside": []
+      },
+      "scope": "Real production Workspace/Quick/Confirm/Receipt/History components with synthetic domain APIs. Actual HTTP/SQLite transaction proof is separate; not a vendor/model/native-tool or full logged-in App journey."
+    },
+    "review": {
+      "unresolved_p1_p2": 0,
+      "fixed": [
+        {
+          "issue": "Quick input rule overrode confirmation checkbox width",
+          "evidence": "Root image review identified large spacing; independent CSS review found equal-specificity cascade. Scoped component selector plus fixed 18px flex basis; one necessary rebuild and two affected UI layouts rechecked. EN viewport and visible text bounds exclude the previous long-element screenshot artifact."
+        },
+        {
+          "issue": "Committed relationship exceeded the later 2 MiB read limit",
+          "evidence": "Two valid ~1.1 MiB observations reproduced first-write success followed by unreadable replay/history. Same encoded snapshot is now validated before transaction commit; affected existing tops only were rerun."
+        },
+        {
+          "issue": "New generated expected_version bound exceeded the existing INT32 domain",
+          "evidence": "Independent source review found 9007199254740991 vs 2147483647. New schema and original focused boundary check corrected; only that top and necessary generation/check repeated. No executed RED is invented."
+        }
+      ]
+    },
+    "efficiency": "Reuse passing unchanged checks; only real failures and schema-bound follow-ups were repeated. No original full suites, vendor/model execution, package installs or cross-platform builds."
+  },
+  "evidence": [
+    {
+      "path": ".cache/tool-replacement-200/go-evidence.json",
+      "sha256": "ebacf73d5ccc511c70d21a056a594cf986a4ad206975710b1548ffe49bd7992b"
+    },
+    {
+      "path": ".cache/tool-replacement-200/control/source-manifest.json",
+      "sha256": "dcdbb092d395db13d1acfd303d426c91b611cc971a3e484160cd36d274bfba5d"
+    },
+    {
+      "path": ".cache/tool-replacement-200/consumer/source-manifest.json",
+      "sha256": "dd123fd80fe99f1ae5758e6db9e4accdc1ddcef7e21fa23c43904e39855c0961"
+    },
+    {
+      "path": ".cache/tool-replacement-200/web/source-manifest.json",
+      "sha256": "1968f9282dff4b462fbe365231dc13c8d9358c5e770cfacffdb5f8b6422dd139"
+    },
+    {
+      "path": ".cache/tool-replacement-200/web/integration-summary.json",
+      "sha256": "86319f5234d75cb459f907082b9deb141f423896a215a76baf4bd0edb9af8262"
+    },
+    {
+      "path": ".cache/tool-replacement-200/actual-inputs.json",
+      "sha256": "4a02ae17934291f4a37ea23e9776a20e696a01ef8f120fce019596c509407382"
+    },
+    {
+      "path": ".cache/tool-replacement-200/actual/receipt.json",
+      "sha256": "e20a070df11415dadd0280054241d04e64d7d76a82b9b60dc80ede89b3ede8ca"
+    },
+    {
+      "path": ".cache/tool-replacement-200/types.command.json",
+      "sha256": "ba9ef84aa93cd96ad89a8ef4cc8baa2f96cb29449495c69221665f5affdaca94"
+    },
+    {
+      "path": ".cache/tool-replacement-200/i18n.command.json",
+      "sha256": "80c5b4e47bcc7e39d7ab5afd5ba9272671758bc5193d6af891d8fb6c33228b48"
+    },
+    {
+      "path": ".cache/tool-replacement-200/i18n.stdout.txt",
+      "sha256": "35dc6be51e5db2a1bb156f1dc3f7ce9f351caeaaca8606081fc4dc26386db935"
+    },
+    {
+      "path": ".cache/tool-replacement-200/build.command.json",
+      "sha256": "7e2f324d09be766bec5631da1a3019c0ffc0e669748a5027b05e36041dbad39c"
+    },
+    {
+      "path": ".cache/tool-replacement-200/build_layout.command.json",
+      "sha256": "730e9205bf492fb0250bd945eda23a2939308d57660356dfe550000dcd9135ec"
+    },
+    {
+      "path": ".cache/tool-replacement-200/layout-inputs.json",
+      "sha256": "31e790a3248184529d174fd06a0a56d3f483677ccf9870d145b68a84c8d17d4f"
+    },
+    {
+      "path": ".cache/tool-replacement-200/checkbox-layout-fix.json",
+      "sha256": "d74ff9761be1debfdc823288808da94624a91a45b7b4567d862c309614a125d6"
+    },
+    {
+      "path": ".cache/tool-replacement-200/gui_layout.command.json",
+      "sha256": "e70bb16996f31316e267fa27702575887d188b8fff7b5178dc5d2036625835f5"
+    },
+    {
+      "path": ".cache/tool-replacement-200/gui.command.json",
+      "sha256": "e42ce2f2c98ff7e5601599a35c943946ff98f2fd13f91d021f7ee98ff8f079cc"
+    },
+    {
+      "path": ".cache/tool-replacement-200/gui_en.command.json",
+      "sha256": "d08edad00e63cbd4994292b6379ed8a2de04f5f233b7305d6447b8c51c0f20d6"
+    },
+    {
+      "path": ".cache/tool-replacement-200/gui_en_confirmed.command.json",
+      "sha256": "13624e63c94978a0a25e8e0b4bddf34a34f30c2543663766743842bc667048c7"
+    },
+    {
+      "path": ".cache/tool-replacement-200/visual/result.json",
+      "sha256": "2bda6955a11c4858b9aa94d8ba80a58916edd972e28f6846afcdcf7bf093b96d"
+    },
+    {
+      "path": ".cache/tool-replacement-200/visual/confirmed-reload-driver.json",
+      "sha256": "507e32156baadd9ace8098f66d46f37cf9007d079ba9fab0441f8678d9687cc0"
+    },
+    {
+      "path": ".cache/tool-replacement-200/visual/initial-native-observation.json",
+      "sha256": "ff82819ad8784f31a86f4e77d7cf6058a6b74ced82754e4900dd19a38d095f53"
+    },
+    {
+      "path": ".cache/tool-replacement-200/review/control-review.json",
+      "sha256": "60c8c908c18d0b6179d1e0ce2760a57c6844271c6f9dd80ba6a69b1d6c10ffed"
+    },
+    {
+      "path": ".cache/tool-replacement-200/review/consumer-contract-review.json",
+      "sha256": "0ac10e1ed0fbcc0f958de3c995b736d011cf7d07dfee45af9d590ecd3a5fdbcc"
+    },
+    {
+      "path": ".cache/tool-replacement-200/review/web-review.json",
+      "sha256": "b6950c3f0d4a530f37ebc478f8cfd3347f70245f4c4765d661441a0dda3b869a"
+    },
+    {
+      "path": ".cache/tool-replacement-200/review/visual-final-review.json",
+      "sha256": "6c3eeb9234b754a6a0c7012643f7c2b372e6fbf3c360b9b1b4dcffe117e355bc"
+    }
+  ],
+  "remaining": [
+    "Relationship snapshots above 2 MiB are currently rejected atomically; this is a documented bound, not full maximum-profile-pair capacity acceptance.",
+    "Physical OceanBase/PostgreSQL, physical multihost, real vendor login/model/fees, full App/device/theme matrix, scale, installers and production acceptance remain separate.",
+    "Automatic installation/credential login/process termination and full platform completion are not claimed; original31/P0-P7/58limited/34pending/92baseline stays active."
+  ]
+}

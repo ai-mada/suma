@@ -95,6 +95,9 @@ func (s *Service) validateWorkspaceInitialSchema(ctx context.Context) error {
 }
 
 func (s *Service) Initialize(ctx context.Context) error {
+	if err := s.validateToolProfileReplacementsInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateKnowledgeProjectionInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -253,6 +256,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeToolProfiles(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeToolProfileReplacements(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeToolInspections(ctx); err != nil {

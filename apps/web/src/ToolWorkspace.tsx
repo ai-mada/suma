@@ -50,11 +50,15 @@ import {readToolProfileDiagnostics} from './tool-profile-diagnostics-model';
 import {RunnerPairingPanel} from './RunnerPairingPanel';
 import {readRunnerPairing} from './runner-pairing-model';
 import {validQuickConnectReceipt} from './tool-quick-connect-model';
+import {buildToolProfileReplacementBody,isToolProfileReplacementPath,readToolProfileReplacement,toolProfileReplacementOriginalID,toolProfileReplacementPath,validToolProfileReplacementReceipt,type ToolProfileReplacementDraft} from './tool-profile-replacement-model';
+import {ToolProfileReplacementReceipt} from './ToolProfileReplacementView';
+import {ToolProfileReplacementHistory} from './ToolProfileReplacementHistory';
+import {sameToolProfile} from './tool-profile-reuse-model';
 import {AdapterConnections,readAdapterCatalog,type AdapterDescriptor} from './AdapterConnections';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {WorkBuddyConnections} from './WorkBuddyConnections';
 import type {DeveloperClientID} from './developer-client-connections-model';
-import type { ProjectPoolRunnerPage, RunnerPairing } from "../../../packages/contracts/src";
+import type { ProjectPoolRunnerPage, RunnerPairing, ToolProfileReplacement } from "../../../packages/contracts/src";
 import {
   ToolIdentity,
   currentToolIdentity,
@@ -118,14 +122,19 @@ function ScopedToolWorkspace({
   const dialog=dialogState?.caller===api&&dialogState.generation===pairingGeneration?dialogState.value:undefined;
   function setDialog(value:Dialog|undefined){if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setDialogState(value?{caller:api,generation:pairingGeneration,value}:undefined);}
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
-  const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft}|undefined>(undefined);
+  const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft;sourceTool?:ToolProfile}|undefined>(undefined);
   const inspectionLookup=useRef<AbortController|undefined>(undefined);
+  const replacementLookup=useRef<AbortController|undefined>(undefined),selectedProfile=useRef(selected);selectedProfile.current=selected;
+  useEffect(()=>()=>replacementLookup.current?.abort(),[api,selected]);
   const [,renderDraft]=useState(0),[connecting,setConnecting]=useState(false),[connectError,setConnectError]=useState<unknown>();
   const activeWorkspace=useRef(true);
   useEffect(()=>{activeWorkspace.current=true;return()=>{activeWorkspace.current=false;connectIntent.current++;};},[]);
   useEffect(()=>{setConnecting(false);setConnectError(undefined);},[api]);
   const draftSource=connectDraft.current?.caller===api&&connectDraft.current.generation===pairingGeneration&&connectDraft.current.context===contextKey?connectDraft.current:undefined;
   const publicDraft=draftSource?.value;
+  const replacementSource=draftSource?.sourceTool;
+  const [replacementResult,setReplacementResult]=useState<{caller:typeof api;generation:number;context:string;value:ToolProfileReplacement}>();
+  const replacementReceipt=replacementResult?.caller===api&&replacementResult.generation===pairingGeneration&&replacementResult.context===contextKey?replacementResult.value:undefined;
   const [pairedSelection,setPairedSelection]=useState<{caller:typeof api;generation:number;context:string;value:RunnerPairing}>();
   const pairedRunner=pairedSelection?.caller===api&&pairedSelection.generation===pairingGeneration&&pairedSelection.context===contextKey?pairedSelection.value:undefined;
   const guideID = useId();
@@ -141,7 +150,7 @@ function ScopedToolWorkspace({
           ":" +
           project +
           ":profiles", toolSessionStorage(), api,
-        (value, request) => request.path !== '/tool-profiles' || validQuickConnectReceipt(value, request.body)),
+        (value, request) => isToolProfileReplacementPath(request.path)?validToolProfileReplacementReceipt(value,request,session.user.id):request.path !== '/tool-profiles' || validQuickConnectReceipt(value, request.body)),
     [session.organization.id, session.user.id, project, api],
   );
   const action = useToolAction(recovery, () => setDialog(undefined)),
@@ -181,6 +190,7 @@ function ScopedToolWorkspace({
     stale = detail.loading || !!detail.error,
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
     filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
+  const replacementSourceCurrent=!!replacementSource&&!stale&&current?.id===replacementSource.id&&current.version===replacementSource.version&&current.worker_id===replacementSource.worker_id&&current.state===replacementSource.state&&sameToolProfile(current.profile,replacementSource.profile);
   function applyFilters(value:ToolListFilters){
     if(!validToolListQuery(value.query)){setSearchError(true);return;}
     const next={...value,query:value.query.trim()};setSearchError(false);setFilters(next);setFilter('all');
@@ -204,7 +214,7 @@ function ScopedToolWorkspace({
     action.clearError();
     void workers.read();
     void sharedWorkers.read();
-    beginPublicDraft(publicDraft??{adapterID:'',workerID:'',commandID:'',name:'',nameEdited:false});
+    beginPublicDraft(publicDraft??{adapterID:'',workerID:'',commandID:'',name:'',nameEdited:false},replacementSource);
     setDialog({kind:'quick'});
   }
   function updatePublicDraft(value:ToolConnectDraft,nonce:number|undefined){
@@ -212,8 +222,8 @@ function ScopedToolWorkspace({
     if(!owner||owner.nonce!==nonce||owner.caller!==api||owner.context!==contextKey||owner.generation!==pairingGeneration||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
     if(JSON.stringify(owner.value)!==JSON.stringify(value)){connectDraft.current={...owner,value:{...value}};renderDraft(value=>value+1);}
   }
-  function beginPublicDraft(value:ToolConnectDraft){
-    const nonce=++connectIntent.current;connectDraft.current={caller:api,generation:pairingGeneration,context:contextKey,nonce,value:{...value}};renderDraft(value=>value+1);return nonce;
+  function beginPublicDraft(value:ToolConnectDraft,sourceTool?:ToolProfile){
+    const nonce=++connectIntent.current;connectDraft.current={caller:api,generation:pairingGeneration,context:contextKey,nonce,value:{...value},...(sourceTool?{sourceTool:structuredClone(sourceTool)}:{})};renderDraft(value=>value+1);return nonce;
   }
   async function configureProfile(value:ToolProfile){
     if(writeBlocked||stale||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
@@ -223,7 +233,7 @@ function ScopedToolWorkspace({
       if(!activeWorkspace.current||nonce!==connectIntent.current||latestDetailBasis.current!==detailBasis||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
       const matches=catalog?.items.filter(item=>item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&item.adapter===value.profile.adapter&&item.protocol===value.profile.protocol);
       if(matches?.length!==1)throw new Error(t('tool-workspace.target_unavailable'));
-      beginPublicDraft({adapterID:matches[0].id,workerID:value.worker_id,commandID:value.profile.command_id,name:value.name,nameEdited:true});
+      beginPublicDraft({adapterID:matches[0].id,workerID:value.worker_id,commandID:value.profile.command_id,name:value.name,nameEdited:true},value.state==='revoked'?undefined:value);
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:matches[0],preferredWorkerID:value.worker_id});
     }catch(error){if(activeWorkspace.current&&nonce===connectIntent.current&&pairingCaller.current.api===api)setConnectError(error);}
     finally{if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
@@ -268,7 +278,7 @@ function ScopedToolWorkspace({
     try{readRunnerPairing(value,project);}catch{return;}
     setPairedSelection({caller:api,generation:pairingGeneration,context:contextKey,value});
     setReceipt(undefined);
-    beginPublicDraft({...publicDraft??{adapterID:'',commandID:'',name:'',nameEdited:false},workerID:value.worker_id});
+    beginPublicDraft({...publicDraft??{adapterID:'',commandID:'',name:'',nameEdited:false},workerID:value.worker_id},replacementSource);
     void workers.read();void sharedWorkers.read();
     setDialog({kind:'quick',preferredWorkerID:value.worker_id});
   }
@@ -287,14 +297,36 @@ function ScopedToolWorkspace({
     if(writeBlocked||!canLeave()||descriptor.implementation==='planned')return;
     if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,cloud:true}));return;}
     if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
-      beginPublicDraft(publicDraft?.adapterID===descriptor.id?publicDraft:{adapterID:descriptor.id,workerID:'',commandID:'',name:'',nameEdited:false});
+      beginPublicDraft(publicDraft?.adapterID===descriptor.id?publicDraft:{adapterID:descriptor.id,workerID:'',commandID:'',name:'',nameEdited:false},publicDraft?.adapterID===descriptor.id?replacementSource:undefined);
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:descriptor});return;
     }
     const clients:Record<string,DeveloperClientID>={'cursor-client':'cursor','claude-code-client':'claude-code','codex-client':'codex','opencode-client':'opencode','qoder-client':'qoder','zed-client':'zed','workbuddy-connector':'workbuddy'};
     if(descriptor.direction==='tool_to_suma'&&clients[descriptor.id]){setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,client:clients[descriptor.id]}));setGuideOpen(true);return;}
     if(descriptor.id==='harness-guide'&&descriptor.setup_kind==='manual_guide'){setConnectionSelection(previous=>({context:contextKey,caller:api,generation:pairingGeneration,nonce:(previous?.nonce||0)+1,preset:'harness'}));setGuideOpen(true);}
   }
+  function replaced(value:ToolProfileReplacement){
+    if(!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||value.project_id!==project)return;
+    setDialog(undefined);setReceipt(undefined);setReplacementResult({caller:api,generation:pairingGeneration,context:contextKey,value});connectDraft.current=undefined;renderDraft(value=>value+1);setRevision(value=>value+1);onSelect(value.replacement.id);
+  }
+  async function replaceProfile(draft:ToolProfileReplacementDraft){
+    const owner=connectDraft.current,original=owner?.sourceTool;
+    if(writeBlocked||!replacementSourceCurrent||!owner||!original||owner.caller!==api||owner.generation!==pairingGeneration||owner.context!==contextKey||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||draft.original.id!==original.id||draft.original.version!==original.version||draft.original.worker_id!==original.worker_id||!sameToolProfile(draft.original.profile,original.profile))return;
+    try{const body=buildToolProfileReplacementBody(draft),value=await action.run<ToolProfileReplacement>(toolProfileReplacementPath(original.id),body);if(value)replaced(value);}catch(error){if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)action.setError(error);}
+  }
+  async function reviewReplacementTarget(profile:ToolProfile){
+    if(writeBlocked||!activeWorkspace.current||profile.project_id!==project||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+    const nonce=++connectIntent.current,selection=selected,controller=new AbortController();replacementLookup.current?.abort();replacementLookup.current=controller;setConnecting(true);setConnectError(undefined);
+    const owns=()=>activeWorkspace.current&&!controller.signal.aborted&&nonce===connectIntent.current&&selectedProfile.current===selection&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration;
+    try{
+      const {report}=readToolProfileDiagnostics(await api<unknown>('/tool-profiles/'+encodeURIComponent(profile.id)+'/diagnostics'+query(project),undefined,'GET',undefined,controller.signal),{project,toolID:profile.id});if(!owns())return;
+      if(report.tool.worker_id!==profile.worker_id||!sameToolProfile(report.tool.profile,profile.profile))throw new UiError('tool-profile-replacement.invalid_receipt');
+      if(selected!==report.tool.id)onSelect(report.tool.id);else void detail.read();
+      action.clearError();if(report.tool.state==='paused')setDialog({kind:'decision',action:'enable',profile:report.tool});
+    }catch(error){if(owns())setConnectError(error);}
+    finally{if(replacementLookup.current===controller)replacementLookup.current=undefined;if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
+  }
   function saved(path: string, value: unknown) {
+    if(isToolProfileReplacementPath(path)){replaced(readToolProfileReplacement(value,{project,originalID:toolProfileReplacementOriginalID(path)}));return;}
     setDialog(undefined);
     setRevision((before) => before + 1);
     if (!value || typeof value !== "object") return;
@@ -361,6 +393,7 @@ function ScopedToolWorkspace({
           {t("development.tools.return_to_the_original_run_and_selected")}</a>
       )}
       <ToolRecoveryNotice action={action} onRestored={saved} />
+      {replacementReceipt&&<ToolProfileReplacementReceipt value={replacementReceipt} disabled={writeBlocked} onViewOriginal={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onViewReplacement={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onEnableReplacement={profile=>void reviewReplacementTarget(profile)}/>}
       {!!connectError&&<ErrorNotice error={renderDiagnostic(connectError)}/>}
       {receipt?.scope===contextKey&&<div className="tool-save-receipt" data-tool-receipt role="status"><CheckCircle2 size={18} aria-hidden="true"/><p>{t('tool-workspace.receipt.'+receipt.key,{name:receipt.name})}</p><button className="icon-button" aria-label={t('tool-workspace.dismiss_receipt')} onClick={()=>setReceipt(undefined)}><X size={16}/></button></div>}
       <div className="tool-refresh-bar">
@@ -515,6 +548,7 @@ function ScopedToolWorkspace({
                     onSharedWorker={!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=sharedWorkerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
                     onRun={(runID,nodeID)=>{if(!stale&&!writeBlocked&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run:runID,node:nodeID}));}}
                   />
+                  <ToolProfileReplacementHistory project={project} profileID={current.id} disabled={writeBlocked||stale} accessBlocked={detail.failure instanceof ApiError&&[401,403,404].includes(detail.failure.status)} refresh={refresh+revision} onViewProfile={profile=>{if(!stale&&!writeBlocked&&canLeave())onSelect(profile.id);}} onAccessDenied={()=>{if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)void detail.read();}}/>
                   <div className="tool-action-bar">
                     {current.state !== "revoked" && (
                       <>
@@ -687,6 +721,7 @@ function ScopedToolWorkspace({
             adapter={dialog.adapter}
             draft={dialog.resumeQuick?publicDraft:undefined}
             onDraftChange={dialog.resumeQuick?value=>updatePublicDraft(value,draftSource?.nonce):undefined}
+            onContinueReplacement={dialog.resumeQuick&&replacementSource?openQuickConnect:undefined}
             workers={workers}
             sharedWorkers={sharedWorkers}
             action={action}
@@ -700,6 +735,9 @@ function ScopedToolWorkspace({
           project={project}
           adapter={dialog.adapter}
           draft={publicDraft}
+          replacementSource={replacementSource}
+          replacementDisabled={!!replacementSource&&!replacementSourceCurrent}
+          onReplace={replaceProfile}
           onDraftChange={value=>updatePublicDraft(value,draftSource?.nonce)}
           preferredWorkerID={dialog.preferredWorkerID}
           pairedRunner={pairedRunner}
@@ -829,6 +867,7 @@ function ToolProfileForm({
   adapter,
   draft,
   onDraftChange,
+  onContinueReplacement,
   workers,
   sharedWorkers,
   action,
@@ -839,6 +878,7 @@ function ToolProfileForm({
   adapter?:AdapterDescriptor;
   draft?:ToolConnectDraft;
   onDraftChange?:(draft:ToolConnectDraft)=>void;
+  onContinueReplacement?:()=>void;
   workers: IdentityRead;
   sharedWorkers: SharedIdentityRead;
   action: ToolAction;
@@ -921,6 +961,7 @@ function ToolProfileForm({
           setSubmitError(t("development.tools.choose_an_available_probed_configuration_with_complete"));
           return;
         }
+        if(onContinueReplacement){onContinueReplacement();return;}
         const result = await action.run<ToolProfile>("/tool-profiles", {
           project_id: project,
           worker_id: worker,
@@ -1045,7 +1086,7 @@ function ToolProfileForm({
           }
           aria-describedby={formID+'-next'}
         >
-          {action.busy?t('tool-workspace.saving'):t("development.tools.save_as_paused_configuration")}</button>
+          {onContinueReplacement?t('tool-profile-replacement.prepare'):action.busy?t('tool-workspace.saving'):t("development.tools.save_as_paused_configuration")}</button>
       </div>
       </div>
     </form>

@@ -69,6 +69,7 @@ func toolExecutionContracts(add operationAdder, paths map[string]any) {
 }
 
 func enhanceToolExecutionSchemas(schemas map[string]any) {
+	toolProfileReplacementSchemas(schemas)
 	toolDoctorMaintenanceSchemas(schemas)
 	enhanceCodexSkillSchemas(schemas)
 	nativeDiagnosticContracts(schemas)

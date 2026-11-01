@@ -589,15 +589,15 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-TOOL-RECOVERY-195",
-  "updated_at": "2026-11-01T16:50:52.279Z",
+  "stage": "T-TOOL-REPLACEMENT-200",
+  "updated_at": "2026-11-01T20:21:34.973Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/tool-doctor-maintenance-verification.md",
-  "current_summary": "docs/quality/tool-doctor-maintenance-summary.json",
+  "current_evidence": "docs/quality/tool-profile-replacement-verification.md",
+  "current_summary": "docs/quality/tool-profile-replacement-summary.json",
   "scope": {
-    "full_platform": "active: complete P0-P7 and accepted requirements1..26",
+    "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
     "items": 92,
     "limited_implemented_items": 58,
@@ -668,21 +668,18 @@
     "interactive_development": "Original durable terminal exchanges precede Result on restart; missing true stop stays unknown, exact reviewed failure disposition never result ACK or replay. Captured immutable source manifest recovered after crash before first exchange. Explicit stopped-source candidate preview/start reuses fixed command/parent seal/bundle/exact-SHA independent Worker/JUnit/fixture Review, accepted source adoption to unstarted task and canonical rejection issue/intake; original histories and current version revalidation retained. Actual Windows and focused tests verified, current browser rendering unavailable in Work settings; Unix/full distributed/production remain pending."
   },
   "verified": {
-    "current_report": "docs/quality/terminal-recovery-candidates-verification.md",
-    "current_summary": "docs/quality/terminal-recovery-candidates-summary.json",
-    "source_sha256": "7824cfbec7007c291568f524ac3bbfd09c40da628c39ab98f88eb0773fd2b851",
-    "distinct_go_top_tests_passed": 21,
-    "distinct_web_behavior_cases_passed": 13,
+    "stage": "T-TOOL-REPLACEMENT-200",
+    "current_report": "docs/quality/tool-profile-replacement-verification.md",
+    "current_summary": "docs/quality/tool-profile-replacement-summary.json",
+    "distinct_go_top_tests_passed": 9,
+    "go_subcases": 10,
+    "distinct_web_behavior_cases_passed": 12,
     "typecheck": true,
     "generated_contract_check": true,
-    "catalog_keys": 6448,
-    "actual_windows_terminal_candidate_quality": true,
-    "browser_rendering": false,
-    "browser_gap": "Local browser use is disabled in Work settings",
-    "owned_model_requests": 0,
-    "commercial_model_requests": 0,
-    "production_complete": false,
-    "stage": "T-BASELINE-131"
+    "catalog_keys": 9344,
+    "actual_http_sqlite": true,
+    "representative_synthetic_ui_groups": 2,
+    "full_app_vendor_model_or_production": false
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -702,16 +699,20 @@
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "T197 and T198 completed and normally pushed to dev; HEAD bcfa6f96281678c059c87bf628b78cfb9776c0ba",
-    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558"
+    "evidence": "T19949-source stage committed and normally pushed; remote/index/source checks passed",
+    "commit": "b7d91c7df1f0847c9d8e73f20a21150da9482f6d"
   },
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-DOCTOR-199",
-    "status": "scoped_stage_verified_full_goal_active",
-    "next_priority": "Formal immutable old-to-new tool configuration handoff using existing gates",
-    "next_plan": "docs/delivery/tool-management-next.md",
-    "full_goal": "active original31/P0-P7/58limited/34pending/92baseline"
+    "stage": "T-TOOL-REPLACEMENT-200",
+    "status": "scoped_verified_awaiting_stage_commit_push",
+    "contract": "contracts/tool-profile-replacement.md",
+    "previous_verified_stage": "T-TOOL-DOCTOR-199",
+    "previous_commit": "b7d91c7df1f0847c9d8e73f20a21150da9482f6d",
+    "work": "One atomic approved configuration preparation, explicit fresh target creation/reuse, optional original pause, immutable actor-attributed relationship and original receipt; scoped incoming/outgoing history.",
+    "full_goal": "active original31/P0-P7/58limited/34pending/92baseline",
+    "report": "docs/quality/tool-profile-replacement-verification.md",
+    "summary": "docs/quality/tool-profile-replacement-summary.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2321,6 +2322,23 @@
       "Formal old-to-new configuration replacement handoff is still pending; existing create/matches/pause/revoke remains available.",
       "Maintenance suggestions grant no installation, model, task, stop or approval authority. Real native containment remains separately evidenced by T195; this actual uses an owned zero-process HTTP fixture.",
       "Physical multi-host, real vendor accounts/models, OceanBase/PostgreSQL, scale, cross-platform installers and full31/P0-P7 production acceptance remain separate."
+    ],
+    "full_platform_complete": false
+  },
+  "tool_profile_replacement": {
+    "stage": "T-TOOL-REPLACEMENT-200",
+    "status": "scoped_atomic_tool_configuration_handoff_history_and_bilingual_ui_verified",
+    "contract": "contracts/tool-profile-replacement.md",
+    "report": "docs/quality/tool-profile-replacement-verification.md",
+    "summary": "docs/quality/tool-profile-replacement-summary.json",
+    "focused": 21,
+    "go_subcases": 10,
+    "actual_http": 22,
+    "synthetic_ui_groups": 2,
+    "limits": [
+      "Relationship snapshots above 2 MiB are currently rejected atomically; this is a documented bound, not full maximum-profile-pair capacity acceptance.",
+      "Physical OceanBase/PostgreSQL, physical multihost, real vendor login/model/fees, full App/device/theme matrix, scale, installers and production acceptance remain separate.",
+      "Automatic installation/credential login/process termination and full platform completion are not claimed; original31/P0-P7/58limited/34pending/92baseline stays active."
     ],
     "full_platform_complete": false
   }

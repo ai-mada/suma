@@ -7978,6 +7978,42 @@ export interface ToolProfileMatchRequest {
   worker_id: string;
   profile: ToolExecutionProfile;
 }
+export interface ToolProfileReplacement {
+  id: string;
+  project_id: string;
+  original: ToolProfile;
+  replacement: ToolProfile;
+  disposition: "created" | "reused";
+  pause_original: boolean;
+  created_at: string;
+  created_by: string;
+}
+export interface ToolProfileReplacementList {
+  project_id: string;
+  profile_id: string;
+  direction: "outgoing" | "incoming";
+  items: (ToolProfileReplacement)[];
+  next_cursor?: string;
+}
+export interface ToolProfileReplacementListQuery {
+  direction?: "outgoing" | "incoming";
+  limit?: number;
+  cursor?: string;
+}
+export interface ToolProfileReplacementRequest {
+  project_id: string;
+  expected_version: number;
+  worker_id: string;
+  profile: ToolExecutionProfile;
+  pause_original: boolean;
+  idempotency_key: string;
+  name?: string;
+  reuse?: ToolProfileReplacementReuse;
+}
+export interface ToolProfileReplacementReuse {
+  profile_id: string;
+  expected_version: number;
+}
 export interface ToolUsage {
   input_tokens?: number;
   cached_input_tokens?: number;

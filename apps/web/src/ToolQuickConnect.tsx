@@ -18,7 +18,9 @@ import type {IdentityRead,SharedIdentityRead} from './execution-pools/ToolIdenti
 import type {ToolProfile} from './tool-model';
 import type {ToolProfileMatchList,ToolProfileMatchRequest,RunnerPairing} from '../../../packages/contracts/src';
 import {readRunnerPairing} from './runner-pairing-model';
-import {readToolProfileMatches,toolProfileMatchKey} from './tool-profile-reuse-model';
+import {readToolProfileMatches,sameToolProfile,toolProfileMatchKey} from './tool-profile-reuse-model';
+import {ToolProfileReplacementConfirm} from './ToolProfileReplacementView';
+import type {ToolProfileReplacementDraft} from './tool-profile-replacement-model';
 import {ExistingToolProfiles} from './ExistingToolProfiles';
 import {DesktopToolConnector} from './DesktopToolConnector';
 import {desktopToolBridge,validDesktopToolScope} from './desktop-tool-connector-model';
@@ -29,9 +31,9 @@ import './ToolQuickConnect.css';
 
 const t=(key:string,params?:Record<string,unknown>)=>tr('tool-quick-connect.'+key,params);
 export type ToolConnectDraft={adapterID:string;workerID:string;commandID:string;name:string;nameEdited:boolean};
-export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;draft?:ToolConnectDraft;onDraftChange?:(draft:ToolConnectDraft)=>void;preferredWorkerID?:string;pairedRunner?:RunnerPairing;onPrepareRunner?:(pairing:RunnerPairing)=>void;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile)=>void;onOpen?:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor,expectedWorkerID?:string)=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void;onWorker:()=>void};
+export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;draft?:ToolConnectDraft;onDraftChange?:(draft:ToolConnectDraft)=>void;replacementSource?:ToolProfile;replacementDisabled?:boolean;onReplace?:(draft:ToolProfileReplacementDraft)=>Promise<void>|void;preferredWorkerID?:string;pairedRunner?:RunnerPairing;onPrepareRunner?:(pairing:RunnerPairing)=>void;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile)=>void;onOpen?:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor,expectedWorkerID?:string)=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void;onWorker:()=>void};
 export function ToolQuickConnect(props:ToolQuickConnectProps){
- const view=useApiView(),scope=JSON.stringify([props.project,view?.userID,view?.organizationID,props.preferredWorkerID]);
+ const view=useApiView(),scope=JSON.stringify([props.project,view?.userID,view?.organizationID,props.preferredWorkerID,props.replacementSource?.id,props.replacementSource?.version]);
  return <QuickConnectScope {...props} key={scope}/>;
 }
 function QuickConnectScope(props:ToolQuickConnectProps){
@@ -72,7 +74,7 @@ function QuickConnectScope(props:ToolQuickConnectProps){
 type InventorySnapshot={caller:ReturnType<typeof useApi>;key:string;view?:ToolDiscoveryView;deadline:number;error?:unknown};
 type MatchSnapshot={caller:ReturnType<typeof useApi>;key:string;data?:ToolProfileMatchList;error?:unknown};
 type QuickToolDraft=Readonly<{chosenWorker:string;chosenCommand:string;name:string;nameEdited:boolean}>;
-function QuickToolConfiguration({project,adapter,preferredWorkerID,pairedRunner,onPrepareRunner,workers,sharedWorkers,action,onRegistered,onEnable,onOpen,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onConfigurationDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onConfigurationDraftChange:(draft:QuickToolDraft)=>void}){
+function QuickToolConfiguration({project,adapter,replacementSource,replacementDisabled,onReplace,preferredWorkerID,pairedRunner,onPrepareRunner,workers,sharedWorkers,action,onRegistered,onEnable,onOpen,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onConfigurationDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onConfigurationDraftChange:(draft:QuickToolDraft)=>void}){
  const acpAdapterID=adapter.id==='qoder-acp'||adapter.id==='cursor-cli'?adapter.id:undefined;
  useLocale();const api=useApi(),[chosenWorker,setChosenWorker]=useState(preferredWorkerID||initialDraft?.chosenWorker||''),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<InventorySnapshot>(),[expired,setExpired]=useState(false),[chosenCommand,setChosenCommand]=useState(preferredWorkerID&&preferredWorkerID!==initialDraft?.chosenWorker?'':initialDraft?.chosenCommand||''),[name,setName]=useState(initialDraft?.name||''),[nameEdited,setNameEdited]=useState(initialDraft?.nameEdited||false),[registered,setRegistered]=useState<ToolProfile>();
  const [localOperationBlocked,setLocalOperationBlocked]=useState(false),[nativeRegistrationReady,setNativeRegistrationReady]=useState(true),[nativeConnection,setNativeConnection]=useState<{caller:typeof api;connection:DesktopCodexConnectedProof|DesktopOpenCodeConnectedProof}>(),currentCaller=useRef(api);currentCaller.current=api;
@@ -80,6 +82,7 @@ function QuickToolConfiguration({project,adapter,preferredWorkerID,pairedRunner,
  const [acpConnection,setACPConnection]=useState<{caller:typeof api;workerID:string}>();
  const [matchRevision,setMatchRevision]=useState(0),[matchSnapshot,setMatchSnapshot]=useState<MatchSnapshot>(),[existingChoice,setExistingChoice]=useState<{key:string;id:string}>(),[createAttempt,setCreateAttempt]=useState<{key:string;ticket:number}>();
  const createSequence=useRef(0),recheckedConflict=useRef(0);
+ const [replacementPlan,setReplacementPlan]=useState<{caller:typeof api;key:string;draft:ToolProfileReplacementDraft}>(),replacementBusy=useRef(false);
  useEffect(()=>()=>onLocalBlockedChange(false),[onLocalBlockedChange]);
  const confirmedNative=nativeConnection?.caller===api?nativeConnection.connection:undefined;
  const acpWorker=acpConnection?.caller===api?acpConnection.workerID:undefined,reportedWorker=confirmedNative?.worker_id??acpWorker,localWorker=!lockedWorker||reportedWorker===lockedWorker?reportedWorker:undefined;
@@ -134,7 +137,18 @@ function QuickToolConfiguration({project,adapter,preferredWorkerID,pairedRunner,
   if(!alive.current||currentCaller.current!==api||source.caller!==api||source.blocked)return;
   onAdvanced(adapter,source.worker||undefined);
  }
- const reusable=matches?.data?.items.filter(item=>item.state!=='revoked')??[],selectedExisting=existingChoice?.key===matchKey&&reusable.some(item=>item.id===existingChoice.id)?existingChoice.id:reusable.length===1?reusable[0].id:'',canCreate=!!matches?.data&&!reusable.length;
+ const reusable=matches?.data?.items.filter(item=>item.state!=='revoked')??[],selectedExisting=existingChoice?.key===matchKey&&reusable.some(item=>item.id===existingChoice.id)?existingChoice.id:!replacementSource&&reusable.length===1?reusable[0].id:'',canCreate=!!matches?.data&&!reusable.length;
+ const replacementCandidates=reusable.filter(item=>item.id!==replacementSource?.id),reuseTarget=replacementCandidates.find(item=>item.id===selectedExisting),unchangedSource=!!replacementSource&&!!selected&&replacementSource.worker_id===worker&&sameToolProfile(replacementSource.profile,selected.profile);
+ const replacementKey=JSON.stringify([matchKey,replacementSource?.id,replacementSource?.version,replacementSource?.worker_id,replacementSource?.profile.profile_sha256,suggestedName,reuseTarget?.id,reuseTarget?.version]),replacementEligible=!!replacementSource&&!!onReplace&&!replacementDisabled&&!blocked&&!action.conflict&&usable&&!unchangedSource&&(canCreate&&!!suggestedName.trim()||!!reuseTarget),prepared=replacementPlan?.caller===api&&replacementPlan.key===replacementKey?replacementPlan:undefined;
+ const replacementGate=useRef({key:replacementKey,eligible:replacementEligible,prepared});replacementGate.current={key:replacementKey,eligible:replacementEligible,prepared};
+ function prepareReplacement(){
+  if(!replacementGate.current.eligible||!replacementSource||!selected||!alive.current||currentCaller.current!==api||replacementBusy.current)return;
+  setReplacementPlan({caller:api,key:replacementKey,draft:{original:replacementSource,workerID:worker,profile:selected.profile,pauseOriginal:false,...(reuseTarget?{reuse:reuseTarget}:{name:suggestedName.trim()})}});
+ }
+ async function confirmReplacement(){
+  const current=replacementGate.current;if(!alive.current||currentCaller.current!==api||!current.eligible||!current.prepared||replacementBusy.current||!onReplace)return;
+  replacementBusy.current=true;try{await onReplace(current.prepared.draft);}finally{replacementBusy.current=false;}
+ }
  useEffect(()=>{onLocalBlockedChange(localOperationBlocked||lookupBusy);},[localOperationBlocked,lookupBusy,onLocalBlockedChange]);
  useEffect(()=>{
   const controller=new AbortController();let latest=true;setMatchSnapshot(undefined);
@@ -186,10 +200,10 @@ function QuickToolConfiguration({project,adapter,preferredWorkerID,pairedRunner,
      </>}
      {lookupBusy&&<p role="status" className="tool-quick-muted">{tr('tool-profile-reuse.loading')}</p>}
      {matches?.error&&<div><p className="tool-quick-warning">{tr('tool-profile-reuse.query_failed')}</p><ErrorNotice error={toolError(matches.error)}/></div>}
-     {matches?.data&&!!matches.data.items.length&&<ExistingToolProfiles items={matches.data.items} selectedID={selectedExisting} disabled={blocked} onSelect={id=>setExistingChoice({key:matchKey,id})} onEnable={onEnable} onOpen={onOpen}/>}
+     {replacementSource?unchangedSource?<div className="tool-quick-muted" data-quick-replacement-unchanged><p>{tr('tool-profile-replacement.source_unchanged')}</p>{onOpen&&<button type="button" className="text-button" data-existing-tool-open={replacementSource.id} disabled={blocked} onClick={()=>{if(!blocked)onOpen(replacementSource);}}>{tr('tool-profile-replacement.view_source')}</button>}</div>:replacementCandidates.length>0&&<Field label={tr('tool-profile-replacement.choose_existing')}><select data-quick-replacement-existing value={selectedExisting} disabled={blocked} onChange={event=>{if(!blocked)setExistingChoice({key:matchKey,id:event.target.value});}}><option value="">{tr('tool-profile-replacement.choose_existing_placeholder')}</option>{replacementCandidates.map(item=><option key={item.id} value={item.id}>{item.name} · {tr('tool-profile-reuse.state.'+item.state)} · {item.version}</option>)}</select></Field>:matches?.data&&!!matches.data.items.length&&<ExistingToolProfiles items={matches.data.items} selectedID={selectedExisting} disabled={blocked} onSelect={id=>setExistingChoice({key:matchKey,id})} onEnable={onEnable} onOpen={onOpen}/>}
      {!!matches&&<button data-quick-matches-refresh type="button" className="text-button" disabled={blocked} onClick={readMatches}><RefreshCw size={14} aria-hidden="true"/>{tr('tool-profile-reuse.read_again')}</button>}
      {canCreate&&<p className="tool-quick-muted">{tr('tool-profile-reuse.empty')}</p>}
-     {!reusable.length&&<><p className="tool-quick-muted">{t('register_hint')}</p><button data-quick-register type="button" className="primary tool-quick-submit" disabled={blocked||action.conflict||!canCreate||!usable||!suggestedName.trim()} onClick={()=>void register()}>{t(action.busy?'registering':'register')}</button></>}
+     {replacementSource?!unchangedSource&&(prepared?<ToolProfileReplacementConfirm draft={prepared.draft} disabled={!replacementEligible} onPauseOriginalChange={value=>{if(!replacementGate.current.eligible||!prepared)return;setReplacementPlan({...prepared,draft:{...prepared.draft,pauseOriginal:value}});}} onConfirm={()=>void confirmReplacement()} onBack={()=>{if(!blocked)setReplacementPlan(undefined);}}/>:<button type="button" className="primary tool-quick-submit" data-quick-replacement-prepare disabled={!replacementEligible} onClick={prepareReplacement}>{tr('tool-profile-replacement.prepare')}</button>):!reusable.length&&<><p className="tool-quick-muted">{t('register_hint')}</p><button data-quick-register type="button" className="primary tool-quick-submit" disabled={blocked||action.conflict||!canCreate||!usable||!suggestedName.trim()} onClick={()=>void register()}>{t(action.busy?'registering':'register')}</button></>}
     </>}
    </>}
   </>}

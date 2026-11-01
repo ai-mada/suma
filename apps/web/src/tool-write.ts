@@ -1,4 +1,5 @@
 import {validCodexSelection} from './codex-execution-model';
+import {isToolProfileReplacementPath,toolProfileReplacementOriginalID,validToolProfileReplacementBody,validToolProfileReplacementRequest} from './tool-profile-replacement-model';
 import { tr as t, UiError, renderDiagnostic } from "./i18n";
 import { api, ApiError, operation } from "./api";
 export type ToolPendingRequest = {
@@ -9,11 +10,12 @@ export type ToolPendingRequest = {
 };
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 const allowedPath =
-  /^\/(?:tool-profiles(?:\/[A-Za-z0-9_.-]+\/commands)?|release-workers(?:\/[A-Za-z0-9_.-]+)?|task-dispatch-plans(?:\/[A-Za-z0-9_.-]+\/start)?)$/;
+  /^\/(?:tool-profiles(?:\/[A-Za-z0-9_.-]+\/(?:commands|replacements))?|release-workers(?:\/[A-Za-z0-9_.-]+)?|task-dispatch-plans(?:\/[A-Za-z0-9_.-]+\/start)?)$/;
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
-function validate(path: string, body: unknown) {
+function validate(path: string, body: unknown, method:string='POST') {
   if (!allowedPath.test(path))
     throw new UiError("development.errors.operation_scope");
+  if(path.endsWith('/replacements')&&(!isToolProfileReplacementPath(path)||method!=='POST'||!validToolProfileReplacementBody(body,toolProfileReplacementOriginalID(path)!)))throw new UiError('tool-profile-replacement.invalid_request');
   if (path === '/task-dispatch-plans' && body && typeof body === 'object' && Object.hasOwn(body,'codex_execution_selection') && !validCodexSelection((body as Record<string,unknown>).codex_execution_selection)) throw new UiError("development.errors.request_invalid");
   if(path.startsWith('/task-dispatch-plans')&&body&&typeof body==='object'&&['octop_execution','octop_execution_selection','octop','fixed_octop'].some(key=>Object.hasOwn(body,key)))throw new UiError('development.errors.request_invalid');
   const inspect = (value: unknown, parents: string[] = []) => {
@@ -60,7 +62,8 @@ export class ToolWriteRecovery {
       const raw = storage.getItem(this.key);
       if (raw !== null) {
         const value = JSON.parse(raw) as ToolPendingRequest;
-        validate(value.path, value.body);
+        validate(value.path, value.body,value.method);
+        if(isToolProfileReplacementPath(value.path)&&!validToolProfileReplacementRequest(value))throw Error('invalid replacement');
         if (!value.idempotency_key || !["POST", "PATCH"].includes(value.method)) throw Error("invalid");
         this.value = value;
         this.raw = raw;
@@ -85,7 +88,7 @@ export class ToolWriteRecovery {
     try {
       if (!this.value) {
         if (this.readStored() !== null) throw ownershipError('unconfirmed');
-        validate(path, body);
+        validate(path, body,method);
         const request: ToolPendingRequest = { path, body: copy(body), method, idempotency_key: operation() };
         const raw = JSON.stringify(request);
         this.assertOwner(ownsRequest);

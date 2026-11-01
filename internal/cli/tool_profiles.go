@@ -17,13 +17,13 @@ import (
 )
 
 const toolMatchesUsage = "tools matches requires --file REQUEST_JSON or --file -; use tools --help"
-const toolProfilesUsage = "tools requires list, doctor or matches; use tools --help"
+const toolProfilesUsage = "tools requires list, doctor, matches, replace or replacements; use tools --help"
 const toolMatchesInvalid = "tool matches request requires the current project, worker_id and one complete exact profile"
 const toolMatchesResponseInvalid = "tool matches response must preserve the requested scope, complete profile and full result count"
 const toolMatchesInputLimit = 256 << 10
 
 func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
-	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[0] == "list" || args[0] == "matches" || args[0] == "doctor") && (args[1] == "help" || args[1] == "--help") {
+	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[0] == "list" || args[0] == "matches" || args[0] == "doctor" || args[0] == "replace" || args[0] == "replacements") && (args[1] == "help" || args[1] == "--help") {
 		text := toolProfilesHelpZH
 		if c.locale == localization.EnUS {
 			text = toolProfilesHelpEN
@@ -36,6 +36,12 @@ func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Re
 	}
 	if len(args) > 0 && args[0] == "list" {
 		return toolListCommand(ctx, c, args[1:], out)
+	}
+	if len(args) > 0 && args[0] == "replace" {
+		return toolReplacementCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 0 && args[0] == "replacements" {
+		return toolReplacementHistoryCommand(ctx, c, args[1:], out)
 	}
 	if len(args) == 0 || args[0] != "matches" {
 		return usage(toolProfilesUsage)
@@ -123,6 +129,22 @@ tools doctor — read current tool profile diagnostics
   It never runs a suggestion, creates a request, enables a profile or accesses tool credentials.
   A valid worker identity does not prove online state, model login or execution.
 
+tools replace — explicitly prepare a replacement configuration
+  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools replace --id ORIGINAL_PROFILE --file request.json --confirm
+  --file - reads stdin. Keep the original JSON (at most 256 KiB) and operation key.
+  Supply project_id, expected_version, worker_id, full profile, pause_original and idempotency_key.
+  Create: supply name; reuse: supply reuse:{profile_id,expected_version} and omit name.
+  A newly created target is paused; reuse preserves its existing state. No auto-enable,
+  task migration, process stop or workspace/model execution occurs.
+  An unconfirmed receipt requires the same original account, organization, target ID,
+  JSON body and key. No automatic retry, identity/version refresh or new key is generated.
+
+tools replacements — read committed historical handoffs
+  suma --project PROJECT tools replacements --id PROFILE [--direction outgoing|incoming]
+       [--limit 1..100] [--cursor ORIGINAL_CURSOR]
+  Default: outgoing, 20 items. The opaque cursor is at most 2048 UTF-8 bytes.
+  Snapshots describe the committed handoff, not current profile health or authorization.
+
 tools matches — find complete existing tool profiles
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools matches --file request.json
   Use --file - to read standard input; input is limited to 256 KiB.
@@ -148,6 +170,21 @@ tools doctor — 读取当前工具档案体检
   默认 JSON 保留机器事实；table 表格标题随选择语言展示。
   不运行建议、不创建请求、不启用档案、不读取工具凭据。
   节点身份有效不代表机器在线、模型已登录或已执行。
+
+tools replace — 明确准备替换配置
+  suma --project PROJECT --expected-user USER [--expected-organization ORG] tools replace --id ORIGINAL_PROFILE --file request.json --confirm
+  --file - 从标准输入读取；保留原 JSON（最多 256 KiB）和操作标识。
+  提供 project_id、expected_version、worker_id、完整 profile、pause_original 和 idempotency_key。
+  新建时提供 name；复用时提供 reuse:{profile_id,expected_version} 并省略 name。
+  新建目标保持暂停；复用保留已有状态。不自动启用、迁移任务、停止进程或执行工作区／模型。
+  回执未确认时，保留相同原账户、组织、目标 ID、JSON 正文和操作 key。
+  不自动重试、不更新身份／版本、不生成新 key。
+
+tools replacements — 读取已提交的历史换新关系
+  suma --project PROJECT tools replacements --id PROFILE [--direction outgoing|incoming]
+       [--limit 1..100] [--cursor ORIGINAL_CURSOR]
+  默认 outgoing，每页 20 项；原不透明游标最多 2048 个 UTF-8 字节。
+  快照描述已提交交接，不代表当前配置健康或当前授权。
 
 tools matches — 查询完整匹配的已有工具档案
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools matches --file request.json
