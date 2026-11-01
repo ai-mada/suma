@@ -1,0 +1,58 @@
+// @vitest-environment jsdom
+import {act,useState} from 'react';
+import {createRoot,type Root} from 'react-dom/client';
+import {afterEach,expect,it,vi} from 'vitest';
+import {ToolWorkspace} from './ToolWorkspace';
+import {ApiViewProvider} from './api-context';
+import {setLocale} from './i18n';
+import type {Session} from './api';
+const session:Session={user:{id:'u',name:'Owner',email:'owner@example.test',role:'owner'},organization:{id:'o',name:'Org'},projects:[]};
+const definition={command_id:'codex-team',adapter:'codex',protocol:'codex-jsonl-v1',profile_sha256:'a'.repeat(64),executable_sha256:'b'.repeat(64),tool_version:'1.0',read_only:false};
+const tool={id:'existing',project_id:'p',worker_id:'original-runner',name:'Original team tool',version:4,state:'enabled',profile:definition,enabled_by:'u',created_at:'2026-10-30T08:00:00Z',updated_at:'2026-10-30T08:00:00Z',available:false,reason:'inventory_stale'};
+const adapter={id:'codex-jsonl',product:'Codex',entrypoint_kind:'cli',direction:'suma_to_tool',implementation:'implemented',setup_kind:'runner_profile',adapter:'codex',protocol:'codex-jsonl-v1',capabilities:[],source_refs:[],limitations:[]};
+let root:Root|undefined,host:HTMLDivElement|undefined;const reads:URL[]=[],writes:string[]=[];
+function View(){const [selected,onSelect]=useState('');return <ApiViewProvider session={session}><ToolWorkspace project="p" session={session} selected={selected} onSelect={onSelect} refresh={0} panel=""/></ApiViewProvider>;}
+async function settle(){await act(async()=>{for(let i=0;i<28;i++)await Promise.resolve();});}
+async function change(element:HTMLInputElement|HTMLSelectElement,value:string){await act(async()=>{Object.getOwnPropertyDescriptor(element instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});await settle();}
+async function mount(){
+ await setLocale('en-US',{persist:false});sessionStorage.clear();vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);reads.length=0;writes.length=0;
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{
+  const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1',''),method=init.method||'GET';
+  if(method!=='GET'){if(path==='/tool-profiles/matches')return Response.json({project_id:'p',worker_id:'original-runner',profile:definition,items:[tool],total:1});writes.push(method+' '+path);return Response.json({error:{code:'unexpected_write',message:'Unexpected write'}},{status:400});}
+  reads.push(url);
+  if(path==='/tool-profiles')return Response.json({items:[tool],total:1});
+  if(path==='/tool-profiles/existing')return Response.json(tool);
+  if(path==='/tool-profiles/existing/diagnostics')return Response.json({tool,checked_at:'2026-10-30T08:00:20Z',expires_at:'2026-10-30T08:01:00Z',checks:['authorization','worker','inventory','profile'].map(code=>({code,status:code==='profile'?'blocked':'pass',reason:code==='profile'?'inventory_profile_mismatch':'',next_action:code==='profile'?'register_profile':'none'})),next_action:'register_profile'});
+  if(path==='/release-workers')return Response.json({items:['other-runner','original-runner'].map((worker_id,i)=>({id:'w'+i,worker_id,status:'active',version:1}))});
+  if(path==='/project-execution/runners')return Response.json({items:[],as_of:'2026-10-30T08:00:20Z'});
+  if(path==='/adapter-catalog')return Response.json({project_id:'p',as_of:'2026-10-30T08:00:20Z',items:[adapter]});
+  if(path==='/tool-discovery')return Response.json({project_id:'p',worker_id:url.searchParams.get('worker_id'),state:'fresh',as_of:'2026-10-30T08:00:20Z',observed_at:'2026-10-30T08:00:00Z',expires_at:'2026-10-30T08:01:00Z',items:[{profile:definition,available:true,reason:''}]});
+  return Response.json({items:[]});
+ }));host=document.createElement('div');document.body.append(host);root=createRoot(host);await act(async()=>root!.render(<View/>));await settle();
+}
+afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();document.body.innerHTML='';vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState({},'','/');});
+
+it('uses server tool filters without overwriting task status and searches only on an explicit action',async()=>{
+ window.history.replaceState({},'','/?project=p&status=running&tools_state=revoked&tools_query=old');await mount();
+ expect(reads.find(url=>url.pathname.endsWith('/tool-profiles'))?.searchParams.get('state')).toBe('revoked');
+ const input=host!.querySelector<HTMLInputElement>('[data-tools-query]')!;expect(input.value).toBe('old');const before=reads.length;
+ await change(input,'Codex');expect(reads.length).toBe(before);
+ await act(async()=>host!.querySelector<HTMLFormElement>('[data-tools-search]')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
+ expect(reads.filter(url=>url.pathname.endsWith('/tool-profiles')).at(-1)?.searchParams.get('query')).toBe('Codex');
+ await act(async()=>host!.querySelector<HTMLButtonElement>('[data-tools-state="active"]')!.click());await settle();
+ expect(reads.filter(url=>url.pathname.endsWith('/tool-profiles')).at(-1)?.searchParams.get('state')).toBe('active');
+ expect(new URLSearchParams(window.location.search).get('status')).toBe('running');expect(writes).toEqual([]);
+});
+
+it('takes Doctor to the exact original adapter and worker, then returns from advanced setup with its public draft',async()=>{
+ await mount();await act(async()=>host!.querySelector<HTMLButtonElement>('.tool-resource')!.click());await settle();
+ await act(async()=>host!.querySelector<HTMLButtonElement>('[data-tool-doctor-action="register_profile"]')!.click());await settle();
+ expect(document.querySelector<HTMLSelectElement>('[data-quick-tool]')?.value).toBe('codex-jsonl');
+ expect(document.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('original-runner');
+ await act(async()=>document.querySelector<HTMLButtonElement>('[data-quick-advanced]')!.click());await settle();
+ expect(document.querySelector<HTMLSelectElement>('.tool-form select')?.value).toBe('original-runner');
+ const name=document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!;await change(name,'Adjusted team name');
+ await act(async()=>document.querySelector<HTMLButtonElement>('[data-tools-return-quick]')!.click());await settle();
+ expect(document.querySelector<HTMLSelectElement>('[data-quick-tool]')?.value).toBe('codex-jsonl');expect(document.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('original-runner');
+ expect(document.querySelector('[data-existing-tool-open="existing"]')).not.toBeNull();expect(writes).toEqual([]);
+});

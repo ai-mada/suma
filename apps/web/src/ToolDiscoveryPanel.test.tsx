@@ -24,6 +24,18 @@ async function settle(){await act(async()=>{for(let i=0;i<16;i++)await Promise.r
 async function render(overrides:Partial<ToolDiscoveryPanelProps>={},identity=session){await act(async()=>root.render(<ApiViewProvider session={identity}><ToolDiscoveryPanel project={project} worker={worker} authorized disabled={false} autoAdopt onAdopt={adopt} {...overrides}/></ApiViewProvider>));await settle();}
 async function click(selector:string){const button=host.querySelector<HTMLButtonElement>(selector);expect(button,selector).not.toBeNull();await act(async()=>button!.click());await settle();}
 
+it('T193 reads the exact selected node report and preserves its target through read failure without claiming a scan or repair',async()=>{
+ await render({autoAdopt:false});expect(host.querySelector('[data-tool-discovery-target]')?.textContent).toContain(worker);expect(host.textContent).toContain('does not run a local scan or complete a repair');
+ const basis=host.querySelector<HTMLDetailsElement>('[data-tool-discovery-basis]');expect(basis).not.toBeNull();expect(basis!.open).toBe(false);expect(basis!.textContent).toContain(project);
+ reply=async()=>{throw Error('Node report temporarily unavailable');};await click('[data-tool-discovery-refresh]');expect(host.querySelector('[data-tool-discovery-target]')?.textContent).toContain(worker);expect(host.querySelector('[data-tool-discovery-state="fresh"]')).toBeNull();expect(adopt).not.toHaveBeenCalled();
+ reply=async()=>Response.json(report());await click('[data-tool-discovery-retry]');expect(host.querySelector('[data-tool-discovery-state="fresh"]')).not.toBeNull();expect(requests.every(request=>request.init.method==='GET'&&new URL(request.path,'https://example.test').searchParams.get('worker_id')===worker)).toBe(true);expect(adopt).not.toHaveBeenCalled();
+ reply=async()=>Response.json({error:{code:'forbidden',message:'Current report access denied'}},{status:403});await click('[data-tool-discovery-refresh]');expect(host.querySelector('[data-tool-discovery-target]')).toBeNull();
+ let finish!:(value:Response)=>void;reply=()=>new Promise(resolve=>{finish=resolve;});await click('[data-tool-discovery-retry]');expect(host.querySelector('[data-tool-discovery-target]')).toBeNull();
+ await act(async()=>finish(Response.json({error:{code:'unavailable',message:'Temporary report failure'}},{status:503})));await settle();expect(host.querySelector('[data-tool-discovery-target]')).toBeNull();
+ reply=async()=>Response.json(report());await click('[data-tool-discovery-retry]');expect(host.querySelector('[data-tool-discovery-target]')?.textContent).toContain(worker);
+ await render({autoAdopt:false,authorized:false});expect(host.querySelector('[data-tool-discovery-target]')).toBeNull();expect(host.querySelector('[data-tool-discovery-state="fresh"]')).toBeNull();expect(adopt).not.toHaveBeenCalled();
+});
+
 it('parses only exact scoped, self-consistent current reports and reuses the inventory validator',()=>{
  const parsed=parseToolDiscovery(report(),project,worker);
  expect(parsed.state).toBe('fresh');expect(parsed.items).toEqual([item]);expect(parsed.remainingMs).toBe(40000);
@@ -51,7 +63,7 @@ it('renders actual tool counts and report time in both languages',async()=>{
  await render();expect(host.textContent).toContain('Tools reported: 1 · available to register: 1');
  const time=()=>formatDateTime(report().observed_at,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
  expect(host.querySelector('.tool-discovery-observed')?.textContent).toContain(time());
- await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('已检测到 1 项工具，1 项可用于登记');expect(host.querySelector('.tool-discovery-observed')?.textContent).toContain(time());expect(host.textContent).not.toMatch(/\{(?:count|available|time)\}/);
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('已上报 1 项工具，1 项可用于登记');expect(host.querySelector('.tool-discovery-observed')?.textContent).toContain(time());expect(host.textContent).not.toMatch(/\{(?:count|available|time)\}/);
 });
 
 it('does not read or adopt until both a selected identity and its current authorization are present',async()=>{
@@ -119,7 +131,7 @@ it('rejects malformed and cross-scope responses without rendering or adopting th
 });
 
 it('shows stale and unreported next steps without adopting historical results or retrying in a loop',async()=>{
- reply=async()=>Response.json({...report(),state:'stale',as_of:'2026-10-29T08:01:00Z',items:[]});await render();expect(host.querySelector('[data-tool-discovery-state="stale"]')).not.toBeNull();expect(host.querySelector('code')?.textContent).toContain('suma-runner --describe-tools');expect(adopt).not.toHaveBeenCalled();
+ reply=async()=>Response.json({...report(),state:'stale',as_of:'2026-10-29T08:01:00Z',items:[]});await render();expect(host.querySelector('[data-tool-discovery-state="stale"]')).not.toBeNull();expect(host.querySelector('.tool-discovery-local code')?.textContent).toContain('suma-runner --describe-tools');expect(adopt).not.toHaveBeenCalled();
  reply=async()=>Response.json({project_id:project,worker_id:worker,state:'unreported',as_of:'2026-10-29T08:01:00Z',items:[]});await click('[data-tool-discovery-refresh]');expect(host.querySelector('[data-tool-discovery-state="unreported"]')).not.toBeNull();expect(requests).toHaveLength(2);expect(adopt).not.toHaveBeenCalled();
 });
 

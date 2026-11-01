@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-TOOL-MANAGEMENT-193：[简洁工具管理](product/tool-management.md)、[架构与AI SOP](architecture/tool-management.md)、[交互](design/tool-management.md)、[English](en/tool-management.md)及[限定验证](quality/tool-management-verification.md)。接入／调整／暂停／移除复用唯一配置与操作链，完整平台继续。
+
 T-CLAUDE-SDK-192：[SDK原生协作](product/claude-sdk.md)、[架构与AI SOP](architecture/claude-sdk.md)、[交互](design/claude-sdk.md)及[限定验证](quality/claude-sdk-verification.md)。原控制面、固定来源、候选／独测／验收一条链，完整平台与工具管理优化继续。
 
 - [Cursor独立节点配置](product/cursor-setup.md) · [合同](../contracts/cursor-setup.md) · [架构与AI SOP](architecture/cursor-setup.md) · [交互](design/cursor-setup.md) · [English](en/cursor-setup.md) · [限定验证](quality/cursor-setup-verification.md)：T191补齐真实配置生成、原节点衔接与严格区分RPC／宿主退出。

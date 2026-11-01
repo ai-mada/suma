@@ -421,7 +421,7 @@ func (s *Service) ListWorkspaceTerminals(ctx context.Context, actor Actor, proje
 		}
 		out.Items = append(out.Items, view)
 	}
-	profiles, err := s.listToolProfilesForProjectTx(ctx, auth, project, 200, "")
+	profiles, err := s.listToolProfilesForProjectTx(ctx, auth, project, ToolProfileListQuery{State: "active", Limit: 200})
 	if err != nil {
 		return out, err
 	}

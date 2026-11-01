@@ -13,12 +13,20 @@
  "local-tools-scan.waiting":"Waiting to check.",
  "local-tools-scan.installed":"Installation detected",
  "local-tools-scan.not_observed":"Installation unconfirmed",
- "local-tools-scan.reason":"View detection reason",
+ "local-tools-scan.reason":"View detection details",
  "local-tools-scan.guide":"View setup guide",
  "local-tools-scan.configure":"Configure integration",
  "local-tools-scan.install":"Installation and setup",
  "local-tools-scan.boundary":"Installation observations do not establish a connection or dispatch readiness. The two Codex entries use different protocols.",
  "local-tools-scan.observation":"View observation times",
  "local-tools-scan.observed_at":"Observed at",
- "local-tools-scan.expires_at":"Valid until"
+ "local-tools-scan.expires_at":"Valid until",
+ "local-tools-scan.selected_target":"Selected integration: {{tool}}",
+ "local-tools-scan.scope_hint":"Automatic detection covers {{count}} supported protocol entries. Selecting an entry only opens its existing configuration flow.",
+ "local-tools-scan.sdk_manual":"Claude Agent SDK uses its separate configuration and Runner-reporting flow. Its host and model are not inferred from the original Claude CLI scan.",
+ "local-tools-scan.protocol":"Integration protocol",
+ "local-tools-scan.version":"Observed version",
+ "local-tools-scan.reason_code":"Original detection code",
+ "local-tools-scan.installation_recorded":"Installation recorded; recheck needed",
+ "local-tools-scan.view_existing":"View existing connections"
 }

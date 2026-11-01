@@ -41251,6 +41251,10 @@
             "format": "date-time",
             "type": "string"
           },
+          "impact": {
+            "$ref": "#/components/schemas/ToolProfileImpact",
+            "description": "Observed references, separate from the four original availability prerequisites. Partial/unknown coverage cannot become zero total or prove external processes stopped."
+          },
           "next_action": {
             "description": "Display/navigation suggestion; never permission or an automatic write.",
             "enum": [
@@ -41275,6 +41279,193 @@
         ],
         "type": "object"
       },
+      "ToolProfileImpact": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "coverage": {
+                  "const": "complete"
+                }
+              },
+              "required": [
+                "coverage"
+              ]
+            },
+            "then": {
+              "properties": {
+                "reason": {
+                  "enum": [
+                    ""
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "coverage": {
+                  "const": "partial"
+                }
+              },
+              "required": [
+                "coverage"
+              ]
+            },
+            "then": {
+              "properties": {
+                "reason": {
+                  "enum": [
+                    "run_limit",
+                    "node_limit"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "coverage": {
+                  "const": "unknown"
+                }
+              },
+              "required": [
+                "coverage"
+              ]
+            },
+            "then": {
+              "properties": {
+                "reason": {
+                  "enum": [
+                    "source_unavailable"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "description": "One authorized read snapshot of this project's active runs only, bounded to200 runs/2000 nodes and five observed references. Complete does not cover unstarted plans or historical/unknown external processes. Observed counts are not inferred totals or stop acknowledgements.",
+        "properties": {
+          "coverage": {
+            "enum": [
+              "complete",
+              "partial",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ToolProfileImpactItem"
+            },
+            "maxItems": 5,
+            "type": "array"
+          },
+          "items_truncated": {
+            "type": "boolean"
+          },
+          "nodes_examined": {
+            "maximum": 2000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "observed_reference_count": {
+            "maximum": 2000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "",
+              "run_limit",
+              "node_limit",
+              "source_unavailable"
+            ],
+            "type": "string"
+          },
+          "runs_examined": {
+            "maximum": 200,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "scope": {
+            "const": "active_project_runs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope",
+          "observed_at",
+          "coverage",
+          "runs_examined",
+          "nodes_examined",
+          "observed_reference_count",
+          "items",
+          "items_truncated",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "ToolProfileImpactItem": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "fence": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "node_state": {
+            "enum": [
+              "pending",
+              "ready",
+              "running",
+              "waiting",
+              "reconciling"
+            ],
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_state": {
+            "enum": [
+              "running",
+              "paused",
+              "cancelling"
+            ],
+            "type": "string"
+          },
+          "worker_id": {
+            "description": "Empty until a real assignment exists; pending/waiting nodes do not imply an executor.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "run_state",
+          "node_state",
+          "worker_id",
+          "attempt",
+          "fence"
+        ],
+        "type": "object"
+      },
       "ToolProfileList": {
         "properties": {
           "items": {
@@ -41294,6 +41485,40 @@
           "items",
           "total"
         ],
+        "type": "object"
+      },
+      "ToolProfileListQuery": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 1024,
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "description": "Optional bounded public-field query. Server normalizes Unicode lower-case and surrounding whitespace and binds that filter to the original authorized cursor; never searches credentials or private paths.",
+            "maxLength": 120,
+            "type": "string",
+            "x-max-utf8-bytes": 120
+          },
+          "state": {
+            "default": "active",
+            "enum": [
+              "active",
+              "enabled",
+              "paused",
+              "revoked",
+              "all"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [],
         "type": "object"
       },
       "ToolProfileMatchList": {
@@ -131372,7 +131597,7 @@
     },
     "/tool-profiles": {
       "get": {
-        "description": "Immutable administrator configuration plus separately observed local availability. Freshness uses database time and expires after60 seconds. Neither installation nor available=true proves model authentication or successful task execution.",
+        "description": "Current actor/organization/project tool connections with normalized state/query-bound keyset pagination. Default active includes enabled and paused only. Reading history or diagnostics never enables, repairs or stops tools.",
         "operationId": "get_tool-profiles",
         "parameters": [
           {
@@ -131395,10 +131620,11 @@
             }
           },
           {
-            "description": "Opaque cursor scoped to tenant and project.",
+            "description": "Opaque cursor, at most1024 characters, bound to the current actor, tenant, project and normalized state/query.",
             "in": "query",
             "name": "cursor",
             "schema": {
+              "maxLength": 1024,
               "type": "string"
             }
           },
@@ -131418,6 +131644,33 @@
             "schema": {
               "maxLength": 128,
               "type": "string"
+            }
+          },
+          {
+            "description": "Current enabled/paused connections by default. Revoked history is explicit; changing a filter invalidates the old cursor.",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "default": "active",
+              "enum": [
+                "active",
+                "enabled",
+                "paused",
+                "revoked",
+                "all"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "At most120 UTF-8 bytes; literal public name/command/worker/adapter/protocol search, authorized before reading.",
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "description": "Optional bounded public-field query. Server normalizes Unicode lower-case and surrounding whitespace and binds that filter to the original authorized cursor; never searches credentials or private paths.",
+              "maxLength": 120,
+              "type": "string",
+              "x-max-utf8-bytes": 120
             }
           }
         ],

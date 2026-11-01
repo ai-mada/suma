@@ -146,7 +146,7 @@ func (s *Service) getToolProfileCurrentTx(ctx context.Context, auth *authorizedC
 	}
 	return s.toolProfileObservationTx(ctx, tx, p, project, out)
 }
-func (s *Service) listToolProfilesCurrentTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor string) (ToolProfileList, error) {
+func (s *Service) listToolProfilesCurrentTx(ctx context.Context, auth *authorizedCommand, project string, query ToolProfileListQuery) (ToolProfileList, error) {
 	if auth == nil {
 		return ToolProfileList{}, forbidden()
 	}
@@ -154,59 +154,16 @@ func (s *Service) listToolProfilesCurrentTx(ctx context.Context, auth *authorize
 	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
 		return ToolProfileList{}, e
 	}
-	return s.listToolProfilesForProjectTx(ctx, auth, project, limit, cursor)
+	return s.listToolProfilesForProjectTx(ctx, auth, project, query)
 }
 
-// Internal project-authorized catalogue projection. Public browser inventory
-// keeps its stricter proof above; reviewed task/model snapshots reuse these
-// exact paging and freshness rules under their own current project proof.
-func (s *Service) listToolProfilesForProjectTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor string) (ToolProfileList, error) {
+// Internal project readers share the current filter/cursor contract under their
+// own authenticated purpose. The public browser reader keeps its stricter proof.
+func (s *Service) listToolProfilesForProjectTx(ctx context.Context, auth *authorizedCommand, project string, query ToolProfileListQuery) (ToolProfileList, error) {
 	if err := assertProjectRead(auth, project); err != nil {
 		return ToolProfileList{}, err
 	}
-	ctx = auth.ctx
-	tx, p := auth.tx, auth.currentPrincipal
-	var err error
-
-	out := ToolProfileList{Items: []ToolProfile{}}
-	if limit < 1 || limit > 200 {
-		return out, invalid("limit 必须为 1..200")
-	}
-	last, err := automationDecodeCursor(p, project, "tool_profiles", cursor)
-	if err != nil {
-		return out, err
-	}
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_profiles WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&out.Total); err != nil {
-		return out, err
-	}
-	rows, err := tx.QueryContext(ctx, s.q(`SELECT `+toolProfileColumns+` FROM suma_tool_profiles WHERE tenant_id=? AND project_id=? AND id>? ORDER BY id LIMIT ?`), p.TenantID, project, last, limit+1)
-	if err != nil {
-		return out, err
-	}
-	for rows.Next() {
-		pr, e := scanToolProfile(rows)
-		if e != nil {
-			rows.Close()
-			return out, e
-		}
-		out.Items = append(out.Items, pr)
-	}
-	err = rows.Err()
-	rows.Close()
-	if err != nil {
-		return out, err
-	}
-	if len(out.Items) > limit {
-		out.Items = out.Items[:limit]
-		out.NextCursor = automationEncodeCursor(p, project, "tool_profiles", out.Items[len(out.Items)-1].ID)
-	}
-	for i, pr := range out.Items {
-		out.Items[i], err = s.toolProfileObservationTx(ctx, tx, p, project, pr)
-		if err != nil {
-			return out, err
-		}
-	}
-	return out, nil
+	return s.listToolProfilesFilteredTx(ctx, auth, project, query)
 }
 
 func (s *Service) CreateToolProfile(ctx context.Context, actor Actor, project string, req ToolProfileCreateRequest) (ToolProfile, error) {

@@ -58,7 +58,7 @@ func (s *Service) dispatchRecommendationSourceTx(ctx context.Context, engine *da
 	if err != nil {
 		return out, err
 	}
-	profiles, err := s.listToolProfilesForProjectTx(ctx, auth, project, dispatchRecommendationMaxProfiles, "")
+	profiles, err := s.listToolProfilesForProjectTx(ctx, auth, project, ToolProfileListQuery{State: "active", Limit: dispatchRecommendationMaxProfiles})
 	if err != nil {
 		return out, err
 	}

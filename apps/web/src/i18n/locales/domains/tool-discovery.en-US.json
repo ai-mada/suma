@@ -1,8 +1,8 @@
 {
   "tool-discovery.form_intro": "Choose an authorized node to read its tools and review the configuration, or import a local inventory. New registrations stay paused and require a separate review to enable.",
-  "tool-discovery.inventory_source": "Detect or import tools",
+  "tool-discovery.inventory_source": "Read a node report or import an inventory",
   "tool-discovery.manual_inventory": "Paste or import a JSON inventory",
-  "tool-discovery.title": "Detect node tools",
+  "tool-discovery.title": "Read reported node tools",
   "tool-discovery.intro": "Read the node's latest report and fill available configurations. This does not install tools or start tasks.",
   "tool-discovery.refresh": "Read latest report",
   "tool-discovery.retry": "Retry read",
@@ -15,10 +15,15 @@
   "tool-discovery.stale": "The node report expired. Historical configurations will not be adopted. Check the node connection and credential, then read again.",
   "tool-discovery.unreported": "This node has not reported tools. Start its configured Runner and read again after it reports, or import a local inventory.",
   "tool-discovery.observed": "Node report time: {{time}}",
-  "tool-discovery.adopted": "Report adopted",
-  "tool-discovery.adopt": "Replace current inventory with this report",
+  "tool-discovery.adopted": "Report filled into draft",
+  "tool-discovery.adopt": "Fill this report into the current draft",
   "tool-discovery.adopted_hint": "The report is filled below; a sole available tool is selected automatically. Review and register it. New configurations remain paused.",
   "tool-discovery.local_help": "No results? Use a local inventory",
   "tool-discovery.local_help_text": "Check that the Runner connects to this project with the current node credential. You can also run the read-only probe below on the node, then paste its output or import a saved JSON file. Tool paths, arguments and environment values stay on the node.",
-  "tool-discovery.invalid_read": "The report is incomplete or does not match the current node. Read again or use a locally generated inventory."
+  "tool-discovery.invalid_read": "The report is incomplete or does not match the current node. Read again or use a locally generated inventory.",
+  "tool-discovery.target": "Selected execution node",
+  "tool-discovery.read_boundary": "Reading a report does not run a local scan or complete a repair. Registration and enabling remain separate actions.",
+  "tool-discovery.basis": "View report source",
+  "tool-discovery.project": "Project",
+  "tool-discovery.report_time": "Reported at"
 }

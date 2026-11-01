@@ -113,17 +113,19 @@ func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine
 		if e != nil {
 			return e
 		}
+		profileQuery := ToolProfileListQuery{State: "active", Limit: req.Limit}
+		profileCursorScope := toolProfileListCursorScope(p, profileQuery)
 		innerCursor := ""
 		if position != "" {
-			innerCursor = automationEncodeCursor(p, project, "tool_profiles", position)
+			innerCursor = automationEncodeCursor(p, project, profileCursorScope, position)
 		}
-		profiles, e := s.listToolProfilesCurrentTx(bounded, auth, project, req.Limit, innerCursor)
+		profiles, e := s.listToolProfilesCurrentTx(bounded, auth, project, ToolProfileListQuery{State: "active", Limit: req.Limit, Cursor: innerCursor})
 		if e != nil {
 			return e
 		}
 		nextCursor := ""
 		if profiles.NextCursor != "" {
-			last, cursorErr := automationDecodeCursor(p, project, "tool_profiles", profiles.NextCursor)
+			last, cursorErr := automationDecodeCursor(p, project, profileCursorScope, profiles.NextCursor)
 			if cursorErr != nil {
 				return cursorErr
 			}

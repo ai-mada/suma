@@ -37,12 +37,12 @@ func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, actor 
 		out, err := s.Service.CreateToolProfile(r.Context(), actor, project, req)
 		respond(w, 201, out, err)
 	case len(parts) == 1 && r.Method == http.MethodGet:
-		limit, cursor, err := automationPage(r)
+		query, err := toolProfileListHTTPQuery(r)
 		if err != nil {
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.ListToolProfiles(r.Context(), actor, project, limit, cursor)
+		out, err := s.Service.ListToolProfiles(r.Context(), actor, project, query)
 		respond(w, 200, out, err)
 	case len(parts) == 2 && r.Method == http.MethodGet:
 		out, err := s.Service.GetToolProfile(r.Context(), actor, project, parts[1])

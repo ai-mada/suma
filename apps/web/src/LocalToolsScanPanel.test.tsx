@@ -21,6 +21,15 @@ async function render(disabled=false,p=project,identity=session,strict=false){co
 const rescan=()=>host.querySelector<HTMLButtonElement>('[data-local-tools-rescan]')!;
 async function click(element:HTMLButtonElement){await act(async()=>element.click());}
 
+it('T193 keeps eight scan facts separate from SDK manual setup and offers only an explicit existing-profile navigation',async()=>{
+ const sdk={...adapter,id:'claude-code-sdk',product:'Claude Agent SDK',adapter:'claude',protocol:'claude-sdk-v1'} as AdapterDescriptor,onViewExisting=vi.fn();
+ async function draw(disabled=false){await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[adapter,sdk]} disabled={disabled} onSelect={select} onViewExisting={onViewExisting}/></ApiViewProvider>));}
+ await draw();expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(8);expect(host.querySelector('[data-local-tools-adapter="claude-code-sdk"]')).toBeNull();expect(host.querySelector('[data-local-tools-manual-support]')?.textContent).toContain('Claude Agent SDK');
+ const basis=host.querySelector<HTMLDetailsElement>('[data-local-tools-basis="codex-app-server"]');expect(basis).not.toBeNull();expect(basis!.open).toBe(false);expect(basis!.textContent).toContain(adapter.protocol);
+ const existing=host.querySelector<HTMLButtonElement>('[data-local-tools-existing="codex-app-server"]');expect(existing).not.toBeNull();expect(onViewExisting).not.toHaveBeenCalled();await click(existing!);expect(onViewExisting).toHaveBeenCalledExactlyOnceWith(adapter);expect(select).not.toHaveBeenCalled();
+ await draw(true);expect(host.querySelector<HTMLButtonElement>('[data-local-tools-existing="codex-app-server"]')!.disabled).toBe(true);await click(host.querySelector<HTMLButtonElement>('[data-local-tools-existing="codex-app-server"]')!);expect(onViewExisting).toHaveBeenCalledOnce();expect(scan).toHaveBeenCalledOnce();expect(fetch).not.toHaveBeenCalled();
+});
+
 it('automatically scans once and only forces an explicit refresh, retaining locale and eight protocol facts without connecting',async()=>{
  await render(false,project,session,true);expect(scan).toHaveBeenCalledExactlyOnceWith({action:'scan',project_id:project,user_id:user,tenant_id:tenant,locale:'en-US'});expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(8);expect(select).not.toHaveBeenCalled();
  await act(async()=>setLocale('zh-CN',{persist:false}));await render(false,project,session,true);expect(scan).toHaveBeenCalledOnce();expect(host.textContent).toContain('本机开发工具');

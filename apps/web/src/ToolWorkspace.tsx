@@ -1,7 +1,7 @@
 import {useApi} from './api-context';
 import { Trans } from "./i18n/Trans";
 import { tr as t, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronRight,
   Plus,
@@ -21,7 +21,7 @@ import { ToolWriteRecovery } from "./tool-write";
 import {
   toolSessionStorage,
   useToolAction,
-  useToolList,
+  useManagedToolProfiles,
   useToolRead,
   type ToolAction,
 } from "./tool-hooks";
@@ -35,18 +35,19 @@ import {
 } from "./tool-model";
 import { ToolProfileFacts, toolReason } from "./ToolFacts";
 import { ToolReadiness, matchesToolFilter, type ToolFilter } from './ToolReadiness';
+import {readToolListFilters,toolListSearchParams,toolListStates,validToolListQuery,type ToolListFilters} from './tool-management-list-model';
 import {ToolInventoryField} from './ToolInventoryField';
 import {ToolDiscoveryPanel,type ToolDiscoveryAdoption} from './ToolDiscoveryPanel';
 import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
-import {ToolQuickConnect} from './ToolQuickConnect';
+import {ToolQuickConnect,type ToolConnectDraft} from './ToolQuickConnect';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
 import {RunnerPairingPanel} from './RunnerPairingPanel';
 import {readRunnerPairing} from './runner-pairing-model';
 import {validQuickConnectReceipt} from './tool-quick-connect-model';
-import {AdapterConnections,type AdapterDescriptor} from './AdapterConnections';
+import {AdapterConnections,readAdapterCatalog,type AdapterDescriptor} from './AdapterConnections';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {WorkBuddyConnections} from './WorkBuddyConnections';
 import type {DeveloperClientID} from './developer-client-connections-model';
@@ -66,7 +67,7 @@ type Props = {
   panel: string;
 };
 type Dialog =
-  | { kind: "create"; adapter?:AdapterDescriptor }
+  | { kind: "create"; adapter?:AdapterDescriptor; resumeQuick?:boolean }
   | { kind: "quick"; adapter?:AdapterDescriptor; preferredWorkerID?:string }
   | { kind: "worker"; mode?:'manual'|'pairing' }
   | {
@@ -92,8 +93,10 @@ function ScopedToolWorkspace({
   panel,
 }: Props) { const api=useApi(); useLocale();
   const [revision, setRevision] = useState(0),
-    [search, setSearch] = useState(""),
-    [dialog, setDialog] = useState<Dialog>(),
+    [filters,setFilters]=useState(()=>readToolListFilters(new URLSearchParams(window.location.search))),
+    [search, setSearch] = useState(filters.query),
+    [searchError,setSearchError]=useState(false),
+    [dialogState,setDialogState]=useState<{caller:typeof api;generation:number;value:Dialog}>(),
     [credential, setCredential] = useState<{
       worker_id: string;
       token?: string;
@@ -107,11 +110,21 @@ function ScopedToolWorkspace({
   const pairingCaller = useRef({api,generation:0});
   if(pairingCaller.current.api!==api)pairingCaller.current={api,generation:pairingCaller.current.generation+1};
   const pairingGeneration=pairingCaller.current.generation;
+  const dialog=dialogState?.caller===api&&dialogState.generation===pairingGeneration?dialogState.value:undefined;
+  function setDialog(value:Dialog|undefined){if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setDialogState(value?{caller:api,generation:pairingGeneration,value}:undefined);}
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
+  const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft}|undefined>(undefined);
+  const [,renderDraft]=useState(0),[connecting,setConnecting]=useState(false),[connectError,setConnectError]=useState<unknown>();
+  const activeWorkspace=useRef(true);
+  useEffect(()=>{activeWorkspace.current=true;return()=>{activeWorkspace.current=false;connectIntent.current++;};},[]);
+  useEffect(()=>{setConnecting(false);setConnectError(undefined);},[api]);
+  const draftSource=connectDraft.current?.caller===api&&connectDraft.current.generation===pairingGeneration&&connectDraft.current.context===contextKey?connectDraft.current:undefined;
+  const publicDraft=draftSource?.value;
   const [pairedSelection,setPairedSelection]=useState<{caller:typeof api;generation:number;context:string;value:RunnerPairing}>();
   const pairedRunner=pairedSelection?.caller===api&&pairedSelection.generation===pairingGeneration&&pairedSelection.context===contextKey?pairedSelection.value:undefined;
   const guideID = useId();
   const workerRows = useRef(new Map<string, HTMLElement>());
+  const sharedWorkerRows=useRef(new Map<string,HTMLElement>());
   const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'|'qoder'|'opencode'|'cursor'|'claude-sdk';cloud?:boolean}>();
   const connection=connectionSelection?.context===contextKey?connectionSelection:undefined;
   const recovery = useMemo(
@@ -126,11 +139,7 @@ function ScopedToolWorkspace({
     [session.organization.id, session.user.id, project, api],
   );
   const action = useToolAction(recovery, () => setDialog(undefined)),
-    profiles = useToolList<ToolProfile>(
-      project,
-      "tool-profiles",
-      refresh + revision,
-    ),
+    profiles = useManagedToolProfiles<ToolProfile>(project,filters,refresh+revision),
     workers = useToolRead<{ items: ExecutionWorker[] }>(
       "/release-workers" + query(project),
       refresh + revision,
@@ -145,6 +154,7 @@ function ScopedToolWorkspace({
         : "",
       refresh + revision,
     );
+  const detailBasis=JSON.stringify([selected,detail.data?.id,detail.data?.version,detail.data?.worker_id,detail.data?.profile.profile_sha256]),latestDetailBasis=useRef(detailBasis);latestDetailBasis.current=detailBasis;
   const refreshAll = useCallback(() => {
     if (!profiles.loading) void profiles.read();
     if (!workers.loading) void workers.read();
@@ -159,21 +169,18 @@ function ScopedToolWorkspace({
     return () => clearInterval(timer);
   }, [live, refreshAll]);
   const pending = !!action.pending,
-    writeBlocked = pending || action.busy || pairingLocked,
+    writeBlocked = pending || action.busy || pairingLocked || connecting,
     current = detail.data,
     stale = detail.loading || !!detail.error,
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
-    filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter) &&
-      (
-        profile.name +
-        " " +
-        profile.worker_id +
-        " " +
-        profile.profile.command_id + ' ' + profile.profile.adapter
-      )
-        .toLowerCase()
-        .includes(search.trim().toLowerCase()),
-    );
+    filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
+  function applyFilters(value:ToolListFilters){
+    if(!validToolListQuery(value.query)){setSearchError(true);return;}
+    const next={...value,query:value.query.trim()};setSearchError(false);setFilters(next);setFilter('all');
+    const params=toolListSearchParams(new URLSearchParams(window.location.search),next);
+    window.history.replaceState(window.history.state,'',window.location.pathname+(params.size?'?'+params:'')+window.location.hash);
+  }
+  useEffect(()=>{const update=()=>{const next=readToolListFilters(new URLSearchParams(window.location.search));setFilters(next);setSearch(next.query);setSearchError(false);setFilter('all');};window.addEventListener('popstate',update);return()=>window.removeEventListener('popstate',update);},[]);
   const identitiesKnown = !!workers.data && !workers.loading && !workers.error && !!sharedWorkers.data && !sharedWorkers.loading && !sharedWorkers.error;
   const identityCount = new Set([
     ...(workers.data?.items || []), ...(sharedWorkers.data?.items || []),
@@ -190,7 +197,29 @@ function ScopedToolWorkspace({
     action.clearError();
     void workers.read();
     void sharedWorkers.read();
+    beginPublicDraft(publicDraft??{adapterID:'',workerID:'',commandID:'',name:'',nameEdited:false});
     setDialog({kind:'quick'});
+  }
+  function updatePublicDraft(value:ToolConnectDraft,nonce:number|undefined){
+    const owner=connectDraft.current;
+    if(!owner||owner.nonce!==nonce||owner.caller!==api||owner.context!==contextKey||owner.generation!==pairingGeneration||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+    if(JSON.stringify(owner.value)!==JSON.stringify(value)){connectDraft.current={...owner,value:{...value}};renderDraft(value=>value+1);}
+  }
+  function beginPublicDraft(value:ToolConnectDraft){
+    const nonce=++connectIntent.current;connectDraft.current={caller:api,generation:pairingGeneration,context:contextKey,nonce,value:{...value}};renderDraft(value=>value+1);return nonce;
+  }
+  async function configureProfile(value:ToolProfile){
+    if(writeBlocked||stale||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
+    const nonce=++connectIntent.current;setConnecting(true);setConnectError(undefined);
+    try{
+      const catalog=readAdapterCatalog(await api<unknown>('/adapter-catalog'+query(project)),project);
+      if(!activeWorkspace.current||nonce!==connectIntent.current||latestDetailBasis.current!==detailBasis||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+      const matches=catalog?.items.filter(item=>item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&item.adapter===value.profile.adapter&&item.protocol===value.profile.protocol);
+      if(matches?.length!==1)throw new Error(t('tool-workspace.target_unavailable'));
+      beginPublicDraft({adapterID:matches[0].id,workerID:value.worker_id,commandID:value.profile.command_id,name:value.name,nameEdited:true});
+      action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:matches[0],preferredWorkerID:value.worker_id});
+    }catch(error){if(activeWorkspace.current&&nonce===connectIntent.current&&pairingCaller.current.api===api)setConnectError(error);}
+    finally{if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
   }
   function openRunnerPairing() {
     if(writeBlocked)return;
@@ -202,6 +231,7 @@ function ScopedToolWorkspace({
     try{readRunnerPairing(value,project);}catch{return;}
     setPairedSelection({caller:api,generation:pairingGeneration,context:contextKey,value});
     setReceipt(undefined);
+    beginPublicDraft({...publicDraft??{adapterID:'',commandID:'',name:'',nameEdited:false},workerID:value.worker_id});
     void workers.read();void sharedWorkers.read();
     setDialog({kind:'quick',preferredWorkerID:value.worker_id});
   }
@@ -220,6 +250,7 @@ function ScopedToolWorkspace({
     if(writeBlocked||!canLeave()||descriptor.implementation==='planned')return;
     if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,cloud:true}));return;}
     if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
+      beginPublicDraft(publicDraft?.adapterID===descriptor.id?publicDraft:{adapterID:descriptor.id,workerID:'',commandID:'',name:'',nameEdited:false});
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:descriptor});return;
     }
     const clients:Record<string,DeveloperClientID>={'cursor-client':'cursor','claude-code-client':'claude-code','codex-client':'codex','opencode-client':'opencode','qoder-client':'qoder','zed-client':'zed','workbuddy-connector':'workbuddy'};
@@ -272,6 +303,7 @@ function ScopedToolWorkspace({
         </summary>
         <AdapterConnections project={project} onSetup={setupConnection}/>
       </details>
+      {publicDraft&&guideOpen&&<div className="tool-connect-return"><p>{t('tool-workspace.draft_retained',{worker:publicDraft.workerID||t('tool-workspace.target_not_selected')})}</p><button type="button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button></div>}
       {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} disabled={writeBlocked}/>}
       {returnRun && (
         <a
@@ -292,6 +324,7 @@ function ScopedToolWorkspace({
           {t("development.tools.return_to_the_original_run_and_selected")}</a>
       )}
       <ToolRecoveryNotice action={action} onRestored={saved} />
+      {!!connectError&&<ErrorNotice error={renderDiagnostic(connectError)}/>}
       {receipt?.scope===contextKey&&<div className="tool-save-receipt" data-tool-receipt role="status"><CheckCircle2 size={18} aria-hidden="true"/><p>{t('tool-workspace.receipt.'+receipt.key,{name:receipt.name})}</p><button className="icon-button" aria-label={t('tool-workspace.dismiss_receipt')} onClick={()=>setReceipt(undefined)}><X size={16}/></button></div>}
       <div className="tool-refresh-bar">
         <small>{live ? t("development.tools.auto_refresh") : t("development.tools.auto_refresh_paused")}</small>
@@ -318,20 +351,25 @@ function ScopedToolWorkspace({
             </div>
           </div>
           <div className="tool-filter-tabs" role="group" aria-label={t('tool-workspace.filter')}>
-            {(['all','available','paused','attention','revoked'] as ToolFilter[]).map(value => <button key={value} aria-pressed={filter===value} onClick={() => setFilter(value)}>{t('tool-workspace.filter.'+value)} <span>{uncertain?'—':formatNumber(profiles.items?.filter(item=>matchesToolFilter(item,value)).length||0)}</span></button>)}
+            {toolListStates.map(value => <button key={value} type="button" data-tools-state={value} aria-pressed={filters.state===value} onClick={() => applyFilters({...filters,state:value})}>{t('tool-workspace.state.'+value)}</button>)}
           </div>
-          <div className="filter-toolbar">
+          <form className="filter-toolbar tool-search-form" data-tools-search onSubmit={event=>{event.preventDefault();applyFilters({...filters,query:search});}}>
             <Search size={16} aria-hidden="true"/>
             <input
-              aria-label={t("development.tools.search_loaded_tool_configurations")}
+              data-tools-query
+              aria-label={t('tool-workspace.search')}
+              aria-invalid={searchError}
               placeholder={t("development.tools.filter_by_name_worker_or_command")}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+            <button type="submit">{t('tool-workspace.search')}</button>
             <small aria-live="polite">
               {t("development.tools.loaded_count",{loaded:formatNumber(profiles.items?.length||0),total:formatNumber(profiles.total)})}
             </small>
-          </div>
+          </form>
+          {searchError&&<p className="warning" role="alert">{t('tool-workspace.query_invalid')}</p>}
+          <Field label={t('tool-workspace.window_filter')}><select data-tools-window-filter value={filter} onChange={event=>setFilter(event.target.value as ToolFilter)}>{(['all','available','attention'] as const).map(value=><option key={value} value={value}>{t('tool-workspace.filter.'+value)}</option>)}</select></Field>
           {profiles.error && (
             <ErrorNotice
               error={profiles.error}
@@ -376,13 +414,13 @@ function ScopedToolWorkspace({
             </div>
           ) : (
             <Empty
-              title={search || filter!=='all' ? t("development.tools.no_matching_configurations_in_this_window") : t("development.tools.no_execution_tools_registered")}
+              title={filters.query || filters.state!=='active' || filter!=='all' ? t('tool-workspace.no_matches') : t("development.tools.no_execution_tools_registered")}
               description={
-                search || filter!=='all'
-                  ? t("development.tools.adjust_the_filter_or_load_more")
+                filters.query || filters.state!=='active' || filter!=='all'
+                  ? t('tool-workspace.no_matches_hint')
                   : t("development.tools.register_an_execution_worker_identity_then_choose")
               }
-              action={search || filter!=='all'?<button onClick={() => {setSearch('');setFilter('all');}}>{t('tool-workspace.clear_filters')}</button>:<button onClick={openGuide}><CircleHelp size={14}/>{t('tool-workspace.setup_guide')}</button>}
+              action={filters.query || filters.state!=='active' || filter!=='all'?<button onClick={() => {setSearch('');applyFilters({state:'active',query:''});}}>{t('tool-workspace.clear_filters')}</button>:<button onClick={openGuide}><CircleHelp size={14}/>{t('tool-workspace.setup_guide')}</button>}
             />
           )}
           {profiles.next_cursor && <div className="list-footer">
@@ -433,13 +471,16 @@ function ScopedToolWorkspace({
                   <ToolProfileFacts key={current.id} profile={current} confirmed={!stale}>
                   <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={writeBlocked}
                     onReview={value=>{if(stale||writeBlocked||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
-                    onRegister={()=>{if(!stale&&!writeBlocked)openQuickConnect();}}
+                    onRegister={value=>{if(!stale&&!writeBlocked)void configureProfile(value);}}
                     onRefreshTool={()=>{if(!writeBlocked)void detail.read();}}
                     onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
+                    onSharedWorker={!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=sharedWorkerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
+                    onRun={(runID,nodeID)=>{if(!stale&&!writeBlocked&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run:runID,node:nodeID}));}}
                   />
                   <div className="tool-action-bar">
                     {current.state !== "revoked" && (
                       <>
+                        <button type="button" data-tools-adjust disabled={stale||writeBlocked} onClick={()=>void configureProfile(current)}>{t('tool-workspace.adjust')}</button>
                         {current.state === "paused" ? (
                           <button
                             className="primary"
@@ -466,7 +507,7 @@ function ScopedToolWorkspace({
                               });
                             }}
                           >
-                            {t("development.tools.pause_configuration")}</button>
+                            {t('tool-workspace.pause')}</button>
                         )}
                         <button
                           disabled={stale || writeBlocked}
@@ -479,7 +520,7 @@ function ScopedToolWorkspace({
                             });
                           }}
                         >
-                          {t("development.tools.revoke_configuration")}</button>
+                          {t('tool-workspace.remove')}</button>
                       </>
                     )}
                   </div>
@@ -552,6 +593,7 @@ function ScopedToolWorkspace({
             description={t("development.tools.registration_issues_a_one_time_project_scoped")}
           />
         )}
+        {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers"><h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>{sharedWorkers.data.items.map(worker=><article key={worker.id} className="tool-worker-row" tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}><div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span></article>)}</div>}
       </section>
       <Modal
         open={!!dialog}
@@ -571,7 +613,7 @@ function ScopedToolWorkspace({
                   ? {
                       enable: t("development.tools.review_and_enable_configuration"),
                       pause: t("development.tools.pause_tool_configuration"),
-                      revoke: t("development.tools.revoke_fixed_configuration"),
+                      revoke: t('tool-workspace.remove'),
                     }[dialog.action]
                   : t("development.tools.execution_tools")
         }
@@ -583,21 +625,28 @@ function ScopedToolWorkspace({
           action.error && <ErrorNotice error={action.error} />
         )}
         {dialog?.kind === "create" && (
+          <>
+          {dialog.resumeQuick&&publicDraft&&<button type="button" className="text-button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button>}
           <ToolProfileForm
             key={contextKey+":"+(dialog.adapter?.id||"")}
             project={project}
             adapter={dialog.adapter}
+            draft={dialog.resumeQuick?publicDraft:undefined}
+            onDraftChange={dialog.resumeQuick?value=>updatePublicDraft(value,draftSource?.nonce):undefined}
             workers={workers}
             sharedWorkers={sharedWorkers}
             action={action}
             onSaved={(value) => saved("/tool-profiles", value)}
             onCancel={() => setDialog(undefined)}
           />
+          </>
         )}
         {dialog?.kind === 'quick' && <ToolQuickConnect
           key={contextKey+':'+(dialog.adapter?.id||'')+':'+(dialog.preferredWorkerID||'')}
           project={project}
           adapter={dialog.adapter}
+          draft={publicDraft}
+          onDraftChange={value=>updatePublicDraft(value,draftSource?.nonce)}
           preferredWorkerID={dialog.preferredWorkerID}
           pairedRunner={pairedRunner}
           onPrepareRunner={preparePairedRunner}
@@ -606,11 +655,13 @@ function ScopedToolWorkspace({
           action={action}
           onRegistered={value=>{setReceipt({key:'registered',name:value.name,scope:contextKey});void profiles.read();onSelect(value.id);}}
           onOpen={profile=>{if(action.busy||action.pending)return;setReceipt(undefined);setDialog(undefined);onSelect(profile.id);}}
+          onViewExisting={adapter=>{if(writeBlocked)return;setSearch(adapter.adapter||adapter.product);applyFilters({state:'active',query:adapter.adapter||adapter.product});setDialog(undefined);requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('[data-tools-query]')?.focus());}}
           onEnable={profile=>{action.clearError();setDialog({kind:'decision',action:'enable',profile});}}
-          onAdvanced={adapter=>{if(writeBlocked)return;action.clearError();const qoder=adapter?.id==='qoder-acp'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='qoder'&&adapter.protocol==='acp-stdio-v1',opencode=adapter?.id==='opencode-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='opencode'&&adapter.protocol==='opencode-sdk-v1',cursor=adapter?.id==='cursor-cli'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='cursor'&&adapter.protocol==='acp-stdio-v1',claudeSDK=adapter?.id==='claude-code-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='claude'&&adapter.protocol==='claude-sdk-v1';if(qoder||opencode||cursor||claudeSDK){setDialog(undefined);setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:claudeSDK?'claude-sdk':cursor?'cursor':opencode?'opencode':'qoder'}));setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector('summary')?.focus());}else setDialog({kind:'create',adapter});}}
+          onAdvanced={adapter=>{if(writeBlocked)return;action.clearError();const qoder=adapter?.id==='qoder-acp'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='qoder'&&adapter.protocol==='acp-stdio-v1',opencode=adapter?.id==='opencode-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='opencode'&&adapter.protocol==='opencode-sdk-v1',cursor=adapter?.id==='cursor-cli'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='cursor'&&adapter.protocol==='acp-stdio-v1',claudeSDK=adapter?.id==='claude-code-sdk'&&adapter.direction==='suma_to_tool'&&adapter.adapter==='claude'&&adapter.protocol==='claude-sdk-v1';if(qoder||opencode||cursor||claudeSDK){setDialog(undefined);setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:claudeSDK?'claude-sdk':cursor?'cursor':opencode?'opencode':'qoder'}));setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector('summary')?.focus());}else setDialog({kind:'create',adapter,resumeQuick:true});}}
           onWorker={()=>{action.clearError();setDialog({kind:'worker'});}}
         />}
         {dialog?.kind === "worker" && <>
+          {publicDraft&&<button type="button" className="text-button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button>}
           <div className="tool-action-bar">
             <button type="button" data-worker-mode="manual" aria-pressed={dialog.mode!=='pairing'} disabled={writeBlocked} onClick={()=>{if(!writeBlocked)setDialog({kind:'worker',mode:'manual'});}}>{t('runner-pairing.mode_manual')}</button>
             <button type="button" data-worker-mode="pairing" aria-pressed={dialog.mode==='pairing'} disabled={writeBlocked} onClick={openRunnerPairing}>{t('runner-pairing.mode_remote')}</button>
@@ -722,6 +773,8 @@ function ScopedToolWorkspace({
 function ToolProfileForm({
   project,
   adapter,
+  draft,
+  onDraftChange,
   workers,
   sharedWorkers,
   action,
@@ -730,6 +783,8 @@ function ToolProfileForm({
 }: {
   project: string;
   adapter?:AdapterDescriptor;
+  draft?:ToolConnectDraft;
+  onDraftChange?:(draft:ToolConnectDraft)=>void;
   workers: IdentityRead;
   sharedWorkers: SharedIdentityRead;
   action: ToolAction;
@@ -739,15 +794,17 @@ function ToolProfileForm({
   const caller=useApi();
   const [manifest, setManifest] = useState(""),
     [observations, setObservations] = useState<ToolObservation[]>([]),
-    [command, setCommand] = useState(""),
+    [command, setCommand] = useState(draft?.commandID||""),
     [error, setError] = useState<unknown>(""),
     [submitError, setSubmitError] = useState<unknown>(''),
     [importing, setImporting] = useState(false),
-    [name, setName] = useState(""),
-    [nameEdited, setNameEdited] = useState(false),
+    [name, setName] = useState(draft?.name||""),
+    [nameEdited, setNameEdited] = useState(draft?.nameEdited||false),
     [source,setSource] = useState<'none'|'manual'|'discovery'>('none'),
     [manualRevision,setManualRevision] = useState(0),
-    [worker, setWorker] = useState("");
+    [worker, setWorker] = useState(draft?.workerID||"");
+  const requestedCommand=useRef(draft?.commandID||'');
+  useLayoutEffect(()=>{onDraftChange?.({adapterID:adapter?.id||draft?.adapterID||'',workerID:worker,commandID:command||requestedCommand.current,name,nameEdited});},[adapter?.id,draft?.adapterID,worker,command,name,nameEdited,onDraftChange]);
   const [adoption,setAdoption]=useState<ToolDiscoveryAdoption>(),[discoveryExpired,setDiscoveryExpired]=useState(false),[discoveryReadRevision,setDiscoveryReadRevision]=useState(0);
   useEffect(()=>{
     if(source!=='discovery'||!adoption)return;
@@ -779,9 +836,11 @@ function ToolProfileForm({
       const rows = parseToolManifest(text);
       const available = rows.filter(item=>item.available&&matchesAdapter(item));
       setObservations(rows);
-      if (available.length===1) {
-        setCommand(available[0].profile.command_id);
-        if (!nameEdited) setName(available[0].profile.command_id);
+      const preferred=available.find(item=>item.profile.command_id===requestedCommand.current);
+      const chosen=preferred||(!requestedCommand.current&&available.length===1?available[0]:undefined);
+      if (chosen) {
+        setCommand(chosen.profile.command_id);
+        if (!nameEdited) setName(chosen.profile.command_id);
       } else if (!nameEdited) setName('');
     } catch (error) {
       setError(error);
@@ -830,6 +889,7 @@ function ToolProfileForm({
           shared={sharedWorkers}
           value={worker}
           onChange={(value) => {
+            requestedCommand.current='';
             setWorker(value);
             setImporting(false);
             if(source==='discovery') {inspectManifest('');setSource('none');if(!nameEdited)setName('');}
@@ -864,7 +924,7 @@ function ToolProfileForm({
               <select
                 required
                 value={command}
-                onChange={(event) => {setCommand(event.target.value);if(!nameEdited)setName(event.target.value);}}
+                onChange={(event) => {requestedCommand.current=event.target.value;setCommand(event.target.value);if(!nameEdited)setName(event.target.value);}}
               >
                 <option value="">{t("development.tools.choose_a_probed_fixed_configuration")}</option>
                 {matchingObservations.map((item) => (
@@ -1045,7 +1105,7 @@ function ProfileDecisionForm({
           ? t("development.tools.enabling_still_requires_matching_current_identity_live")
           : decision === "pause"
             ? t("development.tools.pausing_blocks_subsequent_dispatch_only_operations_already")
-            : t("development.tools.revocation_is_irreversible_original_configurations_runs_and")}
+            : t('tool-workspace.remove_hint')}
       </p>
       <label className="check">
         <input
@@ -1054,7 +1114,7 @@ function ProfileDecisionForm({
           disabled={action.busy || !!action.pending}
           onChange={(event) => setConfirmed(event.target.checked)}
         />
-        {t("development.tools.confirm_"+decision,{version:current.version})}
+        {decision==='revoke'?t('tool-workspace.remove_confirm',{version:current.version}):t("development.tools.confirm_"+decision,{version:current.version})}
       </label>
       {action.conflict && (
         <div className="conflict-banner">
@@ -1097,7 +1157,7 @@ function ProfileDecisionForm({
             ? t("development.tools.confirm_enabling_this_configuration")
             : decision === "pause"
               ? t("development.tools.confirm_pausing_this_configuration")
-              : t("development.tools.confirm_revoking_this_configuration")}
+              : t('tool-workspace.remove')}
         </button>
       </div>
     </form>

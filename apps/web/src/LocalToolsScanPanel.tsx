@@ -5,12 +5,12 @@ import {useApi,useApiView} from './api-context';
 import {isCursorConnectionGuide,quickConnectAdapters} from './tool-quick-connect-model';
 import {toolConnectionDiagnostic} from './tool-connection-diagnostics-model';
 import {desktopACPRuntimeForAdapter} from './desktop-acp-connector-model';
-import {localToolsScanBridge,readLocalToolsScanResult,validLocalToolsScanScope,type LocalToolsScanScope,type LocalToolsScanResult} from './local-tools-scan-model';
-import {tr,useLocale} from './i18n';
+import {localToolsScanBridge,readLocalToolsScanResult,validLocalToolsScanScope,scanAdapterIDs,type LocalToolsScanScope,type LocalToolsScanResult} from './local-tools-scan-model';
+import {formatNumber,tr,useLocale} from './i18n';
 import './LocalToolsScanPanel.css';
 
-export type LocalToolsScanPanelProps={project:string;adapters:readonly AdapterDescriptor[];selectedAdapterID?:string;disabled?:boolean;onSelect:(adapter:AdapterDescriptor)=>void;onWorker?:()=>void};
-const t=(key:string)=>tr('local-tools-scan.'+key);
+export type LocalToolsScanPanelProps={project:string;adapters:readonly AdapterDescriptor[];selectedAdapterID?:string;disabled?:boolean;onSelect:(adapter:AdapterDescriptor)=>void;onWorker?:()=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void};
+const t=(key:string,values?:Record<string,unknown>)=>tr('local-tools-scan.'+key,values);
 const cursorReasons=new Set(['cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete']);
 function rowGuidance(adapterID:string,code:string){
  if(adapterID==='opencode-sdk'&&code==='version_unsupported')return {reason:tr('opencode-quick-connect.version_unsupported'),hint:'',install:true};
@@ -26,7 +26,7 @@ export function LocalToolsScanPanel(props:LocalToolsScanPanelProps){
  if(!validLocalToolsScanScope(scope))return null;
  return <ScanScope key={JSON.stringify(scope)+owner.current.epoch} {...props} scope={scope} bridge={bridge}/>;
 }
-function ScanScope({adapters,selectedAdapterID,disabled=false,onSelect,scope,bridge}:LocalToolsScanPanelProps&{scope:LocalToolsScanScope;bridge:NonNullable<ReturnType<typeof localToolsScanBridge>>}){
+function ScanScope({adapters,selectedAdapterID,disabled=false,onSelect,onViewExisting,scope,bridge}:LocalToolsScanPanelProps&{scope:LocalToolsScanScope;bridge:NonNullable<ReturnType<typeof localToolsScanBridge>>}){
  const locale=useLocale(),[result,setResult]=useState<Extract<LocalToolsScanResult,{status:'observed'}>>(),[busy,setBusy]=useState(false),[failure,setFailure]=useState(false),[expired,setExpired]=useState(false);
  const active=useRef(true),attempted=useRef(false),inflight=useRef(false),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),generation=useRef(0);
  // StrictMode replays effects on the same instance: preserve its original scan.
@@ -41,14 +41,17 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,onSelect,scope,bri
  }
  useEffect(()=>{if(!disabled&&!attempted.current){attempted.current=true;void scan();}},[disabled]);
  const eligible=adapters.filter(adapter=>quickConnectAdapters([adapter]).length===1||isCursorConnectionGuide(adapter));
+ const selected=eligible.find(adapter=>adapter.id===selectedAdapterID),sdkManual=eligible.some(adapter=>adapter.id==='claude-code-sdk'&&adapter.adapter==='claude'&&adapter.protocol==='claude-sdk-v1');
  return <section className="local-tools-scan" data-local-tools-scan aria-label={t('title')} aria-busy={busy}>
   <header><div><h4><Monitor size={18} aria-hidden="true"/>{t('title')}</h4><p>{t('intro')}</p></div><button type="button" data-local-tools-rescan disabled={disabled||busy} onClick={()=>void scan(true)}><RefreshCw size={16} aria-hidden="true"/>{t(busy?'scanning':'rescan')}</button></header>
   <p className="local-tools-scan-status" role="status">{t(failure?'failed':busy?'scanning':result?expired?'expired':result.scan.cached?'cached':'observed':disabled?'deferred':'waiting')}</p>
+  {selected&&<p className="local-tools-scan-target" data-local-tools-selected-target>{t('selected_target',{tool:selected.product})}</p>}
+  <p className="local-tools-scan-boundary">{t('scope_hint',{count:formatNumber(scanAdapterIDs.length)})}</p>{sdkManual&&<p className="local-tools-scan-boundary" data-local-tools-manual-support>{t('sdk_manual')}</p>}
   {result&&<><ul className="local-tools-scan-list">{result.report.items.map(item=>{const candidates=eligible.filter(adapter=>adapter.id===item.adapter_id),adapter=candidates.length===1?candidates[0]:undefined,guidance=rowGuidance(item.adapter_id,item.reason_code);return <li key={item.adapter_id} data-local-tools-adapter={item.adapter_id}>
-   <div className="local-tools-scan-item"><div className="local-tools-scan-name"><strong>{item.product}</strong><span><Search size={14} aria-hidden="true"/>{t(item.installed?'installed':'not_observed')}</span></div><code>{adapter?.protocol||item.adapter_id}</code>{item.version&&<p>{item.version}</p>}
-   <p className="local-tools-scan-guidance"><strong>{guidance.reason}</strong> {guidance.hint}</p>
-   {item.reason_code&&<details><summary><CircleHelp size={14} aria-hidden="true"/>{t('reason')}</summary><code>{item.reason_code}</code></details>}</div>
-   {adapter&&<button type="button" data-local-tools-select={item.adapter_id} aria-pressed={selectedAdapterID===item.adapter_id} disabled={disabled||busy} onClick={()=>onSelect(adapter)}>{t(isCursorConnectionGuide(adapter)?'guide':guidance.install?'install':'configure')}</button>}
+   <div className="local-tools-scan-item"><div className="local-tools-scan-name"><strong>{item.product}</strong><span><Search size={14} aria-hidden="true"/>{t(item.installed?expired?'installation_recorded':'installed':'not_observed')}</span></div>
+   <p className="local-tools-scan-guidance"><strong>{guidance.reason}</strong></p>
+   <details data-local-tools-basis={item.adapter_id}><summary><CircleHelp size={14} aria-hidden="true"/>{t('reason')}</summary>{guidance.hint&&<p>{guidance.hint}</p>}<dl><dt>{t('protocol')}</dt><dd><code>{adapter?.protocol||item.adapter_id}</code></dd>{item.version&&<><dt>{t('version')}</dt><dd>{item.version}</dd></>}<dt>{t('reason_code')}</dt><dd><code>{item.reason_code}</code></dd></dl></details></div>
+   {adapter&&<div className="local-tools-scan-actions">{onViewExisting&&<button type="button" className="text-button" data-local-tools-existing={item.adapter_id} disabled={disabled||busy} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onViewExisting(adapter);}}>{t('view_existing')}</button>}<button type="button" data-local-tools-select={item.adapter_id} aria-pressed={selectedAdapterID===item.adapter_id} disabled={disabled||busy} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onSelect(adapter);}}>{t(isCursorConnectionGuide(adapter)?'guide':guidance.install?'install':'configure')}</button></div>}
   </li>;})}</ul><p className="local-tools-scan-boundary">{t('boundary')}</p><details className="local-tools-scan-times"><summary>{t('observation')}</summary><dl><dt>{t('observed_at')}</dt><dd><time dateTime={result.scan.observed_at}>{result.scan.observed_at}</time></dd><dt>{t('expires_at')}</dt><dd><time dateTime={result.scan.expires_at}>{result.scan.expires_at}</time></dd></dl></details></>}
  </section>;
 }

@@ -23,7 +23,16 @@
  "tool-doctor.boundary":"节点身份有效不代表在线；探测、模型登录、预算与任务执行仍分别核对。",
  "tool-doctor.action.review_profile":"审核原配置",
  "tool-doctor.action.open_worker":"查看对应节点",
- "tool-doctor.action.register_profile":"配置新工具档案",
+ "tool-doctor.action.register_profile":"调整此节点配置",
  "tool-doctor.refresh_tool":"刷新原详情",
- "tool-doctor.refresh":"重新检查"
+ "tool-doctor.refresh":"重新检查",
+ "tool-doctor.selected_target":"已选配置",
+ "tool-doctor.shared_readonly":"通过当前项目授权，只读查看共享节点。",
+ "tool-doctor.target_details":"查看准确目标依据",
+ "tool-doctor.target_project":"项目",
+ "tool-doctor.target_worker":"原执行节点",
+ "tool-doctor.target_adapter":"适配器",
+ "tool-doctor.target_protocol":"协议",
+ "tool-doctor.target_profile":"原配置档案 ID",
+ "tool-doctor.target_hash":"完整配置摘要"
 }

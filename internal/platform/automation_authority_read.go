@@ -115,11 +115,11 @@ func (s *Service) GetToolProfile(ctx context.Context, actor Actor, project, id s
 	return out, err
 }
 
-func (s *Service) ListToolProfiles(ctx context.Context, actor Actor, project string, limit int, cursor string) (ToolProfileList, error) {
+func (s *Service) ListToolProfiles(ctx context.Context, actor Actor, project string, query ToolProfileListQuery) (ToolProfileList, error) {
 	var out ToolProfileList
 	err := s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeBrowserProjectRead, func(auth *authorizedCommand) error {
 		var e error
-		out, e = s.listToolProfilesCurrentTx(auth.ctx, auth, project, limit, cursor)
+		out, e = s.listToolProfilesCurrentTx(auth.ctx, auth, project, query)
 		return e
 	})
 	return out, err

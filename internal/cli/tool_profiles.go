@@ -17,12 +17,13 @@ import (
 )
 
 const toolMatchesUsage = "tools matches requires --file REQUEST_JSON or --file -; use tools --help"
+const toolProfilesUsage = "tools requires list, doctor or matches; use tools --help"
 const toolMatchesInvalid = "tool matches request requires the current project, worker_id and one complete exact profile"
 const toolMatchesResponseInvalid = "tool matches response must preserve the requested scope, complete profile and full result count"
 const toolMatchesInputLimit = 256 << 10
 
 func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
-	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[0] == "matches" || args[0] == "doctor") && (args[1] == "help" || args[1] == "--help") {
+	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[0] == "list" || args[0] == "matches" || args[0] == "doctor") && (args[1] == "help" || args[1] == "--help") {
 		text := toolProfilesHelpZH
 		if c.locale == localization.EnUS {
 			text = toolProfilesHelpEN
@@ -33,8 +34,11 @@ func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Re
 	if len(args) > 0 && args[0] == "doctor" {
 		return toolDoctorCommand(ctx, c, args[1:], out)
 	}
+	if len(args) > 0 && args[0] == "list" {
+		return toolListCommand(ctx, c, args[1:], out)
+	}
 	if len(args) == 0 || args[0] != "matches" {
-		return usage(toolMatchesUsage)
+		return usage(toolProfilesUsage)
 	}
 	flags := commandFlags("tools matches")
 	file := flags.String("file", "", "complete match request JSON file, or - for standard input")
@@ -104,7 +108,14 @@ func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Re
 	return writeJSON(out, response, c.token)
 }
 
-const toolProfilesHelpEN = `tools doctor — read current tool profile diagnostics
+const toolProfilesHelpEN = `tools list — read current tool connections or their history
+  suma --project PROJECT tools list [--state active|enabled|paused|revoked|all]
+       [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
+  Default: active (enabled and paused), 50 items. Query: at most 120 UTF-8 bytes.
+  Reuse the exact cursor with the same filters and original account/project view.
+  Profile changes retain the explicit enable/pause/revoke command API; revoke keeps history.
+
+tools doctor — read current tool profile diagnostics
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID
   This GET reports four current facts and their display deadline of at most 60 seconds.
   It never runs a suggestion, enables a profile or accesses tool credentials.
@@ -121,7 +132,14 @@ This POST only reads current matches. No operation key or --confirm is needed.
 Paused/enabled matches require explicit reuse; revoked entries are history.
 This command never creates, enables, connects or executes a tool.
 `
-const toolProfilesHelpZH = `tools doctor — 读取当前工具档案体检
+const toolProfilesHelpZH = `tools list — 查看当前工具接入或已移除记录
+  suma --project 项目ID tools list [--state active|enabled|paused|revoked|all]
+       [--query 检索文本] [--limit 1..200] [--cursor 原分页游标]
+  默认 active（已启用和暂停），每页 50 项；检索文本最多 120 个 UTF-8 字节。
+  翻页保持原筛选、账号和项目，使用同一列表返回的原游标。
+  配置变更仍使用原 enable/pause/revoke 命令 API；revoke 移除接入并保留历史。
+
+tools doctor — 读取当前工具档案体检
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID
   此 GET 展示四项当前事实与最多 60 秒的展示期限。
   不运行建议、不启用档案、不读取工具凭据。

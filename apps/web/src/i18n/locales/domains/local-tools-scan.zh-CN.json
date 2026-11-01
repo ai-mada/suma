@@ -13,12 +13,20 @@
  "local-tools-scan.waiting":"等待检测。",
  "local-tools-scan.installed":"检测到安装",
  "local-tools-scan.not_observed":"未确认安装",
- "local-tools-scan.reason":"查看检测原因",
+ "local-tools-scan.reason":"查看检测依据",
  "local-tools-scan.guide":"查看接入指南",
  "local-tools-scan.configure":"配置接入",
  "local-tools-scan.install":"安装与接入",
  "local-tools-scan.boundary":"安装观察不代表已连接或可派发。Codex 的两个接入项使用不同协议。",
  "local-tools-scan.observation":"查看观察时间",
  "local-tools-scan.observed_at":"观察时间",
- "local-tools-scan.expires_at":"有效期至"
+ "local-tools-scan.expires_at":"有效期至",
+ "local-tools-scan.selected_target":"已选接入：{{tool}}",
+ "local-tools-scan.scope_hint":"自动检测覆盖 {{count}} 个已支持协议入口。选择入口只会打开原配置流程。",
+ "local-tools-scan.sdk_manual":"Claude Agent SDK 使用独立配置与 Runner 上报流程，不从原 Claude CLI 扫描推断其宿主或模型已就绪。",
+ "local-tools-scan.protocol":"接入协议",
+ "local-tools-scan.version":"已观察版本",
+ "local-tools-scan.reason_code":"原检测代码",
+ "local-tools-scan.installation_recorded":"已有安装记录，待重新核对",
+ "local-tools-scan.view_existing":"查看已有接入"
 }

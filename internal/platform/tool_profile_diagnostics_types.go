@@ -20,4 +20,29 @@ type ToolProfileDiagnostics struct {
 	ExpiresAt  string                       `json:"expires_at"`
 	Checks     []ToolProfileDiagnosticCheck `json:"checks"`
 	NextAction string                       `json:"next_action"`
+	Impact     *ToolProfileImpact           `json:"impact,omitempty" wire:"nonnull"`
+}
+
+// Impact describes observed references in the current authorized project's
+// active runs. It never claims to enumerate external processes or stop them.
+type ToolProfileImpact struct {
+	Scope                  string                  `json:"scope"`
+	ObservedAt             string                  `json:"observed_at"`
+	Coverage               string                  `json:"coverage"`
+	RunsExamined           int                     `json:"runs_examined"`
+	NodesExamined          int                     `json:"nodes_examined"`
+	ObservedReferenceCount int                     `json:"observed_reference_count"`
+	Items                  []ToolProfileImpactItem `json:"items"`
+	ItemsTruncated         bool                    `json:"items_truncated"`
+	Reason                 string                  `json:"reason"`
+}
+
+type ToolProfileImpactItem struct {
+	RunID     string `json:"run_id"`
+	NodeID    string `json:"node_id"`
+	RunState  string `json:"run_state"`
+	NodeState string `json:"node_state"`
+	WorkerID  string `json:"worker_id"`
+	Attempt   int    `json:"attempt"`
+	Fence     int64  `json:"fence"`
 }

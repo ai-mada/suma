@@ -7623,11 +7623,38 @@ export interface ToolProfileDiagnostics {
   expires_at: string;
   checks: (ToolProfileDiagnosticCheck)[];
   next_action: string;
+  impact?: ToolProfileImpact;
+}
+export interface ToolProfileImpact {
+  scope: "active_project_runs";
+  observed_at: string;
+  coverage: "complete" | "partial" | "unknown";
+  runs_examined: number;
+  nodes_examined: number;
+  observed_reference_count: number;
+  items: (ToolProfileImpactItem)[];
+  items_truncated: boolean;
+  reason: "" | "run_limit" | "node_limit" | "source_unavailable";
+}
+export interface ToolProfileImpactItem {
+  run_id: string;
+  node_id: string;
+  run_state: string;
+  node_state: string;
+  worker_id: string;
+  attempt: number;
+  fence: number;
 }
 export interface ToolProfileList {
   items: (ToolProfile)[];
   total: number;
   next_cursor?: string;
+}
+export interface ToolProfileListQuery {
+  state?: "active" | "enabled" | "paused" | "revoked" | "all";
+  query?: string;
+  limit?: number;
+  cursor?: string;
 }
 export interface ToolProfileMatchList {
   project_id: string;

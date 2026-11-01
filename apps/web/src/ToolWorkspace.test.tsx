@@ -41,11 +41,13 @@ it('clears node facts on an actor switch while preserving the old uncertain oper
  expect(host.textContent).not.toContain('old-scope-runner');expect(sessionStorage.getItem(key)).toBe(pending);expect(writes).toHaveLength(0);
  await act(async()=>pendingReads.forEach(resolve=>resolve(Response.json({items:[],as_of:'2026-10-29T05:00:00Z'}))));await settle();expect(host.textContent).not.toContain('old-scope-runner');expect(writes).toHaveLength(0);
 });
-it('filters by actual dispatch eligibility and keeps name/adapter search combined',async()=>{
- items=[profile('ready','enabled',true),profile('review','paused',false),profile('offline','enabled',false),profile('retired','revoked',false)];await render();
- await click('可派发 1');expect([...host.querySelectorAll('.tool-resource strong')].map(e=>e.textContent)).toEqual(['ready']);
- await click('待处理 1');expect([...host.querySelectorAll('.tool-resource strong')].map(e=>e.textContent)).toEqual(['offline']);
- await click('全部 4');await change(host.querySelector('.filter-toolbar input')!,'command');expect(host.querySelectorAll('.tool-resource')).toHaveLength(4);
+it('filters actual dispatch eligibility within the loaded window and submits public search explicitly',async()=>{
+ items=[profile('ready','enabled',true),profile('review','paused',false),profile('offline','enabled',false)];await render();
+ const select=host.querySelector<HTMLSelectElement>('[data-tools-window-filter]')!;
+ await change(select,'available');expect([...host.querySelectorAll('.tool-resource strong')].map(e=>e.textContent)).toEqual(['ready']);
+ await change(select,'attention');expect([...host.querySelectorAll('.tool-resource strong')].map(e=>e.textContent)).toEqual(['offline']);
+ await change(select,'all');await change(host.querySelector('.filter-toolbar input')!,'command');expect(host.querySelectorAll('.tool-resource')).toHaveLength(3);
+ await act(async()=>host.querySelector<HTMLFormElement>('[data-tools-search]')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();expect(new URLSearchParams(window.location.search).get('tools_query')).toBe('command');
 });
 it('never presents retained availability as current after a failed refresh',async()=>{
  items=[profile('ready','enabled',true)];await render();fail=true;

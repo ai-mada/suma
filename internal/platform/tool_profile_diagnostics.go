@@ -20,6 +20,14 @@ func (s *Service) GetToolProfileDiagnostics(ctx context.Context, actor Actor, pr
 			return err
 		}
 		out, err = s.collectToolProfileObservationLockedTx(auth.ctx, auth.tx, auth.currentPrincipal.TenantID, project, profile, true)
+		if err != nil {
+			return err
+		}
+		impact, err := s.toolProfileImpactTx(auth.ctx, auth.tx, auth.currentPrincipal.TenantID, project, profile, out.CheckedAt)
+		if err != nil {
+			return err
+		}
+		out.Impact = &impact
 		return err
 	})
 	return out, err

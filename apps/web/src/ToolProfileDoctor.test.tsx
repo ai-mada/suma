@@ -22,6 +22,21 @@ function deferred(){let resolve!:(value:Response)=>void;const promise=new Promis
 beforeEach(async()=>{await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
 
+it('T193 carries the exact original profile into configuration and offers only a supplied read-only shared-node destination',async()=>{
+ const original={...tool,reason:'The reported configuration differs from this profile'};
+ let current:ToolProfileDiagnostics={...report(original),checks:report(original).checks.map(check=>({...check,status:check.code==='profile'?'blocked' as const:'pass' as const,reason:check.code==='profile'?original.reason:'',next_action:check.code==='profile'?'register_profile':'none'})),next_action:'register_profile'};
+ const onRegister=vi.fn(),onSharedWorker=vi.fn(),fetcher=vi.fn(async(_input:string,_init:RequestInit)=>Response.json(current));vi.stubGlobal('fetch',fetcher);
+ await render({tool:original,onRegister});await click('[data-tool-doctor-action="register_profile"]');expect(onRegister).toHaveBeenCalledExactlyOnceWith(original);
+ const basis=host.querySelector<HTMLDetailsElement>('[data-tool-profile-doctor-basis]');expect(basis).not.toBeNull();expect(basis!.open).toBe(false);expect(basis!.textContent).toContain(original.worker_id);expect(host.querySelectorAll('[data-tool-doctor-action]')).toHaveLength(1);
+ const shared={...tool,id:'shared-tool',worker_id:'pool-shared-worker',name:'Original shared tool'};current=report(shared);
+ await render({tool:shared,onSharedWorker});expect(host.textContent).toContain('read-only');await click('[data-tool-doctor-action="open_worker"]');expect(onSharedWorker).toHaveBeenCalledExactlyOnceWith(shared.worker_id);expect(onRegister).toHaveBeenCalledOnce();
+ fetcher.mockResolvedValueOnce(Response.json({error:{code:'forbidden',message:'Current diagnostic access denied'}},{status:403}));await click('[data-tool-doctor-refresh]');expect(host.querySelector('[data-tool-profile-doctor-target]')).toBeNull();
+ const deniedRetry=deferred();fetcher.mockImplementationOnce(()=>deniedRetry.promise);await click('[data-tool-doctor-refresh]');expect(host.querySelector('[data-tool-profile-doctor-target]')).toBeNull();expect(action()).toBeNull();
+ await act(async()=>deniedRetry.resolve(Response.json({error:{code:'unavailable',message:'Temporary read failure'}},{status:503})));await settle();expect(host.querySelector('[data-tool-profile-doctor-target]')).toBeNull();
+ await click('[data-tool-doctor-refresh]');expect(host.querySelector('[data-tool-profile-doctor-target]')?.textContent).toContain(shared.name);expect(onSharedWorker).toHaveBeenCalledOnce();
+ await render({tool:shared,onSharedWorker,disabled:true});expect(action()).toBeNull();expect(onSharedWorker).toHaveBeenCalledOnce();expect(fetcher.mock.calls.every(call=>call[1].method==='GET')).toBe(true);
+});
+
 it('reads exact scoped facts and offers only an explicit supplied destination without writing',async()=>{
  const fetcher=vi.fn(async()=>Response.json(report())),onWorker=vi.fn();vi.stubGlobal('fetch',fetcher);
  await render({onWorker});expect(state()).toBe('ready');expect(onWorker).not.toHaveBeenCalled();expect(fetcher).toHaveBeenCalledTimes(1);

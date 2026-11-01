@@ -14,4 +14,5 @@ var validationCatalog = []Definition{
 	{Key: "validation.release_detail", Parameters: []Parameter{{Name: "detail", Kind: Text}}, Texts: map[Locale]string{ZhCN: "发布请求存在未知字段或错误类型: {{.detail}}", EnUS: "The release request contains unknown fields or incorrect types: {{.detail}}"}},
 	{Key: "validation.tool_inventory_detail", Parameters: []Parameter{{Name: "detail", Kind: Text}}, Texts: map[Locale]string{ZhCN: "工具探测数据无效：{{.detail}}", EnUS: "Invalid tool observation: {{.detail}}"}},
 	{Key: "validation.tool_profile_detail", Parameters: []Parameter{{Name: "detail", Kind: Text}}, Texts: map[Locale]string{ZhCN: "固定工具档案无效：{{.detail}}", EnUS: "Invalid pinned tool profile: {{.detail}}"}},
+	{Key: "validation.tool_profile_filter", Texts: map[Locale]string{ZhCN: "工具列表筛选无效", EnUS: "Invalid tool list filters."}},
 }

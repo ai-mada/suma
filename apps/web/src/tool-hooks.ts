@@ -1,9 +1,11 @@
 import { tr, useLocale, renderDiagnostic } from "./i18n";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ApiError, api } from "./api";
+import { ApiError } from "./api";
 import { EntityPager } from "./pagination";
 import { useLeaveGuard } from "./write-action";
 import { ToolWriteRecovery } from "./tool-write";
+import {useApi} from './api-context';
+import {ToolProfilePager,type ToolListFilters} from './tool-management-list-model';
 export function toolError(error: unknown) {
   if (typeof error === "string") return renderDiagnostic(error);
   return error instanceof ApiError
@@ -19,55 +21,64 @@ export function toolSessionStorage() {
     return undefined;
   }
 }
-export function useToolRead<T>(path: string, refresh: number | string = 0) {
+type ToolReadView<T>={path:string;data?:T;loading:boolean;error:string;failure?:unknown;read:()=>Promise<void>};
+export function useToolRead<T>(path: string, refresh: number | string = 0):ToolReadView<T> {
   useLocale();
+  const caller=useApi();
   const [state, setState] = useState<{
       path: string;
+      caller:typeof caller;
       data?: T;
       loading: boolean;
       error: string;
       failure?: unknown;
-    }>({ path, loading: !!path, error: "" }),
+    }>({ path, caller, loading: !!path, error: "" }),
     epoch = useRef(0);
+  const owner=useRef(caller);
+  if(owner.current!==caller){owner.current=caller;epoch.current++;}
   const read = useCallback(async () => {
     const generation = ++epoch.current;
     if (!path) {
-      setState({ path, loading: false, error: "" });
+      setState({ path, caller, loading: false, error: "" });
       return;
     }
     setState((before) => ({
       path,
-      data: before.path === path ? before.data : undefined,
+      caller,
+      data: before.path === path&&before.caller===caller ? before.data : undefined,
       loading: true,
       error: "",
       failure: undefined,
     }));
     try {
-      const data = await api<T>(path);
+      const data = await caller<T>(path);
       if (generation === epoch.current)
-        setState({ path, data, loading: false, error: "" });
+        setState({ path, caller, data, loading: false, error: "" });
     } catch (error) {
       if (generation === epoch.current)
         setState((before) => ({
           ...before,
+          data:error instanceof ApiError&&[401,403,404].includes(error.status)?undefined:before.data,
           loading: false,
           error: toolError(error),
           failure: error,
         }));
     }
-  }, [path]);
+  }, [path,caller]);
   useEffect(() => {
     void read();
     return () => {
       epoch.current++;
     };
   }, [read, refresh]);
+  const current=state.path===path&&state.caller===caller;
   return {
-    ...(state.path === path
-      ? state
-      : { path, data: undefined, loading: !!path, error: "" }),
+    path,
+    data:current?state.data:undefined,
+    loading:current?state.loading:!!path,
+    failure:current?state.failure:undefined,
     error:
-      state.path === path
+      current
         ? state.failure
           ? toolError(state.failure)
           : state.error
@@ -97,6 +108,21 @@ export function useToolList<T extends { id: string }>(
   }, [read, refresh]);
   return { ...page, read };
 }
+export function useManagedToolProfiles<T extends {id:string}>(project:string,filters:ToolListFilters,refresh:number){
+ const caller=useApi(),holder=useRef<{caller:typeof caller;pager:ToolProfilePager<T>}|undefined>(undefined);
+ if(!holder.current||holder.current.caller!==caller){holder.current?.pager.invalidate();holder.current={caller,pager:new ToolProfilePager<T>(project,filters,caller)};}
+ const pager=holder.current.pager;pager.setScope(project,filters);
+ const [,render]=useState(0),mounted=useRef(false),current=useRef(pager);current.current=pager;
+ useLayoutEffect(()=>{mounted.current=true;return()=>{mounted.current=false;pager.invalidate();};},[pager]);
+ const read=useCallback(async(more=false)=>{
+  if(!mounted.current||current.current!==pager)return;
+  const request=more?pager.more():pager.first();render(value=>value+1);
+  await request;if(mounted.current&&current.current===pager)render(value=>value+1);
+ },[pager,project,filters.state,filters.query]);
+ useEffect(()=>{void read();},[read,refresh]);
+ return {...pager.snapshot(),read};
+}
+
 type ToolRecovery = Pick<ToolWriteRecovery, "pending" | "error" | "run" | "restore">;
 type ActionState = { recovery: ToolRecovery; busy: boolean; error: unknown; conflict: boolean; deferred: boolean; sequence: number; ticket?: number };
 export function useToolAction(recovery: ToolRecovery, onDefer?: () => void) {

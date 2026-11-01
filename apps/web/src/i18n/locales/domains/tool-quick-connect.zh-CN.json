@@ -41,5 +41,8 @@
  "tool-quick-connect.local_boundary":"安装检测不会连接执行节点、登记配置或启用派发。",
  "tool-quick-connect.local_launch_pending":"已找到工具，但启动方式仍需在高级接入中确认。安装检测不会登记或启用工具。",
  "tool-quick-connect.next":"选择工具，自动配置",
- "tool-quick-connect.next_hint":"自动采用已连接节点的新鲜探测结果，核对后登记并明确启用。"
+ "tool-quick-connect.next_hint":"自动采用已连接节点的新鲜探测结果，核对后登记并明确启用。",
+ "tool-quick-connect.view_existing":"查看已有接入",
+ "tool-quick-connect.saved_node_missing":"先前选择的节点 {{node}} 当前不可用。请核对原节点，或明确选择其他节点。",
+ "tool-quick-connect.saved_configuration_missing":"先前选择的配置 {{command}} 不在当前可用上报中。请核对原节点配置，或明确选择其他配置。"
 }

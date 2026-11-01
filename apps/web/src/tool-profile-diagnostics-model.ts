@@ -2,6 +2,7 @@ import type {ToolProfile,ToolProfileDiagnosticCheck,ToolProfileDiagnostics} from
 import {UiError} from './i18n';
 import {sameToolProfile} from './tool-profile-reuse-model';
 import {parseToolManifest} from './tool-model';
+import {readToolProfileImpact} from './tool-profile-impact-model';
 export type ToolDoctorAction='none'|'review_profile'|'open_worker'|'register_profile'|'refresh';
 export function isToolDoctorAction(value:unknown):value is ToolDoctorAction{
  return typeof value==='string' && ['none','review_profile','open_worker','register_profile','refresh'].includes(value);
@@ -32,7 +33,7 @@ function instant(value:unknown):number|undefined{
  return whole+(value[19]==='.'?Number('0'+value.slice(19,-1))*1000:0);
 }
 function validReport(value:unknown,expected:{project:string;toolID:string}):value is ToolProfileDiagnostics{
- return record(value) && closed(value,['tool','checked_at','expires_at','checks','next_action']) && validTool(value.tool,expected) && isToolDoctorAction(value.next_action) && Array.isArray(value.checks) && value.checks.length===4 && ['authorization','worker','inventory','profile'].every((code,index)=>check(value.checks instanceof Array?value.checks[index]:undefined,code));
+ return record(value) && closed(value,['tool','checked_at','expires_at','checks','next_action'],['impact']) && (!Object.hasOwn(value,'impact') || !!readToolProfileImpact(value.impact)) && validTool(value.tool,expected) && isToolDoctorAction(value.next_action) && Array.isArray(value.checks) && value.checks.length===4 && ['authorization','worker','inventory','profile'].every((code,index)=>check(value.checks instanceof Array?value.checks[index]:undefined,code));
 }
 /** The caller deducts elapsed request time using its monotonic clock. No action
  * or dispatch eligibility is inferred from a reason or presentation identity. */

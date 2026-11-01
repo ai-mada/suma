@@ -14,6 +14,9 @@ it('reads the exact four current facts without deriving eligibility or using the
  expect(readToolProfileDiagnostics(partial,expected).remainingMs).toBe(12125);
  for(const action of ['none','review_profile','open_worker','register_profile','refresh'])expect(isToolDoctorAction(action)).toBe(true);
  expect(isToolDoctorAction('enable')).toBe(false);
+ const impact={scope:'active_project_runs',observed_at:value.checked_at,coverage:'complete',runs_examined:1,nodes_examined:1,observed_reference_count:1,items:[{run_id:'run-a',node_id:'node-a',run_state:'running',node_state:'pending',worker_id:'',attempt:0,fence:0}],items_truncated:false,reason:''};
+ expect(readToolProfileDiagnostics({...value,impact},expected).report).toHaveProperty('impact',impact);
+ for(const invalid of [null,{...impact,coverage:'unknown',reason:''},{...impact,observed_reference_count:0},{...impact,items:[{...impact.items[0],node_state:'failed'}]},{...impact,token:'private'}])expect(()=>readToolProfileDiagnostics({...value,impact:invalid},expected)).toThrow();
 });
 it('rejects cross-scope, private payloads and incomplete or reordered diagnostic collections',()=>{
  const value=report();

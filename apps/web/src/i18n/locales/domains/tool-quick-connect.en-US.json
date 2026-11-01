@@ -41,5 +41,8 @@
  "tool-quick-connect.local_boundary":"An installation check does not connect a node, register a configuration or enable dispatch.",
  "tool-quick-connect.local_launch_pending":"The tool was found, but its launch method needs Advanced setup. This check does not register or enable the tool.",
  "tool-quick-connect.next":"Choose a tool and configure automatically",
- "tool-quick-connect.next_hint":"Use a connected node's fresh inventory, review the configuration, then register and explicitly enable it."
+ "tool-quick-connect.next_hint":"Use a connected node's fresh inventory, review the configuration, then register and explicitly enable it.",
+ "tool-quick-connect.view_existing":"View existing connections",
+ "tool-quick-connect.saved_node_missing":"The previously selected node {{node}} is currently unavailable. Check that node or explicitly choose another.",
+ "tool-quick-connect.saved_configuration_missing":"The previously selected configuration {{command}} is absent from the current available report. Check the original node configuration or explicitly choose another."
 }

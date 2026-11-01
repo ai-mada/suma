@@ -1,0 +1,220 @@
+{
+  "stage": "T-TOOL-MANAGEMENT-193",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "status": "scoped_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "统一简洁连接入口：快速接入和高级配置共用当前身份、项目、适配器、节点与公开草稿；返回后重新核对库存及既有精确匹配。",
+    "连接列表采用服务端状态、公开字段搜索与作用域绑定游标；默认当前连接，已移除记录可单独查询，任务筛选不受影响。",
+    "调整执行配置生成明确复核的新固定配置；暂停与撤销复用原命令和操作回执，保留历史、未知操作核对和当前权限。",
+    "诊断提供当前项目活动运行的有界引用摘要，并明确完整、部分、未知覆盖；删除连接不伪称外部进程停止。",
+    "Doctor以当前选中节点和工具给出下一步，技术信息折叠；权限拒绝立即清除受保护旧数据，暂时故障与失权区分。",
+    "原CLI新增只读tools list，复用登录身份、项目、筛选、分页和原错误，不自动执行诊断建议。"
+  ],
+  "verification": {
+    "distinct_top_level": 62,
+    "new_top_level": 20,
+    "affected_existing_top_level": 42,
+    "go_subcases": 2,
+    "control_top_level": 6,
+    "cli_top_level": 3,
+    "web_top_level": 50,
+    "root_contract_top_level": 2,
+    "actual_top_level": 1,
+    "root_receipts": [
+      {
+        "test": "TestToolManagementContractKeepsFilteredReadsAndScopedImpact",
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "command": ".cache/follow155/root-go/20261101T131133969Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestToolProfileDiagnosticsContractKeepsOriginalAvailabilityAndFourFacts",
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "command": ".cache/follow155/root-go/20261101T123803298Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      },
+      {
+        "test": "TestToolManagementActualHTTPAndCLI",
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "command": ".cache/follow155/root-go/20261101T125114740Z.command.json",
+        "command_exit": 0,
+        "package_passed": true
+      }
+    ],
+    "contract_generations": [
+      ".cache/follow155/root-go/20261101T131217413Z.command.json",
+      ".cache/follow155/root-go/20261101T124125681Z.command.json"
+    ],
+    "cli_build": ".cache/follow155/root-go/20261101T125000675Z.command.json",
+    "new_http_paths": 0,
+    "new_business_tables": 0,
+    "new_schemas": [
+      "ToolProfileImpact",
+      "ToolProfileImpactItem",
+      "ToolProfileListQuery"
+    ],
+    "initial_complete_typecheck_exit": 2,
+    "initial_type_diagnostics": 5,
+    "corrected_type_sources": 2,
+    "affected_semantic_files": 4,
+    "final_affected_semantic_diagnostics": 0,
+    "paired_locale_keys": 9034,
+    "production_hardcodes": 0,
+    "first_fixture_build_failed": "top-level await incompatible with IIFE; only ignored fixture initialization corrected",
+    "successful_isolated_component_builds": 3,
+    "gui_checks": 3,
+    "gui_images": 2,
+    "gui_native_hosts": 1,
+    "gui_native_exit": 0,
+    "read_only_visual_states": 2,
+    "read_only_visual_hosts": 2,
+    "visual_fixture_refinements": 2,
+    "actual_cli_invocations": 4,
+    "full_suite_repeated": false
+  },
+  "actual": {
+    "status": "actual_http_sqlite_compiled_cli_confirmed",
+    "final_state": "revoked",
+    "impact_scope": "active_project_runs",
+    "impact_coverage": "complete",
+    "observed_references": 1,
+    "run_state_retained": "running",
+    "cli_operation_deltas": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "vendor_calls": 0,
+    "model_calls": 0,
+    "native_tool_processes": 0,
+    "customer_acceptance": false
+  },
+  "review": {
+    "remaining_confirmed_p1_p2": 0,
+    "stored_node_source_reader_fixed": true,
+    "authorization_and_late_caller_fixed": true,
+    "doctor_denial_latch_fixed": true,
+    "cursor_operation_schema_bound_fixed": true
+  },
+  "boundaries": [
+    "自动刷新服务端报告不等于重新执行本机扫描、安装、登录或修复；涉及执行、权限和效果的操作继续明确授权。",
+    "活动影响仅涵盖当前项目最多200运行/2000节点、原配置ID和摘要；最多显示5条，未启动计划、历史记录和未知外部进程不在完整覆盖内。",
+    "本地实际链路使用真实HTTP、SQLite和编译CLI；工具库存和活动运行是明确自有元数据夹具，0原生工具/Runner/厂商/模型调用。",
+    "GUI为真实产品组件与隔离合成数据的3条代表交互，不是生产验收；其他系统、真实厂商账号、物理多机和规模继续单列。",
+    "完整原31项、P0–P7、58limited/34pending/92total仍active；本阶段不改产品1.0.0、数据库初始化、SDK执行或历史兼容。"
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-management-193/control/summary.json",
+      "sha256": "08e24c921dbc2bcd956ad1c4741e2fa1a52f71f3b9249dab25fae5f37a821d5d"
+    },
+    {
+      "path": ".cache/tool-management-193/control/source-manifest.json",
+      "sha256": "28b0c31cd36812e4afb7ce8333dcd675b1fa2732d95e4e5725f0660d979a5b58"
+    },
+    {
+      "path": ".cache/tool-management-193/cli/summary.json",
+      "sha256": "fa4e18a208423601581768cfc74842644b6fcf3e9fb8910fc343e870d191639c"
+    },
+    {
+      "path": ".cache/tool-management-193/cli/source-manifest.json",
+      "sha256": "9e5927c0fd24d104e9bcd397e599fbabb3d3a3c78a6aa2bfb4581b60ac51c19a"
+    },
+    {
+      "path": ".cache/tool-management-193/web/integration-summary.json",
+      "sha256": "82bfc2ca1820fd5d22bd0d5eb6feca403f491049f6bbf8be43e3840cace15424"
+    },
+    {
+      "path": ".cache/tool-management-193/shared-review.json",
+      "sha256": "622e64fa25a80b5981079c7c45ab0c545d8334e89cd0ae0c6822951bdecad27c"
+    },
+    {
+      "path": ".cache/tool-management-193/root-review.json",
+      "sha256": "c3e154e3e06f14ecf214d2b36ba341eb2b2a02941f0a2506d99d4404e77da609"
+    },
+    {
+      "path": ".cache/tool-management-193/actual/receipt.json",
+      "sha256": "1a52e57fa5c7543bd6fa458b7d9a686eae42cebc9e71b3703f9f3f7038efb22b"
+    },
+    {
+      "path": ".cache/tool-management-193/semantic-result.json",
+      "sha256": "0cf4e579aff7e8f38dae9e81867887dff313da1d855e7f2d6fa6dc6d506b74af"
+    },
+    {
+      "path": ".cache/tool-management-193/types.command.json",
+      "sha256": "914c793c74df0c14bb02c3f3859365d321787bb74409ca95c982d851fa8b5cff"
+    },
+    {
+      "path": ".cache/tool-management-193/i18n.command.json",
+      "sha256": "8c86d682de6e15efd524b0e42ca6d6f13969ed4520fe2817268222e414a05fb4"
+    },
+    {
+      "path": ".cache/tool-management-193/build-pre-tla.command.json",
+      "sha256": "aa13efe4a948af876def0f5b4bde52bdbe35b025e6aea842c1a92c913bf3201d"
+    },
+    {
+      "path": ".cache/tool-management-193/build.command.json",
+      "sha256": "0ee4462b489a2836c2f3908928c7b9028b5299adeae952cd4d23ddb9aec46879"
+    },
+    {
+      "path": ".cache/tool-management-193/gui.command.json",
+      "sha256": "711fd7670b7e54bd266725db3e4b8b1e2b0fabbe7194ed222a93402357df36e7"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/source-manifest.json",
+      "sha256": "79c8dc891fd038ad4aad82004f5a814e24ee444cb231f69e30753b9697c2e01b"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/result.json",
+      "sha256": "75cebaa589f2f4914be34c1a73c7deee44f0bd3447a04c7999fd4779f4ee03b6"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/result-visual-first.json",
+      "sha256": "c445041e26cf831bc2b3baf307e04f171d363862a5cde2234e5bd687411d4956"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/result-visual.json",
+      "sha256": "d82eff82ee80fd45ffa9e60eadd07f0dde523bf09c064da6723d154b2bd50f71"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/source-manifest-first-gui.json",
+      "sha256": "2cf1dd5c3a90c8be01c53441efe7ee4fe526e998103925734b1196b4ae2ccb97"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/cn-list.png",
+      "sha256": "2f59b1d7a2bdae4c75ea3fbc10e41c8226bdc4513c60b74fa424da1ab21bc642"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/en-remove.png",
+      "sha256": "144421e17d1563fc60ca617c22f96045f1d776fd9325e9fc5edc2b64c6836706"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/cn-list-canonical.png",
+      "sha256": "cc8db91c6d0a54ed3f9a5311f58521d9411d39d8e7e0bd903d4ae0baa4fb32ae"
+    },
+    {
+      "path": ".cache/tool-management-193/visual/en-remove-canonical.png",
+      "sha256": "bb5812e2f723e16c1ef6ebc59eaa825c9b814d91d004f2c97818c43a7424d5aa"
+    },
+    {
+      "path": ".cache/tool-management-193/bin/suma.exe",
+      "sha256": "fd2ff3abf6decea2fa3996d11b08c6198364dad251f07e7054a15dfbf992ccbe"
+    },
+    {
+      "path": ".cache/tool-management-193/actual/private.sqlite",
+      "sha256": "c0c6788f9324e64f4aca81e5619600210d77a6314a5b3647c11ca313d8247a70"
+    }
+  ]
+}

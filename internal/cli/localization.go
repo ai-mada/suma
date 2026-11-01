@@ -31,6 +31,9 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	toolProfilesUsage:             {"cli.tool_profiles.usage", "tools 需要 list、doctor 或 matches，请查看 tools --help"},
+	toolListUsage:                 {"cli.tool_profiles.list_usage", "tools list 需要 --project；--state 为 active、enabled、paused、revoked 或 all；检索文本最多 120 个 UTF-8 字节，--limit 为 1–200，翻页使用原 --cursor；请查看 tools --help"},
+	toolListResponseInvalid:       {"cli.tool_profiles.list_response", "工具列表响应必须保留原项目、状态、完整档案及分页边界"},
 	toolDoctorUsage:               {"cli.tool_profiles.doctor_usage", "tools doctor 需要 --id 档案ID 和 --project；请查看 tools --help"},
 	toolDoctorResponseInvalid:     {"cli.tool_profiles.doctor_response", "工具体检响应必须保留请求项目、准确完整档案、四项检查及最多 60 秒的有效展示期限"},
 	toolMatchesUsage:              {"cli.tool_profiles.matches_usage", "tools matches 需要 --file 请求JSON 或 --file -；请查看 tools --help"},
@@ -260,6 +263,7 @@ const helpZH = `suma — 速码控制面客户端
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   models options --tool 工具ID --expected-tool-version 当前版本
+  tools list [--state 状态] [--query 检索文本] [--limit 1..200] [--cursor 原游标]
   tools matches --file JSON   使用登录会话查询完整匹配的已有工具档案（只读）
   developer check            验证当前项目的真实MCP连接（只读）
   workspace save-status ID [--wait]

@@ -38,7 +38,9 @@ beforeEach(async()=>{
  vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
   const path=String(input).replace('/api/v1','');paths.push(path);
   if(init?.method==='POST'){
-   const body=JSON.parse(String(init.body)) as Record<string,unknown>;posts.push({path,body,headers:new Headers(init.headers)});
+   const body=JSON.parse(String(init.body)) as Record<string,unknown>;
+   if(path==='/tool-profiles/matches')return Response.json({...body,items:[],total:0});
+   posts.push({path,body,headers:new Headers(init.headers)});
    const receipt:ToolProfile={id:'native-profile',project_id:project,worker_id:String(body.worker_id),name:String(body.name),profile:body.profile as ToolProfile['profile'],version:1,state:'paused',enabled_by:'',created_at:'2026-10-31T08:00:00Z',updated_at:'2026-10-31T08:00:00Z',available:false,reason:''};
    return Response.json(receipt);
   }

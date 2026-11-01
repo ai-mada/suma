@@ -6,7 +6,7 @@ import (
 )
 
 func toolExecutionModels() []any {
-	return []any{platform.ToolProfile{}, platform.ToolProfileCreateRequest{}, platform.ToolProfileCommandRequest{}, platform.ToolProfileList{}, platform.ToolProfileMatchRequest{}, platform.ToolProfileMatchList{}, platform.ToolProfileDiagnostics{}, platform.ToolProfileDiagnosticCheck{}, platform.ToolInventoryRequest{}, platform.ToolInventoryReceipt{}, platform.TaskContextRecord{}, platform.TaskContext{}, platform.TaskDispatchPlan{}, platform.TaskDispatchPreviewRequest{}, platform.TaskDispatchStartRequest{}, toolcontract.Profile{}, toolcontract.Observation{}, toolcontract.Event{}, toolcontract.Evidence{}, toolcontract.Usage{}}
+	return []any{platform.ToolProfile{}, platform.ToolProfileCreateRequest{}, platform.ToolProfileCommandRequest{}, platform.ToolProfileList{}, platform.ToolProfileListQuery{}, platform.ToolProfileMatchRequest{}, platform.ToolProfileMatchList{}, platform.ToolProfileDiagnostics{}, platform.ToolProfileDiagnosticCheck{}, platform.ToolInventoryRequest{}, platform.ToolInventoryReceipt{}, platform.TaskContextRecord{}, platform.TaskContext{}, platform.TaskDispatchPlan{}, platform.TaskDispatchPreviewRequest{}, platform.TaskDispatchStartRequest{}, toolcontract.Profile{}, toolcontract.Observation{}, toolcontract.Event{}, toolcontract.Evidence{}, toolcontract.Usage{}}
 }
 
 func toolExecutionContracts(add operationAdder, paths map[string]any) {

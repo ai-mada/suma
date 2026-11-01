@@ -175,7 +175,10 @@ func TestAuthorityBReadsRequireCurrentBrowser(t *testing.T) {
 			return e
 		},
 		func(a Actor) error { _, e := s.GetToolProfile(ctx, a, project, "unreadable-profile"); return e },
-		func(a Actor) error { _, e := s.ListToolProfiles(ctx, a, project, 20, ""); return e },
+		func(a Actor) error {
+			_, e := s.ListToolProfiles(ctx, a, project, ToolProfileListQuery{Limit: 20})
+			return e
+		},
 	}
 	var before int
 	s.DB.QueryRow(`SELECT COUNT(*) FROM suma_operations`).Scan(&before)

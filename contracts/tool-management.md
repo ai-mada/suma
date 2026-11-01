@@ -1,0 +1,41 @@
+# 工具管理：快速接入与可解释维护
+
+T-TOOL-MANAGEMENT-193；速码1.0.0。原31／P0–P7／58限定／34待交付／92完整目标继续；接续已提交T192，优先落实用户最新的简单、快速、自动检测、配置调整与移除要求。
+
+## 一个协调入口
+
+工作台保留一个“连接工具”主入口。自动检测、选择配置、原节点上报／暂停登记及明确启用共用原身份、公开草稿和当前scope，不再从Doctor跳转空白表单；高级配置收起，返回时不重复填写。已有配置优先查原精确matches并提供“查看已有接入”，不重复登记。
+
+公开接入草稿仅保存工具方向／adapter／protocol、目标worker、命令ID、名称及已声明的非秘密字段，按actor／组织／项目／caller绑定并通过nonce避免迟到覆盖。不得把凭据值、私有路径／argv或旧库存保存成“已检测”。当前目标缺少fresh上报时明确指向该目标，不回退到另一worker。
+
+本机扫描、读取节点上报、配置可解析、可派发、模型健康及执行结果分别表达。SDK不因原CLI扫描或generic桌面连接而就绪；浏览器不能探测未授权本地文件。原本机扫描／已授权节点status-rescan、原describe/report及控制面读取按实际能力接续，不制造扫描成功或自动安装。
+
+## 当前列表接口
+
+`GET /tool-profiles?project_id=…&state=…&query=…&limit=…&cursor=…`：state为active／enabled／paused／revoked／all，默认active（enabled＋paused）。query为可选、最多120 UTF8字节的公开字段检索，不查私有路径或凭据。筛选／排序／分页都经当前授权；opaque cursor绑定actor／组织／项目及规范化state/query，跨条件不能恢复同一页。
+
+界面默认“当前接入”，按需查看“已移除记录”。搜索、状态和目标变化清空旧分页；当前项目／身份切换不得混入迟到结果。CLI使用同一过滤合同，保留结构化输出及原权限。
+
+## 配置与生命周期
+
+原POST创建、精确matches、GET详情／diagnostics以及enable／pause／revoke为唯一权威。调整运行配置沿原目标本机准备→真实describe/report→精确复用或新paused档案→明确启用；不原位编辑历史摘要或隐式改变已发布计划。
+
+“停用”使用原pause；“移除接入”使用原永久revoke，从当前列表撤下，历史运行及证据保留。不得假装存在物理DELETE或配置PATCH。原撤销并不保证已有外部进程停止；必要时给出原运行入口及真实影响说明，不自动重发停止、清空Journal或掩盖未知效果。SDK及其他配置变更仍受当前角色、CAS、操作ID、库存与策略约束。
+
+## 检测与修复
+
+诊断保留原授权、worker、库存和profile四个前提，按准确目标给出一个最合适的下一步。刷新读取不能标成原生扫描。修复以当前已授权原操作和明确确认驱动：重读／本机重扫／打开精确节点配置／打开已有profile复核启用，失败保留草稿。未知外部效果先核对原操作，不能自动创建新请求或改模型、密钥、权限、分支。
+
+原diagnostics新增可选非空impact，由当前有权限项目的活动运行索引及同一读取事务生成，不查询所有历史任务。它是说明，不是执行或撤销授权。
+
+ToolProfileImpact字段：scope固定active_project_runs、observed_at、coverage（complete／partial／unknown）、runs_examined、nodes_examined、observed_reference_count、items、items_truncated、reason（空／run_limit／node_limit／source_unavailable）。最多检查200个活动run／2000个节点，按原dag.ToolBinding匹配准确profile ID和SHA，仅统计非终态node；items最多5项，字段为run_id、node_id、run_state、node_state、worker_id、attempt、fence。
+
+complete只覆盖当前项目活动run，不包含草稿、未启动计划或历史未知外部进程；超界partial，实际无法解析的来源unknown。observed计数不是总量，未覆盖不能显示为0；授权或数据库错误仍返回原错误，不伪装诊断成功。摘要默认一句话，必要运行入口与覆盖详情展开查看。
+
+当前真实活动run_state闭集为running／paused／cancelling；可列出的非终态node_state为pending／ready／running／waiting／reconciling。节点尚未执行时attempt／fence可为0，worker_id可为空；不可因此伪造已领取或执行者。终态节点只计入检查数量，不列作活动引用。
+
+## 交互与交付
+
+常用动作集中在列表／详情操作菜单，主状态一句话概括，送达／hash／原生协议等依据默认折叠；必要解释贴近实际决定。中英文、390px、键盘、空态、加载、失联、冲突和恢复沿原组件。保持已有页面的位置、搜索和选中目标，不堆叠第二工具中心或重复大卡。
+
+Root负责公共合同、Schema、文档、集成及Git；Control负责原列表／诊断与当前授权；CLI负责原管理命令；工作台负责唯一协调入口与公开草稿。只验证新增及直接受影响边界，代表性界面与一条实际HTTP旅程；T192 SDK、原正式质量链和已绿历史不重复。每阶段源、设计和紧凑证据正常提交dev，缓存／凭据／私有配置不提交。

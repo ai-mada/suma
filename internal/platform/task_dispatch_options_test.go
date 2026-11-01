@@ -63,7 +63,11 @@ func TestTaskDispatchOptionsPagingAndCurrentProfileChanges(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"Unapproved alternative one", "Unapproved alternative two"} {
-		_, err = f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: profile.WorkerID, Name: name, Profile: profile.Profile, IdempotencyKey: newID()})
+		// A display name is not another configuration. Each alternative has an
+		// independent immutable identity under the existing duplicate guard.
+		alternative := profile.Profile
+		alternative.ProfileSHA256 = digest(name)
+		_, err = f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: profile.WorkerID, Name: name, Profile: alternative, IdempotencyKey: newID()})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -142,7 +146,9 @@ func TestTaskDispatchOptionsCursorBindsExactEngineeringBasis(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: profile.WorkerID, Name: "Second page", Profile: profile.Profile, IdempotencyKey: newID()}); err != nil {
+	alternative := profile.Profile
+	alternative.ProfileSHA256 = digest("Second page")
+	if _, err = f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: profile.WorkerID, Name: "Second page", Profile: alternative, IdempotencyKey: newID()}); err != nil {
 		t.Fatal(err)
 	}
 	req.Limit = 1
