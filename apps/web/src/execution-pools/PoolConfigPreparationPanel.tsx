@@ -18,6 +18,12 @@ type Row={
   value: PoolConfigPreparationScope;
   grantID: string;
 };
+/** Private paths belong to the actual tenant/project tuple, not to the picker
+ * mode or Grant ID. A different project must explicitly choose its own files. */
+function scopeForProject(current: PoolConfigPreparationScope, tenantID: string, projectID: string): PoolConfigPreparationScope {
+  if(current.tenant_id===tenantID&&current.project_id===projectID) return current;
+  return { ...emptyPoolConfigScope(), tenant_id: tenantID, project_id: projectID };
+}
 const t=(key: string, values?: Record<string, unknown>) => tr('pool-config-preparation.'+key, values);
 function eligibleGrants(grants: PoolConfigPreparationGrant[]|undefined, ownerTenantID: string, poolID: string) {
   const current=Array.isArray(grants)? grants:[], counts=new Map<string, number>();
@@ -63,8 +69,17 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
       return; focusIntent.current=undefined; const element=target==='add'? panel.current?.querySelector<HTMLButtonElement>('[data-pool-config-add]'):panel.current?.querySelector<HTMLInputElement>('[data-pool-config-row="'+target+'"] [data-pool-config-scope-field]'); element?.focus({ preventScroll: true });
   }, [rows, disabled]);
   function updateRow(key: string, field: keyof PoolConfigPreparationScope, value: string) {
-    if(disabled||!owns())
-      return; edited(); setRows(before => before.map(row => row.key===key? { ...row, value: { ...row.value, [field]: value } }:row));
+    if(disabled||!owns()) return;
+    const current=rows.find(row => row.key===key);
+    if(!current) return;
+    const changesProject=(field==='tenant_id'||field==='project_id')&&current.value[field]!==value;
+    edited();
+    if(changesProject) setMessage(t('scope_changed'));
+    setRows(before => before.map(row => {
+      if(row.key!==key) return row;
+      const next={ ...row.value, [field]: value };
+      return { ...row, value: field==='tenant_id'||field==='project_id' ? scopeForProject(row.value, next.tenant_id, next.project_id) : next };
+    }));
   }
   function add() {
     if(disabled||rows.length>=256||!owns())
@@ -82,9 +97,17 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
     </label>;
   }
   function selectProject(key: string, grantID: string) {
-    if(disabled||!owns())
-      return; const selected=available.find(grant => grant.id===grantID); if(grantID&&!selected)
-      return; edited(); setRows(before => before.map(row => row.key===key? { ...row, grantID, value: selected? { ...row.value, tenant_id: selected.tenant_id, project_id: selected.project_id }:row.value }:row));
+    if(disabled||!owns()) return;
+    const selected=available.find(grant => grant.id===grantID), current=rows.find(row => row.key===key);
+    if(!current||grantID&&!selected) return;
+    const changesProject=!!selected&&(current.value.tenant_id!==selected.tenant_id||current.value.project_id!==selected.project_id);
+    edited();
+    if(changesProject) setMessage(t('scope_changed'));
+    setRows(before => before.map(row => row.key===key ? {
+      ...row,
+      grantID,
+      value: selected ? scopeForProject(row.value, selected.tenant_id, selected.project_id) : row.value,
+    } : row));
   }
   function focusIssue(issue: PoolConfigPreparationIssue) {
     if(disabled||!owns()||!issue.field)

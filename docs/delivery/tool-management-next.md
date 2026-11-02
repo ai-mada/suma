@@ -44,7 +44,7 @@ Claude SDK／OpenCode SDK受信检查输出有限准备原因，当前权限／�
 
 ## T209已实现：多项目私有配置准备
 
-原准确节点行选择当前已加载的批准项目或手工范围，只填写机器文件引用；Shell闭形输入沿原配置校验和新文件防护，校验自动展开／定位字段。真实双项目生成／拒覆盖和双语界面见[产品](../product/pool-config-preparation.md)及[限定验证](../quality/pool-config-preparation-verification.md)。不自动补授权、启用工具或运行任务。
+原准确节点行选择当前已加载的批准项目或手工范围，只填写机器文件引用；Shell闭形输入沿原配置校验和新文件防护，校验自动展开／定位字段。真实双项目生成／拒覆盖和双语界面见[产品](../product/pool-config-preparation.md)及[限定验证](../quality/pool-config-preparation-verification.md)。不自动补授权、启用工具或运行任务。 T210补充实际项目切换清空本行私有引用、同范围及其他行保留，见[隔离验证](../quality/pool-config-scope-verification.md)。
 
 ## 下一步：安全诊断与真实执行接续
 

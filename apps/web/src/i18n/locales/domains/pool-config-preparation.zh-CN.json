@@ -44,5 +44,6 @@
   "pool-config-preparation.issue.duplicate": "第 {{row}} 行：租户与项目组合重复。",
   "pool-config-preparation.issue.path": "第 {{row}} 行：请填写目标机器上无歧义的绝对路径。",
   "pool-config-preparation.issue.baseline": "第 {{row}} 行：仓库与 40/64 位小写提交需同时填写，或同时留空。",
-  "pool-config-preparation.issue.too_large": "准备输入超过 64 KiB，请减少范围或缩短引用。"
+  "pool-config-preparation.issue.too_large": "准备输入超过 64 KiB，请减少范围或缩短引用。",
+  "pool-config-preparation.scope_changed": "项目范围已变更，请重新选择本地文件。"
 }

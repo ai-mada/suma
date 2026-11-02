@@ -44,5 +44,6 @@
   "pool-config-preparation.issue.duplicate": "Scope {{row}} duplicates an existing tenant/project pair.",
   "pool-config-preparation.issue.path": "Scope {{row}}: use unambiguous absolute paths on the target machine.",
   "pool-config-preparation.issue.baseline": "Scope {{row}}: supply repository and a lowercase 40/64-character commit together, or leave both empty.",
-  "pool-config-preparation.issue.too_large": "The preparation input exceeds 64 KiB. Use fewer scopes or shorter references."
+  "pool-config-preparation.issue.too_large": "The preparation input exceeds 64 KiB. Use fewer scopes or shorter references.",
+  "pool-config-preparation.scope_changed": "Project scope changed; reselect local files."
 }

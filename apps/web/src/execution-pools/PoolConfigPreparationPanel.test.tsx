@@ -44,6 +44,66 @@ async function input(selector: string, value: string) { const field=document.que
 async function click(selector: string) { const element=document.querySelector<HTMLButtonElement>(selector)!; expect(element, selector).not.toBeNull(); await act(async () => { element.focus(); element.click(); }); await settle(); }
 const scope=(row: string, field: string) => '[data-pool-config-row="'+row+'"] [data-pool-config-scope-field="'+field+'"]';
 async function fill() { await input('[data-pool-config-field=shell]', 'powershell'); await input('[data-pool-config-field=output]', "D:/configs/O'Brien $(Write-Output unexpected).json"); await input('[data-pool-config-project=scope-1]', grant.id); await input(scope('scope-1', 'workspace'), 'D:/work/project-one'); }
+it('T210 clears all private references only when the actual project tuple changes, preserving same-scope modes and sibling rows', async () => {
+  const secondGrant={ ...grant, id: '2'.repeat(32), tenant_id: 'consumer-b', project_id: 'project-b' };
+  const sameScopeGrant={ ...grant, id: '3'.repeat(32) };
+  props={ ...props, grants: [grant, secondGrant, sameScopeGrant] };
+  await draw();
+  await fill();
+  const references={
+    workspace: '/srv/a/workspace',
+    commands_file: '/srv/a/commands.json',
+    repository: '/srv/a/repository',
+    base_commit: 'a'.repeat(40),
+    worktrees: '/srv/a/worktrees',
+    model_deployments_file: '/srv/a/models.json',
+    external_config_file: '/srv/a/external.json',
+  };
+  const readReferences=(row: string) => Object.fromEntries(Object.keys(references).map(field => [field, document.querySelector<HTMLInputElement>(scope(row, field))!.value]));
+  const writeReferences=async (row: string) => {
+    for(const [field, value] of Object.entries(references)) await input(scope(row, field), value);
+  };
+  await writeReferences('scope-1');
+  await click('[data-pool-config-add]');
+  await input(scope('scope-2', 'tenant_id'), 'sibling-tenant');
+  await input(scope('scope-2', 'project_id'), 'sibling-project');
+  await writeReferences('scope-2');
+  await click('[data-pool-config-copy]');
+  expect(document.querySelector('[data-pool-config-prepare]')).not.toBeNull();
+
+  await input('[data-pool-config-project=scope-1]', grant.id);
+  expect(readReferences('scope-1')).toEqual(references);
+  await input('[data-pool-config-project=scope-1]', '');
+  expect(readReferences('scope-1')).toEqual(references);
+  await input('[data-pool-config-project=scope-1]', sameScopeGrant.id);
+  expect(readReferences('scope-1')).toEqual(references);
+  await click('[data-pool-config-copy]');
+  expect(document.querySelector('[data-pool-config-prepare]')).not.toBeNull();
+
+  await input('[data-pool-config-project=scope-1]', secondGrant.id);
+  expect(document.querySelector<HTMLInputElement>(scope('scope-1', 'tenant_id'))!.value).toBe(secondGrant.tenant_id);
+  expect(document.querySelector<HTMLInputElement>(scope('scope-1', 'project_id'))!.value).toBe(secondGrant.project_id);
+  expect(Object.values(readReferences('scope-1'))).toEqual(Array(7).fill(''));
+  expect(readReferences('scope-2')).toEqual(references);
+  expect(document.querySelector('[data-pool-config-prepare]')).toBeNull();
+  expect(document.querySelector('[data-pool-config-message]')?.textContent).toContain('Project scope changed');
+
+  await writeReferences('scope-1');
+  await input('[data-pool-config-project=scope-1]', '');
+  expect(readReferences('scope-1')).toEqual(references);
+  await input(scope('scope-1', 'project_id'), secondGrant.project_id);
+  expect(readReferences('scope-1')).toEqual(references);
+  await click('[data-pool-config-copy]');
+  await input(scope('scope-1', 'project_id'), 'different-project');
+  expect(Object.values(readReferences('scope-1'))).toEqual(Array(7).fill(''));
+  expect(readReferences('scope-2')).toEqual(references);
+  expect(document.querySelector('[data-pool-config-prepare]')).toBeNull();
+  await writeReferences('scope-1');
+  await input(scope('scope-1', 'tenant_id'), 'different-tenant');
+  expect(Object.values(readReferences('scope-1'))).toEqual(Array(7).fill(''));
+  expect(readReferences('scope-2')).toEqual(references);
+  expect(fetch).not.toHaveBeenCalled();
+});
 it('T209 uses only current loaded approvals or explicit manual IDs, copies one private command and preserves keyboard row focus without storage or project reads', async () => {
   const stored=vi.spyOn(Storage.prototype, 'setItem');
   await draw();

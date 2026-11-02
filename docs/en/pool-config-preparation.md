@@ -8,4 +8,6 @@ The browser keeps only an in-memory draft and generates a preparation command. I
 
 Preparation does not authenticate a machine, create a project Grant, enable tools or start a Worker. Continue through the original paired identity, current session/Grant checks and explicit tool inspection/enablement. Changed execution configuration needs a new state directory; unresolved operations must be reconciled through the original workflow.
 
+When a row switches to a different tenant/project, its workspace and six other private local references are cleared and the old preparation command becomes invalid. Reselecting the same scope or switching only to manual entry preserves its inputs. Other rows are unaffected. This also applies when tenant/project IDs are edited manually.
+
 See the [closed contract](../../contracts/pool-config-preparation.md), [architecture and maintenance SOP](../architecture/pool-config-preparation.md), and [interaction design](../design/pool-config-preparation.md). The complete 31-requirement/P0–P7 platform remains in progress.

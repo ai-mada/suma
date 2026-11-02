@@ -710,16 +710,16 @@
     "evidence": "T204 original inventory feedback source,18focused,realHTTP/SQLite/two bilingual UI groups committed and pushed. Local post-git remote/dev=HEAD, tracked clean,32allowlisted files,2unrelated retained.",
     "commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183"
   },
-  "previous_goal_turn": "progress: T208 Pool pairing scoped verified and committed/pushed3243ec931a11f81090950b7edaddfd331e343119; original full31/P0-P7 remains active.",
+  "previous_goal_turn": "progress: T209 multi-project preparation scoped verified and committed/pushed8ee4165d3947a280ff6240d843da001f593fb4cd; original full31/P0-P7 remains active.",
   "current_work": {
-    "stage": "T-POOL-CONFIG-PREPARATION-209",
+    "stage": "T-POOL-CONFIG-SCOPE-210",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/pool-config-preparation.md",
-    "report": "docs/quality/pool-config-preparation-verification.md",
-    "summary": "docs/quality/pool-config-preparation-summary.json",
-    "previous_commit": "3243ec931a11f81090950b7edaddfd331e343119",
-    "verification": "9distinct(8new1old); 2affectedGo checks rerun only after cache-key fix; fullWebtypes0/9594paired0hardcodes; one Panel/copiedPowerShell/finalGoCLI journey/2scope/create0/refuse1/0API-model-Worker-keyring/2Root-viewedimages; normal exit and port free.",
-    "next": "Safe per-scope preparation diagnostics and original paired-identity startup/inventory/dispatch/same-commit quality; real vendors, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total."
+    "contract": "contracts/pool-config-preparation.md#t210项目目标切换",
+    "report": "docs/quality/pool-config-scope-verification.md",
+    "summary": "docs/quality/pool-config-scope-summary.json",
+    "previous_commit": "8ee4165d3947a280ff6240d843da001f593fb4cd",
+    "verification": "One new UI regression RED->GREEN;3unselected; two changed TSX diagnostics0; one paired catalog addition/old values unchanged; one readonly CN1366 build/journey/5breakpoints/0API-CLI-model-keyring-Worker/Root-viewed image/normal exit and free port; T209 actual CLI reused.",
+    "next": "Safe per-scope native preparation diagnostics, real paired-identity execution/inventory/same-commit quality, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2546,6 +2546,18 @@
     "previous_commit": "3243ec931a11f81090950b7edaddfd331e343119",
     "verification": "9distinct(8new1old); 2affectedGo checks rerun only after cache-key fix; fullWebtypes0/9594paired0hardcodes; one Panel/copiedPowerShell/finalGoCLI journey/2scope/create0/refuse1/0API-model-Worker-keyring/2Root-viewedimages; normal exit and port free.",
     "next": "Safe per-scope preparation diagnostics and original paired-identity startup/inventory/dispatch/same-commit quality; real vendors, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total.",
+    "version": "1.0.0",
+    "full_platform_complete": false
+  },
+  "pool_config_scope": {
+    "stage": "T-POOL-CONFIG-SCOPE-210",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/pool-config-preparation.md#t210项目目标切换",
+    "report": "docs/quality/pool-config-scope-verification.md",
+    "summary": "docs/quality/pool-config-scope-summary.json",
+    "previous_commit": "8ee4165d3947a280ff6240d843da001f593fb4cd",
+    "verification": "One new UI regression RED->GREEN;3unselected; two changed TSX diagnostics0; one paired catalog addition/old values unchanged; one readonly CN1366 build/journey/5breakpoints/0API-CLI-model-keyring-Worker/Root-viewed image/normal exit and free port; T209 actual CLI reused.",
+    "next": "Safe per-scope native preparation diagnostics, real paired-identity execution/inventory/same-commit quality, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total.",
     "version": "1.0.0",
     "full_platform_complete": false
   }

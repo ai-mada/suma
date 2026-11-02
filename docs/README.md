@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-POOL-CONFIG-SCOPE-210：[项目切换隔离验证](quality/pool-config-scope-verification.md)。实际项目变化自动清空本行七个私有字段；同范围／填写方式与其他行保留。一项回归与只读界面通过，复用原CLI证据。
+
 T-POOL-CONFIG-PREPARATION-209：[多项目配置准备](product/pool-config-preparation.md)／[架构与SOP](architecture/pool-config-preparation.md)／[交互](design/pool-config-preparation.md)／[English](en/pool-config-preparation.md)／[限定验证](quality/pool-config-preparation-verification.md)。准确节点、项目选择和私有本机引用贯通，9项定向与一次真实脚本→CLI生成／拒覆盖通过；完整平台继续。
 
 T-POOL-RUNNER-PAIRING-208：[Pool机器配对](product/pool-runner-pairing.md)／[架构与AI SOP](architecture/pool-runner-pairing.md)／[交互](design/pool-runner-pairing.md)／[English](en/pool-runner-pairing.md)／[限定验证](quality/pool-runner-pairing-verification.md)。独立系统凭据、原子Pool登记与原ACK恢复贯通；26个不同检查、类型／9548对词条、实际Windows凭据1创建1清理与三ACK、双语工作台及只读简化提案限定通过。无项目Grant／业务／模型，完整31／P0–P7继续。

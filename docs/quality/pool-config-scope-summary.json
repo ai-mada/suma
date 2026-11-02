@@ -1,0 +1,142 @@
+{
+  "stage": "T-POOL-CONFIG-SCOPE-210",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "base_commit": "8ee4165d3947a280ff6240d843da001f593fb4cd",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "full_platform_complete": false,
+  "full_goal": "Original31/P0-P7;58limited34pending92total remains active",
+  "behavior": "Actual tenant/project changes clear exactly seven local fields and previous script in that row; same tuple, mode-only changes and siblings preserve inputs.",
+  "unit": {
+    "new_distinct_top": 1,
+    "red": {
+      "path": ".cache/pool-config-scope-210/red.json",
+      "sha256": "ba8b0588ec9408c6ecfd197b0d775cf7ccfabc7e4257f8e5ac300c842d6bc5f0"
+    },
+    "green": {
+      "path": ".cache/pool-config-scope-210/green.json",
+      "sha256": "3fba3c0242817544c897d02a66000369cdc3c8491b204efcc493a0374781b82b"
+    },
+    "unselected": 3,
+    "unchanged_T209_tests_not_repeated": 9
+  },
+  "checks": {
+    "changed_tsx_files": 2,
+    "diagnostics": 0,
+    "types": {
+      "path": ".cache/pool-config-scope-210/checks/types.json",
+      "sha256": "64b2f5dc2b3d05043d1e532be8402b635bc9122e599d87609bdac895f1cdb7d3"
+    },
+    "catalog_new_paired_keys": 1,
+    "catalog_total": 9595,
+    "old_catalog_values_unchanged": true,
+    "catalog_delta": {
+      "path": ".cache/pool-config-scope-210/checks/catalog-delta.json",
+      "sha256": "0dc8716a6b3cfa2f9d098f6eb554fe06f7b53beb0e99b4e906c50acc85ac3a62"
+    },
+    "original_catalog_attempt": {
+      "path": ".cache/pool-config-scope-210/checks/catalog.json",
+      "sha256": "c43470803aa5e8b1209f3c376b552016b4aafe5ee8e1512744fe56442cfc59cb"
+    },
+    "original_catalog_failure": "skip-audit omits the source Trans tag table and rejects 19 pre-existing rich-text translations; retained unchanged, resolved by precise new-domain-key validation without weakening the checker.",
+    "new_full_type_or_source_audit_claim": false
+  },
+  "review": {
+    "remaining_confirmed_p1_p2": 0,
+    "receipt": {
+      "path": ".cache/pool-config-scope-210/review.json",
+      "sha256": "3fabd1af595d78320672fd9013c2f41b535d1f220c52c5d9aafb1402c50d4842"
+    }
+  },
+  "browser": {
+    "readonly_journeys": 1,
+    "builds": 1,
+    "breakpoints": [
+      "project_A_complete_preview",
+      "changed_grant_tuple_clears_seven_and_preview_preserves_sibling",
+      "same_tuple_different_grant_preserves_seven",
+      "same_tuple_manual_mode_preserves_seven",
+      "manual_project_tuple_change_clears_seven_and_preview_preserves_sibling"
+    ],
+    "viewport": {
+      "width": 1366,
+      "height": 1000
+    },
+    "locale": "zh-CN",
+    "requests": 4,
+    "api_requests": 0,
+    "cli_invocations": 0,
+    "workers": 0,
+    "model_requests": 0,
+    "keyring_requests": 0,
+    "page_errors": 0,
+    "minimum_control_height": 44,
+    "result": {
+      "path": ".cache/pool-config-scope-210/actual/20261102T103745477Z/result.json",
+      "sha256": "e3563e3bae994dde258813f5e0b8943e1d2b0e5c38574677c6c27db0b75a2bdf"
+    },
+    "integration": {
+      "path": ".cache/pool-config-scope-210/integration/summary.json",
+      "sha256": "d0e8185eeae6c01f87de138e4653d328673343dd6ad37350ef6159186595e990"
+    },
+    "closure": {
+      "path": ".cache/pool-config-scope-210/integration/closure.json",
+      "sha256": "42385996e0ea6f000e8f2fedf2d908b4ea9d1c7976bf26826e1f00d5f7bc380d"
+    },
+    "root_viewed_images": [
+      {
+        "path": ".cache/pool-config-scope-210/actual/20261102T103745477Z/cn-project-scope-changed.png",
+        "sha256": "c7436cd3cdcab3f63e2f86255fb880db1bb82d63e2f9ff7c5ded12ab83d08b11"
+      }
+    ],
+    "scope": "Production Panel, synthetic approved public metadata and clipboard sink; one read-only CN1366 journey, zero CLI/API/keyring/model/Worker."
+  },
+  "reused": {
+    "stage": "T-POOL-CONFIG-PREPARATION-209",
+    "commit": "8ee4165d3947a280ff6240d843da001f593fb4cd",
+    "reference": "docs/quality/pool-config-preparation-summary.json",
+    "go_builds": 0,
+    "cli_executions": 0,
+    "original_assets": {
+      "path": ".cache/pool-config-scope-210/integration/original-209-assets.json",
+      "sha256": "4e2fd849363a9919de42b1e89565b6ba45234bd4e5ae5a7109f2fb8f6de0fff4"
+    },
+    "reason": "CLI/storage/authorization/wire unchanged; original actual two-project file creation and overwrite refusal retained, not claimed rerun."
+  },
+  "remaining": [
+    "Safe per-scope native-file diagnostics and original identity/inventory/dispatch/same-commit quality handoff.",
+    "Other devices/themes/OS, real vendor/account/model, physical multi-host, database/installers/scale/production and complete31/P0-P7 remain active."
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparationPanel.tsx",
+      "bytes": 15017,
+      "sha256": "4be52703e25e01128b2bf9232d83faeda0ed3f7fa12d6e9fd9f836b60c8296d8"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparationPanel.test.tsx",
+      "bytes": 13795,
+      "sha256": "7ebc65c25aa6f740908ec6d72299485685ef26292ab636d6fa8b481f07b89155"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.en-US.json",
+      "bytes": 4881,
+      "sha256": "69e5ef1803759bf51ba5c3bf87836459451e4055450e139ba61586b05dbd3ad4"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.zh-CN.json",
+      "bytes": 4495,
+      "sha256": "bda4a9fc712ca750f6e4a888321ccb722f4c11c6937342016db1f2babc5df691"
+    },
+    {
+      "path": "tests/integration/pool-config-scope/build.cjs",
+      "bytes": 2261,
+      "sha256": "11492b2211f3c95572af9880dc12f0fc50fea47faa5da5145de66296cb5b996e"
+    },
+    {
+      "path": "tests/integration/pool-config-scope/driver.cjs",
+      "bytes": 9044,
+      "sha256": "341cd4cb5571a5e9ed94a372e5ab26ac53f6fcc99a354657fc892a832977d3c7"
+    }
+  ]
+}
