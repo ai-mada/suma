@@ -1,0 +1,8 @@
+.task-dispatch-tool-handoff{--control-height:44px;display:grid;gap:10px;min-width:0;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft)}
+.task-dispatch-tool-handoff :is(h3,p){margin:0;overflow-wrap:anywhere}
+.task-dispatch-tool-handoff h3{font-size:14px;font-weight:600}
+.task-dispatch-tool-handoff p{font-size:14px;line-height:1.6}
+.task-dispatch-tool-handoff>button{justify-self:start;min-height:44px;white-space:normal;max-width:100%}
+.task-dispatch-tool-handoff small{font-size:13px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+.task-dispatch-tool-handoff button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.task-dispatch-tool-handoff>button{width:100%;justify-self:stretch}}

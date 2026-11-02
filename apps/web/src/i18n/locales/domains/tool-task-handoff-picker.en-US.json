@@ -1,0 +1,23 @@
+{
+ "tool-task-handoff-picker.title":"Use this tool for a project task",
+ "tool-task-handoff-picker.description":"Choose an existing task, check its current record and the exact tool, then continue to the original dispatch plan.",
+ "tool-task-handoff-picker.tool_basis":"Version {{version}} · Worker {{worker}}",
+ "tool-task-handoff-picker.search_label":"Search project tasks",
+ "tool-task-handoff-picker.search":"Search",
+ "tool-task-handoff-picker.task_label":"Project task",
+ "tool-task-handoff-picker.task_hint":"Continue rereads the current task version; a list observation cannot authorize dispatch.",
+ "tool-task-handoff-picker.choose_task":"Choose a task",
+ "tool-task-handoff-picker.loading":"Reading current project tasks…",
+ "tool-task-handoff-picker.empty":"No tasks in this scope. Create a project task first.",
+ "tool-task-handoff-picker.loaded":"Loaded {{loaded}} of {{total}} tasks",
+ "tool-task-handoff-picker.refresh":"Refresh tasks",
+ "tool-task-handoff-picker.more":"Load more",
+ "tool-task-handoff-picker.close":"Return to tool details",
+ "tool-task-handoff-picker.continue":"Check and continue",
+ "tool-task-handoff-picker.checking":"Checking…",
+ "tool-task-handoff-picker.boundary":"This only selects a task. It does not create a task, start execution or change a tool. Choose a workflow, configure model budgets and review the dispatch plan separately.",
+ "tool-task-handoff-picker.unavailable":"The current tool or workspace cannot be used for a task. Return to tool details and check it again.",
+ "tool-task-handoff-picker.changed":"The task or tool basis changed. Return to its details and check again; another configuration will not be substituted.",
+ "tool-task-handoff-picker.invalid_page":"The task list is incomplete. Read the current project tasks again.",
+ "tool-task-handoff-picker.invalid_search":"Enter up to 200 valid search characters, without control characters or whitespace-only text."
+}

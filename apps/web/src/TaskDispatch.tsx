@@ -10,6 +10,8 @@ import {knowledgeSelectionKey,validKnowledgePins} from './task-conversation-know
 import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {RequirementDesignFacts} from './RequirementDesignFacts';
 import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
+import {TaskDispatchToolHandoff} from './TaskDispatchToolHandoff';
+import type {ToolTaskHandoffPin} from './tool-task-handoff-model';
 import {DispatchRecommendation} from './DispatchRecommendation';
 import {UiError} from './i18n';
 import './knowledge.css';
@@ -49,6 +51,7 @@ type Props = {
   task?: RecordItem;
   planID?: string;
   initialWorkflow?: Workflow;
+  handoffTool?: ToolTaskHandoffPin;
   onPlan: (id: string, taskID?: string) => void;
   onClose: () => void;
   onRun: (id: string) => void;
@@ -56,7 +59,7 @@ type Props = {
 export function TaskDispatchDialog(props:Props){
   const api=useApi(),owner=useRef({api,epoch:0});
   if(owner.current.api!==api)owner.current={api,epoch:owner.current.epoch+1};
-  return <TaskDispatchScope key={JSON.stringify([props.session.organization.id,props.session.user.id,props.project,props.task?.id,owner.current.epoch])} {...props}/>;
+  return <TaskDispatchScope key={JSON.stringify([props.session.organization.id,props.session.user.id,props.project,props.task?.id,props.handoffTool,owner.current.epoch])} {...props}/>;
 }
 function TaskDispatchScope({
   project,
@@ -64,6 +67,7 @@ function TaskDispatchScope({
   task,
   planID,
   initialWorkflow,
+  handoffTool,
   onPlan,
   onClose,
   onRun,
@@ -83,6 +87,7 @@ function TaskDispatchScope({
     [error, setError] = useState<unknown>(""),
     [confirmed, setConfirmed] = useState(false);
   const [adoptedProfile,setAdoptedProfile]=useState<ToolProfile>(),[profileScope,setProfileScope]=useState(''),[recommendationLocked,setRecommendationLocked]=useState(false);
+  const [handoffSelectionKey,setHandoffSelectionKey]=useState(''),[manualToolIntent,setManualToolIntent]=useState(0);
   const [knowledgeSelection,setKnowledgeSelection]=useState<KnowledgeReference[]>([]),[knowledgeRefresh,setKnowledgeRefresh]=useState(0),[knowledgeAccessBlocked,setKnowledgeAccessBlocked]=useState(false),[knowledgeValidity,setKnowledgeValidity]=useState<{key:string;valid:boolean}>();
   const accessAlive=useRef(true),accessEpoch=useRef(0),accessFlight=useRef<object|undefined>(undefined),[accessRefreshing,setAccessRefreshing]=useState(false),accessCaller=useRef(api),accessTarget=useRef('');accessCaller.current=api;
   accessTarget.current=JSON.stringify([project,task?.id,task?.version,currentTask?.id]);
@@ -133,6 +138,15 @@ function TaskDispatchScope({
   const modelRequired=profile?.profile.model_execution_protocol==='suma-model-execution-v1';
   const codexRequired=profile?.profile.protocol==='codex-app-server-v1';
   const modelReady=!(modelRequired||codexRequired)||modelChoice.key===modelKey&&modelChoice.ready;
+  const handoffScope=JSON.stringify([selectionScope,manualToolIntent]);
+  const actualProfileKey=profile?JSON.stringify([selectionScope,profile.id,profile.version,profile.profile.profile_sha256]):'';
+  const handoffAdopted=!!actualProfileKey&&handoffSelectionKey===actualProfileKey;
+  const handoffOwner=useRef({api,scope:handoffScope,epoch:0,blocked,adopted:handoffAdopted});
+  if(handoffOwner.current.api!==api||handoffOwner.current.scope!==handoffScope)
+    handoffOwner.current={api,scope:handoffScope,epoch:handoffOwner.current.epoch+1,blocked,adopted:handoffAdopted};
+  handoffOwner.current.blocked=blocked;
+  handoffOwner.current.adopted=handoffAdopted;
+  const handoffEpoch=handoffOwner.current.epoch;
   useEffect(()=>{
     if(!blocked&&profileScope!==selectionScope){setProfileID('');setAdoptedProfile(undefined);setProfileScope(selectionScope);}
   },[selectionScope,profileScope,blocked]);
@@ -299,11 +313,15 @@ function TaskDispatchScope({
                     ))}
                 </select>
               </Field>
+              {handoffTool&&currentTask&&flow&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<TaskDispatchToolHandoff
+                project={project} pin={handoffTool} scopeKey={handoffScope} disabled={blocked} adopted={handoffAdopted}
+                onInvalidate={()=>{const owner=handoffOwner.current;if(owner.api!==api||owner.scope!==handoffScope||owner.epoch!==handoffEpoch||owner.blocked||!owner.adopted)return;setProfileID('');setAdoptedProfile(undefined);setHandoffSelectionKey('');setModelChoice({key:'',ready:false});}}
+                onAdopt={tool=>{const owner=handoffOwner.current;if(owner.api!==api||owner.scope!==handoffScope||owner.epoch!==handoffEpoch||owner.blocked)return;setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);setHandoffSelectionKey(JSON.stringify([selectionScope,tool.id,tool.version,tool.profile.profile_sha256]));}} />}
               {currentTask&&flow&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<TaskDispatchOptionsPanel
                 session={session}
                 scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID}}
                 disabled={blocked}
-                onAdopt={tool=>{if(!blocked){setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);}}}
+                onAdopt={tool=>{if(!blocked){setManualToolIntent(value=>value+1);setHandoffSelectionKey('');setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);}}}
                 onUnavailable={()=>{if(!blocked){setProfileID('');setAdoptedProfile(undefined);}}}
               />}
               {profiles.error && (
@@ -322,7 +340,7 @@ function TaskDispatchScope({
                   data-dispatch-manual-tool
                   required
                   value={selectedProfileID}
-                  onChange={(event) => {setProfileScope(selectionScope);setProfileID(event.target.value);setAdoptedProfile(undefined);}}
+                  onChange={(event) => {setManualToolIntent(value=>value+1);setHandoffSelectionKey('');setProfileScope(selectionScope);setProfileID(event.target.value);setAdoptedProfile(undefined);}}
                 >
                   <option value="">{t("development.dispatch.choose_a_dispatchable_tool")}</option>
                   {visibleProfiles.map((item) => (

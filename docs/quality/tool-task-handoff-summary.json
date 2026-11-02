@@ -1,0 +1,367 @@
+{
+  "stage": "T-TOOL-TASK-HANDOFF-213",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "base_commit": "0aa48bd80f07e6116299c658f98673ac6b28db92",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558"
+  },
+  "contract": "contracts/tool-task-handoff.md",
+  "reference": {
+    "reuse": "docs/integrations/multica-reference-211.md",
+    "pinned_commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "new_multica_source_copied": 0
+  },
+  "implementation": {
+    "in_memory_pin_fields": 6,
+    "new_business_api_paths": 0,
+    "new_tables": 0,
+    "new_generated_schemas": 0,
+    "new_dependencies": 0,
+    "new_dispatchers": 0,
+    "backend_execution_or_quality_changed": false
+  },
+  "focused": {
+    "distinct": 9,
+    "new": 8,
+    "direct_old": 1,
+    "root_model": 2,
+    "picker": {
+      "path": ".cache/tool-task-handoff-213/picker/summary.json",
+      "sha256": "eaf89ac34c1ddcd7cf40dcbd86c076d772faa1578e6f8202be223a16ea0ed363"
+    },
+    "dispatch": {
+      "path": ".cache/tool-task-handoff-213/dispatch/summary.json",
+      "sha256": "98535af76bc2249a9b9731d5e4472f7633181b94722501e981d10b3a8750abbb"
+    },
+    "counting": "Repeated original affected tops, subcases, unselected items, builds and actual breakpoints are not extra distinct checks.",
+    "model_initial": {
+      "path": ".cache/tool-task-handoff-213/checks/model.json",
+      "sha256": "05b5778fcb8a260c9d0ee796bcfe32ce2e8f7e6e4212a177fc970c6e4062d174"
+    },
+    "model_normalized_red": {
+      "path": ".cache/tool-task-handoff-213/checks/model-normalized-red.json",
+      "sha256": "440746c34494beda70d7511951a2eaf3541ffe9c2f05ab348248a9e199bda108"
+    },
+    "model_normalized_green": {
+      "path": ".cache/tool-task-handoff-213/checks/model-normalized-green.json",
+      "sha256": "a0b761414f9dda1499971fdcc158fa859f51b1ddb1a7e1e1e9e32b7b81459936"
+    },
+    "picker_locale": {
+      "path": ".cache/tool-task-handoff-213/picker/source-manifest-locale-amend.json",
+      "sha256": "6773caf5b2fccad3b0e3a8d43f07d3219e4e99f75be6a39913fe311cad8f77ef"
+    }
+  },
+  "shared": {
+    "whole_web_type_diagnostics": 0,
+    "types": {
+      "path": ".cache/tool-task-handoff-213/checks/types.json",
+      "sha256": "71aa5d75b375527e6c285673f057c4dedb03ff6b39db2d1551dcf1f28f752eb5"
+    },
+    "late_root_file_semantic_diagnostics": 0,
+    "late_semantic": {
+      "path": ".cache/tool-task-handoff-213/checks/final-semantic.json",
+      "sha256": "d38a12c1abb6665ecd396e91fd009080a8e7b7f646c59e8f7f280b6c0a4ce630"
+    },
+    "paired_catalog_keys": 9708,
+    "production_hardcodes": 0,
+    "i18n": {
+      "path": ".cache/tool-task-handoff-213/checks/i18n.json",
+      "sha256": "8cd5b7f4cb269b25c3c09a3bde1f7182549a10914528dcbf90b9df9bc0f85015"
+    },
+    "late_locale_interpolation": "Paired four string fixes, verified by the original affected picker top and actual CN; original whole catalogue count/check unchanged.",
+    "schema_regeneration": 0,
+    "component_builds": 5,
+    "final_assets": [
+      {
+        "path": ".cache/tool-task-handoff-213/web/out/fixture.css",
+        "sha256": "c318bbc024d089a134b4bd3de52034b0f39de3727156dc0adb84a9e414a7c207"
+      },
+      {
+        "path": ".cache/tool-task-handoff-213/web/out/fixture.js",
+        "sha256": "8c40361c3ce747ebeda580f8c0803b596d4e22bcae4e4fbe0db4ff2582518cef"
+      },
+      {
+        "path": ".cache/tool-task-handoff-213/web/out/index.html",
+        "sha256": "eb3ffce8d34b304605ead4ffae2655e181eb4ffa0f28dbe66ea0f00c0f02a194"
+      }
+    ],
+    "build_scope": "First isolated build plus four source-input-driven refreshes; final three actual attempts changed only driver and reused final bundle. No active preview overwrite."
+  },
+  "reviews": {
+    "dispatch": {
+      "path": ".cache/tool-task-handoff-213/review/dispatch-review.json",
+      "sha256": "7fdb5b3d37a45d2777caaf19633933f771cf8f1cd81308cd5f677e1ceedeb100"
+    },
+    "integration": {
+      "path": ".cache/tool-task-handoff-213/review/integration-review.json",
+      "sha256": "8d43eccaddcf560492d6926c87cf5e3c2fa8d099e26795e50f4673b795093f1d"
+    },
+    "lifecycle": {
+      "path": ".cache/tool-task-handoff-213/review/lifecycle-review.json",
+      "sha256": "4385a71597ce9920303538c52eaaf86763340ce37fa47052da7f50a3dff7456d"
+    },
+    "actual_closure": {
+      "path": ".cache/tool-task-handoff-213/review/actual-closure.json",
+      "sha256": "6c5ed066c6c73d60dd69e932bd804fa58058f04786ed98959dff41d079d36655"
+    },
+    "remaining_confirmed_p1_p2": 0
+  },
+  "actual": {
+    "attempts_total": 6,
+    "failed_attempts": 5,
+    "passed_attempts": 1,
+    "command_receipts": [
+      {
+        "path": ".cache/follow155/root-go/20261102T135815729Z.command.json",
+        "sha256": "4735485f22bf1e9f1d3aa98670f5a92f48ffab5467f5364937d9d6baca7b336e",
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/follow155/root-go/20261102T140824440Z.command.json",
+        "sha256": "93fc85ee65bab2d110e1b13ec2bf61da1de24ab738c6e003f9d1e7bc5703970e",
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/follow155/root-go/20261102T141352577Z.command.json",
+        "sha256": "ce5214550a5055d7887d08ef51a18f1110ea7ddb1acb8fc1ef6dcb75a94979a0",
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/follow155/root-go/20261102T142021123Z.command.json",
+        "sha256": "09e360df807155cacba8922cf31bca258486d0a5b8c28bee18382f9525cfb607",
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/follow155/root-go/20261102T142326947Z.command.json",
+        "sha256": "dad6a538db1ad0269d47400fdea3aefd077948cc973df36d74187928d1b35d6a",
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/follow155/root-go/20261102T142600900Z.command.json",
+        "sha256": "c2e68036103816fefb1c2212b37940c1abd771ad463ea6cadf19b7a293f91be5",
+        "exit_code": 0
+      }
+    ],
+    "failures": [
+      {
+        "directory": ".cache/tool-task-handoff-213/actual/20261102T135833640837800Z",
+        "kind": "native beforeunload/default dismissal failure"
+      },
+      {
+        "directory": ".cache/tool-task-handoff-213/actual/20261102T140827718762900Z",
+        "kind": "fixture teardown deadline"
+      },
+      {
+        "directory": ".cache/tool-task-handoff-213/actual/20261102T141355852627600Z",
+        "kind": "fixture teardown deadline"
+      },
+      {
+        "directory": ".cache/tool-task-handoff-213/actual/20261102T142024119539600Z",
+        "kind": "CDP response transfer status0; original committed operation stayed unknown"
+      },
+      {
+        "directory": ".cache/tool-task-handoff-213/actual/20261102T142330467349600Z",
+        "kind": "CDP response transfer status0; original committed operation stayed unknown"
+      }
+    ],
+    "passed_directory": ".cache/tool-task-handoff-213/actual/20261102T142602890089300Z",
+    "receipt": {
+      "path": ".cache/tool-task-handoff-213/actual/20261102T142602890089300Z/receipt.json",
+      "sha256": "6b3450389603089132bae4c22fa18106213894ba99db8eee27bcf04bfc1bf507"
+    },
+    "driver": {
+      "path": ".cache/tool-task-handoff-213/actual/20261102T142602890089300Z/result.json",
+      "sha256": "0a986595a650788b96749f67661ae3fd08444b8c340386e3f45e8c04dca8606f"
+    },
+    "checks": [
+      "exact_tool_current_task_recheck_opens_one_original_dispatch_dialog",
+      "explicit_exact_profile_adoption_uses_original_selector_without_automatic_write",
+      "parent_detail_refresh_preserves_original_pending_preview_dialog",
+      "one_explicit_preview_is_refreshable_on_original_task_plan_route_and_does_not_start",
+      "english_narrow_fixed_plan_read_keeps_start_explicit"
+    ],
+    "api_responses": 24,
+    "api_gets": 23,
+    "preview_posts": 1,
+    "plans": 1,
+    "runs": 0,
+    "attempt_count": 0,
+    "workers": 0,
+    "models": 0,
+    "vendors": 0,
+    "human_acceptance": false,
+    "new_profiles": 0,
+    "published_workflow_preserved": true,
+    "scope": "Actual HTTP/SQLite and original production components with owned synthetic inventory. One explicit fixed preview, no Start or code/independent-test execution.",
+    "response_gate": "Only original native fetch promise resolution paused after actual201; original request, headers, body and response bytes unchanged. Parent refresh during original pending operation passed.",
+    "page_errors": 0,
+    "unexpected_dialogs": 0,
+    "native_pid": 53116,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "port": 55642,
+    "final_failed_cleanup_override": false,
+    "final_forced_exit": false,
+    "root_viewed_images": [
+      {
+        "path": ".cache/tool-task-handoff-213/actual/20261102T142602890089300Z/cn-exact-tool-adopted.png",
+        "sha256": "e5e0a6ed28773449c816151d8544be030f504345a70815568e622c64d4bca489"
+      },
+      {
+        "path": ".cache/tool-task-handoff-213/actual/20261102T142602890089300Z/en-fixed-plan.png",
+        "sha256": "85dc393a63e6cae069c6700dda1c289b5aa54835579d456529c9fd0a89f836cb"
+      }
+    ],
+    "visual": "CN1366/light original adoption card, EN390/dark original fixed plan; one dialog/no horizontal overflow. Slow dynamic module fallback inspected/typechecked, not delayed-chunk actual acceptance.",
+    "closure": "Independent OS read at2026-11-02T14:28:26Z: native53116 absent and port55642 not listening; final normalexit0/no forced/teardown override. Early deadlines and failed-fixture cleanup separately preserved."
+  },
+  "source_manifests": [
+    {
+      "path": ".cache/tool-task-handoff-213/root-final-manifest.json",
+      "sha256": "0c3b5a77b38087a13d777073ca192dae28c7ddb0a8512b89bd1e8cae9b2fc617"
+    },
+    {
+      "path": ".cache/tool-task-handoff-213/picker/source-manifest.json",
+      "sha256": "a7689f8e852d69063c1caf75994d1d1500639ad58d9a4b4d532ae23ece04ca26"
+    },
+    {
+      "path": ".cache/tool-task-handoff-213/picker/source-manifest-type-amend.json",
+      "sha256": "151f12d0c151a4da47930fa5fc7261f537efeaa247bdad6dc4c88a20b596d103"
+    },
+    {
+      "path": ".cache/tool-task-handoff-213/picker/source-manifest-locale-amend.json",
+      "sha256": "6773caf5b2fccad3b0e3a8d43f07d3219e4e99f75be6a39913fe311cad8f77ef"
+    },
+    {
+      "path": ".cache/tool-task-handoff-213/dispatch/source-manifest.json",
+      "sha256": "42621c78eee3561146ac09e6e09d1b4b8e7918ec2f725de0a65db6a479c57ed3"
+    },
+    {
+      "path": ".cache/tool-task-handoff-213/actual-host/source-manifest.json",
+      "sha256": "b8793d3d168dc229d1ad16c0098d725710721eec25d83136988739d61f703348"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-task-handoff-dispatch.en-US.json",
+      "bytes": 1272,
+      "sha256": "896281d714c992a027781a17be8898f7d1a93d3961dc99bdd7fd159b4980d822"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-task-handoff-dispatch.zh-CN.json",
+      "bytes": 1132,
+      "sha256": "cd3cd72c261a7ca35ec7f790c96ce72a77c740f673a4e88c70ba589684ebf812"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-task-handoff-picker.en-US.json",
+      "bytes": 1934,
+      "sha256": "d722e28b0d784f6c6555d3a5d04e06c8484c8c85f9a0919177095feb12e68723"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-task-handoff-picker.zh-CN.json",
+      "bytes": 1841,
+      "sha256": "c15b8323ed3e96522ccc0c5d928a12c794be8032dca56ce2cae656e20d05205a"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-task-handoff.en-US.json",
+      "bytes": 46,
+      "sha256": "5e2a5bbdb1f4041aea1d7813457b143ea24ae178886c4a623309020ff7fa290c"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-task-handoff.zh-CN.json",
+      "bytes": 46,
+      "sha256": "8584305ab8ef730902ff078be84001cd05443ed573ba2876b1e86b141d132465"
+    },
+    {
+      "path": "apps/web/src/TaskDispatch.tsx",
+      "bytes": 27089,
+      "sha256": "04b885935dc1c045a34dd4d56c255d59ae74a072419e78d05ea7da2179796712"
+    },
+    {
+      "path": "apps/web/src/TaskDispatchToolHandoff.css",
+      "bytes": 781,
+      "sha256": "71cca1528c2c3f2e4d34a90f209a2af29253fcee18186062a461df1d670cd944"
+    },
+    {
+      "path": "apps/web/src/TaskDispatchToolHandoff.test.tsx",
+      "bytes": 10557,
+      "sha256": "5d7581fefdcc8ea76762ce69c5ca0315dec55737e2fcf46d57ea185256e87e01"
+    },
+    {
+      "path": "apps/web/src/TaskDispatchToolHandoff.tsx",
+      "bytes": 4167,
+      "sha256": "5bd7cc59c09e5e64e9a23336a71c37851f01a7b2a59e05f059cd6f9fe2d7f6fc"
+    },
+    {
+      "path": "apps/web/src/tool-task-handoff-model.test.ts",
+      "bytes": 2841,
+      "sha256": "f54d2c6f38e0aa4ff03e746b59c9c2cc7ad079368c50fb24e0cdb74b6ff37350"
+    },
+    {
+      "path": "apps/web/src/tool-task-handoff-model.ts",
+      "bytes": 4029,
+      "sha256": "52d3350927f7e602a46bb05c3ebe9f8b4147443844c86ad0a15488f7e0ff0e9b"
+    },
+    {
+      "path": "apps/web/src/ToolTaskHandoffDialog.css",
+      "bytes": 1177,
+      "sha256": "f3fcbe5f03288cf6308c9f29cdba4581f8012927347d4da1577f06a07df00b2f"
+    },
+    {
+      "path": "apps/web/src/ToolTaskHandoffDialog.test.tsx",
+      "bytes": 8017,
+      "sha256": "d919da3b796e10815bd566c51dd072a7f42fb99c65c06009880f27e68f041c52"
+    },
+    {
+      "path": "apps/web/src/ToolTaskHandoffDialog.tsx",
+      "bytes": 8215,
+      "sha256": "b64ef90c6741b8857bafc3335c363e054a0a8b6c86aaf37f77e098f3ab88b9b0"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "bytes": 87866,
+      "sha256": "429c6c0ae3bc85cb79c740bf08325fc3fcec808f743cb6f176adbbf86146d332"
+    },
+    {
+      "path": "internal/platform/tool_task_handoff_actual_test.go",
+      "sha256": "ad0f7d72593cb4a3cb3a95d872737078f22d404c74b3d065aa737447e4a02324",
+      "bytes": 10400
+    },
+    {
+      "path": "tests/integration/tool-task-handoff/build.cjs",
+      "bytes": 1527,
+      "sha256": "22154486679d02c8da1f9a76abd1be5a3d120ba7cf4b6d3c37d924ade10050f0"
+    },
+    {
+      "path": "tests/integration/tool-task-handoff/driver.cjs",
+      "bytes": 10666,
+      "sha256": "26349eb913548d4c10b31511acea1798777bf419bfae4492197e434a86328253"
+    },
+    {
+      "path": "tests/integration/tool-task-handoff/entry.tsx",
+      "bytes": 2286,
+      "sha256": "ea0bd478bb06a6d7c96eefa6378323ded9a0b8d3619a1bf79dd6c0be9226edb1"
+    },
+    {
+      "path": "tests/integration/tool-task-handoff/index.html",
+      "bytes": 551,
+      "sha256": "eb3ffce8d34b304605ead4ffae2655e181eb4ffa0f28dbe66ea0f00c0f02a194"
+    }
+  ],
+  "limits": [
+    "Full autonomous code candidate, different-Worker same-commit tests, formal Review/problem return and next-baseline actual journey remain continuation of unchanged original gates.",
+    "Actual vendor/model accounts, trusted WorkBuddy code artifacts, physical multi-host, database matrix, full App/device/theme/installers/scale/production and complete31/P0-P7 remain active."
+  ],
+  "git_delivery": ".cache/tool-task-handoff-213/post-git.json"
+}

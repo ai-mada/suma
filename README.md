@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-TOOL-TASK-HANDOFF-213新增[准确工具用于任务](docs/product/tool-task-handoff.md)：当前工具详情选择项目任务并核对准确档案，复用原模型预算、预览和明确启动；[交互](docs/design/tool-task-handoff.md)与[限定验证](docs/quality/tool-task-handoff-verification.md)区分准备、执行与正式质量，完整平台继续。
+
 T-POOL-CONNECTION-212新增[机器连接向导](docs/product/pool-connection.md)：已准备配置明确接续身份检查、维护或任务模式，按当前权限读取独立事实并打开准确项目工具；[交互](docs/design/pool-connection.md)与[限定验证](docs/quality/pool-connection-verification.md)记录实际范围，完整平台继续。
 
 T-TURN-STEERING-188新增[活回合追加指令](contracts/turn-steering.md)：原讨论明确选择本人消息和准确执行目标，在同一Codex回合继续协作，原模型预算／工作区保持绑定；[双语交互](docs/design/turn-steering.md)与[真实CLI限定验证](docs/quality/turn-steering-verification.md)分别记录保存、写出、原生接受和异常核对。完整平台继续。

@@ -1,0 +1,13 @@
+{
+  "tool-task-handoff-dispatch.title": "Tool brought into this task",
+  "tool-task-handoff-dispatch.target": "{{name}} · version {{version}} · {{worker}}",
+  "tool-task-handoff-dispatch.adopt": "Check and use this tool",
+  "tool-task-handoff-dispatch.reading": "Checking current configuration…",
+  "tool-task-handoff-dispatch.boundary": "This checks the exact tool configuration. Task compatibility, model, budget and formal preview still require review below; no task starts automatically.",
+  "tool-task-handoff-dispatch.phase.idle": "Choose to check the original configuration before adopting it.",
+  "tool-task-handoff-dispatch.phase.reading": "Reading this exact tool under current access…",
+  "tool-task-handoff-dispatch.phase.adopted": "The checked configuration was adopted. Review the current selection and model settings below.",
+  "tool-task-handoff-dispatch.phase.changed": "The original configuration changed or is unavailable. Return to the tool details to check it; a different version was not substituted.",
+  "tool-task-handoff-dispatch.phase.forbidden": "Current access or this tool is unavailable. No configuration was adopted.",
+  "tool-task-handoff-dispatch.phase.unknown": "The configuration could not be confirmed. Check again explicitly."
+}

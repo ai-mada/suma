@@ -1,0 +1,13 @@
+{
+  "tool-task-handoff-dispatch.title": "已带入的任务工具",
+  "tool-task-handoff-dispatch.target": "{{name}} · 版本 {{version}} · {{worker}}",
+  "tool-task-handoff-dispatch.adopt": "核对并采用此工具",
+  "tool-task-handoff-dispatch.reading": "正在核对当前配置…",
+  "tool-task-handoff-dispatch.boundary": "此处仅核对准确工具配置。任务兼容性、模型、预算及正式预览仍需在下方确认，不会自动启动任务。",
+  "tool-task-handoff-dispatch.phase.idle": "请明确核对原配置后再采用。",
+  "tool-task-handoff-dispatch.phase.reading": "正在按当前权限读取这项准确工具…",
+  "tool-task-handoff-dispatch.phase.adopted": "已核对并带入配置，请在下方确认当前选择与模型设置。",
+  "tool-task-handoff-dispatch.phase.changed": "原配置已变化或不可用，请返回工具详情核对；未替换为其他版本。",
+  "tool-task-handoff-dispatch.phase.forbidden": "当前权限或工具不可用，未采用任何配置。",
+  "tool-task-handoff-dispatch.phase.unknown": "暂时无法确认配置，请明确重新核对。"
+}

@@ -14,6 +14,8 @@ T-POOL-RUNNER-PAIRING-208已补充[安全机器配对](../../contracts/pool-runn
 
 ## 本地配置与运行
 
+T213补齐[准确工具到项目任务](../product/tool-task-handoff.md)：Pool或普通工具已启用且真实可用时，可从详情选择原项目任务；重读准确工具／任务，再在原派发中明确采用。交接pin仅在内存，实际模型预算、当前路由、代码候选和同提交独立测试仍按原预览／Start及质量门禁；见[限定验证](../quality/tool-task-handoff-verification.md)。
+
 T212提供[连接向导与单次检查](../product/pool-connection.md)：准确准备预览可复制 `--check-pool-connection --control URL --pool-config FILE --pool-identity FILE`，只验证原身份与当前Session；维护／任务前台命令分别明确复制，复制不启动。原读取接口分别显示登记、凭据、历史联系与库存来源，准确项目入口接续原工具Doctor。凭据／Grant／库存和任务资格仍由原执行链重核，实际边界见[限定验证](../quality/pool-connection-verification.md)。
 
 T211补充[本机准备诊断](../product/pool-preparation-diagnostics.md)：合法准备模式失败在stderr输出七字段安全JSON，CLI固定双语原因与项目行／字段可回贴原表单定位。报告仅关联输入／目标，不代表实时文件或节点健康；写入未确认需核对原文件。成功六字段及原执行／授权保持。

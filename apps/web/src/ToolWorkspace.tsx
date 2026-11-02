@@ -1,7 +1,9 @@
 import {useApi} from './api-context';
+import {ToolTaskHandoffDialog} from './ToolTaskHandoffDialog';
+import {createToolTaskHandoffPin,type ToolTaskHandoffPin} from './tool-task-handoff-model';
 import { Trans } from "./i18n/Trans";
 import { tr as t, UiError, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronRight,
   Plus,
@@ -15,7 +17,7 @@ import {
   CircleHelp,
   CheckCircle2,
 } from "lucide-react";
-import { ApiError, api, query, type Session } from "./api";
+import { ApiError, api, query, type Session, type RecordItem } from "./api";
 import { Empty, ErrorNotice, Field, Loading, Modal } from "./ui";
 import { ToolWriteRecovery } from "./tool-write";
 import {
@@ -78,6 +80,7 @@ type Props = {
   refresh: number;
   panel: string;
 };
+const TaskDispatchDialog=lazy(()=>import('./TaskDispatch').then(module=>({default:module.TaskDispatchDialog})));
 type Dialog =
   | { kind: "create"; adapter?:AdapterDescriptor; resumeQuick?:boolean }
   | { kind: "quick"; adapter?:AdapterDescriptor; preferredWorkerID?:string }
@@ -126,6 +129,8 @@ function ScopedToolWorkspace({
   if(pairingCaller.current.api!==api)pairingCaller.current={api,generation:pairingCaller.current.generation+1};
   const pairingGeneration=pairingCaller.current.generation;
   const dialog=dialogState?.caller===api&&dialogState.generation===pairingGeneration?dialogState.value:undefined;
+  const handoffIntent=useRef(0);
+  const [taskHandoff,setTaskHandoff]=useState<{epoch:number;intent:number;tool:ToolProfile;task?:RecordItem;pin?:ToolTaskHandoffPin;planID?:string}>();
   function setDialog(value:Dialog|undefined){if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setDialogState(value?{caller:api,generation:pairingGeneration,value}:undefined);}
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft;sourceTool?:ToolProfile}|undefined>(undefined);
@@ -204,18 +209,36 @@ function ScopedToolWorkspace({
     if (selected && !detail.loading) void detail.read();
   }, [profiles.loading, profiles.read, workers.loading, workers.read, sharedWorkers.loading, sharedWorkers.read, selected, detail.loading, detail.read]);
   useEffect(() => {
-    if (!live) return;
+    // Keep a deliberate task handoff stable while its own exact reads run.
+    // The original background refresh resumes when the dialog is closed.
+    if (!live || taskHandoff) return;
     const timer = setInterval(() => {
       if (document.visibilityState !== 'hidden') refreshAll();
     }, 10000);
     return () => clearInterval(timer);
-  }, [live, refreshAll]);
+  }, [live, refreshAll, taskHandoff]);
   const pending = !!action.pending,
     writeBlocked = pending || action.busy || pairingLocked || inspectionLocked || connecting,
     current = detail.data,
     stale = detail.loading || !!detail.error,
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
     filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
+  // A detail refresh is not a new dispatch owner. Once the task dialog exists,
+  // its original pending operation must survive list/detail loading changes.
+  // Exact task/profile reads and original preview remain authoritative.
+  const handoffKey=JSON.stringify([contextKey,pairingGeneration]);
+  const handoffOwner=useRef({key:handoffKey,epoch:0});
+  if(handoffOwner.current.key!==handoffKey)handoffOwner.current={key:handoffKey,epoch:handoffOwner.current.epoch+1};
+  const handoff=taskHandoff?.epoch===handoffOwner.current.epoch?taskHandoff:undefined;
+  useEffect(()=>{if(taskHandoff&&!handoff)setTaskHandoff(undefined);},[taskHandoff,handoff]);
+  const handoffPin=current&&!stale?createToolTaskHandoffPin(current,project):undefined;
+  const ownsHandoff=(value:{epoch:number;intent:number})=>activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration&&handoffOwner.current.epoch===value.epoch&&handoffIntent.current===value.intent;
+  function closeTaskHandoff(){
+    if(!handoff||!ownsHandoff(handoff)||writeBlocked)return;
+    handoffIntent.current++;
+    setTaskHandoff(undefined);
+    focusNavigation(()=>workspaceElement.current?.querySelector<HTMLElement>('[data-tool-use-for-task]'),false);
+  }
   const replacementSourceCurrent=!!replacementSource&&!stale&&current?.id===replacementSource.id&&current.version===replacementSource.version&&current.worker_id===replacementSource.worker_id&&current.state===replacementSource.state&&sameToolProfile(current.profile,replacementSource.profile);
   const reportReturnOwner=useRef({api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked});reportReturnOwner.current={api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked};
   const poolNavigation=useRef<{caller:typeof api;generation:number;panel:string}|undefined>(undefined);
@@ -602,6 +625,11 @@ function ScopedToolWorkspace({
                   />
                   <ToolProfileReplacementHistory project={project} profileID={current.id} disabled={writeBlocked||stale} accessBlocked={detail.failure instanceof ApiError&&[401,403,404].includes(detail.failure.status)} refresh={refresh+revision} onViewProfile={profile=>{if(!stale&&!writeBlocked&&canLeave())onSelect(profile.id);}} onAccessDenied={()=>{if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)void detail.read();}}/>
                   <div className="tool-action-bar">
+                    {handoffPin&&<button type="button" data-tool-use-for-task disabled={stale||writeBlocked} onClick={()=>{
+                      if(!current||!handoffPin||stale||writeBlocked||!canLeave())return;
+                      action.clearError();setDialog(undefined);
+                      setTaskHandoff({epoch:handoffOwner.current.epoch,intent:++handoffIntent.current,tool:current});
+                    }}>{t('tool-task-handoff.use')}</button>}
                     {current.state !== "revoked" && (
                       <>
                         <button type="button" data-tools-adjust disabled={stale||writeBlocked} onClick={()=>void configureProfile(current)}>{t('tool-workspace.adjust')}</button>
@@ -736,6 +764,26 @@ function ScopedToolWorkspace({
       {connection?.client?<section className="panel" data-tool-workspace-client tabIndex={-1}><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} expectedWorkerID={connection?.expectedWorkerID} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} onReportSelection={returnFromReport} disabled={writeBlocked}/>}
         </div>}
       </details>
+      {handoff&&!handoff.task&&<ToolTaskHandoffDialog key={handoff.intent} session={session} project={project} tool={handoff.tool} disabled={writeBlocked}
+        onClose={closeTaskHandoff} onChoose={(task,pin)=>{
+          if(!ownsHandoff(handoff)||writeBlocked||task.project_id!==project||pin.project_id!==project)return;
+          setTaskHandoff({...handoff,task,pin});
+        }}/>}
+      {handoff?.task&&handoff.pin&&<Suspense fallback={<Modal open onClose={closeTaskHandoff} title={t('development.dispatch.arrange_task_execution')}><Loading/></Modal>}><TaskDispatchDialog project={project} session={session} task={handoff.task} handoffTool={handoff.pin} planID={handoff.planID}
+        onClose={closeTaskHandoff}
+        onPlan={(id,taskID)=>{
+          if(!ownsHandoff(handoff))return;
+          // First retain the confirmed plan locally, then let the original
+          // action's React leave guard settle before navigating. Navigating
+          // inside its result callback would still observe the prior busy
+          // effect and unnecessarily trigger the browser's unload dialog.
+          setTaskHandoff({...handoff,planID:id});
+          const href='?'+new URLSearchParams({project,view:'development',sub:'tasks',record:taskID||handoff.task!.id,panel:'dispatch:'+id});
+          setTimeout(()=>requestAnimationFrame(()=>{
+            if(ownsHandoff(handoff)&&canLeave())window.location.assign(href);
+          }),0);
+        }}
+        onRun={run=>{setTimeout(()=>requestAnimationFrame(()=>{if(ownsHandoff(handoff)&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run}));}),0);}}/></Suspense>}
       <Modal
         open={!!dialog}
         onClose={() => {

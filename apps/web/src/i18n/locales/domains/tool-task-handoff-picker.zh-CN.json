@@ -1,0 +1,23 @@
+{
+ "tool-task-handoff-picker.title":"将此工具用于项目任务",
+ "tool-task-handoff-picker.description":"选择已有任务，核对当前任务与准确工具后，继续原派发计划。",
+ "tool-task-handoff-picker.tool_basis":"版本 {{version}} · 执行节点 {{worker}}",
+ "tool-task-handoff-picker.search_label":"搜索项目任务",
+ "tool-task-handoff-picker.search":"搜索",
+ "tool-task-handoff-picker.task_label":"项目任务",
+ "tool-task-handoff-picker.task_hint":"继续前重新读取任务当前版本，不以列表中的旧版本派发。",
+ "tool-task-handoff-picker.choose_task":"请选择任务",
+ "tool-task-handoff-picker.loading":"正在读取当前项目任务…",
+ "tool-task-handoff-picker.empty":"当前范围没有任务，可先在项目中创建任务。",
+ "tool-task-handoff-picker.loaded":"已读取 {{loaded}} / {{total}} 项任务",
+ "tool-task-handoff-picker.refresh":"刷新任务",
+ "tool-task-handoff-picker.more":"加载更多",
+ "tool-task-handoff-picker.close":"返回工具详情",
+ "tool-task-handoff-picker.continue":"核对并继续",
+ "tool-task-handoff-picker.checking":"正在核对…",
+ "tool-task-handoff-picker.boundary":"此步骤只选择任务，不创建任务、启动执行或改变工具。后续仍须选择流程、配置模型预算并审阅派发计划。",
+ "tool-task-handoff-picker.unavailable":"当前工具或工作区依据不可用于任务，请返回工具详情重新核对。",
+ "tool-task-handoff-picker.changed":"任务或工具依据已变化，请返回详情重新核对，不会替换为其他配置。",
+ "tool-task-handoff-picker.invalid_page":"任务列表内容不完整，请重新读取当前项目任务。",
+ "tool-task-handoff-picker.invalid_search":"请输入最多200个字符的有效检索文字，不含控制字符或纯空白。"
+}

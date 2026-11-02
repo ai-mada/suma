@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-TASK-HANDOFF-213：[准确工具到任务](../product/tool-task-handoff.md)／[架构与AI SOP](../architecture/tool-task-handoff.md)／[交互](../design/tool-task-handoff.md)／[限定验证](../quality/tool-task-handoff-verification.md)。工具详情→当前任务重读→原派发准确采用→固定预览贯通；9项定向、类型0／9708对词条、最终真实HTTP／SQLite与双语代表界面通过。六次实际尝试及前五次失败均保留；未启动任务／模型，完整31／P0–P7继续。
+
 T-POOL-CONNECTION-212：[机器连接与准确项目工具](../product/pool-connection.md)／[架构与AI SOP](../architecture/pool-connection.md)／[交互](../design/pool-connection.md)／[限定验证](../quality/pool-connection-verification.md)。单次原身份检查、独立事实读取和准确工具交接贯通；13项定向、类型0／9675对词条、真实检查及原库Worker只读执行通过。完整31／P0–P7继续。
 
 T-POOL-PREPARATION-DIAGNOSTICS-211：[本机诊断与定位](../product/pool-preparation-diagnostics.md)／[限定验证](../quality/pool-preparation-diagnostics-verification.md)。七字段安全报告、准确输入关联和双语静态建议贯通；9项定向、类型0／9618对词条、真实CLI与只读诊断区通过。未运行模型或业务任务，原31／P0–P7继续。

@@ -1,0 +1,11 @@
+.dialog:has(.tool-task-handoff-picker){--control-height:44px;max-width:38rem}
+.tool-task-handoff-picker{--control-height:44px;display:grid;gap:1rem;min-width:0}
+.tool-task-handoff-tool{display:grid;gap:.3rem;padding:.85rem 1rem;background:var(--surface-muted,var(--panel));border:1px solid var(--border);border-radius:var(--radius,.6rem);overflow-wrap:anywhere}
+.tool-task-handoff-tool span,.tool-task-handoff-count,.tool-task-handoff-boundary{color:var(--muted)}
+.tool-task-handoff-search{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:.65rem}
+.tool-task-handoff-search .field{margin:0;min-width:0}
+.tool-task-handoff-picker :is(button,input,select){min-height:44px}
+.tool-task-handoff-picker .field select{width:100%;min-width:0;text-overflow:ellipsis}
+.tool-task-handoff-list-actions{display:flex;flex-wrap:wrap;gap:.5rem}
+.tool-task-handoff-boundary{font-size:.875rem;line-height:1.6;margin:0;overflow-wrap:anywhere}
+@media(max-width:600px){.tool-task-handoff-search{grid-template-columns:minmax(0,1fr)}.tool-task-handoff-picker .dialog-actions{display:grid;grid-template-columns:1fr}.tool-task-handoff-picker .dialog-actions button{width:100%}}
