@@ -1,0 +1,299 @@
+{
+  "stage": "T-TOOL-PREPARATION-203",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "limited_verified",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "baseline": 92,
+    "stage_delivery_is_not_full_completion": true
+  },
+  "scope": {
+    "handoff": "准确适配协议与当前节点交接；同worker旧配置不得覆盖新工具选择",
+    "sdk_diagnostics": "Claude/OpenCode SDK六类typed准备原因，仅SDK unavailable connection回显；原操作与当前授权优先",
+    "codex_preparation": "新增原Runner --prepare-codex-stdin，七个明确字段，复用固定app-server合同和rooted新文件writer",
+    "new_http_paths": 0,
+    "new_database_tables": 0,
+    "new_dependencies": 0,
+    "new_permissions": 0,
+    "new_public_schemas": 0,
+    "new_runner_preparation_modes": 1
+  },
+  "focused": {
+    "distinct_top_level": 29,
+    "new": 14,
+    "directly_affected_old": 15,
+    "passed": 29,
+    "groups": [
+      {
+        "owner": "Go",
+        "total": 4,
+        "new": 3,
+        "direct_old": 1
+      },
+      {
+        "owner": "desktop_host",
+        "total": 7,
+        "new": 3,
+        "direct_old": 4
+      },
+      {
+        "owner": "web_diagnostics",
+        "total": 7,
+        "new": 4,
+        "direct_old": 3
+      },
+      {
+        "owner": "ui_handoff",
+        "total": 11,
+        "new": 4,
+        "direct_old": 7
+      }
+    ],
+    "counting": "Repeated runs and expanded cases retain evidence but do not add distinct checks",
+    "unchanged_go_sdk_model_full_chain_repeats": 0,
+    "receipts": [
+      {
+        "path": ".cache/tool-preparation-203/go-focused.command.json",
+        "sha256": "2ce01e1905fc8df26059b3a13a88b540647683cd54d6654d135d335c3ce8ebfc"
+      },
+      {
+        "path": ".cache/tool-preparation-203/desktop/summary.json",
+        "sha256": "cba3fb44418fefe86ec8578eb80487d14e73ecdf2a781ec41935b2ae7f972f21"
+      },
+      {
+        "path": ".cache/tool-preparation-203/control/summary.json",
+        "sha256": "12a401b325d19ecbdacae7c5affc262e815d225147e6731062e732e7b1192e38"
+      },
+      {
+        "path": ".cache/tool-preparation-203/ui/summary.json",
+        "sha256": "5439b6848c9f572995fb60d10f30a58db74bf03840b10a42ad45b88c224d5f42"
+      }
+    ]
+  },
+  "integration": {
+    "web_typecheck": {
+      "runs": 1,
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/tool-preparation-203/types.command.json",
+        "sha256": "d194cc4f5d9b6d3efbdd2200819331cfa9e48f198c5c953190fee777b890d702"
+      }
+    },
+    "i18n": {
+      "runs": 1,
+      "exit_code": 0,
+      "paired_keys": 9407,
+      "production_hardcodes": 0,
+      "receipt": {
+        "path": ".cache/tool-preparation-203/i18n.command.json",
+        "sha256": "74d4f9d8f8576babc3507ba3b4f8fcd23b7753a283a3a67ab62dc7226acaab31"
+      }
+    },
+    "final_changed_file_semantic": {
+      "runs": 1,
+      "exit_code": 0,
+      "scope": "DesktopToolConnector.tsx only; no full typecheck or emit",
+      "receipt": {
+        "path": ".cache/tool-preparation-203/control/phase-semantic.json",
+        "sha256": "dc593ba9c93ce8a99bf2490b1c355a5419eef953fada9309aa739deb010c7363"
+      }
+    },
+    "web_component_builds": {
+      "successful": 3,
+      "scope": "Initial isolated build, necessary CSS rebuild, final affected diagnostic rendering rebuild",
+      "receipts": [
+        {
+          "path": ".cache/tool-preparation-203/build.command.json",
+          "sha256": "e5a9a9a6f150ec00a30722d4fcabb6e0c405fe13b30aeee1a507f7787bafcffe"
+        },
+        {
+          "path": ".cache/tool-preparation-203/build_css.command.json",
+          "sha256": "5dd467f0481640d7c540721ed773b2780f3a0dcd1d660f131aa116876f35bfbd"
+        },
+        {
+          "path": ".cache/tool-preparation-203/build_phase.command.json",
+          "sha256": "424b321a8db9ea2fb1cfbd12409e656e6ac59eb660fb8064204181b60d53fac6"
+        }
+      ]
+    },
+    "go_build": {
+      "successful_compiler_runs": 1,
+      "exit_code": 0,
+      "shell_launch_failure": {
+        "compiler_runs": 0,
+        "cause": "PowerShell -o parameter binding, corrected by the existing GoArguments array",
+        "receipt": {
+          "path": ".cache/tool-preparation-203/build-launch-failure.json",
+          "sha256": "14ba81ff88079c0353e1915c12e5e4ef6089e57dfa9d1cc2be53e83782244564"
+        }
+      },
+      "receipt": {
+        "path": ".cache/tool-preparation-203/go-build.command.json",
+        "sha256": "57907836567a2ffcc8902e86dcec28be30e2357d1a11953cfc15379d804198a9"
+      }
+    }
+  },
+  "actual_cli": {
+    "executions": 1,
+    "passed": true,
+    "exit_code": 0,
+    "native_fixture": "Owned suma-runner.exe is inspected as the native file; this does not verify a vendor Codex CLI or its version",
+    "input": "Exactly seven Web-generated stdin fields",
+    "executable_sha256": "5270e97f0d3a183108854b4b4b664ebc3f24e5e2ca7e493a1536619ccf6a4584",
+    "input_sha256": "4f5f8759db74f5eda3a10fc0c3e5483c44297ebac4bb8c66e3ef3938bb16a5d2",
+    "configuration_sha256": "4a93aacd6c2618d94d14be40b6d2f4dfce088ac508af0589c91b3dbd68761012",
+    "output": {
+      "prepared": true,
+      "command_count": 1,
+      "protocol": "codex-app-server-v1",
+      "args": [
+        "app-server",
+        "--listen",
+        "stdio://"
+      ]
+    },
+    "subsequent_cli_executions": 0,
+    "reuse": "Exact executable/input/generated-file hashes reused across GUI follow-ups",
+    "vendor_cli_runs": 0,
+    "model_queries": 0,
+    "sdk_queries": 0,
+    "worker_runs": 0,
+    "control_database_calls": 0,
+    "receipt": {
+      "path": ".cache/tool-preparation-203/web/visual/result-20261102T024658454Z.json",
+      "sha256": "444513987ec5168ca33170ed83105d8ac1fa59b6ff6b36a02832f152fe1e7343"
+    }
+  },
+  "gui": {
+    "browser_launches": 3,
+    "independent_groups": 2,
+    "group_executions": 5,
+    "scope": "Production components with synthetic API/IPC/pairing observations; no real service or native bridge acceptance",
+    "first": {
+      "run_id": "20261102T024658454Z",
+      "cn_behavior": "passed",
+      "cn_layout": "failed: technical summary32px instead of44px",
+      "en_behavior": "passed",
+      "en_visual": "Root rejected two-column narrow form and stretched select",
+      "receipt": {
+        "path": ".cache/tool-preparation-203/web/visual/result-20261102T024658454Z.json",
+        "sha256": "444513987ec5168ca33170ed83105d8ac1fa59b6ff6b36a02832f152fe1e7343"
+      }
+    },
+    "css_followup": {
+      "run_id": "20261102T025606525Z",
+      "cn": "passed, targets44px",
+      "en": "passed, single column and controls44px",
+      "receipt": {
+        "path": ".cache/tool-preparation-203/web/visual/result-20261102T025606525Z.json",
+        "sha256": "247a4cf419a86cba528c9627d70b9f77cf6f0d3f65f16dfeda9c53011cdf36d7"
+      }
+    },
+    "final": {
+      "run_id": "20261102T030952785Z",
+      "passed": true,
+      "cn": "Affected CN rerun passed after removing irrelevant generic Git/workspace warning beside a specific preparation cause",
+      "en": "Exact accepted025606 screenshot and snapshots reused; not rerun",
+      "result": {
+        "path": ".cache/tool-preparation-203/web/visual/result.json",
+        "sha256": "a34ced6b4de9b4349179ab935d1f2be93c117c97626f03d43ba0982eb722c0dc"
+      },
+      "root_viewed_final_images": true,
+      "images": [
+        {
+          "path": "images/20261102T025606525Z-en-codex-preparation.png",
+          "sha256": "de0a523cbbb5264c94506d9b9372c81b9c01921da051c6ffc019c169e03ca2cf"
+        },
+        {
+          "path": "images/20261102T030952785Z-cn-preparation-recovery.png",
+          "sha256": "111ac1a58e35304459907a1082e0e4e4e5f22b58cfdfdd5c8203ebd9f66d906e"
+        }
+      ],
+      "page_errors": 0,
+      "unexpected_requests": 0,
+      "helper_exit_code": 0
+    },
+    "archive": {
+      "receipt": {
+        "path": ".cache/tool-preparation-203/image-archive.json",
+        "sha256": "5737727629eee12d3eaec64368682f1ca0328b19442c8150189f591311d4fc96"
+      },
+      "final_images_uniquely_archived": true,
+      "initial_failed_cn_image_retained": true,
+      "initial_en_two_column_png": "Viewed by Root; original hash and result retained, but old alias bytes were replaced during CSS follow-up and were not separately archived. No recreated screenshot is claimed."
+    },
+    "actual_cli_repeated": false
+  },
+  "recovered_defects": [
+    {
+      "priority": "P2",
+      "cause": "Async SDK preparation failure bypassed current caller/project/binding revalidation",
+      "fix": "All SDK preparation early observations reuse original authorize/caller/context guard before exposing a cause",
+      "evidence": [
+        {
+          "path": ".cache/tool-preparation-203/desktop/authority-red.command.json",
+          "sha256": "b2970fbf809a0b395d1d6da5c2a7b94b99032247882e86f08fca0ca1972cd420"
+        },
+        {
+          "path": ".cache/tool-preparation-203/desktop/authority-green.command.json",
+          "sha256": "6f104d3137aaa8f41025f064b1533d175acc04e6e90ce984d32c8d0412af2679"
+        }
+      ]
+    },
+    {
+      "priority": "P2",
+      "cause": "Clearing optional Workspace selection reset a derived nonce and made the next explicit tool request stale",
+      "fix": "Independent monotonic connectionRequestNonce ref supplies all current producers and survives selection clearing",
+      "evidence": [
+        {
+          "path": ".cache/tool-preparation-203/ui/nonce-producer-overlay-summary.json",
+          "sha256": "6b09b098d9b2e0f0e15231bd269ecdd54b4d5b3d181e9f77f4ec380b01a48439"
+        }
+      ]
+    }
+  ],
+  "preserved_invariants": [
+    "Unknown SDK registration reconciles the same original body/key/worker receipt before a new preparation observation",
+    "status/stop/renew/recovery do not add diagnosis probes or new operations",
+    "No secret value, path, raw error or stderr in preparation_reason",
+    "OpenCode optional credential reference stays optional; existing Go native-file authority unchanged",
+    "Current caller/target/epoch and selection nonce prevent stale configuration and ABA adoption",
+    "Preparation/copy/report/paused registration/enable/model authentication/test acceptance remain distinct"
+  ],
+  "review": {
+    "remaining_confirmed_p1": 0,
+    "remaining_confirmed_p2": 0,
+    "scope": "Independent changed-seam reviews; unrelated sources and tests not repeated",
+    "receipts": [
+      {
+        "path": ".cache/tool-preparation-203/review/desktop-review.json",
+        "sha256": "68cc4fc0c0e7b755cd6612d34c63e4d5b7fb96094c41c487ef4d3335be2ffbbe"
+      },
+      {
+        "path": ".cache/tool-preparation-203/review/codex-go-review.json",
+        "sha256": "04acee47b41103ce09001cb7bde4bf6ee40a69b09f02ea346a142986f28a361b"
+      },
+      {
+        "path": ".cache/tool-preparation-203/review/control-web-review.json",
+        "sha256": "00f137bbe2dd2ddde526b26160ba55fd857a43403319f35aadbece969bba232f"
+      },
+      {
+        "path": ".cache/tool-preparation-203/review/ui-review.json",
+        "sha256": "211befc05abe70af4a1e19bba4ef8d391cec26bdeffeb5d163a4ab6bc5427e42"
+      }
+    ],
+    "late_phase_rendering": "One original affected top and one changed-file semantic check passed; Root verified affected CN only"
+  },
+  "remaining": [
+    "Real Electron/current OS IPC and actual external SDK resources/user authentication",
+    "Real vendor Codex/Claude/OpenCode execution, model budget behavior, candidates, independent tests and human acceptance",
+    "Physical remote/multi-host journeys, other databases, cross-platform installers and complete device/theme matrix",
+    "Scale, production operations and complete31-requirement/P0-P7 platform delivery"
+  ],
+  "evidence_storage": "Original commands, failures, manifests, approved overlays, logs and available image artifacts stay under ignored .cache/tool-preparation-203; no cache or temporary files enter Git"
+}

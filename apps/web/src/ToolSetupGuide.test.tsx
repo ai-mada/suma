@@ -10,6 +10,19 @@ beforeEach(async()=>{await setLocale('zh-CN',{persist:false});host=document.crea
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();if(clipboard)Object.defineProperty(navigator,'clipboard',clipboard);else Reflect.deleteProperty(navigator,'clipboard');vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function change(element:HTMLInputElement|HTMLSelectElement,value:string){const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
 
+it('T203 carries nine precise preparation choices into the same target without overwriting its manual shell and paths on ordinary renders',async()=>{
+ const fetch=vi.fn();vi.stubGlobal('fetch',fetch);const choices=[['codex','codex-jsonl'],['codebuddy','codebuddy-cli'],['harness','dsh-multica'],['claude','claude-code-cli'],['qoder','qoder-acp'],['opencode','opencode-sdk'],['cursor','cursor-cli'],['claude-sdk','claude-code-sdk'],['codex-app-server','codex-app-server']] as const;
+ let nonce=0;root=createRoot(host);const field=(name:string)=>host.querySelector<HTMLInputElement|HTMLSelectElement>('[name="remote-runner-'+name+'"]')!;
+ for(const [preset,localTool] of choices){const request={preset,nonce:++nonce};await act(async()=>root!.render(<ToolSetupGuide expanded expectedWorkerID="original-node" presetRequest={request}/>));
+  expect(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!.value).toBe(preset);expect(field('localTool').value).toBe(localTool);expect(field('worker').value).toBe('original-node');
+  if(nonce===1){await change(field('shell'),'bash');await change(field('commands'),'/srv/manual.commands.json');await change(field('repository'),'/srv/original');await change(field('baseCommit'),'a'.repeat(40));}
+  expect(field('commands').value).toBe('/srv/manual.commands.json');expect(field('repository').value).toBe('/srv/original');expect(field('shell').value).toBe('bash');
+  const prepare=host.querySelector('[data-remote-runner-command="prepare"]');if(nonce<=4)expect(prepare!.textContent).toContain("--local-tool '"+localTool+"'");else expect(prepare).toBeNull();
+  await change(field('commands'),'/srv/manual.edited.json');await act(async()=>root!.render(<ToolSetupGuide expanded expectedWorkerID="original-node" presetRequest={{...request}}/>));expect(field('commands').value).toBe('/srv/manual.edited.json');await change(field('commands'),'/srv/manual.commands.json');
+ }
+ expect(host.querySelector('[data-codex-app-server-setup-guide]')).not.toBeNull();expect(fetch).not.toHaveBeenCalled();
+});
+
 it('T192 uses the independent SDK guide and hands only its public draft to the original Runner flow',async()=>{
  const fetch=vi.fn();vi.stubGlobal('fetch',fetch);
  await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide expanded presetRequest={{preset:'claude-sdk',nonce:192}}/>);});

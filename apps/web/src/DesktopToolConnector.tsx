@@ -5,7 +5,7 @@ import {useApi,useApiView} from './api-context';
 import type {ApiCaller} from './api';
 import {DesktopWorkspacePicker} from './DesktopWorkspacePicker';
 import {validWorkspaceMetadata} from './desktop-workspace-model';
-import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope,type DesktopToolAction,type DesktopToolBridge,type DesktopToolConnection,type DesktopToolPhase,type DesktopToolScope,type DesktopToolRequest} from './desktop-tool-connector-model';
+import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope,type DesktopToolAction,type DesktopToolBridge,type DesktopToolConnection,type DesktopToolPhase,type DesktopToolScope,type DesktopToolRequest,type DesktopToolPreparationReason} from './desktop-tool-connector-model';
 import {desktopACPRuntimeForAdapter,validDesktopACPSelection,type DesktopACPSelection} from './desktop-acp-connector-model';
 import {validDesktopCodexSelection,type DesktopCodexSelection} from './desktop-codex-connector-model';
 import {validDesktopOpenCodeSetup,type DesktopOpenCodeSetup} from './desktop-opencode-connector-model';
@@ -18,7 +18,7 @@ import {tr,useLocale} from './i18n';
 import './DesktopToolConnector.css';
 
 const t=(key:string)=>tr('desktop-tool-connector.'+key);
-export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;onConnection?:(connection:DesktopToolConnection)=>void;onBlockedChange?:(blocked:boolean)=>void;onConfigure?:()=>void;onGuide?:()=>void;secondary?:boolean;disabled?:boolean;acpSelection?:DesktopACPSelection;codexSelection?:DesktopCodexSelection;opencodeSetup?:DesktopOpenCodeSetup;claudeSDKSetup?:DesktopClaudeSDKSetup;expectedConfigurationSHA?:string};
+export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;onConnection?:(connection:DesktopToolConnection)=>void;onBlockedChange?:(blocked:boolean)=>void;onConfigure?:(reason?:DesktopToolPreparationReason)=>void;onDetect?:()=>void;onGuide?:()=>void;secondary?:boolean;disabled?:boolean;acpSelection?:DesktopACPSelection;codexSelection?:DesktopCodexSelection;opencodeSetup?:DesktopOpenCodeSetup;claudeSDKSetup?:DesktopClaudeSDKSetup;expectedConfigurationSHA?:string};
 export function DesktopToolConnector(props:DesktopToolConnectorProps){
  const api=useApi(),view=useApiView(),bridge=desktopToolBridge();
  const scope={project:props.project,userID:view?.userID??'',organizationID:view?.organizationID??'',adapterID:props.adapterID};
@@ -27,7 +27,7 @@ export function DesktopToolConnector(props:DesktopToolConnectorProps){
 }
 type Snapshot={api:ApiCaller;bridge:DesktopToolBridge;connection?:DesktopToolConnection;readSequence?:number;observer?:DesktopToolConnectorProps['onConnection'];uncertain?:DesktopToolAction;failed?:boolean;refusal?:DesktopToolPhase;code?:string};
 const refusals=new Set(['authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','needs_workspace','not_installed','unavailable']);
-function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected,onConnection,onBlockedChange,onConfigure,onGuide,acpSelection,codexSelection,opencodeSetup,claudeSDKSetup,expectedConfigurationSHA}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
+function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected,onConnection,onBlockedChange,onConfigure,onDetect,onGuide,acpSelection,codexSelection,opencodeSetup,claudeSDKSetup,expectedConfigurationSHA}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
  const locale=useLocale(),[snapshot,setSnapshot]=useState<Snapshot>(),[busy,setBusy]=useState<DesktopToolAction>(),[workspaceBlocked,setWorkspaceBlocked]=useState(false);
  const intent=useRef({api,bridge,epoch:0}),mounted=useRef(true),inflight=useRef(false),reported=useRef(''),reportedConnection=useRef(''),readSequence=useRef(0),workspaceRoot=useRef<HTMLDivElement>(null);
  if(intent.current.api!==api||intent.current.bridge!==bridge)intent.current={api,bridge,epoch:intent.current.epoch+1};
@@ -118,9 +118,11 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  const canRecover=!!current&&!current.refusal&&!renewalPending&&(!current.uncertain||recoveryRequestPending)&&registered&&!!phase&&['stopped','prepared','authorization_required','failed'].includes(phase);
  const canReadRecovery=!!current&&!renewalPending&&(!!recovery||recoveryRequestPending);
  const canStop=!!connection?.worker_id&&(phase==='connected'||phase==='starting');
+ const diagnosticReason=current?.code??current?.refusal??connection?.preparation_reason;
+ const preparationReason=diagnosticReason===connection?.preparation_reason?connection?.preparation_reason:undefined;
  const content=<>
   <p className="desktop-tool-description">{t('help')}</p>
-  <p role="status" className={current?.failed||phase==='stop_unconfirmed'||renewalPending?'desktop-tool-warning':'desktop-tool-state'}>{t(busy?busy==='status'?'checking':busy==='connect'?'connecting':busy==='renew'?'renewing':busy==='recover'?'recovering':busy==='recovery-status'?'reading_recovery':'stopping':phase??'checking')}</p>
+  {(!preparationReason||busy||current?.code||current?.refusal||current?.uncertain||renewalPending||recoveryUnsettled||recoveryRequestPending)&&<p role="status" className={current?.failed||phase==='stop_unconfirmed'||renewalPending?'desktop-tool-warning':'desktop-tool-state'}>{t(busy?busy==='status'?'checking':busy==='connect'?'connecting':busy==='renew'?'renewing':busy==='recover'?'recovering':busy==='recovery-status'?'reading_recovery':'stopping':phase??'checking')}</p>}
   {current?.uncertain&&!current.refusal&&!renewalPending&&!recoveryRequestPending&&<p className="desktop-tool-warning">{t('unknown')}</p>}
   {connection?.repository_name&&<p className="desktop-tool-repository">{connection.repository_name}</p>}
   <div className="desktop-tool-actions">
@@ -130,11 +132,11 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   </div>
   {(connection?.worker_id||renewalPending)&&<DesktopCredentialStatus credentialExpiresAt={connection?.credential_expires_at} credentialVersion={connection?.credential_version} inventoryExpiresAt={connection?.expires_at} renewalReason={connection?.renewal_reason} renewalUnknown={renewalPending} renewing={busy==='renew'} disabled={blocked} onRenew={canRenew?()=>void run('renew'):undefined}/>}
   {(canRecover||recovery||recoveryRequestPending)&&<DesktopRecoveryStatus value={recovery} busy={busy==='recover'||busy==='recovery-status'} uncertain={recoveryRequestPending} disabled={blocked} onRecover={canRecover?()=>void run('recover'):undefined} onReadStatus={canReadRecovery?()=>void run('recovery-status'):undefined}/>}
-  {(current?.code||current?.refusal)&&<ToolConnectionDiagnostic reasonCode={current.code??current.refusal} originalOperationPending={!!current.uncertain} disabled={blocked} onConfigure={onConfigure} onGuide={onGuide} onReconcile={()=>void run(renewalPending?'renew':recoveryRequestPending?'recover':recovery?'recovery-status':'status')} onWorkspace={phase==='needs_workspace'?()=>{workspaceRoot.current?.scrollIntoView?.({block:'center'});workspaceRoot.current?.focus();}:undefined}/>}
+  {diagnosticReason&&<ToolConnectionDiagnostic reasonCode={diagnosticReason} originalOperationPending={!!current?.uncertain||renewalPending||recoveryUnsettled||recoveryRequestPending} disabled={blocked} onConfigure={onConfigure?()=>onConfigure(preparationReason):undefined} onDetect={onDetect} onGuide={onGuide} onReconcile={()=>void run(renewalPending?'renew':recoveryRequestPending?'recover':recovery?'recovery-status':'status')} onWorkspace={phase==='needs_workspace'?()=>{workspaceRoot.current?.scrollIntoView?.({block:'center'});workspaceRoot.current?.focus();}:undefined}/>}
   {phase==='needs_workspace'&&<div ref={workspaceRoot} tabIndex={-1}><ConnectorWorkspace api={api} project={scope.project} disabled={!!busy||disabled} onBlockedChange={setWorkspaceBlocked} onBound={()=>void run('status')}/></div>}
   <p className="desktop-tool-boundary">{t('boundary')}</p>
  </>;
- return <section className="desktop-tool-connector" aria-label={t('title')} aria-busy={!!busy}>
+ return <section className="desktop-tool-connector" data-phase={phase} aria-label={t('title')} aria-busy={!!busy}>
   {secondary?<details><summary><Monitor size={16} aria-hidden="true"/>{t('title')}<ChevronDown className="desktop-tool-disclosure" size={15} aria-hidden="true"/></summary><div className="desktop-tool-content">{content}</div></details>:<><div className="desktop-tool-heading"><Monitor size={16} aria-hidden="true"/><strong>{t('title')}</strong></div>{content}</>}
  </section>;
 }

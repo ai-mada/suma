@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-TOOL-DISCOVERY-202",
-  "updated_at": "2026-11-02T01:38:02.223Z",
+  "stage": "T-TOOL-PREPARATION-203",
+  "updated_at": "2026-11-02T03:16:30.571Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/local-tools-discovery-experience-verification.md",
-  "current_summary": "docs/quality/local-tools-discovery-experience-summary.json",
+  "current_evidence": "docs/quality/tool-preparation-recovery-verification.md",
+  "current_summary": "docs/quality/tool-preparation-recovery-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -641,7 +641,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "Paired zh-CN/en-US9364 keys, production hardcodes0; representative compact tool discovery UI and keyboard behavior verified; wider journeys remain independently pending.",
+    "internationalization": "Paired zh-CN/en-US9407 keys, production hardcodes0; accurate preparation/target handoff and representative bilingual UI verified, wider journeys remain pending.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -669,19 +669,24 @@
     "claude_sdk_connection": "Passive CLI2.1.314 discovery, official SDK0.3.314 resources, private ten-field Go authority, exact model/env-name echo and complete digest; original desktop Worker lifecycle and fresh inventory to explicit paused registration. Observe-only budget, model authentication, activation and quality remain independent."
   },
   "verified": {
-    "stage": "T-TOOL-DISCOVERY-202",
-    "current_report": "docs/quality/local-tools-discovery-experience-verification.md",
-    "current_summary": "docs/quality/local-tools-discovery-experience-summary.json",
-    "distinct_top_level": 10,
-    "new_top_level": 6,
-    "directly_affected_existing": 4,
-    "go_or_sdk_checks": 0,
-    "typecheck": true,
-    "catalog_keys": 9364,
+    "stage": "T-TOOL-PREPARATION-203",
+    "current_report": "docs/quality/tool-preparation-recovery-verification.md",
+    "current_summary": "docs/quality/tool-preparation-recovery-summary.json",
+    "distinct_top_level": 29,
+    "new_top_level": 14,
+    "directly_affected_existing": 15,
+    "go_top_level": 4,
+    "desktop_top_level": 7,
+    "web_top_level": 18,
+    "full_web_typecheck_exit": 0,
+    "final_product_file_semantic_exit": 0,
+    "catalog_keys": 9407,
     "production_hardcodes": 0,
     "representative_synthetic_ui_groups": 2,
-    "browser_launches": 2,
-    "full_app_vendor_model_or_production": false
+    "gui_launches": 3,
+    "gui_group_executions": 5,
+    "actual_configuration_cli_executions": 1,
+    "actual_vendor_model_or_full_platform": false
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -691,8 +696,8 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "59fd6695144868ec3743e436a3d794ef3efc6162",
-    "current_stage_receipt": ".cache/tool-discovery-202/post-git.json"
+    "previously_published_commit": "636e3d2f0df990235c620e538e0ffea64ef89537",
+    "current_stage_receipt": ".cache/tool-preparation-203/post-git.json"
   },
   "existing_preview": {
     "updated": false,
@@ -702,18 +707,18 @@
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "T202 product projection/UI, necessary type/locales and representative rendering verified, including repaired desktop target-token conflict. Git delivery recorded separately.",
-    "previous_commit": "59fd6695144868ec3743e436a3d794ef3efc6162"
+    "evidence": "T203 preparation diagnostics, source/auth recovery, exact tool/worker handoff and native configuration generation verified. Necessary UI followups preserved original actual execution; Git delivery recorded separately.",
+    "previous_commit": "636e3d2f0df990235c620e538e0ffea64ef89537"
   },
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-DISCOVERY-202",
+    "stage": "T-TOOL-PREPARATION-203",
     "status": "scoped_verified",
-    "contract": "contracts/local-tools-discovery-experience.md",
-    "previous_verified_stage": "T-CLAUDE-SDK-CONNECT-201",
-    "previous_commit": "59fd6695144868ec3743e436a3d794ef3efc6162",
-    "work": "Compact detected/exception/current observations, accessible other-tools disclosure, explicit existing navigation and local44px target token.",
-    "git_delivery_receipt": ".cache/tool-discovery-202/post-git.json",
+    "contract": "contracts/tool-preparation-recovery.md",
+    "previous_verified_stage": "T-TOOL-DISCOVERY-202",
+    "previous_commit": "636e3d2f0df990235c620e538e0ffea64ef89537",
+    "work": "Typed current SDK preparation diagnostics, exact protocol/worker setup handoff, monotonic explicit navigation, and native Codex private new-file preparation.",
+    "git_delivery_receipt": ".cache/tool-preparation-203/post-git.json",
     "full_goal": "active original31/P0-P7/58limited/34pending/92baseline"
   },
   "terminal_130_historical_work": {
@@ -2429,6 +2434,54 @@
     "remaining": [
       "Uniform missing-resource preparation, actual provider/model and full desktop IPC remain separate.",
       "Physical multi-host, database matrix, cross-platform installers, full App/device/theme, scale and production remain pending under original31/P0-P7."
+    ],
+    "full_platform_complete": false
+  },
+  "tool_preparation_recovery": {
+    "stage": "T-TOOL-PREPARATION-203",
+    "version": "1.0.0",
+    "status": "scoped_source_components_and_actual_web_json_to_native_config_verified",
+    "contract": "contracts/tool-preparation-recovery.md",
+    "report": "docs/quality/tool-preparation-recovery-verification.md",
+    "summary": "docs/quality/tool-preparation-recovery-summary.json",
+    "implementation": {
+      "sdk_preparation_reasons": 6,
+      "protocols_targeted": 9,
+      "original_receipt_priority": true,
+      "current_authority_rechecked": true,
+      "monotonic_intent_sequence": true,
+      "codex_private_fields": 7,
+      "exclusive_new_file_preparation": true,
+      "new_configuration_cli_modes": 1,
+      "new_business_http_paths": 0,
+      "new_tables": 0,
+      "new_public_schemas": 0,
+      "new_dependencies": 0
+    },
+    "verification": {
+      "stage": "T-TOOL-PREPARATION-203",
+      "current_report": "docs/quality/tool-preparation-recovery-verification.md",
+      "current_summary": "docs/quality/tool-preparation-recovery-summary.json",
+      "distinct_top_level": 29,
+      "new_top_level": 14,
+      "directly_affected_existing": 15,
+      "go_top_level": 4,
+      "desktop_top_level": 7,
+      "web_top_level": 18,
+      "full_web_typecheck_exit": 0,
+      "final_product_file_semantic_exit": 0,
+      "catalog_keys": 9407,
+      "production_hardcodes": 0,
+      "representative_synthetic_ui_groups": 2,
+      "gui_launches": 3,
+      "gui_group_executions": 5,
+      "actual_configuration_cli_executions": 1,
+      "actual_vendor_model_or_full_platform": false
+    },
+    "remaining": [
+      "The actual CLI inspected an owned native executable and generated configuration; it did not verify real Codex identity/version, vendor login, model use or remote execution.",
+      "GUI uses production components with synthetic API/IPC and pairing data, not actual OS IPC/credentials or a full deployed App.",
+      "Physical multi-host, databases, installers, scale, production and the full original31/P0-P7 objective remain active."
     ],
     "full_platform_complete": false
   }

@@ -7,6 +7,9 @@ import {QoderSetupGuide} from './QoderSetupGuide';
 import {OpenCodeSetupGuide} from './OpenCodeSetupGuide';
 import {CursorSetupGuide} from './CursorSetupGuide';
 import {ClaudeSDKSetupGuide} from './ClaudeSDKSetupGuide';
+import {CodexAppServerSetupGuide} from './CodexAppServerSetupGuide';
+import {validCodexAppServerSetupDraft,type CodexAppServerSetupDraft} from './codex-app-server-setup-model';
+import {preparationForPreset,preparationForLocalTool,type ToolPreparationPreset,type ToolPreparationSelection} from './tool-preparation-target';
 import {validCursorSetupDraft,type CursorSetupDraft} from './cursor-setup-guide-model';
 import {validClaudeSDKSetupDraft,type ClaudeSDKSetupDraft} from './claude-sdk-setup-model';
 import {useApi,useApiView} from './api-context';
@@ -16,8 +19,8 @@ import {claudeCLIConfiguration,claudeCLIModel} from './claude-cli-model';
 import {RemoteRunnerSetupGuide} from './RemoteRunnerSetupGuide';
 import type {RunnerPairing} from '../../../packages/contracts/src';
 
-type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation'|'claude'|'qoder'|'opencode'|'cursor'|'claude-sdk';
-type ConfigurationDraft=CursorSetupDraft|ClaudeSDKSetupDraft;
+type Preset=ToolPreparationPreset|'junit'|'operations'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation';
+type ConfigurationDraft=CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft;
 // These are local administrator templates, never a registration or live
 // inventory. The existing observation/import flow remains the authority.
 const presets={
@@ -35,23 +38,28 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,expectedWorkerID,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;presetRequest?:{preset:'harness'|'octop'|'qoder'|'opencode'|'cursor'|'claude-sdk';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,expectedWorkerID,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;presetRequest?:{preset:ToolPreparationPreset|'octop';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
  useLocale();
  const targetPairing=!expectedWorkerID||pairedRunner?.worker_id===expectedWorkerID?pairedRunner:undefined;
  const caller=useApi(),view=useApiView(),scope=JSON.stringify([view?.userID,view?.organizationID,project,expectedWorkerID,targetPairing?.id,targetPairing?.project_id,targetPairing?.control_url,targetPairing?.worker_id,targetPairing?.version]),remoteGuide=useRef<HTMLDivElement>(null);
- const [configurationRequest,setConfigurationRequest]=useState<{scope:string;caller:typeof caller;value:ConfigurationDraft&{nonce:number}}>();
+ const owner=useRef({scope,caller,epoch:0,seenRequest:0});if(owner.current.scope!==scope||owner.current.caller!==caller)owner.current={scope,caller,epoch:owner.current.epoch+1,seenRequest:owner.current.seenRequest};
+ const epoch=owner.current.epoch,sourceKey=scope+':'+epoch,navigationNonce=useRef(0);
+ const [navigation,setNavigation]=useState<{scope:string;caller:typeof caller;epoch:number;value:ToolPreparationSelection}>();
+ const currentNavigation=navigation?.scope===scope&&navigation.caller===caller&&navigation.epoch===epoch?navigation:undefined;
+ const [configurationRequest,setConfigurationRequest]=useState<{scope:string;caller:typeof caller;epoch:number;value:ConfigurationDraft&{nonce:number;selectionNonce:number}}>();
  function useRunnerConfiguration(draft:ConfigurationDraft){
-  if(disabled||!validCursorSetupDraft(draft)&&!validClaudeSDKSetupDraft(draft))return;
-  setConfigurationRequest(previous=>({scope,caller,value:{...draft,nonce:(previous?.value.nonce||0)+1}}));
-  requestAnimationFrame(()=>{const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector('summary')?.focus();}});
+  if(disabled||owner.current.epoch!==epoch||!currentNavigation||currentNavigation.value.nonce!==navigationNonce.current||currentNavigation.value.localTool!==draft.localTool||!validCursorSetupDraft(draft)&&!validClaudeSDKSetupDraft(draft)&&!validCodexAppServerSetupDraft(draft))return;
+  setConfigurationRequest(previous=>({scope,caller,epoch,value:{...draft,nonce:(previous?.value.nonce||0)+1,selectionNonce:currentNavigation.value.nonce}}));
+  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||currentNavigation.value.nonce!==navigationNonce.current)return;const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector('summary')?.focus();}});
  }
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
- useEffect(()=>{if(presetRequest){setSelected(presetRequest.preset);setCopied('');setFailed(false);}},[presetRequest?.preset,presetRequest?.nonce]);
+ function selectPreset(preset:Preset){setSelected(preset);setCopied('');setFailed(false);const target=preparationForPreset(preset);const nonce=++navigationNonce.current;setNavigation(target?{scope,caller,epoch,value:{localTool:target.localTool,nonce}}:undefined);}
+ useEffect(()=>{if(!presetRequest||owner.current.epoch!==epoch||!Number.isSafeInteger(presetRequest.nonce)||presetRequest.nonce<=owner.current.seenRequest)return;owner.current.seenRequest=presetRequest.nonce;if(preparationForPreset(presetRequest.preset)||presetRequest.preset==='octop')selectPreset(presetRequest.preset);},[presetRequest?.nonce,epoch]);
  const [launchMode,setLaunchMode]=useState<'native'|'node'>('native'),[entry,setEntry]=useState('');
  const entryHint=useId(),localID=useId(),guideID=id||localID;
- function configureRunner(preset:'cursor'|'claude-sdk'){
-  if(disabled)return;setSelected(preset);setCopied('');setFailed(false);
-  requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLInputElement|HTMLSelectElement>(preset==='cursor'?'[data-cursor-setup-field]':'[data-claude-sdk-setup-field]')?.focus());
+ function configureRunner(preset:ToolPreparationPreset){
+  if(disabled)return;if(selected!==preset)selectPreset(preset);else{setCopied('');setFailed(false);}
+  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch)return;document.getElementById(guideID)?.querySelector<HTMLInputElement|HTMLSelectElement>(preset==='cursor'?'[data-cursor-setup-field]':preset==='claude-sdk'?'[data-claude-sdk-setup-field]':preset==='codex-app-server'?'[data-codex-app-server-setup-field]':'.tool-cli-setup-select select')?.focus();});
  }
  const [model,setModel]=useState(''),[endpoint,setEndpoint]=useState('');
  const [manifest,setManifest]=useState(''),[checks,setChecks]=useState(''),[allowRepair,setAllowRepair]=useState(false);
@@ -65,17 +73,17 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
  const checkIDs=checks.split(',').map(value=>value.trim()).filter(Boolean),validManifest=!/[\x00\r\n]/.test(manifest)&&/\.json$/i.test(manifest)&&(/^[a-z]:[\\/]/i.test(manifest)||/^\/(?!\/)/.test(manifest)||/^\\\\[^\\]+\\[^\\]+\\/.test(manifest));
  const validNative=validManifest&&checkIDs.length>0&&checkIDs.length<=16&&new Set(checkIDs).size===checkIDs.length&&checkIDs.every(value=>/^[A-Za-z0-9._-]{1,100}$/.test(value))&&/\.(?:js|mjs)$/i.test(entry);
  const canCopy=(!nodeMode||validEntry)&&(!recommendation||/\.(?:js|mjs)$/i.test(entry))&&(!structured||/\.(?:js|mjs)$/i.test(entry)&&model.trim().length>0&&model.length<=200&&validEndpoint)&&(!nativeCoder||validNative);
- const [commandName,command]=Object.entries(presets[selected==='qoder'||selected==='opencode'||selected==='cursor'||selected==='claude-sdk'?'codex':selected])[0];
+ const [commandName,command]=Object.entries(presets[selected==='qoder'||selected==='opencode'||selected==='cursor'||selected==='claude-sdk'||selected==='codex-app-server'?'codex':selected])[0];
  const configuration=JSON.stringify({[commandName]:nativeCoder?{...command,args:[entry],native_workspace:{checks:checkIDs,runtime_manifest:manifest,...(allowRepair?{conflict_repair:true}:{})}}:structured?{...command,args:[entry],env:{SUMA_MODEL:model.trim(),SUMA_MODEL_BASE_URL:endpoint},env_from:operations||extractor||diagnosis?['SUMA_MODEL_API_KEY']:['SUMA_MODEL_API_KEY','SUMA_CONTROL_URL','SUMA_AGENT_TOKEN','SUMA_PROJECT_ID']}:nodeMode?{...command,executable:'node',args:[entry,...command.args]}:command},null,2);
  async function copy(){if(!canCopy)return;try{await navigator.clipboard.writeText(configuration);setCopied(configuration);setFailed(false);}catch{setFailed(true);}}
  return <details id={guideID} className="tool-cli-setup" open={expanded} onToggle={event=>onExpandedChange?.(event.currentTarget.open)}>
   <summary><Terminal size={15}/>{t('cli-setup.title')}</summary>
   <div className="tool-cli-setup-body">
    <p className="muted">{t('cli-setup.intro')}</p>
-   <label className="tool-cli-setup-select">{t('cli-setup.tool')}<select value={selected} onChange={event=>{setSelected(event.target.value as Preset);setFailed(false);}}>
-    <option value="junit">{t('test-report-setup.tool')}</option><option value="recommendation">{t('dispatch-recommendation.setup_tool')}</option><option value="operations">{t('intent-operations.setup_tool')}</option><option value="native-coder">{t('candidate-conflict-repair.local_preset')}</option><option value="diagnosis">{t('failure-diagnosis-setup.tool')}</option><option value="extractor">{t('knowledge-extraction-setup.tool')}</option><option value="planner">{t('cli-setup.planner')}</option><option value="codex">Codex</option><option value="codebuddy">CodeBuddy Code</option><option value="claude">{t('claude-cli.title')}</option><option value="claude-sdk">{t('claude-sdk-setup.title')}</option><option value="harness">DeepSeek Harness / dsh</option><option value="qoder">{t('acp-runtime.setup_title')}</option><option value="opencode">{t('opencode-setup-guide.title')}</option><option value="cursor">{t('cursor-setup-guide.title')}</option><option value="octop">{t('octop-execution.title')}</option>
+   <label className="tool-cli-setup-select">{t('cli-setup.tool')}<select value={selected} onChange={event=>selectPreset(event.target.value as Preset)}>
+    <option value="junit">{t('test-report-setup.tool')}</option><option value="recommendation">{t('dispatch-recommendation.setup_tool')}</option><option value="operations">{t('intent-operations.setup_tool')}</option><option value="native-coder">{t('candidate-conflict-repair.local_preset')}</option><option value="diagnosis">{t('failure-diagnosis-setup.tool')}</option><option value="extractor">{t('knowledge-extraction-setup.tool')}</option><option value="planner">{t('cli-setup.planner')}</option><option value="codex">Codex</option><option value="codex-app-server">{t('codex-app-server-setup.title')}</option><option value="codebuddy">CodeBuddy Code</option><option value="claude">{t('claude-cli.title')}</option><option value="claude-sdk">{t('claude-sdk-setup.title')}</option><option value="harness">DeepSeek Harness / dsh</option><option value="qoder">{t('acp-runtime.setup_title')}</option><option value="opencode">{t('opencode-setup-guide.title')}</option><option value="cursor">{t('cursor-setup-guide.title')}</option><option value="octop">{t('octop-execution.title')}</option>
    </select></label>
-   {selected==='qoder'?<QoderSetupGuide/>:selected==='opencode'?<OpenCodeSetupGuide/>:selected==='cursor'?<CursorSetupGuide key={scope} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='claude-sdk'?<ClaudeSDKSetupGuide key={scope} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='octop'?<OctopHarnessSetup/>:<>
+   {selected==='codex-app-server'?<CodexAppServerSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='qoder'?<QoderSetupGuide key={sourceKey}/>:selected==='opencode'?<OpenCodeSetupGuide key={sourceKey}/>:selected==='cursor'?<CursorSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='claude-sdk'?<ClaudeSDKSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='octop'?<OctopHarnessSetup/>:<>
    {selected!=='codex'&&selected!=='claude'&&!structured&&!nativeCoder&&!recommendation&&!junit&&<label className="tool-cli-setup-select">{t('cli-setup.launch_mode')}<select value={launchMode} onChange={event=>{setLaunchMode(event.target.value as 'native'|'node');setFailed(false);}}>
     <option value="native">{t('cli-setup.native_mode')}</option><option value="node">{t('cli-setup.node_mode')}</option>
    </select></label>}
@@ -97,7 +105,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
-   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={scope} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onPairRunner={onPairRunner} disabled={disabled} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')}/></div>
+   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={sourceKey+':'+(preparationForPreset(selected)?'tools':selected)} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onPairRunner={onPairRunner} disabled={disabled} selectionRequest={currentNavigation?.value} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller&&configurationRequest.epoch===epoch&&configurationRequest.value.selectionNonce===currentNavigation?.value.nonce?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')} onConfigureTool={localTool=>{const target=preparationForLocalTool(localTool);if(target)configureRunner(target.preset);}}/></div>
   </div>
  </details>;
 }

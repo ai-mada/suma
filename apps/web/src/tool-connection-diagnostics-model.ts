@@ -1,5 +1,5 @@
 export type ToolConnectionDiagnosticAction='detect'|'configure'|'workspace'|'guide'|'reconcile';
-export type ToolConnectionDiagnosticReason='workspace_required'|'not_installed'|'unsupported_launcher'|'invalid_package'|'node_unavailable'|'probe_failed'|'model_catalogue_unavailable'|'configuration_required'|'original_operation'|'authorization_required'|'binding_changed'|'origin_changed'|'credential_unrecoverable'|'renewal_blocked'|'unknown';
+export type ToolConnectionDiagnosticReason='workspace_required'|'not_installed'|'unsupported_launcher'|'invalid_package'|'node_unavailable'|'probe_failed'|'model_catalogue_unavailable'|'configuration_required'|'original_operation'|'authorization_required'|'binding_changed'|'origin_changed'|'credential_unrecoverable'|'renewal_blocked'|'native_version_unsupported'|'installation_changed'|'sdk_assets_missing'|'sdk_assets_invalid'|'node_runtime_unavailable'|'credential_reference_unavailable'|'unknown';
 export type ToolConnectionDiagnosticDescriptor=Readonly<{reason:ToolConnectionDiagnosticReason;actions:readonly ToolConnectionDiagnosticAction[];rawCode?:string}>;
 
 type Rule=Pick<ToolConnectionDiagnosticDescriptor,'reason'|'actions'>;
@@ -14,6 +14,12 @@ const rules:Readonly<Record<string,Rule>>={
  node_unavailable:{reason:'node_unavailable',actions:['guide','detect']},
  probe_failed:{reason:'probe_failed',actions:['detect','configure']},
  configuration_required:{reason:'configuration_required',actions:['configure']},
+ native_version_unsupported:{reason:'native_version_unsupported',actions:['guide','detect']},
+ installation_changed:{reason:'installation_changed',actions:['detect','guide']},
+ sdk_assets_missing:{reason:'sdk_assets_missing',actions:['guide']},
+ sdk_assets_invalid:{reason:'sdk_assets_invalid',actions:['guide']},
+ node_runtime_unavailable:{reason:'node_runtime_unavailable',actions:['guide']},
+ credential_reference_unavailable:{reason:'credential_reference_unavailable',actions:['configure']},
  prepared:original,issuance_unknown:original,renewal_unknown:original,stop_unconfirmed:original,reading:original,unknown:original,
  authorization_required:{reason:'authorization_required',actions:['reconcile']},
  binding_changed:{reason:'binding_changed',actions:['reconcile']},

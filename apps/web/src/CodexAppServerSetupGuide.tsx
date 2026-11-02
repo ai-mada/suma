@@ -1,0 +1,24 @@
+import {useId,useRef,useState} from 'react';
+import {ArrowRight,Check,Copy} from 'lucide-react';
+import {tr,useLocale} from './i18n';
+import {codexAppServerSetupCommands,type CodexAppServerSetupInput,type CodexAppServerSetupDraft} from './codex-app-server-setup-model';
+import './CodexAppServerSetupGuide.css';
+
+const t=(key:string)=>tr('codex-app-server-setup.'+key);
+const empty:CodexAppServerSetupInput={shell:'',executable:'',providerID:'',baseURL:'',credentialEnvRef:'',windowsSandbox:'',enableUserInput:false,commands:''};
+type TextField='executable'|'providerID'|'baseURL'|'credentialEnvRef'|'commands';
+const limits:Record<TextField,number>={executable:4096,providerID:64,baseURL:2048,credentialEnvRef:128,commands:4096};
+export function CodexAppServerSetupGuide({disabled=false,onUseConfiguration}:{disabled?:boolean;onUseConfiguration?:(draft:CodexAppServerSetupDraft)=>void}={}){
+ useLocale();const id=useId(),[input,setInput]=useState(empty),[copied,setCopied]=useState(''),[failed,setFailed]=useState(''),[copying,setCopying]=useState(false),result=codexAppServerSetupCommands(input),prepare=result?.prepare||'',copyOwner=useRef({prepare,inflight:false});copyOwner.current.prepare=prepare;
+ function update<K extends keyof CodexAppServerSetupInput>(key:K,value:CodexAppServerSetupInput[K]){if(disabled)return;setInput(current=>({...current,[key]:value}));setCopied('');setFailed('');}
+ function field(name:TextField){return <label className="codex-app-server-setup-field" htmlFor={id+'-'+name}><span>{t('field.'+name)}</span><input id={id+'-'+name} data-codex-app-server-setup-field={name} value={input[name]} disabled={disabled} maxLength={limits[name]} spellCheck={false} autoComplete="off" aria-describedby={id+'-'+name+'-help'} onChange={event=>update(name,event.target.value)}/><span className="muted" id={id+'-'+name+'-help'}>{t('help.'+name)}</span></label>;}
+ async function copy(){if(disabled||!prepare||copyOwner.current.inflight)return;copyOwner.current.inflight=true;setCopying(true);setFailed('');const original=prepare;try{await navigator.clipboard.writeText(original);if(copyOwner.current.prepare===original)setCopied(original);}catch{if(copyOwner.current.prepare===original)setFailed(original);}finally{copyOwner.current.inflight=false;setCopying(false);}}
+ return <section className="codex-app-server-setup" data-codex-app-server-setup-guide aria-labelledby={id+'-title'}><h3 id={id+'-title'}>{t('title')}</h3><p>{t('intro')}</p>
+  <div className="form-grid"><label className="codex-app-server-setup-field"><span>{t('field.shell')}</span><select data-codex-app-server-setup-field="shell" value={input.shell} disabled={disabled} onChange={event=>update('shell',event.target.value as CodexAppServerSetupInput['shell'])}><option value="">{t('choose_shell')}</option><option value="powershell">PowerShell</option><option value="bash">Bash</option></select></label>{field('executable')}{field('providerID')}{field('baseURL')}{field('credentialEnvRef')}
+   <label className="codex-app-server-setup-field"><span>{t('field.windowsSandbox')}</span><select data-codex-app-server-setup-field="windowsSandbox" value={input.windowsSandbox} disabled={disabled} onChange={event=>update('windowsSandbox',event.target.value as CodexAppServerSetupInput['windowsSandbox'])}><option value="">{t('non_windows')}</option><option value="unelevated">unelevated</option><option value="elevated">elevated</option><option value="mxc">mxc</option></select><span className="muted">{t('sandbox_help')}</span></label>{field('commands')}
+  </div><label className="check"><input type="checkbox" data-codex-app-server-setup-field="enableUserInput" checked={input.enableUserInput} disabled={disabled} onChange={event=>update('enableUserInput',event.target.checked)}/><span>{t('user_input')}</span></label>
+  <p className="muted">{t('boundary')}</p><div className="tool-cli-setup-actions"><strong>{t('prepare_title')}</strong><button type="button" data-codex-app-server-setup-copy disabled={disabled||!result||copying} onClick={()=>void copy()}>{copied===prepare&&prepare?<Check size={15} aria-hidden="true"/>:<Copy size={15} aria-hidden="true"/>}{t(copying?'copying':copied===prepare&&prepare?'copied':'copy')}</button></div>
+  {result?<><pre tabIndex={0} data-codex-app-server-setup-prepare aria-label={t('prepare_title')}>{prepare}</pre><details><summary>{t('review')}</summary><pre tabIndex={0} data-codex-app-server-setup-configuration aria-label={t('review')}>{JSON.stringify(result.request,null,2)}</pre></details></>:<p role="status">{t('incomplete')}</p>}{failed&&failed===prepare&&<p role="alert">{t('copy_failed')}</p>}
+  {onUseConfiguration&&<button type="button" data-codex-app-server-setup-use disabled={disabled||!result} onClick={()=>{if(!disabled&&result)onUseConfiguration({...result.draft});}}>{t('use_configuration')}<ArrowRight size={16} aria-hidden="true"/></button>}
+ </section>;
+}

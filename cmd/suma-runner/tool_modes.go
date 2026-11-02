@@ -51,6 +51,16 @@ func runSDKToolPreparationStdin(app *commandlocale.Command, file string, input i
 	return outputToolPreparation(app, result)
 }
 
+func runCodexToolPreparationStdin(app *commandlocale.Command, file string, input io.Reader) int {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+	result, err := runner.PrepareCodexAppServerToolCommands(ctx, file, input)
+	if err != nil {
+		return app.Failure("Codex App Server 配置未准备；请核对七项私有输入、本机原生程序及全新文件", "Codex app-server configuration was not prepared; check the seven private fields, selected native executable and a new file")
+	}
+	return outputToolPreparation(app, result)
+}
+
 func outputToolPreparation(app *commandlocale.Command, result runner.ToolPreparation) int {
 	if json.NewEncoder(app.Out).Encode(result) != nil {
 		return app.Failure("工具配置结果无法输出；请先核对指定文件", "Tool preparation result could not be written; check the selected file before retrying")

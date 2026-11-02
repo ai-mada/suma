@@ -1,4 +1,4 @@
-.tool-cli-setup{border:1px solid var(--border);border-radius:7px;background:var(--surface);margin:0 0 18px;min-width:0}
+.tool-cli-setup{--control-height:44px;border:1px solid var(--border);border-radius:7px;background:var(--surface);margin:0 0 18px;min-width:0}
 .tool-cli-setup>summary{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;font-size:12px;font-weight:600;min-height:44px}
 .tool-cli-setup>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:7px}
 .tool-cli-setup-body{padding:0 14px 14px;max-width:900px;min-width:0}

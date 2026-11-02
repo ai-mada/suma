@@ -92,15 +92,18 @@ it('continues an explicitly read approved node into its fixed preparation guide 
   expect(document.querySelector('[role="dialog"]')).toBeNull();expect(host.querySelector<HTMLDetailsElement>('.tool-cli-setup')?.open).toBe(true);expect(host.querySelector<HTMLDetailsElement>('[data-remote-runner-setup]')?.open).toBe(true);
   const fields={control:approved.control_url,project,worker:workerID,pairingID:pairID};
   for(const [key,value] of Object.entries(fields)){const field=host.querySelector<HTMLInputElement>('[name="remote-runner-'+key+'"]');expect(field?.value,key).toBe(value);expect(field?.readOnly,key).toBe(true);}
-  expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-mode"]')?.value).toBe('paired');expect(writes).toEqual([]);
+   expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-mode"]')?.value).toBe('paired');expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-localTool"]')?.value).toBe(adapter.id);expect(writes).toEqual([]);
   await click('[data-tools-return-quick]');await change('[data-quick-tool]',qoder.id);await change('[data-quick-worker]','other-node');await click('[data-quick-advanced]');
   expect(host.querySelector<HTMLInputElement>('[name="remote-runner-worker"]')?.value).toBe('other-node');expect(host.querySelector<HTMLInputElement>('[name="remote-runner-worker"]')?.readOnly).toBe(true);
   expect(host.querySelector<HTMLInputElement>('[name="remote-runner-control"]')?.value).toBe('');expect(host.querySelector('[name="remote-runner-pairingID"]')).toBeNull();
-  expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-mode"]')?.value).toBe('identity');expect(writes).toEqual([]);
+   expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-mode"]')?.value).toBe('identity');expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-localTool"]')?.value).toBe(qoder.id);expect(host.querySelector('[data-remote-runner-command="prepare"]')).toBeNull();expect(writes).toEqual([]);
  };
  const noOldTarget=()=>{for(const key of ['control','worker','pairingID'])expect(host.querySelector<HTMLInputElement>('[name="remote-runner-'+key+'"]')?.value||'').toBe('');expect(document.querySelector('[data-quick-prepare-runner]')).toBeNull();};
  // Returning to Quick reads the retained Codex target before the explicit Qoder/node choice.
  seed();await render();await prepare();expect(discoveryWorkers).toEqual([workerID,'other-node',workerID,workerID,'other-node']);
+  const ordinaryGuide=[...host.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent?.trim()==='View setup guide');expect(ordinaryGuide).toBeDefined();await act(async()=>ordinaryGuide!.click());await settle();
+  await click('[data-tools-return-quick]');await change('[data-quick-tool]',adapter.id);await change('[data-quick-worker]',workerID);await click('[data-quick-prepare-runner]');
+  expect(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')?.value).toBe('codex');expect(host.querySelector<HTMLSelectElement>('[name="remote-runner-localTool"]')?.value).toBe(adapter.id);expect(host.querySelector<HTMLInputElement>('[name="remote-runner-worker"]')?.value).toBe(workerID);expect(writes).toEqual([]);
  caller=ApiContext.bindApiView(activeSession,api);await render();noOldTarget();
  await prepare();activeSession={...session,user:{...session.user,id:'e'.repeat(32)}};caller=ApiContext.bindApiView(activeSession,api);await render();noOldTarget();
  await prepare();activeProject='f'.repeat(32);caller=ApiContext.bindApiView(activeSession,api);await render();noOldTarget();

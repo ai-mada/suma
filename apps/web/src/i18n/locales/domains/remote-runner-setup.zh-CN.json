@@ -62,5 +62,9 @@
  "remote-runner-setup.incomplete.identity":"明确填写安全控制面地址，确认当前项目已加载，并补齐已批准身份文件、配置、Git 仓库根的绝对路径及完整固定基线后，可复制单次上报命令。",
  "remote-runner-setup.copy":"复制命令",
  "remote-runner-setup.copied":"已复制",
- "remote-runner-setup.copy_failed":"未能复制。可选中命令文本后手动复制。"
+ "remote-runner-setup.copy_failed":"未能复制。可选中命令文本后手动复制。",
+ "remote-runner-setup.special.title":"准备当前接入协议",
+ "remote-runner-setup.special.intro":"{{tool}} 需要先完成专门配置，再由当前同一节点上报或启动。",
+ "remote-runner-setup.special.configuration_help":"请使用此工具的配置指南，准备好 commands 文件后继续；通用工具准备不能生成此协议的配置。",
+ "remote-runner-setup.special.configure":"配置 {{tool}}"
 }

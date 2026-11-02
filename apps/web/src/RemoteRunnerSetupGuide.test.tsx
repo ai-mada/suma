@@ -6,11 +6,27 @@ import {RemoteRunnerSetupGuide} from './RemoteRunnerSetupGuide';
 import {remoteRunnerSetupCommands,type RemoteRunnerSetupInput} from './remote-runner-setup-model';
 import {claudeSDKSetupCommands} from './claude-sdk-setup-model';
 import {setLocale} from './i18n';
+import * as ApiContext from './api-context';
+import {api} from './api';
 
 const input:RemoteRunnerSetupInput={mode:'environment',pairingID:'',identityPath:'',shell:'powershell',control:'https://suma.example.test/team',project:'project-one',worker:'worker-one',commands:"C:/tools/O'Brien $(whoami)/commands.local.json",state:'D:/project/.cache/runner',localTool:'codex-jsonl',repository:'D:/project/app',baseCommit:'c'.repeat(40)};
 let root:Root|undefined,host:HTMLDivElement|undefined,clipboard:PropertyDescriptor|undefined;
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();if(clipboard)Object.defineProperty(navigator,'clipboard',clipboard);else Reflect.deleteProperty(navigator,'clipboard');vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function change(element:HTMLInputElement|HTMLSelectElement,value:string){const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
+
+it('T203 adopts each current tool request once and rejects old tool drafts, nonce rollback and caller or target ABA without losing a manual draft',async()=>{
+ await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const fetch=vi.fn();vi.stubGlobal('fetch',fetch);let caller=api;vi.spyOn(ApiContext,'useApi').mockImplementation(()=>caller);
+ host=document.createElement('div');document.body.append(host);root=createRoot(host);const field=(name:string)=>host!.querySelector<HTMLInputElement|HTMLSelectElement>('[name="remote-runner-'+name+'"]')!;
+ type Selection={localTool:'cursor-cli'|'claude-code-sdk'|'opencode-sdk';nonce:number};type Configuration={shell:'bash'|'powershell';commands:string;localTool:'cursor-cli'|'claude-code-sdk';nonce:number;selectionNonce:number};
+ async function draw(selectionRequest:Selection,configurationRequest?:Configuration,project='project-one'){await act(async()=>root!.render(<RemoteRunnerSetupGuide project={project} expectedWorkerID="original-node" selectionRequest={selectionRequest} configurationRequest={configurationRequest}/>));}
+ const cursor={localTool:'cursor-cli' as const,nonce:1},cursorDraft={localTool:'cursor-cli' as const,shell:'bash' as const,commands:'/srv/cursor.json',nonce:1,selectionNonce:1};await draw(cursor);expect(field('localTool').value).toBe('cursor-cli');await change(field('commands'),'/srv/manual.json');await change(field('repository'),'/srv/repository');await draw(cursor,cursorDraft);expect(field('commands').value).toBe('/srv/cursor.json');
+ await change(field('commands'),'/srv/manual-edited.json');await draw({...cursor},{...cursorDraft});expect(field('commands').value).toBe('/srv/manual-edited.json');
+ const sdk={localTool:'claude-code-sdk' as const,nonce:2};await draw(sdk,cursorDraft);expect(field('localTool').value).toBe('claude-code-sdk');expect(field('commands').value).toBe('/srv/manual-edited.json');expect(field('repository').value).toBe('/srv/repository');
+ await draw(sdk,{...cursorDraft,commands:'/srv/late-cursor.json',nonce:2});expect(field('localTool').value).toBe('claude-code-sdk');expect(field('commands').value).toBe('/srv/manual-edited.json');
+ const sdkDraft={localTool:'claude-code-sdk' as const,shell:'powershell' as const,commands:'C:/config/sdk.json',nonce:3,selectionNonce:2};await draw(sdk,sdkDraft);expect(field('commands').value).toBe(sdkDraft.commands);await draw({localTool:'cursor-cli',nonce:3},sdkDraft);expect(field('localTool').value).toBe('cursor-cli');await draw(sdk,sdkDraft);expect(field('localTool').value).toBe('cursor-cli');
+ caller=ApiContext.bindApiView({user:{id:'other',name:'Other',email:'other@example.test'},organization:{id:'team',name:'Team'}},api);await draw({localTool:'cursor-cli',nonce:3},sdkDraft);expect(field('localTool').value).toBe('');expect(field('commands').value).toBe('');caller=api;await draw({localTool:'cursor-cli',nonce:3},sdkDraft);expect(field('localTool').value).toBe('');expect(field('commands').value).toBe('');
+ const open={localTool:'opencode-sdk' as const,nonce:4};await draw(open,sdkDraft);expect(field('localTool').value).toBe('opencode-sdk');await draw(open,sdkDraft,'project-other');await draw(open,sdkDraft);expect(field('localTool').value).toBe('');expect(field('commands').value).toBe('');expect(fetch).not.toHaveBeenCalled();
+});
 
 it('quotes target-shell literals and keeps preparation independent from credential-bound one-shot reporting',()=>{
  const powershell=remoteRunnerSetupCommands(input);

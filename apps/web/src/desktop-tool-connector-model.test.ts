@@ -3,6 +3,24 @@ import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope} from './d
 
 const scope={project:'1'.repeat(32),userID:'2'.repeat(32),organizationID:'3'.repeat(32),adapterID:'codex-jsonl'};
 const connection={project_id:scope.project,adapter_id:'codex-jsonl',phase:'connected',worker_id:'desktop-'+'4'.repeat(32),base_commit:'a'.repeat(40),expires_at:'2099-01-01T00:00:00Z',repository_name:'project'};
+it('T203 accepts only classified SDK unavailable preparation facts and rejects other phases, protocols and leaked details',()=>{
+ const reasons=['native_version_unsupported','installation_changed','sdk_assets_missing','sdk_assets_invalid','node_runtime_unavailable','credential_reference_unavailable'];
+ for(const adapterID of ['claude-code-sdk','opencode-sdk']){
+  const current={...scope,adapterID},base={project_id:scope.project,adapter_id:adapterID,phase:'unavailable'};
+  expect(readDesktopToolResult({status:'ok',connection:base},current)).toEqual({status:'ok',connection:base});
+  for(const preparation_reason of reasons){const value={...base,preparation_reason};expect(readDesktopToolResult({status:'ok',connection:value},current)).toEqual({status:'ok',connection:value});}
+  for(const preparation_reason of [null,undefined,0,[],{},'','future_reason','secret=value','<script>'])expect(readDesktopToolResult({status:'ok',connection:{...base,preparation_reason}},current)).toBeUndefined();
+  for(const phase of ['unconfigured','prepared','starting','connected','stopped','failed','issuance_unknown'])expect(readDesktopToolResult({status:'ok',connection:{...base,phase,preparation_reason:'sdk_assets_missing'}},current)).toBeUndefined();
+  expect(readDesktopToolResult({status:'ok',connection:{...base,preparation_reason:'sdk_assets_missing',stderr:'private detail'}},current)).toBeUndefined();
+ }
+ for(const adapterID of ['codex-jsonl','codex-app-server','claude-code-cli','qoder-acp','cursor-cli']){
+  const current={...scope,adapterID},base={project_id:scope.project,adapter_id:adapterID,phase:'unavailable'};
+  expect(readDesktopToolResult({status:'ok',connection:base},current)).toBeDefined();
+  expect(readDesktopToolResult({status:'ok',connection:{...base,preparation_reason:'sdk_assets_missing'}},current)).toBeUndefined();
+ }
+ for(const adapterID of ['claude-code-sdk','opencode-sdk','codex-jsonl'])for(const code of reasons)expect(readDesktopToolResult({status:'failed',code},{...scope,adapterID})).toBeUndefined();
+ expect(readDesktopToolResult({status:'failed',code:'managed_runner_unavailable'},scope)).toEqual({status:'failed',code:'managed_runner_unavailable'});
+});
 it('T201 keeps complete Claude SDK host proof distinct from CLI discovery and private setup',()=>{
  const sdkScope={...scope,adapterID:'claude-code-sdk'},capability={sdk_version:'0.3.314',cli_version:'2.1.314',model:'claude-sonnet-4-6',configuration_sha256:'b'.repeat(64),model_source:'administrator_sdk_option',budget_mode:'observe_only',identity_evidence:'sdk_init_model_ack_only',auth_strategy:'api_key_env_ref'},native={...connection,adapter_id:sdkScope.adapterID,model:capability.model,credential_env_ref:'ANTHROPIC_API_KEY',tool_version:'2.1.314',executable_sha256:'a'.repeat(64),runtime_executable_sha256:'c'.repeat(64),configuration_sha256:capability.configuration_sha256,claude_sdk_execution:capability};
  expect(validDesktopToolScope(sdkScope)).toBe(true);expect(readDesktopToolResult({status:'ok',connection:native},sdkScope)).toEqual({status:'ok',connection:native});

@@ -62,5 +62,9 @@
  "remote-runner-setup.incomplete.identity":"Enter the safe control URL, confirm the current project is loaded, and complete the absolute approved identity, configuration and Git repository paths plus the full fixed baseline to copy the one-shot report command.",
  "remote-runner-setup.copy":"Copy command",
  "remote-runner-setup.copied":"Copied",
- "remote-runner-setup.copy_failed":"Could not copy. Select the command text and copy it manually."
+ "remote-runner-setup.copy_failed":"Could not copy. Select the command text and copy it manually.",
+ "remote-runner-setup.special.title":"Prepare the selected protocol",
+ "remote-runner-setup.special.intro":"{{tool}} needs its dedicated configuration before this same node reports or starts.",
+ "remote-runner-setup.special.configuration_help":"Use the tool's configuration guide, then return with the prepared commands file. Generic tool preparation cannot create this protocol's configuration.",
+ "remote-runner-setup.special.configure":"Configure {{tool}}"
 }

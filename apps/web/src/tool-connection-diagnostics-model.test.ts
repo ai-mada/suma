@@ -1,6 +1,16 @@
 import {expect,it} from 'vitest';
 import {toolConnectionDiagnostic} from './tool-connection-diagnostics-model';
 
+it('T203 routes exact SDK preparation causes only to existing callbacks and always prioritizes the original operation',()=>{
+ const rules={native_version_unsupported:['guide','detect'],installation_changed:['detect','guide'],sdk_assets_missing:['guide'],sdk_assets_invalid:['guide'],node_runtime_unavailable:['guide'],credential_reference_unavailable:['configure']};
+ for(const [reason,actions] of Object.entries(rules)){
+  expect(toolConnectionDiagnostic(reason)).toEqual({reason,actions,rawCode:reason});
+  expect(toolConnectionDiagnostic(reason,true)).toEqual({reason:'original_operation',actions:['reconcile'],rawCode:reason});
+ }
+ expect(toolConnectionDiagnostic('unavailable')).toEqual({reason:'unknown',actions:[],rawCode:'unavailable'});
+ expect(toolConnectionDiagnostic('sdk_assets_future')).toEqual({reason:'unknown',actions:[],rawCode:'sdk_assets_future'});
+});
+
 it('limits an unresolved original operation to reconciliation even when a new setup action would otherwise be available',()=>{
  for(const reason of ['workspace_required','not_installed','node_unavailable','configuration_required','probe_failed','future_tool_reason',undefined]){
   const value=toolConnectionDiagnostic(reason,true);

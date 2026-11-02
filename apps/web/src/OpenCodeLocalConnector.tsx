@@ -44,7 +44,7 @@ export function OpenCodeLocalConnector(props:OpenCodeLocalConnectorProps){
 }
 function LocalOpenCodeController({project,scope,discover,onConnected,onBlockedChange,onRegistrationReadyChange,onGuide,disabled=false,secondary=false}:OpenCodeLocalConnectorProps&{scope:DesktopToolScope;discover:(request:{project_id:string;user_id:string;tenant_id:string;adapter_id:string;locale:string})=>Promise<unknown>}){
  const locale=useLocale(),[initial]=useState(()=>readLocal(scope)),[draft,setDraft]=useState(initial.draft),[storageFailed,setStorageFailed]=useState(initial.failed),[fact,setFact]=useState<InstalledToolFact>(),[readFailed,setReadFailed]=useState(false),[busy,setBusy]=useState(false),[managedBlocked,setManagedBlocked]=useState(false),[active,setActive]=useState<DesktopToolConnection>(),[digest,setDigest]=useState<{key:string;sha?:string}>();
- const alive=useRef(true),attempted=useRef(false),inflight=useRef(false),provider=useRef<HTMLInputElement>(null),reported=useRef(''),callbacks=useRef({onConnected,onBlockedChange,onRegistrationReadyChange});callbacks.current={onConnected,onBlockedChange,onRegistrationReadyChange};
+ const alive=useRef(true),attempted=useRef(false),inflight=useRef(false),provider=useRef<HTMLInputElement>(null),credentialField=useRef<HTMLInputElement>(null),reported=useRef(''),callbacks=useRef({onConnected,onBlockedChange,onRegistrationReadyChange});callbacks.current={onConnected,onBlockedChange,onRegistrationReadyChange};
  const denied=!!active&&['authorization_required','binding_changed','origin_changed','credential_unrecoverable'].includes(active.phase),blocking=busy||managedBlocked;
  useLeaveGuard(blocking,()=>setReadFailed(true));
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;callbacks.current.onBlockedChange?.(false);callbacks.current.onRegistrationReadyChange?.(false);};},[]);
@@ -79,11 +79,11 @@ function LocalOpenCodeController({project,scope,discover,onConnected,onBlockedCh
    <label>{t('provider')}<input name="provider_id" ref={provider} value={draft.provider_id} maxLength={100} autoComplete="off" spellCheck={false} onChange={event=>edit({...draft,provider_id:event.target.value})}/></label>
    <label>{t('model')}<input name="model" value={draft.model} maxLength={256} autoComplete="off" spellCheck={false} onChange={event=>edit({...draft,model:event.target.value})}/></label>
    <label className="opencode-local-wide">{t('base_url')}<input name="base_url" type="url" value={draft.base_url} maxLength={2048} autoComplete="off" spellCheck={false} onChange={event=>edit({...draft,base_url:event.target.value})}/></label>
-   <label className="opencode-local-wide">{t('credential_ref')}<input name="api_key_env_ref" value={draft.api_key_env_ref} maxLength={128} autoComplete="off" spellCheck={false} onChange={event=>edit({...draft,api_key_env_ref:event.target.value})}/></label>
+   <label className="opencode-local-wide">{t('credential_ref')}<input ref={credentialField} name="api_key_env_ref" value={draft.api_key_env_ref} maxLength={128} autoComplete="off" spellCheck={false} onChange={event=>edit({...draft,api_key_env_ref:event.target.value})}/></label>
    <p className="opencode-local-wide opencode-local-muted">{t('credential_hint')}</p>
   </fieldset>
   <p className="opencode-local-muted">{t('model_hint')}</p>
   {active?.phase==='connected'&&!registrationReady&&!blocking&&<p role="status">{t('draft_not_adopted')}</p>}
-  <DesktopToolConnector project={project} adapterID="opencode-sdk" secondary={secondary} disabled={disabled||busy} opencodeSetup={setup} expectedConfigurationSHA={expectedSHA} onConnection={receive} onConnected={ignoreWorker} onBlockedChange={setManagedBlocked} onConfigure={()=>provider.current?.focus()} onGuide={onGuide}/>
+  <DesktopToolConnector project={project} adapterID="opencode-sdk" secondary={secondary} disabled={disabled||busy} opencodeSetup={setup} expectedConfigurationSHA={expectedSHA} onConnection={receive} onConnected={ignoreWorker} onBlockedChange={setManagedBlocked} onConfigure={reason=>(reason==='credential_reference_unavailable'?credentialField:provider).current?.focus()} onDetect={()=>void detect()} onGuide={onGuide}/>
  </section>;
 }

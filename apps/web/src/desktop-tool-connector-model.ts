@@ -13,11 +13,13 @@ export type DesktopToolPhase='unconfigured'|'needs_workspace'|'not_installed'|'u
 export type DesktopToolRenewalReason='execution_pending'|'local_state_pending'|'credential_changed'|'access_changed'|'context_changed'|'result_unknown';
 export type DesktopToolRecoveryReason='no_saved_results'|'receipt_missing'|'receipt_mismatch'|'unsupported_pending'|'state_changed'|'source_changed'|'access_changed'|'invalid_state'|'active_worker'|'result_unknown'|'proof_expired';
 export type DesktopToolRecovery={operation_id:string;phase:'prepared'|'checking'|'unknown'|'complete'|'partial'|'blocked';total:number;recovered:number;remaining:number;reason_code?:DesktopToolRecoveryReason};
-export type DesktopToolConnection={project_id:string;adapter_id:string;phase:DesktopToolPhase;recovery?:DesktopToolRecovery;renewal_reason?:DesktopToolRenewalReason;worker_id?:string;base_commit?:string;expires_at?:string;credential_expires_at?:string;credential_version?:number;repository_name?:string;model?:string;credential_env_ref?:string;tool_version?:string;executable_sha256?:string;runtime_executable_sha256?:string;configuration_sha256?:string;catalog_sha256?:string;provider_id?:string;endpoint_origin?:string;claude_sdk_execution?:ClaudeSDKExecutionCapability};
+export type DesktopToolPreparationReason='native_version_unsupported'|'installation_changed'|'sdk_assets_missing'|'sdk_assets_invalid'|'node_runtime_unavailable'|'credential_reference_unavailable';
+export type DesktopToolConnection={project_id:string;adapter_id:string;phase:DesktopToolPhase;preparation_reason?:DesktopToolPreparationReason;recovery?:DesktopToolRecovery;renewal_reason?:DesktopToolRenewalReason;worker_id?:string;base_commit?:string;expires_at?:string;credential_expires_at?:string;credential_version?:number;repository_name?:string;model?:string;credential_env_ref?:string;tool_version?:string;executable_sha256?:string;runtime_executable_sha256?:string;configuration_sha256?:string;catalog_sha256?:string;provider_id?:string;endpoint_origin?:string;claude_sdk_execution?:ClaudeSDKExecutionCapability};
 export type DesktopToolResult={status:'ok';connection:DesktopToolConnection}|{status:'failed';code:string};
 export type DesktopToolBridge=Readonly<{platform:'win32'|'darwin'|'linux';version:'1.0.0';manageLocalTool:(request:DesktopToolRequest)=>Promise<unknown>}>;
 const adapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','qoder-acp','cursor-cli','codex-app-server','opencode-sdk','claude-code-sdk']);
 const phases=new Set<DesktopToolPhase>(['unconfigured','needs_workspace','not_installed','unavailable','prepared','issuance_unknown','renewal_unknown','starting','connected','stopping','stopped','authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','failed']);
+const preparationReasons=new Set<DesktopToolPreparationReason>(['native_version_unsupported','installation_changed','sdk_assets_missing','sdk_assets_invalid','node_runtime_unavailable','credential_reference_unavailable']);
 const record=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value:Record<string,unknown>,keys:string[])=>Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
 const id=(value:unknown)=>typeof value==='string'&&/^[a-f0-9]{32}$/.test(value);
@@ -27,15 +29,21 @@ export function desktopToolBridge(value:unknown=(window as unknown as {sumaDeskt
 export function validDesktopToolScope(scope:DesktopToolScope):boolean{return id(scope.project)&&id(scope.userID)&&id(scope.organizationID)&&adapters.has(scope.adapterID);}
 export function readDesktopToolResult(value:unknown,scope:DesktopToolScope):DesktopToolResult|undefined{
  if(!validDesktopToolScope(scope)||!record(value))return;
- if(exact(value,['status','code'])&&value.status==='failed'&&typeof value.code==='string'&&/^[a-z][a-z0-9_]{0,79}$/.test(value.code))return {status:'failed',code:value.code};
+ // Reserved preparation facts require their SDK/unavailable connection basis;
+ // a generic failure code cannot lend them another adapter's authority.
+ if(exact(value,['status','code'])&&value.status==='failed'&&typeof value.code==='string'&&/^[a-z][a-z0-9_]{0,79}$/.test(value.code)&&!preparationReasons.has(value.code as DesktopToolPreparationReason))return {status:'failed',code:value.code};
  if(!exact(value,['status','connection'])||value.status!=='ok'||!record(value.connection))return;
  const c=value.connection,allowed=['project_id','adapter_id','phase','worker_id','base_commit','expires_at','credential_expires_at','credential_version','renewal_reason','recovery','repository_name'];
  if(scope.adapterID==='opencode-sdk')allowed.push('model','tool_version','executable_sha256','configuration_sha256','provider_id','endpoint_origin');
  if(scope.adapterID==='claude-code-sdk')allowed.push('model','credential_env_ref','tool_version','executable_sha256','runtime_executable_sha256','configuration_sha256','claude_sdk_execution');
+ if(scope.adapterID==='claude-code-sdk'||scope.adapterID==='opencode-sdk')allowed.push('preparation_reason');
  const acp=!!desktopACPRuntimeForAdapter(scope.adapterID);
  if(acp)allowed.push('model','tool_version','executable_sha256','configuration_sha256');
  if(scope.adapterID==='codex-app-server')allowed.push('tool_version','executable_sha256','configuration_sha256','catalog_sha256');
  if(!['project_id','adapter_id','phase'].every(key=>Object.hasOwn(c,key))||Object.keys(c).some(key=>!allowed.includes(key))||c.project_id!==scope.project||c.adapter_id!==scope.adapterID||!phases.has(c.phase as DesktopToolPhase))return;
+ // A classified preparation observation belongs only to unavailable SDK
+ // connections. Never infer a cause from an unavailable phase or error text.
+ if(Object.hasOwn(c,'preparation_reason')&&(c.phase!=='unavailable'||typeof c.preparation_reason!=='string'||!preparationReasons.has(c.preparation_reason as DesktopToolPreparationReason)))return;
  if(Object.hasOwn(c,'recovery')&&!validRecovery(c.recovery))return;
  if(Object.hasOwn(c,'renewal_reason')&&(typeof c.renewal_reason!=='string'||!['execution_pending','local_state_pending','credential_changed','access_changed','context_changed','result_unknown'].includes(c.renewal_reason)))return;
  if(Object.hasOwn(c,'worker_id')&&(typeof c.worker_id!=='string'||!/^desktop-[a-f0-9]{32}$/.test(c.worker_id)))return;
