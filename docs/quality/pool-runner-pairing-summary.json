@@ -1,0 +1,326 @@
+{
+  "stage": "T-POOL-RUNNER-PAIRING-208",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_implementation_real_windows_vault_http_sqlite_and_bilingual_workspace_verified",
+  "full_platform_complete": false,
+  "scope": "Organization-owned Pool pairing, machine-only secret, exact browser review, original atomic runner/credential registration and current status. No project grant, online/inventory/dispatch/acceptance conflation.",
+  "verification": {
+    "distinct_top_level": 26,
+    "new": 19,
+    "direct_old": 7,
+    "control": 8,
+    "runner_cli": 9,
+    "web": 6,
+    "api": 2,
+    "actual": 1,
+    "full_web_type_invocations": 1,
+    "full_web_diagnostics": 0,
+    "final_card_semantic_diagnostics": 0,
+    "language_invocations": 2,
+    "initial_paired_keys": 9545,
+    "final_paired_keys": 9548,
+    "production_hardcodes": 0,
+    "component_builds": 3,
+    "actual_runs": 1,
+    "readonly_visual_runs": 2
+  },
+  "actual": {
+    "directory": ".cache/pool-runner-pairing-208/actual/20261102T091801068368200Z/",
+    "kind": "Actual original HTTP/SQLite and production PoolWorkspace with real Windows go-keyring; fixture user approval, not production sign-off",
+    "lost_committed_acknowledgements": {
+      "approve": true,
+      "create": true,
+      "proposal": true
+    },
+    "owned_credentials_created": 1,
+    "owned_credentials_removed_and_absent": 1,
+    "pairings": 1,
+    "runners": 1,
+    "credentials": 1,
+    "project_grants": 0,
+    "ordinary_project_workers": 0,
+    "runs": 0,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "worker_execution": 0,
+    "original_session_200_empty_project_scope": true,
+    "revoked_original_session_403": true,
+    "browser_api_requests": 25,
+    "server_api_requests": 31,
+    "window_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "images": [
+      {
+        "path": "cn-proposal-review.png",
+        "sha256": "79811fcb37ebecc2b2355eec0ed41aff1d4f421d48a26ecb2e9a5c62711ad6a2"
+      },
+      {
+        "path": "en-approved-identity.png",
+        "sha256": "ce685dded870af7f49861b9e29d514a8a3681b3b60e6977328927884f8ce7dbc"
+      }
+    ],
+    "private_snapshot_retained": true
+  },
+  "presentation": {
+    "directory": ".cache/pool-runner-pairing-208/visual/20261102T093428652Z/",
+    "scope": "Synthetic read-only Card presentation after command disclosure/time-label refinement; original actual business evidence reused, no vault/Worker/vendor/model/business writes",
+    "original_actual_business_reused": true,
+    "command_default_closed_for_proposed": true,
+    "waiting_command_direct": true,
+    "human_lifetime_exact_seconds_in_evidence": true,
+    "cn_approval_y": 670.46875,
+    "en_approval_y": 852.75,
+    "keyboard_disclosure": true,
+    "database_unchanged": true,
+    "images": [
+      {
+        "path": "cn-concise-proposal.png",
+        "sha256": "47a96347321cb6e6c8d2d6851e52fd816bb6287015e6ea189794a76a3307f398"
+      },
+      {
+        "path": "en-concise-proposal.png",
+        "sha256": "8f7b7b6ce840f50aa413073a2b1c762258930e39659710811c7864fa1381abd4"
+      }
+    ],
+    "requests": 8,
+    "window_exit": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "failures_and_fixes": [
+    "Actual404 route RED -> current owner Pool pairing GREEN.",
+    "CLI original mode RED; initial in-flight compile0-case failure and Windows lock-blocked rename fixture preserved, final selected8 passed.",
+    "Approved machine with nonempty reason incorrectly prepared; only original client subcase RED -> strict empty reason GREEN.",
+    "Preflight persistence parent deadlock, conflict refresh deadlock and repeated Create primary: original3UI checks RED -> GREEN.",
+    "Bad public locator blocked history/recovery; originalscope top RED -> GREEN, empty-history explicit reset finalvariant firstGREEN.",
+    "Original model duplicate-ID fixture corrected only affectedtop; device100/101 bound RED -> GREEN.",
+    "Proposed repeated command pushed approval below fold; original representative top RED -> default native disclosure and human time GREEN.",
+    "Read-only fixture initially lacked original Panel style context; final context and44px checks corrected, original pictures/receipts retained.",
+    "Adjacent project machine observer also accepted browser-only reason; original approved_browser_reason subcase RED -> GREEN, only that subcase rerun, other old top cases not newly verified."
+  ],
+  "api": {
+    "models_added": 6,
+    "paths_added": 5,
+    "operations_added": 6,
+    "total_schemas": 993,
+    "total_paths": 450,
+    "old_schemas_or_paths_changed": 0
+  },
+  "evidence": {
+    "control": ".cache/pool-runner-pairing-208/control/",
+    "runner": ".cache/pool-runner-pairing-208/runner/",
+    "ui": ".cache/pool-runner-pairing-208/ui/summary-final.json",
+    "presentation_overlay": ".cache/pool-runner-pairing-208/ui/presentation-overlay-manifest.json",
+    "full_types": ".cache/pool-runner-pairing-208/checks/20261102T091647835Z/",
+    "final_types": ".cache/pool-runner-pairing-208/presentation-types.json",
+    "final_i18n": ".cache/pool-runner-pairing-208/presentation-i18n.json",
+    "independent_reviews": ".cache/pool-runner-pairing-208/review/",
+    "process_final": ".cache/pool-runner-pairing-208/process-final.json",
+    "post_git": ".cache/pool-runner-pairing-208/post-git.json",
+    "project_variant": ".cache/pool-runner-pairing-208/runner/project-variant-summary.json"
+  },
+  "sources": [
+    {
+      "path": "internal/platform/pool_runner_pairing_types.go",
+      "sha256": "7f04f84703a12ad9622fb040ab558146c1309cab98ae5c7e176c5cdb1541a881"
+    },
+    {
+      "path": "internal/platform/pool_runner_pairing_store.go",
+      "sha256": "1042100b08e8b108a46d965a356ab1893451820f500f0a41d4f1a1b1793b310e"
+    },
+    {
+      "path": "internal/platform/pool_runner_pairing_service.go",
+      "sha256": "9d12396fc3eac616b13aa387c0d2c880ffa00607f6bf665de267a818cbfa048b"
+    },
+    {
+      "path": "internal/platform/pool_runner_pairing_machine.go",
+      "sha256": "a63f13c9d9ca2e1ede07cf05fe6b39933755eee84277ce9abb755dd87d652af6"
+    },
+    {
+      "path": "internal/platform/pool_runner_pairing_list.go",
+      "sha256": "918ca5967b375c5363deac058232fe58260b787d3ecf51b2702843ad1964a32d"
+    },
+    {
+      "path": "internal/platform/pool_runner_pairing_http.go",
+      "sha256": "eded5a9e571c35439ea2b5e2fe7d17b3a0ef9c2868b057e7f09a2f239dd42831"
+    },
+    {
+      "path": "internal/platform/pool_runner_pairing_test.go",
+      "sha256": "612bae0d558b4da56bd0c6b53c8029834909ba633e428382c4e1ed3138889ecb"
+    },
+    {
+      "path": "internal/platform/execution_pool_credentials.go",
+      "sha256": "4e6ca970c234e2e383045b1169acf2f81102d777c30602580cb35a4eac1d0ea8"
+    },
+    {
+      "path": "internal/platform/http.go",
+      "sha256": "5574b90ea001ec353e34d68ed275f4d148b0726070fd8fc52e3cd7138b19954f"
+    },
+    {
+      "path": "internal/platform/database.go",
+      "sha256": "2242893427bff4e58898389d8128e149e29f41fc253ea78d54a853f2ea753683"
+    },
+    {
+      "path": "internal/localization/pool_runner_pairing_catalog.go",
+      "sha256": "5744ca7c981ef59b286d30cef076c37bb0ef8f0cb62280a4292520e6d89da4a6"
+    },
+    {
+      "path": "internal/localization/catalog.go",
+      "sha256": "3e9d5e312573ecfc1fc46aa5bb9092dc9d20e9ddbaf72acc240b77921cd0a756"
+    },
+    {
+      "path": "internal/runner/identity_file.go",
+      "sha256": "a452fe85bf54b01fa56d883ec91c0ca5c7e1edf7b6043bef638fcbdf0ad64f72"
+    },
+    {
+      "path": "internal/runner/remote_identity.go",
+      "sha256": "cad132b2abdd55e1c106a049d32a76c40fb2492ed83f5034a7f0450ed3a65484"
+    },
+    {
+      "path": "internal/runner/pool_identity.go",
+      "sha256": "3246b1734ac1c34069dce667feef63d234753facbc32bce4249605065f65a34f"
+    },
+    {
+      "path": "internal/runner/pool_identity_test.go",
+      "sha256": "85cace0f4a4b565259c0fbc500cb1a2e9ca3aa2b54dbb56667cb3b70c938bf92"
+    },
+    {
+      "path": "internal/runner/pool_pairing.go",
+      "sha256": "96ad7a4a8658adf56079881306911fd2fa6af8879f0d159358ced2f339dc58df"
+    },
+    {
+      "path": "internal/runner/pool_pairing_test.go",
+      "sha256": "9af1782e41625abe4cb3caefbc482b75e7a1fc39096930d7e56acd3d674aa2e8"
+    },
+    {
+      "path": "cmd/suma-runner/main.go",
+      "sha256": "da827e460af6c78a2f5281fe1f5d3d17fbcbdab2ba2bb7e99ac56d88e67eed86"
+    },
+    {
+      "path": "cmd/suma-runner/pool.go",
+      "sha256": "dd297f14abc17fa5352999651c9bcb0f3799296cf70133005386fbfa9cab8a22"
+    },
+    {
+      "path": "cmd/suma-runner/pool_pairing.go",
+      "sha256": "ec2e0f9502c9b2af1b7300e121e1562c3c05aaf0874af926dd979be641edd8ef"
+    },
+    {
+      "path": "cmd/suma-runner/pool_pairing_test.go",
+      "sha256": "c4c8422a988450eb1ffe6e0d87a78696cff000ac3d89f917e4c071151e623a40"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolWorkspace.tsx",
+      "sha256": "44ffad913205768cf98ec0d3e26a6706fbe2583efbc57be48a9a15895686b8cb"
+    },
+    {
+      "path": "apps/web/src/execution-pools/pool-runner-pairing-model.ts",
+      "sha256": "c496db64e0ad2cfc00007d963fbef90477689e7b6df4cd2eb22332f64b2b7981"
+    },
+    {
+      "path": "apps/web/src/execution-pools/pool-runner-pairing-model.test.ts",
+      "sha256": "16750975d8bdd581fb05c7b277bfb9ef9bd09eb7634a917821bee29adf031ea8"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolRunnerPairingPanel.tsx",
+      "sha256": "215cab37ee131185c23a894d1bb8e1f756528003a08fc745b30264af050bc3b0"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolRunnerPairingPanel.test.tsx",
+      "sha256": "6c4a8ae94236cb53da44772fda187c3dcbd63e66a8b61ee4ccb3da83cb4446eb"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolRunnerPairingCard.tsx",
+      "sha256": "359a0b6393b0cd8ae7c5ed88bfefa0d3769299ca9846b0f4f64ac3a4ab0d01c1"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolRunnerPairing.css",
+      "sha256": "07df1a9bf9f116d053933d5d5954e7abc819cbd55a09b286bf6a0541b9f75203"
+    },
+    {
+      "path": "apps/web/src/execution-pools/consumers.test.tsx",
+      "sha256": "7ffb8d6351e618a3285652c135f8f8a08947c5477721f3a15c41cff2cc4fb4bb"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-runner-pairing.en-US.json",
+      "sha256": "b37574885ff0b20cdb26f99132990d3d17373995c6965dc4db289ca2decda93d"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-runner-pairing.zh-CN.json",
+      "sha256": "ae282bf3f15aaab5a152188963cce883479b1edf795fdbb39eace6dee7d9a44e"
+    },
+    {
+      "path": "internal/poolrunnerpairingcontract/pairing.go",
+      "sha256": "901ec30d918e47234a65bb1cb863b48f9155416399db749ec9f009283e1a804e"
+    },
+    {
+      "path": "cmd/suma-contracts/main.go",
+      "sha256": "55f620c62399acb55a82ed6b7d834e9b4131b3e7c22f7bdeec31ed557b16e045"
+    },
+    {
+      "path": "cmd/suma-contracts/pool_runner_pairing.go",
+      "sha256": "a7d97b14f5c387824a3de421ffd1c4cbd5dbf82280ae08b09edd37fd39e7423f"
+    },
+    {
+      "path": "cmd/suma-contracts/pool_runner_pairing_test.go",
+      "sha256": "cdff6073ef64571c675ee7e9a5f6e62e831fd52a46b73396b3fb6f08817c61b7"
+    },
+    {
+      "path": "docs/api/openapi.json",
+      "sha256": "dbeb27451f442dbbeb1f2d23481533a688c71deece9a74515e004d9138d72e49"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256": "bb5d251054e55646964816fa13a4c73e326968f107d54546f22b296b18468ab4"
+    },
+    {
+      "path": "internal/platform/pool_runner_pairing_actual_test.go",
+      "sha256": "89d30d21215ce1bab353965f710e9df3cac2921e57e5f8505e9b8264282e02f7"
+    },
+    {
+      "path": "tests/integration/pool-runner-pairing/entry.tsx",
+      "sha256": "f773dd140f3135acc3dd405dabc9593ce13d95009de0507898000cdd2a2f29db"
+    },
+    {
+      "path": "tests/integration/pool-runner-pairing/index.html",
+      "sha256": "fcfb8021e7d1c8bc3e29d8fdbe184102786f0100d38a850a082e9dadeaa4f2c1"
+    },
+    {
+      "path": "tests/integration/pool-runner-pairing/build.cjs",
+      "sha256": "abaaccbd14da0c1cd670992224a4e5f4b1fa1b89957f80cccc33a1f66090cd43"
+    },
+    {
+      "path": "tests/integration/pool-runner-pairing/driver.cjs",
+      "sha256": "1b340d15a3d888802955c90ab19c96f024ff5de7ed01e56d4509886846b380d6"
+    },
+    {
+      "path": "tests/integration/pool-runner-pairing/visual-entry.tsx",
+      "sha256": "95939f36e541278615d215a6f2e9ddcf4a36691e66f6ff6796393e044f724956"
+    },
+    {
+      "path": "tests/integration/pool-runner-pairing/visual-build.cjs",
+      "sha256": "5bba558977d692895d353863d5d2ee8386584d37ee6c113732fd80872d95c9ac"
+    },
+    {
+      "path": "tests/integration/pool-runner-pairing/visual.cjs",
+      "sha256": "31494054754f5ca65dd35b2102f7dd1399dcb2a728e434c70c13897975b84612"
+    },
+    {
+      "path": "internal/runner/remote_pairing.go",
+      "sha256": "742469b5a6007991a59ee06bb4d6b2947f32d888f7ee5bedc17e0d8e3e260724"
+    },
+    {
+      "path": "internal/runner/remote_pairing_test.go",
+      "sha256": "51b8f0d6304c1568fce69084c68faadd1a0e0a45905f522cbff180548ff45cd2"
+    }
+  ],
+  "remaining": [
+    "Real macOS/Linux system providers, cross-platform installers, physical multi-machine and full App/device/theme acceptance.",
+    "Multi-project local configuration visual preparation and original useful project scope/execution journey.",
+    "WorkBuddy trusted code/candidate and same-commit independent quality, real external providers/models.",
+    "Actual OceanBase/PostgreSQL/scale/production and complete31/P0–P7/58limited34pending92total remain active."
+  ]
+}

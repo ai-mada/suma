@@ -95,6 +95,9 @@ func (s *Service) validateWorkspaceInitialSchema(ctx context.Context) error {
 }
 
 func (s *Service) Initialize(ctx context.Context) error {
+	if err := s.validatePoolRunnerPairingsInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateToolProfileReplacementsInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -280,6 +283,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeExecutionPools(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializePoolRunnerPairings(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeProjectKnowledge(ctx); err != nil {

@@ -4323,6 +4323,60 @@ export interface PoolRunnerAssignmentRequest {
 export interface PoolRunnerClaimResponse {
   assignment: Assignment | null;
 }
+export interface PoolRunnerPairing {
+  id: string;
+  purpose: string;
+  owner_tenant_id: string;
+  pool_id: string;
+  pool_version: number;
+  version: number;
+  state: string;
+  control_url: string;
+  name: string;
+  max_slots: number;
+  ttl_seconds: number;
+  device_name?: string;
+  credential_sha256?: string;
+  runner_id?: string;
+  worker_id?: string;
+  credential_version?: number;
+  credential_expires_at?: string;
+  created_at: string;
+  expires_at: string;
+  can_approve: boolean;
+  reason_code?: string;
+}
+export interface PoolRunnerPairingCommandRequest {
+  pool_id: string;
+  action: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface PoolRunnerPairingCreateRequest {
+  pool_id: string;
+  name: string;
+  max_slots: number;
+  ttl_seconds: number;
+  idempotency_key: string;
+}
+export interface PoolRunnerPairingPage {
+  owner_tenant_id: string;
+  pool_id: string;
+  as_of: string;
+  items: (PoolRunnerPairing)[];
+  total: number;
+  next_cursor?: string;
+}
+export interface PoolRunnerPairingProposalRequest {
+  pool_id: string;
+  device_name: string;
+  credential_sha256: string;
+  idempotency_key: string;
+}
+export interface PoolRunnerPairingStatusRequest {
+  pool_id: string;
+  idempotency_key: string;
+}
 export interface PoolRunnerProgressRequest {
   runner_id: string;
   tenant_id: string;

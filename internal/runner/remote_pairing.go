@@ -179,7 +179,7 @@ func pairingPost(ctx context.Context, client *http.Client, identity RunnerIdenti
 
 func validatePairingObservation(value rp.RunnerPairing, identity RunnerIdentity) error {
 	invalid := fmt.Errorf("pairing response differs from the original identity")
-	if value.ID != identity.PairingID || value.ProjectID != identity.ProjectID || value.ControlURL != identity.ControlURL || value.Version < 1 || value.CanApprove {
+	if value.ID != identity.PairingID || value.ProjectID != identity.ProjectID || value.ControlURL != identity.ControlURL || value.Version < 1 || value.CanApprove || value.ReasonCode != "" {
 		return invalid
 	}
 	created, err := time.Parse(time.RFC3339Nano, value.CreatedAt)

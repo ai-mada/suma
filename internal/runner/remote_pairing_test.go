@@ -120,7 +120,7 @@ func TestRemotePairingLostReplyReplaysExactProposalWithoutReplacingSecret(t *tes
 }
 
 func TestRemotePairingRejectsForeignOrIncompleteResponseBeforeApproval(t *testing.T) {
-	for _, kind := range []string{"foreign_digest", "missing_can_approve", "unknown_field", "duplicate_field"} {
+	for _, kind := range []string{"foreign_digest", "missing_can_approve", "unknown_field", "duplicate_field", "approved_browser_reason"} {
 		t.Run(kind, func(t *testing.T) {
 			file := filepath.Join(t.TempDir(), "identity.json")
 			store := newIdentityMemoryStore()
@@ -131,6 +131,9 @@ func TestRemotePairingRejectsForeignOrIncompleteResponseBeforeApproval(t *testin
 					_ = json.NewDecoder(r.Body).Decode(&proposal)
 				}
 				value := pairingObservation(server.URL, proposal, true)
+				if kind == "approved_browser_reason" {
+					value.ReasonCode = "credential_unavailable"
+				}
 				raw, _ := json.Marshal(value)
 				if strings.HasSuffix(r.URL.Path, "/proposal") {
 					switch kind {

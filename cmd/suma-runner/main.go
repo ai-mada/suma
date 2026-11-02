@@ -55,12 +55,35 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	describeACPModels := app.Bool("describe-acp-models-stdin", false, "由私有标准输入明确读取已选本机工具的模型目录；不派发任务", "explicitly discover the selected local tool model catalogue from private stdin; no task dispatch")
 	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli、qoder-acp、cursor-cli、codex-app-server、opencode-sdk、claude-code-sdk（只读安装信息，不授予执行权限）；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica, claude-code-cli, qoder-acp, cursor-cli, codex-app-server, opencode-sdk or claude-code-sdk (passive installation facts, no execution authority); empty selects all")
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
+	poolID := app.String("pool", "", "共享资源池配对的准确资源池标识；仅用于配对", "exact Pool ID for shared machine pairing only")
+	pairPool := app.String("pair-pool-runner", "", "连接浏览器资源池配对待办；只保存系统凭据与公开身份后退出", "join a browser Pool pairing; save the system credential and public identity, then exit")
+	poolIdentity := app.String("pool-identity", "", "独立资源池公开身份文件；配对保存或配合资源池配置启动", "separate public Pool identity file for pairing or startup with a Pool configuration")
 	pairRunner := app.String("pair-runner", "", "连接浏览器已创建的远程配对待办；保存身份后退出，不领取任务", "join a browser-created remote pairing; save the identity and exit without tasks")
 	identityPath := app.String("identity", "", "系统凭据库所绑定的公开执行身份文件", "public runner identity file bound to the system credential store")
 	pairedRunner := app.String("paired-runner", "", "复用该配对标识默认位置的已保存执行身份，不重新配对", "reuse the saved default identity for this pairing ID without pairing again")
 	deviceName := app.String("device-name", "", "配对时自报的机器名称；默认本机名称", "self-reported pairing device name; defaults to the local hostname")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	// Pool identities have an independent purpose. Presence gates all other
+	// preparation/project modes before any environment or secret store access.
+	if app.FlagProvided("pair-pool-runner") {
+		if *pairPool == "" || !app.FlagProvided("control") || !app.FlagProvided("pool") || *poolID == "" || app.FlagProvided("pool-identity") && *poolIdentity == "" || app.FlagProvided("device-name") && *deviceName == "" || toolModeHasAnyFlag(app, "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "pool-config", "allow-exec", "allow-installed-tool-discovery", "maintenance-only", "describe-tools", "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "prepare-opencode-stdin", "report-tools", "discover-installed-tools", "describe-acp-models-stdin", "local-tool", "identity", "paired-runner", "pair-runner") {
+			return app.Failure("资源池配对参数无效，且不能与项目身份或执行模式混用", "Pool pairing options are invalid or cannot be combined with project identity or execution modes")
+		}
+		return runPoolPairing(app, *pairPool, *base, *poolID, *poolIdentity, *deviceName, secrets)
+	}
+	if app.FlagProvided("pool") || app.FlagProvided("pool-identity") && (*poolIdentity == "" || !app.FlagProvided("pool-config") || *poolConfig == "" || !app.FlagProvided("control") || toolModeHasAnyFlag(app, "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "inspect-state", "commands", "model-deployments", "external-config", "describe-tools", "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "prepare-opencode-stdin", "report-tools", "discover-installed-tools", "describe-acp-models-stdin", "local-tool", "identity", "paired-runner", "pair-runner", "device-name")) {
+		return app.Failure("资源池身份必须配合明确控制地址和原资源池配置，不能与项目身份或其他模式混用", "Pool identity requires an explicit control URL and the original Pool configuration without project identity or other modes")
+	}
+	if app.FlagProvided("pool-identity") {
+		if *maintenanceOnly && !*allowInstalled {
+			return app.Failure("仅维护模式需要明确允许安装检测", "Maintenance-only requires explicit installed discovery")
+		}
+		if err := runPoolIdentity(app, *base, *poolConfig, *poolIdentity, *state, *allow, *allowInstalled, *maintenanceOnly, secrets); err != nil {
+			return app.Failure("资源池身份或当前配置不可用；请保留原文件并核对原配对和资源池授权", "Pool identity or current configuration is unavailable; preserve original files and review original pairing and Pool authority")
+		}
+		return 0
 	}
 	if (app.FlagProvided("allow-installed-tool-discovery") || app.FlagProvided("maintenance-only")) && toolModeHasAnyFlag(app, "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "prepare-opencode-stdin", "report-tools", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "inspect-state", "pair-runner", "merge-preflight") || *maintenanceOnly && !*allowInstalled {
 		return app.Failure("安装检测选项仅用于持续执行器；仅维护模式需要明确允许安装检测", "Installation discovery options require a continuous worker; maintenance-only requires explicit installed discovery")

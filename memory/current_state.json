@@ -710,16 +710,16 @@
     "evidence": "T204 original inventory feedback source,18focused,realHTTP/SQLite/two bilingual UI groups committed and pushed. Local post-git remote/dev=HEAD, tracked clean,32allowlisted files,2unrelated retained.",
     "commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183"
   },
-  "previous_goal_turn": "progress: T206 simple tool management, exact source-bound navigation and bilingual representative production-component GUI; committed/pushed c88bb4d319ddf09969ccfde2a8b74cb3de7e7420. Full31/P0-P7 remains active.",
+  "previous_goal_turn": "progress: T207 exact OpenCode native new-file preparation and guide handoff, real PowerShell/Go and representative visual verified; committed/pushed886ef83be9acaa6878087a5859d5316160936666. Full31/P0-P7 remains active.",
   "current_work": {
-    "stage": "T-OPENCODE-PREPARATION-207",
+    "stage": "T-POOL-RUNNER-PAIRING-208",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/opencode-tool-preparation.md",
-    "report": "docs/quality/opencode-tool-preparation-verification.md",
-    "summary": "docs/quality/opencode-tool-preparation-summary.json",
-    "previous_commit": "c88bb4d319ddf09969ccfde2a8b74cb3de7e7420",
-    "verification": "14distinct(4Go10Web),FullWebtypes0/9476paired0hardcodes;actualsameWebcommandPowerShellGo0 thenexistingfile1/hashunchanged;2RootviewedCN1366/EN390 productionguidegroups;0vendor/model/Worker.",
-    "next": "Pool tokenless multi-project pairing, real OpenCode target environment acceptance, WorkBuddy trusted code/independent same-commit quality and complete31/P0-P7/58limited34pending92total."
+    "contract": "contracts/pool-runner-pairing.md",
+    "report": "docs/quality/pool-runner-pairing-verification.md",
+    "summary": "docs/quality/pool-runner-pairing-summary.json",
+    "previous_commit": "886ef83be9acaa6878087a5859d5316160936666",
+    "verification": "26distinct(19new7old;adjacentprojectonly1subcase),FullWebtypes0/finalCardsemantic0/9548paired0hardcodes; actualWindowsvault1created1removed/3ACKoriginalrecovery/PoolSession200thenrevoked403/0grant/runs/models;2actualRootviewedimages+2finalreadonlyCardimages.",
+    "next": "Visual multi-project local Pool configuration/preparation, real useful project execution/quality, trusted WorkBuddy code and all31/P0-P7/58limited34pending92total."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2524,5 +2524,17 @@
     "next": "Pool tokenless multi-project pairing, real OpenCode target environment acceptance, WorkBuddy trusted code/independent same-commit quality and complete31/P0-P7/58limited34pending92total.",
     "full_platform_complete": false,
     "git_record": ".cache/opencode-preparation-207/post-git.json"
+  },
+  "pool_runner_pairing": {
+    "stage": "T-POOL-RUNNER-PAIRING-208",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/pool-runner-pairing.md",
+    "report": "docs/quality/pool-runner-pairing-verification.md",
+    "summary": "docs/quality/pool-runner-pairing-summary.json",
+    "previous_commit": "886ef83be9acaa6878087a5859d5316160936666",
+    "verification": "26distinct(19new7old;adjacentprojectonly1subcase),FullWebtypes0/finalCardsemantic0/9548paired0hardcodes; actualWindowsvault1created1removed/3ACKoriginalrecovery/PoolSession200thenrevoked403/0grant/runs/models;2actualRootviewedimages+2finalreadonlyCardimages.",
+    "next": "Visual multi-project local Pool configuration/preparation, real useful project execution/quality, trusted WorkBuddy code and all31/P0-P7/58limited34pending92total.",
+    "full_platform_complete": false,
+    "git_record": ".cache/pool-runner-pairing-208/post-git.json"
   }
 }

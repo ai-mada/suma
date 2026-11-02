@@ -22432,6 +22432,286 @@
         ],
         "type": "object"
       },
+      "PoolRunnerPairing": {
+        "additionalProperties": false,
+        "properties": {
+          "can_approve": {
+            "type": "boolean"
+          },
+          "control_url": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "credential_expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "credential_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "credential_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "device_name": {
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 100
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "max_slots": {
+            "maximum": 128,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          },
+          "owner_tenant_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "pool_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "purpose": {
+            "const": "pool_runner",
+            "type": "string"
+          },
+          "reason_code": {
+            "enum": [
+              "pool_changed",
+              "pool_inactive",
+              "credential_unavailable",
+              "control_changed",
+              "expired",
+              "rejected"
+            ],
+            "type": "string"
+          },
+          "runner_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "waiting",
+              "proposed",
+              "approved",
+              "rejected",
+              "expired"
+            ],
+            "type": "string"
+          },
+          "ttl_seconds": {
+            "maximum": 2592000,
+            "minimum": 3600,
+            "type": "integer"
+          },
+          "version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "worker_id": {
+            "pattern": "^pool-[a-f0-9]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "purpose",
+          "owner_tenant_id",
+          "pool_id",
+          "pool_version",
+          "version",
+          "state",
+          "control_url",
+          "name",
+          "max_slots",
+          "ttl_seconds",
+          "created_at",
+          "expires_at",
+          "can_approve"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerPairingCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pool_id",
+          "action",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerPairingCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "idempotency_key": {
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "max_slots": {
+            "maximum": 128,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "ttl_seconds": {
+            "maximum": 2592000,
+            "minimum": 3600,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pool_id",
+          "name",
+          "max_slots",
+          "ttl_seconds",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerPairingPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PoolRunnerPairing"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "owner_tenant_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "total": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "owner_tenant_id",
+          "pool_id",
+          "as_of",
+          "items",
+          "total"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerPairingProposalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "credential_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "device_name": {
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 100
+          },
+          "idempotency_key": {
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pool_id",
+          "device_name",
+          "credential_sha256",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerPairingStatusRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "idempotency_key": {
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pool_id",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
       "PoolRunnerProgressRequest": {
         "additionalProperties": false,
         "not": {
@@ -50017,6 +50297,11 @@
         "scheme": "bearer",
         "type": "http"
       },
+      "poolRunnerPairingProof": {
+        "description": "Machine-held random token for its exact Pool pairing/proposal only. Approved status rechecks the original current Pool credential generation, expiry, revocation and Pool state. No secret is returned in JSON.",
+        "scheme": "bearer",
+        "type": "http"
+      },
       "providerAuth": {
         "description": "Independent provider credential configured by the administrator. Not a browser, project API, Agent or Runner token; binds provider identity and authorized operation.",
         "scheme": "bearer",
@@ -67596,6 +67881,294 @@
           "api",
           "agent",
           "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/execution-pools/{pool_id}/runner-pairings": {
+      "get": {
+        "description": "Current Pool administration reads stable created_at/id seek pages. Cursor binds owner, Pool, filters and original as_of creation boundary; authorization and logical states remain current. History does not prove online execution.",
+        "operationId": "get_execution-pools_pool_id_runner-pairings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pool_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "active means unexpired waiting/proposed; default active.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "default": "active",
+              "enum": [
+                "active",
+                "waiting",
+                "proposed",
+                "approved",
+                "rejected",
+                "expired",
+                "all"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Literal name, device or public identity filter; maximum120 UTF-8 bytes.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string",
+              "x-max-utf8-bytes": 120
+            }
+          },
+          {
+            "description": "Default20, maximum100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Original owner/Pool/filter/as_of-bound seek cursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerPairingPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "runner",
+          "agent",
+          "pool_runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      },
+      "post": {
+        "operationId": "post_execution-pools_pool_id_runner-pairings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pool_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolRunnerPairingCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerPairing"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "runner",
+          "agent",
+          "pool_runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/execution-pools/{pool_id}/runner-pairings/{id}": {
+      "get": {
+        "operationId": "get_execution-pools_pool_id_runner-pairings_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pool_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerPairing"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "runner",
+          "agent",
+          "pool_runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/execution-pools/{pool_id}/runner-pairings/{id}/commands": {
+      "post": {
+        "operationId": "post_execution-pools_pool_id_runner-pairings_id_commands",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pool_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolRunnerPairingCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerPairing"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "runner",
+          "agent",
+          "pool_runner"
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
@@ -85786,6 +86359,119 @@
           "missing_status": 428,
           "required": true
         },
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/pool-runner-pairings/{id}/proposal": {
+      "post": {
+        "operationId": "post_pool-runner-pairings_id_proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolRunnerPairingProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerPairing"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "poolRunnerPairingProof": []
+          }
+        ],
+        "x-credential-purpose": "Exact original Pool pairing, machine-held token and original proposal operation only; no project, human or execution authority.",
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/pool-runner-pairings/{id}/status": {
+      "post": {
+        "operationId": "post_pool-runner-pairings_id_status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolRunnerPairingStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerPairing"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "poolRunnerPairingProof": []
+          }
+        ],
+        "x-credential-purpose": "Exact original Pool pairing, machine-held token and original proposal operation only; no project, human or execution authority.",
+        "x-read-only": true,
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },

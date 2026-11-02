@@ -403,7 +403,10 @@ describe("execution pool actual React consumers", () => {
   });
   it("registers only name and bounded slot/TTL settings and keeps the issued secret out of persistent browser state", async () => {
     await mount(<ExecutionPools {...props} panel="runners" />);
-    await click("登记执行节点");
+    const manual = document.querySelector<HTMLButtonElement>('[data-pool-runner-register-manual]')!;
+    expect(manual).not.toBeNull();
+    await act(async () => manual.click());
+    await settle();
     await input("name", "本机开发节点");
     await input("max_slots", "2");
     await submit();

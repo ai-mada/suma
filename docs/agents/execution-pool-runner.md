@@ -4,7 +4,9 @@
 
 ## 身份与范围
 
-资源池节点使用独立 `SUMA_POOL_RUNNER_TOKEN`，只绑定登记的 pool／runner。服务端生成 `pool-<runner_id>` 作为 worker 标识；每个项目仍需请求与池拥有方批准的双边 grant。旧 `SUMA_RUNNER_TOKEN`、项目 Agent／API token 和浏览器 cookie 都不能代替资源池机器凭证。
+T-POOL-RUNNER-PAIRING-208已补充[安全机器配对](../../contracts/pool-runner-pairing.md)：原Pool节点页创建待办，机器把token保存到独立系统凭据库，管理员核对完整指纹后批准；浏览器不复制或保存token。`--pair-pool-runner ID --control URL --pool POOL`仅准备身份并退出；后续显式启动使用`--pool-identity FILE --pool-config FILE --control URL`，先核准公开范围再读取系统秘密。准确过程和实际Windows系统库证据见[专项报告](../quality/pool-runner-pairing-verification.md)；它不代表节点在线、跨平台安装或业务执行。
+
+资源池节点使用独立机器凭据，只绑定登记的pool／runner。推荐从配对的系统身份读取，也可在原手工模式显式提供`SUMA_POOL_RUNNER_TOKEN`；身份模式不向环境令牌回退。服务端生成 `pool-<runner_id>` 作为 worker 标识；每个项目仍需请求与池拥有方批准的双边 grant。旧 `SUMA_RUNNER_TOKEN`、项目 Agent／API token 和浏览器 cookie 都不能代替资源池机器凭证。
 
 机器 session 返回登记槽位上限和已批准范围，只是配置提示。每次领取仍在当前组织、凭证和 grant 校验后由控制面选择项目，并原子提交份额、资源、attempt 与回执。客户端不轮询修改一个全局 ProjectID，也不提交权重或权限来扩大范围。
 

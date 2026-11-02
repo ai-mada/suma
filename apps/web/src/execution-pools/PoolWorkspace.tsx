@@ -1,7 +1,7 @@
 import {useApi} from '../api-context';
 import { tr, useLocale, UiError } from "../i18n";
 import { Trans } from "../i18n/Trans";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Plus, RefreshCw, ChevronRight } from "lucide-react";
 import { useToolAction, useToolRead, toolSessionStorage } from "../tool-hooks";
 import { Modal } from "../ui";
@@ -20,17 +20,22 @@ import { PageState, PageFooter, PoolRecovery, PoolStatus } from "./Shared";
 import { PoolPolicyFacts, GrantFacts, RunnerFacts } from "./Facts";
 import { PoolCreateForm, RunnerForm, GrantDecision } from "./Forms";
 import { CredentialDialog } from "./CredentialDialog";
+import {PoolRunnerPairingPanel} from "./PoolRunnerPairingPanel";
 import { PoolPolicyWorkspace } from "./Previews";
 import "./pools.css";
 type Dialog =
-  | { kind: "create" | "pause" | "resume" | "register" }
+  | { kind: "create" | "pause" | "resume" | "register" | "pair" }
   | { kind: "grant"; grant: Grant; action: string }
   | { kind: "rotate" | "revoke-runner"; runner: Runner };
 const mayLeave = () =>
   window.dispatchEvent(new Event("suma:navigate", { cancelable: true }));
 /** Organization scope is deliberate: no current project is needed or inferred.
  * A pool owner may govern grants but never gains a consuming project's data. */
-export function PoolWorkspace({
+export function PoolWorkspace(props:PoolProps){
+  const api=useApi(),owner=useRef({api,epoch:0});if(owner.current.api!==api)owner.current={api,epoch:owner.current.epoch+1};
+  return <ScopedPoolWorkspace key={JSON.stringify([props.session.organization.id,props.session.user.id,props.selected,owner.current.epoch])} {...props}/>;
+}
+function ScopedPoolWorkspace({
   session,
   selected,
   panel,
@@ -41,7 +46,8 @@ export function PoolWorkspace({
   useLocale();
   const [revision, setRevision] = useState(0),
     [dialog, setDialog] = useState<Dialog>(),
-    [credential, setCredential] = useState<Credential>();
+    [credential, setCredential] = useState<Credential>(),
+    [pairingLocked,setPairingLocked]=useState(false);
   const recovery = useMemo(
     () =>
       new PoolWriteRecovery(JSON.stringify([
@@ -68,7 +74,7 @@ export function PoolWorkspace({
     );
   const pool = detail.data,
     stale = detail.loading || !!detail.error,
-    blocked = action.busy || !!action.pending || !!recovery.error,
+    blocked = action.busy || !!action.pending || !!recovery.error || pairingLocked,
     tab = panel.startsWith("policy")
       ? "policy"
       : panel === "runners"
@@ -398,16 +404,10 @@ export function PoolWorkspace({
                         >
                           {tr("pools.workspace.reload_nodes")}
                         </button>
-                        {runners.allowed.includes("register") && (
-                          <button
-                            className="primary"
-                            disabled={blocked || stale}
-                            onClick={() => open({ kind: "register" })}
-                          >
-                            <Plus size={14} />
-                            {tr("pools.workspace.register_node")}
-                          </button>
-                        )}
+                        {runners.allowed.includes("register") && <>
+                          <button type="button" className="primary" data-pool-runner-pairing-open disabled={blocked||stale||runners.loading||!!runners.error||pool.status!=='active'} onClick={()=>open({kind:'pair'})}><Plus size={14} aria-hidden="true"/>{tr('pool-runner-pairing.entry')}</button>
+                          <button type="button" className="text-button" data-pool-runner-register-manual disabled={blocked||stale} onClick={()=>open({kind:'register'})}>{tr('pool-runner-pairing.manual')}</button>
+                        </>}
                       </div>
                     </header>
                     <PageState
@@ -491,7 +491,9 @@ export function PoolWorkspace({
           if (!blocked) setDialog(undefined);
         }}
         title={
-          dialog?.kind === "create"
+          dialog?.kind === "pair"
+            ? tr("pool-runner-pairing.title")
+            : dialog?.kind === "create"
             ? tr("pools.workspace.create")
             : dialog?.kind === "register"
               ? tr("pools.workspace.register_node")
@@ -507,7 +509,7 @@ export function PoolWorkspace({
         }
         description={tr("pools.workspace.operation_scope")}
       >
-        {dialog?.kind === "create" ? (
+        {dialog?.kind==='pair'?<>{notice}<PoolRunnerPairingPanel poolID={selected} disabled={action.busy||!!action.pending||!!recovery.error||stale} canCreate={!stale&&!runners.loading&&!runners.error&&pool?.status==='active'&&runners.allowed.includes('register')} onLockChange={setPairingLocked} onPaired={value=>{if(value.pool_id!==selected||value.owner_tenant_id!==session.organization.id||value.state!=='approved')return;setDialog(undefined);setRevision(before=>before+1);onPanel('runners');}}/></>:dialog?.kind === "create" ? (
           <PoolCreateForm
             blocked={blocked}
             notice={notice}

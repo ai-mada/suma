@@ -204,6 +204,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.poolCandidateTransferHTTP(w, r, path) {
 		return
 	}
+	if s.poolRunnerPairingMachineHTTP(w, r, parts) {
+		return
+	}
 	if s.poolRunnerHTTP(w, r, path) {
 		return
 	}
@@ -310,6 +313,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	s.applyLocalePreferences(w, r, actor)
 	if s.desktopRunnerHTTP(w, r, actor, scope, boundProject, path) {
+		return
+	}
+	if s.poolRunnerPairingBrowserHTTP(w, r, actor, parts) {
 		return
 	}
 	if s.runnerPairingBrowserHTTP(w, r, actor, parts) {

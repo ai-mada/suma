@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-POOL-RUNNER-PAIRING-208：[Pool机器配对](../product/pool-runner-pairing.md)／[架构与AI SOP](../architecture/pool-runner-pairing.md)／[交互](../design/pool-runner-pairing.md)／[English](../en/pool-runner-pairing.md)／[限定验证](../quality/pool-runner-pairing-verification.md)。独立系统凭据、原子Pool登记与原ACK恢复贯通；26个不同检查、类型／9548对词条、实际Windows凭据1创建1清理与三ACK、双语工作台及只读简化提案限定通过。无项目Grant／业务／模型，完整31／P0–P7继续。
+
 T-OPENCODE-PREPARATION-207：[OpenCode快捷准备](../product/opencode-tool-preparation.md)／[架构与AI SOP](../architecture/opencode-tool-preparation.md)／[交互](../design/opencode-tool-preparation.md)／[English](../en/opencode-tool-preparation.md)／[限定验证](../quality/opencode-tool-preparation-verification.md)。九字段静态新文件准备、原准确节点指南与配置回接贯通；14个不同定向检查、完整类型0／9476对词条及真实PowerShell→Go文件创建／拒绝覆盖、双语代表界面限定通过。未运行供应方／模型，完整31／P0–P7继续。
 
 T-TOOL-MANAGEMENT-EXPERIENCE-206：[工具管理交互](../design/tool-management-experience.md)／[English](../en/tool-management-experience.md)／[限定验证](../quality/tool-management-experience-verification.md)。首屏单一添加与列表前置、更多接入按需展开、原准确节点指南和焦点交接贯通；6个不同检查（3新／2直接旧／1复用）、完整Web类型0、9471对词条及3组代表整页合成界面限定通过。真实厂商与完整31／P0–P7继续。

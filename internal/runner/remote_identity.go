@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -228,85 +227,12 @@ func (h *RunnerIdentityHandle) loadSecret() error {
 }
 
 func openRunnerIdentity(path string, store RunnerSecretStore, create bool) (*RunnerIdentityHandle, error) {
-	if !localToolSafeText(path, 4096) {
-		return nil, fmt.Errorf("invalid Runner identity path")
-	}
-	if runtime.GOOS == "windows" && strings.TrimRight(filepath.Base(path), ". ") != filepath.Base(path) {
-		// filepath.Abs uses Win32 full-path normalization and can discard the
-		// original trailing dot/space before the destination exists.
-		return nil, fmt.Errorf("Runner identity path contains a Windows filename alias")
-	}
-	abs, err := filepath.Abs(path)
-	if err != nil || !localToolSafeText(abs, 4096) {
-		return nil, fmt.Errorf("Runner identity path is unavailable")
-	}
-	if runtime.GOOS == "windows" {
-		// Win32 aliases and alternate streams cannot identify an uncreated file
-		// canonically. Refuse them before assigning a system credential account.
-		if strings.HasPrefix(abs, `\\?\`) || strings.HasPrefix(abs, `\\.\`) || strings.Contains(abs[len(filepath.VolumeName(abs)):], ":") {
-			return nil, fmt.Errorf("Runner identity needs an unambiguous ordinary file path")
-		}
-		for _, part := range strings.Split(abs[len(filepath.VolumeName(abs)):], string(filepath.Separator)) {
-			if strings.TrimRight(part, ". ") != part {
-				return nil, fmt.Errorf("Runner identity path contains a Windows filename alias")
-			}
-		}
-	}
-	parent := filepath.Dir(abs)
-	if create {
-		if err = safeMkdir(parent); err != nil {
-			return nil, fmt.Errorf("Runner identity directory is unavailable or linked")
-		}
-	}
-	for current := parent; ; current = filepath.Dir(current) {
-		info, statErr := os.Lstat(current)
-		if statErr != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-			return nil, fmt.Errorf("Runner identity directory is unavailable or linked")
-		}
-		if filepath.Dir(current) == current {
-			break
-		}
-	}
-	parent, err = filepath.EvalSymlinks(parent)
+	file, err := openIdentityMetadataFile(path, create)
 	if err != nil {
-		return nil, fmt.Errorf("Runner identity directory is unavailable")
-	}
-	abs = filepath.Join(parent, filepath.Base(abs))
-	info, err := os.Lstat(abs)
-	if err == nil {
-		if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
-			return nil, fmt.Errorf("Runner identity is not a regular public metadata file")
-		}
-		abs, err = filepath.EvalSymlinks(abs)
-		if err != nil {
-			return nil, fmt.Errorf("Runner identity path is unavailable")
-		}
-	} else if !os.IsNotExist(err) || !create {
-		return nil, fmt.Errorf("Runner identity metadata is unavailable")
-	}
-	lock := abs + ".lock"
-	if info, err = os.Lstat(lock); err == nil {
-		if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 || info.Size() != 0 {
-			return nil, fmt.Errorf("Runner identity lock is not a regular owned lock file")
-		}
-	} else if !os.IsNotExist(err) {
-		return nil, fmt.Errorf("Runner identity lock is unavailable")
-	}
-	unlock, err := lockJournal(lock)
-	if err != nil {
-		return nil, fmt.Errorf("Runner identity is already owned or its lock is unavailable")
-	}
-	parentInfo, err := os.Lstat(filepath.Dir(abs))
-	if err != nil {
-		_ = unlock()
-		return nil, fmt.Errorf("Runner identity directory changed before opening")
-	}
-	h := &RunnerIdentityHandle{path: abs, store: store, unlock: unlock, parentInfo: parentInfo}
-	if err = h.checkParent(); err != nil {
-		_ = h.Close()
 		return nil, err
 	}
-	value, raw, err := readRunnerIdentity(abs)
+	h := &RunnerIdentityHandle{path: file.path, store: store, unlock: file.unlock, parentInfo: file.parentInfo}
+	value, raw, err := readRunnerIdentity(h.path)
 	if err != nil {
 		if create && os.IsNotExist(err) {
 			return h, nil
@@ -322,47 +248,14 @@ func openRunnerIdentity(path string, store RunnerSecretStore, create bool) (*Run
 	return h, nil
 }
 
-// Pairing may wait for minutes. Recheck the original directory identity before
-// adopting or changing metadata; a copied file in a substituted parent is not
-// the original identity, even when its public bytes are unchanged.
 func (h *RunnerIdentityHandle) checkParent() error {
-	parent := filepath.Dir(h.path)
-	for directory := parent; ; directory = filepath.Dir(directory) {
-		info, err := os.Lstat(directory)
-		if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 || directory == parent && !os.SameFile(info, h.parentInfo) {
-			return fmt.Errorf("Runner identity directory changed or now traverses a link")
-		}
-		if filepath.Dir(directory) == directory {
-			return nil
-		}
-	}
+	return (&identityMetadataFile{path: h.path, parentInfo: h.parentInfo}).checkParent()
 }
-
 func readRunnerIdentity(path string) (RunnerIdentity, []byte, error) {
 	var identity RunnerIdentity
-	before, err := os.Lstat(path)
+	raw, err := readIdentityMetadataFile(path)
 	if err != nil {
 		return identity, nil, err
-	}
-	if !before.Mode().IsRegular() || before.Mode()&os.ModeSymlink != 0 || before.Size() > runnerIdentityLimit {
-		return identity, nil, fmt.Errorf("invalid Runner identity metadata file")
-	}
-	f, err := os.Open(path)
-	if err != nil {
-		return identity, nil, err
-	}
-	defer f.Close()
-	opened, err := f.Stat()
-	if err != nil || !os.SameFile(before, opened) {
-		return identity, nil, fmt.Errorf("Runner identity changed while opening")
-	}
-	raw, err := io.ReadAll(io.LimitReader(f, runnerIdentityLimit+1))
-	if err != nil || len(raw) > runnerIdentityLimit {
-		return identity, nil, fmt.Errorf("Runner identity exceeds its metadata bound")
-	}
-	after, err := os.Lstat(path)
-	if err != nil || after.Mode()&os.ModeSymlink != 0 || !os.SameFile(opened, after) || opened.Size() != after.Size() || !opened.ModTime().Equal(after.ModTime()) {
-		return identity, nil, fmt.Errorf("Runner identity changed while reading")
 	}
 	fields, err := decodeToolObject(raw)
 	if err != nil || len(fields) != 7 && len(fields) != 9 {
@@ -401,35 +294,14 @@ func readRunnerIdentity(path string) (RunnerIdentity, []byte, error) {
 }
 
 func (h *RunnerIdentityHandle) save(value RunnerIdentity) error {
-	if err := h.checkParent(); err != nil {
-		return err
-	}
 	raw, err := json.MarshalIndent(value, "", "  ")
 	if err != nil || len(raw)+1 > runnerIdentityLimit {
 		return fmt.Errorf("Runner identity metadata could not be encoded within its bound")
 	}
 	raw = append(raw, '\n')
-	if len(h.original) != 0 {
-		_, raw, err := readRunnerIdentity(h.path)
-		if err != nil || !bytes.Equal(raw, h.original) {
-			return fmt.Errorf("Runner identity metadata changed; preserve the original request")
-		}
-	} else {
-		// Reserve a new destination exclusively before using the mature atomic
-		// writer. Never replace a file that appeared after secret persistence.
-		file, err := os.OpenFile(h.path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
-		if err != nil {
-			return fmt.Errorf("Runner identity metadata destination already exists or is unavailable")
-		}
-		if err = file.Close(); err != nil {
-			return fmt.Errorf("Runner identity metadata destination could not be closed")
-		}
-	}
-	if err = h.checkParent(); err != nil {
+	file := identityMetadataFile{path: h.path, parentInfo: h.parentInfo}
+	if err = file.save(h.original, raw); err != nil {
 		return err
-	}
-	if err = writeEvidence(h.path, raw); err != nil {
-		return fmt.Errorf("Runner identity metadata could not be persisted; preserve its original system credential")
 	}
 	h.identity, h.original = value, raw
 	return nil

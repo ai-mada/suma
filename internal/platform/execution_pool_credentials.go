@@ -61,8 +61,43 @@ func (s *Service) RegisterExecutionPoolRunner(ctx context.Context, actor Actor, 
 		out.Token, out.Replayed, out.RecoveryAction = "", true, "rotate_credential"
 		return out, err
 	}
+	secret := "suma_pool_" + newID() + newID()
+	out.Runner, err = s.registerExecutionPoolRunnerDigestTx(ctx, tx, auth, pool, request, digest(secret))
+	if err != nil {
+		return out, err
+	}
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
+		return out, err
+	}
+	if err = tx.Commit(); err != nil {
+		return ExecutionPoolCredentialResponse{}, err
+	}
+	out.Token = secret
+	return out, nil
+}
+
+// registerExecutionPoolRunnerDigestTx is the single Pool registration effect.
+// Manual registration and pairing approval supply the same current human
+// authority; only the machine retains a pairing's plaintext credential.
+func (s *Service) registerExecutionPoolRunnerDigestTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, pool string, request ExecutionPoolRunnerCreateRequest, tokenSHA string) (ExecutionPoolRunner, error) {
+	var out ExecutionPoolRunner
+	if auth == nil {
+		return out, forbidden()
+	}
+	if err := auth.assertTx(tx, commandTarget{tenantID: auth.currentPrincipal.TenantID, projectID: organizationScope}, purposeOrganizationWrite); err != nil {
+		return out, err
+	}
+	if err := validateExecutionPoolRunner(request); err != nil {
+		return out, err
+	}
+	if !desktopWorkspaceHex(tokenSHA, 64) {
+		return out, forbidden()
+	}
+	if _, err := s.poolAdminTx(ctx, tx, auth, pool); err != nil {
+		return out, err
+	}
 	var total int
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_execution_pool_runners WHERE pool_id=? AND status='active'`), pool).Scan(&total); err != nil {
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_execution_pool_runners WHERE pool_id=? AND status='active'`), pool).Scan(&total); err != nil {
 		return out, err
 	}
 	if total >= 1000 {
@@ -73,25 +108,16 @@ func (s *Service) RegisterExecutionPoolRunner(ctx context.Context, actor Actor, 
 		return out, err
 	}
 	id := newID()
-	secret := "suma_pool_" + newID() + newID()
-	out.Runner = ExecutionPoolRunner{ID: id, PoolID: pool, WorkerID: "pool-" + id, Name: request.Name, Version: 1, Status: "active", MaxSlots: request.MaxSlots, CredentialVersion: 1, CredentialExpiresAt: automationStamp(clock.Add(time.Duration(request.TTLSeconds) * time.Second)), CreatedAt: automationStamp(clock), AllowedActions: []string{"rotate_credential", "revoke"}}
-	r := out.Runner
-	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_execution_pool_runners(id,pool_id,worker_id,name,version,status,max_slots,credential_version,last_seen_at,created_by,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?)`), r.ID, pool, r.WorkerID, r.Name, 1, "active", r.MaxSlots, 1, "", p.ID, r.CreatedAt); err != nil {
-		return out, err
+	out = ExecutionPoolRunner{ID: id, PoolID: pool, WorkerID: "pool-" + id, Name: request.Name, Version: 1, Status: "active", MaxSlots: request.MaxSlots, CredentialVersion: 1, CredentialExpiresAt: automationStamp(clock.Add(time.Duration(request.TTLSeconds) * time.Second)), CreatedAt: automationStamp(clock), AllowedActions: []string{"rotate_credential", "revoke"}}
+	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_execution_pool_runners(id,pool_id,worker_id,name,version,status,max_slots,credential_version,last_seen_at,created_by,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?)`), out.ID, pool, out.WorkerID, out.Name, 1, "active", out.MaxSlots, 1, "", auth.currentPrincipal.ID, out.CreatedAt); err != nil {
+		return ExecutionPoolRunner{}, err
 	}
-	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_execution_pool_credentials(id,runner_id,version,token_hash,status,expires_at)VALUES(?,?,?,?,?,?)`), newID(), id, 1, digest(secret), "active", r.CredentialExpiresAt); err != nil {
-		return out, err
+	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_execution_pool_credentials(id,runner_id,version,token_hash,status,expires_at)VALUES(?,?,?,?,?,?)`), newID(), id, 1, tokenSHA, "active", out.CredentialExpiresAt); err != nil {
+		return ExecutionPoolRunner{}, err
 	}
-	if err = s.commandActivity(ctx, auth, "execution_pool.runner_registered", id, r.Name); err != nil {
-		return out, err
+	if err = s.commandActivity(ctx, auth, "execution_pool.runner_registered", id, out.Name); err != nil {
+		return ExecutionPoolRunner{}, err
 	}
-	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
-		return out, err
-	}
-	if err = tx.Commit(); err != nil {
-		return ExecutionPoolCredentialResponse{}, err
-	}
-	out.Token = secret
 	return out, nil
 }
 
