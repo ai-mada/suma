@@ -1,0 +1,15 @@
+.qoder-setup{--control-height:44px;display:grid;gap:12px;min-width:0}
+.qoder-setup h3,.qoder-setup p{margin:0}
+.qoder-setup-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.qoder-setup label{display:grid;gap:6px;min-width:0;align-content:start}
+.qoder-setup label>span,.qoder-setup legend{font-weight:600}
+.qoder-setup small,.qoder-setup-boundary{color:var(--text-muted);line-height:1.5}
+.qoder-setup input,.qoder-setup select{width:100%;min-width:0;min-height:44px;box-sizing:border-box}
+.qoder-setup-machine{min-width:0;margin:0;padding:12px;border:1px solid var(--border);border-radius:10px}
+.qoder-setup-machine legend{padding:0 5px}
+.qoder-setup-actions{display:flex;flex-wrap:wrap;gap:8px}
+.qoder-setup .qoder-setup-actions>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;max-width:100%;white-space:normal}
+.qoder-setup pre{min-width:0;max-width:100%;margin:0;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;box-sizing:border-box;background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px}
+.qoder-setup .qoder-setup-private>summary,.qoder-setup .qoder-setup-manual>summary{display:flex;align-items:center;min-height:44px;cursor:pointer;font-weight:600}
+.qoder-setup details[open]>p,.qoder-setup details[open]>pre{margin-top:8px}
+@media(max-width:600px){.qoder-setup-fields{grid-template-columns:minmax(0,1fr)}.qoder-setup .qoder-setup-actions>button{flex:1 1 100%;width:100%}}

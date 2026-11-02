@@ -1,0 +1,149 @@
+{
+  "stage": "T-QODER-TOOL-PREPARATION-221",
+  "version": "1.0.0",
+  "status": "scoped_verified",
+  "base": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
+  "full_goal": {
+    "status": "active",
+    "version": "1.0.0",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
+    "target_design": "docs/suma-architecture-design.html",
+    "stage_delivery_is_not_full_completion": true
+  },
+  "checks": {
+    "distinct_tops": 13,
+    "new_tops": 7,
+    "direct_old_tops": 6,
+    "groups": {
+      "go": 6,
+      "web_model_component": 3,
+      "root": 4
+    },
+    "full_web_tsc_exit": 0,
+    "tsc_scope_note": "Full TSC before the only subsequent TSX change: distinct component-key string suffixes; failed source-lifetime checks continued and production bundle covers final source.",
+    "locale_pairs": 9858,
+    "production_hardcodes": 0
+  },
+  "actual": {
+    "web_builds": 1,
+    "runner_builds": 1,
+    "binary": {
+      "path": ".cache/qoder-tool-preparation-221/actual/bin/suma-runner.exe",
+      "sha256": "0b5d47a764523e8cb69cc41b5cb6cf0823f5ee23cb134b9dacaa1bc835393bb9",
+      "bytes": 36359680
+    },
+    "distinct_groups": 3,
+    "native_sessions": 2,
+    "first_wrapper_exit": 1,
+    "resume_wrapper_exit": 0,
+    "native_exits": [
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "ports": [
+      {
+        "port": 50993,
+        "closed": true
+      },
+      {
+        "port": 61551,
+        "closed": true
+      }
+    ],
+    "static_cli_exit_codes": [
+      0,
+      1
+    ],
+    "configuration": {
+      "bytes": 392,
+      "sha256": "fb8480e5488aaaee0cb476863b770a8a0aa2fb30938d1186eabb6f008e406e6e",
+      "command_keys": [
+        "local-qoder-acp"
+      ]
+    },
+    "fixture": "Owned Runner PE, explicitly not Qoder; static file checks only, no --acp or version execution",
+    "requests": 16,
+    "platform_api": 0,
+    "business_writes": 0,
+    "vendor_processes": 0,
+    "models": 0,
+    "logins": 0,
+    "installs": 0,
+    "root_viewed_images": [
+      {
+        "path": ".cache/qoder-tool-preparation-221/actual/visual/20261102T215821757Z/cn-qoder-static-preparation.png",
+        "sha256": "08b92b2155aa991cf81169cde124e2109b10eea624d4cca8d1196cee867b204a"
+      },
+      {
+        "path": ".cache/qoder-tool-preparation-221/actual/visual/20261102T220051514Z/en-mobile-qoder-static-preparation.png",
+        "sha256": "adf8c81b5a3c327ff2b1b0d1c206760084ba3b8faacb8b45d18df674361765ad"
+      }
+    ],
+    "frozen_inputs": 27,
+    "unchanged_non_driver_inputs": 26,
+    "fixture_csp_warning_counts": [
+      3,
+      1
+    ]
+  },
+  "failures_and_recovery": {
+    "go": "Original malformed-surrogate acceptance fixed with existing strictjson.Decode; only failed one continued.",
+    "root": "Duplicate sibling component keys caused stale source forms; six component suffixes, only failed two continued.",
+    "web": "Initial reporter ENOSPC/no result; catalog domain-prefix loader error then only affected component two continued.",
+    "actual": "Initial EN field read preceded React effect. Driver-only bounded exact-field wait, same assets EN-only resume; first two and CLI retained."
+  },
+  "hygiene": {
+    "cache_files_removed": 38,
+    "cache_bytes_recovered": 750826746,
+    "unique_source_and_evidence_preserved": true,
+    "c_user_files_cleaned": false,
+    "preserved": [
+      {
+        "path": "docs/quality/conflict-resolution-2026-10-29-summary.json",
+        "sha256": "35f4764d64d4d91fcd4368ad7a67f64262597bde64e51dfaf1dd1c070751a10a"
+      },
+      {
+        "path": "docs/quality/conflict-resolution-2026-10-29.md",
+        "sha256": "c1e601f8d26166132a03e7a0bf0683aed388142dfef95e8825f0a342a278fe81"
+      }
+    ]
+  },
+  "evidence_root": ".cache/qoder-tool-preparation-221",
+  "evidence": {
+    "checks": ".cache/qoder-tool-preparation-221/checks-summary.json",
+    "runner": ".cache/qoder-tool-preparation-221/runner/summary.json",
+    "web": ".cache/qoder-tool-preparation-221/web/summary.json",
+    "actual_manifest": {
+      "path": ".cache/qoder-tool-preparation-221/actual/source-manifest-delivery.json",
+      "sha256": "fb439d2069a62dac65c23de67889e456f4b54a4e8256670eab98c610a678bdae"
+    },
+    "first_native": ".cache/qoder-tool-preparation-221/actual/visual/20261102T215821757Z/result.json",
+    "resume_native": ".cache/qoder-tool-preparation-221/actual/visual/20261102T220051514Z/result.json",
+    "key_review": ".cache/qoder-tool-preparation-221/review/root-guide-key-overlay-review.json",
+    "actual_summary": {
+      "path": ".cache/qoder-tool-preparation-221/actual/summary.json",
+      "sha256": "76cb30076825e98a2de6a16fdc11c1b97cbf1fdea45149bb9a44e1a0786e49c2"
+    },
+    "original_actual_manifest": {
+      "path": ".cache/qoder-tool-preparation-221/actual/source-manifest.json",
+      "sha256": "fa7ca2c454d5170911405d698a90d080912163e1266b99a7fd1dd47270eeea0f"
+    }
+  },
+  "limits": [
+    "No real Qoder installation/version/login/ACP initialization/model execution was accepted.",
+    "Representative isolated production components; active full application browser and full device/OS matrix not exercised.",
+    "Full31/P0-P7 remains active; no complete platform claim."
+  ],
+  "git_record": ".cache/qoder-tool-preparation-221/post-git.json"
+}

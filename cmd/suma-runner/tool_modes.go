@@ -36,7 +36,7 @@ func runACPToolPreparationStdin(app *commandlocale.Command, file string, input i
 	defer cancel()
 	result, err := runner.PrepareACPToolCommands(ctx, file, input)
 	if err != nil {
-		return app.Failure("ACP 工具配置未准备；请核对五项输入，并使用工具包目录之外、不含链接的全新文件", "ACP tool configuration was not prepared; check the five input fields and a new file outside the package without linked directories")
+		return app.Failure("ACP 配置未确认；请核对五项输入和原生工具。若指定文件已生成，请先核对后再处理，勿覆盖原文件", "ACP preparation was not confirmed; check the five inputs and native tool. If the selected output was created, inspect it before continuing and do not overwrite the original file")
 	}
 	return outputToolPreparation(app, result)
 }

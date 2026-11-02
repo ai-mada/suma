@@ -47,7 +47,7 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
 	composeCommands := app.String("compose-commands", "", "从私有标准输入指定的已有配置组合全新命令文件；不启动工具或连接控制面", "compose existing command files named on private stdin into a new file; no tools or control connection")
 	prepareTools := app.String("prepare-tools", "", "将可自动配置的本机工具写入全新命令允许列表文件；不连接控制面或领取任务", "prepare local tool commands in a new allowlist file; no control connection or tasks")
-	prepareACP := app.Bool("prepare-acp-stdin", false, "从私有标准输入准备明确的 Cursor 包配置；必须配合 --prepare-tools 全新文件", "prepare an explicit Cursor package configuration from private stdin; requires --prepare-tools with a new file")
+	prepareACP := app.Bool("prepare-acp-stdin", false, "从私有标准输入准备明确的 Cursor 包或 Qoder 原生 ACP 配置；必须配合 --prepare-tools 全新文件", "prepare an explicit Cursor package or native Qoder ACP configuration from private stdin; requires --prepare-tools with a new file")
 	prepareSDK := app.Bool("prepare-sdk-stdin", false, "从私有标准输入准备 Claude SDK 配置；必须配合 --prepare-tools 全新文件", "prepare Claude SDK configuration from private stdin; requires --prepare-tools with a new file")
 	prepareCodex := app.Bool("prepare-codex-stdin", false, "从私有标准输入准备原生 Codex App Server 配置；必须配合 --prepare-tools 全新文件", "prepare a native Codex app-server configuration from private stdin; requires --prepare-tools with a new file")
 	prepareOpenCode := app.Bool("prepare-opencode-stdin", false, "从私有标准输入准备 OpenCode SDK 全新配置；只核对本机文件，不运行工具", "prepare a new OpenCode SDK configuration from private stdin; inspect local files without launching tools")

@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-QODER-TOOL-PREPARATION-221：[Qoder配置准备与AI SOP](../product/qoder-tool-preparation.md)／[交互设计](../design/qoder-tool-preparation.md)／[限定验证](../quality/qoder-tool-preparation-verification.md)。明确模型和本机信息沿原ACP准备器创建新文件，再采用准确普通字段或共享本机引用；手工JSON按需展开，来源切换可靠隔离。准备不运行Qoder或模型，真实发现／登记／启用分别核验。完整31项／P0–P7继续。
+
 T-LOCAL-TOOL-PREPARATION-220：[通用CLI准备与AI SOP](../product/local-tool-preparation.md)／[交互设计](../design/local-tool-preparation.md)／[限定验证](../quality/local-tool-preparation-verification.md)。四种通用CLI使用Shell与全新文件两字段，复用原发现／准备命令；手工JSON按需展开，明确采用路径接续普通字段或共享引用。复制、被动探测、文件准备、登记和模型执行分别记录。完整31项／P0–P7继续。
 
 T-SHARED-TOOL-ONBOARDING-219：[共享工具接入与 AI SOP](../product/shared-tool-onboarding.md)／[交互设计](../design/shared-tool-onboarding.md)／[限定验证](../quality/shared-tool-onboarding-verification.md)。共享安装检测后的准备使用准确Pool身份，保留工具、节点和项目返回原Quick；新接入不制造旧档案。明确授权失效撤下旧表单，到期保留输入；跨租户离线配置与项目读取权分离。完整31项／P0–P7继续。

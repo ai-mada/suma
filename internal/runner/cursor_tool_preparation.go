@@ -2,17 +2,19 @@ package runner
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/ai-mada/suma/internal/strictjson"
 )
 
 const ACPToolPreparationInputLimit = 16 << 10
 
-// Private flat stdin uses the same local ACP field names. All hashes, argv and
-// policy are reconstructed here; credential values and identity are not input.
+// Private flat stdin uses the same local ACP field names. Adapter-specific
+// validation keeps Cursor's package and Qoder's native entry distinct. All
+// hashes, argv and policy are reconstructed; credential values are not input.
 type ACPToolPreparationInput struct {
 	AdapterID        string `json:"adapter_id"`
 	Executable       string `json:"executable"`
@@ -32,12 +34,33 @@ func DecodeACPToolPreparationInput(raw []byte) (ACPToolPreparationInput, error) 
 		return input, invalid
 	}
 	for _, key := range []string{"adapter_id", "executable", "reviewed_version", "model", "credential_env_ref"} {
-		value, ok := fields[key].(string)
-		if !ok || value == "" {
+		if _, ok := fields[key].(string); !ok {
 			return input, invalid
 		}
 	}
-	if json.Unmarshal(raw, &input) != nil || input.AdapterID != "cursor-cli" || !desktopManagedPath(input.Executable) || !sameACPPath(input.Executable, filepath.Join(filepath.Dir(input.Executable), cursorNodeName())) {
+	// Token decoding above preserves duplicate-name/shape checks, but Go's
+	// ordinary JSON decoder would replace an unpaired surrogate with U+FFFD.
+	// Use the shared raw-Unicode validator before losing that input evidence.
+	if strictjson.Decode(raw, &input, ACPToolPreparationInputLimit) != nil || !desktopManagedPath(input.Executable) {
+		return ACPToolPreparationInput{}, invalid
+	}
+	switch input.AdapterID {
+	case "cursor-cli":
+		// These are the original five nonempty Cursor inputs. Qoder's optional
+		// credential must not weaken Cursor's explicit isolated-key contract.
+		for _, value := range []string{input.Executable, input.ReviewedVersion, input.Model, input.CredentialEnvRef} {
+			if value == "" {
+				return ACPToolPreparationInput{}, invalid
+			}
+		}
+		if !sameACPPath(input.Executable, filepath.Join(filepath.Dir(input.Executable), cursorNodeName())) {
+			return ACPToolPreparationInput{}, invalid
+		}
+	case "qoder-acp":
+		if _, err = acpCommandForAdapter(input.AdapterID, input.Executable, input.ReviewedVersion, input.Model, input.CredentialEnvRef); err != nil {
+			return ACPToolPreparationInput{}, invalid
+		}
+	default:
 		return ACPToolPreparationInput{}, invalid
 	}
 	return input, nil
@@ -66,6 +89,17 @@ func PrepareACPToolCommands(ctx context.Context, path string, input io.Reader) (
 	configuration, err := DecodeACPToolPreparationInput(raw)
 	if err != nil {
 		return result, err
+	}
+	if configuration.AdapterID == "qoder-acp" {
+		prepared, err := snapshotQoderToolPreparation(ctx, configuration)
+		if err != nil {
+			return result, err
+		}
+		if err = prepared.write(ctx, file, parent); err != nil {
+			return result, err
+		}
+		result.Prepared, result.CommandCount = true, 1
+		return result, nil
 	}
 	if err = toolPackagePreparationDestination(file, parent, filepath.Dir(configuration.Executable)); err != nil {
 		return result, err

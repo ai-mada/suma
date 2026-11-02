@@ -87,7 +87,7 @@ func TestPrepareACPDestinationIsRejectedBeforeReadingInput(t *testing.T) {
 func TestPrepareACPRejectsClosedInputAndWrongNodeWithoutFile(t *testing.T) {
 	input, _ := preparationInput191(t)
 	raw, _ := json.Marshal(input)
-	bad := []string{"", `null`, string(raw) + `{}`, strings.TrimSuffix(string(raw), "}") + `,"args":["--force"]}`, strings.TrimSuffix(string(raw), "}") + `,"model":"duplicate"}`, strings.Replace(string(raw), `"adapter_id":"cursor-cli"`, `"adapter_id":"qoder-acp"`, 1), strings.Replace(string(raw), `"model":"fixed-model189"`, `"model":null`, 1), strings.Repeat("x", (16<<10)+1)}
+	bad := []string{"", `null`, string(raw) + `{}`, strings.TrimSuffix(string(raw), "}") + `,"args":["--force"]}`, strings.TrimSuffix(string(raw), "}") + `,"model":"duplicate"}`, strings.Replace(string(raw), `"adapter_id":"cursor-cli"`, `"adapter_id":"unregistered-acp"`, 1), strings.Replace(string(raw), `"model":"fixed-model189"`, `"model":null`, 1), strings.Repeat("x", (16<<10)+1)}
 	for _, field := range []string{"reviewed_version", "model", "credential_env_ref"} {
 		copy := map[string]string{}
 		for key, value := range input {

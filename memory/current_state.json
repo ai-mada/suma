@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "scoped_verified_git_delivery_recorded_separately",
-  "stage": "T-LOCAL-TOOL-PREPARATION-220",
-  "updated_at": "2026-11-02T21:24:03.282Z",
+  "stage": "T-QODER-TOOL-PREPARATION-221",
+  "updated_at": "2026-11-02T22:02:49.115Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/local-tool-preparation-verification.md",
-  "current_summary": "docs/quality/local-tool-preparation-summary.json",
+  "current_evidence": "docs/quality/qoder-tool-preparation-verification.md",
+  "current_summary": "docs/quality/qoder-tool-preparation-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -636,8 +636,72 @@
       }
     ]
   },
-  "current_implementation": "Restore original automatic commands preparation for four generic CLI tools, including shared-node Guide. Two fields: target shell and new output JSON; original raw examples progressively disclosed, special protocols preserved. Strict three-field reference adoption under current selection/caller/epoch/nonce; ordinary fields and shared output-only behavior remain separate.",
+  "current_implementation": "Extend the original private ACP preparer with explicit Qoder native-file static preparation; exact model/version/machine form, optional credential NAME, separate copy and strict three-field output adoption into ordinary/shared Guide. Existing Cursor package policy retained; unique sibling component keys reliably reset source forms.",
   "verified": {
+    "stage": "T-QODER-TOOL-PREPARATION-221",
+    "current_report": "docs/quality/qoder-tool-preparation-verification.md",
+    "current_summary": "docs/quality/qoder-tool-preparation-summary.json",
+    "distinct_tops": 13,
+    "new_tops": 7,
+    "direct_old_tops": 6,
+    "groups": {
+      "go": 6,
+      "web_model_component": 3,
+      "root": 4
+    },
+    "full_web_tsc_exit": 0,
+    "tsc_scope_note": "Full TSC before the only subsequent TSX change: distinct component-key string suffixes; failed source-lifetime checks continued and production bundle covers final source.",
+    "locale_pairs": 9858,
+    "production_hardcodes": 0,
+    "actual_distinct_groups": 3,
+    "actual_native_sessions": 2
+  },
+  "production_integration_complete": false,
+  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
+  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
+    "force_push": false,
+    "previously_published_commit": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
+    "current_stage_receipt": ".cache/qoder-tool-preparation-221/post-git.json"
+  },
+  "existing_preview": {
+    "updated": false,
+    "user_database_modified": false,
+    "reason": "The initial schema uses a separate empty database; existing data are preserved."
+  },
+  "remaining_work": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
+  "last_goal_turn_classification": "progress",
+  "previous_goal_turn": {
+    "classification": "progress",
+    "stage": "T-LOCAL-TOOL-PREPARATION-220",
+    "commit": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
+    "evidence": "30 scoped files, necessary checks/native evidence, normal dev push and remote equality verified."
+  },
+  "current_work": {
+    "stage": "T-QODER-TOOL-PREPARATION-221",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/qoder-tool-preparation.md",
+    "report": "docs/quality/qoder-tool-preparation-verification.md",
+    "summary": "docs/quality/qoder-tool-preparation-summary.json",
+    "previous_commit": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
+    "verification": "13distinct7new6old; Go6/Web3/Root4; fullWebTSC0/9858paired0hardcodes. Real surrogate/key RED fixed with existing strict decoder/unique sibling keys; only failed tops continued.",
+    "actual": "OneWeb+onecurrentRunnerbuild. Threegroups across2native sessions; first2+CLI0/1 retained, EN-only sameassets driver bounded-effect wait passed. Static392byte newfile/refuseoverwrite sameSHA, explicitly non-Qoder ownedPE, vendor/model/login0, rootviewedCN/EN, bothnative0/portsclosed.38oldowncache750826746B recovered; original2 preserved.",
+    "next": "Continue real native/remote tool execution and current inventory→explicit dispatch/autonomous coding→same-SHA different-Worker tests→acceptance/issues/baselines; all31/P0-P7 remains active.",
+    "full_platform_complete": false,
+    "git_record": ".cache/qoder-tool-preparation-221/post-git.json"
+  },
+  "terminal_130_historical_work": {
+    "stage": "T-TERMINAL-130",
+    "status": "scoped_verified_pending_git_delivery_with_explicit_browser_gap",
+    "report": "docs/quality/terminal-recovery-candidates-verification.md",
+    "full_goal": "active: all original P0-P7 and requirements1-26 retained",
+    "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
+  },
+  "previous_stage_verification": {
     "stage": "T-LOCAL-TOOL-PREPARATION-220",
     "current_report": "docs/quality/local-tool-preparation-verification.md",
     "current_summary": "docs/quality/local-tool-preparation-summary.json",
@@ -653,57 +717,6 @@
     "locale_pairs": 9830,
     "production_hardcodes": 0,
     "go_tests_repeated": 0
-  },
-  "production_integration_complete": false,
-  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
-  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
-  "git_delivery": {
-    "repository": "git@github.com:ai-mada/suma.git",
-    "branch": "dev",
-    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
-    "force_push": false,
-    "previously_published_commit": "b8cce16302fb537c7101342676ececcae58ab22f",
-    "current_stage_receipt": ".cache/local-tool-preparation-220/post-git.json"
-  },
-  "existing_preview": {
-    "updated": false,
-    "user_database_modified": false,
-    "reason": "The initial schema uses a separate empty database; existing data are preserved."
-  },
-  "remaining_work": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
-  "last_goal_turn_classification": "progress",
-  "previous_goal_turn": {
-    "classification": "progress",
-    "stage": "T-SHARED-TOOL-ONBOARDING-219",
-    "commit": "b8cce16302fb537c7101342676ececcae58ab22f",
-    "evidence": "38 necessary files, scoped checks/representative evidence, normal dev push and exact remote equality verified."
-  },
-  "current_work": {
-    "stage": "T-LOCAL-TOOL-PREPARATION-220",
-    "version": "1.0.0",
-    "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/local-tool-preparation.md",
-    "report": "docs/quality/local-tool-preparation-verification.md",
-    "summary": "docs/quality/local-tool-preparation-summary.json",
-    "previous_commit": "b8cce16302fb537c7101342676ececcae58ab22f",
-    "verification": "10distinct7new3old; fullWebTSC0/9830paired0hardcodes; originalUNC boundaryRED→GREEN. Othernecessarychecksonepass, noGo fulltests.",
-    "actual": "OneWebbuild+onecurrentRunnerbuild, one native/threegroups allpass. RealinstalledCodexpassiveprobe andPowerShellnewfile348bytes/refuseoverwrite0/1 exacthashunchanged; ordinaryfields/sharedref/EN390ABA.0platformAPI/business/model/login/install. ParentRootviewed2images; native/wrapper0/portclosed. OldstandardGocache11files825974898bytesrecovered, source/evidence/DB/Cuserfilespreserved.",
-    "next": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
-    "full_platform_complete": false,
-    "git_record": ".cache/local-tool-preparation-220/post-git.json"
-  },
-  "terminal_130_historical_work": {
-    "stage": "T-TERMINAL-130",
-    "status": "scoped_verified_pending_git_delivery_with_explicit_browser_gap",
-    "report": "docs/quality/terminal-recovery-candidates-verification.md",
-    "full_goal": "active: all original P0-P7 and requirements1-26 retained",
-    "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
-  },
-  "previous_stage_verification": {
-    "stage": "T-TOOL-REINSPECTION-194",
-    "report": "docs/quality/tool-reinspection-verification.md",
-    "summary": "docs/quality/tool-reinspection-summary.json",
-    "published_commit": "ab50190898d1d2f5e9df83fb8e2e872136c0a228"
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",
@@ -2672,5 +2685,19 @@
     "next": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
     "full_platform_complete": false,
     "git_record": ".cache/local-tool-preparation-220/post-git.json"
+  },
+  "qoder_tool_preparation": {
+    "stage": "T-QODER-TOOL-PREPARATION-221",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/qoder-tool-preparation.md",
+    "report": "docs/quality/qoder-tool-preparation-verification.md",
+    "summary": "docs/quality/qoder-tool-preparation-summary.json",
+    "previous_commit": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
+    "verification": "13distinct7new6old; Go6/Web3/Root4; fullWebTSC0/9858paired0hardcodes. Real surrogate/key RED fixed with existing strict decoder/unique sibling keys; only failed tops continued.",
+    "actual": "OneWeb+onecurrentRunnerbuild. Threegroups across2native sessions; first2+CLI0/1 retained, EN-only sameassets driver bounded-effect wait passed. Static392byte newfile/refuseoverwrite sameSHA, explicitly non-Qoder ownedPE, vendor/model/login0, rootviewedCN/EN, bothnative0/portsclosed.38oldowncache750826746B recovered; original2 preserved.",
+    "next": "Continue real native/remote tool execution and current inventory→explicit dispatch/autonomous coding→same-SHA different-Worker tests→acceptance/issues/baselines; all31/P0-P7 remains active.",
+    "full_platform_complete": false,
+    "git_record": ".cache/qoder-tool-preparation-221/post-git.json"
   }
 }
