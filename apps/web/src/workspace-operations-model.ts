@@ -1,3 +1,4 @@
+import {uniqueJSONMembers} from './unique-json-members';
 import type {WorkspaceOperationEvent,WorkspaceOperationCoverage,Event as RunEvent} from '../../../packages/contracts/src';
 import {wellFormed} from './i18n/catalog';
 import type {AttemptToolScope} from './attempt-tool-history';
@@ -24,16 +25,6 @@ export function validWorkspaceOperation(value:unknown):value is WorkspaceOperati
  if(value.phase==='started')return value.revision===1&&!value.completed_at&&value.generation_before===value.generation_after&&value.exit_code===undefined&&value.stopped===undefined&&!value.error_code&&!value.replayed&&!value.result_sha256;
  if(value.phase==='unknown')return value.revision===2&&!value.completed_at&&!!value.error_code;
  return ['completed','failed'].includes(String(value.phase))&&value.revision===2&&time(value.completed_at)&&Date.parse(value.completed_at)>=Date.parse(value.started_at)&&Date.parse(value.recorded_at)>=Date.parse(value.completed_at)&&(value.phase!=='failed'||!!value.error_code);
-}
-// JSON.parse alone loses duplicate members. Saved host proof also requires
-// unique source keys before comparing the exact host envelope to its view.
-function uniqueJSONMembers(source:string):boolean{
- const stack:({kind:'object';keys:Set<string>;key:boolean}|{kind:'array'})[]=[];
- for(let i=0;i<source.length;i++){
-  const c=source[i];if(c==='"'){const start=i++;while(i<source.length){if(source[i]==='\\'){i+=2;continue;}if(source[i]==='"')break;i++;}const top=stack.at(-1);if(top?.kind==='object'&&top.key){const key=JSON.parse(source.slice(start,i+1)) as string;if(top.keys.has(key))return false;top.keys.add(key);top.key=false;}continue;}
-  if(c==='{')stack.push({kind:'object',keys:new Set(),key:true});else if(c==='[')stack.push({kind:'array'});else if(c==='}'||c===']')stack.pop();else if(c===','&&stack.at(-1)?.kind==='object')(stack.at(-1) as {kind:'object';keys:Set<string>;key:boolean}).key=true;
- }
- return true;
 }
 export function savedHostOperationMatchesSource(event:Pick<RunEvent,'data'|'raw_data'>):boolean{
  if(typeof event.raw_data!=='string')return false;

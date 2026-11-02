@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-POOL-PREPARATION-DIAGNOSTICS-211：[本机诊断与定位](../product/pool-preparation-diagnostics.md)／[限定验证](../quality/pool-preparation-diagnostics-verification.md)。七字段安全报告、准确输入关联和双语静态建议贯通；9项定向、类型0／9618对词条、真实CLI与只读诊断区通过。未运行模型或业务任务，原31／P0–P7继续。
+
 T-POOL-CONFIG-SCOPE-210：[项目切换隔离验证](../quality/pool-config-scope-verification.md)。修复新项目沿用旧本机配置的风险；1项RED→GREEN、窄类型0和5断点只读界面通过，0重复Go／CLI／业务。
 
 T-POOL-CONFIG-PREPARATION-209：[多项目配置准备](../product/pool-config-preparation.md)／[限定验证](../quality/pool-config-preparation-verification.md)。准确节点与已加载授权选择、9字段本机引用、全新原Pool配置和错误定位贯通；9项定向、类型0／9594对词条、真实PowerShell→CLI及双语代表界面通过。未启动任务或启用工具，完整31／P0–P7继续。

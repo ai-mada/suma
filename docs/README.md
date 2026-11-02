@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-POOL-PREPARATION-DIAGNOSTICS-211：[安全准备诊断](product/pool-preparation-diagnostics.md)／[架构与SOP](architecture/pool-preparation-diagnostics.md)／[交互](design/pool-preparation-diagnostics.md)／[English](en/pool-preparation-diagnostics.md)／[限定验证](quality/pool-preparation-diagnostics-verification.md)。安全原因与输入关联回原字段，9项定向、一次真实CLI失败→定位→明确修正后同命令成功及诊断区代表视觉通过；完整平台继续。
+
 T-POOL-CONFIG-SCOPE-210：[项目切换隔离验证](quality/pool-config-scope-verification.md)。实际项目变化自动清空本行七个私有字段；同范围／填写方式与其他行保留。一项回归与只读界面通过，复用原CLI证据。
 
 T-POOL-CONFIG-PREPARATION-209：[多项目配置准备](product/pool-config-preparation.md)／[架构与SOP](architecture/pool-config-preparation.md)／[交互](design/pool-config-preparation.md)／[English](en/pool-config-preparation.md)／[限定验证](quality/pool-config-preparation-verification.md)。准确节点、项目选择和私有本机引用贯通，9项定向与一次真实脚本→CLI生成／拒覆盖通过；完整平台继续。

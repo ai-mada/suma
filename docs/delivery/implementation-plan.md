@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-POOL-PREPARATION-DIAGNOSTICS-211：[本机诊断与定位](../product/pool-preparation-diagnostics.md)／[限定验证](../quality/pool-preparation-diagnostics-verification.md)。七字段安全报告、准确输入关联和双语静态建议贯通；9项定向、类型0／9618对词条、真实CLI与只读诊断区通过。未运行模型或业务任务，原31／P0–P7继续。
+
 T-POOL-CONFIG-PREPARATION-209：[多项目配置准备](../product/pool-config-preparation.md)／[限定验证](../quality/pool-config-preparation-verification.md)。准确节点与已加载授权选择、9字段本机引用、全新原Pool配置和错误定位贯通；9项定向、类型0／9594对词条、真实PowerShell→CLI及双语代表界面通过。未启动任务或启用工具，完整31／P0–P7继续。
 
 T-POOL-RUNNER-PAIRING-208：[Pool机器配对](../product/pool-runner-pairing.md)／[架构与AI SOP](../architecture/pool-runner-pairing.md)／[交互](../design/pool-runner-pairing.md)／[English](../en/pool-runner-pairing.md)／[限定验证](../quality/pool-runner-pairing-verification.md)。独立系统凭据、原子Pool登记与原ACK恢复贯通；26个不同检查、类型／9548对词条、实际Windows凭据1创建1清理与三ACK、双语工作台及只读简化提案限定通过。无项目Grant／业务／模型，完整31／P0–P7继续。

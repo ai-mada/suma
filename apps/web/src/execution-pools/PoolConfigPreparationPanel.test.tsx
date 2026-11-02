@@ -6,6 +6,7 @@ import { ApiViewProvider } from '../api-context';
 import { setLocale } from '../i18n';
 import { PoolConfigPreparationPanel, type PoolConfigPreparationPanelProps } from './PoolConfigPreparationPanel';
 import { PoolWorkspace } from './PoolWorkspace';
+import {createHash,webcrypto} from 'node:crypto';
 const owner='a'.repeat(32), pool='b'.repeat(32), runnerID='c'.repeat(32), at='2026-11-02T00:00:00Z';
 const session={ user: { id: 'd'.repeat(32), name: 'Owner', email: 'owner@example.test' }, organization: { id: owner, name: 'Team' }, projects: [] };
 const runner={ id: runnerID, pool_id: pool, worker_id: 'pool-'+runnerID, max_slots: 2, status: 'active' };
@@ -44,6 +45,76 @@ async function input(selector: string, value: string) { const field=document.que
 async function click(selector: string) { const element=document.querySelector<HTMLButtonElement>(selector)!; expect(element, selector).not.toBeNull(); await act(async () => { element.focus(); element.click(); }); await settle(); }
 const scope=(row: string, field: string) => '[data-pool-config-row="'+row+'"] [data-pool-config-scope-field="'+field+'"]';
 async function fill() { await input('[data-pool-config-field=shell]', 'powershell'); await input('[data-pool-config-field=output]', "D:/configs/O'Brien $(Write-Output unexpected).json"); await input('[data-pool-config-project=scope-1]', grant.id); await input(scope('scope-1', 'workspace'), 'D:/work/project-one'); }
+it('T211 locates only an explicitly imported matching report, hides stale or mismatched analysis and ignores a late hash after edits', async () => {
+  vi.stubGlobal('crypto',webcrypto);
+  await draw();
+  expect(document.querySelector('[data-pool-config-diagnostic]')).toBeNull();
+  await fill();
+  await click('[data-pool-config-add]');
+  await input(scope('scope-2','tenant_id'),'consumer-two');
+  await input(scope('scope-2','project_id'),'project-two');
+  await input(scope('scope-2','workspace'),'/srv/two');
+  await input(scope('scope-2','model_deployments_file'),'/srv/two-models.json');
+  await click('[data-pool-config-copy]');
+  const request=JSON.stringify(JSON.parse(document.querySelector('[data-pool-config-input]')!.textContent!));
+  const output=document.querySelector<HTMLInputElement>('[data-pool-config-field=output]')!.value;
+  const sha=(value:string)=>createHash('sha256').update(value).digest('hex');
+  const report={protocol:'suma-pool-config-diagnostic-v1',code:'source_invalid',scope_index:2,field:'model_deployments_file',input_sha256:sha(request),output_sha256:sha(output),message:'UNTRUSTED_NATIVE_PRIVATE_MESSAGE'};
+  const help=document.querySelector<HTMLDetailsElement>('[data-pool-config-diagnostic]')!;
+  expect(help.open).toBe(false);
+  await act(async()=>{help.open=true;});
+  const paste=async(value:string)=>{
+    const area=document.querySelector<HTMLTextAreaElement>('[data-pool-config-diagnostic-input]')!;
+    await act(async()=>{Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(area,value);area.dispatchEvent(new Event('input',{bubbles:true}));});
+  };
+  const finishHash=async()=>{
+    for(let index=0;index<30;index++){
+      await act(async()=>{await new Promise(resolve=>setTimeout(resolve,3));});
+      if(!document.querySelector<HTMLButtonElement>('[data-pool-config-diagnostic-analyze]')?.disabled)break;
+    }
+  };
+  await paste(JSON.stringify(report));
+  await click('[data-pool-config-diagnostic-analyze]');
+  await finishHash();
+  const result=document.querySelector<HTMLElement>('[data-pool-config-diagnostic-result]')!;
+  expect(result.getAttribute('data-binding')).toBe('input_and_output');
+  expect(result.textContent).toContain('Imported report, not a live check');
+  expect(result.textContent).not.toContain(report.message);
+  expect(document.activeElement).toBe(document.querySelector(scope('scope-2','model_deployments_file')));
+  expect(document.querySelector<HTMLDetailsElement>('[data-pool-config-row=scope-2] details')!.open).toBe(true);
+
+  let release!:()=>void;
+  let first=true;
+  const realDigest=webcrypto.subtle.digest.bind(webcrypto.subtle);
+  vi.stubGlobal('crypto',{subtle:{digest:async(...args:Parameters<typeof realDigest>)=>{if(first){first=false;await new Promise<void>(resolve=>{release=resolve;});}return realDigest(...args);}}});
+  await paste(JSON.stringify(report));
+  await click('[data-pool-config-diagnostic-analyze]');
+  expect(release).toBeDefined();
+  const outputField=document.querySelector<HTMLInputElement>('[data-pool-config-field=output]')!;
+  outputField.focus();
+  await input('[data-pool-config-field=output]','D:/configs/changed.json');
+  await input('[data-pool-config-field=output]',output);
+  await act(async()=>{release();await new Promise(resolve=>setTimeout(resolve,20));});
+  expect(document.querySelector('[data-pool-config-diagnostic-result]')).toBeNull();
+  expect(document.querySelector('[data-pool-config-prepare]')).toBeNull();
+  expect(document.activeElement).toBe(outputField);
+
+  await paste(JSON.stringify({...report,output_sha256:'a'.repeat(64)}));
+  await click('[data-pool-config-diagnostic-analyze]');
+  await finishHash();
+  expect(document.querySelector('[data-pool-config-diagnostic-error]')?.textContent).toContain('does not match');
+  await paste(JSON.stringify({...report,code:'output_exists',scope_index:0,field:'output',input_sha256:''}));
+  await click('[data-pool-config-diagnostic-analyze]');
+  await finishHash();
+  expect(document.querySelector('[data-pool-config-diagnostic-result]')?.getAttribute('data-binding')).toBe('output_only');
+  expect(document.querySelector('[data-pool-config-diagnostic-result]')?.textContent).toContain('did not bind a complete input');
+  expect(document.activeElement).toBe(outputField);
+  await act(async()=>setLocale('zh-CN',{persist:false}));
+  expect(document.querySelector('[data-pool-config-diagnostic-result]')?.textContent).toContain('导入报告，并非实时检查');
+  expect(document.body.textContent).not.toContain('pool-config-preparation.diagnostic.');
+  expect(fetch).not.toHaveBeenCalled();
+  expect(copy).toHaveBeenCalledOnce();
+});
 it('T210 clears all private references only when the actual project tuple changes, preserving same-scope modes and sibling rows', async () => {
   const secondGrant={ ...grant, id: '2'.repeat(32), tenant_id: 'consumer-b', project_id: 'project-b' };
   const sameScopeGrant={ ...grant, id: '3'.repeat(32) };

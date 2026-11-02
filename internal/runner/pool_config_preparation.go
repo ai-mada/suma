@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -68,19 +69,24 @@ func poolPreparationPath(path string) bool {
 }
 func DecodePoolConfigPreparationInput(raw []byte) (PoolConfigPreparationInput, error) {
 	var value PoolConfigPreparationInput
+	invalid := func() error {
+		failure := poolPreparationFailure("input_invalid", 0, "input")
+		failure.InputSHA256 = poolPreparationInputDigest(raw)
+		return failure
+	}
 	if strictjson.Decode(raw, &value, poolPreparationInputLimit) != nil || !validPoolLocalID(value.PoolID) || !validPoolLocalID(value.RunnerID) || value.Slots < 1 || value.Slots > 128 || len(value.Scopes) < 1 || len(value.Scopes) > 256 {
-		return value, poolPreparationInvalid()
+		return value, invalid()
 	}
 	seen := map[string]bool{}
 	for _, scope := range value.Scopes {
 		key := scope.TenantID + "/" + scope.ProjectID
 		if !validPoolLocalID(scope.TenantID) || !validPoolLocalID(scope.ProjectID) || seen[key] || !poolPreparationPath(scope.Workspace) || (scope.Repository == "") != (scope.BaseCommit == "") || scope.BaseCommit != "" && !commitID.MatchString(scope.BaseCommit) {
-			return value, poolPreparationInvalid()
+			return value, invalid()
 		}
 		seen[key] = true
 		for _, path := range []string{scope.CommandsFile, scope.Repository, scope.Worktrees, scope.ModelDeploymentsFile, scope.ExternalConfigFile} {
 			if path != "" && !poolPreparationPath(path) {
-				return value, poolPreparationInvalid()
+				return value, invalid()
 			}
 		}
 	}
@@ -209,28 +215,63 @@ func (s *poolPreparationSources) stable(ctx context.Context) bool {
 
 // PreparePoolLocalConfig only composes existing local allowlists. It performs
 // no Git, executable, environment, keyring, HTTP or authorization operation.
-func PreparePoolLocalConfig(ctx context.Context, destination string, input io.Reader) (PoolConfigPreparation, error) {
-	var report PoolConfigPreparation
+func PreparePoolLocalConfig(ctx context.Context, destination string, input io.Reader) (report PoolConfigPreparation, resultErr error) {
+	inputSHA := ""
+	defer func() {
+		if resultErr == nil {
+			return
+		}
+		failure := poolPreparationFailure("configuration_invalid", 0, "input")
+		var classified *PoolConfigPreparationError
+		if errors.As(resultErr, &classified) {
+			copy := *classified
+			failure = &copy
+		}
+		failure.InputSHA256 = inputSHA
+		failure.OutputSHA256 = digest([]byte(destination))
+		resultErr = failure
+	}()
 	if !poolPreparationPath(destination) {
-		return report, poolPreparationInvalid()
+		return report, poolPreparationFailure("output_invalid", 0, "output")
+	}
+	if _, err := os.Lstat(destination); !os.IsNotExist(err) {
+		if err == nil {
+			return report, poolPreparationFailure("output_exists", 0, "output")
+		}
+		return report, poolPreparationFailure("output_unavailable", 0, "output")
 	}
 	file, parent, err := openToolCommandDestination(destination)
 	if err != nil {
-		return report, poolPreparationInvalid()
+		// Recheck only to distinguish an output introduced during the original
+		// protected destination guard. Never retry creation or overwrite it.
+		if _, existErr := os.Lstat(destination); existErr == nil {
+			return report, poolPreparationFailure("output_exists", 0, "output")
+		}
+		return report, poolPreparationFailure("output_unavailable", 0, "output")
 	}
 	defer parent.Close()
 	_, outputParents, err := cursorPackageRoot(filepath.Dir(file))
 	if err != nil {
-		return report, poolPreparationInvalid()
+		return report, poolPreparationFailure("output_unavailable", 0, "output")
 	}
 	anchored, err := parent.Stat(".")
-	if err != nil || !os.SameFile(anchored, outputParents[0].info) || ctx.Err() != nil || input == nil {
-		return report, poolPreparationInvalid()
+	if err != nil || !os.SameFile(anchored, outputParents[0].info) {
+		return report, poolPreparationFailure("output_unavailable", 0, "output")
+	}
+	if ctx.Err() != nil {
+		return report, poolPreparationFailure("cancelled", 0, "input")
+	}
+	if input == nil {
+		return report, poolPreparationFailure("input_invalid", 0, "input")
 	}
 	raw, err := io.ReadAll(io.LimitReader(input, poolPreparationInputLimit+1))
 	if err != nil {
-		return report, poolPreparationInvalid()
+		if ctx.Err() != nil {
+			return report, poolPreparationFailure("cancelled", 0, "input")
+		}
+		return report, poolPreparationFailure("input_invalid", 0, "input")
 	}
+	inputSHA = poolPreparationInputDigest(raw)
 	selected, err := DecodePoolConfigPreparationInput(raw)
 	if err != nil {
 		return report, err
@@ -240,29 +281,31 @@ func PreparePoolLocalConfig(ctx context.Context, destination string, input io.Re
 	directories := [][]cursorPackageNode{outputParents}
 	workspaces := []os.FileInfo{}
 	encodedScopeBytes := 0
-	for _, scope := range selected.Scopes {
+	for index, scope := range selected.Scopes {
+		row := index + 1
 		if ctx.Err() != nil {
-			return report, poolPreparationInvalid()
+			return report, poolPreparationFailure("cancelled", 0, "input")
 		}
 		local := PoolLocalScope{TenantID: scope.TenantID, ProjectID: scope.ProjectID, BaseCommit: scope.BaseCommit, Commands: map[string]CommandSpec{}}
 		for _, item := range []struct {
 			source    string
+			field     string
 			target    *string
 			workspace bool
-		}{{scope.Workspace, &local.Workspace, true}, {scope.Repository, &local.Repository, false}, {scope.Worktrees, &local.Worktrees, false}} {
+		}{{scope.Workspace, "workspace", &local.Workspace, true}, {scope.Repository, "repository", &local.Repository, false}, {scope.Worktrees, "worktrees", &local.Worktrees, false}} {
 			if item.source == "" {
 				continue
 			}
 			path, nodes, e := cursorPackageRoot(item.source)
 			if e != nil {
-				return report, poolPreparationInvalid()
+				return report, poolPreparationFailure("directory_unavailable", row, item.field)
 			}
 			*item.target = path
 			directories = append(directories, nodes)
 			if item.workspace {
 				for _, other := range workspaces {
 					if os.SameFile(other, nodes[0].info) {
-						return report, poolPreparationInvalid()
+						return report, poolPreparationFailure("workspace_conflict", row, "workspace")
 					}
 				}
 				workspaces = append(workspaces, nodes[0].info)
@@ -270,12 +313,18 @@ func PreparePoolLocalConfig(ctx context.Context, destination string, input io.Re
 		}
 		if scope.CommandsFile != "" {
 			body, e := sources.read(ctx, scope.CommandsFile)
-			if e != nil || decodePoolPreparationSource(body, &local.Commands) != nil {
-				return report, poolPreparationInvalid()
+			if e != nil {
+				if ctx.Err() != nil {
+					return report, poolPreparationFailure("cancelled", 0, "input")
+				}
+				return report, poolPreparationFailure("source_unavailable", row, "commands_file")
+			}
+			if decodePoolPreparationSource(body, &local.Commands) != nil {
+				return report, poolPreparationFailure("source_invalid", row, "commands_file")
 			}
 			local.Commands, e = DecodeCommands(body)
 			if e != nil {
-				return report, poolPreparationInvalid()
+				return report, poolPreparationFailure("source_invalid", row, "commands_file")
 			}
 			for id, spec := range local.Commands {
 				if spec.Args == nil {
@@ -289,18 +338,30 @@ func PreparePoolLocalConfig(ctx context.Context, destination string, input io.Re
 		}
 		if scope.ModelDeploymentsFile != "" {
 			body, e := sources.read(ctx, scope.ModelDeploymentsFile)
-			if e != nil || decodePoolPreparationSource(body, &local.ModelDeployments) != nil {
-				return report, poolPreparationInvalid()
+			if e != nil {
+				if ctx.Err() != nil {
+					return report, poolPreparationFailure("cancelled", 0, "input")
+				}
+				return report, poolPreparationFailure("source_unavailable", row, "model_deployments_file")
+			}
+			if decodePoolPreparationSource(body, &local.ModelDeployments) != nil {
+				return report, poolPreparationFailure("source_invalid", row, "model_deployments_file")
 			}
 			local.ModelDeployments, e = DecodeModelDeployments(body)
 			if e != nil {
-				return report, poolPreparationInvalid()
+				return report, poolPreparationFailure("source_invalid", row, "model_deployments_file")
 			}
 		}
 		if scope.ExternalConfigFile != "" {
 			body, e := sources.read(ctx, scope.ExternalConfigFile)
-			if e != nil || decodePoolPreparationSource(body, &local.External) != nil {
-				return report, poolPreparationInvalid()
+			if e != nil {
+				if ctx.Err() != nil {
+					return report, poolPreparationFailure("cancelled", 0, "input")
+				}
+				return report, poolPreparationFailure("source_unavailable", row, "external_config_file")
+			}
+			if decodePoolPreparationSource(body, &local.External) != nil {
+				return report, poolPreparationFailure("source_invalid", row, "external_config_file")
 			}
 		}
 		// Bound repeated source expansion before retaining another decoded scope.
@@ -308,37 +369,43 @@ func PreparePoolLocalConfig(ctx context.Context, destination string, input io.Re
 		// unbounded final JSON before the output-size guard gets to reject it.
 		scopeBytes, e := json.MarshalIndent(local, "    ", "  ")
 		if e != nil || len(scopeBytes) > poolPreparationFileLimit-encodedScopeBytes {
-			return report, poolPreparationInvalid()
+			return report, poolPreparationFailure("configuration_invalid", 0, "input")
 		}
 		encodedScopeBytes += len(scopeBytes)
 		config.Scopes = append(config.Scopes, local)
 	}
 	encoded, err := json.MarshalIndent(config, "", "  ")
 	if err != nil || len(encoded)+1 > poolPreparationFileLimit {
-		return report, poolPreparationInvalid()
+		return report, poolPreparationFailure("configuration_invalid", 0, "input")
 	}
 	encoded = append(encoded, '\n')
 	if _, err = DecodePoolConfig(encoded); err != nil {
-		return report, poolPreparationInvalid()
+		return report, poolPreparationFailure("configuration_invalid", 0, "input")
 	}
 	var final PoolLocalConfig
 	if decodePoolPreparationSource(encoded, &final) != nil {
-		return report, poolPreparationInvalid()
+		return report, poolPreparationFailure("configuration_invalid", 0, "input")
 	}
 	if !sources.stable(ctx) {
-		return report, poolPreparationInvalid()
+		if ctx.Err() != nil {
+			return report, poolPreparationFailure("cancelled", 0, "input")
+		}
+		return report, poolPreparationFailure("inputs_changed", 0, "input")
 	}
 	for _, nodes := range directories {
 		if !cursorPackageParentsStable(nodes) {
-			return report, poolPreparationInvalid()
+			return report, poolPreparationFailure("inputs_changed", 0, "input")
 		}
 	}
 	if ctx.Err() != nil {
-		return report, poolPreparationInvalid()
+		return report, poolPreparationFailure("cancelled", 0, "input")
 	}
 	output, err := parent.OpenFile(filepath.Base(file), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
-		return report, poolPreparationInvalid()
+		if os.IsExist(err) {
+			return report, poolPreparationFailure("output_exists", 0, "output")
+		}
+		return report, poolPreparationFailure("output_unavailable", 0, "output")
 	}
 	complete := false
 	defer func() {
@@ -358,7 +425,7 @@ func PreparePoolLocalConfig(ctx context.Context, destination string, input io.Re
 		err = closeErr
 	}
 	if err != nil {
-		return report, poolPreparationInvalid()
+		return report, poolPreparationFailure("output_unconfirmed", 0, "output")
 	}
 	complete = true
 	return PoolConfigPreparation{Protocol: PoolConfigPreparationProtocol, PoolID: config.PoolID, RunnerID: config.RunnerID, ScopeCount: len(config.Scopes), Slots: config.Slots, ConfigurationSHA256: digest(encoded)}, nil

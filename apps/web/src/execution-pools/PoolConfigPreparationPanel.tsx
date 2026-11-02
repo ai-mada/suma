@@ -4,6 +4,8 @@ import type { ExecutionPoolRunner, ExecutionPoolGrant } from '../../../../packag
 import { useApi, useApiView } from '../api-context';
 import { formatNumber, tr, useLocale } from '../i18n';
 import { emptyPoolConfigScope, poolConfigPreparationCommands, poolConfigPreparationIssue, validPoolConfigID, type PoolConfigPreparationInput, type PoolConfigPreparationScope, type PoolConfigPreparationIssue } from './pool-config-preparation-model';
+import {analyzePoolConfigDiagnostic,type PoolConfigDiagnosticAnalysis} from './pool-config-diagnostic-model';
+import {wellFormed} from '../i18n/catalog';
 import './PoolConfigPreparation.css';
 export type PoolConfigPreparationGrant=Pick<ExecutionPoolGrant, 'id'|'pool_id'|'owner_tenant_id'|'tenant_id'|'project_id'|'status'|'shared_project_name'>;
 export type PoolConfigPreparationPanelProps={
@@ -18,6 +20,7 @@ type Row={
   value: PoolConfigPreparationScope;
   grantID: string;
 };
+type DiagnosticSnapshot={revision:number;basis:string;intent:number;raw:string;result:PoolConfigDiagnosticAnalysis|{state:'pending'}};
 /** Private paths belong to the actual tenant/project tuple, not to the picker
  * mode or Grant ID. A different project must explicitly choose its own files. */
 function scopeForProject(current: PoolConfigPreparationScope, tenantID: string, projectID: string): PoolConfigPreparationScope {
@@ -58,7 +61,9 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
   const owner=useRef({ alive: true, revision: 0, inflight: false, disabled, sourceBasis });
   owner.current.disabled=disabled;
   owner.current.sourceBasis=sourceBasis;
-  function edited() { ++owner.current.revision; setPreview(undefined); setMessage(''); setCopied(false); }
+  const [hasPrepared,setHasPrepared]=useState(false),[diagnosticRaw,setDiagnosticRaw]=useState(''),[diagnostic,setDiagnostic]=useState<DiagnosticSnapshot>(),diagnosticIntent=useRef(0);
+  const currentDiagnostic=diagnostic?.revision===owner.current.revision&&diagnostic.basis===sourceBasis&&diagnostic.intent===diagnosticIntent.current&&diagnostic.raw===diagnosticRaw?diagnostic.result:undefined;
+  function edited() { ++owner.current.revision; ++diagnosticIntent.current; setDiagnostic(undefined); setPreview(undefined); setMessage(''); setCopied(false); }
   useEffect(() => { owner.current.alive=true; return () => { owner.current.alive=false; ++owner.current.revision; }; }, []);
   useEffect(() => {
     if(disabled)
@@ -121,6 +126,31 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
     element.scrollIntoView?.({ block: 'nearest' });
     element.focus({ preventScroll: true });
   }
+  function inputSnapshot():PoolConfigPreparationInput{
+    return {shell,output,pool_id:poolID,runner_id:runner.id,slots:/^[0-9]+$/.test(slots)?Number(slots):0,scopes:rows.map(row=>({...row.value}))};
+  }
+  function diagnosticText(raw:string){
+    const intent=++diagnosticIntent.current;setDiagnostic(undefined);
+    if(!wellFormed(raw)||new TextEncoder().encode(raw).length>4096){
+      setDiagnostic({revision:owner.current.revision,basis:sourceBasis,intent,raw:diagnosticRaw,result:{state:'invalid'}});return;
+    }
+    setDiagnosticRaw(raw);
+  }
+  async function locateDiagnostic(){
+    if(disabled||!owns()||currentDiagnostic?.state==='pending')return;
+    const revision=owner.current.revision,basis=sourceBasis,intent=++diagnosticIntent.current,raw=diagnosticRaw;
+    const snapshot={revision,basis,intent,raw};
+    if(rows.some(row=>row.grantID&&!available.some(grant=>grant.id===row.grantID&&grant.tenant_id===row.value.tenant_id&&grant.project_id===row.value.project_id))){setDiagnostic({...snapshot,result:{state:'mismatch'}});return;}
+    setDiagnostic({...snapshot,result:{state:'pending'}});
+    const result=await analyzePoolConfigDiagnostic(raw,inputSnapshot());
+    // Hashing is asynchronous. Every observed source/field change, including
+    // A→B→A, invalidates this particular user-triggered imported report.
+    if(!owner.current.alive||!owns()||owner.current.disabled||owner.current.revision!==revision||owner.current.sourceBasis!==basis||diagnosticIntent.current!==intent)return;
+    setDiagnostic({...snapshot,result});
+    if(result.state!=='matched')return;
+    if(result.report.scope_index>0&&result.binding==='input_and_output')focusIssue({code:'path',row:result.report.scope_index,field:result.report.field as keyof PoolConfigPreparationScope});
+    else if(result.report.field==='output')focusIssue({code:'target',field:'output'});
+  }
   async function copy() {
     if(disabled||!owns()||owner.current.inflight)
       return;
@@ -129,7 +159,7 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
       setMessage(t('grant_unavailable'));
       return;
     }
-    const input: PoolConfigPreparationInput={ shell, output, pool_id: poolID, runner_id: runner.id, slots: /^[0-9]+$/.test(slots)? Number(slots):0, scopes: rows.map(row => ({ ...row.value })) }, issue=poolConfigPreparationIssue(input, runner.max_slots);
+    const input=inputSnapshot(), issue=poolConfigPreparationIssue(input, runner.max_slots);
     if(issue) {
       setMessage(t('issue.'+issue.code, { row: issue.row? formatNumber(issue.row):'' }));
       setPreview(undefined);
@@ -141,6 +171,7 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
       return;
     const revision=owner.current.revision, basis=sourceBasis;
     setPreview(result);
+    setHasPrepared(true);
     setPreviewBasis(basis);
     setMessage('');
     setCopied(false);
@@ -227,6 +258,17 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
         <pre tabIndex={0} data-pool-config-input aria-label={t('review')}>{JSON.stringify(preview.request, null, 2)}</pre>
       </details>
     </div>}
+    {hasPrepared&&!disabled&&<details className="pool-config-diagnostic" data-pool-config-diagnostic>
+      <summary><ChevronRight size={16} aria-hidden="true"/>{t('diagnostic.title')}</summary>
+      <p className="pool-config-muted">{t('diagnostic.intro')}</p>
+      <label><span>{t('diagnostic.report')}</span><textarea data-pool-config-diagnostic-input value={diagnosticRaw} maxLength={4096} rows={3} spellCheck={false} autoComplete="off" onChange={event=>diagnosticText(event.target.value)}/></label>
+      <button type="button" data-pool-config-diagnostic-analyze disabled={currentDiagnostic?.state==='pending'} onClick={()=>void locateDiagnostic()}>{t(currentDiagnostic?.state==='pending'?'diagnostic.checking':'diagnostic.analyze')}</button>
+      {currentDiagnostic&&currentDiagnostic.state!=='pending'&&(currentDiagnostic.state==='matched'?<div role="status" data-pool-config-diagnostic-result data-binding={currentDiagnostic.binding}>
+        <p>{t('diagnostic.imported')}</p><p>{t('diagnostic.advice.'+currentDiagnostic.report.code)}</p>
+        {currentDiagnostic.binding==='output_only'&&<p className="pool-config-muted">{t('diagnostic.output_only')}</p>}
+        {currentDiagnostic.report.scope_index>0&&<p>{t('diagnostic.location',{row:formatNumber(currentDiagnostic.report.scope_index),field:t('field.'+currentDiagnostic.report.field)})}</p>}
+      </div>:<p role="alert" data-pool-config-diagnostic-error>{t('diagnostic.error.'+currentDiagnostic.state)}</p>)}
+    </details>}
     <p className="pool-config-muted">{t('boundary')}</p>
   </div>;
 }

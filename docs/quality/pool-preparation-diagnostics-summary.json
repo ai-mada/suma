@@ -1,0 +1,367 @@
+{
+  "stage": "T-POOL-PREPARATION-DIAGNOSTICS-211",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "base_commit": "e1fae7c969a273750cda4535749d3c2064aa0655",
+  "previous_goal_turn": "progress: T209/T210 verified and pushed; all original scope retained",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "contract": "contracts/pool-preparation-diagnostics.md",
+  "reference": {
+    "sha": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "url": "https://github.com/multica-ai/multica/commit/e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "message": "feat(runtime): runtime-wide concurrency limit (MUL-8328) (#9795)",
+    "queried_at": "2026-11-02T10:51:01.173Z",
+    "local_head_preserved": "8333e9bf444f047e92ea37f422637d421ba8ba4e",
+    "local_worktree_preserved_clean": true,
+    "fetch_exact_object_succeeded": true,
+    "new_multica_source_copied": 0,
+    "interpretation": "Official branch read pinned at retrieval; source reference downloaded without checkout. No claim that a moving main remains at this SHA."
+  },
+  "focused": {
+    "distinct": 9,
+    "new": 5,
+    "direct_old": 4,
+    "go": {
+      "distinct": 5,
+      "new": 2,
+      "direct_old": 3,
+      "summary": {
+        "path": ".cache/pool-preparation-diagnostics-211/runner/summary.json",
+        "sha256": "4435507ea5d1530d4689846f5fc2cf83d9b9dad9f144a1cdaab218ec11fbe535"
+      }
+    },
+    "web": {
+      "distinct": 4,
+      "new": 3,
+      "direct_old": 1,
+      "unselected": 8,
+      "summary": {
+        "path": ".cache/pool-preparation-diagnostics-211/ui/summary.json",
+        "sha256": "6be55afd3836188e52713cc3e167e04c409c04bf54609655c8fb39851e310757"
+      }
+    },
+    "format_only": {
+      "path": ".cache/pool-preparation-diagnostics-211/ui/format-only.json",
+      "sha256": "c5162fe6133d6e281c199c7d69a7c54a48696bfb217e6ff24928a5c9a2922898"
+    },
+    "post_check_decorative_only": "Collapsed help Chevron only after focused group; final global checks and visual covered it. No behavioral rerun claimed.",
+    "counting": "No repeated subcases, builds, unselected tests, actual breakpoints or screenshot groups counted as additional top-level checks"
+  },
+  "shared": {
+    "full_web_type_diagnostics": 0,
+    "types": {
+      "path": ".cache/pool-preparation-diagnostics-211/checks/types.json",
+      "sha256": "508c30044fae70ec51c7339b2b19faf73a38c774540d26f020865ede6858d757"
+    },
+    "paired_catalog_keys": 9618,
+    "production_source_hardcodes": 0,
+    "i18n": {
+      "path": ".cache/pool-preparation-diagnostics-211/checks/i18n.json",
+      "sha256": "d4caa8ff2cb89824fbaa0ad331a1fd6a535968dbcf4e0eed21937f510aa4be8b"
+    }
+  },
+  "reviews": {
+    "remaining_confirmed_p1_p2": 0,
+    "runner": {
+      "path": ".cache/pool-preparation-diagnostics-211/review/runner-review.json",
+      "sha256": "adfbf4e5c4631a71ee05719de6bb47fbfaff023f4dc382bd6aaeac2420ba4b4f"
+    },
+    "ui": {
+      "path": ".cache/pool-preparation-diagnostics-211/review/ui-review.json",
+      "sha256": "20724b00430fde44a9724f11cbf0905b4328b7602c57d64d2d2aa0b5f5d33c3a"
+    }
+  },
+  "actual": {
+    "journeys": 1,
+    "go_builds": 1,
+    "go_build": {
+      "path": ".cache/follow155/root-go/20261102T105539879Z.command.json",
+      "sha256": "420eaf6b10680f85bdcaf0e569b28a1cbb4a4a1e0ea11fa76015030c894a2b94"
+    },
+    "ui_builds": 1,
+    "cli": {
+      "path": ".cache\\pool-preparation-diagnostics-211\\bin\\suma-runner.exe",
+      "sha256": "45788425acc17cf87e39645f07e3e6d92dda03a8930eadc6957159bb0a3da2a1"
+    },
+    "cli_invocations": 2,
+    "expected_native_source_error_exit": 1,
+    "same_exact_script_after_owned_repair_exit": 0,
+    "unexpected_integration_failures": 0,
+    "actual_journeys": 1,
+    "rendered_groups": 2,
+    "images": 2,
+    "electron_launches": 1,
+    "expected_source_failure": 1,
+    "same_exact_script_success": 1,
+    "new_configuration_files": 1,
+    "overwrite_tests_repeated": 0,
+    "scope_count": 2,
+    "slots": 2,
+    "checks": [
+      "real_source_error_binds_trimmed_raw_input_and_literal_output_without_private_values",
+      "cn_matches_report_opens_exact_second_scope_field_and_local_advice",
+      "output_edit_invalidates_imported_diagnostic",
+      "late_native_hash_after_edit_cannot_restore_report_or_move_focus",
+      "en_matches_report_opens_exact_second_scope_field_and_local_advice",
+      "same_exact_command_after_owned_source_repair_creates_original_new_file"
+    ],
+    "check_count": 6,
+    "requests": 8,
+    "api_requests": 0,
+    "post_requests": 0,
+    "page_errors": 0,
+    "workers": 0,
+    "model_requests": 0,
+    "keyring_requests": 0,
+    "native_vendor_processes": 0,
+    "minimum_visible_control_height": {
+      "cn": 44,
+      "en": 44
+    },
+    "raw_correlation": {
+      "input": "SHA256 of compact raw JSON containing ampersands, equal to native TrimSpace stdin hash; not Go re-encoding",
+      "output": "SHA256 of literal forward-slash destination string, explicitly unequal to Windows Clean spelling",
+      "diagnostic": {
+        "protocol": "suma-pool-config-diagnostic-v1",
+        "code": "source_invalid",
+        "scope_index": 2,
+        "field": "commands_file",
+        "input_sha256": "cf05fdb189176a88b47f11f0ef26d8cf8fab6649e6091612cb94ee6a05d1e481",
+        "output_sha256": "573034f1dd1b2e14535cde67b7deb0034b422f8cba49f4f1eb89fac4ca66f480"
+      }
+    },
+    "delayed_callback": "One real WebCrypto hash delayed; both real hashes completed before asserting edit prevents old diagnostic and focus writes",
+    "configuration_sha256": "d8d49174d5853d089d827a900282f5264a02a17eaf2e27599ed11ba5be0e654f",
+    "repair": {
+      "path": ".cache/pool-preparation-diagnostics-211/actual/20261102T111251948Z/repair.json",
+      "sha256": "49ef0f536cfce0952da12626857c395f9ee93672b14c6e533baa70c5082dfd73",
+      "actor": "Owned fixture operator outside browser",
+      "input_request_and_script_unchanged": true
+    },
+    "script": {
+      "path": ".cache/pool-preparation-diagnostics-211/actual/20261102T111251948Z/copied-prepare.ps1",
+      "sha256": "48e34ff17a4fd8ac568e8e5ff9a0fff386d40cb78d391dafa2a491787fe5560a"
+    },
+    "result": {
+      "path": ".cache/pool-preparation-diagnostics-211/actual/20261102T111251948Z/result.json",
+      "sha256": "861ebe5e421ccd45613073c60d18c1847197d0f3c82bd49d0c0a83ad43d84803"
+    },
+    "summary": {
+      "path": ".cache/pool-preparation-diagnostics-211/integration/summary.json",
+      "sha256": "d574e3583061c99f9ae7955a261bffef976c0bbce8c7e7cf33763ac5f5c044e4"
+    },
+    "normal_cleanup": {
+      "native_pid": 52268,
+      "native_exit": {
+        "code": 0,
+        "signal": null
+      },
+      "native_pid_present": false,
+      "port": 61516,
+      "port_listening": false
+    },
+    "root_viewed_focus_images": [
+      {
+        "path": ".cache/pool-preparation-diagnostics-211/actual/20261102T111251948Z/cn-diagnostic.png",
+        "sha256": "13985d801f32dfc5f8f16bdaf7e75e196001624ca0a5980c2f0141629a83092f"
+      },
+      {
+        "path": ".cache/pool-preparation-diagnostics-211/actual/20261102T111251948Z/en-diagnostic.png",
+        "sha256": "f6f95db8554e7618ac94a5f8cd17b13f5cff8aad23413a43d5b9526cf5daafd4"
+      }
+    ],
+    "scope": "Production Panel with synthetic public scope/clipboard; real copied PowerShell and Go CLI; only fixture operator repairs its own file. Imported report is historical, not a live health or authorization check."
+  },
+  "visual_supplement": {
+    "readonly_hosts": 1,
+    "new_builds": 0,
+    "new_cli_calls": 0,
+    "new_repairs": 0,
+    "groups": 2,
+    "images": 2,
+    "builds": 0,
+    "cli_invocations": 0,
+    "repairs": 0,
+    "api_requests": 0,
+    "post_requests": 0,
+    "workers": 0,
+    "keyring_requests": 0,
+    "model_requests": 0,
+    "requests": 8,
+    "page_errors": 0,
+    "console_errors": 0,
+    "console_warnings": 2,
+    "console_warning_classification": "Both are Electron fixture-host notices about the reused test HTML CSP; this is not packaged product CSP acceptance.",
+    "core": "Report textarea, locate button, fixed localized advice, historical/non-live notice and exact Scope 2 field location all fully within the viewport; private-input disclosure closed",
+    "groups_geometry": [
+      {
+        "name": "cn",
+        "passed": true,
+        "viewport": {
+          "width": 1366,
+          "height": 1000
+        },
+        "region_top": 574.03125,
+        "region_bottom": 942.84375,
+        "core_elements_in_viewport": 7,
+        "minimum_control_height": 44
+      },
+      {
+        "name": "en",
+        "passed": true,
+        "viewport": {
+          "width": 390,
+          "height": 1000
+        },
+        "region_top": 434.5,
+        "region_bottom": 869.28125,
+        "core_elements_in_viewport": 7,
+        "minimum_control_height": 44
+      }
+    ],
+    "original_files_preserved": 17,
+    "all_original_files_unchanged": true,
+    "result": {
+      "path": ".cache/pool-preparation-diagnostics-211/visual/20261102T112538936Z/result.json",
+      "sha256": "ce9b0f47e01e04d0edec31836c81c86d64c84d85c7720f6be58713726b7ecbc9"
+    },
+    "summary": {
+      "path": ".cache/pool-preparation-diagnostics-211/visual/summary.json",
+      "sha256": "ab0e6b6c8ceb141de99f3363c53c69b3c63b35a0492804d2069b97ca3f315a1f"
+    },
+    "normal_cleanup": {
+      "native_pid": 49080,
+      "native_exit": {
+        "code": 0,
+        "signal": null
+      },
+      "native_pid_present": false,
+      "port": 61520,
+      "port_listening": false
+    },
+    "root_viewed_diagnostic_images": [
+      {
+        "path": ".cache/pool-preparation-diagnostics-211/visual/20261102T112538936Z/cn-diagnostic-region.png",
+        "sha256": "dc0bed023b30e950389fcf3b475e76481cb3157862ede10b1e96b753fc900485"
+      },
+      {
+        "path": ".cache/pool-preparation-diagnostics-211/visual/20261102T112538936Z/en-diagnostic-region.png",
+        "sha256": "4e2a371e0bec9a6b3fc0403242158a8bae7ecf5cb41cc3970699fb245165644b"
+      }
+    ],
+    "reason": "Original actual screenshots proved field focus but did not show the new report region. Only readonly presentation capture added; original 17 artifacts unchanged."
+  },
+  "initial_history": {
+    "native_json_regression": "True pre-implementation RED retained; final focused group green.",
+    "actual": "First actual journey passed. Its initial CLI failure is the expected invalid source fixture, not an unexpected failed test.",
+    "visual": "First readonly supplement passed. Two Electron test-host CSP notices retained; not a packaged-product CSP acceptance claim."
+  },
+  "boundaries": [
+    "Imported manual report is untrusted historical metadata; exact recipe/output hashes do not prove machine identity, current files, health or authorization.",
+    "Browser never reads or repairs local files; only the owned fixture operator corrected the machine file before rerunning the same command.",
+    "CLI and PowerShell are actual Windows operations; public authorization metadata and clipboard adapter are synthetic. No model/vendor/Worker/keyring/API writes.",
+    "Native partial-stdout unconfirmed receipt is a focused injected-writer check, not an actual terminal-disconnect acceptance.",
+    "Four digest meanings remain distinct: diagnostic raw input, destination literal, prepared file bytes, resolved runtime Journal basis."
+  ],
+  "remaining": [
+    "Current prepared configuration -> original paired identity/PoolSession -> fresh exact inventory/Doctor -> useful task dispatch and same-commit independent quality.",
+    "Trusted WorkBuddy code delivery, remaining tools/native SDK/account/model support and complete31/P0-P7.",
+    "Physical multi-host, OceanBase/PostgreSQL, Bash/macOS/Linux, complete App/device/theme, installers, scale and production."
+  ],
+  "sources": [
+    {
+      "path": "internal/runner/pool_config_preparation.go",
+      "bytes": 15658,
+      "sha256": "1dfffa2998736588bdd5ee464f33ff967a4efe7005ad5cfb2afbdab793024851"
+    },
+    {
+      "path": "internal/runner/pool_config_diagnostic.go",
+      "bytes": 1560,
+      "sha256": "b79f30409cb88f0ddc10d6e2d06bba4c040f365bcc55cfe6b6e14b78fab512ba"
+    },
+    {
+      "path": "internal/runner/pool_config_diagnostic_test.go",
+      "bytes": 5352,
+      "sha256": "7df296c35473128dc87232ea5124e1003bd5bccc5c17c307f90eb4ea91bf8f49"
+    },
+    {
+      "path": "cmd/suma-runner/pool_config_preparation.go",
+      "bytes": 4955,
+      "sha256": "5b0ce6a31f6f901b4ddb94d3f7fba5e4bb366a4659718bd9c838406df858861f"
+    },
+    {
+      "path": "cmd/suma-runner/pool_config_preparation_test.go",
+      "bytes": 6385,
+      "sha256": "b98ce2c10da637d66a5f6f855100f2b6bdafe6a6f787bf8aa0e6480f3cfda02d"
+    },
+    {
+      "path": "apps/web/src/execution-pools/pool-config-diagnostic-model.ts",
+      "bytes": 6140,
+      "sha256": "e46cf245aeabbd778f5a6d0f0f8e1f1f9fefb579c6047c13640771929154f8c1"
+    },
+    {
+      "path": "apps/web/src/execution-pools/pool-config-diagnostic-model.test.ts",
+      "bytes": 4692,
+      "sha256": "3eb0e293efd32989d7b96a5fddaa9200aec58da9274618cd5e0bc7dd653f6a56"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparationPanel.tsx",
+      "bytes": 18986,
+      "sha256": "f9713d3d9ad8c94ef52b4e53d3b63a1d29e6e2205ff079fc6f1240d3d1eeb464"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparationPanel.test.tsx",
+      "bytes": 18495,
+      "sha256": "b2bba2c29ca14737f7963defd00dc0549807c0591d9b4cc6bd1c0dadaa656196"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparation.css",
+      "bytes": 2793,
+      "sha256": "feb8407668e708f0027cde338149832bc84676d4f4bc509d1dae0f6b58e35656"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.en-US.json",
+      "bytes": 8019,
+      "sha256": "15f3fac794ed6cd6327236b2f72a3eaa8777bcbd0474951a91d0f6fbb49e73fa"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.zh-CN.json",
+      "bytes": 7281,
+      "sha256": "2ddeb94a84cd5b12110d742433bcadaf20ba26d4565f8af43189453d76494371"
+    },
+    {
+      "path": "apps/web/src/unique-json-members.ts",
+      "bytes": 946,
+      "sha256": "8941a983e2a2314727118b4f70dcce4bdb6df1914cf40d0bd993b14b083834f2"
+    },
+    {
+      "path": "apps/web/src/workspace-operations-model.ts",
+      "bytes": 9494,
+      "sha256": "803b0e6315e661e8a2d0b2fb8577bbb7ff6abcdca1d3330de04abce02af0b779"
+    },
+    {
+      "path": "tests/integration/pool-preparation-diagnostics/build.cjs",
+      "bytes": 2400,
+      "sha256": "60e0b52763a1e147ba930515dc2092e178b2181f53111604e1d3257babbf7e83"
+    },
+    {
+      "path": "tests/integration/pool-preparation-diagnostics/driver.cjs",
+      "bytes": 14684,
+      "sha256": "faa943f8c9c3389ae62bd954cbfbfacf141c07dfa08701d293d78eb462f1c470"
+    },
+    {
+      "path": "tests/integration/pool-preparation-diagnostics/visual.cjs",
+      "bytes": 10149,
+      "sha256": "1aea36be03a8167f123fb5b5eae55639b6b4764d1153a186135d5b98135c56d1"
+    }
+  ]
+}
