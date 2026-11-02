@@ -1,0 +1,381 @@
+{
+  "product": "速码一栈式智能研发平台",
+  "gui": {
+    "images": 2,
+    "groups": 2,
+    "root_viewed_images": true,
+    "runs": 1,
+    "native_exit_code": 0,
+    "scope": "生产组件＋合成API/IPC桥",
+    "scenarios": [
+      "zh-CN 1366 light:准确连接、新鲜Node/SDK库存、paused登记及独立enable",
+      "en-US 390 dark:修改变量名、原status/stop/恢复无setup及新明确连接"
+    ],
+    "evidence": {
+      "path": ".cache/claude-sdk-connect-201/web/visual/result-20261102T004653830Z.json",
+      "sha256": "604218f58609e5c08f2e93861805715010846f71e0da9b827b77b975a3a5f831"
+    }
+  },
+  "stage": "T-CLAUDE-SDK-CONNECT-201",
+  "validation_limits": [
+    "真实厂商账号、模型/账户额度/真实预算执行未验收",
+    "没有SDK query；连接配置证明不等于模型认证",
+    "实际链未证明真实Electron窗口、OS IPC或DPAPI",
+    "GUI使用合成桥与领域API，不是生产服务或安装验收",
+    "Windows当前环境；其他OS物理安装、多机、OceanBase等其他数据库、规模与生产待独立验证",
+    "完整31项/P0-P7持续active"
+  ],
+  "review": {
+    "confirmed_remaining_p1": 0,
+    "desktop_summary": {
+      "path": ".cache/claude-sdk-connect-201/desktop/summary.json",
+      "sha256": "e1504ac774116fd5c9cdaadc53cecf9d6f400e6436813f125961a465ff035220"
+    },
+    "control_summary": {
+      "path": ".cache/claude-sdk-connect-201/control/summary.json",
+      "sha256": "f7127c9fe1830c7adb7ff3d2a636594f545d88de54bd16ddc9e670c090aeb005"
+    },
+    "confirmed_remaining_p2": 0,
+    "independent_evidence": {
+      "path": ".cache/claude-sdk-connect-201/review/final-evidence-review.json",
+      "sha256": "2f8b039d80fe5feda4d5c16174adb1ca35d92448ccd15d654d71e459f99e130e"
+    },
+    "web_delta": {
+      "path": ".cache/claude-sdk-connect-201/review/web-final-review.json",
+      "sha256": "6d997c1dcfa6ced3a97b1ca011dbae80731590c09fb695f9d6e76b3fdfedcfce"
+    }
+  },
+  "full_goal": {
+    "baseline": 92,
+    "pending": 34,
+    "requirements": 31,
+    "phases": "P0-P7",
+    "stage_delivery_is_not_full_completion": true,
+    "limited": 58,
+    "status": "active"
+  },
+  "status": "limited_verified",
+  "actual": {
+    "driver_http_requests": 80,
+    "native_version_calls": 4,
+    "original_same_request_receipt_recovered": true,
+    "tool_profiles": 1,
+    "sdk_resources": {
+      "cli_version": "2.1.314",
+      "node_version": "v22.16.0",
+      "runtime_manifest_sha256": "82c52ff863d2592a1e259f05ff90d85bac01b81384b01c9fe6786459ec3a117c",
+      "evidence": {
+        "path": ".cache/claude-sdk-connect-201/actual-resources.json",
+        "sha256": "8b070ea07db59006ddcfebe20bb95b3ecf130c66d75b50f88465d8fce5a836f1"
+      },
+      "sdk_version": "0.3.314",
+      "new_installation": false,
+      "build_tool_version": "0.24.2"
+    },
+    "server_http_statuses": {
+      "http200": 79,
+      "http201": 4
+    },
+    "stopped": true,
+    "passed": true,
+    "sdk_queries": 0,
+    "registration_sends": 2,
+    "registration_effects": 1,
+    "profile_replay_same_id": true,
+    "model_calls": 0,
+    "profile_version": 1,
+    "profile_state": "paused",
+    "receipt": {
+      "path": ".cache/claude-sdk-connect-201/actual-final/receipt.json",
+      "sha256": "bd7fb649620f616211348ccf526dd6e101b81fc7a574eef325ca22c2a335857a"
+    },
+    "native_commands": "--version only, owned fixture",
+    "database": "isolated SQLite",
+    "reloaded_original_stopped": true,
+    "transport": "real TCP HTTP and original authenticated desktop controller",
+    "safe_storage": "owned AES-GCM fixture; not OS DPAPI",
+    "vendor_calls": 0,
+    "http_observations": {
+      "path": ".cache/claude-sdk-connect-201/actual-final/http-observations.json",
+      "sha256": "b36e8ba51751c1e742eeca3e113b0e6d141a64e88ad678387ec4c90c8d8c318d"
+    },
+    "worker_processes": 1,
+    "server_http_requests": 83,
+    "direct_child_processes": {
+      "managed_workers": 1,
+      "read_only_helpers": 2,
+      "all_exit_codes": 0
+    }
+  },
+  "delivery": {
+    "new_dependencies": 0,
+    "native_cli_version": "2.1.314",
+    "new_database_tables": 0,
+    "sdk_version": "0.3.314",
+    "new_public_schemas": 0,
+    "activation": "separate_explicit_action",
+    "runtime_component_version": "1.0.0",
+    "new_http_paths": 0,
+    "dispatcher": "existing",
+    "browser_remote_route": "原当前授权和fresh库存/高级准备仍可使用；仅本机快捷连接绑定desktopProof",
+    "feature": "Claude SDK被动发现、私有配置、原托管Runner、新鲜库存、暂停登记及原回执恢复"
+  },
+  "retained_failures": [
+    {
+      "fact": "首次Go编译磁盘满，测试未执行；Go发现源在格式化写回时截断，从HEAD恢复后重放本轮增量。另一个未提交Web连接组件写回截断，依据此前完整读取和最终合同重建，并非恢复到旧字节哈希；后续定向、类型和界面验证覆盖最终重建源。只清理经清点的可再生缓存，原证据保留。",
+      "command": ".cache/follow155/root-go/20261101T233534942Z.command.json",
+      "kind": "environment_not_behavior_red"
+    },
+    {
+      "kind": "owned_actual_harness",
+      "initial_http_status200": 8,
+      "fact": "初次8条只读协作请求后，因fixture缺cwd及exit/close观察失败而未达到预期未知登记；修正驱动，在确认终结的新范围完成最终链，未改产品或重建资源",
+      "initial_requests_not_added_to_final83": true,
+      "initial_http_requests": 8,
+      "evidence": {
+        "path": ".cache/claude-sdk-connect-201/actual-fixture-followup.json",
+        "sha256": "9ba36ecea791d7ec3f44743878936943435561480272d4ae805c001c9b034af1"
+      }
+    },
+    {
+      "failure": {
+        "path": ".cache/claude-sdk-connect-201/resource-failure.json",
+        "sha256": "5f42f0c013a2653f899805184c3caae9d0843bd3f06fde48915e42d56525632e"
+      },
+      "successful_resume": {
+        "path": ".cache/claude-sdk-connect-201/resource-commands-resume.json",
+        "sha256": "945c5002b770c42fdfe4b211105ad3ad5b388cad1da7ecd78c6df214a6e84117"
+      },
+      "fact": "缺可选esbuild原生二进制先失败；复用已核同版本0.24.2二进制，进程局部配置后完成1次成功SDK构建",
+      "kind": "sdk_resource_environment"
+    },
+    {
+      "kind": "behavior_boundaries",
+      "fact": "模型语法、保留envref、探测停止/记录、ABA回调及partial进度边界真实失败或独审发现后仅续验受影响检查；记录保留，不扩大顶层计数"
+    }
+  ],
+  "date": "2026-11-02",
+  "sources": {
+    "fixture_promotion": {
+      "actual_repeated_after_staging": false,
+      "runtime_body_changed": false,
+      "executed_and_tracked_inputs_byte_identical": true,
+      "evidence": {
+        "path": ".cache/claude-sdk-connect-201/versioned-fixtures.json",
+        "sha256": "e1854c93d168313fae051d08c697fbccb4377482488167bc025543caca1914ea"
+      }
+    },
+    "merged_owner_inputs": 52,
+    "ignored_gui_input_must_not_stage": true,
+    "meaning": "来源计数不是Git白名单数量；最终旧hash覆盖关系与当前hash由独立证据复核",
+    "hash_matches": 52,
+    "root_additional_sources": 4,
+    "ignored_gui_inputs": 1,
+    "owner_manifests": [
+      {
+        "entries": 14,
+        "path": ".cache/claude-sdk-connect-201/control/source-manifest.json",
+        "sha256": "a639fcc116961f1522b1a9998378e1b6bb89f74f5defbe12b778f2920027bec6"
+      },
+      {
+        "entries": 16,
+        "path": ".cache/claude-sdk-connect-201/desktop/source-manifest.json",
+        "sha256": "432ef44509189e36ce6c14e67429751c0833d819b610cdd7e8fd7c22c099b1f8"
+      },
+      {
+        "entries": 19,
+        "path": ".cache/claude-sdk-connect-201/web/source-manifest.json",
+        "sha256": "78614d1eb947d6363aa8caa2289e099e796bcf08e0c474c0abc7aaee6313e9aa"
+      },
+      {
+        "entries": 12,
+        "path": ".cache/claude-sdk-connect-201/web-amend/source-manifest-final.json",
+        "sha256": "c0a02faedbb5646a785bc5e12389e6595264f49be01ed3308ff88fafd07ca557"
+      },
+      {
+        "entries": 5,
+        "path": ".cache/claude-sdk-connect-201/web-amend/source-manifest-final2.json",
+        "sha256": "6f2efb1ac201cc814dadd9f61aecc402faa819d6e2efecaec078a380bd6f293a"
+      },
+      {
+        "entries": 5,
+        "path": ".cache/claude-sdk-connect-201/web-amend/source-manifest-env-final.json",
+        "sha256": "68d40f4ceb64a9e2b124ee9d74b9cd325f3b38b7e96bf0a1ec2f61730de96779"
+      }
+    ]
+  },
+  "git": {
+    "reproducible_fixture_sources": "仅纳入Root明确白名单",
+    "exclude": [
+      ".cache/**",
+      "databases",
+      "logs",
+      "screenshots",
+      "compiled artifacts",
+      "dependency caches",
+      "credentials",
+      "unrelated historical audits"
+    ],
+    "status": "由主代理统一阶段提交",
+    "owner": "主集成代理"
+  },
+  "checks": {
+    "go": {
+      "new": 6,
+      "old_subtests": 2,
+      "control": 9,
+      "old": 4,
+      "distinct": 10,
+      "actual": 1
+    },
+    "new": 18,
+    "passed": 38,
+    "global_not_test_tops": {
+      "isolated_vite_build_successes": 1,
+      "followup_reason": "中间合同/源变化后的必要续验",
+      "production_source_hardcodes": 0,
+      "web_typecheck_runs": 2,
+      "control_binary_build_successes": 1,
+      "i18n_keys": 9361,
+      "i18n_runs": 2,
+      "sdk_host_build_successes": 1,
+      "all_final_exit_codes": 0
+    },
+    "directly_affected_old": 20,
+    "node": {
+      "old": 4,
+      "distinct": 9,
+      "new": 5
+    },
+    "deduplication": "按领域/文件/当前顶层去重；同原检查的改名、RED/GREEN及必要续验不增加覆盖；跳过不覆盖实际pass",
+    "remaining_failed": 0,
+    "recorded_results": {
+      "web": [
+        {
+          "success": true,
+          "path": ".cache/claude-sdk-connect-201/web/main/green.json",
+          "sha256": "7a6d70ed2a79a8c33d55d49cd57cf4b80b0eece022f43f69d2164273b7a4ae73"
+        },
+        {
+          "success": true,
+          "path": ".cache/claude-sdk-connect-201/web-amend/models-green.json",
+          "sha256": "566cf1ffe3eaa0d894b034778a957aa48361d473f6e6f1da2621badc63f4c2cd"
+        },
+        {
+          "success": true,
+          "path": ".cache/claude-sdk-connect-201/web-amend/consumers-green.json",
+          "sha256": "45aac5be3c7646e4a37369e5856229fe40a5fd8270a8334dbbcfac78f42d7e74"
+        },
+        {
+          "success": true,
+          "path": ".cache/claude-sdk-connect-201/web-amend/late-b-green.json",
+          "sha256": "6e64c9563de31b5d98578ccc4a04997887ad29e16290caff24570efee886ee11"
+        },
+        {
+          "success": true,
+          "path": ".cache/claude-sdk-connect-201/web-amend/final2-green.json",
+          "sha256": "b63799202dc1d51f75c03672b2c2e6123b760aa88aa42aa64e3a93d118f53339"
+        },
+        {
+          "success": true,
+          "path": ".cache/claude-sdk-connect-201/web-amend/env-policy-green.json",
+          "sha256": "3101097038ea4b32b515907e5ee4d8e7666ce62d2872a3e84ef1dfaf87e714d3"
+        }
+      ],
+      "go_control": [
+        {
+          "exit_code": 0,
+          "path": ".cache/follow155/root-go/20261101T234928646Z.command.json",
+          "sha256": "8fce0eb4d14a623848aa0342c85dbe85fe283a1adbe6914e8792a08c2bad7ae5"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/follow155/root-go/20261101T235244911Z.command.json",
+          "sha256": "3558191eb14490646aa86bed3914b1ae5764fa4842de3e787faa7a7a39f0aeff"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/follow155/root-go/20261102T000817489Z.command.json",
+          "sha256": "d3ba3dc4e10d64388562f267a7e7f1fc8c0a22232228ce7963a468964eb1e544"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/follow155/root-go/20261102T001422904Z.command.json",
+          "sha256": "8bd4fdd5d317b891e4b1b8ff64685bdef32c48dc488b832fd352d511bf115c1f"
+        }
+      ],
+      "go_actual": {
+        "name": "TestClaudeSDKQuickConnectActualOriginalReceiptWorkerAndPausedProfile",
+        "exit_code": 0,
+        "path": ".cache/follow155/root-go/20261102T003135014Z.command.json"
+      },
+      "node": [
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/desktop/managed-first.command.json",
+          "sha256": "4fb8fa7369579ee41ac42a2d0c3e60f8f19bf61f6bdf5744925e19d9c29b7476"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/desktop/assets-first.command.json",
+          "sha256": "4d3c46d26cc48c04839ea9b4e98e78bca86375d35658e3d85fb9cbe0d5dfb701"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/desktop/packaging-focused.command.json",
+          "sha256": "d2f76a0b486da4dadf1f01c483d94bebfe17be07cea9750a3fa9b2fac3207991"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/desktop/affected-old.command.json",
+          "sha256": "41c35732e61d8de64213fb170403287ecaa7197cdd4b4596b55ae532f9121271"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/desktop/envref-desktop-green.command.json",
+          "sha256": "77be35da21617e7ddec242bc1e71f7355555b588906c664ab34f634943322c92"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/desktop/envref-host-green.command.json",
+          "sha256": "b94a3400885340d739d663a4309809dde28cd54efac9818b28a9443fef459231"
+        }
+      ],
+      "global": [
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/types_final.command.json",
+          "sha256": "f89acc8d3fa6d2eb26d3005aa6c60569efb0a0e26428fce62787c20e68176b7e"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/i18n_final.command.json",
+          "sha256": "3cdc1f68afc66f96219e2c5dfd13b59d6f3ad3aaf0a8570b88ca82de1fa9c165"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/build.command.json",
+          "sha256": "9064167295daba7a02d42c7c012f7ca9e6d6163b43b607c2b901d9feef3fa219"
+        },
+        {
+          "exit_code": 0,
+          "path": ".cache/claude-sdk-connect-201/gui.command.json",
+          "sha256": "6e90df388afe0bd22ddfb22336d2ec14301fece4ba8e150eaefd345dad5b4ab0"
+        }
+      ]
+    },
+    "web": {
+      "new": 7,
+      "renamed_original_tops": 2,
+      "rename_mapping": {
+        "T201 adopts only the exact captured Claude setup ACK, never a matching status or a late changed-draft receipt": "T201 adopts only the real current Claude credential name and isolates stale callbacks across draft ABA",
+        "T201 attests only the exact new Claude SDK connect and preserves configuration-free original recovery": "T201 attests the real current credential name across slow start, status, reload and configuration-free recovery"
+      },
+      "old": 12,
+      "distinct": 19,
+      "historical_raw_names": 21
+    },
+    "distinct": 38
+  },
+  "version": "1.0.0"
+}

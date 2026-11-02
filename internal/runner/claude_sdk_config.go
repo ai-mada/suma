@@ -90,11 +90,10 @@ func validateClaudeSDKSpec(spec CommandSpec) error {
 			return fmt.Errorf("Claude SDK paths must be exact clean absolute paths")
 		}
 	}
-	if !strings.HasPrefix(p.Model, "claude-") || len(p.Model) > 256 || strings.ContainsAny(p.Model, " /\\\x00\r\n\t") {
+	if !tc.ValidClaudeSDKModel(p.Model) {
 		return fmt.Errorf("Claude SDK requires an exact fixed model identifier")
 	}
-	ref := p.CredentialEnvRef
-	if !openCodeCredentialRef.MatchString(ref) || ref[0] < 'A' || ref[0] > 'Z' || strings.HasPrefix(ref, "SUMA_") || strings.HasPrefix(ref, "NODE_") || strings.HasPrefix(ref, "NPM_") || strings.HasPrefix(ref, "CLAUDE_") || ref == "ANTHROPIC_AUTH_TOKEN" || map[string]bool{"HOME": true, "USERPROFILE": true, "APPDATA": true, "LOCALAPPDATA": true, "PATH": true, "SYSTEMROOT": true, "WINDIR": true, "COMSPEC": true, "PROGRAMDATA": true, "TEMP": true, "TMP": true, "TMPDIR": true}[ref] {
+	if !tc.ValidClaudeSDKCredentialEnvRef(p.CredentialEnvRef) {
 		return fmt.Errorf("Claude SDK requires a separate local credential environment reference")
 	}
 	return nil

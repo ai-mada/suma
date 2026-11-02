@@ -41,12 +41,12 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,onSelect,onViewExi
  }
  useEffect(()=>{if(!disabled&&!attempted.current){attempted.current=true;void scan();}},[disabled]);
  const eligible=adapters.filter(adapter=>quickConnectAdapters([adapter]).length===1||isCursorConnectionGuide(adapter));
- const selected=eligible.find(adapter=>adapter.id===selectedAdapterID),sdkManual=eligible.some(adapter=>adapter.id==='claude-code-sdk'&&adapter.adapter==='claude'&&adapter.protocol==='claude-sdk-v1');
+ const selected=eligible.find(adapter=>adapter.id===selectedAdapterID);
  return <section className="local-tools-scan" data-local-tools-scan aria-label={t('title')} aria-busy={busy}>
   <header><div><h4><Monitor size={18} aria-hidden="true"/>{t('title')}</h4><p>{t('intro')}</p></div><button type="button" data-local-tools-rescan disabled={disabled||busy} onClick={()=>void scan(true)}><RefreshCw size={16} aria-hidden="true"/>{t(busy?'scanning':'rescan')}</button></header>
   <p className="local-tools-scan-status" role="status">{t(failure?'failed':busy?'scanning':result?expired?'expired':result.scan.cached?'cached':'observed':disabled?'deferred':'waiting')}</p>
   {selected&&<p className="local-tools-scan-target" data-local-tools-selected-target>{t('selected_target',{tool:selected.product})}</p>}
-  <p className="local-tools-scan-boundary">{t('scope_hint',{count:formatNumber(scanAdapterIDs.length)})}</p>{sdkManual&&<p className="local-tools-scan-boundary" data-local-tools-manual-support>{t('sdk_manual')}</p>}
+  <p className="local-tools-scan-boundary">{t('scope_hint',{count:formatNumber(scanAdapterIDs.length)})}</p>
   {result&&<><ul className="local-tools-scan-list">{result.report.items.map(item=>{const candidates=eligible.filter(adapter=>adapter.id===item.adapter_id),adapter=candidates.length===1?candidates[0]:undefined,guidance=rowGuidance(item.adapter_id,item.reason_code);return <li key={item.adapter_id} data-local-tools-adapter={item.adapter_id}>
    <div className="local-tools-scan-item"><div className="local-tools-scan-name"><strong>{item.product}</strong><span><Search size={14} aria-hidden="true"/>{t(item.installed?expired?'installation_recorded':'installed':'not_observed')}</span></div>
    <p className="local-tools-scan-guidance"><strong>{guidance.reason}</strong></p>

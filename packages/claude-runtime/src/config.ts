@@ -4,10 +4,15 @@ import {createHash} from 'node:crypto';
 import type {Options} from '@anthropic-ai/claude-agent-sdk';
 import {CLI_VERSION,SDK_VERSION,RuntimeError,closed,required,digest,type RuntimeConfig,TOOL_NAMES} from './contract.js';
 
+// The same closed reference policy is used by Go preparation and the desktop.
+// Keep credentials separate from OS mechanics passed to passive CLI probes.
+const reservedCredentialNames=new Set(['ANTHROPIC_AUTH_TOKEN','HOME','USERPROFILE','APPDATA','LOCALAPPDATA','PATH','SYSTEMROOT','WINDIR','COMSPEC','PROGRAMDATA','TEMP','TMP','TMPDIR','LANG','LC_ALL','PATHEXT','SYSTEMDRIVE','ALLUSERSPROFILE','PROGRAMFILES','PROGRAMW6432','COMMONPROGRAMFILES','COMMONPROGRAMW6432','HOMEDRIVE','HOMEPATH','PUBLIC','OS']);
+const credentialRef=(value:unknown):value is string=>typeof value==='string'&&/^[A-Z][A-Z0-9_]{0,127}$/.test(value)&&!['SUMA_','NODE_','NPM_','CLAUDE_','LC_','LD_','DYLD_'].some(prefix=>value.startsWith(prefix))&&!reservedCredentialNames.has(value);
+
 export function parseConfig(value:unknown):RuntimeConfig{
  const keys=['native_cli_executable','native_cli_sha256','home','source','model','credential_env_ref','configuration_sha256','sdk_version','cli_version'];closed(value,keys);required(value,keys);
  for(const key of ['native_cli_executable','home','source'])if(typeof value[key]!=='string'||!isAbsolute(value[key] as string)||/[\x00\r\n]/.test(value[key] as string)||resolve(value[key] as string)!==value[key])throw new RuntimeError('configuration_invalid');
- if(!digest(value.native_cli_sha256)||!digest(value.configuration_sha256)||value.sdk_version!==SDK_VERSION||value.cli_version!==CLI_VERSION||typeof value.model!=='string'||value.model.length>256||!/^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$/.test(value.model)||typeof value.credential_env_ref!=='string'||!/^[A-Z][A-Z0-9_]{0,127}$/.test(value.credential_env_ref)||/^(?:SUMA_|HOME$|PATH$|TEMP$|TMP$|NODE_|CLAUDE_|ANTHROPIC_AUTH_TOKEN$)/.test(value.credential_env_ref))throw new RuntimeError('configuration_invalid');
+ if(!digest(value.native_cli_sha256)||!digest(value.configuration_sha256)||value.sdk_version!==SDK_VERSION||value.cli_version!==CLI_VERSION||typeof value.model!=='string'||value.model.length>256||!/^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$/.test(value.model)||!credentialRef(value.credential_env_ref))throw new RuntimeError('configuration_invalid');
  const homeRelative=relative(value.source as string,value.home as string);
  if(value.home===value.source||homeRelative!=='..'&&!homeRelative.startsWith('..'+sep)&&!isAbsolute(homeRelative))throw new RuntimeError('configuration_invalid');
  return value as unknown as RuntimeConfig;

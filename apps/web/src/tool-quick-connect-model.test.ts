@@ -4,6 +4,28 @@ import type {AdapterDescriptor} from './AdapterConnections';
 
 const adapter={id:'codex-jsonl',product:'Codex',direction:'suma_to_tool',implementation:'implemented',setup_kind:'runner_profile',adapter:'codex',protocol:'codex-jsonl-v1'} as AdapterDescriptor;
 const profile={command_id:'codex-team',adapter:'codex',protocol:'codex-jsonl-v1',profile_sha256:'a'.repeat(64),executable_sha256:'b'.repeat(64),tool_version:'1.0',read_only:false};
+it('T201 binds Claude SDK discovery to the native CLI and inventory to the exact Node runtime and complete SDK proof',()=>{
+ const sdkAdapter={...adapter,id:'claude-code-sdk',product:'Claude Agent SDK',adapter:'claude',protocol:'claude-sdk-v1'};
+ const cap={sdk_version:'0.3.314',cli_version:'2.1.314',model:'claude-sonnet-4-6',configuration_sha256:'c'.repeat(64),model_source:'administrator_sdk_option',budget_mode:'observe_only',identity_evidence:'sdk_init_model_ack_only',auth_strategy:'api_key_env_ref'};
+ const row={profile:{...profile,adapter:'claude',protocol:'claude-sdk-v1',tool_version:'2.1.314',claude_sdk_execution:cap},available:true,reason:''};
+ const proof={model:cap.model,credential_env_ref:'TEAM_ANTHROPIC_KEY',tool_version:'2.1.314',executable_sha256:'d'.repeat(64),runtime_executable_sha256:profile.executable_sha256,configuration_sha256:cap.configuration_sha256,claude_sdk_execution:cap};
+ expect(matchingQuickTools([row],sdkAdapter,proof)).toEqual([row]);
+ // Inventory carries the complete configuration hash, not a private variable
+ // reference. Its matcher validates the public name without inventing a
+ // second independent inventory fact about another otherwise valid name.
+ expect(matchingQuickTools([row],sdkAdapter,{...proof,credential_env_ref:'ALTERNATE_PROVIDER_KEY'})).toEqual([row]);
+ for(const credential_env_ref of ['',undefined,'PATH','CLAUDE_SECRET','sk-secret-value'])expect(matchingQuickTools([row],sdkAdapter,{...proof,credential_env_ref} as typeof proof)).toEqual([]);
+ expect(matchingQuickTools([row],sdkAdapter)).toEqual([row]);
+ for(const patch of [{model:'claude-opus-4-6'},{tool_version:'2.1.313'},{runtime_executable_sha256:'e'.repeat(64)},{executable_sha256:'bad'},{configuration_sha256:'e'.repeat(64)},{claude_sdk_execution:{...cap,identity_evidence:'configuration_ack_only'}}])expect(matchingQuickTools([row],sdkAdapter,{...proof,...patch})).toEqual([]);
+ for(const patch of [{executable_sha256:proof.executable_sha256},{tool_version:'suma-claude-runtime 1.0.0'},{claude_sdk_execution:{...cap,model:'claude-opus-4-6'}},{claude_sdk_execution:{...cap,auth_strategy:'existing_cli_login'}}])expect(matchingQuickTools([{...row,profile:{...row.profile,...patch}}],sdkAdapter,proof)).toEqual([]);
+ expect(matchingQuickTools([{...row,available:false}],sdkAdapter,proof)).toEqual([]);
+ const installed={adapter_id:'claude-code-sdk',product:'Claude Code',installed:true,launch_supported:false,executable:'C:/tools/claude.exe',version:'2.1.314',executable_sha256:'d'.repeat(64),reason_code:'configuration_required'};
+ const read=(value:unknown)=>readInstalledToolDiscovery({status:'observed',report:{protocol:'suma-installed-tools-v1',items:[value]}},'claude-code-sdk');
+ expect(localDiscoveryAdapters.has('claude-code-sdk')).toBe(true);expect(read(installed)).toEqual(installed);
+ expect(read({...installed,version:'2.1.315',reason_code:'version_unsupported'})).toBeDefined();
+ expect(read({adapter_id:'claude-code-sdk',product:'Claude Code',installed:false,launch_supported:false,reason_code:'not_installed'})).toBeDefined();
+ for(const patch of [{version:'2.1.315'},{reason_code:'version_unsupported'},{launch_supported:true},{installed:false},{executable_sha256:undefined},{executable:'relative.exe'},{executable:'C:/tools/\ud800.exe'},{model:cap.model},{profile:row.profile},{token:'secret'}])expect(read({...installed,...patch})).toBeUndefined();
+});
 it('matches OpenCode fixed inventory without comparing native server identity to the Node host',()=>{
  const openAdapter={...adapter,id:'opencode-sdk',product:'OpenCode',adapter:'opencode',protocol:'opencode-sdk-v1'};
  const cap={sdk_version:'1.19.4',server_version:'1.19.4',provider_id:'provider',model:'vendor/model',endpoint_origin:'https://provider.example',configuration_sha256:'c'.repeat(64),budget_mode:'observe_only',identity_evidence:'configuration_ack_only'};

@@ -1,5 +1,7 @@
 import {validOpenCodeCapability} from './opencode-execution-model';
 import type {DesktopOpenCodeConnectedProof} from './desktop-opencode-connector-model';
+import {validDesktopClaudeSDKConfiguration,type DesktopClaudeSDKConnectedProof} from './desktop-claude-sdk-connector-model';
+import {sameClaudeSDKCapability,validClaudeSDKCapability} from './claude-sdk-execution-model';
 import type {AdapterDescriptor} from './AdapterConnections';
 import type {ToolObservation,ToolProfile} from './tool-model';
 import {wellFormed} from './i18n/catalog';
@@ -20,14 +22,23 @@ export function quickConnectWorkers(local:readonly {worker_id:string;status:stri
 }
 export type ConfirmedNativeToolProof=Pick<DesktopCodexConnectedProof,'configuration_sha256'|'executable_sha256'|'tool_version'|'catalog_sha256'>;
 export type ConfirmedOpenCodeToolProof=Omit<DesktopOpenCodeConnectedProof,'worker_id'>;
-export function matchingQuickTools(items:ToolObservation[],adapter:AdapterDescriptor,proof?:ConfirmedNativeToolProof|ConfirmedOpenCodeToolProof){
+export type ConfirmedClaudeSDKToolProof=Omit<DesktopClaudeSDKConnectedProof,'worker_id'>;
+export function matchingQuickTools(items:ToolObservation[],adapter:AdapterDescriptor,proof?:ConfirmedNativeToolProof|ConfirmedOpenCodeToolProof|ConfirmedClaudeSDKToolProof){
  if(adapter.direction!=='suma_to_tool'||adapter.setup_kind!=='runner_profile'||adapter.implementation!=='implemented'||adapter.id==='cursor-cli'&&!cursorACPDescriptor(adapter))return [];
  return items.filter(item=>{
   if(item.profile.adapter!==adapter.adapter||item.profile.protocol!==adapter.protocol)return false;
   if(adapter.id==='cursor-cli'&&!validACPCapability(item.profile.acp_execution,'cursor'))return false;
+  if(adapter.id==='claude-code-sdk'){
+   const capability=item.profile.claude_sdk_execution;
+   if(item.profile.tool_version!=='2.1.314'||!validClaudeSDKCapability(capability))return false;
+   if(proof===undefined)return true;
+   // The scan identifies the native CLI; the inventory executable is the Node
+   // host. Both identities and the complete SDK proof remain distinct.
+   return 'claude_sdk_execution' in proof&&validDesktopClaudeSDKConfiguration({model:proof.model,credential_env_ref:proof.credential_env_ref})&&proof.tool_version==='2.1.314'&&/^[a-f0-9]{64}$/.test(proof.executable_sha256)&&/^[a-f0-9]{64}$/.test(proof.runtime_executable_sha256)&&item.available===true&&item.profile.executable_sha256===proof.runtime_executable_sha256&&proof.model===capability.model&&proof.configuration_sha256===capability.configuration_sha256&&sameClaudeSDKCapability(capability,proof.claude_sdk_execution);
+  }
   if(adapter.id==='opencode-sdk'&&proof!==undefined){
    const c=item.profile.opencode_execution;
-   return 'model' in proof&&proof.tool_version==='1.19.4'&&/^[a-f0-9]{64}$/.test(proof.executable_sha256)&&item.available===true&&item.profile.tool_version==='suma-opencode-runtime 1.0.0'&&validOpenCodeCapability(c)&&c.configuration_sha256===proof.configuration_sha256&&c.provider_id===proof.provider_id&&c.model===proof.model&&c.endpoint_origin===proof.endpoint_origin;
+   return 'provider_id' in proof&&proof.tool_version==='1.19.4'&&/^[a-f0-9]{64}$/.test(proof.executable_sha256)&&item.available===true&&item.profile.tool_version==='suma-opencode-runtime 1.0.0'&&validOpenCodeCapability(c)&&c.configuration_sha256===proof.configuration_sha256&&c.provider_id===proof.provider_id&&c.model===proof.model&&c.endpoint_origin===proof.endpoint_origin;
   }
   if(adapter.id!=='codex-app-server'||proof===undefined)return true;
   if(!('catalog_sha256' in proof))return false;
@@ -44,7 +55,7 @@ export function validQuickConnectReceipt(value:unknown,request:Record<string,unk
 }
 
 export type InstalledToolFact={adapter_id:string;product:string;installed:boolean;launch_supported:boolean;executable?:string;version?:string;executable_sha256?:string;reason_code:string};
-export const localDiscoveryAdapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','cursor-cli','codex-app-server','opencode-sdk']);
+export const localDiscoveryAdapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','cursor-cli','codex-app-server','opencode-sdk','claude-code-sdk']);
 const localProducts:Record<string,string>={'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code'};
 const localReasons=new Set(['not_installed','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
@@ -74,6 +85,7 @@ function readCursorDiscovery(value:unknown):InstalledToolFact|undefined{
 }
 /** Installed facts deliberately have no Profile, Runner identity or availability. */
 export function readInstalledToolDiscovery(value:unknown,adapter:string):InstalledToolFact|undefined{
+ if(adapter==='claude-code-sdk')return readClaudeSDKDiscovery(value);
  if(adapter==='opencode-sdk')return readOpenCodeDiscovery(value);
  if(adapter==='cursor-cli')return readCursorDiscovery(value);
  if(adapter==='codex-app-server')return readCodexDiscovery(value);
@@ -82,6 +94,20 @@ export function readInstalledToolDiscovery(value:unknown,adapter:string):Install
  if(!object(row)||!keys(row,['adapter_id','product','installed','launch_supported','executable','version','reason_code'])||row.adapter_id!==adapter||row.product!==localProducts[adapter]||typeof row.installed!=='boolean'||typeof row.launch_supported!=='boolean'||typeof row.reason_code!=='string'||!localReasons.has(row.reason_code)||row.executable!==undefined&&!safeText(row.executable,4096)||row.version!==undefined&&!safeText(row.version,256))return;
  if(row.launch_supported&&(!row.installed||row.reason_code!=='workspace_required'||!safeText(row.version,256)||typeof row.executable!=='string'||!(/^[a-z]:[\\/]/i.test(row.executable)||/^\/(?!\/)/.test(row.executable))))return;
  if(row.reason_code==='workspace_required'&&!row.launch_supported||row.reason_code==='not_installed'&&row.installed)return;
+ return row as InstalledToolFact;
+}
+
+function readClaudeSDKDiscovery(value:unknown):InstalledToolFact|undefined{
+ if(!cursorObject(value)||!cursorFields(value,['status','report'])||value.status!=='observed'||!cursorObject(value.report)||!cursorFields(value.report,['protocol','items'])||value.report.protocol!=='suma-installed-tools-v1')return;
+ const items=value.report.items;
+ if(!Array.isArray(items)||Object.getPrototypeOf(items)!==Array.prototype||items.length!==1||Reflect.ownKeys(items).length!==2||!Object.hasOwn(items,'0'))return;
+ const row=items[0];
+ if(!cursorObject(row)||!cursorFields(row,['adapter_id','product','installed','launch_supported','reason_code'],['executable','version','executable_sha256'])||row.adapter_id!=='claude-code-sdk'||row.product!=='Claude Code'||typeof row.installed!=='boolean'||row.launch_supported!==false||typeof row.reason_code!=='string'||!['not_installed','unsupported_launcher','probe_failed','configuration_required','version_unsupported'].includes(row.reason_code))return;
+ if(Object.hasOwn(row,'executable')&&(typeof row.executable!=='string'||!wellFormed(row.executable)||!safeText(row.executable,4096)||row.executable.trim()!==row.executable||!(/^[a-z]:[\\/]/i.test(row.executable)||/^\/(?!\/)/.test(row.executable)||/^\\\\[^\\]+\\[^\\]+/.test(row.executable))))return;
+ if(Object.hasOwn(row,'version')&&(typeof row.version!=='string'||!wellFormed(row.version)||!safeText(row.version,256)||row.version.trim()!==row.version))return;
+ if(Object.hasOwn(row,'executable_sha256')&&(typeof row.executable_sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
+ if(['configuration_required','version_unsupported'].includes(row.reason_code)&&(!row.installed||!row.executable||!row.version||!row.executable_sha256||(row.reason_code==='configuration_required')!==(row.version==='2.1.314')))return;
+ if(row.reason_code==='not_installed'&&(row.installed||['executable','version','executable_sha256'].some(k=>Object.hasOwn(row,k))))return;
  return row as InstalledToolFact;
 }
 function readCodexDiscovery(value:unknown):InstalledToolFact|undefined{

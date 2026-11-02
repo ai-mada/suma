@@ -1,5 +1,6 @@
 import {runnerSetupLiteral} from './cursor-setup-guide-model';
 import {wellFormed} from './i18n/catalog';
+import {validDesktopClaudeSDKCredentialEnvRef as credential} from './desktop-claude-sdk-connector-model';
 export type ClaudeSDKSetupInput={shell:''|'powershell'|'bash';node:string;host:string;nativeCLI:string;model:string;credentialEnvRef:string;commands:string};
 export type ClaudeSDKSetupDraft={shell:'powershell'|'bash';commands:string;localTool:'claude-code-sdk'};
 export type ClaudeSDKSetupRequest={adapter_id:'claude-code-sdk';executable:string;host:string;native_cli_executable:string;model:string;credential_env_ref:string;reviewed_cli_version:'2.1.314'};
@@ -10,8 +11,6 @@ const windows=(v:string)=>/^[A-Za-z]:[\\/]/.test(v)||/^[\\/]{2}/.test(v);
 const absolute=(v:unknown):v is string=>pathText(v)&&(/^[A-Za-z]:[\\/].+/.test(v)||/^\/(?!\/).+/.test(v)||/^[\\/]{2}[^\\/]+[\\/][^\\/]+[\\/].+/.test(v));
 const basename=(v:string)=>v.split(windows(v)?/[\\/]/:/\//).at(-1)||'';
 const commandPath=(v:unknown):v is string=>absolute(v)&&/\.json$/i.test(v);
-const reserved=new Set(['HOME','USERPROFILE','APPDATA','LOCALAPPDATA','PATH','SYSTEMROOT','WINDIR','COMSPEC','PROGRAMDATA','TEMP','TMP','TMPDIR','ANTHROPIC_AUTH_TOKEN']);
-const credential=(v:unknown):v is string=>typeof v==='string'&&/^[A-Z][A-Z0-9_]{0,127}$/.test(v)&&!['SUMA_','NODE_','NPM_','CLAUDE_'].some(prefix=>v.startsWith(prefix))&&!reserved.has(v);
 const model=(v:unknown):v is string=>typeof v==='string'&&v.length<=256&&/^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$/.test(v);
 export function validClaudeSDKSetupDraft(v:unknown):v is ClaudeSDKSetupDraft{return object(v)&&fields(v,['shell','commands','localTool'])&&(v.shell==='powershell'||v.shell==='bash')&&commandPath(v.commands)&&v.localTool==='claude-code-sdk';}
 /** Public administrator drafts only. The Runner normalizes paths on its own

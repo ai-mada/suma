@@ -7,10 +7,13 @@ const {createLocalCodexController,cleanCodexEnvironment}=require('./local-codex.
 const codexValidation=require('./local-codex-validation.cjs');
 const opencodeValidation=require('./local-opencode-validation.cjs');
 const {resolveOpenCodeAssets}=require('./local-opencode-assets.cjs');
+const claudeSDKValidation=require('./local-claude-sdk-validation.cjs');
+const {resolveClaudeSDKAssets}=require('./local-claude-sdk-assets.cjs');
+const {fileHash,binaryTarget}=require('./local-opencode-assets.cjs');
 const {RENEW_FIELDS,digest,validRenewReceipt,createRenewalReadinessChecker}=require('./managed-local-runner-renewal.cjs');
 const {SCOPE_FIELDS,planSHA,projection:recoveryProjection,createResultRecoveryController}=require('./managed-local-runner-recovery.cjs');
 const CHANNEL='suma:manage-local-runner';
-const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1'],'qoder-acp':['qoder','acp-stdio-v1'],'cursor-cli':['cursor','acp-stdio-v1'],'codex-app-server':['codex','codex-app-server-v1'],'opencode-sdk':['opencode','opencode-sdk-v1']});
+const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1'],'qoder-acp':['qoder','acp-stdio-v1'],'cursor-cli':['cursor','acp-stdio-v1'],'codex-app-server':['codex','codex-app-server-v1'],'opencode-sdk':['opencode','opencode-sdk-v1'],'claude-code-sdk':['claude','claude-sdk-v1']});
 const HASH=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{32}$/;
 const gitUnavailable=error=>error?.status===422&&['desktop_runner_head_unavailable','desktop_runner_repository_unsafe','desktop_runner_repository_unavailable'].includes(error.code);
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
@@ -30,7 +33,7 @@ async function boundedJSON(response){
  if(!response.ok||![200,201].includes(response.status)){const error=Error('request_failed');error.status=response.status;error.code=typeof value?.error?.code==='string'?value.error.code:'';throw error;}
  return value;
 }
-function createManagedLocalRunnerController({parent,origin,binary,key,userData,safeStorage,discover,spawn=spawnChild,environment=process.env,stopGraceMS=12000,stopDeadlineMS=16000,checkIntervalMS=15000,now=Date.now,opencodeAssets=resolveOpenCodeAssets}){
+function createManagedLocalRunnerController({parent,origin,binary,key,userData,safeStorage,discover,spawn=spawnChild,environment=process.env,stopGraceMS=12000,stopDeadlineMS=16000,checkIntervalMS=15000,now=Date.now,opencodeAssets=resolveOpenCodeAssets,claudeSDKAssets=resolveClaudeSDKAssets}){
  if(!validOrigin(origin)||!path.isAbsolute(binary)||!path.isAbsolute(userData)||!Buffer.isBuffer(key)||key.length!==32||typeof discover!=='function')throw Error('Invalid managed local runner configuration');
  const privateKey=Buffer.from(key),instanceID=crypto.createHmac('sha256',privateKey).update('suma-desktop-instance-v1').digest('hex'),records=new Map();
  let disposed=false,journal,busy=false,disposing,activeManage,journalFinalized=false;
@@ -44,6 +47,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    const config=stored.acp_configuration;if(config)Object.assign(value,{model:config.model,tool_version:config.reviewed_version,executable_sha256:config.executable_sha256,configuration_sha256:config.configuration_sha256});
    const codex=stored.codex_configuration;if(codex)Object.assign(value,{tool_version:codex.reviewed_version,executable_sha256:codex.executable_sha256,configuration_sha256:codex.configuration_sha256,...(phase==='connected'&&record.catalogSHA?{catalog_sha256:record.catalogSHA}:{})});
    const open=stored.opencode_configuration;if(open)Object.assign(value,{model:open.model,provider_id:open.provider_id,endpoint_origin:opencodeValidation.endpointOrigin(open),tool_version:open.reviewed_version,executable_sha256:open.executable_sha256,configuration_sha256:open.configuration_sha256});
+   const sdk=stored.claude_sdk_configuration;if(sdk)Object.assign(value,{model:sdk.model,credential_env_ref:sdk.credential_env_ref,tool_version:sdk.reviewed_cli_version,executable_sha256:sdk.native_cli_sha256,runtime_executable_sha256:sdk.node_sha256,configuration_sha256:sdk.configuration_sha256,claude_sdk_execution:claudeSDKValidation.capability(sdk)});
   }return {status:'ok',connection:value};
  }
  function phase(record,value){record.value.phase=value;save(record);}
@@ -108,6 +112,8 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   if(codex){const profile=matching[0].profile,catalog=matching[0].codex_catalog,input=profile.user_input_protocol;if(profile.executable_sha256!==codex.executable_sha256||profile.tool_version!==codex.reviewed_version||!codexValidation.validCatalog(catalog)||catalog.configuration_sha256!==codex.configuration_sha256||(codex.enable_user_input===true?input!=='codex-user-input-v1':input!==undefined&&input!==''))return false;record.catalogSHA=catalog.catalog_sha256;}
   const open=record.value.opencode_configuration;
   if(open){const p=matching[0].profile;if(p.executable_sha256!==open.node_sha256||p.tool_version!=='suma-opencode-runtime 1.0.0'||p.workspace_tools_version!=='attempt-workspace-v1'||!opencodeValidation.matchesCapability(open,p.opencode_execution))return false;}
+  const sdk=record.value.claude_sdk_configuration;
+  if(sdk){const p=matching[0].profile;if(p.executable_sha256!==sdk.node_sha256||p.tool_version!=='2.1.314'||p.user_input_protocol!=='claude-sdk-input-v1'||!claudeSDKValidation.matchesCapability(sdk,p.claude_sdk_execution))return false;}
   record.expiresAt=out.expires_at;return true;
  }
  async function observe(record){if(!record.child||record.closed||record.stopping||record.value.phase==='stop_unconfirmed')return;const fresh=await readInventory(record);await session(record.value.scope);if(record.closed||record.stopping)return;phase(record,fresh?'connected':'starting');if(!fresh)record.expiresAt=undefined;}
@@ -118,6 +124,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  function launch(record,locale){
   const value=record.value,stateDirectory=openJournal().stateDirectory(value.scope);record.renewalReason=undefined;phase(record,'starting');
   const env=value.opencode_configuration?cleanCodexEnvironment(environment,stateDirectory,value.opencode_configuration.api_key_env_ref):value.codex_configuration?cleanCodexEnvironment(environment,stateDirectory,value.codex_configuration.api_key_env_ref):value.acp_configuration?cleanEnvironment(environment,stateDirectory,value.acp_configuration.credential_env_ref):runnerEnvironment(environment,stateDirectory);
+  if(value.claude_sdk_configuration){const ref=value.claude_sdk_configuration.credential_env_ref;env[ref]=environment[ref];}
   const child=spawn(binary,['--language='+locale,'--desktop-managed-runner'],{cwd:value.repository_path,env,stdio:['pipe','ignore','ignore'],windowsHide:true,shell:false});
   record.child=child;record.closed=false;record.hardKilled=false;record.spawnedAt=now();record.expiresAt=undefined;
   child.on('error',()=>{void softStop(record,'failed').catch(()=>{});});
@@ -129,6 +136,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   if(value.acp_configuration)config.acp_configuration={...value.acp_configuration};
   if(value.codex_configuration)config.codex_configuration={...value.codex_configuration};
   if(value.opencode_configuration)config.opencode_configuration={...value.opencode_configuration};
+  if(value.claude_sdk_configuration)config.claude_sdk_configuration={...value.claude_sdk_configuration};
   child.stdin.write(JSON.stringify(config)+'\n');record.guard=setInterval(()=>{record.guardTask=guard(record).catch(()=>{});},checkIntervalMS);record.guard.unref?.();
  }
  async function register(record){
@@ -162,7 +170,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  }
  function newRecord(scope,context,configuration,selection){
   const token=crypto.randomBytes(32).toString('hex'),value={protocol:PROTOCOL,scope,origin,instance_id:context.instance_id,repository_path:context.repository_path,repository_identity:context.repository_identity,binding_sha256:context.binding_sha256,base_commit:context.base_commit,token,phase:'prepared',request:{project_id:scope.project_id,user_id:scope.user_id,tenant_id:scope.tenant_id,worker_id:'desktop-'+crypto.randomBytes(16).toString('hex'),adapter_id:scope.adapter_id,instance_id:context.instance_id,expected_binding_sha256:context.binding_sha256,base_commit:context.base_commit,credential_sha256:crypto.createHash('sha256').update(token).digest('hex'),idempotency_key:'desktop-runner-'+crypto.randomBytes(16).toString('hex')}};
-  if(configuration){if(scope.adapter_id==='opencode-sdk')value.opencode_configuration={...configuration};else if(scope.adapter_id==='codex-app-server'){value.codex_configuration={...configuration};value.codex_selection={...selection};}else{value.acp_configuration={...configuration};value.acp_selection={...selection};}}
+  if(configuration){if(scope.adapter_id==='claude-code-sdk')value.claude_sdk_configuration={...configuration};else if(scope.adapter_id==='opencode-sdk')value.opencode_configuration={...configuration};else if(scope.adapter_id==='codex-app-server'){value.codex_configuration={...configuration};value.codex_selection={...selection};}else{value.acp_configuration={...configuration};value.acp_selection={...selection};}}
   const record={value,child:null,closed:true,stopping:null,guardBusy:false};save(record);records.set(scopeKey(scope),record);return record;
  }
  async function manage(event,request){
@@ -170,7 +178,8 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   const isACP=!!acpAdapter(request?.adapter_id),configurable=isACP&&request?.action==='connect';
   const nativeCodex=request?.adapter_id==='codex-app-server',codexConfigurable=nativeCodex&&request?.action==='connect';
   const openCode=request?.adapter_id==='opencode-sdk';
-  if(!caller(event)||!fields(request,['action','project_id','user_id','tenant_id','adapter_id','locale'],configurable?['acp_selection','expected_configuration_sha256']:codexConfigurable?['codex_selection','expected_configuration_sha256']:openCode&&request?.action==='connect'?['opencode_setup']:[])||!['connect','status','stop','renew','recover','recovery-status'].includes(request.action)||!['zh-CN','en-US'].includes(request.locale)||!validScope(requestScope(request))||Object.hasOwn(request,'expected_configuration_sha256')&&!HASH.test(request.expected_configuration_sha256)||Object.hasOwn(request,'acp_selection')&&(!fields(request.acp_selection,['installation_id','probe_id','model_id'])||!ID.test(request.acp_selection.installation_id)||!ID.test(request.acp_selection.probe_id)||typeof request.acp_selection.model_id!=='string'||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'codex_selection')&&(!fields(request.codex_selection,['installation_id','probe_id'])||!ID.test(request.codex_selection.installation_id)||!ID.test(request.codex_selection.probe_id)||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'opencode_setup')&&!opencodeValidation.validSetup(request.opencode_setup))return failure('managed_runner_request_rejected');
+  const claudeSDK=request?.adapter_id==='claude-code-sdk';
+  if(!caller(event)||!fields(request,['action','project_id','user_id','tenant_id','adapter_id','locale'],configurable?['acp_selection','expected_configuration_sha256']:codexConfigurable?['codex_selection','expected_configuration_sha256']:openCode&&request?.action==='connect'?['opencode_setup']:claudeSDK&&request?.action==='connect'?['claude_sdk_setup']:[])||!['connect','status','stop','renew','recover','recovery-status'].includes(request.action)||!['zh-CN','en-US'].includes(request.locale)||!validScope(requestScope(request))||Object.hasOwn(request,'expected_configuration_sha256')&&!HASH.test(request.expected_configuration_sha256)||Object.hasOwn(request,'acp_selection')&&(!fields(request.acp_selection,['installation_id','probe_id','model_id'])||!ID.test(request.acp_selection.installation_id)||!ID.test(request.acp_selection.probe_id)||typeof request.acp_selection.model_id!=='string'||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'codex_selection')&&(!fields(request.codex_selection,['installation_id','probe_id'])||!ID.test(request.codex_selection.installation_id)||!ID.test(request.codex_selection.probe_id)||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'opencode_setup')&&!opencodeValidation.validSetup(request.opencode_setup)||Object.hasOwn(request,'claude_sdk_setup')&&!claudeSDKValidation.validSetup(request.claude_sdk_setup))return failure('managed_runner_request_rejected');
   if(busy||(acp.isBusy()||codex.isBusy())&&['connect','renew','recover'].includes(request.action))return failure('managed_runner_busy');busy=true;let resolveManage;activeManage=new Promise(resolve=>resolveManage=resolve);const scope=requestScope(request);let record,configuration;
   try{
    await session(scope);if(!caller(event))throw Error('authority');
@@ -225,12 +234,28 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
     if(openChanged&&(!record.closed||record.value.phase!=='stopped'))return connection(scope,'binding_changed',record);
     configuration=original;
    }
+   let sdkChanged=false;
+   if(claudeSDK){
+    const original=record?.value.claude_sdk_configuration,setup=request.claude_sdk_setup||(original&&claudeSDKValidation.setupFromConfiguration(original));if(!setup)return failure('managed_runner_request_rejected');
+    sdkChanged=!!original&&['executable_sha256','model','credential_env_ref'].some(k=>setup[k]!==claudeSDKValidation.setupFromConfiguration(original)[k]);
+    if(sdkChanged&&(!record.closed||record.value.phase!=='stopped'))return connection(scope,'binding_changed',record);
+    configuration=original;
+   }
    if(record?.value.phase==='stop_unconfirmed')return connection(scope,'stop_unconfirmed',record);
    if(record?.child&&!record.closed){await observe(record);return connection(scope,record.value.phase,record);}
    const observed=isACP||nativeCodex?undefined:await discover(event,{...scope,locale:request.locale});
    await session(scope);if(!caller(event))throw Error('authority');
    const item=observed?.status==='observed'&&observed.report?.protocol==='suma-installed-tools-v1'&&observed.report.items?.length===1?observed.report.items[0]:undefined;
-   if(openCode){
+   if(claudeSDK){
+    const setup=request.claude_sdk_setup||(configuration&&claudeSDKValidation.setupFromConfiguration(configuration));
+    if(!item||item.adapter_id!==scope.adapter_id)return connection(scope,'unavailable',record);if(!item.installed)return connection(scope,'not_installed',record);
+    if(item.launch_supported!==false||item.reason_code!=='configuration_required'||item.version!=='2.1.314'||!HASH.test(item.executable_sha256)||!path.isAbsolute(item.executable||''))return connection(scope,'unavailable',record);
+    if(item.executable_sha256!==setup.executable_sha256)return connection(scope,'binding_changed',record);
+    let assets;try{const target=binaryTarget(item.executable);if(target.platform!==process.platform||target.arch!==process.arch||fileHash(item.executable)!==item.executable_sha256)throw Error('native changed');assets=await claudeSDKAssets({binary,environment});const ref=setup.credential_env_ref;if(typeof environment[ref]!=='string'||!environment[ref]||Buffer.byteLength(environment[ref])>16384||/[\x00\r\n]/.test(environment[ref]))throw Error('credential');}catch{return connection(scope,'unavailable',record);}
+    const next={native_cli_executable:item.executable,native_cli_sha256:item.executable_sha256,reviewed_cli_version:item.version,...assets,model:setup.model,credential_env_ref:setup.credential_env_ref};next.configuration_sha256=claudeSDKValidation.configurationDigest(next);
+    if(!claudeSDKValidation.validConfiguration(next))return connection(scope,'unavailable',record);
+    if(configuration&&Object.keys(next).some(k=>next[k]!==configuration[k])){if(!record.closed||record.value.phase!=='stopped'||!request.claude_sdk_setup)return connection(scope,'binding_changed',record);sdkChanged=true;}configuration=next;
+   }else if(openCode){
     const setup=request.opencode_setup||(configuration&&opencodeValidation.setupFromConfiguration(configuration));
     if(!item||item.adapter_id!==scope.adapter_id)return connection(scope,'unavailable',record);if(!item.installed)return connection(scope,'not_installed',record);
     if(item.launch_supported!==false||item.reason_code!=='configuration_required'||item.version!=='1.19.4'||!HASH.test(item.executable_sha256)||!path.isAbsolute(item.executable||''))return connection(scope,'unavailable',record);
@@ -244,6 +269,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    if(record&&isACP&&request.acp_selection&&!['installation_id','probe_id','model_id'].every(k=>record.value.acp_selection[k]===request.acp_selection[k])){record.value.acp_configuration={...configuration};record.value.acp_selection={...request.acp_selection};save(record);}
    if(record&&nativeCodex&&request.codex_selection&&!['installation_id','probe_id'].every(k=>record.value.codex_selection[k]===request.codex_selection[k])){record.value.codex_configuration={...configuration};record.value.codex_selection={...request.codex_selection};save(record);}
    if(record&&openChanged){record.value.opencode_configuration={...configuration};save(record);}
+   if(record&&sdkChanged){record.value.claude_sdk_configuration={...configuration};save(record);}
    record??=newRecord(scope,current,configuration,nativeCodex?request.codex_selection:request.acp_selection);
    if(record.value.worker&&!await checkWorker(record)){phase(record,'authorization_required');return connection(scope,'authorization_required',record);}
    try{await register(record);}catch(error){if([401,403].includes(error.status)){phase(record,'authorization_required');return connection(scope,'authorization_required',record);}return connection(scope,'issuance_unknown',record);}

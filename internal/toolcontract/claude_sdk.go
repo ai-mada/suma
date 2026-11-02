@@ -6,6 +6,7 @@ import (
 	cl "github.com/ai-mada/suma/internal/claudecontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/strictjson"
+	"strings"
 )
 
 const ClaudeSDKProtocol = cl.Protocol
@@ -45,8 +46,39 @@ type ClaudeSDKExecutionEvidence struct {
 	UserInputs              []cl.InputEvidence      `json:"user_inputs,omitempty"`
 }
 
+// ValidClaudeSDKModel matches the pinned SDK host's fixed model grammar. Local
+// preparation and published capabilities must reject the same identifiers.
+func ValidClaudeSDKModel(model string) bool {
+	return len(model) <= 256 && claudeModel.MatchString(model)
+}
+
+// ValidClaudeSDKCredentialEnvRef permits only a separate credential variable
+// name. OS process mechanics, locale and dynamic-loader names are unavailable
+// because the isolated probe/runtime owns their values independently.
+func ValidClaudeSDKCredentialEnvRef(ref string) bool {
+	if len(ref) < 1 || len(ref) > 128 || ref[0] < 'A' || ref[0] > 'Z' {
+		return false
+	}
+	for _, character := range ref {
+		if !(character >= 'A' && character <= 'Z' || character >= '0' && character <= '9' || character == '_') {
+			return false
+		}
+	}
+	for _, prefix := range []string{"SUMA_", "NODE_", "NPM_", "CLAUDE_", "LC_", "LD_", "DYLD_"} {
+		if strings.HasPrefix(ref, prefix) {
+			return false
+		}
+	}
+	switch ref {
+	case "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "PROGRAMDATA", "TEMP", "TMP", "TMPDIR", "ANTHROPIC_AUTH_TOKEN",
+		"LANG", "LC_ALL", "PATHEXT", "SYSTEMDRIVE", "ALLUSERSPROFILE", "PROGRAMFILES", "PROGRAMW6432", "COMMONPROGRAMFILES", "COMMONPROGRAMW6432", "HOMEDRIVE", "HOMEPATH", "PUBLIC", "OS":
+		return false
+	}
+	return true
+}
+
 func ValidateClaudeSDKExecutionCapability(c ClaudeSDKExecutionCapability) error {
-	if c.SDKVersion != cl.SDKVersion || c.CLIVersion != cl.CLIVersion || len(c.Model) > 256 || !claudeModel.MatchString(c.Model) || !ValidDigest(c.ConfigurationSHA256) || c.ModelSource != "administrator_sdk_option" || c.BudgetMode != "observe_only" || c.IdentityEvidence != "sdk_init_model_ack_only" || c.AuthStrategy != "api_key_env_ref" {
+	if c.SDKVersion != cl.SDKVersion || c.CLIVersion != cl.CLIVersion || !ValidClaudeSDKModel(c.Model) || !ValidDigest(c.ConfigurationSHA256) || c.ModelSource != "administrator_sdk_option" || c.BudgetMode != "observe_only" || c.IdentityEvidence != "sdk_init_model_ack_only" || c.AuthStrategy != "api_key_env_ref" {
 		return fmt.Errorf("invalid fixed Claude SDK configuration")
 	}
 	return nil

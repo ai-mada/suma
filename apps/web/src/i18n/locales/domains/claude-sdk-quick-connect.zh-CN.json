@@ -1,0 +1,19 @@
+{
+ "claude-sdk-quick-connect.title":"连接本机 Claude SDK",
+ "claude-sdk-quick-connect.intro":"核对本机安装，指定模型和凭据引用，再连接执行节点。",
+ "claude-sdk-quick-connect.desktop_required":"请在桌面端连接本机 Claude SDK，也可选择已有执行节点。",
+ "claude-sdk-quick-connect.detect":"重新检查安装",
+ "claude-sdk-quick-connect.detecting":"正在检查安装…",
+ "claude-sdk-quick-connect.guide":"手工配置指南",
+ "claude-sdk-quick-connect.storage_failed":"本地配置草稿未能保存或读取。请检查配置后再连接；仍可核对或停止原连接。",
+ "claude-sdk-quick-connect.installed":"已检测到 Claude Code 安装",
+ "claude-sdk-quick-connect.not_installed":"尚未核实本机安装",
+ "claude-sdk-quick-connect.version_unsupported":"当前安装版本不受支持。请准备 Claude Code 2.1.314 后重新检查。",
+ "claude-sdk-quick-connect.configuration":"连接配置",
+ "claude-sdk-quick-connect.model":"固定模型 ID",
+ "claude-sdk-quick-connect.model_hint":"填写可用的 Claude 模型 ID；连接不会自动切换模型或请求模型。",
+ "claude-sdk-quick-connect.credential_ref":"凭据环境变量名称",
+ "claude-sdk-quick-connect.credential_hint":"仅填写已有本机环境变量的名称，不要填写密钥值。",
+ "claude-sdk-quick-connect.draft_not_adopted":"尚未确认此草稿已应用。请先核对原连接；如需按当前配置连接，请明确停止原节点后再连接。",
+ "claude-sdk-quick-connect.boundary":"安装、节点连接、配置登记与启用分别确认。模型认证、实际模型、用量与费用以执行记录为准。"
+}

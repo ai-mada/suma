@@ -9,6 +9,7 @@ import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope,type Deskt
 import {desktopACPRuntimeForAdapter,validDesktopACPSelection,type DesktopACPSelection} from './desktop-acp-connector-model';
 import {validDesktopCodexSelection,type DesktopCodexSelection} from './desktop-codex-connector-model';
 import {validDesktopOpenCodeSetup,type DesktopOpenCodeSetup} from './desktop-opencode-connector-model';
+import {validDesktopClaudeSDKSetup,matchesDesktopClaudeSDKSetup,type DesktopClaudeSDKSetup} from './desktop-claude-sdk-connector-model';
 import {openCodeEndpointOrigin} from './opencode-execution-model';
 import {ToolConnectionDiagnostic} from './ToolConnectionDiagnostic';
 import {DesktopCredentialStatus} from './DesktopCredentialStatus';
@@ -17,18 +18,18 @@ import {tr,useLocale} from './i18n';
 import './DesktopToolConnector.css';
 
 const t=(key:string)=>tr('desktop-tool-connector.'+key);
-export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;onConnection?:(connection:DesktopToolConnection)=>void;onBlockedChange?:(blocked:boolean)=>void;onConfigure?:()=>void;onGuide?:()=>void;secondary?:boolean;disabled?:boolean;acpSelection?:DesktopACPSelection;codexSelection?:DesktopCodexSelection;opencodeSetup?:DesktopOpenCodeSetup;expectedConfigurationSHA?:string};
+export type DesktopToolConnectorProps={project:string;adapterID:string;onConnected:(workerID:string)=>void;onConnection?:(connection:DesktopToolConnection)=>void;onBlockedChange?:(blocked:boolean)=>void;onConfigure?:()=>void;onGuide?:()=>void;secondary?:boolean;disabled?:boolean;acpSelection?:DesktopACPSelection;codexSelection?:DesktopCodexSelection;opencodeSetup?:DesktopOpenCodeSetup;claudeSDKSetup?:DesktopClaudeSDKSetup;expectedConfigurationSHA?:string};
 export function DesktopToolConnector(props:DesktopToolConnectorProps){
  const api=useApi(),view=useApiView(),bridge=desktopToolBridge();
  const scope={project:props.project,userID:view?.userID??'',organizationID:view?.organizationID??'',adapterID:props.adapterID};
  if(!bridge||!validDesktopToolScope(scope))return null;
  return <ConnectorScope {...props} key={JSON.stringify(scope)} scope={scope} api={api} bridge={bridge}/>;
 }
-type Snapshot={api:ApiCaller;bridge:DesktopToolBridge;connection?:DesktopToolConnection;uncertain?:DesktopToolAction;failed?:boolean;refusal?:DesktopToolPhase;code?:string};
+type Snapshot={api:ApiCaller;bridge:DesktopToolBridge;connection?:DesktopToolConnection;readSequence?:number;observer?:DesktopToolConnectorProps['onConnection'];uncertain?:DesktopToolAction;failed?:boolean;refusal?:DesktopToolPhase;code?:string};
 const refusals=new Set(['authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','needs_workspace','not_installed','unavailable']);
-function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected,onConnection,onBlockedChange,onConfigure,onGuide,acpSelection,codexSelection,opencodeSetup,expectedConfigurationSHA}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
+function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConnected,onConnection,onBlockedChange,onConfigure,onGuide,acpSelection,codexSelection,opencodeSetup,claudeSDKSetup,expectedConfigurationSHA}:DesktopToolConnectorProps&{scope:DesktopToolScope;api:ApiCaller;bridge:DesktopToolBridge}){
  const locale=useLocale(),[snapshot,setSnapshot]=useState<Snapshot>(),[busy,setBusy]=useState<DesktopToolAction>(),[workspaceBlocked,setWorkspaceBlocked]=useState(false);
- const intent=useRef({api,bridge,epoch:0}),mounted=useRef(true),inflight=useRef(false),reported=useRef(''),reportedConnection=useRef(''),workspaceRoot=useRef<HTMLDivElement>(null);
+ const intent=useRef({api,bridge,epoch:0}),mounted=useRef(true),inflight=useRef(false),reported=useRef(''),reportedConnection=useRef(''),readSequence=useRef(0),workspaceRoot=useRef<HTMLDivElement>(null);
  if(intent.current.api!==api||intent.current.bridge!==bridge)intent.current={api,bridge,epoch:intent.current.epoch+1};
  const current=snapshot?.api===api&&snapshot.bridge===bridge?snapshot:undefined,connection=current?.connection;
  const renewalPending=current?.uncertain==='renew'||connection?.phase==='renewal_unknown';
@@ -36,8 +37,8 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  // Receipt recovery is independent from the original credential lifecycle.
  // Losing a read/apply response must not turn authorization_required into a new issuance.
  const phase=current?.refusal??(renewalPending?'renewal_unknown':current?.uncertain&&!recoveryRequestPending?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
- const acp=!!desktopACPRuntimeForAdapter(scope.adapterID),codex=scope.adapterID==='codex-app-server',opencode=scope.adapterID==='opencode-sdk',native=acp||codex||opencode,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
- const selectionValid=(acp?validDesktopACPSelection(acpSelection):codex?validDesktopCodexSelection(codexSelection):opencode?validDesktopOpenCodeSetup(opencodeSetup):false)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
+ const acp=!!desktopACPRuntimeForAdapter(scope.adapterID),codex=scope.adapterID==='codex-app-server',opencode=scope.adapterID==='opencode-sdk',claudeSDK=scope.adapterID==='claude-code-sdk',native=acp||codex||opencode||claudeSDK,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
+ const selectionValid=claudeSDK?validDesktopClaudeSDKSetup(claudeSDKSetup):(acp?validDesktopACPSelection(acpSelection):codex?validDesktopCodexSelection(codexSelection):opencode?validDesktopOpenCodeSetup(opencodeSetup):false)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
  const localBlocked=!!busy||workspaceBlocked||!!current?.uncertain||recoveryUnsettled||!!phase&&['prepared','issuance_unknown','renewal_unknown','starting','stopping','stop_unconfirmed'].includes(phase);
  useEffect(()=>{onBlockedChange?.(localBlocked);},[localBlocked,onBlockedChange]);
  useEffect(()=>()=>onBlockedChange?.(false),[onBlockedChange]);
@@ -61,12 +62,15 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   const epoch=intent.current.epoch;inflight.current=true;setBusy(action);
   try{
    const base={project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,adapter_id:scope.adapterID,locale};
-   const request:DesktopToolRequest=action!=='connect'?{...base,action}:!originalRecovery&&selectionValid&&opencode?{...base,action,opencode_setup:{...opencodeSetup!}}:!originalRecovery&&selectionValid&&codex?{...base,action,codex_selection:{...codexSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{...base,action,...(acp&&!originalRecovery&&selectionValid?{acp_selection:{...acpSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{})};
+   const request:DesktopToolRequest=action!=='connect'?{...base,action}:!originalRecovery&&selectionValid&&claudeSDK?{...base,action,claude_sdk_setup:{...claudeSDKSetup!}}:!originalRecovery&&selectionValid&&opencode?{...base,action,opencode_setup:{...opencodeSetup!}}:!originalRecovery&&selectionValid&&codex?{...base,action,codex_selection:{...codexSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{...base,action,...(acp&&!originalRecovery&&selectionValid?{acp_selection:{...acpSelection!},expected_configuration_sha256:expectedConfigurationSHA}:{})};
+   // SDK delivery belongs to this request's observer. A same-scope draft ABA
+   // while IPC is pending must not retarget old evidence to a new callback.
+   const observer=claudeSDK?onConnection:undefined;
    const raw=await bridge.manageLocalTool(request);
    if(!live(epoch))return;const result=readDesktopToolResult(raw,scope);
    if(!result)throw Error('unconfirmed native response');
    if(result.status==='failed')setSnapshot(previous=>unconfirmed(previous,action,result.code));
-   else setSnapshot(previous=>({api,bridge,connection:result.connection,...((action==='status'||action==='recovery-status')&&previous?.api===api&&previous.bridge===bridge&&previous.uncertain==='recover'&&!result.connection.recovery?{uncertain:'recover' as const}:{})}));
+   else {const sequence=++readSequence.current;setSnapshot(previous=>({api,bridge,connection:result.connection,...(claudeSDK?{readSequence:sequence,observer}:{}),...((action==='status'||action==='recovery-status')&&previous?.api===api&&previous.bridge===bridge&&previous.uncertain==='recover'&&!result.connection.recovery?{uncertain:'recover' as const}:{})}));}
   }catch{if(live(epoch))setSnapshot(previous=>unconfirmed(previous,action));}
   finally{if(live(epoch)){inflight.current=false;setBusy(undefined);}}
  }
@@ -75,9 +79,12 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   return()=>{mounted.current=false;intent.current.epoch++;};
  },[api,bridge]);
  useEffect(()=>{
-  if(!onConnection||!current||current.uncertain||current.refusal||!connection)return;
-  const identity=JSON.stringify(connection);if(reportedConnection.current===identity)return;
-  reportedConnection.current=identity;onConnection(connection);
+  const observer=claudeSDK?current?.observer:onConnection;
+  if(!observer||!current||current.uncertain||current.refusal||!connection)return;
+  // A new trusted SDK status read may attest the same persisted configuration
+  // after a draft was edited back. A rerender alone must never replay that fact.
+  const identity=JSON.stringify([connection,claudeSDK?current.readSequence:undefined]);if(reportedConnection.current===identity)return;
+  reportedConnection.current=identity;observer(connection);
  },[current,connection,onConnection]);
  useEffect(()=>{
   if(!current)return;
@@ -92,9 +99,12 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   if(acp&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.tool_version||!connection.executable_sha256||acpSelection&&connection.model!==acpSelection.model_id)){reported.current='';return;}
   if(codex&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.tool_version||!connection.executable_sha256||!connection.catalog_sha256)){reported.current='';return;}
   if(opencode&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.provider_id||!connection.endpoint_origin||!connection.tool_version||!connection.executable_sha256||opencodeSetup&&(!validDesktopOpenCodeSetup(opencodeSetup)||connection.model!==opencodeSetup.model||connection.provider_id!==opencodeSetup.provider_id||connection.executable_sha256!==opencodeSetup.executable_sha256||connection.endpoint_origin!==openCodeEndpointOrigin(opencodeSetup.base_url)))){reported.current='';return;}
+  if(claudeSDK){
+   if(!claudeSDKSetup||!matchesDesktopClaudeSDKSetup(claudeSDKSetup,connection)){reported.current='';return;}
+  }
   const identity=JSON.stringify(native?[connection.worker_id,connection.configuration_sha256,connection.tool_version,connection.executable_sha256,connection.catalog_sha256,connection.credential_version]:[connection.worker_id,connection.credential_version]);
   if(reported.current===identity)return;reported.current=identity;onConnected(connection.worker_id);
- },[current,connection,onConnected,acp,codex,opencode,native,expectedConfigurationSHA,acpSelection?.model_id,opencodeSetup]);
+ },[current,connection,onConnected,acp,codex,opencode,claudeSDK,native,expectedConfigurationSHA,acpSelection?.model_id,opencodeSetup,claudeSDKSetup]);
  useEffect(()=>{
   if(busy||!connection||current?.uncertain||connection.recovery&&connection.recovery.phase!=='complete')return;
   const wait=connection.phase==='starting'||connection.phase==='stopping'?2000:connection.phase==='connected'&&connection.expires_at?Math.max(1000,Date.parse(connection.expires_at)-Date.now()):undefined;

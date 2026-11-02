@@ -123,6 +123,12 @@ func resolveLocalOpenCode(ctx context.Context, paths []string) (string, string, 
 // --version runs in its own empty HOME with only OS process mechanics. Never
 // inherit provider keys, Node hooks, OpenCode config, npm state or user login.
 func passiveOpenCodeVersion(parent context.Context, exe string) (string, error) {
+	return passiveNativeToolVersion(parent, exe, []string{"OPENCODE_DISABLE_AUTOUPDATE=true", "OPENCODE_DISABLE_MODELS_FETCH=true"})
+}
+
+// The shared passive transport runs --version only, in an empty HOME and a
+// bounded process tree. Adapter-specific policy cannot add arguments or secrets.
+func passiveNativeToolVersion(parent context.Context, exe string, fixedEnvironment []string) (string, error) {
 	directory, cleanup, err := newACPProbeDirectory()
 	if err != nil {
 		return "", err
@@ -134,7 +140,7 @@ func passiveOpenCodeVersion(parent context.Context, exe string) (string, error) 
 	cmd.Dir = directory
 	base, _, err := commandEnvironment(CommandSpec{})
 	if err != nil {
-		return "", fmt.Errorf("OpenCode version environment unavailable")
+		return "", fmt.Errorf("native version environment unavailable")
 	}
 	for _, value := range base {
 		name, _, _ := strings.Cut(value, "=")
@@ -145,24 +151,12 @@ func passiveOpenCodeVersion(parent context.Context, exe string) (string, error) 
 	for _, name := range []string{"HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "TEMP", "TMP", "TMPDIR"} {
 		cmd.Env = append(cmd.Env, name+"="+directory)
 	}
-	cmd.Env = append(cmd.Env, "OPENCODE_DISABLE_AUTOUPDATE=true", "OPENCODE_DISABLE_MODELS_FETCH=true")
+	cmd.Env = append(cmd.Env, fixedEnvironment...)
 	out, diagnostic := newOutput(32<<10, nil), newOutput(32<<10, nil)
 	cmd.Stdout, cmd.Stderr = out, diagnostic
-	controller, err := startProcess(cmd)
-	if err != nil {
-		return "", fmt.Errorf("OpenCode version probe unavailable")
-	}
-	defer controller.Close()
-	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
-	var waitErr error
-	select {
-	case waitErr = <-done:
-	case <-ctx.Done():
-		_ = controller.Stop()
-		waitErr = <-done
-	}
-	stopErr := controller.Finish()
+	// Reuse the maintenance collector and bounded wait/stop protocol. A Stop
+	// failure must remain unknown even if a later parent wait happens to return.
+	waitErr, stopErr := runProbeProcess(ctx, cmd)
 	out.mu.Lock()
 	raw, truncated := out.b.String(), out.truncated
 	out.mu.Unlock()
@@ -171,7 +165,7 @@ func passiveOpenCodeVersion(parent context.Context, exe string) (string, error) 
 	diagnostic.mu.Unlock()
 	version := strings.TrimSpace(raw)
 	if waitErr != nil || stopErr != nil || ctx.Err() != nil || truncated || !localToolSafeText(version, 256) || strings.TrimSpace(out.String()) != version {
-		return "", fmt.Errorf("OpenCode version probe was not confirmed")
+		return "", fmt.Errorf("native version probe was not confirmed")
 	}
 	return version, nil
 }

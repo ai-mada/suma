@@ -1,0 +1,19 @@
+{
+ "claude-sdk-quick-connect.title":"Connect local Claude SDK",
+ "claude-sdk-quick-connect.intro":"Check the local installation, choose a fixed model and credential reference, then connect the execution node.",
+ "claude-sdk-quick-connect.desktop_required":"Connect local Claude SDK in the desktop app, or use an existing execution node.",
+ "claude-sdk-quick-connect.detect":"Check installation again",
+ "claude-sdk-quick-connect.detecting":"Checking installation…",
+ "claude-sdk-quick-connect.guide":"Manual setup guide",
+ "claude-sdk-quick-connect.storage_failed":"The local configuration draft could not be saved or read. Review it before connecting; the original connection can still be checked or stopped.",
+ "claude-sdk-quick-connect.installed":"Claude Code installation detected",
+ "claude-sdk-quick-connect.not_installed":"Local installation not yet verified",
+ "claude-sdk-quick-connect.version_unsupported":"This installation version is unsupported. Prepare Claude Code 2.1.314, then check again.",
+ "claude-sdk-quick-connect.configuration":"Connection configuration",
+ "claude-sdk-quick-connect.model":"Fixed model ID",
+ "claude-sdk-quick-connect.model_hint":"Enter an available Claude model ID. Connecting does not switch models automatically or request a model.",
+ "claude-sdk-quick-connect.credential_ref":"Credential environment variable name",
+ "claude-sdk-quick-connect.credential_hint":"Enter only the name of an existing local environment variable, never its secret value.",
+ "claude-sdk-quick-connect.draft_not_adopted":"This draft has not been confirmed as applied. Check the original connection first. To apply this configuration, explicitly stop the original node and then connect.",
+ "claude-sdk-quick-connect.boundary":"Installation, node connection, profile registration and enablement are confirmed separately. Consult execution records for model authentication, the actual model, usage and cost."
+}

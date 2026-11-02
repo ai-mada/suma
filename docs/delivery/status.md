@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CLAUDE-SDK-CONNECT-201：[Claude SDK快捷接入](../product/claude-sdk-quick-connect.md)／[架构与AI SOP](../architecture/claude-sdk-quick-connect.md)／[交互](../design/claude-sdk-quick-connect.md)／[English](../en/claude-sdk-quick-connect.md)／[限定验证](../quality/claude-sdk-quick-connect-verification.md)。原生自动发现、两个公开字段、受信资源、原节点恢复与新鲜库存接回暂停登记；38个不同定向检查、受控真实HTTP／Worker链和双语代表界面通过。真实厂商模型、完整桌面／跨平台与原31／P0–P7继续。
+
 T-TOOL-REPLACEMENT-200：[配置换新](../product/tool-profile-replacement.md)／[架构与AI SOP](../architecture/tool-profile-replacement.md)／[数据](../data/tool-profile-replacement.md)／[交互](../design/tool-profile-replacement.md)／[限定验证](../quality/tool-profile-replacement-verification.md)。一次确认完成准确旧→新原子交接、可选暂停、原回执恢复与双向历史；21不同定向、真实22HTTP及双语代表界面通过，完整31／P0–P7继续。
 
 T-TOOL-DOCTOR-199：[合同](../../contracts/tool-doctor-maintenance.md)／[PRD](../product/tool-doctor-maintenance.md)／[架构与AI SOP](../architecture/tool-doctor-maintenance.md)／[限定验证](../quality/tool-doctor-maintenance-verification.md)。准确维护建议、原检查／核对进度、跨配置定位与CLI双语表格贯通；29不同定向、真实22HTTP及代表界面限定通过，完整31／P0–P7继续。

@@ -122,6 +122,24 @@ func TestClaudeSDKConfigurationClosesAssetsAndCredentialScope(t *testing.T) {
 	})
 	t.Run("fixed_host_and_no_inherited_credentials", func(t *testing.T) {
 		spec := claudeSDKConfigFixture192(t)
+		for _, model := range []string{"claude-foo", "claude-SONNET-5", "claude-模型5", "claude-sonnet-5\u2028"} {
+			copy := spec
+			local := *spec.ClaudeSDK
+			local.Model = model
+			copy.ClaudeSDK = &local
+			if validateClaudeSDKSpec(copy) == nil {
+				t.Fatalf("model rejected by the pinned SDK host was accepted: %q", model)
+			}
+		}
+		for _, ref := range []string{"LANG", "PATHEXT", "LC_ALL", "LD_PRELOAD", "DYLD_INSERT_LIBRARIES", "SYSTEMDRIVE", "ALLUSERSPROFILE", "PROGRAMFILES", "PROGRAMW6432", "COMMONPROGRAMFILES", "COMMONPROGRAMW6432", "HOMEDRIVE", "HOMEPATH", "PUBLIC", "OS"} {
+			copy := spec
+			local := *spec.ClaudeSDK
+			local.CredentialEnvRef = ref
+			copy.ClaudeSDK = &local
+			if validateClaudeSDKSpec(copy) == nil {
+				t.Fatalf("OS/runtime environment name accepted as Claude credential reference: %q", ref)
+			}
+		}
 		for _, mutate := range []func(*CommandSpec){func(s *CommandSpec) { s.Args = append(s.Args, "--dangerously-skip-permissions") }, func(s *CommandSpec) { s.EnvFrom = []string{"ANTHROPIC_AUTH_TOKEN"} }, func(s *CommandSpec) { s.Input = "goal" }, func(s *CommandSpec) { c := *s.ClaudeSDK; c.CredentialEnvRef = "SUMA_RUNNER_TOKEN"; s.ClaudeSDK = &c }, func(s *CommandSpec) { c := *s.ClaudeSDK; c.CredentialEnvRef = "CLAUDE_API_KEY"; s.ClaudeSDK = &c }, func(s *CommandSpec) { c := *s.ClaudeSDK; c.CredentialEnvRef = "ANTHROPIC_AUTH_TOKEN"; s.ClaudeSDK = &c }, func(s *CommandSpec) { c := *s.ClaudeSDK; c.CredentialEnvRef = "_CLAUDE_KEY"; s.ClaudeSDK = &c }} {
 			copy := spec
 			mutate(&copy)

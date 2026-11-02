@@ -7,9 +7,10 @@ const {createPlan,childEnvironment,failure,within} = require('./build-plan.cjs')
 const {inventory,sourceInventory,assertPlainPath,createControlManifest,validateControlManifest,validateTarget} = require('./provenance.cjs');
 const {prepareSourceInspector} = require('./source-inspector.cjs');
 const {prepareOpenCodeRuntime} = require('./opencode-runtime.cjs');
+const {prepareClaudeSDKRuntime} = require('./claude-sdk-runtime.cjs');
 
 function assertScratch(plan) {
-  const directories = [plan.stage,plan.tmp,plan.cache,path.join(plan.cache,'go-build'),path.join(plan.cache,'go-mod'),path.join(plan.cache,'electron'),path.join(plan.cache,'electron-builder'),path.join(plan.stage,'previous'),path.dirname(plan.resources.control),plan.resources.web,plan.resources.source_inspector,plan.resources.opencode_runtime];
+  const directories = [plan.stage,plan.tmp,plan.cache,path.join(plan.cache,'go-build'),path.join(plan.cache,'go-mod'),path.join(plan.cache,'electron'),path.join(plan.cache,'electron-builder'),path.join(plan.stage,'previous'),path.dirname(plan.resources.control),plan.resources.web,plan.resources.source_inspector,plan.resources.opencode_runtime,plan.resources.claude_sdk_runtime];
   for (const directory of directories) {
     if (directory !== plan.stage && !within(plan.stage,directory)) throw failure('unsafe_path',directory,plan.language);
     assertPlainPath(directory,plan.language,true);
@@ -96,6 +97,7 @@ async function prepare(plan, context = {}) {
   const control = prebuilt || createControlManifest(plan,plan.resources.control,source);
   const sourceInspector = await prepareSourceInspector(plan,env,(command,args,options)=>checkedRun(command,args,options,plan,execute));
   const openCodeRuntime = await prepareOpenCodeRuntime(plan,env,(command,args,options)=>checkedRun(command,args,options,plan,execute));
+  const claudeSDKRuntime = await prepareClaudeSDKRuntime(plan,env,(command,args,options)=>checkedRun(command,args,options,plan,execute),openCodeRuntime);
   if (web) {
     for (const file of web.files) {
       const destination = path.join(plan.resources.web,file.path);
@@ -114,7 +116,7 @@ async function prepare(plan, context = {}) {
   const stagedWeb = inventory(plan.resources.web,{language:plan.language});
   if (web.sha256 !== stagedWeb.sha256 || source.sha256 !== sourceInventory(plan.root).sha256) throw failure('source_changed','',plan.language);
   fs.writeFileSync(`${plan.resources.control}.manifest.json`,`${JSON.stringify(control,null,2)}\n`);
-  const receipt = {schema_version:1,product_version:plan.version,target:plan.target,control,web:stagedWeb,source_inspector:sourceInspector,opencode_runtime:openCodeRuntime};
+  const receipt = {schema_version:1,product_version:plan.version,target:plan.target,control,web:stagedWeb,source_inspector:sourceInspector,opencode_runtime:openCodeRuntime,claude_sdk_runtime:claudeSDKRuntime};
   fs.writeFileSync(path.join(plan.stage,'prepared.json'),`${JSON.stringify(receipt,null,2)}\n`);
   return receipt;
 }

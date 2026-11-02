@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),{EventEmitter}=require('node:events');
 const {createInstalledToolDiscoveryController}=require('../src/installed-tools.cjs');
 const origin='http://127.0.0.1:4317',scope={project_id:'1'.repeat(32),user_id:'2'.repeat(32),tenant_id:'3'.repeat(32),locale:'en-US'},scan={...scope,action:'scan'};
-const ids=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','cursor-cli','qoder-acp','codex-app-server','opencode-sdk'],products=['Codex','CodeBuddy Code','DeepSeek Harness / dsh','Claude Code','Cursor','Qoder CLI','Codex','OpenCode'];
+const ids=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','cursor-cli','qoder-acp','codex-app-server','opencode-sdk','claude-code-sdk'],products=['Codex','CodeBuddy Code','DeepSeek Harness / dsh','Claude Code','Cursor','Qoder CLI','Codex','OpenCode','Claude Code'];
 const report=()=>({protocol:'suma-installed-tools-v1',items:ids.map((adapter_id,i)=>i===0?{adapter_id,product:products[i],installed:true,launch_supported:true,reason_code:'workspace_required',executable:process.execPath,version:'fixture176',command:{executable:'/private/tool',args:['--private']}}:{adapter_id,product:products[i],installed:false,launch_supported:false,reason_code:'not_installed'})});
 const tick=()=>new Promise(setImmediate);
 function harness(t,options={}){
@@ -12,7 +12,7 @@ function harness(t,options={}){
  const controller=createInstalledToolDiscoveryController({parent,origin,binary:process.execPath,tempDirectory:process.cwd(),spawn,environment:{PATH:process.env.PATH,SUMA_RUNNER_TOKEN:'do-not-forward',OPENAI_API_KEY:'do-not-forward'},now:()=>wall,monotonicNow:()=>mono,...options});t.after(()=>controller.dispose());
  return {controller,event:{sender:contents,senderFrame:frame},contents,calls,children,advance:n=>mono+=n,setWall:n=>wall=n,setIdentity:v=>identity=v,setProjectAllowed:v=>projectAllowed=v,async started(count=1){for(let i=0;i<100&&children.length<count;i++)await tick();assert.equal(children.length,count);},complete(value=report(),code=0){const child=children.at(-1).child;child.stdout.emit('data',Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value)));child.emit('close',code,null);}};
 }
-test('176 batch scan coalesces force and single joins into one exact eight-item observation',async t=>{
+test('176 batch scan coalesces force and single joins into one exact current directory observation',async t=>{
  const h=harness(t),first=h.controller.discover(h.event,scan);await h.started();const second=h.controller.discover(h.event,{...scan,force:true}),single=h.controller.discover(h.event,{...scope,adapter_id:'codex-jsonl'});await tick();assert.equal(h.children.length,1);assert.deepEqual(h.children[0].args,['--language=en-US','--discover-installed-tools']);assert.equal(h.children[0].options.env.OPENAI_API_KEY,undefined);h.complete();const [a,b,c]=await Promise.all([first,second,single]);assert.equal(a.status,'observed');assert.deepEqual(a.report.items.map(i=>i.adapter_id),ids);assert.equal(a.report.items[0].command,undefined);assert.match(a.scan.id,/^[a-f0-9]{32}$/);assert.equal(a.scan.expires_at,'2026-10-31T00:01:00.000Z');assert.equal(a.scan.project_id,scope.project_id);assert.equal(a.scan.cached,false);assert.equal(b.scan.id,a.scan.id);assert.equal(b.scan.cached,false);assert.deepEqual(c,{status:'observed',report:{protocol:a.report.protocol,items:[a.report.items[0]]}});
 });
 test('176 cache is monotonic, scoped and read-authorized while completed cache never replaces a single probe',async t=>{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"io"
 	"os"
 	"path/filepath"
@@ -50,6 +51,7 @@ func localToolDirectory() []localToolDirectoryEntry {
 		{id: "qoder-acp", product: "Qoder CLI"},
 		{"codex-app-server", "Codex", "codex", "@openai/codex", CommandSpec{Adapter: "codex", Protocol: cc.Protocol, Input: "codex-app-server", Args: []string{"app-server", "--listen", "stdio://"}}},
 		{id: "opencode-sdk", product: "OpenCode", binary: "opencode", packageName: "opencode-ai"},
+		{id: "claude-code-sdk", product: "Claude Code", binary: "claude", packageName: "@anthropic-ai/claude-code"},
 	}
 }
 
@@ -113,6 +115,10 @@ func discoverInstalledTools(ctx context.Context, adapterID string, paths []strin
 	for index, entry := range entries {
 		go func(index int, entry localToolDirectoryEntry) {
 			defer func() { done <- struct{}{} }()
+			if entry.id == "claude-code-sdk" {
+				result.Items[index] = discoverLocalClaudeSDK(ctx, entry, paths, probe)
+				return
+			}
 			if entry.id == "opencode-sdk" {
 				result.Items[index] = discoverLocalOpenCode(ctx, paths, probe)
 				return
@@ -157,6 +163,9 @@ func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, e
 	exe, _, err := commandExecutable(spec)
 	if err != nil {
 		return "", err
+	}
+	if spec.Adapter == "claude" && spec.Protocol == tc.ClaudeSDKProtocol {
+		return passiveClaudeSDKVersion(ctx, exe)
 	}
 	if spec.Adapter == "opencode" {
 		return passiveOpenCodeVersion(ctx, exe)

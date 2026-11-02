@@ -1,0 +1,7 @@
+.claude-sdk-local{display:grid;gap:16px;min-width:0;color:var(--text);font-size:14px;line-height:1.6}
+.claude-sdk-local header{display:grid;gap:4px}.claude-sdk-local h3{margin:0;font-size:18px;line-height:1.4}.claude-sdk-local p{margin:0;overflow-wrap:anywhere}.claude-sdk-local header p,.claude-sdk-local-muted{color:var(--muted)}
+.claude-sdk-local-actions{display:flex;flex-wrap:wrap;gap:8px}.claude-sdk-local button{min-height:44px;font:inherit;white-space:normal;overflow-wrap:anywhere}
+.claude-sdk-local-installation{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px}.claude-sdk-local-installation span{color:var(--muted)}
+.claude-sdk-local-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;min-width:0;margin:0;padding:12px 0 0;border:0;border-top:1px solid var(--border)}.claude-sdk-local-fields legend{padding:0 8px 0 0;font-size:14px;font-weight:600}.claude-sdk-local-fields label{display:grid;align-content:start;gap:6px;min-width:0}.claude-sdk-local-fields input{box-sizing:border-box;width:100%;min-width:0;min-height:44px;font:inherit}.claude-sdk-local-fields label>span{font-size:14px;overflow-wrap:anywhere}
+.claude-sdk-local-warning{padding-inline-start:12px;border-inline-start:2px solid var(--amber,var(--border));color:var(--text)}.claude-sdk-local :is(button,input):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.claude-sdk-local-fields{grid-template-columns:minmax(0,1fr)}.claude-sdk-local-actions button{flex:1 1 auto}}

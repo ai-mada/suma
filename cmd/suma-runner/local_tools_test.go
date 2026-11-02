@@ -24,7 +24,7 @@ func TestInstalledToolDiscoveryCommandOutputsOnlyBoundedLocalFacts(t *testing.T)
 		t.Fatalf("code=%d stderr=%q", code, stderr.String())
 	}
 	var report runner.InstalledToolDiscovery
-	if err := json.Unmarshal(out.Bytes(), &report); err != nil || report.Protocol != runner.InstalledToolDiscoveryProtocol || len(report.Items) != 8 {
+	if err := json.Unmarshal(out.Bytes(), &report); err != nil || report.Protocol != runner.InstalledToolDiscoveryProtocol || len(report.Items) != 9 {
 		t.Fatalf("invalid local output: %s %v", out.String(), err)
 	}
 	for _, item := range report.Items {

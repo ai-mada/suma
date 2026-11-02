@@ -30,6 +30,8 @@ const messages = {
   source_inspector_bundle: ['源码观察器及依赖许可资源缺失或摘要不匹配，请重新准备桌面资源', 'Source inspector or dependency notices are missing or their hashes differ; prepare desktop resources again'],
   opencode_runtime_node: ['OpenCode 运行时需要目标平台 Node 22+ 及其原始许可证；跨目标请提供 --node-binary 和 --node-license', 'OpenCode requires target Node 22+ and its original license; provide --node-binary and --node-license for a different target'],
   opencode_runtime_bundle: ['OpenCode SDK 资源或许可证缺失、版本不符或摘要变化，请重新准备桌面资源', 'OpenCode SDK assets or notices are missing, have a different version or changed hashes; prepare desktop resources again'],
+  claude_sdk_runtime_node: ['Claude SDK 运行时需要目标平台 Node 22+ 及原始许可证', 'Claude SDK requires target Node 22+ and its original license'],
+  claude_sdk_runtime_bundle: ['Claude SDK 宿主资源或许可证缺失、版本不符或摘要变化，请重新准备桌面资源', 'Claude SDK host assets or notices are missing, have a different version or changed hashes; prepare desktop resources again'],
 };
 function locale(value) { return value === 'en-US' || value === 'en' ? 'en-US' : 'zh-CN'; }
 function failure(code, detail = '', language = 'zh-CN') {
@@ -96,7 +98,7 @@ function createPlan(argv = [], context = {}) {
     schema_version:1, product:'suma', version, language, root, platform, arch, target, format, targets,
     host:{platform:hostPlatform,arch:hostArch}, goos:platform === 'win32' ? 'windows' : platform, goarch:arch === 'x64' ? 'amd64' : arch,
     plan_only:Boolean(options.plan), help:Boolean(options.help), output, stage,
-    resources:{control:path.join(stage,'control',platform === 'win32' ? 'suma-control.exe' : 'suma-control'),web:path.join(stage,'web'),source_inspector:path.join(stage,'source-inspector'),opencode_runtime:path.join(stage,'control','opencode-runtime')},
+    resources:{control:path.join(stage,'control',platform === 'win32' ? 'suma-control.exe' : 'suma-control'),web:path.join(stage,'web'),source_inspector:path.join(stage,'source-inspector'),opencode_runtime:path.join(stage,'control','opencode-runtime'),claude_sdk_runtime:path.join(stage,'control','claude-runtime')},
     web_source:options['web-dir'] ? path.resolve(options['web-dir']) : null,
     control_source:options['control-binary'] ? path.resolve(options['control-binary']) : null,
     control_manifest:options['control-binary'] ? path.resolve(options['control-manifest'] || `${options['control-binary']}.manifest.json`) : null,
