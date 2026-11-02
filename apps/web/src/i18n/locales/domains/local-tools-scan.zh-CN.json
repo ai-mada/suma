@@ -28,5 +28,8 @@
  "local-tools-scan.version":"已观察版本",
  "local-tools-scan.reason_code":"原检测代码",
  "local-tools-scan.installation_recorded":"已有安装记录，待重新核对",
- "local-tools-scan.view_existing":"查看已有接入"
+ "local-tools-scan.view_existing":"查看已有接入",
+ "local-tools-scan.installation_summary":"检测到安装：{{detected}} · 需要处理的检测：{{attention}}",
+ "local-tools-scan.empty_primary":"尚未检测到安装，可展开其他工具查看接入方式。",
+ "local-tools-scan.other_tools":"其他未发现工具（{{count}}）"
 }

@@ -28,5 +28,8 @@
  "local-tools-scan.version":"Observed version",
  "local-tools-scan.reason_code":"Original detection code",
  "local-tools-scan.installation_recorded":"Installation recorded; recheck needed",
- "local-tools-scan.view_existing":"View existing connections"
+ "local-tools-scan.view_existing":"View existing connections",
+ "local-tools-scan.installation_summary":"Installations detected: {{detected}} · Checks needing attention: {{attention}}",
+ "local-tools-scan.empty_primary":"No installation detected. Expand other tools for setup options.",
+ "local-tools-scan.other_tools":"Other tools not found ({{count}})"
 }

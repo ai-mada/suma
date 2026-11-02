@@ -50,3 +50,40 @@ it('offers the reviewed Cursor Node package as configuration only and selects th
  const row=host.querySelector('[data-local-tools-adapter="cursor-cli"]')!;expect(row).not.toBeNull();expect(row.textContent).toContain('Complete the connection configuration');expect(row.textContent).toContain('Cursor fixture version');
  const choose=row.querySelector<HTMLButtonElement>('[data-local-tools-select="cursor-cli"]')!;expect(choose.textContent).toBe('Configure integration');await click(choose);expect(select).toHaveBeenCalledExactlyOnceWith(current);expect(scan).toHaveBeenCalledOnce();expect(fetch).not.toHaveBeenCalled();
 });
+
+it('T202 keeps installed, exceptional and selected facts primary while folding only other missing tools with their original actions and protocols',async()=>{
+ const value=report(),sdk={...adapter,id:'claude-code-sdk',product:'Claude Agent SDK',adapter:'claude',protocol:'claude-sdk-v1'} as AdapterDescriptor,onViewExisting=vi.fn();
+ value.report.items[5]={...value.report.items[5],reason_code:'probe_failed'};
+ value.report.items[6]={...value.report.items[6],installed:true,reason_code:'configuration_required',executable:'C:/tools/codex.exe',version:'0.141.0',executable_sha256:'a'.repeat(64)} as typeof value.report.items[number];
+ value.report.items[8]={...value.report.items[8],installed:true,reason_code:'version_unsupported',executable:'C:/tools/claude.exe',version:'2.1.313',executable_sha256:'b'.repeat(64)} as typeof value.report.items[number];scan.mockResolvedValueOnce(value);
+ await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[adapter,cursor,sdk]} selectedAdapterID={cursor.id} onSelect={select} onViewExisting={onViewExisting}/></ApiViewProvider>));
+ const primary=host.querySelector('[data-local-tools-primary]')!,other=host.querySelector<HTMLDetailsElement>('[data-local-tools-other]')!;
+ expect(primary).not.toBeNull();expect(other).not.toBeNull();expect(other.open).toBe(false);
+ expect([...primary.querySelectorAll<HTMLElement>('[data-local-tools-adapter]')].map(row=>row.dataset.localToolsAdapter)).toEqual(['cursor-cli','qoder-acp','codex-app-server','claude-code-sdk']);
+ expect([...other.querySelectorAll<HTMLElement>('[data-local-tools-adapter]')].map(row=>row.dataset.localToolsAdapter)).toEqual(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','opencode-sdk']);
+ expect(host.querySelector('[data-local-tools-installation-summary]')!.textContent).toBe('Installations detected: 2 · Checks needing attention: 1');
+ const sdkRow=primary.querySelector('[data-local-tools-adapter="claude-code-sdk"]')!;expect(sdkRow.textContent).toContain('Prepare Claude Code 2.1.314');expect(sdkRow.textContent).toContain('2.1.313');expect(sdkRow.textContent).toContain('claude-sdk-v1');
+ const existing=primary.querySelector<HTMLButtonElement>('[data-local-tools-existing="codex-app-server"]')!;await click(existing);expect(onViewExisting).toHaveBeenCalledExactlyOnceWith(adapter);
+ expect(primary.querySelector('[data-local-tools-adapter="qoder-acp"] button')).toBeNull();expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(9);expect(scan).toHaveBeenCalledOnce();expect(select).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
+});
+
+it('T202 uses native disclosure and keeps a newly selected missing tool visible while a scope remount resets disclosure without extra scans',async()=>{
+ async function draw(p=project,selectedAdapterID?:string){await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={p} adapters={[adapter,cursor]} selectedAdapterID={selectedAdapterID} onSelect={select}/></ApiViewProvider>));}
+ await draw();const other=host.querySelector<HTMLDetailsElement>('[data-local-tools-other]')!,summary=other?.querySelector('summary');expect(other).not.toBeNull();expect(other.open).toBe(false);expect(summary?.tagName).toBe('SUMMARY');
+ summary!.focus();expect(document.activeElement).toBe(summary);expect(summary!.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}))).toBe(true);
+ // The native summary owns activation; no custom key handler or scan is needed.
+ await act(async()=>summary!.click());expect(other.open).toBe(true);expect(scan).toHaveBeenCalledOnce();
+ const choose=other.querySelector<HTMLButtonElement>('[data-local-tools-select="cursor-cli"]')!;choose.focus();await click(choose);expect(select).toHaveBeenCalledExactlyOnceWith(cursor);await draw(project,cursor.id);
+ expect(host.querySelector('[data-local-tools-primary] [data-local-tools-adapter="cursor-cli"]')).not.toBeNull();expect(host.querySelector('[data-local-tools-other] [data-local-tools-adapter="cursor-cli"]')).toBeNull();expect(scan).toHaveBeenCalledOnce();
+ expect(document.activeElement).toBe(host.querySelector('[data-local-tools-primary] [data-local-tools-select="cursor-cli"]'));
+ rescan().focus();await draw(project,adapter.id);expect(document.activeElement).toBe(rescan());expect(select).toHaveBeenCalledOnce();
+ const next='9'.repeat(32);scan.mockResolvedValueOnce(report(next));await draw(next);expect(host.querySelector<HTMLDetailsElement>('[data-local-tools-other]')!.open).toBe(false);expect(scan).toHaveBeenCalledTimes(2);expect(fetch).not.toHaveBeenCalled();
+});
+
+it('T202 gives the empty primary list its existing node entry and localizes folded observations without implicit rechecking',async()=>{
+ const onWorker=vi.fn();async function draw(disabled=false){await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[adapter,cursor]} disabled={disabled} onSelect={select} onWorker={onWorker}/></ApiViewProvider>));}
+ await draw();expect(host.querySelector('[data-local-tools-primary]')).toBeNull();expect(host.querySelector('[data-local-tools-empty]')!.textContent).toContain('No installation detected');
+ let worker=host.querySelector<HTMLButtonElement>('[data-local-tools-worker]')!;await click(worker);expect(onWorker).toHaveBeenCalledOnce();expect(scan).toHaveBeenCalledOnce();
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.querySelector('[data-local-tools-other] > summary')!.textContent).toContain('其他未发现工具（9）');expect(host.querySelector('[data-local-tools-installation-summary]')!.textContent).toBe('检测到安装：0 · 需要处理的检测：0');expect(scan).toHaveBeenCalledOnce();
+ await click(rescan());expect(scan).toHaveBeenCalledTimes(2);expect(scan).toHaveBeenLastCalledWith({action:'scan',project_id:project,user_id:user,tenant_id:tenant,locale:'zh-CN',force:true});await draw(true);worker=host.querySelector<HTMLButtonElement>('[data-local-tools-worker]')!;expect(worker.disabled).toBe(true);await click(worker);expect(onWorker).toHaveBeenCalledOnce();expect(select).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
+});

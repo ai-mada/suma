@@ -1,0 +1,313 @@
+{
+  "full_goal": {
+    "limited": 58,
+    "pending": 34,
+    "stage_delivery_is_not_full_completion": true,
+    "status": "active",
+    "baseline": 92,
+    "phases": "P0-P7",
+    "requirements": 31
+  },
+  "scope": {
+    "fold_rule": "installed === false && reason_code === not_installed && adapter_id !== selectedAdapterID",
+    "new_http_paths": 0,
+    "change": "本机工具发现纯展示投影、主列表、默认折叠其他工具、空态及焦点交接",
+    "new_dependencies": 0,
+    "installation_counts_are_not_readiness": true,
+    "preserved": [
+      "原对象与原顺序",
+      "九项协议及CLI/SDK区分",
+      "原行检测依据与动作",
+      "当前scope/调用者/StrictMode",
+      "缓存/过期/inflight/明确force",
+      "原权限、回执及后端"
+    ],
+    "new_database_tables": 0
+  },
+  "review": {
+    "confirmed_remaining_p2": 0,
+    "confirmed_remaining_p1": 0,
+    "model_peer": {
+      "path": ".cache/tool-discovery-202/review/model-review.json",
+      "sha256": "d1e48c451182d373b5d87ea8c6b54a0489285f7234a8109cd2249f719d9741c5"
+    },
+    "boundary": "CSS独立窄诊和真实受影响布局续验补充初次peer审查；未重复重审未改来源",
+    "ui_peer": {
+      "path": ".cache/tool-discovery-202/review/ui-review.json",
+      "sha256": "a32949e57e096f90085708f0dbed41f2a8ba4f4cdf08b0b330e97b793e6c3aec"
+    },
+    "css_diagnosis": {
+      "path": ".cache/tool-discovery-202/layout-diagnosis.json",
+      "sha256": "ec294a1cc3b35613afd2c2bff8d6c212c7bb4ae3d2e97f70dcfe47c6d0b02562"
+    }
+  },
+  "status": "limited_verified",
+  "stage": "T-TOOL-DISCOVERY-202",
+  "gui": {
+    "browser_launches": 2,
+    "root_viewed_failed_cn_image": true,
+    "css_fix": {
+      "javascript_byte_identical": true,
+      "cause": "foundation根高特异性规则使用--control-height:36px",
+      "javascript_sha256": "bdd5b1ec81917f40f83f2d76be2501bf3b16e93c733738c2146e409a956f3b2f",
+      "after_inputs": {
+        "path": ".cache/tool-discovery-202/visual-inputs-css.json",
+        "sha256": "c109db8656f1c3c8749b0c446d895b50c4c12a6944215248afb22e3ba8f1188b"
+      },
+      "fix": "仅本地.local-tools-scan令牌--control-height:44px；无全局修改或important",
+      "before_assets": {
+        "path": ".cache/tool-discovery-202/before-css-fix-assets.json",
+        "sha256": "d02c886767cdbdabbcc3898f22c4b7f98ee0210c191938c99ae63b8874c07e50"
+      }
+    },
+    "root_viewed_final_images": true,
+    "not_established": [
+      "真实Quick后端",
+      "OS IPC",
+      "Electron或跨平台安装",
+      "厂商模型或派发验收"
+    ],
+    "final": {
+      "groups": [
+        "zh-CN1366light",
+        "en-US390dark"
+      ],
+      "path": ".cache/tool-discovery-202/web/visual/result.json",
+      "sha256": "9f90ef24925e55e816260053d5c543f1b322565f273a52e684794c51af9ae59f",
+      "synthetic_installation_observations_and_callbacks": true,
+      "run_id": "20261102T013540098Z"
+    },
+    "final_images": 2,
+    "affected_followup": {
+      "original_mobile_targets_already_at_least44": true,
+      "command": {
+        "path": ".cache/tool-discovery-202/gui_cn.command.json",
+        "sha256": "e04e21107f8e5da73dca879e16f1a657ba9ab5b9ff4512202d3963bc1c3db742"
+      },
+      "en": "exact_original_image_and_snapshots_reused",
+      "claim_en_reran_after_css": false,
+      "cn": "passed"
+    },
+    "independent_groups": 2,
+    "authorized_attempt": {
+      "command": {
+        "path": ".cache/tool-discovery-202/gui_authorized.command.json",
+        "sha256": "8f6878d30aa35a9d91cf014ba12dd6af04723c2e38a8860ef6e9345b16984f55"
+      },
+      "en": "passed",
+      "observed_cn_button_heights": [
+        40.390625,
+        38.390625
+      ],
+      "required_height": 44,
+      "cn": "failed"
+    },
+    "launched_native_helper_exit_codes": [
+      0,
+      0
+    ],
+    "initial_default_attempt": {
+      "command": {
+        "path": ".cache/tool-discovery-202/gui.command.json",
+        "sha256": "b7f0534069bd6ff028d99694c0c84ff9bab4571d8f76e2c9c9bc3dc0a8780983"
+      },
+      "reason": "EPERM读取已安装Playwright；不是产品或布局通过",
+      "browser_launches": 0,
+      "exit_code": 1
+    },
+    "actual_calls": {
+      "api": 0,
+      "vendor": 0,
+      "model": 0,
+      "database": 0,
+      "native_tool": 0
+    },
+    "group_executions": 3
+  },
+  "git": {
+    "owner": "主集成代理",
+    "stage_source_count_is_not_git_whitelist_count": true,
+    "exclude": [
+      ".cache/**",
+      "screenshots",
+      "logs",
+      "test databases",
+      "build outputs",
+      "dependency caches",
+      "unrelated historical audits"
+    ]
+  },
+  "product": "速码一栈式智能研发平台",
+  "date": "2026-11-02",
+  "retained_evidence": [
+    "纯组件新增3项的原始RED",
+    "默认GUI权限失败且0browser启动",
+    "授权GUI中文真实触达缺陷及失败图",
+    "首次UI CSS源hash与批准overlay",
+    "仅CSS构建和仅CN续验；EN原证据复用"
+  ],
+  "version": "1.0.0",
+  "checks": {
+    "model": {
+      "effective_green_runs": 1,
+      "new": 3,
+      "summary": {
+        "path": ".cache/tool-discovery-202/model/summary.json",
+        "sha256": "e342cdeed6477408ec7104d129ddca3aea9de9293160212e2a1128613f9f9d81"
+      },
+      "old": 0,
+      "command": {
+        "path": ".cache/tool-discovery-202/model/focused-green.command.json",
+        "sha256": "3084320831572f624b0a04a2896761ed65d3414df9804538c9a74d9f4f1fa631"
+      },
+      "artificial_red_runs": 0,
+      "distinct": 3
+    },
+    "new": 6,
+    "ui": {
+      "red": {
+        "command": ".cache/tool-discovery-202/ui/red.command.json",
+        "exit_code": 1,
+        "new_selected": 3,
+        "passed": 0,
+        "failed": 3,
+        "old_unselected": 4,
+        "meaning": "Before UI implementation, the three new component cases failed because primary/other/empty presentation did not exist.",
+        "source_boundary": "The focused-action relocation assertions were appended to the same new second top after this initial missing-presentation RED. No independent focus RED is claimed."
+      },
+      "new": 3,
+      "summary": {
+        "path": ".cache/tool-discovery-202/ui/summary.json",
+        "sha256": "a948f067e0a5abeca5d8b03e3e47550e0df36d810d09d4fcbd027a8681d0df0a"
+      },
+      "old": 4,
+      "green": {
+        "command": ".cache/tool-discovery-202/ui/green.command.json",
+        "exit_code": 0,
+        "distinct_top_level": 7,
+        "new": 3,
+        "directly_affected_old": 4,
+        "passed": 7,
+        "failed": 0,
+        "unselected": 0,
+        "tests": [
+          {
+            "title": "T193 keeps nine scan facts separate from registration and offers only explicit existing-profile or SDK configuration navigation",
+            "status": "passed",
+            "category": "directly_affected_old"
+          },
+          {
+            "title": "automatically scans once and only forces an explicit refresh, retaining locale and nine protocol facts without connecting",
+            "status": "passed",
+            "category": "directly_affected_old"
+          },
+          {
+            "title": "defers disabled auto-scan, locks selection, drops late scope results and rejects invalid reports",
+            "status": "passed",
+            "category": "directly_affected_old"
+          },
+          {
+            "title": "offers the reviewed Cursor Node package as configuration only and selects the precise ACP descriptor without connecting",
+            "status": "passed",
+            "category": "directly_affected_old"
+          },
+          {
+            "title": "T202 keeps installed, exceptional and selected facts primary while folding only other missing tools with their original actions and protocols",
+            "status": "passed",
+            "category": "new"
+          },
+          {
+            "title": "T202 uses native disclosure and keeps a newly selected missing tool visible while a scope remount resets disclosure without extra scans",
+            "status": "passed",
+            "category": "new"
+          },
+          {
+            "title": "T202 gives the empty primary list its existing node entry and localizes folded observations without implicit rechecking",
+            "status": "passed",
+            "category": "new"
+          }
+        ]
+      },
+      "focus_red_boundary": "焦点断言追加到原新第二项；未声称独立焦点RED",
+      "distinct": 7
+    },
+    "global": {
+      "typecheck_exit": 0,
+      "build_exit_codes": [
+        0,
+        0
+      ],
+      "typecheck_runs": 1,
+      "initial_isolated_builds": 1,
+      "commands": [
+        {
+          "path": ".cache/tool-discovery-202/types.command.json",
+          "sha256": "201907f0c56d7f79cb82ac1c776e9b5c7adbf31066f84bf2fc983f95d55c73af"
+        },
+        {
+          "path": ".cache/tool-discovery-202/i18n.command.json",
+          "sha256": "2bc02c44755afc7022626f1fb2d03f66a6d3cbc420a22b66af3620872b24aaaa"
+        },
+        {
+          "path": ".cache/tool-discovery-202/build.command.json",
+          "sha256": "766b6375957d05edbed295d2b15af1e0464be4e7b9c346c13e238359ffcd54b7"
+        },
+        {
+          "path": ".cache/tool-discovery-202/build_css.command.json",
+          "sha256": "1c4e30ac9ec01762c2a2a10a122fae9dc0126dc32695a9e4047ac780c412d2d9"
+        }
+      ],
+      "i18n_exit": 0,
+      "css_only_followup_builds": 1,
+      "i18n_runs": 1,
+      "catalog_pairs": 9364,
+      "javascript_unchanged": true,
+      "production_source_hardcodes": 0,
+      "javascript_sha256": "bdd5b1ec81917f40f83f2d76be2501bf3b16e93c733738c2146e409a956f3b2f"
+    },
+    "distinct": 10,
+    "remaining_failed": 0,
+    "passed": 10,
+    "directly_affected_old": 4
+  },
+  "sources": {
+    "interpretation": "原UI审查绑定5源初始CSS摘要；批准的单一CSS修复覆盖旧hash，未更改其他产品输入，未将历史摘要误判成未授权修改",
+    "ui": 5,
+    "projection": 2,
+    "gui_cache_sources_must_not_stage": true,
+    "manifests": [
+      {
+        "path": ".cache/tool-discovery-202/model/source-manifest.json",
+        "sha256": "43c6bb18141624a128328dbfab7ce295e0c9c79f5afd33a45be070d1a226822e"
+      },
+      {
+        "path": ".cache/tool-discovery-202/ui/source-manifest.json",
+        "sha256": "cbb0b7a42f9e8a2e4fbe0aec6115d2034cd35bfb1798d4d8f2ac60dc024be3c9"
+      },
+      {
+        "path": ".cache/tool-discovery-202/ui/css-overlay-source-manifest.json",
+        "sha256": "da1f8bf7b6760293d41f03756af9c4d41f57367b41fa0d2e788ab29ae149bcab"
+      }
+    ],
+    "final_unique": 7,
+    "overlay": {
+      "path": "apps/web/src/LocalToolsScanPanel.css",
+      "sha256": "cb8684d0b08c748f0c586b300aa5a553f29f6db0fa8d4f0f432ca278aea9301e",
+      "bytes": 2940
+    }
+  },
+  "delivery_limits": [
+    "本次只交付本机扫描展示与交互切片",
+    "所有安装观察与统计都不建立连接、模型健康或派发资格",
+    "真实厂商/模型、多机、跨平台安装、其他数据库、规模与生产待独立验收",
+    "完整31/P0-P7/58limited34pending92baseline保持active"
+  ],
+  "not_repeated": [
+    "Go",
+    "SDK",
+    "full suite",
+    "unaffected tests",
+    "unchanged peer review",
+    "postCSS English GUI"
+  ]
+}

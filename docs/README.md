@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-TOOL-DISCOVERY-202：[本机工具发现](product/local-tools-discovery-experience.md)／[架构与AI SOP](architecture/local-tools-discovery-experience.md)／[交互](design/local-tools-discovery-experience.md)／[English](en/local-tools-discovery-experience.md)／[限定验证](quality/local-tools-discovery-experience-verification.md)。已发现、检测异常和当前选择保持首屏，其余工具键盘展开；准确原入口、44px触达及跨组焦点贯通。10个不同定向检查和两组双语代表组件验证通过，完整31／P0–P7继续。
+
 T-CLAUDE-SDK-CONNECT-201：[Claude SDK快捷接入](product/claude-sdk-quick-connect.md)／[架构与AI SOP](architecture/claude-sdk-quick-connect.md)／[交互](design/claude-sdk-quick-connect.md)／[English](en/claude-sdk-quick-connect.md)／[限定验证](quality/claude-sdk-quick-connect-verification.md)。原生自动发现、两个公开字段、受信资源、原节点恢复与新鲜库存接回暂停登记；38个不同定向检查、受控真实HTTP／Worker链和双语代表界面通过。真实厂商模型、完整桌面／跨平台与原31／P0–P7继续。
 
 T-TOOL-REPLACEMENT-200：[配置换新](product/tool-profile-replacement.md)／[架构与AI SOP](architecture/tool-profile-replacement.md)／[数据](data/tool-profile-replacement.md)／[交互](design/tool-profile-replacement.md)／[限定验证](quality/tool-profile-replacement-verification.md)。一次确认完成准确旧→新原子交接、可选暂停、原回执恢复与双向历史；21不同定向、真实22HTTP及双语代表界面通过，完整31／P0–P7继续。

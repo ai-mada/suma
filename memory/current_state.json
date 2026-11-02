@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-CLAUDE-SDK-CONNECT-201",
-  "updated_at": "2026-11-02T01:07:18.815Z",
+  "stage": "T-TOOL-DISCOVERY-202",
+  "updated_at": "2026-11-02T01:38:02.223Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/claude-sdk-quick-connect-verification.md",
-  "current_summary": "docs/quality/claude-sdk-quick-connect-summary.json",
+  "current_evidence": "docs/quality/local-tools-discovery-experience-verification.md",
+  "current_summary": "docs/quality/local-tools-discovery-experience-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -641,7 +641,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "Paired zh-CN/en-US 9361 keys, production hardcodes0; representative Claude SDK connection and recovery UI verified; wider journeys remain independently pending.",
+    "internationalization": "Paired zh-CN/en-US9364 keys, production hardcodes0; representative compact tool discovery UI and keyboard behavior verified; wider journeys remain independently pending.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -669,24 +669,18 @@
     "claude_sdk_connection": "Passive CLI2.1.314 discovery, official SDK0.3.314 resources, private ten-field Go authority, exact model/env-name echo and complete digest; original desktop Worker lifecycle and fresh inventory to explicit paused registration. Observe-only budget, model authentication, activation and quality remain independent."
   },
   "verified": {
-    "stage": "T-CLAUDE-SDK-CONNECT-201",
-    "current_report": "docs/quality/claude-sdk-quick-connect-verification.md",
-    "current_summary": "docs/quality/claude-sdk-quick-connect-summary.json",
-    "distinct_top_level": 38,
-    "new_top_level": 18,
-    "directly_affected_existing": 20,
-    "go_top_level": 10,
-    "go_subcases": 2,
-    "desktop_host_top_level": 9,
-    "web_top_level": 19,
+    "stage": "T-TOOL-DISCOVERY-202",
+    "current_report": "docs/quality/local-tools-discovery-experience-verification.md",
+    "current_summary": "docs/quality/local-tools-discovery-experience-summary.json",
+    "distinct_top_level": 10,
+    "new_top_level": 6,
+    "directly_affected_existing": 4,
+    "go_or_sdk_checks": 0,
     "typecheck": true,
-    "catalog_keys": 9361,
+    "catalog_keys": 9364,
     "production_hardcodes": 0,
-    "actual_http_server_requests": 83,
-    "actual_driver_requests": 80,
-    "actual_workers": 1,
-    "actual_paused_profiles": 1,
     "representative_synthetic_ui_groups": 2,
+    "browser_launches": 2,
     "full_app_vendor_model_or_production": false
   },
   "production_integration_complete": false,
@@ -697,8 +691,8 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "42ea7913450501f753a436e12e6ec044b00be40e",
-    "current_stage_receipt": ".cache/claude-sdk-connect-201/post-git.json"
+    "previously_published_commit": "59fd6695144868ec3743e436a3d794ef3efc6162",
+    "current_stage_receipt": ".cache/tool-discovery-202/post-git.json"
   },
   "existing_preview": {
     "updated": false,
@@ -708,19 +702,19 @@
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "T201 scoped source, actual original receipt/Worker/paused profile lifecycle and synthetic bilingual components verified. Git delivery is recorded separately; full platform remains active.",
-    "previous_commit": "42ea7913450501f753a436e12e6ec044b00be40e"
+    "evidence": "T202 product projection/UI, necessary type/locales and representative rendering verified, including repaired desktop target-token conflict. Git delivery recorded separately.",
+    "previous_commit": "59fd6695144868ec3743e436a3d794ef3efc6162"
   },
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-CLAUDE-SDK-CONNECT-201",
+    "stage": "T-TOOL-DISCOVERY-202",
     "status": "scoped_verified",
-    "contract": "contracts/claude-sdk-quick-connect.md",
-    "previous_verified_stage": "T-TOOL-REPLACEMENT-200",
-    "previous_commit": "42ea7913450501f753a436e12e6ec044b00be40e",
-    "work": "Native CLI discovery, two public fields, trusted SDK resources, original managed lifecycle, full original proof and fresh exact inventory to explicit paused registration.",
-    "full_goal": "active original31/P0-P7/58limited/34pending/92baseline",
-    "git_delivery_receipt": ".cache/claude-sdk-connect-201/post-git.json"
+    "contract": "contracts/local-tools-discovery-experience.md",
+    "previous_verified_stage": "T-CLAUDE-SDK-CONNECT-201",
+    "previous_commit": "59fd6695144868ec3743e436a3d794ef3efc6162",
+    "work": "Compact detected/exception/current observations, accessible other-tools disclosure, explicit existing navigation and local44px target token.",
+    "git_delivery_receipt": ".cache/tool-discovery-202/post-git.json",
+    "full_goal": "active original31/P0-P7/58limited/34pending/92baseline"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2396,6 +2390,45 @@
       "Real provider accounts/model queries and actual Electron IPC/OS safeStorage were not verified by the owned transport fixtures.",
       "Physical multi-host, database matrix, cross-platform installers, full App/device/theme, scale and production remain separate.",
       "Compact scan list and unified missing-resource next actions remain next interaction work; complete original31/P0-P7 stays active."
+    ],
+    "full_platform_complete": false
+  },
+  "local_tools_discovery_experience": {
+    "stage": "T-TOOL-DISCOVERY-202",
+    "version": "1.0.0",
+    "status": "scoped_projection_component_and_bilingual_visual_verified",
+    "contract": "contracts/local-tools-discovery-experience.md",
+    "report": "docs/quality/local-tools-discovery-experience-verification.md",
+    "summary": "docs/quality/local-tools-discovery-experience-summary.json",
+    "implementation": {
+      "only_ordinary_missing_unselected_folded": true,
+      "selected_and_anomalies_primary": true,
+      "original_protocols_objects_actions_retained": true,
+      "native_disclosure": true,
+      "explicit_focus_preserved": true,
+      "local_control_height44": true,
+      "new_api_paths": 0,
+      "new_tables": 0,
+      "new_dependencies": 0
+    },
+    "verification": {
+      "stage": "T-TOOL-DISCOVERY-202",
+      "current_report": "docs/quality/local-tools-discovery-experience-verification.md",
+      "current_summary": "docs/quality/local-tools-discovery-experience-summary.json",
+      "distinct_top_level": 10,
+      "new_top_level": 6,
+      "directly_affected_existing": 4,
+      "go_or_sdk_checks": 0,
+      "typecheck": true,
+      "catalog_keys": 9364,
+      "production_hardcodes": 0,
+      "representative_synthetic_ui_groups": 2,
+      "browser_launches": 2,
+      "full_app_vendor_model_or_production": false
+    },
+    "remaining": [
+      "Uniform missing-resource preparation, actual provider/model and full desktop IPC remain separate.",
+      "Physical multi-host, database matrix, cross-platform installers, full App/device/theme, scale and production remain pending under original31/P0-P7."
     ],
     "full_platform_complete": false
   }
