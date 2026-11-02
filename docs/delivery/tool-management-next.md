@@ -34,9 +34,13 @@ Claude SDK／OpenCode SDK受信检查输出有限准备原因，当前权限／�
 
 首屏单一添加、配置列表前置、更多接入首次按需挂载并保留草稿，原云授权独立生命周期保持；准确Guide／节点／预设和弹窗焦点交接沿原合同。双语代表整页合成界面与定向检查见[交互设计](../design/tool-management-experience.md)和[限定验证](../quality/tool-management-experience-verification.md)。原三份布局增量已纳入本阶段；不冒称新厂商执行。
 
+## T207已实现：OpenCode SDK新文件快捷准备
+
+模型和公共连接优先、机器信息按需填写；固定九字段私有输入沿原静态资产核对及独占writer生成新配置，准确三字段草稿接回原Guide／库存反馈。真实生产页面命令经PowerShell／Go创建文件且第二次拒绝覆盖，详见[产品](../product/opencode-tool-preparation.md)及[限定验证](../quality/opencode-tool-preparation-verification.md)。实际版本／模型／完整正式登记启用仍按原链单独验收。
+
 ## 下一步：目标机器准备与统一自动化
 
-继续Pool免令牌配对／多项目私有配置接续、OpenCode SDK新文件原生准备、WorkBuddy可信代码交付与同提交质量；不重建已完成检测／Doctor／换新。
+继续Pool免令牌配对／多项目私有配置接续、OpenCode真实目标环境接入验收、WorkBuddy可信代码交付与同提交质量；不重建已完成检测／Doctor／换新。
 
 继续把目标机器的原准备结果与具体资源检查接回当前项目／节点的可追溯事实，降低手工复制和重复配置；优先复用原配对、工具报告、Doctor、私有凭据及操作回执。准备建议、明确授权、机器实际执行、库存和派发资格分别保存；未知效果先核对。真实工具／模型、多机执行、分布式资源及完整部署验收按原能力矩阵推进，不将本阶段公开草稿和配置生成视为全部远程自动执行。
 

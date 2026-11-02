@@ -9,6 +9,7 @@ import {CursorSetupGuide} from './CursorSetupGuide';
 import {ClaudeSDKSetupGuide} from './ClaudeSDKSetupGuide';
 import {CodexAppServerSetupGuide} from './CodexAppServerSetupGuide';
 import {validCodexAppServerSetupDraft,type CodexAppServerSetupDraft} from './codex-app-server-setup-model';
+import {validOpenCodeSetupDraft,type OpenCodeSetupDraft} from './opencode-setup-guide-model';
 import {preparationForPreset,preparationForLocalTool,type ToolPreparationPreset,type ToolPreparationSelection} from './tool-preparation-target';
 import {validCursorSetupDraft,type CursorSetupDraft} from './cursor-setup-guide-model';
 import {validClaudeSDKSetupDraft,type ClaudeSDKSetupDraft} from './claude-sdk-setup-model';
@@ -21,7 +22,7 @@ import type {ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import type {RunnerPairing} from '../../../packages/contracts/src';
 
 type Preset=ToolPreparationPreset|'junit'|'operations'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation';
-type ConfigurationDraft=CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft;
+type ConfigurationDraft=CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft|OpenCodeSetupDraft;
 // These are local administrator templates, never a registration or live
 // inventory. The existing observation/import flow remains the authority.
 const presets={
@@ -49,7 +50,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
  const currentNavigation=navigation?.scope===scope&&navigation.caller===caller&&navigation.epoch===epoch?navigation:undefined;
  const [configurationRequest,setConfigurationRequest]=useState<{scope:string;caller:typeof caller;epoch:number;value:ConfigurationDraft&{nonce:number;selectionNonce:number}}>();
  function useRunnerConfiguration(draft:ConfigurationDraft){
-  if(disabled||owner.current.epoch!==epoch||!currentNavigation||currentNavigation.value.nonce!==navigationNonce.current||currentNavigation.value.localTool!==draft.localTool||!validCursorSetupDraft(draft)&&!validClaudeSDKSetupDraft(draft)&&!validCodexAppServerSetupDraft(draft))return;
+  if(disabled||owner.current.epoch!==epoch||!currentNavigation||currentNavigation.value.nonce!==navigationNonce.current||currentNavigation.value.localTool!==draft.localTool||!validCursorSetupDraft(draft)&&!validClaudeSDKSetupDraft(draft)&&!validCodexAppServerSetupDraft(draft)&&!validOpenCodeSetupDraft(draft))return;
   setConfigurationRequest(previous=>({scope,caller,epoch,value:{...draft,nonce:(previous?.value.nonce||0)+1,selectionNonce:currentNavigation.value.nonce}}));
   requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||currentNavigation.value.nonce!==navigationNonce.current)return;const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector('summary')?.focus();}});
  }
@@ -60,7 +61,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
  const entryHint=useId(),localID=useId(),guideID=id||localID;
  function configureRunner(preset:ToolPreparationPreset){
   if(disabled)return;if(selected!==preset)selectPreset(preset);else{setCopied('');setFailed(false);}
-  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch)return;document.getElementById(guideID)?.querySelector<HTMLInputElement|HTMLSelectElement>(preset==='cursor'?'[data-cursor-setup-field]':preset==='claude-sdk'?'[data-claude-sdk-setup-field]':preset==='codex-app-server'?'[data-codex-app-server-setup-field]':'.tool-cli-setup-select select')?.focus();});
+  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch)return;document.getElementById(guideID)?.querySelector<HTMLInputElement|HTMLSelectElement>(preset==='cursor'?'[data-cursor-setup-field]':preset==='claude-sdk'?'[data-claude-sdk-setup-field]':preset==='codex-app-server'?'[data-codex-app-server-setup-field]':preset==='opencode'?'[data-opencode-setup-field]':'.tool-cli-setup-select select')?.focus();});
  }
  const [model,setModel]=useState(''),[endpoint,setEndpoint]=useState('');
  const [manifest,setManifest]=useState(''),[checks,setChecks]=useState(''),[allowRepair,setAllowRepair]=useState(false);
@@ -84,7 +85,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
    <label className="tool-cli-setup-select">{t('cli-setup.tool')}<select value={selected} onChange={event=>selectPreset(event.target.value as Preset)}>
     <option value="junit">{t('test-report-setup.tool')}</option><option value="recommendation">{t('dispatch-recommendation.setup_tool')}</option><option value="operations">{t('intent-operations.setup_tool')}</option><option value="native-coder">{t('candidate-conflict-repair.local_preset')}</option><option value="diagnosis">{t('failure-diagnosis-setup.tool')}</option><option value="extractor">{t('knowledge-extraction-setup.tool')}</option><option value="planner">{t('cli-setup.planner')}</option><option value="codex">Codex</option><option value="codex-app-server">{t('codex-app-server-setup.title')}</option><option value="codebuddy">CodeBuddy Code</option><option value="claude">{t('claude-cli.title')}</option><option value="claude-sdk">{t('claude-sdk-setup.title')}</option><option value="harness">DeepSeek Harness / dsh</option><option value="qoder">{t('acp-runtime.setup_title')}</option><option value="opencode">{t('opencode-setup-guide.title')}</option><option value="cursor">{t('cursor-setup-guide.title')}</option><option value="octop">{t('octop-execution.title')}</option>
    </select></label>
-   {selected==='codex-app-server'?<CodexAppServerSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='qoder'?<QoderSetupGuide key={sourceKey}/>:selected==='opencode'?<OpenCodeSetupGuide key={sourceKey}/>:selected==='cursor'?<CursorSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='claude-sdk'?<ClaudeSDKSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='octop'?<OctopHarnessSetup/>:<>
+   {selected==='codex-app-server'?<CodexAppServerSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='qoder'?<QoderSetupGuide key={sourceKey}/>:selected==='opencode'?<OpenCodeSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='cursor'?<CursorSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='claude-sdk'?<ClaudeSDKSetupGuide key={sourceKey} disabled={disabled} onUseConfiguration={useRunnerConfiguration}/>:selected==='octop'?<OctopHarnessSetup/>:<>
    {selected!=='codex'&&selected!=='claude'&&!structured&&!nativeCoder&&!recommendation&&!junit&&<label className="tool-cli-setup-select">{t('cli-setup.launch_mode')}<select value={launchMode} onChange={event=>{setLaunchMode(event.target.value as 'native'|'node');setFailed(false);}}>
     <option value="native">{t('cli-setup.native_mode')}</option><option value="node">{t('cli-setup.node_mode')}</option>
    </select></label>}

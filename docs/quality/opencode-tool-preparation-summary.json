@@ -1,0 +1,167 @@
+{
+  "stage": "T-OPENCODE-PREPARATION-207",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_source_actual_new_file_and_bilingual_visual_verified",
+  "full_platform_complete": false,
+  "scope": "Exact nine-field private stdin -> original fixed OpenCode construction/asset closure -> exclusive new file -> original source-bound remote guide. No process/model/control/credential-value read in preparation.",
+  "verification": {
+    "distinct_top_level": 14,
+    "go": 4,
+    "shared_web": 5,
+    "ui_web": 4,
+    "updated_original_web": 1,
+    "new": 8,
+    "updated_or_affected_old": 6,
+    "full_web_types": 0,
+    "i18n_paired_keys": 9476,
+    "i18n_production_hardcodes": 0,
+    "isolated_component_builds": 1,
+    "real_cli_builds": 1,
+    "browser_attempts": 2,
+    "final_browser_groups": 2,
+    "actual_cli_invocations": 2
+  },
+  "actual": {
+    "directory": ".cache/opencode-preparation-207/actual/20261102T082250539Z/",
+    "configuration_sha256": "032a0109874a96e8f507dd2c23933348cc2e43bfb90a78c2a04cd671e0ec9dbe",
+    "first_cli_exit": 0,
+    "same_destination_cli_exit": 1,
+    "overwrite_refused": true,
+    "paths_include_space_quote_and_dollar_literal": true,
+    "checked_worker": "owned-worker-207",
+    "checked_local_tool": "opencode-sdk",
+    "checked_model": "coding207",
+    "native_or_sdk_processes": 0,
+    "vendor_calls": 0,
+    "model_calls": 0,
+    "workers": 0,
+    "business_writes": 0,
+    "requests": 8,
+    "images": [
+      {
+        "path": "cn-configuration.png",
+        "sha256": "ca7ea6ae1f957bd07837dd07ebcdfa483e54202e7c2595d640c99046df6f0f3c"
+      },
+      {
+        "path": "en-configuration.png",
+        "sha256": "f848ad40ac84217543c85002b637df6df17f8c105ccf8df6611a6a830d5db33e"
+      }
+    ],
+    "window_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "os_clipboard_exercised": false,
+    "scope": "Actual production generated command/JSON -> PowerShell -> real Go CLI with owned inert file/assets; component copy check is separate. No actual supplier package or runtime/registration acceptance."
+  },
+  "original_failures": [
+    "CLI mode absent RED before implementation, source gate GREEN.",
+    "Original RemoteRunnerSetupGuide ignored valid OpenCode draft RED, exact original guard GREEN.",
+    "First browser driver read hidden configuration innerText as empty before any CLI; driver corrected to explicitly open review, same product/bundle reused."
+  ],
+  "review": {
+    "runner": ".cache/opencode-preparation-207/shared/runner-independent-review.json",
+    "runner_non_owned_sources_matched": 5,
+    "confirmed_p1": 0,
+    "confirmed_p2": 0,
+    "root_ui_review": "Closed requests, fixed filenames, literal shell quoting, no secret value, input revision/lifecycle clipboard guard and exact current three-field handoff inspected; no extra test reruns."
+  },
+  "evidence": {
+    "go": ".cache/opencode-preparation-207/runner/",
+    "shared": ".cache/opencode-preparation-207/shared/",
+    "ui": "apps/web/.cache/opencode-preparation-207/root/",
+    "types_i18n": ".cache/opencode-preparation-207/checks/20261102T082121493Z/",
+    "go_build": ".cache/follow155/root-go/20261102T063515192Z.command.json",
+    "source": ".cache/opencode-preparation-207/source-manifest.json",
+    "post_git": ".cache/opencode-preparation-207/post-git.json"
+  },
+  "sources": [
+    {
+      "path": "internal/runner/opencode_preparation.go",
+      "sha256": "29b113f17c8c0a380be0e7cfa90e4c8605b4781d4eb5b5f53f4b530fe7e8d618"
+    },
+    {
+      "path": "internal/runner/opencode_preparation_test.go",
+      "sha256": "6d3c9932c52490948e12f7a5af7183089c4cc1c5911e88cf1790ccc2d8d23871"
+    },
+    {
+      "path": "cmd/suma-runner/main.go",
+      "sha256": "68564e46d264a2950bfd1f73b01b818240ede236a9bc6fa21af47fcf1a9dc704"
+    },
+    {
+      "path": "cmd/suma-runner/opencode_preparation.go",
+      "sha256": "6ec3435bde27ac4c7ab1d434d160021226b5213502bab70339bb6eaed20d2d09"
+    },
+    {
+      "path": "cmd/suma-runner/opencode_preparation_test.go",
+      "sha256": "3d7b71b24d1bf007091fa5dff59ec492266b84c1e8e0d385f7d53ecd2633dbb5"
+    },
+    {
+      "path": "apps/web/src/OpenCodeSetupGuide.tsx",
+      "sha256": "3e54209aef7e307d40fa6c5d0eb1b0bcaee443f53b35968c84387de9fa64e5f9"
+    },
+    {
+      "path": "apps/web/src/OpenCodeSetupGuide.css",
+      "sha256": "d3c08461df6fcbc86f365db79d078fe3e37550ab8f7ea0d3a2709127b969873f"
+    },
+    {
+      "path": "apps/web/src/OpenCodeSetupGuide.test.tsx",
+      "sha256": "8cdee107bf64e4f15edf9ddbbf593e6915bc44ef8967238a3ac5cef801a2dd0d"
+    },
+    {
+      "path": "apps/web/src/opencode-setup-guide-model.ts",
+      "sha256": "dea1767fbc19ddddb06febb94911a597df7e7d177b5d636076a56bbc2b895d39"
+    },
+    {
+      "path": "apps/web/src/opencode-setup-guide-model.test.ts",
+      "sha256": "d7d89df5c2c36c694d48b84231f8f18668965ea6901bd73097289ebfca472b10"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuide.tsx",
+      "sha256": "75070ca32382a2a48fbddb01cd9e19da8f9a34f9b7e458998a2598961dd5290f"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuide.test.tsx",
+      "sha256": "32d96f59ac17fc37d566545848b48bdc6bd832f8088fb326ae46faacba48ba54"
+    },
+    {
+      "path": "apps/web/src/RemoteRunnerSetupGuide.tsx",
+      "sha256": "83d4b91c5300d5425330cffa6e6493d88fe5b43a6bb4394923cbaf5f37867d30"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuideOpenCodePreparation.test.tsx",
+      "sha256": "dd51835d242e7a8cdacd3a352e2e95015ddccebcfc241443f73b7085f4fe8f7e"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/opencode-setup-guide.en-US.json",
+      "sha256": "205f63fc11f69b5821f0d76e96b0390f8af7de0f471a3982e7fa8625f3f6ea5c"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/opencode-setup-guide.zh-CN.json",
+      "sha256": "316c31a125cbb9caf1fcc652cfb7892a98fd931f2b9f34376c8c4378244613ed"
+    },
+    {
+      "path": "tests/integration/opencode-preparation/entry.tsx",
+      "sha256": "c1c2a254ce360c9dbae252553118355039a95d1e7c8fadce728f16b0fb6fe304"
+    },
+    {
+      "path": "tests/integration/opencode-preparation/index.html",
+      "sha256": "0375abb0570d34f2b84287bbc329f0644b4291652d8c5b589b87337ce87024dd"
+    },
+    {
+      "path": "tests/integration/opencode-preparation/build.cjs",
+      "sha256": "03c7cdc87eecb6baa135aeb6a1bdf5da7e0a13af98273997a566b468d2e91643"
+    },
+    {
+      "path": "tests/integration/opencode-preparation/driver.cjs",
+      "sha256": "d1092f5b459e8274e78453806c7c62de4ae3a645835acb05f10ec37d50f62578"
+    }
+  ],
+  "remaining": [
+    "Real native installation/account/provider/model and complete authenticated inventory/paused registration/enablement journey.",
+    "Pool tokenless pairing/multi-project local settings; WorkBuddy trusted code and same-commit independent quality.",
+    "Physical multi-host, real OceanBase/PostgreSQL, other OS/installers/scale/production.",
+    "Complete original31/P0–P7/58limited34pending92total stays active."
+  ]
+}

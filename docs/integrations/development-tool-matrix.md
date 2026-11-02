@@ -59,7 +59,7 @@ T-CLAUDE-SDK-192更新Claude行；原T158/159 CLI正式执行与新SDK原生交�
 | --- | --- | --- |
 | 协议集合 | [validation.go](../../internal/toolcontract/validation.go)、[types.go](../../internal/toolcontract/types.go) | 当前为显式 adapter/protocol 配对，尚无本文统一 manifest |
 | Codex | [合同](../../contracts/codex-app-server.md)、[Runner](../../internal/runner/codex_appserver.go)、[类型](../../internal/codexcontract/codex.go) | app-server 与 JSONL 是独立协议合同，不称产品 legacy 或历史兼容分支 |
-| OpenCode | [合同](../../contracts/opencode-sdk.md)、[runtime](../../packages/opencode-runtime/README.md)、[资产校验](../../internal/runner/opencode_manifest.go) | SDK、server、插件资产与配置摘要固定，不按网页自动升级 |
+| OpenCode | [合同](../../contracts/opencode-sdk.md)、[runtime](../../packages/opencode-runtime/README.md)、[资产校验](../../internal/runner/opencode_manifest.go)、[原生新文件准备](../../contracts/opencode-tool-preparation.md) | SDK、server、插件资产与配置摘要固定；快捷准备静态核对后创建新文件，沿原准确节点指南，不安装、连接模型或自动启用 |
 | Octop | [合同](../../contracts/octop-harness-acp.md)、[类型](../../internal/toolcontract/octop.go) | 官方 ACP 被受控 runtime 包装，沿唯一 Go DAG 与模型网关 |
 | CodeBuddy／DSH | [合同](../../contracts/team-cli-runtime.md)、[外部CLI校验](../../internal/runner/tool_external_cli.go)、[DSH解码](../../internal/runner/tool_dsh.go) | 固定命令与严格事件校验，不接受任意 resume 或未声明协议 |
 

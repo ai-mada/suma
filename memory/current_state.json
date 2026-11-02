@@ -710,16 +710,16 @@
     "evidence": "T204 original inventory feedback source,18focused,realHTTP/SQLite/two bilingual UI groups committed and pushed. Local post-git remote/dev=HEAD, tracked clean,32allowlisted files,2unrelated retained.",
     "commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183"
   },
-  "previous_goal_turn": "progress: T205 remote fixed-directory discovery via original durable Runner maintenance; committed/pushed c56d5497a6a967f8110a621d09835b66938274b0. Full31/P0-P7 remains active.",
+  "previous_goal_turn": "progress: T206 simple tool management, exact source-bound navigation and bilingual representative production-component GUI; committed/pushed c88bb4d319ddf09969ccfde2a8b74cb3de7e7420. Full31/P0-P7 remains active.",
   "current_work": {
-    "stage": "T-TOOL-MANAGEMENT-EXPERIENCE-206",
+    "stage": "T-OPENCODE-PREPARATION-207",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "design": "docs/design/tool-management-experience.md",
-    "report": "docs/quality/tool-management-experience-verification.md",
-    "summary": "docs/quality/tool-management-experience-summary.json",
-    "previous_commit": "c56d5497a6a967f8110a621d09835b66938274b0",
-    "verification": "6distinct(3new2affectedold1reused),FullWebtypes0/9471paired0hardcodes;CN1366+exactGuide+EN390 synthetic production component; real visualP2fixed/narrowonlyreplay,0businesswrites/vendor/model.",
-    "next": "Pool tokenless pairing/multi-project config, OpenCode native new-file preparation, WorkBuddy trusted code/quality and full31/P0-P7/58limited34pending92total."
+    "contract": "contracts/opencode-tool-preparation.md",
+    "report": "docs/quality/opencode-tool-preparation-verification.md",
+    "summary": "docs/quality/opencode-tool-preparation-summary.json",
+    "previous_commit": "c88bb4d319ddf09969ccfde2a8b74cb3de7e7420",
+    "verification": "14distinct(4Go10Web),FullWebtypes0/9476paired0hardcodes;actualsameWebcommandPowerShellGo0 thenexistingfile1/hashunchanged;2RootviewedCN1366/EN390 productionguidegroups;0vendor/model/Worker.",
+    "next": "Pool tokenless multi-project pairing, real OpenCode target environment acceptance, WorkBuddy trusted code/independent same-commit quality and complete31/P0-P7/58limited34pending92total."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2512,5 +2512,17 @@
     "next": "Pool tokenless pairing/multi-project config, OpenCode native new-file preparation, WorkBuddy trusted code/quality and full31/P0-P7/58limited34pending92total.",
     "full_platform_complete": false,
     "git_record": ".cache/tool-management-experience-206/post-git.json"
+  },
+  "opencode_tool_preparation": {
+    "stage": "T-OPENCODE-PREPARATION-207",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/opencode-tool-preparation.md",
+    "report": "docs/quality/opencode-tool-preparation-verification.md",
+    "summary": "docs/quality/opencode-tool-preparation-summary.json",
+    "previous_commit": "c88bb4d319ddf09969ccfde2a8b74cb3de7e7420",
+    "verification": "14distinct(4Go10Web),FullWebtypes0/9476paired0hardcodes;actualsameWebcommandPowerShellGo0 thenexistingfile1/hashunchanged;2RootviewedCN1366/EN390 productionguidegroups;0vendor/model/Worker.",
+    "next": "Pool tokenless multi-project pairing, real OpenCode target environment acceptance, WorkBuddy trusted code/independent same-commit quality and complete31/P0-P7/58limited34pending92total.",
+    "full_platform_complete": false,
+    "git_record": ".cache/opencode-preparation-207/post-git.json"
   }
 }

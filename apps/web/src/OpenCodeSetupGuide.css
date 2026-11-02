@@ -1,0 +1,21 @@
+.opencode-setup-guide{--control-height:44px;display:grid;gap:12px;min-width:0;font-size:14px;line-height:1.65}
+.opencode-setup-guide h3{margin:0;font-size:16px;font-weight:600}
+.opencode-setup-guide p,.opencode-setup-guide strong{overflow-wrap:anywhere}
+.opencode-setup-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:12px 16px;min-width:0}
+.opencode-setup-guide .opencode-setup-field{display:grid;align-content:start;gap:6px;min-width:0;margin:0;font-size:14px}
+.opencode-setup-field>span{overflow-wrap:anywhere}
+.opencode-setup-field :is(input,select){box-sizing:border-box;min-width:0;width:100%;max-width:100%;min-height:44px;align-self:start;font-size:14px}
+.opencode-setup-guide summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;font-weight:500;overflow-wrap:anywhere}
+.opencode-setup-machine{padding:8px 12px;border:1px solid var(--border);border-radius:8px;min-width:0;background:var(--surface-soft)}
+.opencode-setup-machine>summary{list-style:none}
+.opencode-setup-machine>summary::-webkit-details-marker{display:none}
+.opencode-setup-machine>summary>svg{flex:none;color:var(--muted)}
+.opencode-setup-machine[open]>summary>svg{transform:rotate(90deg)}
+.opencode-setup-machine>p,.opencode-setup-machine>.opencode-setup-fields{margin-block:10px}
+.opencode-setup-muted{color:var(--muted);font-size:13px}
+.opencode-setup-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-width:0}
+.opencode-setup-guide button{min-height:44px;font-size:14px;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.opencode-setup-guide pre{box-sizing:border-box;min-width:0;max-width:100%;margin:0;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);font-size:13px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-height:360px;overflow:auto}
+.opencode-setup-incomplete{padding:10px 12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted)}
+.opencode-setup-guide :is(button,input,select,summary,pre):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.opencode-setup-fields{grid-template-columns:minmax(0,1fr)}.opencode-setup-actions{align-items:stretch;flex-direction:column}.opencode-setup-actions>button{width:100%}.opencode-setup-guide>[data-opencode-setup-use]{width:100%}}
