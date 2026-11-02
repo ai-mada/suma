@@ -1,5 +1,5 @@
 import {wellFormed} from './i18n/catalog';
-import {preparationForLocalTool} from './tool-preparation-target';
+import {localToolPreparationCommand} from './local-tool-preparation-model';
 
 export type RemoteRunnerSetupInput={mode:'environment'|'paired'|'identity';pairingID:string;identityPath:string;shell:''|'powershell'|'bash';control:string;project:string;worker:string;commands:string;state:string;localTool:string;repository:string;baseCommit:string;allowInstalledDiscovery:boolean};
 export const remoteRunnerLocalTools=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','claude-code-sdk','cursor-cli','qoder-acp','codex-app-server','opencode-sdk'] as const;
@@ -18,7 +18,9 @@ export function remoteRunnerSetupCommands(value:unknown):{prepare?:string;report
  if(!['environment','paired','identity'].includes(input.mode)||!['powershell','bash'].includes(input.shell)||input.localTool!==''&&!remoteRunnerLocalTools.some(tool=>tool===input.localTool))return {loopback:false};
  const quote=(literal:string)=>"'"+(input.shell==='powershell'?literal.replaceAll("'","''"):literal.replaceAll("'","'\"'\"'"))+"'";
  const taskDiscoveryFlag=input.allowInstalledDiscovery?' --allow-installed-tool-discovery':'',maintenanceFlags=' --allow-installed-tool-discovery --maintenance-only';
- const commandPath=absolute(input.commands)&&/\.json$/i.test(input.commands),prepare=commandPath&&!preparationForLocalTool(input.localTool)?.special?'suma-runner --prepare-tools '+quote(input.commands)+(input.localTool?' --local-tool '+quote(input.localTool):''):undefined;
+ // Explicit generic tools share the same new-file boundary as the concise
+ // preparation card. Keep the original all-tools mode and runtime args intact.
+ const commandPath=absolute(input.commands)&&/\.json$/i.test(input.commands),prepare=input.localTool===''?(commandPath?'suma-runner --prepare-tools '+quote(input.commands):undefined):localToolPreparationCommand({shell:input.shell,commands:input.commands,localTool:input.localTool})?.prepare;
  const workspace=absolute(input.repository)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(input.baseCommit)?' --workspace '+quote(input.repository)+' --repository '+quote(input.repository)+' --base-commit '+quote(input.baseCommit)+' --allow-exec':undefined;
  let safeURL=false,loopback=false;
  if(text(input.control,2048)&&/^https?:\/\//.test(input.control)&&!/[\\?#]/.test(input.control)){

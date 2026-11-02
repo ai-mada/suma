@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "scoped_verified_git_delivery_recorded_separately",
-  "stage": "T-SHARED-TOOL-ONBOARDING-219",
-  "updated_at": "2026-11-02T20:43:40.713Z",
+  "stage": "T-LOCAL-TOOL-PREPARATION-220",
+  "updated_at": "2026-11-02T21:24:03.282Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/shared-tool-onboarding-verification.md",
-  "current_summary": "docs/quality/shared-tool-onboarding-summary.json",
+  "current_evidence": "docs/quality/local-tool-preparation-verification.md",
+  "current_summary": "docs/quality/local-tool-preparation-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -636,30 +636,23 @@
       }
     ]
   },
-  "current_implementation": "Shared discovery/preparation no longer presents ordinary Runner identity; original offline protocol preparation stays available. Exact new public8-field setup pin carries selected tool/Worker/project to current Pool owner and back to original Quick without an invented profile/replacement. Known HTTP401/403/404 or explicit200 invalid grant/runner/credential facts retire only the exact read-only preparation form; ordinary expiry/network retain inert draft. Current Pool owner may prepare an approved foreign-tenant scope offline; project read permission remains a separate link gate. Validated display-only form basis advances to newly read current identity, preventing a later TTL from reverting a v2 draft to v1.",
+  "current_implementation": "Restore original automatic commands preparation for four generic CLI tools, including shared-node Guide. Two fields: target shell and new output JSON; original raw examples progressively disclosed, special protocols preserved. Strict three-field reference adoption under current selection/caller/epoch/nonce; ordinary fields and shared output-only behavior remain separate.",
   "verified": {
-    "stage": "T-SHARED-TOOL-ONBOARDING-219",
-    "current_report": "docs/quality/shared-tool-onboarding-verification.md",
-    "current_summary": "docs/quality/shared-tool-onboarding-summary.json",
-    "distinct_top_level": 15,
-    "new": 11,
-    "direct_old": 4,
+    "stage": "T-LOCAL-TOOL-PREPARATION-220",
+    "current_report": "docs/quality/local-tool-preparation-verification.md",
+    "current_summary": "docs/quality/local-tool-preparation-summary.json",
+    "distinct_top_level": 10,
+    "new": 7,
+    "direct_old": 3,
     "groups": {
-      "root": 5,
-      "guide": 4,
-      "pool": 6
+      "model": 3,
+      "component": 3,
+      "root": 4
     },
-    "initial_full_web_tsc_exit": 2,
-    "initial_type_diagnostics": 7,
-    "initial_type_diagnostic_cause": "Required credential_expires_at omitted from two new test fixture rows; no production diagnostics.",
-    "final_affected_semantic_files": 7,
-    "final_affected_semantic_errors": 0,
-    "whole_tsc_repeated": false,
-    "locale_pairs": 9808,
+    "full_web_tsc_exit": 0,
+    "locale_pairs": 9830,
     "production_hardcodes": 0,
-    "go_runs": 0,
-    "model_calls": 0,
-    "vendor_calls": 0
+    "go_tests_repeated": 0
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -669,35 +662,35 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
-    "current_stage_receipt": ".cache/shared-tool-onboarding-219/post-git.json"
+    "previously_published_commit": "b8cce16302fb537c7101342676ececcae58ab22f",
+    "current_stage_receipt": ".cache/local-tool-preparation-220/post-git.json"
   },
   "existing_preview": {
     "updated": false,
     "user_database_modified": false,
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
-  "remaining_work": "Actual authorized target-machine scanning/configuration and tool execution, autonomous candidates/different-Worker same-SHA independent testing/manual acceptance/issue return/baseline handoff; all31/P0-P7 and58limited34pending92total, physicalhosts/databases/installers/scale.",
+  "remaining_work": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
-    "commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
-    "evidence": "50 necessary source/design files scoped verified, normal dev push and remote equality confirmed."
+    "stage": "T-SHARED-TOOL-ONBOARDING-219",
+    "commit": "b8cce16302fb537c7101342676ececcae58ab22f",
+    "evidence": "38 necessary files, scoped checks/representative evidence, normal dev push and exact remote equality verified."
   },
   "current_work": {
-    "stage": "T-SHARED-TOOL-ONBOARDING-219",
+    "stage": "T-LOCAL-TOOL-PREPARATION-220",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/shared-tool-onboarding.md",
-    "report": "docs/quality/shared-tool-onboarding-verification.md",
-    "summary": "docs/quality/shared-tool-onboarding-summary.json",
-    "previous_commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
-    "verification": "15 distinct:11new4old; Root5/Guide4/Pool6. Real RED/GREEN for shared identity, current invalidation and validv2 expiry. FullTSC initial7 new fixture errors;7 affected semantic0, no fullrepeat.9808 locale pairs0hardcodes.",
-    "actual": "3 representative application groups over syntheticHTTP/smallrouter; 2isolatedbuilds4nativeexit0/closedports. Finalwrapperexit1 kept, exactexpected403 query classifiedoffline. Rootviewed3images; CNpositiveprefixreused. Latestvalidv2 retainedbasis branch afterGUI focusedverified, no extraGUIbuild.0business/model/vendor/tool execution.",
-    "next": "Actual authorized target-machine scanning/configuration and tool execution, autonomous candidates/different-Worker same-SHA independent testing/manual acceptance/issue return/baseline handoff; all31/P0-P7 and58limited34pending92total, physicalhosts/databases/installers/scale.",
+    "contract": "contracts/local-tool-preparation.md",
+    "report": "docs/quality/local-tool-preparation-verification.md",
+    "summary": "docs/quality/local-tool-preparation-summary.json",
+    "previous_commit": "b8cce16302fb537c7101342676ececcae58ab22f",
+    "verification": "10distinct7new3old; fullWebTSC0/9830paired0hardcodes; originalUNC boundaryRED→GREEN. Othernecessarychecksonepass, noGo fulltests.",
+    "actual": "OneWebbuild+onecurrentRunnerbuild, one native/threegroups allpass. RealinstalledCodexpassiveprobe andPowerShellnewfile348bytes/refuseoverwrite0/1 exacthashunchanged; ordinaryfields/sharedref/EN390ABA.0platformAPI/business/model/login/install. ParentRootviewed2images; native/wrapper0/portclosed. OldstandardGocache11files825974898bytesrecovered, source/evidence/DB/Cuserfilespreserved.",
+    "next": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
     "full_platform_complete": false,
-    "git_record": ".cache/shared-tool-onboarding-219/post-git.json"
+    "git_record": ".cache/local-tool-preparation-220/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2665,5 +2658,19 @@
     "next": "Actual authorized target-machine scanning/configuration and tool execution, autonomous candidates/different-Worker same-SHA independent testing/manual acceptance/issue return/baseline handoff; all31/P0-P7 and58limited34pending92total, physicalhosts/databases/installers/scale.",
     "full_platform_complete": false,
     "git_record": ".cache/shared-tool-onboarding-219/post-git.json"
+  },
+  "local_tool_preparation": {
+    "stage": "T-LOCAL-TOOL-PREPARATION-220",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/local-tool-preparation.md",
+    "report": "docs/quality/local-tool-preparation-verification.md",
+    "summary": "docs/quality/local-tool-preparation-summary.json",
+    "previous_commit": "b8cce16302fb537c7101342676ececcae58ab22f",
+    "verification": "10distinct7new3old; fullWebTSC0/9830paired0hardcodes; originalUNC boundaryRED→GREEN. Othernecessarychecksonepass, noGo fulltests.",
+    "actual": "OneWebbuild+onecurrentRunnerbuild, one native/threegroups allpass. RealinstalledCodexpassiveprobe andPowerShellnewfile348bytes/refuseoverwrite0/1 exacthashunchanged; ordinaryfields/sharedref/EN390ABA.0platformAPI/business/model/login/install. ParentRootviewed2images; native/wrapper0/portclosed. OldstandardGocache11files825974898bytesrecovered, source/evidence/DB/Cuserfilespreserved.",
+    "next": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
+    "full_platform_complete": false,
+    "git_record": ".cache/local-tool-preparation-220/post-git.json"
   }
 }

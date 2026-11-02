@@ -14,13 +14,14 @@ import {ToolReportFeedback} from './ToolReportFeedback';
 import {validToolReportFeedbackSelection,type ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import './RemoteRunnerSetupGuide.css';
 import {validCommandCompositionDraft,type CommandCompositionDraft} from './command-composition-model';
+import {validLocalToolPreparationDraft,type LocalToolPreparationDraft} from './local-tool-preparation-model';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('remote-runner-setup.'+key,values);
 const toolNames:Record<(typeof remoteRunnerLocalTools)[number],string>={'codex-jsonl':'Codex CLI','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code','claude-code-sdk':'Claude SDK','cursor-cli':'Cursor Agent','qoder-acp':'Qoder CLI','codex-app-server':'Codex App Server','opencode-sdk':'OpenCode SDK'};
 
 /** The target machine and its original Runner remain the only execution
  * authority. This guide builds public drafts and never sends or runs them. */
-type ConfigurationRequest=(CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft|OpenCodeSetupDraft|CommandCompositionDraft)&{nonce:number;selectionNonce?:number};
+type ConfigurationRequest=(CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft|OpenCodeSetupDraft|CommandCompositionDraft|LocalToolPreparationDraft)&{nonce:number;selectionNonce?:number};
 type Props={project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;onPairRunner?:()=>void;disabled?:boolean;selectionRequest?:ToolPreparationSelection;configurationRequest?:ConfigurationRequest;onConfigureCursor?:()=>void;onConfigureClaudeSDK?:()=>void;onConfigureTool?:(localTool:ToolPreparationSelection['localTool'])=>void;onReportSelection?:(selection:ToolReportFeedbackSelection)=>void};
 function readConfigurationRequest(value:unknown):ConfigurationRequest|undefined{
  if(!value||typeof value!=='object'||Array.isArray(value)||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return;
@@ -32,7 +33,7 @@ function readConfigurationRequest(value:unknown):ConfigurationRequest|undefined{
  }
  if(!['shell','commands','localTool','nonce'].every(key=>Object.hasOwn(row,key))||!Reflect.ownKeys(row).every(key=>typeof key==='string'&&['shell','commands','localTool','nonce','selectionNonce'].includes(key))||!Number.isSafeInteger(row.nonce)||(row.nonce as number)<=0||Object.hasOwn(row,'selectionNonce')&&(!Number.isSafeInteger(row.selectionNonce)||(row.selectionNonce as number)<=0))return;
  const draft={shell:row.shell,commands:row.commands,localTool:row.localTool};
- return row.localTool==='cursor-cli'&&validCursorSetupDraft(draft)||row.localTool==='claude-code-sdk'&&validClaudeSDKSetupDraft(draft)||row.localTool==='codex-app-server'&&validCodexAppServerSetupDraft(draft)||row.localTool==='opencode-sdk'&&validOpenCodeSetupDraft(draft)?{...draft,nonce:row.nonce as number,...(Object.hasOwn(row,'selectionNonce')?{selectionNonce:row.selectionNonce as number}:{})}:undefined;
+ return row.localTool==='cursor-cli'&&validCursorSetupDraft(draft)||row.localTool==='claude-code-sdk'&&validClaudeSDKSetupDraft(draft)||row.localTool==='codex-app-server'&&validCodexAppServerSetupDraft(draft)||row.localTool==='opencode-sdk'&&validOpenCodeSetupDraft(draft)||validLocalToolPreparationDraft(draft)?{...draft,nonce:row.nonce as number,...(Object.hasOwn(row,'selectionNonce')?{selectionNonce:row.selectionNonce as number}:{})}:undefined;
 }
 export function RemoteRunnerSetupGuide(props:Props){
  const caller=useApi(),view=useApiView();

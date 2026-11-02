@@ -1,0 +1,238 @@
+{
+  "version": "1.0.0",
+  "stage": "T-LOCAL-TOOL-PREPARATION-220",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "date": "2026-11-03",
+  "base_commit": "b8cce16302fb537c7101342676ececcae58ab22f",
+  "contract": "contracts/local-tool-preparation.md",
+  "report": "docs/quality/local-tool-preparation-verification.md",
+  "goal": {
+    "status": "active",
+    "version": "1.0.0",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
+    "target_design": "docs/suma-architecture-design.html",
+    "stage_delivery_is_not_full_completion": true
+  },
+  "delivered": [
+    "Restore original automatic commands preparation for four generic CLI tools, including shared-node Guide.",
+    "Two fields: target shell and new output JSON; original raw examples progressively disclosed, special protocols preserved.",
+    "Strict three-field reference adoption under current selection/caller/epoch/nonce; ordinary fields and shared output-only behavior remain separate."
+  ],
+  "checks": {
+    "distinct_top_level": 10,
+    "new": 7,
+    "direct_old": 3,
+    "groups": {
+      "model": 3,
+      "component": 3,
+      "root": 4
+    },
+    "full_web_tsc_exit": 0,
+    "locale_pairs": 9830,
+    "production_hardcodes": 0,
+    "go_tests_repeated": 0
+  },
+  "actual": {
+    "groups": {
+      "cn_two_fields_original_cli_new_file_refuse_overwrite_and_ordinary_adoption": {
+        "passed": true,
+        "geometry": {
+          "width": 1366,
+          "scroll": 1349,
+          "controls": [
+            44,
+            44,
+            44,
+            44
+          ]
+        },
+        "real_installed_codex_passive_probe_succeeded": true,
+        "model_login_install_or_business_execution": false,
+        "original_ordinary_fields_adopted": true
+      },
+      "shared_adoption_is_output_reference_only_without_ordinary_identity": {
+        "passed": true,
+        "output_reference_only": true
+      },
+      "en_390_dark_tool_aba_rejects_old_clipboard_ack_then_adopts_current_draft": {
+        "passed": true,
+        "old_ack_not_adopted_after_aba": true,
+        "geometry": {
+          "width": 390,
+          "scroll": 373,
+          "controls": [
+            44,
+            44,
+            44,
+            44
+          ]
+        },
+        "new_current_draft_adopted": true
+      }
+    },
+    "builds": {
+      "web": 1,
+      "runner": 1,
+      "reason": "Existing T215 binary had SQLite v1.36.3; one current build embeds v1.61.1 with current go.mod/go.sum. No Go tests repeated."
+    },
+    "attempts": [
+      {
+        "command": {
+          "path": ".cache/local-tool-preparation-220/actual/driver-20261102T211546271Z.command.json",
+          "sha256": "74a98c2074672c9d5a9c30b228b5196f302e1b11b1600a044d44b4655a834d41"
+        },
+        "exit_code": 0,
+        "result": {
+          "path": ".cache/local-tool-preparation-220/actual/visual/20261102T211546390Z/result.json",
+          "sha256": "1da2c7fd08fa5751f5fd804ba60beecf3fcb73fe7a3433abfb4368adee14637b"
+        },
+        "native_pid": 60224,
+        "native_exit": {
+          "code": 0,
+          "signal": null
+        },
+        "forced": false,
+        "port": 50952,
+        "port_closed": true
+      }
+    ],
+    "cli": [
+      {
+        "purpose": "exact production command new file",
+        "exit_code": 0,
+        "signal": null
+      },
+      {
+        "purpose": "same exact command refuses overwrite before another probe",
+        "exit_code": 1,
+        "signal": null
+      }
+    ],
+    "new_file": {
+      "bytes": 348,
+      "sha256": "477d9b855859ef79c31a0d6b8992d6ebe23607d21c7ffb82071cd9555ee6ee9e",
+      "command_keys": [
+        "local-codex-jsonl"
+      ],
+      "adapter": "codex",
+      "protocol": "codex-jsonl-v1",
+      "unchanged_after_refusal": true
+    },
+    "binary_sha256": "8dd3768473cb6886d141a7fb989e98768effd0c967fc24f25fcf7436d94175df",
+    "embedded_sqlite": "v1.61.1",
+    "vendor_passive_probe": true,
+    "exact_vendor_process_count": "Not instrumented; original fixed version/help probes succeeded; no duplicate standalone probe.",
+    "model_calls": 0,
+    "login_or_installation": false,
+    "business_execution": false,
+    "http_gets": 12,
+    "application_api_requests": 0,
+    "business_writes": 0,
+    "page_errors": 0,
+    "console_errors": 0,
+    "fixture_csp_warning_retained": true,
+    "isolation": "Whitelisted system environment only; all HOME/USERPROFILE/APPDATA/LOCALAPPDATA/XDG/temp directories are task-owned on D. Original CODEX_HOME and API keys were not inherited; CODEX_HOME was not explicitly set.",
+    "images": [
+      {
+        "path": ".cache/local-tool-preparation-220/actual/visual/20261102T211546390Z/cn-local-tool-preparation.png",
+        "sha256": "5e4f358fb235e0eac5a21ad14fc44e5817b4e8480ad58e7e979b3483450d57bc"
+      },
+      {
+        "path": ".cache/local-tool-preparation-220/actual/visual/20261102T211546390Z/en-mobile-local-tool-preparation.png",
+        "sha256": "8627ac4e62898ca1ad29c8da4ccda6ccad3c65f37fd5817ddaf8bdb603a31595"
+      }
+    ],
+    "root_viewed_images": 2,
+    "boundaries": [
+      "Production Guide/card/Remote with a synthetic current public view; not full App or real platform backend.",
+      "One original prepared configuration file only; copying/adoption never creates a registered profile or grants tool execution. Ordinary existing fields and shared output-reference-only behavior remain distinct.",
+      "Real installed Codex passive metadata and safe filesystem preparation only. This does not prove model authentication, tool health, a coding turn, remote repair, registration, enabling or quality acceptance.",
+      "Only Codex JSONL ran a native passive probe. Other current generic IDs use focused model checks; CodeBuddy ABA is UI-only.",
+      "One native host, three groups, CN1366 light/EN390 dark and two representative images, not the full platform/device matrix.",
+      "Complete31/P0-P7 and retained58limited/34pending/92 scope remain active."
+    ]
+  },
+  "capacity": {
+    "reclaimed_bytes": 825974898,
+    "generated_cache_files_removed": 11,
+    "rule": "Pre-stage standard nonlinked Go platform package cache archives only, exact path containment and per-file hashes recorded; preserve latest archive, Runner/dependencies, sources, DB, images and receipts.",
+    "c_drive_user_files_untouched": true
+  },
+  "inputs": [
+    {
+      "path": ".cache/local-tool-preparation-220/root-source-manifest.json",
+      "sha256": "e6bff8dccf41b431122aad130274bc61da131688c7c389972cc06efeb899b608"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/model/source-manifest.json",
+      "sha256": "011eed298049072bdd36ab452a7e3af11b3f0c31693e1d430a8473f0d51f442a"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/web/source-manifest.json",
+      "sha256": "01a3368f69991b972fef404c3c14622f2dfd9e7bc9634302d8ed68aedd7a269c"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/actual/fixture-source-manifest.json",
+      "sha256": "33005a7428747901a19bd91bbd9f25263dd6151047bc1753992f606777ebe927"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/local-tool-preparation-220/checks/root-result.json",
+      "sha256": "216293c1c7a3089d3b3c5a181124b8d1e35883b45d304fd5237421b287810c31"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/checks/types.json",
+      "sha256": "3c92bcb59af35f6b3822dd560030026b835398245ef2a8a2c76d461918e58397"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/checks/i18n.json",
+      "sha256": "fff4071f83a6e39fb4c512610e52b6d80b37c4b77dd88c4c68183851f2014ced"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/model/summary.json",
+      "sha256": "db55dc8a88f59c729f019ede04cafbd3fe68d2ee551658c101961e446c795fbb"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/web/summary.json",
+      "sha256": "b9234893c840a2d75c1255a08b384555c6aa736af48b5542c6b25e43875ca99a"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/review/integration-review.json",
+      "sha256": "4b503260696db48dffe9d05c99a66d29afc4bdab767d57c75c1f885ade3db8e5"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/actual/summary.json",
+      "sha256": "de3cb1b889160bbc8294854d576ba555afa8c5ae2b7a6c6422b27187b23ae203"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/actual/runner-build.json",
+      "sha256": "366654adf9cbb61e50e2b7e960ebc6da5dffd164571387a0722bff7592008cbf"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/cache-cleanup-plan.json",
+      "sha256": "1c6b5784b48a33de6f160dd968894634247550ea2b96070d1f2524a3302ce3c6"
+    },
+    {
+      "path": ".cache/local-tool-preparation-220/cache-cleanup-receipt.json",
+      "sha256": "ff91fc8428101696a911330b2b257ee809ccea9b73af2a0eb4be8b1e76def07b"
+    }
+  ],
+  "remaining": [
+    "Real model authentication/coding tasks, remote repair, registration/enable and quality acceptance are not proven by passive native preparation.",
+    "Other native generic tools and Bash/macOS/Linux require their own real environments; they are not inferred from Codex PowerShell.",
+    "Full31/P0-P7 and58limited34pending92total remain active."
+  ],
+  "git": {
+    "branch": "dev",
+    "remote": "git@github.com:ai-mada/suma.git",
+    "receipt": ".cache/local-tool-preparation-220/post-git.json",
+    "force": false,
+    "result": "Recorded separately after actual publication."
+  }
+}
