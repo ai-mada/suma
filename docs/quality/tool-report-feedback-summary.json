@@ -1,0 +1,169 @@
+{
+  "stage": "T-TOOL-REPORT-FEEDBACK-204",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_source_actual_and_representative_ui_verified",
+  "full_platform_complete": false,
+  "scope": "Original remote report guide → current server inventory / bounded wait → explicit exact Quick review; no new product API/schema/dispatcher or automatic registration/enable.",
+  "verification": {
+    "distinct_top_level": 18,
+    "new": 10,
+    "directly_affected_old": 8,
+    "web_model": 6,
+    "web_components": 11,
+    "go_actual": 1,
+    "actual_browser_groups": 2,
+    "typecheck_invocations": 1,
+    "typecheck_exit": 0,
+    "i18n_invocations": 1,
+    "paired_keys": 9430,
+    "production_hardcodes": 0,
+    "isolated_component_builds": 1,
+    "active_preview_overwritten": false
+  },
+  "model": {
+    "initial": {
+      "path": ".cache/tool-report-feedback-204/model/summary.json",
+      "sha256": "b518a3fe4f577e916ebc06a7af1cd385a229ccddfff0ae240bf1a4bc96570bec"
+    },
+    "clock_rollback": {
+      "path": ".cache/tool-report-feedback-204/model/clock-regression-summary.json",
+      "sha256": "0b7790b192170bfc0d0e7fe4d8a32c273c38fed8302a9ec1345f4a19809c412d"
+    },
+    "finding": "P2: fresh report after stale read time but before original observation was incorrectly new; require strictly after both boundaries.",
+    "followup": "Only original nanosecond top RED1/GREEN1; other5 reused. Distinct tops unchanged."
+  },
+  "components": {
+    "path": ".cache/tool-report-feedback-204/ui/summary.json",
+    "sha256": "fd0a8183e435d3d7cf0654f50053727c402fc818dd4ce30525855750493b9e2e"
+  },
+  "review": {
+    "path": ".cache/tool-report-feedback-204/review/ui-review.json",
+    "sha256": "81d54e53eeabe5b3479ddc010eee6b376bfe2d29d4b62949ad765231f1b902b5"
+  },
+  "commands": [
+    {
+      "path": ".cache/tool-report-feedback-204/build-20261102T041732833Z.command.json",
+      "sha256": "9aae899e81512e4484d166f1433698947f83435fd75b72dc84bbf48069ad4e07"
+    },
+    {
+      "path": ".cache/tool-report-feedback-204/i18n-20261102T041652252Z.command.json",
+      "sha256": "02300f13907a6c0a7d0aba11841d9d92b0ac133a5551360d9dd06fa0796efa92"
+    },
+    {
+      "path": ".cache/tool-report-feedback-204/types-20261102T041652252Z.command.json",
+      "sha256": "154339733ba2d392931bee6128ac7d79dedde25911587e2ddb719e508d88fe43"
+    }
+  ],
+  "go_attempts": [
+    {
+      "path": ".cache/tool-report-feedback-204/go-actual-1.command.json",
+      "sha256": "2cc5af2a3f78497929ba715ef41421a8dbfa13583607027a81129a3261a18f06",
+      "exit_code": 1
+    },
+    {
+      "path": ".cache/tool-report-feedback-204/go-actual-2.command.json",
+      "sha256": "ea75a63acddc3493b05494fbbe494b2cf5d78f3f4f2c82ceeff6a2a68fe73455",
+      "exit_code": 1
+    },
+    {
+      "path": ".cache/tool-report-feedback-204/go-actual-3.command.json",
+      "sha256": "6bf82e2db8b449de657a4f3f85815e9b640ffa33b6d37712375fb3698a1c7ba4",
+      "exit_code": 0
+    }
+  ],
+  "actual": {
+    "receipt": {
+      "path": ".cache/tool-report-feedback-204/actual/20261102T042435876631200Z/receipt.json",
+      "sha256": "9c133522fe641f61fcd1a664339ac3d414369a78e48f1427cd578f78fc9a51ce"
+    },
+    "driver": {
+      "path": ".cache/tool-report-feedback-204/actual/20261102T042435876631200Z/driver-result.json",
+      "sha256": "76700845665c5bfb528ac03ed86874c6ae51fbff0cbd62e861e4b9d4890162cd"
+    },
+    "transport": {
+      "total": 25,
+      "browser_get": 18,
+      "browser_read_only_match_post": 1,
+      "browser_business_writes": 0,
+      "fixture_requests": 6
+    },
+    "old_ack_unchanged": true,
+    "new_after_baseline": true,
+    "exact_worker_revocation_403": true,
+    "business_counts_unchanged": true,
+    "vendor_processes": 0,
+    "model_calls": 0,
+    "worker_task_processes": 0,
+    "profile_registration_or_enable": 0,
+    "final_native_pid": 51660,
+    "final_native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "driver_exit": 0,
+    "go_exit": 0,
+    "images": [
+      {
+        "path": ".cache/tool-report-feedback-204/actual/20261102T042435876631200Z/20261102T042436610Z-cn-new-inventory.png",
+        "sha256": "e194aab2a46111aa572b06e51741ff3a68405ff089d37bf4d695e7acdc86df06",
+        "root_viewed": true
+      },
+      {
+        "path": ".cache/tool-report-feedback-204/actual/20261102T042435876631200Z/20261102T042436610Z-en-current-inventory.png",
+        "sha256": "c6c1a85c81a2651be962be8da2abf7e65ee9aad95709cabd99b4e03a2f29fda2",
+        "root_viewed": true
+      }
+    ]
+  },
+  "initial_failures": [
+    {
+      "directory": ".cache/tool-report-feedback-204/actual/20261102T041837905275000Z",
+      "reason": "Fixture placed cookie in default Playwright context instead of the BrowserWindow partition; no report journey reached.",
+      "driver": {
+        "path": ".cache/tool-report-feedback-204/actual/20261102T041837905275000Z/driver-result.json",
+        "sha256": "14d2bce1d1ae131d7c4be946bb217b3b94a648a440731bf53ea9a9a1f9ba832f"
+      }
+    },
+    {
+      "directory": ".cache/tool-report-feedback-204/actual/20261102T042156400646200Z",
+      "reason": "New report and exact selection occurred; fixture blocked original read-only POST matches and assumed a single-node select. Group failed; only fixture policy/locator fixed, product unchanged.",
+      "driver": {
+        "path": ".cache/tool-report-feedback-204/actual/20261102T042156400646200Z/driver-result.json",
+        "sha256": "c7859b09ad70dbb27245fde7c5ad0f17e48a34acf2bb2a6cc06e8603f823780f"
+      }
+    }
+  ],
+  "sources": {
+    "manifest": {
+      "path": ".cache/tool-report-feedback-204/source-matcher-followup.json",
+      "sha256": "0bbc4811043cd743f0f2a7a0deae3df5b1a05793b5062cbb20822f85cc783ae2"
+    },
+    "count": 31,
+    "all_current_match": true
+  },
+  "private_snapshots": [
+    {
+      "path": ".cache/tool-report-feedback-204/actual/20261102T041837905275000Z/private.sqlite",
+      "sha256": "c44f97a8a12c3248064d89303041ab21d8fafc2232c71872e9932822d49296d9"
+    },
+    {
+      "path": ".cache/tool-report-feedback-204/actual/20261102T042156400646200Z/private.sqlite",
+      "sha256": "77927d4e4d20788cd778e49eed50f03134b6f228c40f2fcd52a064cc972bb366"
+    },
+    {
+      "path": ".cache/tool-report-feedback-204/actual/20261102T042435876631200Z/private.sqlite",
+      "sha256": "03c3ea52ebdaf897c5239b93e9a488d3441aeae174091a99c3f63b1ce1e059d1"
+    }
+  ],
+  "remaining": [
+    "Strict operation/file causal correlation is not implemented by inventory timestamps.",
+    "Actual vendor CLI/model/account execution, complete authenticated App and desktop/device/theme matrix, physical multi-host, other databases, installers, scale and production.",
+    "Original31/P0–P7/58limited/34pending/92total remains active."
+  ],
+  "git": {
+    "branch": "dev",
+    "remote": "git@github.com:ai-mada/suma.git",
+    "stage_commit": "Recorded in Git and local post-git receipt; normal push only."
+  }
+}

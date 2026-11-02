@@ -7,12 +7,23 @@ import {remoteRunnerSetupCommands,type RemoteRunnerSetupInput} from './remote-ru
 import {claudeSDKSetupCommands} from './claude-sdk-setup-model';
 import {setLocale} from './i18n';
 import * as ApiContext from './api-context';
+import {ApiViewProvider} from './api-context';
 import {api} from './api';
 
 const input:RemoteRunnerSetupInput={mode:'environment',pairingID:'',identityPath:'',shell:'powershell',control:'https://suma.example.test/team',project:'project-one',worker:'worker-one',commands:"C:/tools/O'Brien $(whoami)/commands.local.json",state:'D:/project/.cache/runner',localTool:'codex-jsonl',repository:'D:/project/app',baseCommit:'c'.repeat(40)};
 let root:Root|undefined,host:HTMLDivElement|undefined,clipboard:PropertyDescriptor|undefined;
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();if(clipboard)Object.defineProperty(navigator,'clipboard',clipboard);else Reflect.deleteProperty(navigator,'clipboard');vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function change(element:HTMLInputElement|HTMLSelectElement,value:string){const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
+
+it('T204 exposes explicit report feedback only for the current project and invalidates observations on edits or a new same-path configuration adoption',async()=>{
+ await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const fetch=vi.fn();vi.stubGlobal('fetch',fetch);const onReportSelection=vi.fn(),session={user:{id:'user',name:'User',email:'user@example.test'},organization:{id:'team',name:'Team'}};
+ host=document.createElement('div');document.body.append(host);root=createRoot(host);const field=(name:string)=>host!.querySelector<HTMLInputElement|HTMLSelectElement>('[name="remote-runner-'+name+'"]')!;
+ async function draw(nonce=1){await act(async()=>root!.render(<ApiViewProvider session={session}><RemoteRunnerSetupGuide project="project-one" expectedWorkerID="worker-one" selectionRequest={{localTool:'codex-app-server',nonce:1}} configurationRequest={{shell:'bash',commands:'/srv/commands.json',localTool:'codex-app-server',nonce,selectionNonce:1}} onReportSelection={onReportSelection}/></ApiViewProvider>));}
+ await draw();for(const [name,value] of Object.entries({control:'https://control.example.test',identityPath:'/srv/identity.json',repository:'/srv/repo',baseCommit:'a'.repeat(40)}))await change(field(name),value);
+ expect(host.querySelector('[data-tool-report-feedback]')).not.toBeNull();expect(host.querySelector('[data-tool-report-status]')?.getAttribute('data-tool-report-status')).toBe('idle');expect(host.querySelector('[data-tool-report-check]')).not.toBeNull();expect(fetch).not.toHaveBeenCalled();expect(onReportSelection).not.toHaveBeenCalled();
+ const original=host.querySelector('[data-tool-report-feedback]');await change(field('identityPath'),'/srv/other.identity.json');expect(host.querySelector('[data-tool-report-feedback]')).not.toBe(original);const edited=host.querySelector('[data-tool-report-feedback]');await draw();expect(field('identityPath').value).toBe('/srv/other.identity.json');expect(host.querySelector('[data-tool-report-feedback]')).toBe(edited);await draw(2);expect(field('commands').value).toBe('/srv/commands.json');expect(host.querySelector('[data-tool-report-feedback]')).not.toBe(edited);expect(fetch).not.toHaveBeenCalled();
+ await change(field('mode'),'environment');await change(field('project'),'another-project');expect(host.querySelector<HTMLButtonElement>('[data-tool-report-check]')?.disabled??true).toBe(true);expect(fetch).not.toHaveBeenCalled();
+});
 
 it('T203 adopts each current tool request once and rejects old tool drafts, nonce rollback and caller or target ABA without losing a manual draft',async()=>{
  await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const fetch=vi.fn();vi.stubGlobal('fetch',fetch);let caller=api;vi.spyOn(ApiContext,'useApi').mockImplementation(()=>caller);

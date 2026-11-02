@@ -17,6 +17,7 @@ import {octopHarnessPreset} from './octop-execution-model';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {claudeCLIConfiguration,claudeCLIModel} from './claude-cli-model';
 import {RemoteRunnerSetupGuide} from './RemoteRunnerSetupGuide';
+import type {ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import type {RunnerPairing} from '../../../packages/contracts/src';
 
 type Preset=ToolPreparationPreset|'junit'|'operations'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation';
@@ -38,12 +39,12 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,expectedWorkerID,presetRequest,onPairRunner,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;presetRequest?:{preset:ToolPreparationPreset|'octop';nonce:number};onPairRunner?:()=>void;disabled?:boolean}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,expectedWorkerID,presetRequest,onPairRunner,onReportSelection,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;presetRequest?:{preset:ToolPreparationPreset|'octop';nonce:number};onPairRunner?:()=>void;onReportSelection?:(selection:ToolReportFeedbackSelection)=>void;disabled?:boolean}={}){
  useLocale();
  const targetPairing=!expectedWorkerID||pairedRunner?.worker_id===expectedWorkerID?pairedRunner:undefined;
  const caller=useApi(),view=useApiView(),scope=JSON.stringify([view?.userID,view?.organizationID,project,expectedWorkerID,targetPairing?.id,targetPairing?.project_id,targetPairing?.control_url,targetPairing?.worker_id,targetPairing?.version]),remoteGuide=useRef<HTMLDivElement>(null);
  const owner=useRef({scope,caller,epoch:0,seenRequest:0});if(owner.current.scope!==scope||owner.current.caller!==caller)owner.current={scope,caller,epoch:owner.current.epoch+1,seenRequest:owner.current.seenRequest};
- const epoch=owner.current.epoch,sourceKey=scope+':'+epoch,navigationNonce=useRef(0);
+ const epoch=owner.current.epoch,sourceKey=scope+':'+epoch,navigationNonce=useRef(0),reportNavigationNonce=navigationNonce.current;
  const [navigation,setNavigation]=useState<{scope:string;caller:typeof caller;epoch:number;value:ToolPreparationSelection}>();
  const currentNavigation=navigation?.scope===scope&&navigation.caller===caller&&navigation.epoch===epoch?navigation:undefined;
  const [configurationRequest,setConfigurationRequest]=useState<{scope:string;caller:typeof caller;epoch:number;value:ConfigurationDraft&{nonce:number;selectionNonce:number}}>();
@@ -105,7 +106,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
-   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={sourceKey+':'+(preparationForPreset(selected)?'tools':selected)} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onPairRunner={onPairRunner} disabled={disabled} selectionRequest={currentNavigation?.value} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller&&configurationRequest.epoch===epoch&&configurationRequest.value.selectionNonce===currentNavigation?.value.nonce?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')} onConfigureTool={localTool=>{const target=preparationForLocalTool(localTool);if(target)configureRunner(target.preset);}}/></div>
+   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={sourceKey+':'+(preparationForPreset(selected)?'tools':selected)} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onReportSelection={onReportSelection?value=>{if(owner.current.epoch===epoch&&navigationNonce.current===reportNavigationNonce)onReportSelection(value);}:undefined} onPairRunner={onPairRunner} disabled={disabled} selectionRequest={currentNavigation?.value} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller&&configurationRequest.epoch===epoch&&configurationRequest.value.selectionNonce===currentNavigation?.value.nonce?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')} onConfigureTool={localTool=>{const target=preparationForLocalTool(localTool);if(target)configureRunner(target.preset);}}/></div>
   </div>
  </details>;
 }

@@ -42,7 +42,8 @@ import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
-import {toolPreparationTarget,type ToolPreparationPreset} from './tool-preparation-target';
+import {toolPreparationTarget,preparationForLocalTool,type ToolPreparationPreset} from './tool-preparation-target';
+import {validToolReportFeedbackSelection,type ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import {ToolQuickConnect,type ToolConnectDraft} from './ToolQuickConnect';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
 import {ToolReinspectionPanel} from './ToolReinspectionPanel';
@@ -195,6 +196,7 @@ function ScopedToolWorkspace({
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
     filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
   const replacementSourceCurrent=!!replacementSource&&!stale&&current?.id===replacementSource.id&&current.version===replacementSource.version&&current.worker_id===replacementSource.worker_id&&current.state===replacementSource.state&&sameToolProfile(current.profile,replacementSource.profile);
+  const reportReturnOwner=useRef({api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked});reportReturnOwner.current={api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked};
   function applyFilters(value:ToolListFilters){
     if(!validToolListQuery(value.query)){setSearchError(true);return;}
     const next={...value,query:value.query.trim()};setSearchError(false);setFilters(next);setFilter('all');
@@ -220,6 +222,13 @@ function ScopedToolWorkspace({
     void sharedWorkers.read();
     beginPublicDraft(publicDraft??{adapterID:'',workerID:'',commandID:'',name:'',nameEdited:false},replacementSource);
     setDialog({kind:'quick'});
+  }
+  function returnFromReport(value:ToolReportFeedbackSelection){
+    const owner=reportReturnOwner.current,target=preparationForLocalTool(value.adapterID);
+    if(!activeWorkspace.current||owner.writeBlocked||owner.api!==api||owner.contextKey!==contextKey||owner.generation!==pairingGeneration||owner.nonce!==connection?.nonce||value.project!==project||!target||!validToolReportFeedbackSelection(value,{project,workerID:value.workerID,localTool:target.localTool}))return;
+    const sameTarget=publicDraft?.adapterID===value.adapterID&&publicDraft.workerID===value.workerID;
+    beginPublicDraft({adapterID:value.adapterID,workerID:value.workerID,commandID:value.commandID,name:sameTarget?publicDraft.name:'',nameEdited:sameTarget?publicDraft.nameEdited:false},sameTarget?replacementSource:undefined);
+    action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',preferredWorkerID:value.workerID});
   }
   function updatePublicDraft(value:ToolConnectDraft,nonce:number|undefined){
     const owner=connectDraft.current;
@@ -381,7 +390,7 @@ function ScopedToolWorkspace({
         <AdapterConnections project={project} onSetup={setupConnection}/>
       </details>
       {publicDraft&&guideOpen&&<div className="tool-connect-return"><p>{t('tool-workspace.draft_retained',{worker:publicDraft.workerID||t('tool-workspace.target_not_selected')})}</p><button type="button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button></div>}
-      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} expectedWorkerID={connection?.expectedWorkerID} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} disabled={writeBlocked}/>}
+      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} expectedWorkerID={connection?.expectedWorkerID} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} onReportSelection={returnFromReport} disabled={writeBlocked}/>}
       {returnRun && (
         <a
           onClick={(event) => {

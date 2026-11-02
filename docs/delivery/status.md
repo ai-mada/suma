@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-REPORT-FEEDBACK-204：[工具上报反馈](../product/tool-report-feedback.md)／[架构与AI SOP](../architecture/tool-report-feedback.md)／[交互](../design/tool-report-feedback.md)／[English](../en/tool-report-feedback.md)／[限定验证](../quality/tool-report-feedback-verification.md)。当前清单、限时等候及准确Quick返回贯通，旧ACK／时钟回退／过期与撤权分别处理；18个不同定向检查、9430对词条、真实HTTP／SQLite和两组双语代表界面限定通过。完整31／P0–P7继续。
+
 T-TOOL-PREPARATION-203：[工具准备与恢复](../product/tool-preparation-recovery.md)／[架构与AI SOP](../architecture/tool-preparation-recovery.md)／[交互](../design/tool-preparation-recovery.md)／[English](../en/tool-preparation-recovery.md)／[限定验证](../quality/tool-preparation-recovery-verification.md)。两SDK准确准备原因、当前权限与原回执优先、九协议／同节点指南及原生Codex配置生成贯通；29个不同定向检查、双语代表组件与一次真实配置生成限定通过。完整31／P0–P7继续。
 
 T-TOOL-DISCOVERY-202：[本机工具发现](../product/local-tools-discovery-experience.md)／[架构与AI SOP](../architecture/local-tools-discovery-experience.md)／[交互](../design/local-tools-discovery-experience.md)／[English](../en/local-tools-discovery-experience.md)／[限定验证](../quality/local-tools-discovery-experience-verification.md)。已发现、检测异常和当前选择保持首屏，其余工具键盘展开；准确原入口、44px触达及跨组焦点贯通。10个不同定向检查和两组双语代表组件验证通过，完整31／P0–P7继续。

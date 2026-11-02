@@ -4,7 +4,8 @@ import {parseToolManifest} from './tool-model';
 const identity=/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
 const fields=new Set(['project_id','worker_id','state','as_of','observed_at','expires_at','items']);
 function invalid():never{throw new UiError('tool-discovery.invalid_read');}
-function timestamp(value:unknown):bigint{
+/** Strict server UTC timestamp, retaining all nine fractional digits. */
+export function toolDiscoveryTimestampNs(value:unknown):bigint{
  if(typeof value!=='string')return invalid();
  const match=/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?Z$/.exec(value);
  if(!match)return invalid();
@@ -23,11 +24,11 @@ export function parseToolDiscovery(value:unknown,project:string,worker:string){
  if(Object.keys(raw).some(key=>!fields.has(key))||raw.project_id!==project||raw.worker_id!==worker||!Array.isArray(raw.items))return invalid();
  const state=raw.state;
  if(state!=='fresh'&&state!=='stale'&&state!=='unreported')return invalid();
- const asOfNs=timestamp(raw.as_of);
+ const asOfNs=toolDiscoveryTimestampNs(raw.as_of);
  if(state!=='fresh'&&raw.items.length!==0)return invalid();
  let observedAt:string|undefined,expiresAt:string|undefined,remainingMs=0;
  if(raw.observed_at!==undefined||raw.expires_at!==undefined){
-  const observedNs=timestamp(raw.observed_at),expiresNs=timestamp(raw.expires_at);
+  const observedNs=toolDiscoveryTimestampNs(raw.observed_at),expiresNs=toolDiscoveryTimestampNs(raw.expires_at);
   if(expiresNs-observedNs!==60000000000n||state==='unreported')return invalid();
   if(state==='fresh'&&(observedNs>asOfNs||asOfNs>=expiresNs))return invalid();
   if(state==='stale'&&observedNs<=asOfNs&&asOfNs<expiresNs)return invalid();

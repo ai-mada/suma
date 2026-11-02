@@ -9,6 +9,8 @@ import {validClaudeSDKSetupDraft,type ClaudeSDKSetupDraft} from './claude-sdk-se
 import {validCodexAppServerSetupDraft,type CodexAppServerSetupDraft} from './codex-app-server-setup-model';
 import {useApi,useApiView} from './api-context';
 import {preparationForLocalTool,readToolPreparationSelection,type ToolPreparationSelection} from './tool-preparation-target';
+import {ToolReportFeedback} from './ToolReportFeedback';
+import {validToolReportFeedbackSelection,type ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import './RemoteRunnerSetupGuide.css';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('remote-runner-setup.'+key,values);
@@ -17,7 +19,7 @@ const toolNames:Record<(typeof remoteRunnerLocalTools)[number],string>={'codex-j
 /** The target machine and its original Runner remain the only execution
  * authority. This guide builds public drafts and never sends or runs them. */
 type ConfigurationRequest=(CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft)&{nonce:number;selectionNonce?:number};
-type Props={project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;onPairRunner?:()=>void;disabled?:boolean;selectionRequest?:ToolPreparationSelection;configurationRequest?:ConfigurationRequest;onConfigureCursor?:()=>void;onConfigureClaudeSDK?:()=>void;onConfigureTool?:(localTool:ToolPreparationSelection['localTool'])=>void};
+type Props={project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;onPairRunner?:()=>void;disabled?:boolean;selectionRequest?:ToolPreparationSelection;configurationRequest?:ConfigurationRequest;onConfigureCursor?:()=>void;onConfigureClaudeSDK?:()=>void;onConfigureTool?:(localTool:ToolPreparationSelection['localTool'])=>void;onReportSelection?:(selection:ToolReportFeedbackSelection)=>void};
 function readConfigurationRequest(value:unknown):ConfigurationRequest|undefined{
  if(!value||typeof value!=='object'||Array.isArray(value)||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return;
  const row=value as Record<string,unknown>;
@@ -46,21 +48,25 @@ export function RemoteRunnerSetupGuide(props:Props){
  const saved=owner.current.configuration,currentRequest=saved?.epoch===epoch&&(currentSelection?saved.request.selectionNonce===currentSelection.nonce&&saved.request.localTool===currentSelection.localTool:saved.request.selectionNonce===undefined)?saved.request:undefined;
  return <RemoteRunnerSetupScope key={scope+':'+epoch} {...props} selectionRequest={currentSelection} configurationRequest={currentRequest} pairedRunner={target} disabled={props.disabled||!!props.pairedRunner&&!pairing} invalidTarget={!!props.pairedRunner&&!pairing}/>;
 }
-function RemoteRunnerSetupScope({project,pairedRunner,expectedWorkerID,onPairRunner,selectionRequest,configurationRequest,onConfigureCursor,onConfigureClaudeSDK,onConfigureTool,disabled=false,invalidTarget=false}:Props&{invalidTarget?:boolean}){
+function RemoteRunnerSetupScope({project,pairedRunner,expectedWorkerID,onPairRunner,selectionRequest,configurationRequest,onConfigureCursor,onConfigureClaudeSDK,onConfigureTool,onReportSelection,disabled=false,invalidTarget=false}:Props&{invalidTarget?:boolean}){
  useLocale();const hint=useId(),[input,setInput]=useState<RemoteRunnerSetupInput>({mode:expectedWorkerID&&!pairedRunner?'identity':'paired',pairingID:pairedRunner?.id||'',identityPath:'',shell:'',control:pairedRunner?.control_url||'',project:project||'',worker:expectedWorkerID||pairedRunner?.worker_id||'',commands:'',state:'',localTool:'',repository:'',baseCommit:''}),[copied,setCopied]=useState(''),[failed,setFailed]=useState('');
  const appliedNonce=useRef(0);
+ const [draftRevision,setDraftRevision]=useState(0),currentRevision=useRef(draftRevision);currentRevision.current=draftRevision;
  const appliedSelection=useRef(0);
- useEffect(()=>{if(disabled||!selectionRequest||selectionRequest.nonce<=appliedSelection.current)return;appliedSelection.current=selectionRequest.nonce;setInput(current=>({...current,localTool:selectionRequest.localTool}));setCopied('');setFailed('');},[selectionRequest?.nonce,disabled]);
+ useEffect(()=>{if(disabled||!selectionRequest||selectionRequest.nonce<=appliedSelection.current)return;appliedSelection.current=selectionRequest.nonce;setDraftRevision(value=>value+1);setInput(current=>({...current,localTool:selectionRequest.localTool}));setCopied('');setFailed('');},[selectionRequest?.nonce,disabled]);
  useEffect(()=>{
   if(disabled||!configurationRequest||configurationRequest.nonce<=appliedNonce.current)return;
   appliedNonce.current=configurationRequest.nonce;
+  setDraftRevision(value=>value+1);
   const {shell,commands,localTool}=configurationRequest;
   setInput(current=>({...current,shell,commands,localTool}));setCopied('');setFailed('');
  },[configurationRequest?.nonce,disabled]);
  const effective={...input,...(input.mode!=='environment'?{project:project||''}:{}),...(input.mode==='identity'&&!pairedRunner&&!expectedWorkerID?{worker:''}:{}),...(expectedWorkerID?{worker:expectedWorkerID}:{}),...(pairedRunner?{control:pairedRunner.control_url,project:pairedRunner.project_id,worker:pairedRunner.worker_id||'',pairingID:pairedRunner.id}:{})},commands=remoteRunnerSetupCommands(effective);
  const cursor=input.localTool==='cursor-cli',claudeSDK=input.localTool==='claude-code-sdk',special=preparationForLocalTool(input.localTool)?.special;
  function fixed(name:keyof RemoteRunnerSetupInput){return name==='project'&&input.mode!=='environment'||name==='worker'&&!!expectedWorkerID||!!pairedRunner&&['control','project','worker','pairingID'].includes(name);}
- function update(name:keyof RemoteRunnerSetupInput,value:string){if(disabled||fixed(name))return;setInput(current=>({...current,[name]:value}));setFailed('');}
+ function update(name:keyof RemoteRunnerSetupInput,value:string){if(disabled||fixed(name))return;setDraftRevision(revision=>revision+1);setInput(current=>({...current,[name]:value}));setFailed('');}
+ const feedbackTool=preparationForLocalTool(effective.localTool),feedbackTarget=feedbackTool?{project:effective.project,workerID:effective.worker,localTool:feedbackTool.localTool}:undefined;
+ function reportSelection(value:ToolReportFeedbackSelection){if(disabled||currentRevision.current!==draftRevision||!feedbackTarget||!validToolReportFeedbackSelection(value,feedbackTarget))return;onReportSelection?.(value);}
  function field(name:'control'|'project'|'worker'|'commands'|'state'|'repository'|'baseCommit'|'identityPath'|'pairingID',maxLength=4096){return <label className="remote-runner-field">{t('field.'+name)}<input name={'remote-runner-'+name} value={effective[name]} type={name==='control'?'url':'text'} maxLength={maxLength} disabled={disabled} readOnly={fixed(name)} autoComplete="off" spellCheck={false} aria-describedby={hint} onChange={event=>update(name,event.target.value)}/></label>;}
  async function copy(kind:'prepare'|'report'|'start'){const command=commands[kind];if(disabled||!command)return;try{await navigator.clipboard.writeText(command);setCopied(command);setFailed('');}catch{setFailed(command);}}
  function command(kind:'prepare'|'report'|'start'){const value=commands[kind];return <div className="remote-runner-command"><div className="remote-runner-command-heading"><strong>{t('command.'+kind)}</strong><button type="button" data-remote-runner-copy={kind} disabled={disabled||!value} onClick={()=>void copy(kind)}>{value&&copied===value?<Check size={15} aria-hidden="true"/>:<Copy size={15} aria-hidden="true"/>}{t(value&&copied===value?'copied':kind==='start'?'start.copy':'copy')}</button></div>{value?<pre tabIndex={0} data-remote-runner-command={kind} aria-label={t('command.'+kind)}>{value}</pre>:<p className="remote-runner-incomplete" role="status">{t(kind==='report'&&input.mode!=='environment'?'incomplete.'+input.mode:'incomplete.'+kind)}</p>}{value&&failed===value&&<p className="remote-runner-warning" role="alert">{t('copy_failed')}</p>}</div>;}
@@ -85,6 +91,7 @@ function RemoteRunnerSetupScope({project,pairedRunner,expectedWorkerID,onPairRun
      {commands.loopback&&<p className="remote-runner-warning" data-remote-runner-loopback role="status">{t('loopback')}</p>}
      {field('repository')}{field('baseCommit',64)}<p className="remote-runner-help">{t('baseline_help')}</p>
      {input.mode==='environment'&&<p className="remote-runner-help">{t('token_help')}</p>}{command('report')}<p className="remote-runner-help">{t('report.boundary')}</p>
+     <ToolReportFeedback project={project||''} target={feedbackTarget} intentKey={String(draftRevision)} disabled={disabled} onSelect={onReportSelection?reportSelection:undefined}/>
     </li>
     <li><h4>{t('reuse.title')}</h4><p>{t('reuse.intro')}</p></li>
     <li><h4>{t('enable.title')}</h4><p>{t('enable.intro')}</p></li>
