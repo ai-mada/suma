@@ -1,11 +1,9 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -19,6 +17,7 @@ import (
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	cu "github.com/ai-mada/suma/internal/cursorcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
+	"github.com/ai-mada/suma/internal/strictjson"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
 	wwc "github.com/ai-mada/suma/internal/workspacewritecontract"
@@ -49,20 +48,36 @@ func normalizedCommand(spec CommandSpec) CommandSpec {
 	return spec
 }
 func DecodeCommands(raw []byte) (map[string]CommandSpec, error) {
+	specs, err := decodeCommandProfiles(raw)
+	if err != nil {
+		return nil, err
+	}
+	if err = ValidateToolConfiguration(ExecConfig{Commands: specs}); err != nil {
+		return nil, err
+	}
+	return specs, nil
+}
+
+// Decode source structure without granting executable configuration authority.
+// Composition needs this one seam because an otherwise valid fragment may
+// reference checks in another fragment. DecodeCommands remains the final gate
+// for every complete allowlist, including the composed output.
+func decodeCommandProfiles(raw []byte) (map[string]CommandSpec, error) {
 	if len(raw) > 2<<20 {
 		return nil, fmt.Errorf("local command configuration exceeds 2 MiB")
 	}
-	if _, err := decodeToolObject(raw); err != nil {
+	object, err := decodeToolObject(raw)
+	if err != nil {
 		return nil, fmt.Errorf("local command configuration must be bounded UTF-8 JSON without duplicate keys")
 	}
-	d := json.NewDecoder(bytes.NewReader(raw))
-	d.DisallowUnknownFields()
-	var specs map[string]CommandSpec
-	if err := d.Decode(&specs); err != nil {
-		return nil, fmt.Errorf("local command configuration has unknown or invalid fields")
+	for _, value := range object {
+		if _, ok := value.(map[string]any); !ok {
+			return nil, fmt.Errorf("local command profiles must be non-null JSON objects")
+		}
 	}
-	if err := ValidateToolConfiguration(ExecConfig{Commands: specs}); err != nil {
-		return nil, err
+	var specs map[string]CommandSpec
+	if err = strictjson.Decode(raw, &specs, 2<<20); err != nil {
+		return nil, fmt.Errorf("local command configuration has unknown or invalid fields")
 	}
 	return specs, nil
 }

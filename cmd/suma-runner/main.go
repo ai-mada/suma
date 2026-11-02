@@ -45,6 +45,7 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	allowInstalled := app.Bool("allow-installed-tool-discovery", false, "明确允许持续维护通道检测固定目录中的已安装工具；独立于任务执行权限", "allow the continuous maintenance channel to inspect the fixed installed-tool directory; independent of task execution")
 	maintenanceOnly := app.Bool("maintenance-only", false, "仅运行维护通道，不领取或执行开发任务；要求允许已安装工具检测且原业务日志已排空", "run maintenance only without claiming or executing development tasks; requires installed discovery and a drained business journal")
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
+	composeCommands := app.String("compose-commands", "", "从私有标准输入指定的已有配置组合全新命令文件；不启动工具或连接控制面", "compose existing command files named on private stdin into a new file; no tools or control connection")
 	prepareTools := app.String("prepare-tools", "", "将可自动配置的本机工具写入全新命令允许列表文件；不连接控制面或领取任务", "prepare local tool commands in a new allowlist file; no control connection or tasks")
 	prepareACP := app.Bool("prepare-acp-stdin", false, "从私有标准输入准备明确的 Cursor 包配置；必须配合 --prepare-tools 全新文件", "prepare an explicit Cursor package configuration from private stdin; requires --prepare-tools with a new file")
 	prepareSDK := app.Bool("prepare-sdk-stdin", false, "从私有标准输入准备 Claude SDK 配置；必须配合 --prepare-tools 全新文件", "prepare Claude SDK configuration from private stdin; requires --prepare-tools with a new file")
@@ -66,6 +67,17 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	deviceName := app.String("device-name", "", "配对时自报的机器名称；默认本机名称", "self-reported pairing device name; defaults to the local hostname")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	// Configuration composition is a standalone offline mode. Gate by presence,
+	// including empty/false flags, before stdin, identities or credentials.
+	if app.FlagProvided("compose-commands") {
+		if *composeCommands == "" {
+			return writeCommandCompositionDiagnostic(app, &runner.CommandCompositionError{Code: "output_invalid"})
+		}
+		if toolModeHasAnyFlag(app, "control", "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "allow-exec", "allow-installed-tool-discovery", "maintenance-only", "describe-tools", "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "prepare-opencode-stdin", "report-tools", "discover-installed-tools", "describe-acp-models-stdin", "local-tool", "pool-config", "check-pool-connection", "prepare-pool-config", "pair-pool-runner", "pool", "pool-identity", "pair-runner", "identity", "paired-runner", "device-name") {
+			return writeCommandCompositionDiagnostic(app, &runner.CommandCompositionError{Code: "mode_conflict"})
+		}
+		return runCommandComposition(app, *composeCommands, input)
 	}
 	if app.FlagProvided("check-pool-connection") {
 		if !*checkPoolConnection || !app.FlagProvided("control") || *base == "" || !app.FlagProvided("pool-config") || *poolConfig == "" || !app.FlagProvided("pool-identity") || *poolIdentity == "" || toolModeHasAnyFlag(app, "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "allow-exec", "allow-installed-tool-discovery", "maintenance-only", "describe-tools", "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "prepare-opencode-stdin", "report-tools", "discover-installed-tools", "describe-acp-models-stdin", "local-tool", "prepare-pool-config", "pool", "pair-pool-runner", "pair-runner", "identity", "paired-runner", "device-name") {

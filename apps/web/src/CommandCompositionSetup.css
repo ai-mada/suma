@@ -1,0 +1,18 @@
+.command-composition{--control-height:44px;min-width:0;border-top:1px solid var(--border);padding-top:10px;font-size:14px;line-height:1.6}
+.command-composition>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;overflow-wrap:anywhere}
+.command-composition summary>svg{flex:none}
+.command-composition[open]>summary>svg{transform:rotate(90deg)}
+.command-composition-body{display:grid;gap:12px;min-width:0;padding-top:10px}
+.command-composition p{margin:0;overflow-wrap:anywhere}
+.command-composition-fields{display:grid;grid-template-columns:minmax(0,.5fr) minmax(0,1fr);gap:12px;align-items:start;min-width:0}
+.command-composition label{display:grid;gap:6px;min-width:0;align-content:start}
+.command-composition :is(input,select){box-sizing:border-box;width:100%;min-width:0;align-self:start;font-size:14px}
+.command-composition-sources{display:grid;gap:12px;min-width:0}
+.command-composition-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:start;min-width:0}
+.command-composition-row>button{width:44px;min-height:44px;margin-top:28px;padding:0;justify-content:center}
+.command-composition-body>button{justify-self:start;min-height:44px;max-width:100%;white-space:normal}
+.command-composition :is(small,.command-composition-muted){font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.command-composition input[aria-invalid=true],.command-composition select[aria-invalid=true]{border-color:var(--amber)}
+.command-composition pre{box-sizing:border-box;min-width:0;max-width:100%;max-height:320px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;margin:0;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);font-size:13px;line-height:1.6}
+.command-composition :is(input,select,button,summary,pre):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.command-composition-fields{grid-template-columns:minmax(0,1fr)}.command-composition-body>[data-command-composition-copy]{width:100%}}

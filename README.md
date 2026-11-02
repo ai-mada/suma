@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-COMMAND-COMPOSITION-215新增[已有命令配置安全组合](docs/product/command-composition.md)：自动核对跨文件引用、重名和新文件边界，明确采用输出路径继续原连接指南。[交互](docs/design/command-composition.md)与[实际本机限定验证](docs/quality/command-composition-verification.md)区分准备、工具资格和正式质量；完整平台继续。
+
 T-TASK-DELIVERY-NAVIGATION-214修正[交付记录的准确入口](docs/product/task-delivery-navigation.md)：团队计划、问题、回流需求和原验收可直接定位，刷新不重复打开、异步运行选择不丢失。[交互](docs/design/task-delivery-navigation.md)与[限定验证](docs/quality/task-delivery-navigation-verification.md)保留完整平台边界。
 
 T-TOOL-TASK-HANDOFF-213新增[准确工具用于任务](docs/product/tool-task-handoff.md)：当前工具详情选择项目任务并核对准确档案，复用原模型预算、预览和明确启动；[交互](docs/design/tool-task-handoff.md)与[限定验证](docs/quality/tool-task-handoff-verification.md)区分准备、执行与正式质量，完整平台继续。

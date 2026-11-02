@@ -13,17 +13,23 @@ import {preparationForLocalTool,readToolPreparationSelection,type ToolPreparatio
 import {ToolReportFeedback} from './ToolReportFeedback';
 import {validToolReportFeedbackSelection,type ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import './RemoteRunnerSetupGuide.css';
+import {validCommandCompositionDraft,type CommandCompositionDraft} from './command-composition-model';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('remote-runner-setup.'+key,values);
 const toolNames:Record<(typeof remoteRunnerLocalTools)[number],string>={'codex-jsonl':'Codex CLI','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code','claude-code-sdk':'Claude SDK','cursor-cli':'Cursor Agent','qoder-acp':'Qoder CLI','codex-app-server':'Codex App Server','opencode-sdk':'OpenCode SDK'};
 
 /** The target machine and its original Runner remain the only execution
  * authority. This guide builds public drafts and never sends or runs them. */
-type ConfigurationRequest=(CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft|OpenCodeSetupDraft)&{nonce:number;selectionNonce?:number};
+type ConfigurationRequest=(CursorSetupDraft|ClaudeSDKSetupDraft|CodexAppServerSetupDraft|OpenCodeSetupDraft|CommandCompositionDraft)&{nonce:number;selectionNonce?:number};
 type Props={project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;onPairRunner?:()=>void;disabled?:boolean;selectionRequest?:ToolPreparationSelection;configurationRequest?:ConfigurationRequest;onConfigureCursor?:()=>void;onConfigureClaudeSDK?:()=>void;onConfigureTool?:(localTool:ToolPreparationSelection['localTool'])=>void;onReportSelection?:(selection:ToolReportFeedbackSelection)=>void};
 function readConfigurationRequest(value:unknown):ConfigurationRequest|undefined{
  if(!value||typeof value!=='object'||Array.isArray(value)||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return;
  const row=value as Record<string,unknown>;
+ if(row.kind==='commands-only'){
+  if(!['kind','shell','commands','nonce'].every(key=>Object.hasOwn(row,key))||!Number.isSafeInteger(row.nonce)||(row.nonce as number)<=0||Object.hasOwn(row,'selectionNonce')&&(!Number.isSafeInteger(row.selectionNonce)||(row.selectionNonce as number)<=0)||!Reflect.ownKeys(row).every(key=>typeof key==='string'&&['kind','shell','commands','nonce','selectionNonce'].includes(key)))return;
+  const draft={kind:row.kind,shell:row.shell,commands:row.commands};
+  return validCommandCompositionDraft(draft)?{...draft,nonce:row.nonce as number,...(Object.hasOwn(row,'selectionNonce')?{selectionNonce:row.selectionNonce as number}:{})}:undefined;
+ }
  if(!['shell','commands','localTool','nonce'].every(key=>Object.hasOwn(row,key))||!Reflect.ownKeys(row).every(key=>typeof key==='string'&&['shell','commands','localTool','nonce','selectionNonce'].includes(key))||!Number.isSafeInteger(row.nonce)||(row.nonce as number)<=0||Object.hasOwn(row,'selectionNonce')&&(!Number.isSafeInteger(row.selectionNonce)||(row.selectionNonce as number)<=0))return;
  const draft={shell:row.shell,commands:row.commands,localTool:row.localTool};
  return row.localTool==='cursor-cli'&&validCursorSetupDraft(draft)||row.localTool==='claude-code-sdk'&&validClaudeSDKSetupDraft(draft)||row.localTool==='codex-app-server'&&validCodexAppServerSetupDraft(draft)||row.localTool==='opencode-sdk'&&validOpenCodeSetupDraft(draft)?{...draft,nonce:row.nonce as number,...(Object.hasOwn(row,'selectionNonce')?{selectionNonce:row.selectionNonce as number}:{})}:undefined;
@@ -44,9 +50,9 @@ export function RemoteRunnerSetupGuide(props:Props){
  const currentSelection=owner.current.selection?.epoch===epoch?owner.current.selection.request:undefined;
  const request=readConfigurationRequest(props.configurationRequest);
  if(request&&request.nonce>owner.current.configurationNonce){owner.current.configurationNonce=request.nonce;
-  if(currentSelection?request.selectionNonce===currentSelection.nonce&&request.localTool===currentSelection.localTool:request.selectionNonce===undefined)owner.current.configuration={epoch,request};
+  if(currentSelection?request.selectionNonce===currentSelection.nonce&&('kind'in request||request.localTool===currentSelection.localTool):request.selectionNonce===undefined)owner.current.configuration={epoch,request};
  }
- const saved=owner.current.configuration,currentRequest=saved?.epoch===epoch&&(currentSelection?saved.request.selectionNonce===currentSelection.nonce&&saved.request.localTool===currentSelection.localTool:saved.request.selectionNonce===undefined)?saved.request:undefined;
+ const saved=owner.current.configuration,currentRequest=saved?.epoch===epoch&&(currentSelection?saved.request.selectionNonce===currentSelection.nonce&&('kind'in saved.request||saved.request.localTool===currentSelection.localTool):saved.request.selectionNonce===undefined)?saved.request:undefined;
  return <RemoteRunnerSetupScope key={scope+':'+epoch} {...props} selectionRequest={currentSelection} configurationRequest={currentRequest} pairedRunner={target} disabled={props.disabled||!!props.pairedRunner&&!pairing} invalidTarget={!!props.pairedRunner&&!pairing}/>;
 }
 function RemoteRunnerSetupScope({project,pairedRunner,expectedWorkerID,onPairRunner,selectionRequest,configurationRequest,onConfigureCursor,onConfigureClaudeSDK,onConfigureTool,onReportSelection,disabled=false,invalidTarget=false}:Props&{invalidTarget?:boolean}){
@@ -59,8 +65,8 @@ function RemoteRunnerSetupScope({project,pairedRunner,expectedWorkerID,onPairRun
   if(disabled||!configurationRequest||configurationRequest.nonce<=appliedNonce.current)return;
   appliedNonce.current=configurationRequest.nonce;
   setDraftRevision(value=>value+1);
-  const {shell,commands,localTool}=configurationRequest;
-  setInput(current=>({...current,shell,commands,localTool}));setCopied('');setFailed('');
+  const {shell,commands}=configurationRequest;
+  setInput(current=>({...current,shell,commands,...('localTool'in configurationRequest?{localTool:configurationRequest.localTool}:{})}));setCopied('');setFailed('');
  },[configurationRequest?.nonce,disabled]);
  const effective={...input,...(input.mode!=='environment'?{project:project||''}:{}),...(input.mode==='identity'&&!pairedRunner&&!expectedWorkerID?{worker:''}:{}),...(expectedWorkerID?{worker:expectedWorkerID}:{}),...(pairedRunner?{control:pairedRunner.control_url,project:pairedRunner.project_id,worker:pairedRunner.worker_id||'',pairingID:pairedRunner.id}:{})},commands=remoteRunnerSetupCommands(effective);
  const cursor=input.localTool==='cursor-cli',claudeSDK=input.localTool==='claude-code-sdk',special=preparationForLocalTool(input.localTool)?.special;

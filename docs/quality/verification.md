@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-COMMAND-COMPOSITION-215：[已有命令配置组合与AI SOP](../product/command-composition.md)／[交互](../design/command-composition.md)／[限定验证](../quality/command-composition-verification.md)。跨文件checks沿原完整校验生成新配置，明确采用输出路径接回原连接指南；13项定向、9739对词条及实际PowerShell组合／拒覆盖通过。完整类型首次仅新mock3诊断，修正后5文件语义0；完整31／P0–P7继续。
+
 T-TASK-DELIVERY-NAVIGATION-214：[交付准确导航与AI SOP](../product/task-delivery-navigation.md)／[交互](../design/task-delivery-navigation.md)／[限定验证](../quality/task-delivery-navigation-verification.md)。团队、问题、回流需求及原Review入口贯通；10项定向、类型0／9715对词条和一次双语代表组件通过。验收定位准确消费、异步Run选择及原恢复保留，完整31／P0–P7继续。
 
 T-TOOL-TASK-HANDOFF-213：[准确工具到任务](../product/tool-task-handoff.md)／[架构与AI SOP](../architecture/tool-task-handoff.md)／[交互](../design/tool-task-handoff.md)／[限定验证](../quality/tool-task-handoff-verification.md)。工具详情→当前任务重读→原派发准确采用→固定预览贯通；9项定向、类型0／9708对词条、最终真实HTTP／SQLite与双语代表界面通过。六次实际尝试及前五次失败均保留；未启动任务／模型，完整31／P0–P7继续。

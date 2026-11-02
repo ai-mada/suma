@@ -1,0 +1,263 @@
+{
+  "stage": "T-COMMAND-COMPOSITION-215",
+  "version": "1.0.0",
+  "date": "2026-11-03",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "base_commit": "d98441a7694cb0c3aa33a7e6daa32abcfe63f080",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558"
+  },
+  "contract": "contracts/command-composition.md",
+  "implementation": {
+    "local_cli": "suma-runner --compose-commands DEST",
+    "protocol": "suma-command-composition-v1",
+    "diagnostic": "suma-command-composition-diagnostic-v1",
+    "source_files_min": 2,
+    "source_files_max": 16,
+    "stdin_max_bytes": 65536,
+    "source_total_max_bytes": 2097152,
+    "final_including_lf_max_bytes": 2097152,
+    "command_max": 128,
+    "new_apis": 0,
+    "new_tables": 0,
+    "new_dependencies": 0,
+    "new_dispatchers": 0,
+    "path_adoption": "Original ordered configurationRequest, exact shell/path only; guided .json consumer parity; no startup or readiness claim"
+  },
+  "focused": {
+    "distinct_top_level": 13,
+    "new": 10,
+    "direct_old": 3,
+    "runtime_subcases": 18,
+    "runtime": {
+      "path": ".cache/command-composition-215/runtime/summary.json",
+      "sha256": "b1470ee08bc2166bfe7233474f7e6a8c86b596314783f128c501ff648f48ee75"
+    },
+    "ui": {
+      "path": ".cache/command-composition-215/ui/path-handoff/summary.json",
+      "sha256": "6ee52641a0177192b37c60b86c336777cce9b3fa9bae417a81bf648bc263b2ff"
+    },
+    "root_cli": {
+      "path": ".cache/command-composition-215/cli-receipts.json",
+      "sha256": "6cca11775e490276d56847c5d28365441abf91484943d86199c2f843c3b8668a"
+    },
+    "guide": {
+      "path": ".cache/command-composition-215/checks/handoff-result.json",
+      "sha256": "87e14878a5a6985251cb05de1a8d3ec8ab0f138ddf6ea5008c61afd13f379c15"
+    },
+    "final_model": {
+      "path": ".cache/command-composition-215/checks/model-final-result.json",
+      "sha256": "5fa58f86f838acf45b374a52b8b3c030c5ab3f12d03b764c8bf3248389d2fede"
+    }
+  },
+  "types": {
+    "whole_check_exit": 2,
+    "initial_diagnostics": 3,
+    "initial_diagnostics_only_new_test_mock": true,
+    "after_fix_five_files_errors": 0,
+    "final_semantic": {
+      "path": ".cache/command-composition-215/checks/final-semantic.json",
+      "sha256": "c360a15c550e659c9d30807abc32843b4f47dd6d96b218bc3c88a2f05af7261c"
+    },
+    "whole_check_not_rerun": true
+  },
+  "catalog": {
+    "paired": 9739,
+    "production_hardcodes": 0,
+    "result": {
+      "path": ".cache/command-composition-215/checks/i18n-final.json",
+      "sha256": "aacddf3a8a3d09a98aea8b7142419db5b5a4461e48f42ba345df4c3baa526ef1"
+    }
+  },
+  "build": {
+    "isolated_component_builds": 2,
+    "cli_builds": 2,
+    "why_repeat": "Final source rules / CLI diagnostics changed before actual; previous outputs preserved",
+    "binary": {
+      "path": ".cache/command-composition-215/bin/suma-runner.exe",
+      "sha256": "daf5fa9754d1d478fea9246a1eb4a359a0601e56384987ebf49b897a63fbaf9c"
+    }
+  },
+  "reviews": [
+    {
+      "path": ".cache/command-composition-215/review.json",
+      "sha256": "31713db12b1e25295cae2ead0231f50b4d6314dd2d3fb117a35bfd9b09a70eca"
+    },
+    {
+      "path": ".cache/command-composition-215/review-handoff.json",
+      "sha256": "412b4ad1d480e2be34bdaf98ac648b8f654605517c61273e8afb559b6563039c"
+    },
+    {
+      "path": ".cache/command-composition-215/final-source-overlay.json",
+      "sha256": "ef193f14c83dfa51bc1bec09cbc1693320b8abe9d77bc3f170ed31436468f0b7"
+    }
+  ],
+  "actual": {
+    "result": {
+      "path": ".cache/command-composition-215/visual/20261102T160023835Z/result.json",
+      "sha256": "49ca74461a2e05ac2285d50b48d01006809bd8e990a3eaa74142be4927cb07ed"
+    },
+    "attempts": 3,
+    "final_checks": 4,
+    "compiled_cli_calls_in_final": 2,
+    "cli_exit_codes": [
+      0,
+      1
+    ],
+    "api": 0,
+    "page_errors": 0,
+    "vendor_or_model_or_worker": 0,
+    "images": [
+      {
+        "path": ".cache/command-composition-215/visual/20261102T160023835Z/cn-command-composition.png",
+        "sha256": "cd1f78eefbdae02d185dd1d39a519b958642ad7451f321417df22c60832b0869"
+      },
+      {
+        "path": ".cache/command-composition-215/visual/20261102T160023835Z/en-command-composition.png",
+        "sha256": "ddff126dee883b0aa322dea1d8dd73ba4b9fae7ca6704998e24acaec3bda20e9"
+      }
+    ],
+    "root_viewed_images": true,
+    "narrow": {
+      "width": 390,
+      "scrollWidth": 373,
+      "controls": 8,
+      "minimum_height": 44
+    },
+    "gui_path_adoption": false,
+    "guide_path_adoption": "Original parent-child component check; native fixture no callback",
+    "prior_attempts": [
+      ".cache/command-composition-215/visual/20261102T155837478Z/result.json",
+      ".cache/command-composition-215/visual/20261102T155911905Z/result.json"
+    ],
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "closure": {
+      "path": ".cache/command-composition-215/closure.json",
+      "sha256": "ff1580f60e8dcfbd0ba54c0177f94643054943869ec03f20dcaa942e0a27a48a"
+    },
+    "total_cli_calls_across_actual_attempts": 4
+  },
+  "sources": [
+    {
+      "path": "cmd/suma-runner/main.go",
+      "bytes": 31355,
+      "sha256": "524e244aa9bfe134de2007fff1fc5b9d0d0a5294c705b190d7da0cd39ba1fae2"
+    },
+    {
+      "path": "cmd/suma-runner/command_composition.go",
+      "bytes": 3974,
+      "sha256": "c8d6d1c7cf42c74b937ee8a5cceb6ab2ac646cac619421fcbff95dcc10e418f0"
+    },
+    {
+      "path": "cmd/suma-runner/command_composition_test.go",
+      "bytes": 6822,
+      "sha256": "1d0e90b94091d2c330a7646390ee8a87bf34659d4356b7ed5968672293ee8382"
+    },
+    {
+      "path": "internal/runner/tools.go",
+      "bytes": 33462,
+      "sha256": "aeaf719d8628d6e904c7ff1324705e4f536e0b84b9e34c1dff90a8264af3e442"
+    },
+    {
+      "path": "internal/runner/command_composition.go",
+      "bytes": 7990,
+      "sha256": "1124a566671b8108c161e5c53d334a6fd39743467d4d9238b18eed7b9c9e126b"
+    },
+    {
+      "path": "internal/runner/command_composition_test.go",
+      "bytes": 12287,
+      "sha256": "2ad13868ba30938350c2c0162276a3327415a3f08983293e6f770b5338cf570f"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuide.tsx",
+      "bytes": 19392,
+      "sha256": "cb215b7ce65bc9a17eb7e907319f027ec9c84103370851074b10bb1ab84db8ca"
+    },
+    {
+      "path": "apps/web/src/RemoteRunnerSetupGuide.tsx",
+      "bytes": 17278,
+      "sha256": "1ba39d0f4d66bc5b04ff2b6e25a311b30f2e53e2a3c8423e182e8f2a8954dfd0"
+    },
+    {
+      "path": "apps/web/src/ToolSetupGuideCommandComposition.test.tsx",
+      "bytes": 4111,
+      "sha256": "2b3a82bd870e41449e33a28877b1dcc862f271d7402614f442ce585c8319c25c"
+    },
+    {
+      "path": "apps/web/src/CommandCompositionSetup.tsx",
+      "bytes": 8433,
+      "sha256": "65e4e7506b9b0c94b29933cc48ca8f69d8f44a8cf35cdf620ed79f0952921d76"
+    },
+    {
+      "path": "apps/web/src/CommandCompositionSetup.css",
+      "bytes": 2032,
+      "sha256": "fd5eaca538c4901170a3c39e7a8c061785ae262990c3bf8261e133217c981447"
+    },
+    {
+      "path": "apps/web/src/CommandCompositionSetup.test.tsx",
+      "bytes": 7067,
+      "sha256": "cc6099680d611856f47211c92edb4bff761a3060193b038338b4f3534adc98a4"
+    },
+    {
+      "path": "apps/web/src/command-composition-model.ts",
+      "bytes": 4100,
+      "sha256": "3c07275b30240ff516bb8b877f2e559e938811d88d37acefbabee75ad66061a6"
+    },
+    {
+      "path": "apps/web/src/command-composition-model.test.ts",
+      "bytes": 3676,
+      "sha256": "4064d0cd880f3ff31e84a0c43c16e673b6ceae2550cc771f46df98789bde556f"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/command-composition.zh-CN.json",
+      "bytes": 2252,
+      "sha256": "bab4b687f187ada64a2292ecc4584c8c9670d7c884be65e179d9bf2126ef903b"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/command-composition.en-US.json",
+      "bytes": 2438,
+      "sha256": "99aa80824b4fcb1e82167fa7c8a039b163fb716f7ef2018e0719728c6ae141a3"
+    },
+    {
+      "path": "tests/integration/command-composition/entry.tsx",
+      "bytes": 988,
+      "sha256": "f200d4639ebbc2b39bbe3ca9aeef0516a46eb012409be0d8ec616f4d379a30ba"
+    },
+    {
+      "path": "tests/integration/command-composition/index.html",
+      "bytes": 382,
+      "sha256": "d637ab19d21149fe0a680c9ec748d632176880942708352c4d079f2a627f6d50"
+    },
+    {
+      "path": "tests/integration/command-composition/build.cjs",
+      "bytes": 1522,
+      "sha256": "065b10c031a32b429ee40d7fbed8cc20e9954faba883b394ceecbcbb7eeaa4ab"
+    },
+    {
+      "path": "tests/integration/command-composition/driver.cjs",
+      "bytes": 8810,
+      "sha256": "603083c0671b7ef76ad9df2b992028b66afb16c9772cefb46a77ab236ef78a8f"
+    }
+  ],
+  "reference": {
+    "reused_fixed_multica": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "baseline": "docs/integrations/multica-reference-211.md",
+    "new_vendor_source_copied": false
+  },
+  "limits": [
+    "No control plane / vendor or model / dispatch / formal code candidate / independent Worker testing or human acceptance executed",
+    "Bash generation only; actual shell Windows PowerShell",
+    "Physical multi-host, database matrix, installers, scale, production and original31/P0-P7 remain"
+  ],
+  "git_delivery": ".cache/command-composition-215/post-git.json"
+}

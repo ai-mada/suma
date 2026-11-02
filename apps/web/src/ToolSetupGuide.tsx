@@ -18,6 +18,8 @@ import {octopHarnessPreset} from './octop-execution-model';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {claudeCLIConfiguration,claudeCLIModel} from './claude-cli-model';
 import {RemoteRunnerSetupGuide} from './RemoteRunnerSetupGuide';
+import {CommandCompositionSetup} from './CommandCompositionSetup';
+import {validCommandCompositionDraft,type CommandCompositionDraft} from './command-composition-model';
 import type {ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import type {RunnerPairing} from '../../../packages/contracts/src';
 
@@ -48,10 +50,18 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
  const epoch=owner.current.epoch,sourceKey=scope+':'+epoch,navigationNonce=useRef(0),reportNavigationNonce=navigationNonce.current;
  const [navigation,setNavigation]=useState<{scope:string;caller:typeof caller;epoch:number;value:ToolPreparationSelection}>();
  const currentNavigation=navigation?.scope===scope&&navigation.caller===caller&&navigation.epoch===epoch?navigation:undefined;
- const [configurationRequest,setConfigurationRequest]=useState<{scope:string;caller:typeof caller;epoch:number;value:ConfigurationDraft&{nonce:number;selectionNonce:number}}>();
+ const [configurationRequest,setConfigurationRequest]=useState<{scope:string;caller:typeof caller;epoch:number;navigationNonce:number;value:(ConfigurationDraft|CommandCompositionDraft)&{nonce:number;selectionNonce?:number}}>();
+ // Adopt only the explicitly selected output reference. The original Runner
+ // guide still owns detection, registration and startup; no local result is inferred.
+ function useComposedCommands(draft:CommandCompositionDraft){
+  if(disabled||owner.current.epoch!==epoch||!validCommandCompositionDraft(draft))return;
+  const selectionNonce=currentNavigation?.value.nonce,intent=navigationNonce.current;
+  setConfigurationRequest(previous=>({scope,caller,epoch,navigationNonce:intent,value:{...draft,nonce:(previous?.value.nonce||0)+1,...(selectionNonce?{selectionNonce}:{})}}));
+  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||navigationNonce.current!==intent)return;const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector<HTMLInputElement>('[name="remote-runner-commands"]')?.focus();}});
+ }
  function useRunnerConfiguration(draft:ConfigurationDraft){
   if(disabled||owner.current.epoch!==epoch||!currentNavigation||currentNavigation.value.nonce!==navigationNonce.current||currentNavigation.value.localTool!==draft.localTool||!validCursorSetupDraft(draft)&&!validClaudeSDKSetupDraft(draft)&&!validCodexAppServerSetupDraft(draft)&&!validOpenCodeSetupDraft(draft))return;
-  setConfigurationRequest(previous=>({scope,caller,epoch,value:{...draft,nonce:(previous?.value.nonce||0)+1,selectionNonce:currentNavigation.value.nonce}}));
+  setConfigurationRequest(previous=>({scope,caller,epoch,navigationNonce:navigationNonce.current,value:{...draft,nonce:(previous?.value.nonce||0)+1,selectionNonce:currentNavigation.value.nonce}}));
   requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||currentNavigation.value.nonce!==navigationNonce.current)return;const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector('summary')?.focus();}});
  }
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
@@ -107,7 +117,8 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
-   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={sourceKey+':'+(preparationForPreset(selected)?'tools':selected)} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onReportSelection={onReportSelection?value=>{if(owner.current.epoch===epoch&&navigationNonce.current===reportNavigationNonce)onReportSelection(value);}:undefined} onPairRunner={onPairRunner} disabled={disabled} selectionRequest={currentNavigation?.value} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller&&configurationRequest.epoch===epoch&&configurationRequest.value.selectionNonce===currentNavigation?.value.nonce?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')} onConfigureTool={localTool=>{const target=preparationForLocalTool(localTool);if(target)configureRunner(target.preset);}}/></div>
+   <CommandCompositionSetup key={sourceKey} disabled={disabled} onUseCommands={useComposedCommands}/>
+   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={sourceKey+':'+(preparationForPreset(selected)?'tools':selected)} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onReportSelection={onReportSelection?value=>{if(owner.current.epoch===epoch&&navigationNonce.current===reportNavigationNonce)onReportSelection(value);}:undefined} onPairRunner={onPairRunner} disabled={disabled} selectionRequest={currentNavigation?.value} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller&&configurationRequest.epoch===epoch&&configurationRequest.navigationNonce===navigationNonce.current&&configurationRequest.value.selectionNonce===currentNavigation?.value.nonce?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')} onConfigureTool={localTool=>{const target=preparationForLocalTool(localTool);if(target)configureRunner(target.preset);}}/></div>
   </div>
  </details>;
 }
