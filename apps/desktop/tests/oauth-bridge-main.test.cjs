@@ -8,11 +8,11 @@ const {EventEmitter}=require('node:events');
 const channel='suma:open-workbuddy-authorization';
 
 async function mainHarness(){
- const app=new EventEmitter(),handlers=new Map(),calls=[];let window,options,disposed=0,stopped=0,loaded=false;
+ const app=new EventEmitter(),handlers=new Map(),calls=[];let window,options,disposed=0,stopped=0,loaded=false,closed=false;
  Object.assign(app,{isPackaged:false,getLocale:()=> 'en-US',getPath:()=>path.resolve(__dirname,'../../../.cache/workbuddy-147-desktop/bridge-fixture'),requestSingleInstanceLock:()=>true,whenReady:()=>Promise.resolve(),quit:()=>{}});
  class Window extends EventEmitter{
-  constructor(){super();window=this;this.webContents=new EventEmitter();this.webContents.session={setPermissionRequestHandler(){},setPermissionCheckHandler(){}};this.webContents.setWindowOpenHandler=fn=>{this.popup=fn};}
-  async loadURL(url){this.url=url;loaded=true;}show(){}close(){this.emit('closed');}
+  constructor(){super();window=this;this.webContents=new EventEmitter();this.webContents.mainFrame={};this.webContents.getURL=()=>this.url;this.webContents.isDestroyed=()=>closed;this.webContents.session={setPermissionRequestHandler(){},setPermissionCheckHandler(){}};this.webContents.setWindowOpenHandler=fn=>{this.popup=fn};}
+  isDestroyed(){return closed;}async loadURL(url){this.url=url;loaded=true;}show(){}close(){this.emit('close',{preventDefault(){}});closed=true;this.emit('closed');}
  }
  const controller={open:async(event,request)=>{calls.push({event,request});return {status:'opened'};},dispose:()=>{disposed++;}};
  const child=new EventEmitter();
@@ -28,7 +28,7 @@ async function mainHarness(){
   './installed-tools.cjs':{CHANNEL:'suma:discover-installed-tools',createInstalledToolDiscoveryController:()=>({discover:async()=>({status:'failed'}),dispose:()=>Promise.resolve()})},
   './managed-local-runner.cjs':{CHANNEL:'suma:manage-local-runner',createManagedLocalRunnerController:()=>({manage:async()=>({status:'failed'}),dispose:()=>Promise.resolve()})}
  };
- vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/main.cjs'),'utf8'),{__dirname:path.join(__dirname,'../src'),process:{platform:'win32',arch:'x64',env:{}},Buffer,require:name=>dependencies[name]||require(name)});
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/main.cjs'),'utf8'),{__dirname:path.join(__dirname,'../src'),process:{platform:'win32',arch:'x64',env:{}},Buffer,require:name=>dependencies[name]||(name.startsWith('./')?require(path.join(__dirname,'../src',name)):require(name))});
  for(let n=0;n<20&&!loaded;n++)await new Promise(resolve=>setImmediate(resolve));
  assert.equal(loaded,true);
  return {app,handlers,calls,window,options,get disposed(){return disposed;},get stopped(){return stopped;}};
@@ -51,6 +51,9 @@ test('desktop shutdown removes OAuth admission and disposes before existing serv
  const h=await mainHarness();let prevented=false;
  h.app.emit('before-quit',{preventDefault(){prevented=true;}});
  assert.equal(prevented,true);assert.equal(h.handlers.has(channel),false);assert.equal(h.disposed,1);
+ // The first quit closes the owned window; only its actual closure admits
+ // Electron's subsequent quit and the original single service shutdown.
+ h.app.emit('before-quit',{preventDefault(){}});
  await new Promise(resolve=>setImmediate(resolve));assert.equal(h.stopped,1);h.window.close();assert.equal(h.disposed,1);
  await new Promise(resolve=>setImmediate(resolve));
 });

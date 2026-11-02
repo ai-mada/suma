@@ -116,6 +116,15 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, acto
 		}
 		out, err := s.Service.ListExecutionPoolRunners(ctx, actor, parts[1], limit, r.URL.Query().Get("cursor"))
 		respond(w, 200, out, err)
+	case len(parts) == 4 && parts[0] == "execution-pools" && parts[2] == "runners" && r.Method == http.MethodGet:
+		w.Header().Set("Cache-Control", "no-store")
+		out, err := s.Service.readExecutionPoolRunner(ctx, actor, parts[1], parts[3], func() error {
+			if r.URL.RawQuery != "" || r.URL.ForceQuery {
+				return invalid("输入无效")
+			}
+			return nil
+		})
+		respond(w, http.StatusOK, out, err)
 	case len(parts) == 3 && parts[0] == "execution-pools" && parts[2] == "runners" && r.Method == http.MethodPost:
 		var request ExecutionPoolRunnerCreateRequest
 		if !decodeAs(&request) {

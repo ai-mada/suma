@@ -1,0 +1,20 @@
+{
+  "pool-tool-recovery.title":"Restore shared runner connection",
+  "pool-tool-recovery.target":"Runner {{worker}} · Original project {{project}}",
+  "pool-tool-recovery.boundary":"Check current Pool access and prepare configuration only. This does not start the runner or enable a tool. Project access does not grant Pool administration.",
+  "pool-tool-recovery.refresh":"Check again",
+  "pool-tool-recovery.form_refresh":"The current check is unavailable. Your inputs are preserved. Check again to continue.",
+  "pool-tool-recovery.prepare":"Prepare this project connection",
+  "pool-tool-recovery.manage_identity":"Manage runner identity",
+  "pool-tool-recovery.as_of":"Checked at: {{at}}",
+  "pool-tool-recovery.identity_unavailable":"The runner identity is unavailable. Use the original credential rotation or pairing flow.",
+  "pool-tool-recovery.grant_unavailable":"This project has no current approved sharing grant. Use the original grant workflow first.",
+  "pool-tool-recovery.project_restricted":"Your account cannot read the original project. Contact its administrator.",
+  "pool-tool-recovery.pool_unavailable":"The Pool currently cannot be used for connection preparation.",
+  "pool-tool-recovery.phase.reading":"Checking the exact runner and project grant…",
+  "pool-tool-recovery.phase.read":"Current registration and grant read. This does not establish online status or dispatch eligibility.",
+  "pool-tool-recovery.phase.restricted":"This Pool runner cannot be read. Contact the current owner administrator.",
+  "pool-tool-recovery.phase.unknown":"The check is incomplete. Retry; old results will not be reused.",
+  "pool-tool-recovery.phase.expired":"This check expired. Check again.",
+  "pool-tool-recovery.phase.blocked":"Reconcile the original unconfirmed operation before preparing a new connection."
+}

@@ -44,6 +44,7 @@ import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
 import "./tool.css";
 import "./ToolWorkspace.css";
 import { currentPoolToolWorker, parsePoolToolLocator } from './execution-pools/pool-config-connection-model';
+import {buildPoolRecoveryOwnerHref,createPoolToolRecoveryPin,parsePoolToolRecoveryPin,readPoolRecoveryTool,type PoolToolRecoveryPin} from './execution-pools/pool-tool-recovery-model';
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {toolPreparationTarget,preparationForLocalTool,type ToolPreparationPreset} from './tool-preparation-target';
@@ -79,6 +80,7 @@ type Props = {
   onSelect: (id: string) => void;
   refresh: number;
   panel: string;
+  onPoolRecovery?: (pin:PoolToolRecoveryPin) => void;
 };
 const TaskDispatchDialog=lazy(()=>import('./TaskDispatch').then(module=>({default:module.TaskDispatchDialog})));
 type Dialog =
@@ -108,6 +110,7 @@ function ScopedToolWorkspace({
   onSelect,
   refresh,
   panel,
+  onPoolRecovery,
 }: Props) { const api=useApi(); useLocale();
   const [revision, setRevision] = useState(0),
     [filters,setFilters]=useState(()=>readToolListFilters(new URLSearchParams(window.location.search))),
@@ -271,6 +274,41 @@ function ScopedToolWorkspace({
     })();
     return()=>{controller.abort();if(!completed&&poolNavigation.current===ticket)poolNavigation.current=undefined;};
   },[api,project,panel,pairingGeneration,pending,action.busy,pairingLocked,inspectionLocked,sharedWorkers.loading,sharedWorkers.error,sharedWorkers.data]);
+  // A return locator keeps the original source for an explicit replacement.
+  // Current exact profile, shared row and diagnostics are read again; the URL
+  // neither enables a tool nor substitutes another version after a drift.
+  const poolRecoveryNavigation=useRef<{caller:typeof api;generation:number;panel:string;epoch:number}|undefined>(undefined);
+  useEffect(()=>{
+    const pin=parsePoolToolRecoveryPin(panel);
+    if(!pin){poolRecoveryNavigation.current=undefined;return;}
+    if(pin.tenant_id!==session.organization.id||pin.project_id!==project||pin.tool_profile_id!==selected)return;
+    if(pending||action.busy||pairingLocked||inspectionLocked||stale||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data)return;
+    const old=poolRecoveryNavigation.current;
+    if(old?.caller===api&&old.generation===pairingGeneration&&old.panel===panel&&old.epoch===detailEpoch)return;
+    const source=readPoolRecoveryTool(current,pin);
+    const rowPin=source&&createPoolToolRecoveryPin(source,session.organization.id,sharedWorkers.data);
+    if(!source||!rowPin||rowPin.pool_id!==pin.pool_id||rowPin.runner_id!==pin.runner_id){setConnectError(new UiError('pool-tool-recovery-navigation.changed'));return;}
+    const ticket={caller:api,generation:pairingGeneration,panel,epoch:detailEpoch};poolRecoveryNavigation.current=ticket;
+    const controller=new AbortController(),nonce=++connectIntent.current,epoch=detailEpoch;
+    let completed=false;setConnecting(true);setConnectError(undefined);
+    const owns=()=>activeWorkspace.current&&!controller.signal.aborted&&connectIntent.current===nonce&&detailOwner.current.epoch===epoch&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration;
+    void(async()=>{try{
+      const localScope={project,toolID:source.id,userID:session.user.id,organizationID:session.organization.id};
+      if(hasToolInspectionLocalOperation(localScope,toolSessionStorage())){await inspectProfile(source);completed=true;return;}
+      const started=performance.now();
+      const {report,remainingMs}=readToolProfileDiagnostics(await api<unknown>('/tool-profiles/'+encodeURIComponent(source.id)+'/diagnostics'+query(project),undefined,'GET',undefined,controller.signal),{project,toolID:source.id});
+      if(!owns())return;
+      const fresh=readPoolRecoveryTool(report.tool,pin);
+      if(!fresh||remainingMs-(performance.now()-started)<=0)throw new UiError('pool-tool-recovery-navigation.changed');
+      const resolution=report.maintenance_resolution;
+      if((resolution.action==='view_inspection'||resolution.action==='recover_inspection'||resolution.action==='view_recovery')&&resolution.inspection_id){await inspectProfile(fresh,{inspectionID:resolution.inspection_id,...(resolution.recovery_id?{recoveryID:resolution.recovery_id}:{})});completed=true;}
+      // configureProfile owns a new intent nonce; this outer source ticket and
+      // abort signal still retire it when a shared-source refresh invalidates us.
+      else completed=await configureProfile(fresh,'quick',()=>!controller.signal.aborted&&poolRecoveryNavigation.current===ticket&&remainingMs-(performance.now()-started)>0)===true;
+    }catch(error){if(owns())setConnectError(error);}
+    finally{if(!completed&&poolRecoveryNavigation.current===ticket)poolRecoveryNavigation.current=undefined;if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration&&connectIntent.current===nonce)setConnecting(false);}})();
+    return()=>{controller.abort();if(!completed&&poolRecoveryNavigation.current===ticket)poolRecoveryNavigation.current=undefined;};
+  },[api,project,panel,selected,session.organization.id,session.user.id,pairingGeneration,pending,action.busy,pairingLocked,inspectionLocked,stale,current,detailEpoch,sharedWorkers.loading,sharedWorkers.error,sharedWorkers.data]);
   function applyFilters(value:ToolListFilters){
     if(!validToolListQuery(value.query)){setSearchError(true);return;}
     const next={...value,query:value.query.trim()};setSearchError(false);setFilters(next);setFilter('all');
@@ -314,7 +352,7 @@ function ScopedToolWorkspace({
   function beginPublicDraft(value:ToolConnectDraft,sourceTool?:ToolProfile){
     const nonce=++connectIntent.current;connectDraft.current={caller:api,generation:pairingGeneration,context:contextKey,nonce,value:{...value},...(sourceTool?{sourceTool:structuredClone(sourceTool),sourceEpoch:detailOwner.current.epoch}:{})};renderDraft(value=>value+1);return nonce;
   }
-  async function configureProfile(value:ToolProfile,destination:'quick'|'worker'='quick'){
+  async function configureProfile(value:ToolProfile,destination:'quick'|'worker'|'shared-worker'='quick',sourceCurrent?:()=>boolean){
     if(writeBlocked||stale||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
     if(destination==='worker'&&!ordinaryWorkerReady(value.worker_id)){setConnectError(new UiError('tool-recovery-navigation.changed'));return;}
     const sourceEpoch=detailOwner.current.epoch;
@@ -322,15 +360,17 @@ function ScopedToolWorkspace({
     try{
       const catalog=readAdapterCatalog(await api<unknown>('/adapter-catalog'+query(project)),project);
       if(!activeWorkspace.current||nonce!==connectIntent.current||detailOwner.current.epoch!==sourceEpoch||latestDetailBasis.current!==detailBasis||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+      if(sourceCurrent&&!sourceCurrent())throw new UiError('pool-tool-recovery-navigation.changed');
       if(destination==='worker'&&!ordinaryWorkerReady(value.worker_id))throw new UiError('tool-recovery-navigation.changed');
       const matches=catalog?.items.filter(item=>item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&item.adapter===value.profile.adapter&&item.protocol===value.profile.protocol);
       if(matches?.length!==1)throw new Error(t('tool-workspace.target_unavailable'));
       settledNonce=beginPublicDraft({adapterID:matches[0].id,workerID:value.worker_id,commandID:value.profile.command_id,name:value.name,nameEdited:true},value.state==='revoked'?undefined:value);
       action.clearError();void workers.read();void sharedWorkers.read();
-      if(destination==='worker'){
-        setDialog(undefined);focusNavigation(()=>workerRows.current.get(value.worker_id),false);
-        if(!toolPreparationTarget(matches[0]))setConnectError(new UiError('tool-recovery-navigation.unsupported'));
+      if(destination!=='quick'){
+        setDialog(undefined);focusNavigation(()=>(destination==='shared-worker'?sharedWorkerRows:workerRows).current.get(value.worker_id),false);
+        if(destination==='worker'&&!toolPreparationTarget(matches[0]))setConnectError(new UiError('tool-recovery-navigation.unsupported'));
       }else setDialog({kind:'quick',adapter:matches[0],preferredWorkerID:value.worker_id});
+      return true;
     }catch(error){if(activeWorkspace.current&&nonce===connectIntent.current&&pairingCaller.current.api===api)setConnectError(error);}
     finally{if(activeWorkspace.current&&connectIntent.current===settledNonce&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
   }
@@ -344,6 +384,17 @@ function ScopedToolWorkspace({
     const target=publicDraft&&preparationForLocalTool(publicDraft.adapterID);
     if(!ordinaryWorkerReady(workerID)||!replacementSourceCurrent||!replacementSource||!publicDraft||!target||publicDraft.workerID!==workerID||replacementSource.worker_id!==workerID||target.adapter!==replacementSource.profile.adapter||target.protocol!==replacementSource.profile.protocol)return;
     return replacementSource;
+  }
+  function sharedRecoveryPin(workerID:string):PoolToolRecoveryPin|undefined{
+    if(!replacementSourceCurrent||!replacementSource||!publicDraft||publicDraft.workerID!==workerID||replacementSource.worker_id!==workerID||sharedWorkers.loading||sharedWorkers.error)return;
+    return createPoolToolRecoveryPin(replacementSource,session.organization.id,sharedWorkers.data);
+  }
+  function sharedRecoveryEntry(workerID:string){
+    const pin=sharedRecoveryPin(workerID);if(!pin)return;
+    return <div className="tool-worker-recovery" data-pool-tool-recovery-entry={workerID}><p>{t('pool-tool-recovery-navigation.owner_target')}<small>{t('pool-tool-recovery-navigation.owner_hint')}</small></p><button type="button" data-pool-tool-recovery-open={workerID} disabled={stale||writeBlocked} onClick={()=>{
+      const currentPin=sharedRecoveryPin(workerID);if(!currentPin||!canLeave())return;
+      if(onPoolRecovery)onPoolRecovery(currentPin);else{const href=buildPoolRecoveryOwnerHref(currentPin);if(href)window.location.assign(href);}
+    }}>{t('pool-tool-recovery-navigation.manage')}</button></div>;
   }
   async function prepareWorkerConnection(value:ToolProfile){
     const source=workerRecoverySource(value.worker_id);
@@ -736,7 +787,7 @@ function ScopedToolWorkspace({
                     onInspect={inspectProfile}
                     onRefreshTool={()=>{if(!writeBlocked)void detail.read();}}
                     onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});void configureProfile(current,'worker');}:undefined}
-                    onSharedWorker={!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=sharedWorkerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
+                    onSharedWorker={!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=sharedWorkerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});void configureProfile(current,'shared-worker');}:undefined}
                     onRun={(runID,nodeID)=>{if(!stale&&!writeBlocked&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run:runID,node:nodeID}));}}
                   />
                   <ToolProfileReplacementHistory project={project} profileID={current.id} disabled={writeBlocked||stale} accessBlocked={detail.failure instanceof ApiError&&[401,403,404].includes(detail.failure.status)} refresh={refresh+revision} onViewProfile={profile=>{if(!stale&&!writeBlocked&&canLeave())onSelect(profile.id);}} onAccessDenied={()=>{if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)void detail.read();}}/>
@@ -811,7 +862,7 @@ function ScopedToolWorkspace({
             description={t("development.tools.registration_issues_a_one_time_project_scoped")}
           />
         )}
-        {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers"><h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>{sharedWorkers.data.items.map(worker=><article key={worker.id} className="tool-worker-row" tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}><div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div><div><button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span></div></article>)}</div>}
+        {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers"><h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>{sharedWorkers.data.items.map(worker=><article key={worker.id} className={"tool-worker-row"+(sharedRecoveryPin(worker.worker_id)?" with-recovery":"")} tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}><div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div><div><button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span></div>{sharedRecoveryEntry(worker.worker_id)}</article>)}</div>}
       </section>
       <WorkBuddyConnections project={project} panel={panel} openRequest={connection?.cloud?connection.nonce:undefined}/>
       <details className="tool-workspace-more panel" data-tool-workspace-more open={setupDisclosure.open}>

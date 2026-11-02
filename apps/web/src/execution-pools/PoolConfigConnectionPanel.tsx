@@ -10,6 +10,8 @@ import {
   validPoolConnectionControl,
 } from './pool-config-connection-model';
 import './PoolConfigConnection.css';
+import type {PoolToolRecovery} from './PoolToolRecoveryPanel';
+import {buildPoolRecoveryProjectHref,validPoolToolRecoveryPin} from './pool-tool-recovery-model';
 
 export type PoolConfigConnectionPanelProps = {
   ownerTenantID: string;
@@ -18,6 +20,7 @@ export type PoolConfigConnectionPanelProps = {
   workerID: string;
   prepared: PreparedPoolConnection;
   disabled?: boolean;
+  recovery?: PoolToolRecovery;
 };
 const t = (key: string, values?: Record<string, unknown>) => tr('pool-config-connection.' + key, values);
 const observationDateOptions: Intl.DateTimeFormatOptions = {
@@ -30,7 +33,7 @@ const observationDateOptions: Intl.DateTimeFormatOptions = {
 export function PoolConfigConnectionPanel(props: PoolConfigConnectionPanelProps) {
   const api = useApi(), view = useApiView();
   const basis = JSON.stringify([view?.userID, view?.organizationID, props.ownerTenantID,
-    props.poolID, props.runnerID, props.workerID, props.prepared]);
+    props.poolID, props.runnerID, props.workerID, props.prepared,props.recovery]);
   const owner = useRef({ api, basis, epoch: 0 });
   if (owner.current.api !== api || owner.current.basis !== basis)
     owner.current = { api, basis, epoch: owner.current.epoch + 1 };
@@ -38,7 +41,7 @@ export function PoolConfigConnectionPanel(props: PoolConfigConnectionPanelProps)
     authorized={!!view?.userID && view.organizationID === props.ownerTenantID} />;
 }
 
-function ConnectionScope({ poolID, runnerID, workerID, prepared, disabled = false, authorized }: PoolConfigConnectionPanelProps & { authorized: boolean }) {
+function ConnectionScope({ poolID, runnerID, workerID, prepared, recovery, disabled = false, authorized }: PoolConfigConnectionPanelProps & { authorized: boolean }) {
   const api = useApi();
   useLocale();
   const [identity, setIdentity] = useState('');
@@ -62,8 +65,9 @@ function ConnectionScope({ poolID, runnerID, workerID, prepared, disabled = fals
   const current = active && phase === 'read' ? result?.value : undefined;
   // This link only opens the original project page, which rechecks current
   // access and tools. An inventory lease never grants or removes navigation.
+  const exactRecovery=recovery&&validPoolToolRecoveryPin(recovery.pin)&&recovery.pin.pool_id===poolID&&recovery.pin.runner_id===runnerID&&recovery.pin.worker_id===workerID&&current?.scope.tenant_id===recovery.pin.tenant_id&&current.scope.project_id===recovery.pin.project_id&&current.scope.grant_status==='approved';
   const href = current && current.scope.can_open_project
-    ? buildPoolToolHref(current.scope.project_id, { poolID, runnerID }) : undefined;
+    ? exactRecovery?buildPoolRecoveryProjectHref(recovery.pin):buildPoolToolHref(current.scope.project_id, { poolID, runnerID }) : undefined;
   const registrationState = (value: string) => t('registration_state.' + (['active', 'paused', 'revoked'].includes(value) ? value : 'unknown'));
   useEffect(() => {
     alive.current = true;

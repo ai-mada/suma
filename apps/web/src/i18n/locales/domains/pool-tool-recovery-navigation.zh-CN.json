@@ -1,0 +1,6 @@
+{
+  "pool-tool-recovery-navigation.owner_target": "继续管理此共享执行节点",
+  "pool-tool-recovery-navigation.owner_hint": "在资源池所属组织核对准确节点和项目授权；不会自动切换组织、配对或启用。",
+  "pool-tool-recovery-navigation.manage": "管理共享节点",
+  "pool-tool-recovery-navigation.changed": "原工具或共享节点依据已变化，请刷新后重新选择恢复入口。"
+}

@@ -1,0 +1,4 @@
+.execution-pools .pool-tool-recovery{--control-height:44px;border:1px solid var(--border);border-radius:10px;padding:16px;margin:16px 0;min-width:0}
+.pool-tool-recovery>header{display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap}
+.pool-tool-recovery h3{margin:0 0 6px}.pool-tool-recovery p{overflow-wrap:anywhere}.pool-tool-recovery button{min-height:44px;white-space:normal}
+@media(max-width:600px){.pool-tool-recovery>header>div{width:100%}.pool-tool-recovery .pool-row-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%}.pool-tool-recovery .pool-row-actions>button{width:100%}}

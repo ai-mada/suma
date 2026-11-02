@@ -70,6 +70,7 @@ func executionPoolContracts(add operationAdder) {
 		{"/execution-pools/{pool}/grants", "get", "ExecutionPoolGrantPage", "", false, true},
 		{"/execution-pools/{pool}/grants/{grant}/commands", "post", "ExecutionPoolGrant", "ExecutionPoolGrantCommand", false, false},
 		{"/execution-pools/{pool}/runners", "get", "ExecutionPoolRunnerPage", "", false, true},
+		{"/execution-pools/{pool}/runners/{runner}", "get", "ExecutionPoolRunner", "", false, false},
 		{"/execution-pools/{pool}/runners", "post", "ExecutionPoolCredentialResponse", "ExecutionPoolRunnerCreateRequest", false, false},
 		{"/execution-pools/{pool}/runners/{runner}/credentials", "post", "ExecutionPoolCredentialResponse", "ExecutionPoolCredentialRequest", false, false},
 		{"/execution-pools/{pool}/runners/{runner}/commands", "post", "ExecutionPoolRunner", "ExecutionPoolCommandRequest", false, false},
@@ -90,6 +91,11 @@ func executionPoolContracts(add operationAdder) {
 		op["x-authorization-scope"] = "current organization owner/admin; exact browser credential"
 		if route.project {
 			op["x-authorization-scope"] = "exact project; read or current project admin for mutations"
+		}
+		if route.path == "/execution-pools/{pool}/runners/{runner}" {
+			op["description"] = "Read one exact registered Runner in its current organization-owned pool, independently of list pagination. Current browser owner/admin authority is checked before pool ownership and the closed request. No query parameters or project context are accepted. Registration and historical last contact do not prove tool readiness; credentials and consuming-project content are never returned."
+			op["x-read-only"], op["x-response-cache-control"] = true, "no-store"
+			op["x-query-parameters-forbidden"] = true
 		}
 		if route.input != "" {
 			request(op, route.input)

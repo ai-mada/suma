@@ -11,6 +11,7 @@ const {createWorkBuddyOAuthController}=require('./oauth-window.cjs');
 const {CHANNEL:TOOL_DISCOVERY_CHANNEL,createInstalledToolDiscoveryController}=require('./installed-tools.cjs');
 const {CHANNEL:MANAGED_RUNNER_CHANNEL,createManagedLocalRunnerController}=require('./managed-local-runner.cjs');
 const {CHANNEL:LOCAL_ACP_CHANNEL}=require('./local-acp.cjs');
+const {createWindowDepartureController}=require('./window-departure.cjs');
 const OAUTH_CHANNEL='suma:open-workbuddy-authorization';
 let oauthController;
 function disposeOAuth(){ipcMain.removeHandler(OAUTH_CHANNEL);oauthController?.dispose();oauthController=undefined;}
@@ -18,7 +19,7 @@ let installedToolController;let installedToolStop=Promise.resolve();
 function disposeInstalledTools(){ipcMain.removeHandler(TOOL_DISCOVERY_CHANNEL);if(installedToolController)installedToolStop=installedToolController.dispose();installedToolController=undefined;return installedToolStop;}
 let managedRunnerController;let managedRunnerStop=Promise.resolve();
 function disposeManagedRunner(){ipcMain.removeHandler(MANAGED_RUNNER_CHANNEL);ipcMain.removeHandler(LOCAL_ACP_CHANNEL);if(managedRunnerController)managedRunnerStop=managedRunnerController.dispose();managedRunnerController=undefined;return managedRunnerStop;}
-let service;let window;let shuttingDown=false;let quitRequested=false;let locale='zh-CN';let origin='';let overrides;let configurationError;
+let service;let window;let departureController;let shutdownTask;let shuttingDown=false;let quitRequested=false;let locale='zh-CN';let origin='';let overrides;let configurationError;
 try{overrides=developmentOverrides(__dirname,process.env,app.isPackaged);if(overrides)app.setPath('userData',ensurePrivateDirectory(overrides.userData))}catch{configurationError='desktop_configuration_invalid'}
 async function stopService(){await terminateService(service,5000,locale)}
 async function start(){
@@ -53,6 +54,7 @@ async function start(){
  service=spawn(binary,['--addr',`127.0.0.1:${port}`],{cwd:data,env:environment,stdio:'ignore',windowsHide:true});let exited=false;let spawnError;service.once('error',()=>{spawnError=true;exited=true});service.once('exit',()=>{exited=true;if(window && !shuttingDown){dialog.showErrorBox(message(locale,'service_stopped_title'),message(locale,'service_stopped'));window.close()}});
  try{await waitForHealth(origin,()=>exited,15000,locale)}catch(error){if(spawnError)throw localError(locale,'startup_failed');if(exited)throw startupExitError(service.exitCode,locale);throw error}
  window=new BrowserWindow({width:1440,height:960,minWidth:960,minHeight:640,show:false,title:message(locale,'window_title'),backgroundColor:'#101014',webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,allowRunningInsecureContent:false}});
+ departureController=createWindowDepartureController({parent:window,dialog,origin,locale,getWindow:()=>window});
  window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',(event,url)=>{if(!allowedNavigation(url,origin))event.preventDefault()});window.webContents.on('will-redirect',(event,url)=>{if(!allowedNavigation(url,origin))event.preventDefault()});window.webContents.session.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));window.webContents.session.setPermissionCheckHandler(()=>false);
  ipcMain.handle(CHANNEL,createDirectoryPicker({key,dialog,getWindow:()=>window,getOrigin:()=>origin,isShuttingDown:()=>shuttingDown}));
  oauthController=createWorkBuddyOAuthController({BrowserWindow,parent:window,origin});
@@ -64,11 +66,19 @@ async function start(){
  managedRunnerController=createManagedLocalRunnerController({parent:window,origin,binary,key,userData:app.getPath('userData'),safeStorage,discover:(event,request)=>installedToolController.discover(event,request)});
  ipcMain.handle(MANAGED_RUNNER_CHANNEL,(event,request)=>managedRunnerController.manage(event,request));
  ipcMain.handle(LOCAL_ACP_CHANNEL,(event,request)=>managedRunnerController.inspectACP(event,request));
- window.once('ready-to-show',()=>window.show());window.once('closed',()=>{disposeOAuth();disposeInstalledTools();disposeManagedRunner();window=undefined});await window.loadURL(origin);
+ window.once('ready-to-show',()=>window.show());window.once('closed',()=>{departureController?.dispose();departureController=undefined;disposeOAuth();disposeInstalledTools();disposeManagedRunner();window=undefined});await window.loadURL(origin);
 }
 if(!configurationError&&!app.requestSingleInstanceLock()){app.quit()}else{
  app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.focus()}});
  app.whenReady().then(start).catch(async error=>{shuttingDown=true;dialog.showErrorBox(message(locale,'startup_failed'),error.message);try{await stopService()}catch(stopError){dialog.showErrorBox(message(locale,'shutdown_failed'),stopError.message)}finally{app.quit()}});
  app.on('window-all-closed',()=>app.quit());
- app.on('before-quit',event=>{if(quitRequested)return;event.preventDefault();shuttingDown=true;disposeOAuth();const localChildrenStopped=Promise.all([disposeManagedRunner(),disposeInstalledTools()]);ipcMain?.removeHandler(CHANNEL);void localChildrenStopped.then(stopService).catch(error=>dialog.showErrorBox(message(locale,'shutdown_failed'),error.message)).finally(()=>{quitRequested=true;app.quit()})});
+ app.on('before-quit',event=>{
+  if(quitRequested)return;event.preventDefault();
+  // Stay must preserve the original IPC, service and managed Runner owner.
+  // Admit the existing shutdown only after the owned window actually closed.
+  if(window&&!window.isDestroyed()){departureController?.requestQuit();return;}
+  if(shutdownTask)return;shuttingDown=true;disposeOAuth();
+  const localChildrenStopped=Promise.all([disposeManagedRunner(),disposeInstalledTools()]);ipcMain?.removeHandler(CHANNEL);
+  shutdownTask=localChildrenStopped.then(stopService).catch(error=>dialog.showErrorBox(message(locale,'shutdown_failed'),error.message)).finally(()=>{quitRequested=true;app.quit()});
+ });
 }

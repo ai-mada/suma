@@ -1,0 +1,20 @@
+{
+  "pool-tool-recovery.title":"恢复共享节点连接",
+  "pool-tool-recovery.target":"节点 {{worker}} · 原项目 {{project}}",
+  "pool-tool-recovery.boundary":"仅核对当前资源池权限并准备配置，不会启动节点或启用工具。项目权限不能替代资源池管理权限。",
+  "pool-tool-recovery.refresh":"重新核对",
+  "pool-tool-recovery.form_refresh":"当前核对不可用。输入已保留，请重新核对后继续。",
+  "pool-tool-recovery.prepare":"准备本项目连接",
+  "pool-tool-recovery.manage_identity":"处理节点身份",
+  "pool-tool-recovery.as_of":"核对时间：{{at}}",
+  "pool-tool-recovery.identity_unavailable":"节点身份已失效，请通过原凭据轮换或重新配对处理。",
+  "pool-tool-recovery.grant_unavailable":"本项目尚无当前批准的共享授权，请先在原授权流程处理。",
+  "pool-tool-recovery.project_restricted":"当前账号无法读取原项目，请联系项目管理员。",
+  "pool-tool-recovery.pool_unavailable":"资源池当前不可用于连接准备。",
+  "pool-tool-recovery.phase.reading":"正在核对准确节点与项目授权…",
+  "pool-tool-recovery.phase.read":"已读取当前登记与授权；这不是在线或可派发结论。",
+  "pool-tool-recovery.phase.restricted":"无法读取此资源池节点，请由当前拥有方管理员处理。",
+  "pool-tool-recovery.phase.unknown":"尚未完成核对，请重试；不会沿用旧结果。",
+  "pool-tool-recovery.phase.expired":"本次核对已失效，请重新核对。",
+  "pool-tool-recovery.phase.blocked":"请先核对原未确认操作，再准备新的连接。"
+}

@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Check, ChevronRight, Copy, Plus, Trash2 } from 'lucide-react';
 import type { ExecutionPoolRunner, ExecutionPoolGrant } from '../../../../packages/contracts/src';
+import type {PoolToolRecovery} from './PoolToolRecoveryPanel';
+import {validPoolToolRecoveryPin} from './pool-tool-recovery-model';
 import { useApi, useApiView } from '../api-context';
 import { formatNumber, tr, useLocale } from '../i18n';
 import { emptyPoolConfigScope, poolConfigPreparationCommands, poolConfigPreparationIssue, validPoolConfigID, type PoolConfigPreparationInput, type PoolConfigPreparationScope, type PoolConfigPreparationIssue } from './pool-config-preparation-model';
@@ -14,6 +16,7 @@ export type PoolConfigPreparationPanelProps={
   poolID: string;
   runner: Pick<ExecutionPoolRunner, 'id'|'pool_id'|'worker_id'|'max_slots'|'status'>;
   grants?: PoolConfigPreparationGrant[];
+  recovery?: PoolToolRecovery;
   disabled?: boolean;
 };
 type Row={
@@ -29,6 +32,10 @@ function scopeForProject(current: PoolConfigPreparationScope, tenantID: string, 
   return { ...emptyPoolConfigScope(), tenant_id: tenantID, project_id: projectID };
 }
 const t=(key: string, values?: Record<string, unknown>) => tr('pool-config-preparation.'+key, values);
+function recoveryGrant(value:PoolToolRecovery|undefined,owner:string,pool:string,runner:string):PoolConfigPreparationGrant|undefined{
+  if(!value||!validPoolToolRecoveryPin(value.pin)||value.pin.pool_id!==pool||value.pin.runner_id!==runner||value.pin.tenant_id!==owner||value.scope.tenant_id!==value.pin.tenant_id||value.scope.project_id!==value.pin.project_id||!validPoolConfigID(value.scope.grant_id)||value.scope.grant_version<1||value.scope.grant_status!=='approved'||!value.scope.can_open_project)return;
+  return {id:value.scope.grant_id,pool_id:pool,owner_tenant_id:owner,tenant_id:value.scope.tenant_id,project_id:value.scope.project_id,status:'approved',shared_project_name:value.scope.shared_project_name};
+}
 function eligibleGrants(grants: PoolConfigPreparationGrant[]|undefined, ownerTenantID: string, poolID: string) {
   const current=Array.isArray(grants)? grants:[], counts=new Map<string, number>();
   for(const grant of current)
@@ -40,19 +47,22 @@ function eligibleGrants(grants: PoolConfigPreparationGrant[]|undefined, ownerTen
  * Its scope is the current authorized Pool and registered machine only. */
 export function PoolConfigPreparationPanel(props: PoolConfigPreparationPanelProps) {
   useLocale();
-  const api=useApi(), view=useApiView(), key=JSON.stringify([view?.userID, view?.organizationID, props.ownerTenantID, props.poolID, props.runner.id, props.runner.pool_id, props.runner.worker_id, props.runner.status, props.runner.max_slots]), owner=useRef({ api, key, epoch: 0 });
+  const api=useApi(), view=useApiView(), key=JSON.stringify([view?.userID, view?.organizationID, props.ownerTenantID, props.poolID, props.runner.id, props.runner.pool_id, props.runner.worker_id, props.runner.status, props.runner.max_slots,props.recovery&&[props.recovery.pin,props.recovery.scope.grant_id,props.recovery.scope.grant_version,props.recovery.scope.grant_status,props.recovery.scope.can_open_project]]), owner=useRef({ api, key, epoch: 0 });
   if(owner.current.api!==api||owner.current.key!==key)
     owner.current={ api, key, epoch: owner.current.epoch+1 };
-  if(!view||view.organizationID!==props.ownerTenantID||!validPoolConfigID(props.poolID)||!validPoolConfigID(props.runner.id)||props.runner.pool_id!==props.poolID||props.runner.status!=='active'||props.runner.worker_id!=='pool-'+props.runner.id||!Number.isInteger(props.runner.max_slots)||props.runner.max_slots<1||props.runner.max_slots>128)
+  if(!view||view.organizationID!==props.ownerTenantID||!validPoolConfigID(props.poolID)||!validPoolConfigID(props.runner.id)||props.runner.pool_id!==props.poolID||props.runner.status!=='active'||props.runner.worker_id!=='pool-'+props.runner.id||!Number.isInteger(props.runner.max_slots)||props.runner.max_slots<1||props.runner.max_slots>128||props.recovery&&!recoveryGrant(props.recovery,props.ownerTenantID,props.poolID,props.runner.id))
     return <p role="status" data-pool-config-unavailable>{t('unavailable')}</p>;
   const epoch=owner.current.epoch, owns=() => owner.current.api===api&&owner.current.key===key&&owner.current.epoch===epoch;
   return <PreparationScope key={key+':'+epoch} {...props} owns={owns} />;
 }
-function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=false, owns }: PoolConfigPreparationPanelProps&{
+function PreparationScope({ ownerTenantID, poolID, runner, grants, recovery, disabled=false, owns }: PoolConfigPreparationPanelProps&{
   owns: () => boolean;
 }) {
-  const panel=useRef<HTMLDivElement>(null), sequence=useRef(1), [shell, setShell]=useState<PoolConfigPreparationInput['shell']>(''), [output, setOutput]=useState(''), [slots, setSlots]=useState('1'), [rows, setRows]=useState<Row[]>([{ key: 'scope-1', value: emptyPoolConfigScope(), grantID: '' }]), [preview, setPreview]=useState<ReturnType<typeof poolConfigPreparationCommands>>(), [previewBasis, setPreviewBasis]=useState(''), [message, setMessage]=useState(''), [copied, setCopied]=useState(false), [copying, setCopying]=useState(false), focusIntent=useRef<string|undefined>(undefined);
-  const available=eligibleGrants(grants, ownerTenantID, poolID);
+  const seed=recoveryGrant(recovery,ownerTenantID,poolID,runner.id);
+  const panel=useRef<HTMLDivElement>(null), sequence=useRef(1), [shell, setShell]=useState<PoolConfigPreparationInput['shell']>(''), [output, setOutput]=useState(''), [slots, setSlots]=useState('1'), [rows, setRows]=useState<Row[]>(()=>[{ key: 'scope-1', value: {...emptyPoolConfigScope(),...(seed?{tenant_id:seed.tenant_id,project_id:seed.project_id}:{})}, grantID: seed?.id??'' }]), [preview, setPreview]=useState<ReturnType<typeof poolConfigPreparationCommands>>(), [previewBasis, setPreviewBasis]=useState(''), [message, setMessage]=useState(''), [copied, setCopied]=useState(false), [copying, setCopying]=useState(false), focusIntent=useRef<string|undefined>(undefined);
+  // Exact readiness supplies the current source Grant even outside the first
+  // collection page. It supplies public metadata only, never local file paths.
+  const available=eligibleGrants(seed?[...(grants??[]).filter(grant=>grant.id!==seed.id),seed]:grants, ownerTenantID, poolID);
   const grantBasis=JSON.stringify([disabled, rows.map(row => [row.grantID, row.grantID? available.some(grant => grant.id===row.grantID&&grant.tenant_id===row.value.tenant_id&&grant.project_id===row.value.project_id):true])]), sourceOwner=useRef({ basis: grantBasis, epoch: 0 });
   // Observed revocation/loading and A→B→A cannot revive an old clipboard ACK
   // or preview merely because its public identifiers happen to match again.
@@ -262,7 +272,7 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
     {preview&&!disabled&&previewBasis===sourceBasis&&<PoolConfigConnectionPanel
       key={owner.current.revision + ':' + sourceBasis} ownerTenantID={ownerTenantID} poolID={poolID}
       runnerID={runner.id} workerID={runner.worker_id}
-      prepared={{shell:shell as 'powershell'|'bash',output,scopes:preview.request.scopes.map(({tenant_id,project_id})=>({tenant_id,project_id}))}} />}
+      prepared={{shell:shell as 'powershell'|'bash',output,scopes:preview.request.scopes.map(({tenant_id,project_id})=>({tenant_id,project_id}))}} recovery={recovery} />}
     {hasPrepared&&!disabled&&<details className="pool-config-diagnostic" data-pool-config-diagnostic>
       <summary><ChevronRight size={16} aria-hidden="true"/>{t('diagnostic.title')}</summary>
       <p className="pool-config-muted">{t('diagnostic.intro')}</p>

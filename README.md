@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-TEAM-WORKSTATION-RECOVERY-218：[共享节点恢复与 AI SOP](docs/product/team-workstation-recovery.md)／[交互设计](docs/design/team-workstation-recovery.md)／[限定验证](docs/quality/team-workstation-recovery-verification.md)。工具诊断可进入准确资源池、节点和项目配置，再返回原工具换新；核对到期保留输入，来源失效阻止迟到配置。桌面默认留下，实际关闭后才进入原收尾。中英文代表界面及原生窗口已限定验证；真实远程修复、完整31项／P0–P7继续。
+
 T-TOOL-RECOVERY-NAVIGATION-217：[工具恢复交接与AI SOP](docs/product/tool-recovery-navigation.md)／[交互](docs/design/tool-recovery-navigation.md)／[限定验证](docs/quality/tool-recovery-navigation-verification.md)。常用操作前置，Doctor→准确普通节点→原连接准备／上报／Quick贯通；来源ABA、截止、共享边界与原未知保护保持。5项定向、类型0／9774对词条、4组代表合成界面通过；1次构建，失败与宿主退出分开记录。真实远程修复及完整31／P0–P7继续。
 
 T-TEST-DISPATCH-BINDINGS-216：[明确开发／独立测试工具与AI SOP](docs/product/test-dispatch-bindings.md)／[交互](docs/design/test-dispatch-bindings.md)／[限定验证](docs/quality/test-dispatch-bindings-verification.md)。原派发按需选择并冻结另一Worker测试工具，准确来源及同提交质量门贯通；真实Git／双Worker／JUnit及夹具Review通过，SQLite取消泄漏沿官方稳定驱动修复。25项主要定向及新版存储／关键平台检查通过；全包曾超时，未声称整包或完整31／P0–P7完成。

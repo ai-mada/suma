@@ -1,5 +1,7 @@
 # 独立资源池 Runner 与多项目执行
 
+T-TEAM-WORKSTATION-RECOVERY-218：[共享节点恢复与 AI SOP](../product/team-workstation-recovery.md)／[交互设计](../design/team-workstation-recovery.md)／[限定验证](../quality/team-workstation-recovery-verification.md)。工具诊断可进入准确资源池、节点和项目配置，再返回原工具换新；核对到期保留输入，来源失效阻止迟到配置。桌面默认留下，实际关闭后才进入原收尾。中英文代表界面及原生窗口已限定验证；真实远程修复、完整31项／P0–P7继续。
+
 T217补充[准确节点连接准备](../product/tool-recovery-navigation.md)：普通项目节点与共享Pool分别核对授权；原未知检查和写入恢复优先，Guide新报告只交回原Quick。复制、准备、登记和启用分别处理，不因打开指南授予任务或执行能力。
 
 T216补充[开发与独立测试明确派发](../product/test-dispatch-bindings.md)：同Pool不同槽位不等于不同Worker，原计划和最终路由固定准确测试工具；每个producer需另一Worker对当前来源／attempt／fence／证据SHA的同提交测试。等待、配置可用、实际执行及人工验收分别记录，取消后的SQLite恢复见[决定](../adr/sqlite-cancellation.md)。

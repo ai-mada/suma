@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "scoped_verified_git_delivery_recorded_separately",
-  "stage": "T-COMMAND-COMPOSITION-215",
-  "updated_at": "2026-11-02T16:05:50.230Z",
+  "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
+  "updated_at": "2026-11-02T19:42:48.383Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/command-composition-verification.md",
-  "current_summary": "docs/quality/command-composition-summary.json",
+  "current_evidence": "docs/quality/team-workstation-recovery-verification.md",
+  "current_summary": "docs/quality/team-workstation-recovery-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -636,26 +636,23 @@
       }
     ]
   },
-  "current_implementation": "Original tool guide -> closed file-reference composition -> existing strict whole configuration/native checks -> original exclusive new-file writer -> safe receipt -> explicit path adoption in original ordered Runner guide. No new store, dispatcher, dependency or quality gate.",
+  "current_implementation": "Current owner exact Pool Runner read; original Tool Doctor -> public fixed source locator -> original shared configuration preparation/connection -> original source Quick. Monotonic30s freshness keeps draft while disabling expired actions; late catalog cannot cross retired shared source. Electron Stay-first single departure controller; real closed then original service/Runner drain. No second dispatcher/store or automatic tool enable.",
   "verified": {
-    "stage": "T-COMMAND-COMPOSITION-215",
-    "current_report": "docs/quality/command-composition-verification.md",
-    "current_summary": "docs/quality/command-composition-summary.json",
-    "distinct_top_level": 13,
-    "new_top_level": 10,
-    "directly_affected_existing": 3,
-    "subcases": 18,
+    "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
+    "current_report": "docs/quality/team-workstation-recovery-verification.md",
+    "current_summary": "docs/quality/team-workstation-recovery-summary.json",
+    "distinct_top_level": 22,
+    "new_top_level": 14,
+    "directly_affected_existing": 8,
     "initial_full_web_typecheck_exit": 2,
-    "initial_new_test_mock_diagnostics": 3,
-    "final_five_files_semantic_errors": 0,
-    "catalog_keys": 9739,
+    "initial_new_test_diagnostics": 2,
+    "final_two_affected_files_semantic_errors": 0,
+    "catalog_keys": 9796,
     "production_hardcodes": 0,
-    "actual_final_checks": 4,
-    "actual_cli_exit_codes": [
-      0,
-      1
-    ],
-    "actual_api": 0,
+    "api_paths": 452,
+    "contract_schemas": 1000,
+    "web_representative_groups": 3,
+    "desktop_actual_groups": 5,
     "real_vendor_or_model_or_worker_or_approval": false
   },
   "production_integration_complete": false,
@@ -666,35 +663,36 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "d98441a7694cb0c3aa33a7e6daa32abcfe63f080",
-    "current_stage_receipt": ".cache/command-composition-215/post-git.json"
+    "previously_published_commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
+    "current_stage_receipt": ".cache/team-workstation-recovery-218/post-git.json"
   },
   "existing_preview": {
     "updated": false,
     "user_database_modified": false,
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
-  "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
+  "remaining_work": "Actual authorized target-machine repair and tool execution; autonomous code candidate -> independent different-Worker same-SHA tests -> manual acceptance -> issue return and baseline handoff. Continue all31/P0-P7/58limited34pending92total, multi-host/databases/installers/scale. Preserve outstanding lost-host fault matrix, terminal source containment and cross-platform installation; no full platform completion claimed.",
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-TASK-DELIVERY-NAVIGATION-214",
-    "commit": "d98441a7694cb0c3aa33a7e6daa32abcfe63f080",
-    "evidence": "Exact delivery navigation and original Review fixed, scoped verified and pushed dev; original31/P0-P7 retained."
+    "stage": "T-TOOL-RECOVERY-NAVIGATION-217",
+    "commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
+    "evidence": "Ordinary tool recovery navigation scoped verified and pushed dev; complete31/P0-P7 remains active."
   },
   "current_work": {
-    "stage": "T-TOOL-RECOVERY-NAVIGATION-217",
+    "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/tool-recovery-navigation.md",
-    "report": "docs/quality/tool-recovery-navigation-verification.md",
-    "summary": "docs/quality/tool-recovery-navigation-summary.json",
-    "previous_commit": "43220af20316d55e51c7b22b1516727aa577860a",
-    "verification": "5distinct3new2old; only stale T204 selector failed then that1 rerun; fullWebtypes0/9774paired0hardcodes;1isolatedbuild/4distinctsyntheticGUIgroups across4attempts, passedgroupsreused;0Go/model/vendor/business writes, original readonlymatchesPOST1.",
-    "actual": "Representative productionWorkspace over synthetic publicHTTP, CN1366/EN390 Rootviewed; originalsource/worker/Guide/Quick andsharedboundary. Finalunknown only normalnative0/portfree/journalbytepreserved via one ownedhostLeave choice; earlier secondexitunknown/thirdforced1 kept. 4knownPIDabsent/portsfree; no actual remote repair or fullDesktop approval proof.",
-    "next": "Reduce target setup manual fields, sharedPool owner recovery path, real authorized target-machine repair and all31/P0-P7/58limited34pending92total.",
+    "contract": "contracts/team-workstation-recovery.md",
+    "report": "docs/quality/team-workstation-recovery-verification.md",
+    "summary": "docs/quality/team-workstation-recovery-summary.json",
+    "previous_commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
+    "verification": "22 distinct focused checks, 14 new and 8 affected existing; original fixture/startup failures retained. Final late shared-source invalidation confirmed RED then GREEN only affected existing top. Whole Web TSC initial2 new fixture diagnostics; after fixes affected2 files semantic0. 9796 paired locale keys, 0 production hardcodes. One isolated Web build, representative3 groups plus prior Doctor entry reused; Desktop5 real-window groups with simulated dialog choices.",
+    "actual": "Web production components over synthetic readonly public HTTP and small fixture router, not full App/backend; 0 business writes, 1 original readonly matches POST in continuation. Root viewed Web3 and Desktop2 images. Desktop production controller and real beforeunload, simulated native choices; same-origin navigation and reload used synchronous fallback. Production main close-before-drain separately unit-verified. Late source guard post-visual overlay verified by affected top, no rebuild.",
+    "next": "Actual authorized target-machine repair and tool execution; autonomous code candidate -> independent different-Worker same-SHA tests -> manual acceptance -> issue return and baseline handoff. Continue all31/P0-P7/58limited34pending92total, multi-host/databases/installers/scale.",
     "full_platform_complete": false,
-    "git_record": ".cache/tool-recovery-navigation-217/post-git.json"
+    "git_record": ".cache/team-workstation-recovery-218/post-git.json",
+    "multica_commit": "a7a61f15f148ba8c901fe24a36a61d6d73e247d6"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2633,5 +2631,20 @@
     "next": "Reduce target setup manual fields, sharedPool owner recovery path, real authorized target-machine repair and all31/P0-P7/58limited34pending92total.",
     "full_platform_complete": false,
     "git_record": ".cache/tool-recovery-navigation-217/post-git.json"
+  },
+  "team_workstation_recovery": {
+    "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/team-workstation-recovery.md",
+    "report": "docs/quality/team-workstation-recovery-verification.md",
+    "summary": "docs/quality/team-workstation-recovery-summary.json",
+    "previous_commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
+    "verification": "22 distinct focused checks, 14 new and 8 affected existing; original fixture/startup failures retained. Final late shared-source invalidation confirmed RED then GREEN only affected existing top. Whole Web TSC initial2 new fixture diagnostics; after fixes affected2 files semantic0. 9796 paired locale keys, 0 production hardcodes. One isolated Web build, representative3 groups plus prior Doctor entry reused; Desktop5 real-window groups with simulated dialog choices.",
+    "actual": "Web production components over synthetic readonly public HTTP and small fixture router, not full App/backend; 0 business writes, 1 original readonly matches POST in continuation. Root viewed Web3 and Desktop2 images. Desktop production controller and real beforeunload, simulated native choices; same-origin navigation and reload used synchronous fallback. Production main close-before-drain separately unit-verified. Late source guard post-visual overlay verified by affected top, no rebuild.",
+    "next": "Actual authorized target-machine repair and tool execution; autonomous code candidate -> independent different-Worker same-SHA tests -> manual acceptance -> issue return and baseline handoff. Continue all31/P0-P7/58limited34pending92total, multi-host/databases/installers/scale.",
+    "full_platform_complete": false,
+    "git_record": ".cache/team-workstation-recovery-218/post-git.json",
+    "multica_commit": "a7a61f15f148ba8c901fe24a36a61d6d73e247d6"
   }
 }

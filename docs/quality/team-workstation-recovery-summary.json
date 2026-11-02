@@ -1,0 +1,322 @@
+{
+  "version": "1.0.0",
+  "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
+  "status": "scoped_delivery_verified_with_recorded_limits",
+  "date": "2026-11-03",
+  "base_commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
+  "contract": "contracts/team-workstation-recovery.md",
+  "report": "docs/quality/team-workstation-recovery-verification.md",
+  "goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "retained_baseline": {
+      "limited": 58,
+      "pending": 34,
+      "total": 92
+    },
+    "complete_platform_claim": false
+  },
+  "delivered": [
+    "Closed ten-field public shared-tool recovery pin; current Pool owner, exact Runner and original project readiness reread before original configuration preparation and connection.",
+    "Same-source expired checks preserve private form drafts while disabling generation, copy and continuation; explicit current reread required. Unknown operations retain priority.",
+    "Exact current organization owner/admin GET /execution-pools/{pool}/runners/{runner}; existing public DTO, closed query, no-store, no credentials or consuming-project content.",
+    "Native departure defaults to Stay; current window/source and one-shot intent guards, official synchronous fallback for unknown unload, production quit ordering waits for actual window closure."
+  ],
+  "checks": {
+    "distinct_unit_tops": 22,
+    "new_tops": 14,
+    "directly_affected_old_tops": 8,
+    "all_distinct_final_passed": true,
+    "root_web": {
+      "new": 3,
+      "old": 2
+    },
+    "pool_web": {
+      "new": 5,
+      "old": 2
+    },
+    "desktop": {
+      "new": 3,
+      "old": 4
+    },
+    "backend_and_contract": {
+      "new": 3,
+      "old": 0
+    },
+    "types": {
+      "whole_web_initial_exit": 2,
+      "initial_errors": "Two new fixture pins definite-assignment diagnostics only.",
+      "corrected_fixture_semantic_errors": 0,
+      "late_guard_two_files_semantic_errors": 0,
+      "whole_web_rerun": false,
+      "whole_web_final_exit_zero_claim": false,
+      "receipt": ".cache/team-workstation-recovery-218/checks/types.json",
+      "late_semantic_receipt": ".cache/team-workstation-recovery-218/checks/late-source-diagnostics.json"
+    },
+    "i18n": {
+      "exit_code": 0,
+      "paired_keys": 9796,
+      "production_hardcodes": 0,
+      "receipt": ".cache/team-workstation-recovery-218/checks/i18n.json"
+    },
+    "api_generation": {
+      "generate_exit": 0,
+      "check_exit": 0,
+      "schema_count": 1000,
+      "path_count": 452,
+      "new_models": 0,
+      "changed_output": "docs/api/openapi.json",
+      "unchanged_typescript_contract": true
+    }
+  },
+  "unit_groups": [
+    {
+      "group": "root_web",
+      "final_receipts": [
+        ".cache/team-workstation-recovery-218/checks/focused-result-2.json",
+        ".cache/team-workstation-recovery-218/checks/pool-return-result.json",
+        ".cache/team-workstation-recovery-218/checks/late-source-green/result.json"
+      ],
+      "new": [
+        "T218 carries the selected shared profile to its exact owner locator without ordinary pairing or mutations",
+        "T218 returns to the exact old profile source and blocks changed or expired metadata rather than rebinding",
+        "T218 bounds public source locators and preserves an exact offline profile without granting current eligibility"
+      ],
+      "old": [
+        "T217 leads the exact ordinary node through original preparation and report return, with actions first and no automatic writes",
+        "T204 returns checked inventory to a fresh exact Quick target and clears a changed target name while retaining a same-target authored draft without registering"
+      ]
+    },
+    {
+      "group": "pool_web",
+      "final_receipts": [
+        ".cache/team-workstation-recovery-218/web/focused-result.json",
+        ".cache/team-workstation-recovery-218/web/draft-preservation-result.json"
+      ],
+      "new": [
+        "T218 uses the exact owner-authorized runner and scope beyond collection pages, prepares only public IDs and returns the original tool pin",
+        "T218 keeps original unknown writes ahead of preparation and never treats project access as Pool ownership",
+        "T218 leaves revoked grants blocked and sends expired credentials only to the original explicit identity action",
+        "T218 rejects late pin and actor ABA reads and consumes request latency before allowing preparation",
+        "T218 preserves same-scope private form inputs while a check expires and reenables preparation only after an explicit current reread"
+      ],
+      "old": [
+        "T212 opens a progressive connection guide with explicit consent and clears stale exact-scope reads on edits, revocation and caller changes",
+        "T209 opens configuration preparation only on the actual current runner row and removes stale preparation after a node refresh revokes it"
+      ]
+    },
+    {
+      "group": "desktop",
+      "final_receipts": [
+        ".cache/desktop-departure-218/20261102T190206065Z-focused.stdout.txt",
+        ".cache/desktop-departure-218/20261102T190230511Z-oauth-fixture.stdout.txt",
+        ".cache/desktop-departure-218/20261102T190335674Z-decision-retirement.stdout.txt"
+      ],
+      "new": [
+        "desktop quit waits for the original window departure before draining workers, IPC and service",
+        "native departure defaults to Stay, deduplicates async close and replays only the current exact navigation once",
+        "native departure rejects stale or foreign owners and uses the official synchronous default-Stay fallback for unknown intents"
+      ],
+      "old": [
+        "main exposes only fixed workspace, OAuth, discovery and managed channels with the owned frame and local database",
+        "desktop own errors translate while original exception diagnostics survive",
+        "desktop OAuth entry forwards original event and fixed request to the owned controller while denying ordinary popups",
+        "desktop shutdown removes OAuth admission and disposes before existing service shutdown, without double disposal"
+      ]
+    },
+    {
+      "group": "backend_and_contract",
+      "final_receipts": [
+        ".cache/follow155/root-go/20261102T190220713Z.command.json"
+      ],
+      "new": [
+        "TestExecutionPoolRunnerExactReadAuthorityAndPageBoundary",
+        "TestExecutionPoolRunnerExactHTTPClosedQueryAndNoSecrets",
+        "TestExecutionPoolRunnerExactReadContract"
+      ],
+      "old": [],
+      "coverage": "Real SQLite, 51 registered metadata nodes including an off-page Runner, current role/logout authority, foreign/missing pool or Runner, query closure, cookie purpose and no secret response."
+    }
+  ],
+  "late_guard": {
+    "confirmed_priority": "P2",
+    "status": "fixed",
+    "failure": "A pending catalog response could adopt stale Quick after the current shared-source read failed.",
+    "fix": "Abort signal, exact current ticket and full elapsed deadline guard before adoption.",
+    "red": ".cache/team-workstation-recovery-218/checks/late-source-red/result.json",
+    "green": ".cache/team-workstation-recovery-218/checks/late-source-green/result.json",
+    "same_existing_top": true,
+    "distinct_count_added": 0,
+    "visual_build": "Retained pre-guard-overlay production inputs; no rebuild or GUI repetition. Positive and new invalidation branch covered by affected top."
+  },
+  "actual": {
+    "web": {
+      "summary": ".cache/team-workstation-recovery-218/web-actual/summary.json",
+      "scope": "Production Workspace, preparation and connection components with synthetic public HTTP and a small fixture router; not full App or real platform backend.",
+      "builds": 1,
+      "native_launches": 2,
+      "final_groups_passed": 3,
+      "representatives": [
+        "zh-CN 1366 light",
+        "en-US 390 dark"
+      ],
+      "continuation_api_requests": {
+        "get": 51,
+        "original_read_only_matches_post": 1,
+        "total": 52
+      },
+      "all_native_attempt_api_requests": 69,
+      "business_writes": 0,
+      "actual_worker_probe_model_or_repair": false,
+      "both_native_exits": 0,
+      "forced": false,
+      "ports_closed": true,
+      "control_target_44px_scope": "New recovery card and preparation form only; retained common Modal close36px and locale42px are not claimed compliant."
+    },
+    "desktop": {
+      "summary": ".cache/team-workstation-recovery-218/desktop-actual/summary.json",
+      "scope": "Real Electron35.7.5 BrowserWindow, beforeunload and production departure controller. Dialog facade simulates explicit choices; no OS native button clicks or production main/Worker execution.",
+      "final_groups_passed": 5,
+      "native_beforeunload_events": 8,
+      "recorded_localized_dialog_options": 7,
+      "default_id": 0,
+      "cancel_id": 0,
+      "navigation_and_reload": "Observed official synchronous fallback; asynchronous navigation replay is not claimed by this host.",
+      "requests": {
+        "static_get": 9,
+        "application_api": 0,
+        "non_get": 0
+      },
+      "native_exit": 0,
+      "forced": false,
+      "port_closed": true,
+      "page_errors": 0,
+      "console_errors": 0,
+      "session_marker_preserved": true,
+      "marker_is_business_receipt": false
+    }
+  },
+  "retained_initial_failures": [
+    {
+      "scope": "Root unit",
+      "facts": "Worker min/max startup ran zero tests; next batch had two fixture-only failures, corrected and rerun only those cases. Neither is product behavior RED."
+    },
+    {
+      "scope": "Desktop unit",
+      "facts": "Quit ordering retained true behavior RED. Two original OAuth fixture module-resolution failures were corrected separately. No full unit rerun."
+    },
+    {
+      "scope": "Pool draft",
+      "facts": "Expiry unmount was a static confirmed issue; fix has a new passing preservation/reread top, not a claimed runtime RED."
+    },
+    {
+      "scope": "Web actual",
+      "facts": "Initial installed Playwright EPERM launched no native process. First native partial reached recovery/preparation then failed an overly broad old Modal 44px assertion; same build continued remaining work, native exits retained."
+    },
+    {
+      "scope": "Desktop actual",
+      "facts": "First driver exit1 completed zero groups and had no durable result; native exit unknown. A public observation-only dialog listener fixed Playwright default wrong-layer handling without accept/dismiss or product change; necessary journey then passed."
+    },
+    {
+      "scope": "Final async guard",
+      "facts": "Independent P2 confirmed after GUI; the same affected top retained true RED and GREEN. Pre-overlay GUI remains explicitly separate."
+    }
+  ],
+  "evidence": {
+    "root_source": {
+      "path": ".cache/team-workstation-recovery-218/root-source-manifest-final.json",
+      "sha256": "2f6628fa51ae11d90dd589edb5d1af35e2d27d4778d9c5f36412970f04be1d58"
+    },
+    "root_overlay": {
+      "path": ".cache/team-workstation-recovery-218/root-source-overlay-final.json",
+      "sha256": "c0bca5955077690d584cc1f3a539b55a8f23a5e7fddd6278eace369e5dba5f22"
+    },
+    "pool_source": {
+      "path": ".cache/team-workstation-recovery-218/web/source-manifest-final.json",
+      "sha256": "bb9a5fb301ce20b85a2be0f4ac10a57917e57ec17552ae408a81c9343826bed9"
+    },
+    "pool_summary": {
+      "path": ".cache/team-workstation-recovery-218/web/summary-final.json",
+      "sha256": "faeff72fec24da0d4956c61e59e23b9228aa82f65a246b55e1bf76b35c681a00"
+    },
+    "desktop_source": {
+      "path": ".cache/desktop-departure-218/source-manifest.json",
+      "sha256": "02e740edec5f6b3d674579e73473eb39aa364f469fd92b80489bcc86731d936e"
+    },
+    "desktop_summary": {
+      "path": ".cache/desktop-departure-218/summary.json",
+      "sha256": "80273a92117c8a28653aee020b69a1bcd19f09ed9d3766e59e25e1c3f58188ee"
+    },
+    "backend_source": {
+      "path": ".cache/team-workstation-recovery-218/backend/source-manifest.json",
+      "sha256": "5f7e34d6e1cd09d44252f9795ffc9cf9d476be5e0acd816bf7f9930dd7f65f48"
+    },
+    "backend_summary": {
+      "path": ".cache/team-workstation-recovery-218/backend/summary.json",
+      "sha256": "a46299ef386f8a3d9c898f5ded58e4a8d23d1b1ff6773e8cf9403a280543a9dc"
+    },
+    "web_actual": {
+      "path": ".cache/team-workstation-recovery-218/web-actual/summary.json",
+      "sha256": "64c6d6be223084f7a588da0c683f06ae32ad21c00312ba39cbf04e7024e4f2ae"
+    },
+    "desktop_actual": {
+      "path": ".cache/team-workstation-recovery-218/desktop-actual/summary.json",
+      "sha256": "085d48635ce98962118089b6b05fa3ced1ea99d64d3945ec7c04601eb3d57ee9"
+    },
+    "independent_review": {
+      "path": ".cache/team-workstation-recovery-218/review/integration-review.json",
+      "sha256": "0674cc4c7e5270497a9b62e419e58ed3d9364cb17412ee339ce4f56d6a146bc0"
+    },
+    "root_final_review": {
+      "path": ".cache/team-workstation-recovery-218/root-final-review.json",
+      "sha256": "b2cc0ae7a36daa74d12759d94fb07f8c4c1714b6f122a6b4eedc859334434817"
+    }
+  },
+  "images": [
+    {
+      "path": ".cache/team-workstation-recovery-218/web-actual/visual/20261102T192845977Z/cn-shared-pool-recovery.png",
+      "sha256": "60b498d7d19506c0cc3fdbc684c5c6de2a047299a8026ba4d0df2faba4f03db9",
+      "reviewed_by_primary": true
+    },
+    {
+      "path": ".cache/team-workstation-recovery-218/web-actual/visual/20261102T193139887Z/cn-original-project-preparation.png",
+      "sha256": "1f859649c4b8d7962409a48a899da15b2eefa7841ddaa1ab646a26ed035dddde",
+      "reviewed_by_primary": true
+    },
+    {
+      "path": ".cache/team-workstation-recovery-218/web-actual/visual/20261102T193139887Z/en-mobile-shared-project-preparation.png",
+      "sha256": "5a6dcf24fded24aa3ed92511753bf7160fd1382fa11a7b90d47aaf9b9aec5515",
+      "reviewed_by_primary": true
+    },
+    {
+      "path": ".cache/team-workstation-recovery-218/desktop-actual/20261102T192206448Z/cn-stay-original-marker.png",
+      "sha256": "54d2fc1df0b9156f08b08c5c6f2e622221fd2873e3abf7db423493887d6b1f92",
+      "reviewed_by_primary": true
+    },
+    {
+      "path": ".cache/team-workstation-recovery-218/desktop-actual/20261102T192206448Z/en-reload-original-marker.png",
+      "sha256": "c79013626726e0cce0c33b3badecf07d5a5429da2d944b76eb75a89ac2ba2e4d",
+      "reviewed_by_primary": true
+    }
+  ],
+  "reference": {
+    "repository": "https://github.com/multica-ai/multica",
+    "official_commit": "a7a61f15f148ba8c901fe24a36a61d6d73e247d6",
+    "preserved_local_head": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "worktree_preserved": true,
+    "license": "Apache-2.0 incorporation with additional commercial, branding and attribution conditions; not Apache-only.",
+    "adoption": "Owner-scoped departure, stop admission before drain, and preserved unknown stop facts; no copied source or interface in this stage."
+  },
+  "remaining": [
+    "Full installed Desktop and real OS dialog interaction; production Worker teardown and physical multi-machine recovery.",
+    "Real provider/model execution, other databases, cross-platform packaging, broader theme/device matrix, capacity and production acceptance.",
+    "Complete31/P0-P7 scope continues. This stage does not convert copied configuration, current metadata or window Leave into execution, health, test, review or deployment evidence."
+  ],
+  "git_result": "Owned by primary integration; not asserted before commit/push.",
+  "review": {
+    "remaining_confirmed_P1_P2": 0,
+    "independent_scope": "Root/Pool Web integration; late P2 fixed. No full-App audit or Desktop self-review.",
+    "root_final_unique_source_files": 34
+  }
+}

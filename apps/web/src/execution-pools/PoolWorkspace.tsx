@@ -22,12 +22,14 @@ import { PoolCreateForm, RunnerForm, GrantDecision } from "./Forms";
 import { CredentialDialog } from "./CredentialDialog";
 import {PoolRunnerPairingPanel} from "./PoolRunnerPairingPanel";
 import {PoolConfigPreparationPanel} from "./PoolConfigPreparationPanel";
+import {PoolToolRecoveryPanel,type PoolToolRecoverySnapshot} from './PoolToolRecoveryPanel';
+import {parsePoolToolRecoveryPin,serializePoolToolRecoveryPin} from './pool-tool-recovery-model';
 import { PoolPolicyWorkspace } from "./Previews";
 import "./pools.css";
 type Dialog =
   | { kind: "create" | "pause" | "resume" | "register" | "pair" }
   | { kind: "grant"; grant: Grant; action: string }
-  | { kind: "prepare-config"; runnerID: string }
+  | { kind: "prepare-config"; runnerID: string; recovery?: PoolToolRecoverySnapshot&{ownerEpoch:number} }
   | { kind: "rotate" | "revoke-runner"; runner: Runner };
 const mayLeave = () =>
   window.dispatchEvent(new Event("suma:navigate", { cancelable: true }));
@@ -49,7 +51,12 @@ function ScopedPoolWorkspace({
   const [revision, setRevision] = useState(0),
     [dialog, setDialog] = useState<Dialog>(),
     [credential, setCredential] = useState<Credential>(),
-    [pairingLocked,setPairingLocked]=useState(false);
+    [pairingLocked,setPairingLocked]=useState(false),
+    [recoverySnapshot,setRecoverySnapshot]=useState<PoolToolRecoverySnapshot&{ownerEpoch:number}>(),
+    [recoveryReadRevision,setRecoveryReadRevision]=useState(0);
+  const recoveryPin=useMemo(()=>parsePoolToolRecoveryPin(panel),[panel]);
+  const recoveryOwner=useRef({panel,epoch:0});if(recoveryOwner.current.panel!==panel)recoveryOwner.current={panel,epoch:recoveryOwner.current.epoch+1};
+  const recoveryEpoch=recoveryOwner.current.epoch;
   const recovery = useMemo(
     () =>
       new PoolWriteRecovery(JSON.stringify([
@@ -79,15 +86,20 @@ function ScopedPoolWorkspace({
     blocked = action.busy || !!action.pending || !!recovery.error || pairingLocked,
     tab = panel.startsWith("policy")
       ? "policy"
-      : panel === "runners"
+      : panel === "runners"||!!recoveryPin
         ? "runners"
         : panel === "overview"
           ? "overview"
           : "grants";
   // A local preparation dialog never retains its original row as authority.
   // Refresh, revocation and capacity changes use the exact current list item.
+  const currentRecovery=recoveryPin&&recoveryPin.pool_id===selected&&recoverySnapshot?.ownerEpoch===recoveryEpoch&&serializePoolToolRecoveryPin(recoverySnapshot.recovery.pin)===panel&&performance.now()<recoverySnapshot.expiresAt?recoverySnapshot:undefined;
+  // Keep the explicitly opened form's public basis for display only. Expiry
+  // removes current eligibility, not the user's private paths. A new actor,
+  // API, Pool or source intent still unmounts that old form.
+  const recoveryForm=dialog?.kind==='prepare-config'&&dialog.recovery?.ownerEpoch===recoveryEpoch&&serializePoolToolRecoveryPin(dialog.recovery.recovery.pin)===panel?dialog.recovery:undefined;
   const preparationRunner = dialog?.kind === "prepare-config"
-    ? runners.items.find(item => item.id === dialog.runnerID && item.pool_id === selected && item.status === "active")
+    ? dialog.recovery?recoveryForm&&(currentRecovery?.runner??recoveryForm.runner):runners.items.find(item => item.id === dialog.runnerID && item.pool_id === selected && item.status === "active")
     : undefined;
   function resolved(path: string, value: unknown) {
     setDialog(undefined);
@@ -275,6 +287,7 @@ function ScopedPoolWorkspace({
                     components={{ code: <code /> }}
                   />
                 </p>
+                {recoveryPin&&recoveryPin.pool_id===selected&&<PoolToolRecoveryPanel pin={recoveryPin} pool={pool} disabled={blocked||stale} refresh={refresh+revision+recoveryReadRevision} onSnapshot={value=>{if(recoveryOwner.current.epoch===recoveryEpoch)setRecoverySnapshot(value?{...value,ownerEpoch:recoveryEpoch}:undefined);}} onPrepare={value=>{if(recoveryOwner.current.epoch!==recoveryEpoch||blocked||stale||value.runner.id!==recoveryPin.runner_id||value.runner.pool_id!==selected||performance.now()>=value.expiresAt)return;open({kind:'prepare-config',runnerID:value.runner.id,recovery:{...value,ownerEpoch:recoveryEpoch}});}} onManage={runner=>{if(recoveryOwner.current.epoch!==recoveryEpoch||blocked||stale)return;if(runner.allowed_actions.includes('rotate_credential'))open({kind:'rotate',runner});else if(runners.allowed.includes('register'))open({kind:'pair'});}}/>}
                 <nav
                   className="pool-tabs"
                   aria-label={tr("pools.workspace.pages")}
@@ -519,7 +532,7 @@ function ScopedPoolWorkspace({
         }
         description={tr("pools.workspace.operation_scope")}
       >
-        {dialog?.kind === "prepare-config" ? <>{notice}{pool&&preparationRunner?<PoolConfigPreparationPanel ownerTenantID={pool.owner_tenant_id} poolID={selected} runner={preparationRunner} grants={!grants.loading&&!grants.error?grants.items:undefined} disabled={blocked||stale||runners.loading||!!runners.error}/>:<p role="status">{tr('pool-config-preparation.unavailable')}</p>}</>:dialog?.kind==='pair'?<>{notice}<PoolRunnerPairingPanel poolID={selected} disabled={action.busy||!!action.pending||!!recovery.error||stale} canCreate={!stale&&!runners.loading&&!runners.error&&pool?.status==='active'&&runners.allowed.includes('register')} onLockChange={setPairingLocked} onPaired={value=>{if(value.pool_id!==selected||value.owner_tenant_id!==session.organization.id||value.state!=='approved')return;setDialog(undefined);setRevision(before=>before+1);onPanel('runners');}}/></>:dialog?.kind === "create" ? (
+        {dialog?.kind === "prepare-config" ? <>{notice}{dialog.recovery&&!currentRecovery&&recoveryForm&&<div className="pool-recovery"><p role="status">{tr('pool-tool-recovery.form_refresh')}</p><button type="button" data-pool-recovery-form-refresh disabled={blocked||stale} onClick={()=>setRecoveryReadRevision(before=>before+1)}>{tr('pool-tool-recovery.refresh')}</button></div>}{pool&&preparationRunner?<PoolConfigPreparationPanel key={dialog.recovery?JSON.stringify([panel,preparationRunner.version,preparationRunner.credential_version]):undefined} ownerTenantID={pool.owner_tenant_id} poolID={selected} runner={preparationRunner} grants={!grants.loading&&!grants.error?grants.items:undefined} recovery={dialog.recovery?(currentRecovery??recoveryForm)?.recovery:undefined} disabled={blocked||stale||(dialog.recovery?!currentRecovery:(runners.loading||!!runners.error))}/>:<p role="status">{tr('pool-config-preparation.unavailable')}</p>}</>:dialog?.kind==='pair'?<>{notice}<PoolRunnerPairingPanel poolID={selected} disabled={action.busy||!!action.pending||!!recovery.error||stale} canCreate={!stale&&!runners.loading&&!runners.error&&pool?.status==='active'&&runners.allowed.includes('register')} onLockChange={setPairingLocked} onPaired={value=>{if(value.pool_id!==selected||value.owner_tenant_id!==session.organization.id||value.state!=='approved')return;setDialog(undefined);setRevision(before=>before+1);onPanel('runners');}}/></>:dialog?.kind === "create" ? (
           <PoolCreateForm
             blocked={blocked}
             notice={notice}

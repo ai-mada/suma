@@ -1,0 +1,6 @@
+{
+  "pool-tool-recovery-navigation.owner_target": "Continue managing this shared runner",
+  "pool-tool-recovery-navigation.owner_hint": "Review the exact runner and project grant in the owning organization. No organization switch, pairing or enabling is automatic.",
+  "pool-tool-recovery-navigation.manage": "Manage shared runner",
+  "pool-tool-recovery-navigation.changed": "The original tool or shared runner changed. Refresh and select the recovery entry again."
+}

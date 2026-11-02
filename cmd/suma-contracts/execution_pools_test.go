@@ -50,3 +50,36 @@ func TestExecutionPoolContractsSeparateHumanAndMachineAuthority(t *testing.T) {
 		t.Fatal("pool machine security scheme missing")
 	}
 }
+
+func TestExecutionPoolRunnerExactReadContract(t *testing.T) {
+	api, _ := generate()
+	op := mapAt(api, "paths", "/execution-pools/{pool}/runners/{runner}", "get")
+	if op["x-read-only"] != true || op["x-response-cache-control"] != "no-store" || op["x-query-parameters-forbidden"] != true || op["requestBody"] != nil {
+		t.Fatal("exact registered runner read is not a closed, uncached read-only operation")
+	}
+	security := op["security"].([]any)[0].(map[string]any)
+	if security["cookieAuth"] == nil || op["x-authorization-scope"] != "current organization owner/admin; exact browser credential" {
+		t.Fatal("exact pool runner read expanded machine or project authority")
+	}
+	parameters := map[string]bool{}
+	for _, raw := range op["parameters"].([]any) {
+		parameter := raw.(map[string]any)
+		if parameter["in"] == "query" {
+			t.Fatal("exact runner read accepts an implicit query scope")
+		}
+		if parameter["in"] == "path" {
+			parameters[parameter["name"].(string)] = true
+		}
+	}
+	if len(parameters) != 2 || !parameters["pool"] || !parameters["runner"] {
+		t.Fatal("exact pool and runner identities are not required path inputs")
+	}
+	response := mapAt(op, "responses", "200", "content", "application/json", "schema")
+	if response["$ref"] != "#/components/schemas/ExecutionPoolRunner" {
+		t.Fatal("read reused a credential response or a list instead of the public runner DTO")
+	}
+	fields := mapAt(api, "components", "schemas", "ExecutionPoolRunner", "properties")
+	if fields["token"] != nil || fields["token_hash"] != nil {
+		t.Fatal("public runner DTO discloses a credential")
+	}
+}
