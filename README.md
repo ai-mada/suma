@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-TOOL-RECOVERY-NAVIGATION-217：[工具恢复交接与AI SOP](docs/product/tool-recovery-navigation.md)／[交互](docs/design/tool-recovery-navigation.md)／[限定验证](docs/quality/tool-recovery-navigation-verification.md)。常用操作前置，Doctor→准确普通节点→原连接准备／上报／Quick贯通；来源ABA、截止、共享边界与原未知保护保持。5项定向、类型0／9774对词条、4组代表合成界面通过；1次构建，失败与宿主退出分开记录。真实远程修复及完整31／P0–P7继续。
+
 T-TEST-DISPATCH-BINDINGS-216：[明确开发／独立测试工具与AI SOP](docs/product/test-dispatch-bindings.md)／[交互](docs/design/test-dispatch-bindings.md)／[限定验证](docs/quality/test-dispatch-bindings-verification.md)。原派发按需选择并冻结另一Worker测试工具，准确来源及同提交质量门贯通；真实Git／双Worker／JUnit及夹具Review通过，SQLite取消泄漏沿官方稳定驱动修复。25项主要定向及新版存储／关键平台检查通过；全包曾超时，未声称整包或完整31／P0–P7完成。
 
 T-COMMAND-COMPOSITION-215新增[已有命令配置安全组合](docs/product/command-composition.md)：自动核对跨文件引用、重名和新文件边界，明确采用输出路径继续原连接指南。[交互](docs/design/command-composition.md)与[实际本机限定验证](docs/quality/command-composition-verification.md)区分准备、工具资格和正式质量；完整平台继续。

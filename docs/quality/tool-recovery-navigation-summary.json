@@ -1,0 +1,227 @@
+{
+  "stage": "T-TOOL-RECOVERY-NAVIGATION-217",
+  "version": "1.0.0",
+  "date": "2026-11-03",
+  "owner": "主集成／工具工作台／独立审查／界面验证",
+  "status": "scoped_implementation_and_representative_component_navigation_verified",
+  "base": "43220af20316d55e51c7b22b1516727aa577860a",
+  "contract": "contracts/tool-recovery-navigation.md",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "complete": false
+  },
+  "implementation": {
+    "entry": "Current Doctor profile -> exact ordinary Worker -> explicit original connection preparation -> original report feedback -> original Quick",
+    "actions": "Existing adjust, enable/disable, remove and task actions moved before diagnostics/history; original confirmations unchanged",
+    "currentness": "Monotonic detail/source epoch, actor/API context, exact profile versionSHA/Worker; dual roster completion and catalog-return diagnostic deadline checks",
+    "original_operations": "Local write recovery and unknown inspections take priority; no new probe, automatic repair, register or enable",
+    "tool_selection": "Original child current localTool/navigation/draft guards reject stale reports; explicit new preset creates new setup and clears old replacement source",
+    "new_api_paths": 0,
+    "new_tables": 0,
+    "new_dispatchers": 0,
+    "new_dependencies": 0
+  },
+  "checks": {
+    "distinct_top": 5,
+    "new_top": 3,
+    "directly_affected_old": 2,
+    "passed": 5,
+    "whole_web_types_exit": 0,
+    "i18n_pairs": 9774,
+    "production_hardcodes": 0,
+    "isolated_builds": 1,
+    "go_checks": 0,
+    "full_suite_repeats": 0,
+    "old_fixture_failure": "T204 old toolbar selector failed before behavior; only current data-tools-add selector corrected and that one top rerun"
+  },
+  "representative_gui": {
+    "unique_groups": 4,
+    "groups": [
+      {
+        "name": "cn_exact_worker_to_original_guide",
+        "path": ".cache/tool-recovery-navigation-217/visual/20261102T182645978Z/result.json",
+        "sha256": "21ed48afaccc8c07a7a9f8c76e816c6b04854df2d7df1f72952902f041367f2b"
+      },
+      {
+        "name": "cn_synthetic_new_inventory_to_exact_quick",
+        "path": ".cache/tool-recovery-navigation-217/visual/20261102T182645978Z/result.json",
+        "sha256": "21ed48afaccc8c07a7a9f8c76e816c6b04854df2d7df1f72952902f041367f2b"
+      },
+      {
+        "name": "en_shared_boundary_and_ordinary_actions",
+        "path": ".cache/tool-recovery-navigation-217/visual/20261102T182846771Z/result.json",
+        "sha256": "c7717147684212492e5e4bd8a9117cf249f320e9a9969e37c0452bb00ed07aa9"
+      },
+      {
+        "name": "en_original_unknown_operation_remains_first",
+        "path": ".cache/tool-recovery-navigation-217/visual/20261102T183620907Z/result.json",
+        "sha256": "9b8ce18dcd3f3a46251916bfb8f4337c9081bfd59f297fcc502875c6105290fc"
+      }
+    ],
+    "attempts": [
+      {
+        "directory": "20261102T182645978Z",
+        "result": ".cache/tool-recovery-navigation-217/visual/20261102T182645978Z/result.json",
+        "result_sha256": "21ed48afaccc8c07a7a9f8c76e816c6b04854df2d7df1f72952902f041367f2b",
+        "passed": false,
+        "requested": "all",
+        "native_pid": 24152,
+        "native_exit": {
+          "code": 0,
+          "signal": null
+        },
+        "forced": false,
+        "port": 62492,
+        "port_closed": true,
+        "read_only_match_posts": 1,
+        "business_writes": 0
+      },
+      {
+        "directory": "20261102T182846771Z",
+        "result": ".cache/tool-recovery-navigation-217/visual/20261102T182846771Z/result.json",
+        "result_sha256": "c7717147684212492e5e4bd8a9117cf249f320e9a9969e37c0452bb00ed07aa9",
+        "passed": false,
+        "requested": "English affected groups only; original Chinese passes retained separately",
+        "native_pid": 60312,
+        "native_exit": "unknown",
+        "forced": "unknown",
+        "port": 65334,
+        "port_closed": "unrecorded; Root later observed no listener",
+        "read_only_match_posts": 0,
+        "business_writes": 0
+      },
+      {
+        "directory": "20261102T183155731Z",
+        "result": ".cache/tool-recovery-navigation-217/visual/20261102T183155731Z/result.json",
+        "result_sha256": "de7e44880524d6426fe66409e382132aca21e9c2cd5781ceb98eb7b7beb2f42f",
+        "passed": false,
+        "requested": "Unknown-operation departure only; three passed groups retained separately",
+        "native_pid": 46992,
+        "native_exit": {
+          "code": 1,
+          "signal": null
+        },
+        "forced": true,
+        "port": 51919,
+        "port_closed": true,
+        "read_only_match_posts": 0,
+        "business_writes": 0
+      },
+      {
+        "directory": "20261102T183620907Z",
+        "result": ".cache/tool-recovery-navigation-217/visual/20261102T183620907Z/result.json",
+        "result_sha256": "9b8ce18dcd3f3a46251916bfb8f4337c9081bfd59f297fcc502875c6105290fc",
+        "passed": true,
+        "requested": "Unknown-operation departure only; three passed groups retained separately",
+        "native_pid": 42932,
+        "native_exit": {
+          "code": 0,
+          "signal": null
+        },
+        "forced": false,
+        "port": 51766,
+        "port_closed": true,
+        "read_only_match_posts": 0,
+        "business_writes": 0
+      }
+    ],
+    "images": [
+      {
+        "path": ".cache/tool-recovery-navigation-217/visual/20261102T182645978Z/cn-exact-worker-guide.png",
+        "width": 1366,
+        "theme": "light",
+        "sha256": "b05d261333fc015df4fab62361ac9852b2bde02f6ff71b16021df93a9c21a27e",
+        "root_viewed": true
+      },
+      {
+        "path": ".cache/tool-recovery-navigation-217/visual/20261102T182846771Z/en-ordinary-actions.png",
+        "width": 390,
+        "theme": "dark",
+        "sha256": "c52c7bfe570a6fb57a4b781dc4e46137d62113f240fa22ba3b9542b13f8e16d5",
+        "root_viewed": true
+      }
+    ],
+    "scope": "production Workspace over synthetic public HTTP; not a real remote node or vendor connection",
+    "builds": 1,
+    "go_runs": 0,
+    "models": 0,
+    "vendors": 0,
+    "root_closure": {
+      "path": ".cache/tool-recovery-navigation-217/closure.json",
+      "sha256": "de57c10174585af31f94a2fa3d40a81203edd2855ef4360e9a46ad4e8f3cc2ae"
+    },
+    "official_host_departure": "One fixture-owned webContents explicitly permits same-origin closed navigation after unknown journal is verified; original journal stays byte-exact. No production Desktop or generic helper changes."
+  },
+  "host_notes": {
+    "original_attempts_retained": 4,
+    "last_unknown_scope_passed": true,
+    "all_attempts_normal": false,
+    "second_native_exit": "unknown; Root observed PID absent",
+    "third_teardown": "owned handle forced cleanup exit1 retained",
+    "last_teardown": "normal native exit0/forcedfalse/portclosed",
+    "explicit_leave": "One test-host main-process Leave decision bound to one owned webContents and exact same-origin closed URL; original pending journal unchanged. Not a real desktop or customer confirmation.",
+    "driver_browser_path_metadata_corrected_after_run": true,
+    "fixture_warnings": "Unpackaged owned Electron fixture CSP warning recorded, not a production security acceptance"
+  },
+  "evidence": [
+    {
+      "path": ".cache/tool-recovery-navigation-217/control/summary.json",
+      "sha256": "693ef1fd31a76a8fcada9eb6a18892e821749fbff232a041ddffb5a83c1228f0"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/control/source-manifest.json",
+      "sha256": "df8ffb6707b2edc1d524b05695aff3bbd908d387a190726a49fc9ab6ac5c6c6a"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/control/old-fixture-overlay.json",
+      "sha256": "d2e329ab14aeb2f3e7b2ea302dbd82a1181d2ceef80139b0d920abf002f730d3"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/scoped-review.json",
+      "sha256": "7dbba060246a91fefd072d4117f7c56123acc724a45c98b48cf76358759eb918"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/checks/types.json",
+      "sha256": "68d1127a8045ed690c7b779bca03c557d2513d6edf4fdf9576403e1ac40ca7c9"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/checks/i18n.json",
+      "sha256": "c847d75560f8099f9fa21c2e29d231e0a43183c48f5b5c7906cb7e37d42d1561"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/build-inputs.json",
+      "sha256": "5c169047b1f385479a726c855e23135d6885970c1cbfc5446102669fc013cb55"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/root-ui-evidence.json",
+      "sha256": "e2c4a4a74c92b7f7a91af261be9858c81139a2506bee3f4fc27f70923b19af2c"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/closure.json",
+      "sha256": "de57c10174585af31f94a2fa3d40a81203edd2855ef4360e9a46ad4e8f3cc2ae"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/summary.json",
+      "sha256": "5401eaab1be4243a0e637d93b38fa5ef61866b984c5f560dda32a5781090d7b9"
+    },
+    {
+      "path": ".cache/tool-recovery-navigation-217/fixture-final-source-manifest.json",
+      "sha256": "50ab83462db250460f819af101888ca1d3853ecb97069ba1d7c6b1c46bc17205"
+    }
+  ],
+  "remaining": [
+    "Real target-machine recovery and autonomous repair require separate authorized execution evidence; this journey uses synthetic public HTTP.",
+    "Shared Pool owner preparation path stays separate; unsupported preparation tuples use existing explicit advanced configuration, no automatic fallback.",
+    "Full desktop native leave/stop interactions, actual vendors/models, distributed physical hosts, other databases, installers, scale, production and full31/P0-P7 remain."
+  ],
+  "git": {
+    "branch": "dev",
+    "remote": "git@github.com:ai-mada/suma.git",
+    "method": "normal non-forced stage commit/push; exact local post-git receipt"
+  }
+}

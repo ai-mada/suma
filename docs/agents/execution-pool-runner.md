@@ -1,5 +1,7 @@
 # 独立资源池 Runner 与多项目执行
 
+T217补充[准确节点连接准备](../product/tool-recovery-navigation.md)：普通项目节点与共享Pool分别核对授权；原未知检查和写入恢复优先，Guide新报告只交回原Quick。复制、准备、登记和启用分别处理，不因打开指南授予任务或执行能力。
+
 T216补充[开发与独立测试明确派发](../product/test-dispatch-bindings.md)：同Pool不同槽位不等于不同Worker，原计划和最终路由固定准确测试工具；每个producer需另一Worker对当前来源／attempt／fence／证据SHA的同提交测试。等待、配置可用、实际执行及人工验收分别记录，取消后的SQLite恢复见[决定](../adr/sqlite-cancellation.md)。
 
 T-COMMAND-COMPOSITION-215补充[已有命令配置组合](../product/command-composition.md)：在目标机器离线新建完整允许清单后，再把路径用于原项目／Pool配置。组合和采用路径都不启动节点、不读系统凭据、不增加Grant或工具资格，原配对、检测、登记与启用继续独立。

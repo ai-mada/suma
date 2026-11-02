@@ -683,17 +683,18 @@
     "evidence": "Exact delivery navigation and original Review fixed, scoped verified and pushed dev; original31/P0-P7 retained."
   },
   "current_work": {
-    "stage": "T-COMMAND-COMPOSITION-215",
+    "stage": "T-TOOL-RECOVERY-NAVIGATION-217",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/command-composition.md",
-    "report": "docs/quality/command-composition-verification.md",
-    "summary": "docs/quality/command-composition-summary.json",
-    "previous_commit": "d98441a7694cb0c3aa33a7e6daa32abcfe63f080",
-    "verification": "13distinct10new3old/runtime18subcases; wholeWebTSCinitial3newmock errors then5affected semantic0;9739paired0hardcodes. Final native4checks, generatedPowerShell+compiledCLI0/1 exact2source2command/LFhash/sourceunchanged/noAPI/model/Worker, CN1366/EN390 Root-viewed8x44px/scroll373, native0/PIDsabsent/portsfree. Three original attempts/initial type+compile failures preserved. Path adoption actual original parent-child component check; native fixture no callback.",
-    "next": "Original dispatch fixed development/test Worker/profile diagnostics and actionable workflow test-node configuration; actual autonomous code candidate, different-Worker same-SHA independent tests, Review/problem return/baseline; WorkBuddy trusted code artifact contract; original31/P0-P7/58limited34pending92total.",
+    "contract": "contracts/tool-recovery-navigation.md",
+    "report": "docs/quality/tool-recovery-navigation-verification.md",
+    "summary": "docs/quality/tool-recovery-navigation-summary.json",
+    "previous_commit": "43220af20316d55e51c7b22b1516727aa577860a",
+    "verification": "5distinct3new2old; only stale T204 selector failed then that1 rerun; fullWebtypes0/9774paired0hardcodes;1isolatedbuild/4distinctsyntheticGUIgroups across4attempts, passedgroupsreused;0Go/model/vendor/business writes, original readonlymatchesPOST1.",
+    "actual": "Representative productionWorkspace over synthetic publicHTTP, CN1366/EN390 Rootviewed; originalsource/worker/Guide/Quick andsharedboundary. Finalunknown only normalnative0/portfree/journalbytepreserved via one ownedhostLeave choice; earlier secondexitunknown/thirdforced1 kept. 4knownPIDabsent/portsfree; no actual remote repair or fullDesktop approval proof.",
+    "next": "Reduce target setup manual fields, sharedPool owner recovery path, real authorized target-machine repair and all31/P0-P7/58limited34pending92total.",
     "full_platform_complete": false,
-    "git_record": ".cache/command-composition-215/post-git.json"
+    "git_record": ".cache/tool-recovery-navigation-217/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2618,5 +2619,19 @@
     "next": "Doctor exact-node recovery connection navigation; recommendation tester propagation; actual autonomous code/vendor/human acceptance/baseline; trusted WorkBuddy artifacts; all31/P0-P7/58limited34pending92total remain.",
     "full_platform_complete": false,
     "git_record": ".cache/test-dispatch-bindings-216/post-git.json"
+  },
+  "tool_recovery_navigation": {
+    "stage": "T-TOOL-RECOVERY-NAVIGATION-217",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/tool-recovery-navigation.md",
+    "report": "docs/quality/tool-recovery-navigation-verification.md",
+    "summary": "docs/quality/tool-recovery-navigation-summary.json",
+    "previous_commit": "43220af20316d55e51c7b22b1516727aa577860a",
+    "verification": "5distinct3new2old; only stale T204 selector failed then that1 rerun; fullWebtypes0/9774paired0hardcodes;1isolatedbuild/4distinctsyntheticGUIgroups across4attempts, passedgroupsreused;0Go/model/vendor/business writes, original readonlymatchesPOST1.",
+    "actual": "Representative productionWorkspace over synthetic publicHTTP, CN1366/EN390 Rootviewed; originalsource/worker/Guide/Quick andsharedboundary. Finalunknown only normalnative0/portfree/journalbytepreserved via one ownedhostLeave choice; earlier secondexitunknown/thirdforced1 kept. 4knownPIDabsent/portsfree; no actual remote repair or fullDesktop approval proof.",
+    "next": "Reduce target setup manual fields, sharedPool owner recovery path, real authorized target-machine repair and all31/P0-P7/58limited34pending92total.",
+    "full_platform_complete": false,
+    "git_record": ".cache/tool-recovery-navigation-217/post-git.json"
   }
 }

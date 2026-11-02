@@ -1,0 +1,7 @@
+{
+  "tool-recovery-navigation.target": "Prepare the runner connection for “{{name}}”",
+  "tool-recovery-navigation.boundary": "Preparation does not start the runner. An unavailable identity requires explicit pairing again. Choosing another tool in the guide starts a new connection.",
+  "tool-recovery-navigation.prepare": "Prepare connection",
+  "tool-recovery-navigation.unsupported": "This tool has no dedicated connection preparation. Use the existing advanced configuration.",
+  "tool-recovery-navigation.changed": "The configuration or diagnostic basis changed. Refresh and select it again."
+}

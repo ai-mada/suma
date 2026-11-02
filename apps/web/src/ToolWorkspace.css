@@ -17,3 +17,11 @@
 .tool-workspace :is([data-tools-add],[data-tools-advanced-register],[data-tool-workspace-more-toggle]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 @media(max-width:600px){.tool-workspace-primary-actions{justify-content:flex-start}.tool-workspace-primary-actions>[data-tools-add]{flex:1}.tool-workspace-more>summary{padding:12px}.tool-workspace-more-body{padding:0 12px 12px}.tool-workspace .tool-readiness-meta{flex:1 1 100%;width:100%}.tool-workspace .tool-readiness-meta>span{max-width:100%}}
 @media(prefers-reduced-motion:reduce){.tool-workspace-more>summary>svg{transition:none}}
+
+/* Current public draft: exact ordinary Runner connection handoff only. */
+.tool-workspace .tool-worker-row.with-recovery{flex-wrap:wrap}
+.tool-workspace .tool-worker-recovery{flex:1 1 100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:8px}
+.tool-worker-recovery p{margin:0;overflow-wrap:anywhere}
+.tool-worker-recovery small{display:block;color:var(--muted);line-height:1.6}
+.tool-worker-recovery button{min-height:44px;white-space:normal}
+@media(max-width:600px){.tool-workspace .tool-worker-recovery{grid-template-columns:minmax(0,1fr)}.tool-worker-recovery button{width:100%}}

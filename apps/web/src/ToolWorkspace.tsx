@@ -133,7 +133,7 @@ function ScopedToolWorkspace({
   const [taskHandoff,setTaskHandoff]=useState<{epoch:number;intent:number;tool:ToolProfile;task?:RecordItem;pin?:ToolTaskHandoffPin;planID?:string}>();
   function setDialog(value:Dialog|undefined){if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setDialogState(value?{caller:api,generation:pairingGeneration,value}:undefined);}
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
-  const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft;sourceTool?:ToolProfile}|undefined>(undefined);
+  const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft;sourceTool?:ToolProfile;sourceEpoch?:number}|undefined>(undefined);
   const inspectionLookup=useRef<AbortController|undefined>(undefined);
   const replacementLookup=useRef<AbortController|undefined>(undefined),selectedProfile=useRef(selected);selectedProfile.current=selected;
   useEffect(()=>()=>replacementLookup.current?.abort(),[api,selected]);
@@ -171,7 +171,7 @@ function ScopedToolWorkspace({
   // Guide consumers retain their nonce high-water mark across navigation.
   // Clearing a selection must not restart this producer's request identity.
   const connectionRequestNonce=useRef(0);
-  const [connectionSelection,setConnectionSelection]=useState<{context:string;caller:typeof api;generation:number;nonce:number;expectedWorkerID?:string;client?:DeveloperClientID;preset?:ToolPreparationPreset|'octop';cloud?:boolean}>();
+  const [connectionSelection,setConnectionSelection]=useState<{context:string;caller:typeof api;generation:number;nonce:number;expectedWorkerID?:string;sourceEpoch?:number;client?:DeveloperClientID;preset?:ToolPreparationPreset|'octop';cloud?:boolean}>();
   const connection=connectionSelection?.context===contextKey&&connectionSelection.caller===api&&connectionSelection.generation===pairingGeneration?connectionSelection:undefined;
   const recovery = useMemo(
     () =>
@@ -201,6 +201,11 @@ function ScopedToolWorkspace({
       refresh + revision,
     );
   const detailBasis=JSON.stringify([selected,detail.data?.id,detail.data?.version,detail.data?.worker_id,detail.data?.profile.profile_sha256]),latestDetailBasis=useRef(detailBasis);latestDetailBasis.current=detailBasis;
+  // A value-equal A -> B -> A detail selection is a new read owner. This ref
+  // carries provenance only; existing drafts and operation receipts stay put.
+  const detailOwner=useRef({key:detailBasis,epoch:0});
+  if(detailOwner.current.key!==detailBasis)detailOwner.current={key:detailBasis,epoch:detailOwner.current.epoch+1};
+  const detailEpoch=detailOwner.current.epoch;
   useEffect(()=>()=>inspectionLookup.current?.abort(),[api,detailBasis]);
   const refreshAll = useCallback(() => {
     if (!profiles.loading) void profiles.read();
@@ -239,8 +244,8 @@ function ScopedToolWorkspace({
     setTaskHandoff(undefined);
     focusNavigation(()=>workspaceElement.current?.querySelector<HTMLElement>('[data-tool-use-for-task]'),false);
   }
-  const replacementSourceCurrent=!!replacementSource&&!stale&&current?.id===replacementSource.id&&current.version===replacementSource.version&&current.worker_id===replacementSource.worker_id&&current.state===replacementSource.state&&sameToolProfile(current.profile,replacementSource.profile);
-  const reportReturnOwner=useRef({api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked});reportReturnOwner.current={api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked};
+  const replacementSourceCurrent=!!replacementSource&&draftSource?.sourceEpoch===detailEpoch&&!stale&&current?.id===replacementSource.id&&current.version===replacementSource.version&&current.worker_id===replacementSource.worker_id&&current.state===replacementSource.state&&sameToolProfile(current.profile,replacementSource.profile);
+  const reportReturnOwner=useRef({api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked,workers,sharedWorkers});reportReturnOwner.current={api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked,workers,sharedWorkers};
   const poolNavigation=useRef<{caller:typeof api;generation:number;panel:string}|undefined>(undefined);
   // The locator opens only the original UI. Current project identity and
   // catalog reads remain authoritative; no scan, registration or enable runs.
@@ -295,6 +300,8 @@ function ScopedToolWorkspace({
   function returnFromReport(value:ToolReportFeedbackSelection){
     const owner=reportReturnOwner.current,target=preparationForLocalTool(value.adapterID);
     if(!activeWorkspace.current||owner.writeBlocked||owner.api!==api||owner.contextKey!==contextKey||owner.generation!==pairingGeneration||owner.nonce!==connection?.nonce||value.project!==project||!target||!validToolReportFeedbackSelection(value,{project,workerID:value.workerID,localTool:target.localTool}))return;
+    if(connection?.expectedWorkerID&&value.workerID!==connection.expectedWorkerID)return;
+    if(connection?.sourceEpoch!==undefined&&connection.sourceEpoch!==detailOwner.current.epoch)return;
     const sameTarget=publicDraft?.adapterID===value.adapterID&&publicDraft.workerID===value.workerID;
     beginPublicDraft({adapterID:value.adapterID,workerID:value.workerID,commandID:value.commandID,name:sameTarget?publicDraft.name:'',nameEdited:sameTarget?publicDraft.nameEdited:false},sameTarget?replacementSource:undefined);
     action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',preferredWorkerID:value.workerID});
@@ -305,20 +312,76 @@ function ScopedToolWorkspace({
     if(JSON.stringify(owner.value)!==JSON.stringify(value)){connectDraft.current={...owner,value:{...value}};renderDraft(value=>value+1);}
   }
   function beginPublicDraft(value:ToolConnectDraft,sourceTool?:ToolProfile){
-    const nonce=++connectIntent.current;connectDraft.current={caller:api,generation:pairingGeneration,context:contextKey,nonce,value:{...value},...(sourceTool?{sourceTool:structuredClone(sourceTool)}:{})};renderDraft(value=>value+1);return nonce;
+    const nonce=++connectIntent.current;connectDraft.current={caller:api,generation:pairingGeneration,context:contextKey,nonce,value:{...value},...(sourceTool?{sourceTool:structuredClone(sourceTool),sourceEpoch:detailOwner.current.epoch}:{})};renderDraft(value=>value+1);return nonce;
   }
-  async function configureProfile(value:ToolProfile){
+  async function configureProfile(value:ToolProfile,destination:'quick'|'worker'='quick'){
     if(writeBlocked||stale||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
-    const nonce=++connectIntent.current;setConnecting(true);setConnectError(undefined);
+    if(destination==='worker'&&!ordinaryWorkerReady(value.worker_id)){setConnectError(new UiError('tool-recovery-navigation.changed'));return;}
+    const sourceEpoch=detailOwner.current.epoch;
+    const nonce=++connectIntent.current;let settledNonce=nonce;setConnecting(true);setConnectError(undefined);
     try{
       const catalog=readAdapterCatalog(await api<unknown>('/adapter-catalog'+query(project)),project);
-      if(!activeWorkspace.current||nonce!==connectIntent.current||latestDetailBasis.current!==detailBasis||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+      if(!activeWorkspace.current||nonce!==connectIntent.current||detailOwner.current.epoch!==sourceEpoch||latestDetailBasis.current!==detailBasis||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+      if(destination==='worker'&&!ordinaryWorkerReady(value.worker_id))throw new UiError('tool-recovery-navigation.changed');
       const matches=catalog?.items.filter(item=>item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&item.adapter===value.profile.adapter&&item.protocol===value.profile.protocol);
       if(matches?.length!==1)throw new Error(t('tool-workspace.target_unavailable'));
-      beginPublicDraft({adapterID:matches[0].id,workerID:value.worker_id,commandID:value.profile.command_id,name:value.name,nameEdited:true},value.state==='revoked'?undefined:value);
-      action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:matches[0],preferredWorkerID:value.worker_id});
+      settledNonce=beginPublicDraft({adapterID:matches[0].id,workerID:value.worker_id,commandID:value.profile.command_id,name:value.name,nameEdited:true},value.state==='revoked'?undefined:value);
+      action.clearError();void workers.read();void sharedWorkers.read();
+      if(destination==='worker'){
+        setDialog(undefined);focusNavigation(()=>workerRows.current.get(value.worker_id),false);
+        if(!toolPreparationTarget(matches[0]))setConnectError(new UiError('tool-recovery-navigation.unsupported'));
+      }else setDialog({kind:'quick',adapter:matches[0],preferredWorkerID:value.worker_id});
     }catch(error){if(activeWorkspace.current&&nonce===connectIntent.current&&pairingCaller.current.api===api)setConnectError(error);}
-    finally{if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
+    finally{if(activeWorkspace.current&&connectIntent.current===settledNonce&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
+  }
+  // The existing public draft owns this short-lived handoff. It is not a
+  // separate node status or authority, and a shared Pool identity is excluded.
+  function ordinaryWorkerReady(workerID:string){
+    const owner=reportReturnOwner.current;
+    return owner.api===api&&owner.contextKey===contextKey&&owner.generation===pairingGeneration&&!owner.workers.loading&&!owner.workers.error&&!!owner.workers.data?.items.some(worker=>worker.worker_id===workerID)&&!owner.sharedWorkers.loading&&!owner.sharedWorkers.error&&!!owner.sharedWorkers.data&&!owner.sharedWorkers.data.items.some(worker=>worker.worker_id===workerID);
+  }
+  function workerRecoverySource(workerID:string):ToolProfile|undefined{
+    const target=publicDraft&&preparationForLocalTool(publicDraft.adapterID);
+    if(!ordinaryWorkerReady(workerID)||!replacementSourceCurrent||!replacementSource||!publicDraft||!target||publicDraft.workerID!==workerID||replacementSource.worker_id!==workerID||target.adapter!==replacementSource.profile.adapter||target.protocol!==replacementSource.profile.protocol)return;
+    return replacementSource;
+  }
+  async function prepareWorkerConnection(value:ToolProfile){
+    const source=workerRecoverySource(value.worker_id);
+    if(writeBlocked||stale||!source||source.id!==value.id||source.version!==value.version||!sameToolProfile(source.profile,value.profile))return;
+    const scope={project,toolID:value.id,userID:session.user.id,organizationID:session.organization.id};
+    if(hasToolInspectionLocalOperation(scope,toolSessionStorage())){await inspectProfile(value);return;}
+    const sourceEpoch=detailOwner.current.epoch;
+    let nonce=++connectIntent.current;setConnecting(true);setConnectError(undefined);
+    const owns=()=>activeWorkspace.current&&connectIntent.current===nonce&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration;
+    const currentSource=()=>owns()&&detailOwner.current.epoch===sourceEpoch&&latestDetailBasis.current===detailBasis;
+    try{
+      const started=performance.now();
+      const {report,remainingMs}=readToolProfileDiagnostics(await api<unknown>('/tool-profiles/'+encodeURIComponent(value.id)+'/diagnostics'+query(project)),{project,toolID:value.id});
+      if(!currentSource())return;
+      if(!ordinaryWorkerReady(value.worker_id))throw new UiError('tool-recovery-navigation.changed');
+      if(remainingMs-(performance.now()-started)<=0||report.tool.version!==value.version||report.tool.worker_id!==value.worker_id||!sameToolProfile(report.tool.profile,value.profile))throw new UiError('tool-recovery-navigation.changed');
+      const resolution=report.maintenance_resolution;
+      if((resolution.action==='view_inspection'||resolution.action==='recover_inspection'||resolution.action==='view_recovery')&&resolution.inspection_id){
+        await inspectProfile(report.tool,{inspectionID:resolution.inspection_id,...(resolution.recovery_id?{recoveryID:resolution.recovery_id}:{})});return;
+      }
+      if(report.tool.state==='revoked')throw new UiError('tool-recovery-navigation.changed');
+      if(report.checks.some(check=>check.code==='worker'&&check.status==='blocked')){
+        nonce=beginPublicDraft({...publicDraft!,workerID:value.worker_id},value);
+        action.clearError();setDialog({kind:'worker',mode:'pairing'});return;
+      }
+      const catalog=readAdapterCatalog(await api<unknown>('/adapter-catalog'+query(project)),project);
+      if(!currentSource())return;
+      if(!ordinaryWorkerReady(value.worker_id)||remainingMs-(performance.now()-started)<=0)throw new UiError('tool-recovery-navigation.changed');
+      const matches=catalog?.items.filter(item=>item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'&&item.adapter===value.profile.adapter&&item.protocol===value.profile.protocol&&toolPreparationTarget(item));
+      if(matches?.length!==1)throw new UiError('tool-recovery-navigation.unsupported');
+      nonce=beginPublicDraft({adapterID:matches[0].id,workerID:value.worker_id,commandID:value.profile.command_id,name:value.name,nameEdited:true},value);
+      action.clearError();openToolPreparation(matches[0],value.worker_id,true);
+    }catch(error){if(currentSource())setConnectError(error);}
+    finally{if(owns())setConnecting(false);}
+  }
+  function workerConnectionPreparation(workerID:string){
+    const source=workerRecoverySource(workerID);if(!source)return;
+    return <div className="tool-worker-recovery" data-tool-worker-recovery={workerID}><p>{t('tool-recovery-navigation.target',{name:source.name})}<small>{t('tool-recovery-navigation.boundary')}</small></p><button type="button" data-tool-worker-prepare={workerID} disabled={writeBlocked||stale} onClick={()=>void prepareWorkerConnection(source)}>{t('tool-recovery-navigation.prepare')}</button></div>;
   }
   async function inspectProfile(value:ToolProfile,locator?:ToolInspectionLocator){
     if(stale||writeBlocked||!current||value.project_id!==project||value.id!==current.id||value.version!==current.version||value.worker_id!==current.worker_id||value.profile.profile_sha256!==current.profile.profile_sha256)return;
@@ -366,9 +429,10 @@ function ScopedToolWorkspace({
   }
   function openToolPreparation(adapter:AdapterDescriptor|undefined,expectedWorkerID?:string,focusRemote=false,discovery=false) {
     const target=toolPreparationTarget(adapter);if(!target)return false;
-    const sameTarget=publicDraft?.adapterID===adapter!.id&&publicDraft.workerID===expectedWorkerID;
+    const owner=connectDraft.current,latestDraft=owner?.caller===api&&owner.generation===pairingGeneration&&owner.context===contextKey?owner.value:undefined;
+    const sameTarget=latestDraft?.adapterID===adapter!.id&&latestDraft.workerID===expectedWorkerID;
     if(expectedWorkerID&&!sameTarget)beginPublicDraft({adapterID:adapter!.id,workerID:expectedWorkerID,commandID:'',name:'',nameEdited:false});
-    setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID,preset:target.preset});setGuideOpen(true);
+    setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID,preset:target.preset,...(owner?.sourceTool?{sourceEpoch:owner.sourceEpoch}:{})});setGuideOpen(true);
     focusNavigation(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(discovery?'[data-remote-runner-allow-installed-discovery]':focusRemote?'[data-remote-runner-setup]>summary':'summary'));return true;
   }
   function openRemoteScan(workerID:string){
@@ -614,17 +678,7 @@ function ScopedToolWorkspace({
                       {t("development.tools.the_last_read_is_retained_current_connection")}</p>
                   )}
                   <ToolProfileFacts key={current.id} profile={current} confirmed={!stale}>
-                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={writeBlocked}
-                    onReview={value=>{if(stale||writeBlocked||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
-                    onRegister={value=>{if(!stale&&!writeBlocked)void configureProfile(value);}}
-                    onInspect={inspectProfile}
-                    onRefreshTool={()=>{if(!writeBlocked)void detail.read();}}
-                    onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
-                    onSharedWorker={!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=sharedWorkerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
-                    onRun={(runID,nodeID)=>{if(!stale&&!writeBlocked&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run:runID,node:nodeID}));}}
-                  />
-                  <ToolProfileReplacementHistory project={project} profileID={current.id} disabled={writeBlocked||stale} accessBlocked={detail.failure instanceof ApiError&&[401,403,404].includes(detail.failure.status)} refresh={refresh+revision} onViewProfile={profile=>{if(!stale&&!writeBlocked&&canLeave())onSelect(profile.id);}} onAccessDenied={()=>{if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)void detail.read();}}/>
-                  <div className="tool-action-bar">
+                  <div className="tool-action-bar" data-tool-profile-actions>
                     {handoffPin&&<button type="button" data-tool-use-for-task disabled={stale||writeBlocked} onClick={()=>{
                       if(!current||!handoffPin||stale||writeBlocked||!canLeave())return;
                       action.clearError();setDialog(undefined);
@@ -676,6 +730,16 @@ function ScopedToolWorkspace({
                       </>
                     )}
                   </div>
+                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={writeBlocked}
+                    onReview={value=>{if(stale||writeBlocked||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
+                    onRegister={value=>{if(!stale&&!writeBlocked)void configureProfile(value);}}
+                    onInspect={inspectProfile}
+                    onRefreshTool={()=>{if(!writeBlocked)void detail.read();}}
+                    onWorker={!workers.loading&&!workers.error&&workers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||workers.loading||workers.error||!workers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=workerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});void configureProfile(current,'worker');}:undefined}
+                    onSharedWorker={!sharedWorkers.loading&&!sharedWorkers.error&&sharedWorkers.data?.items.some(worker=>worker.worker_id===current.worker_id)?workerID=>{if(stale||writeBlocked||workerID!==current.worker_id||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data?.items.some(worker=>worker.worker_id===workerID))return;const row=sharedWorkerRows.current.get(workerID);row?.scrollIntoView?.({block:'nearest'});row?.focus({preventScroll:true});}:undefined}
+                    onRun={(runID,nodeID)=>{if(!stale&&!writeBlocked&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run:runID,node:nodeID}));}}
+                  />
+                  <ToolProfileReplacementHistory project={project} profileID={current.id} disabled={writeBlocked||stale} accessBlocked={detail.failure instanceof ApiError&&[401,403,404].includes(detail.failure.status)} refresh={refresh+revision} onViewProfile={profile=>{if(!stale&&!writeBlocked&&canLeave())onSelect(profile.id);}} onAccessDenied={()=>{if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)void detail.read();}}/>
                   </ToolProfileFacts>
                 </>
               )}
@@ -714,7 +778,7 @@ function ScopedToolWorkspace({
           ) : null
         ) : workers.data.items.length ? (
           workers.data.items.map((worker) => (
-            <article className="tool-worker-row" key={worker.id} tabIndex={-1} data-tool-worker={worker.worker_id} ref={element=>{if(element)workerRows.current.set(worker.worker_id,element);else workerRows.current.delete(worker.worker_id);}}>
+            <article className={"tool-worker-row"+(workerRecoverySource(worker.worker_id)?" with-recovery":"")} key={worker.id} tabIndex={-1} data-tool-worker={worker.worker_id} ref={element=>{if(element)workerRows.current.set(worker.worker_id,element);else workerRows.current.delete(worker.worker_id);}}>
               <div>
                 <strong>
                   <Terminal size={14} /> {worker.worker_id}
@@ -738,6 +802,7 @@ function ScopedToolWorkspace({
                 >
                   {t("development.tools.revoke_worker_credential")}</button>
               )}
+              {workerConnectionPreparation(worker.worker_id)}
             </article>
           ))
         ) : (

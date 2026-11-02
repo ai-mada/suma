@@ -1,0 +1,7 @@
+{
+  "tool-recovery-navigation.target": "为“{{name}}”准备节点连接",
+  "tool-recovery-navigation.boundary": "准备配置不会启动节点；身份失效时须明确重新配对。在指南中换选工具将作为新接入。",
+  "tool-recovery-navigation.prepare": "准备连接",
+  "tool-recovery-navigation.unsupported": "此工具没有专用连接准备入口，请使用原高级配置。",
+  "tool-recovery-navigation.changed": "配置或诊断依据已变化，请刷新后重新选择。"
+}
