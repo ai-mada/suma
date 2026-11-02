@@ -21,11 +21,13 @@ import { PoolPolicyFacts, GrantFacts, RunnerFacts } from "./Facts";
 import { PoolCreateForm, RunnerForm, GrantDecision } from "./Forms";
 import { CredentialDialog } from "./CredentialDialog";
 import {PoolRunnerPairingPanel} from "./PoolRunnerPairingPanel";
+import {PoolConfigPreparationPanel} from "./PoolConfigPreparationPanel";
 import { PoolPolicyWorkspace } from "./Previews";
 import "./pools.css";
 type Dialog =
   | { kind: "create" | "pause" | "resume" | "register" | "pair" }
   | { kind: "grant"; grant: Grant; action: string }
+  | { kind: "prepare-config"; runnerID: string }
   | { kind: "rotate" | "revoke-runner"; runner: Runner };
 const mayLeave = () =>
   window.dispatchEvent(new Event("suma:navigate", { cancelable: true }));
@@ -82,6 +84,11 @@ function ScopedPoolWorkspace({
         : panel === "overview"
           ? "overview"
           : "grants";
+  // A local preparation dialog never retains its original row as authority.
+  // Refresh, revocation and capacity changes use the exact current list item.
+  const preparationRunner = dialog?.kind === "prepare-config"
+    ? runners.items.find(item => item.id === dialog.runnerID && item.pool_id === selected && item.status === "active")
+    : undefined;
   function resolved(path: string, value: unknown) {
     setDialog(undefined);
     setRevision((n) => n + 1);
@@ -422,6 +429,7 @@ function ScopedPoolWorkspace({
                             <li key={item.id}>
                               <RunnerFacts runner={item} />
                               <div className="pool-row-actions">
+                                {item.status === "active" && <button type="button" data-pool-config-open={item.id} disabled={blocked||stale||runners.loading||!!runners.error} onClick={()=>open({kind:"prepare-config",runnerID:item.id})}>{tr('pool-config-preparation.entry')}</button>}
                                 {item.allowed_actions.includes(
                                   "rotate_credential",
                                 ) && (
@@ -491,7 +499,9 @@ function ScopedPoolWorkspace({
           if (!blocked) setDialog(undefined);
         }}
         title={
-          dialog?.kind === "pair"
+          dialog?.kind === "prepare-config"
+            ? tr("pool-config-preparation.title")
+            : dialog?.kind === "pair"
             ? tr("pool-runner-pairing.title")
             : dialog?.kind === "create"
             ? tr("pools.workspace.create")
@@ -509,7 +519,7 @@ function ScopedPoolWorkspace({
         }
         description={tr("pools.workspace.operation_scope")}
       >
-        {dialog?.kind==='pair'?<>{notice}<PoolRunnerPairingPanel poolID={selected} disabled={action.busy||!!action.pending||!!recovery.error||stale} canCreate={!stale&&!runners.loading&&!runners.error&&pool?.status==='active'&&runners.allowed.includes('register')} onLockChange={setPairingLocked} onPaired={value=>{if(value.pool_id!==selected||value.owner_tenant_id!==session.organization.id||value.state!=='approved')return;setDialog(undefined);setRevision(before=>before+1);onPanel('runners');}}/></>:dialog?.kind === "create" ? (
+        {dialog?.kind === "prepare-config" ? <>{notice}{pool&&preparationRunner?<PoolConfigPreparationPanel ownerTenantID={pool.owner_tenant_id} poolID={selected} runner={preparationRunner} grants={!grants.loading&&!grants.error?grants.items:undefined} disabled={blocked||stale||runners.loading||!!runners.error}/>:<p role="status">{tr('pool-config-preparation.unavailable')}</p>}</>:dialog?.kind==='pair'?<>{notice}<PoolRunnerPairingPanel poolID={selected} disabled={action.busy||!!action.pending||!!recovery.error||stale} canCreate={!stale&&!runners.loading&&!runners.error&&pool?.status==='active'&&runners.allowed.includes('register')} onLockChange={setPairingLocked} onPaired={value=>{if(value.pool_id!==selected||value.owner_tenant_id!==session.organization.id||value.state!=='approved')return;setDialog(undefined);setRevision(before=>before+1);onPanel('runners');}}/></>:dialog?.kind === "create" ? (
           <PoolCreateForm
             blocked={blocked}
             notice={notice}

@@ -16,6 +16,8 @@ T-POOL-RUNNER-PAIRING-208已补充[安全机器配对](../../contracts/pool-runn
 
 配置是本地私有 JSON，不能加入 Git。以下仅演示结构；ID、命令可执行文件和目录需要替换为实际登记与安装内容。
 
+T209提供[多项目配置表单](../product/pool-config-preparation.md)：在准确Pool节点行选择“准备项目配置”，选已加载的批准项目或手工范围，只填写目标机器路径。复制的命令通过私有标准输入调用`suma-runner --prepare-pool-config NEWFILE`，本机读取已有commands／model_deployments／external文件并验证原配置后独占创建全新文件。它不启动节点、不自动发现或启用工具；后续身份／Grant／库存检查仍沿本手册。变更配置时使用新文件和新状态目录，保留旧Journal并先核对未决操作。详见[合同](../../contracts/pool-config-preparation.md)。
+
 ```json
 {
   "schema_version": 1,

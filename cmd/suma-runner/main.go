@@ -55,6 +55,7 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	describeACPModels := app.Bool("describe-acp-models-stdin", false, "由私有标准输入明确读取已选本机工具的模型目录；不派发任务", "explicitly discover the selected local tool model catalogue from private stdin; no task dispatch")
 	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli、qoder-acp、cursor-cli、codex-app-server、opencode-sdk、claude-code-sdk（只读安装信息，不授予执行权限）；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli, dsh-multica, claude-code-cli, qoder-acp, cursor-cli, codex-app-server, opencode-sdk or claude-code-sdk (passive installation facts, no execution authority); empty selects all")
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
+	preparePoolConfig := app.String("prepare-pool-config", "", "从私有标准输入和现有本机配置生成全新多项目资源池配置；不启动节点", "prepare a new multi-project Pool configuration from private stdin and existing local files without starting a worker")
 	poolID := app.String("pool", "", "共享资源池配对的准确资源池标识；仅用于配对", "exact Pool ID for shared machine pairing only")
 	pairPool := app.String("pair-pool-runner", "", "连接浏览器资源池配对待办；只保存系统凭据与公开身份后退出", "join a browser Pool pairing; save the system credential and public identity, then exit")
 	poolIdentity := app.String("pool-identity", "", "独立资源池公开身份文件；配对保存或配合资源池配置启动", "separate public Pool identity file for pairing or startup with a Pool configuration")
@@ -64,6 +65,12 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	deviceName := app.String("device-name", "", "配对时自报的机器名称；默认本机名称", "self-reported pairing device name; defaults to the local hostname")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if app.FlagProvided("prepare-pool-config") {
+		if *preparePoolConfig == "" || toolModeHasAnyFlag(app, "control", "project", "worker", "workspace", "repository", "base-commit", "worktrees", "merge-preflight", "state", "inspect-state", "commands", "model-deployments", "external-config", "allow-exec", "allow-installed-tool-discovery", "maintenance-only", "describe-tools", "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "prepare-opencode-stdin", "report-tools", "discover-installed-tools", "describe-acp-models-stdin", "local-tool", "pool-config", "pool", "pair-pool-runner", "pool-identity", "pair-runner", "identity", "paired-runner", "device-name") {
+			return app.Failure("资源池配置准备不能与节点、身份或其他配置模式混用", "Pool configuration preparation cannot be combined with worker, identity or other configuration modes")
+		}
+		return runPoolConfigPreparation(app, *preparePoolConfig, input)
 	}
 	// Pool identities have an independent purpose. Presence gates all other
 	// preparation/project modes before any environment or secret store access.

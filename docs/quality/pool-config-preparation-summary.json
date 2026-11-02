@@ -1,0 +1,262 @@
+{
+  "stage": "T-POOL-CONFIG-PREPARATION-209",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "base_commit": "3243ec931a11f81090950b7edaddfd331e343119",
+  "full_platform_complete": false,
+  "full_goal": {
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "status": "active"
+  },
+  "contract": "contracts/pool-config-preparation.md",
+  "focused": {
+    "distinct_top_level": 9,
+    "new": 8,
+    "direct_old": 1,
+    "go": {
+      "distinct": 4,
+      "new": 3,
+      "direct_old": 1,
+      "initial_green": {
+        "path": ".cache/pool-config-preparation-209/runner/20261102T101030070Z.command.json",
+        "sha256": "204828408d073ab5924d194a1c9ce902955102fe4840fa9fe62c3e9b8b885a23"
+      },
+      "case_key_delta": "Only the two affected original Runner top-level checks rerun; no new case-sensitive NTFS environment validation",
+      "delta_green": {
+        "path": ".cache/pool-config-preparation-209/runner/20261102T101808787Z.command.json",
+        "sha256": "acccb9c95d5bb4dd972283761ca4c866fdf140ea7bd680bbe5d448f781bead2a"
+      }
+    },
+    "web": {
+      "distinct": 5,
+      "first_group_passed": true,
+      "evidence": {
+        "path": ".cache/pool-config-preparation-209/ui/summary.json",
+        "sha256": "9226d796fdbbf774b581bd7ee3c8ecbb7ece7f9248df88d85024bd9663d356d6"
+      }
+    },
+    "not_counted_again": "Subcases, repeated affected checks, formatting failures and builds are not extra distinct tests"
+  },
+  "shared_checks": {
+    "complete_web_types": 0,
+    "types": {
+      "path": ".cache/pool-config-preparation-209/checks/types.json",
+      "sha256": "fbe5f421f10a64cdf3d803dced071fa19c23fc75f1fdcfa9c48fe1a3c1a0869f"
+    },
+    "paired_catalog_keys": 9594,
+    "production_hardcodes": 0,
+    "i18n": {
+      "path": ".cache/pool-config-preparation-209/checks/i18n.json",
+      "sha256": "22f0ee517b7b35925f4cd11b8bd9b3cf49362b59750de8cf65bd8326fc1ee4e4"
+    },
+    "normalization": [
+      {
+        "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.en-US.json",
+        "before_sha256": "45d1b4939c90e7b779bda32b7e75f04aee6f327e23c2514a1598645269c00d9a",
+        "after_sha256": "0889378cf81856b7b7b1cf68c9046394cbaa219115e92c50e4dce01a50d9c5dc",
+        "change": "CRLF to LF only; parsed JSON equal; original evidence inputs retained"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.zh-CN.json",
+        "before_sha256": "c796ddba981603feea5394e15b94c4a5399626d103b6282e449ad9b8c92d819c",
+        "after_sha256": "d368c3f8e877acb9ec5c8184cc294ed334d69c608487fe77f60609b1b2616d7b",
+        "change": "CRLF to LF only; parsed JSON equal; original evidence inputs retained"
+      }
+    ]
+  },
+  "reviews": {
+    "remaining_confirmed_p1_p2": 0,
+    "runner": {
+      "path": ".cache/pool-config-preparation-209/review/runner-review.json",
+      "sha256": "1b3ce5f89a9ea4d35bfa68b56ccf631db206e281b28c211e6d56f089437be3a8"
+    },
+    "ui": {
+      "path": ".cache/pool-config-preparation-209/review/ui-review.json",
+      "sha256": "5252d1025736c0034ea68d614863aa1d56e88ddd67de5698c9c1052573325997"
+    },
+    "scope": "Owned reciprocal source reviews; no duplicate test runs"
+  },
+  "actual": {
+    "journeys": 1,
+    "ui_builds": 1,
+    "go_builds": [
+      {
+        "path": ".cache/follow155/root-go/20261102T101237795Z.command.json",
+        "sha256": "d48868f71de18ea221a4030e12d2502a8e1d18674a94f0305a3f65064b8fbf72"
+      },
+      {
+        "path": ".cache/follow155/root-go/20261102T101943584Z.command.json",
+        "sha256": "1f78d272aca483a2174e71ee7ecfedcb5e6a802d2111ba0b4e1dae8017716365"
+      }
+    ],
+    "build_reason": "Initial successful build retained; one final rebuild after the confirmed source-cache case-key correction. Only final artifact executed.",
+    "result": {
+      "path": ".cache/pool-config-preparation-209/actual/20261102T102105558Z/result.json",
+      "sha256": "7c312edbd70c7bc486905064f783e4dee9586ced133ad25d66e0d2acd3f66dca"
+    },
+    "integration": {
+      "path": ".cache/pool-config-preparation-209/integration/summary.json",
+      "sha256": "0e212be6688198dd3451f348daac15c3f7e12e2d4bcbb59d6db37fd1fda575c7"
+    },
+    "cli": {
+      "path": ".cache\\pool-config-preparation-209\\bin\\suma-runner.exe",
+      "sha256": "f205aee26cea963dfe7c7dcf15f2ca94200cff9756e284ae75b5405cde2bbdfc"
+    },
+    "configuration_sha256": "0d103151fe5e5c51ef6da91bd76e466982d737562298e2a40e38da9967255a30",
+    "actual_journeys": 1,
+    "rendered_groups": 2,
+    "images": 2,
+    "electron_launches": 1,
+    "cli_invocations": 2,
+    "successful_new_file": 1,
+    "overwrite_refused": 1,
+    "scope_count": 2,
+    "slots": 2,
+    "first_scope": "Exact current approved public Grant metadata chosen in production selector",
+    "second_scope": "Explicit manual IDs and existing local private paths",
+    "report_fields": [
+      "protocol",
+      "pool_id",
+      "runner_id",
+      "scope_count",
+      "slots",
+      "configuration_sha256"
+    ],
+    "requests": 8,
+    "api_requests": 0,
+    "post_requests": 0,
+    "model_requests": 0,
+    "workers": 0,
+    "keyring_requests": 0,
+    "native_command_markers": 0,
+    "page_errors": 0,
+    "minimum_visible_control_height": {
+      "cn": 44,
+      "en": 44
+    },
+    "normal_cleanup": {
+      "native_pid": 18128,
+      "native_exit": {
+        "code": 0,
+        "signal": null
+      },
+      "native_pid_present": false,
+      "port": 56192,
+      "port_listening": false
+    },
+    "root_viewed_images": [
+      {
+        "path": ".cache/pool-config-preparation-209/actual/20261102T102105558Z/cn-configuration.png",
+        "sha256": "f8bb78ca270c2df3d4756970e33db0126e83af151dcd2921b5a66f5d62782133"
+      },
+      {
+        "path": ".cache/pool-config-preparation-209/actual/20261102T102105558Z/en-configuration.png",
+        "sha256": "d3f8bdffbd632890871796eea305fbc9f24eb7e0b610547b84200c363e0245e7"
+      }
+    ],
+    "scope": "Production Panel with synthetic authorized public metadata and fixture-owned clipboard sink; copied PowerShell and compiled Go file preparation are actual. No platform authorization, OS clipboard IPC, vendor/model or business execution acceptance."
+  },
+  "initial_failures": {
+    "new_cli_mode_red": "Absent mode returned exit2 before implementation; original receipt retained in ignored evidence.",
+    "formatting": "One formatting invocation across two directories failed before any tests; corrected using gofmt. Not a test failure.",
+    "actual_failures": 0
+  },
+  "remaining": [
+    "Machine-side failures still use a safe general diagnostic; per-scope/field reason codes and guided repair remain next work.",
+    "Actual paired-identity startup from this generated configuration and end-to-end inventory/dispatch/same-commit independent quality journey.",
+    "Bash/macOS/Linux actual, NTFS case-sensitive environment fixture, full App/device/theme matrix, real vendor/accounts/models, physical multi-host, OceanBase/PostgreSQL, installers/scale and production.",
+    "Complete original 31 requirements/P0-P7 remain active; existing pairing/Grant/Doctor/profile enablement and dispatch remain original independent gates."
+  ],
+  "sources": [
+    {
+      "path": "internal/runner/pool_config_preparation.go",
+      "bytes": 12723,
+      "sha256": "99c8bfe2ab660c0c45ed4123172c51af0172556bda12c58be13633ef3db393fd"
+    },
+    {
+      "path": "internal/runner/pool_config_preparation_test.go",
+      "bytes": 9179,
+      "sha256": "d8025ac626ce0152e292684db5a564c0437c51c2b9138329dc3530c65231f91c"
+    },
+    {
+      "path": "cmd/suma-runner/pool_config_preparation.go",
+      "bytes": 1004,
+      "sha256": "0660730dcb48745aa15bc72d48dcda73b84fb0c65968ec51a8a8f6a555749914"
+    },
+    {
+      "path": "cmd/suma-runner/pool_config_preparation_test.go",
+      "bytes": 1619,
+      "sha256": "d733e3c99b81c5ff5a17818a40af8fc1fa3af138710f2fb7cd31eb29e12a88f9"
+    },
+    {
+      "path": "cmd/suma-runner/main.go",
+      "bytes": 28396,
+      "sha256": "93bbbc2c5a3ef256afca3e666ab5e10b7b25348de1ed92fb75a73258c3c50fae"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolWorkspace.tsx",
+      "bytes": 25782,
+      "sha256": "5022a0d9c1000cef20f2205fa8e2e1a430c425e24fb64e5329f0b7ef400d9c34"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparationPanel.tsx",
+      "bytes": 13898,
+      "sha256": "c948e4cd1b0d776107cc23fadd4ae3de832f72866e089b45b87b461529bfb869"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparationPanel.test.tsx",
+      "bytes": 10391,
+      "sha256": "232aa5e2f252af8c5516a92ae777a4b396fe7bb6f4b1e8729be09de9d0891ce7"
+    },
+    {
+      "path": "apps/web/src/execution-pools/pool-config-preparation-model.ts",
+      "bytes": 6564,
+      "sha256": "0ada1447aa5ea9dc20080683d3470916340e8897b4d0bf283298ae4b33d47479"
+    },
+    {
+      "path": "apps/web/src/execution-pools/pool-config-preparation-model.test.ts",
+      "bytes": 4567,
+      "sha256": "686034c9b60841f5813452596e5a8433037fdc77982adea40a9bdb2c1cd565b0"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparation.css",
+      "bytes": 2108,
+      "sha256": "f9ef8005c365ea2d934b9b8511db9546b2cd6d24ca90de0e896618f46240725d"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.en-US.json",
+      "bytes": 4790,
+      "sha256": "0889378cf81856b7b7b1cf68c9046394cbaa219115e92c50e4dce01a50d9c5dc"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-preparation.zh-CN.json",
+      "bytes": 4394,
+      "sha256": "d368c3f8e877acb9ec5c8184cc294ed334d69c608487fe77f60609b1b2616d7b"
+    },
+    {
+      "path": "tests/integration/pool-config-preparation/build.cjs",
+      "bytes": 1537,
+      "sha256": "a726dbf6c0ecc44608ba0b59562ba1b612d6794e58115c279d1fba40a2b7a0f1"
+    },
+    {
+      "path": "tests/integration/pool-config-preparation/driver.cjs",
+      "bytes": 12584,
+      "sha256": "441fa2e2bba61299de0c6ebc1ddf2693d529786477cb912a1a000575fa349a5c"
+    },
+    {
+      "path": "tests/integration/pool-config-preparation/entry.tsx",
+      "bytes": 2052,
+      "sha256": "a51e2b45f037e0b33b7bd217d63725091155672b624a6657ecb5f250e1df311a"
+    },
+    {
+      "path": "tests/integration/pool-config-preparation/index.html",
+      "bytes": 624,
+      "sha256": "4887a87164655e58db0bd8ced0a3bd13aa53cfeab5229ebf2c6c039bff257366"
+    }
+  ]
+}

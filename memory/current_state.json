@@ -710,16 +710,16 @@
     "evidence": "T204 original inventory feedback source,18focused,realHTTP/SQLite/two bilingual UI groups committed and pushed. Local post-git remote/dev=HEAD, tracked clean,32allowlisted files,2unrelated retained.",
     "commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183"
   },
-  "previous_goal_turn": "progress: T207 exact OpenCode native new-file preparation and guide handoff, real PowerShell/Go and representative visual verified; committed/pushed886ef83be9acaa6878087a5859d5316160936666. Full31/P0-P7 remains active.",
+  "previous_goal_turn": "progress: T208 Pool pairing scoped verified and committed/pushed3243ec931a11f81090950b7edaddfd331e343119; original full31/P0-P7 remains active.",
   "current_work": {
-    "stage": "T-POOL-RUNNER-PAIRING-208",
+    "stage": "T-POOL-CONFIG-PREPARATION-209",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/pool-runner-pairing.md",
-    "report": "docs/quality/pool-runner-pairing-verification.md",
-    "summary": "docs/quality/pool-runner-pairing-summary.json",
-    "previous_commit": "886ef83be9acaa6878087a5859d5316160936666",
-    "verification": "26distinct(19new7old;adjacentprojectonly1subcase),FullWebtypes0/finalCardsemantic0/9548paired0hardcodes; actualWindowsvault1created1removed/3ACKoriginalrecovery/PoolSession200thenrevoked403/0grant/runs/models;2actualRootviewedimages+2finalreadonlyCardimages.",
-    "next": "Visual multi-project local Pool configuration/preparation, real useful project execution/quality, trusted WorkBuddy code and all31/P0-P7/58limited34pending92total."
+    "contract": "contracts/pool-config-preparation.md",
+    "report": "docs/quality/pool-config-preparation-verification.md",
+    "summary": "docs/quality/pool-config-preparation-summary.json",
+    "previous_commit": "3243ec931a11f81090950b7edaddfd331e343119",
+    "verification": "9distinct(8new1old); 2affectedGo checks rerun only after cache-key fix; fullWebtypes0/9594paired0hardcodes; one Panel/copiedPowerShell/finalGoCLI journey/2scope/create0/refuse1/0API-model-Worker-keyring/2Root-viewedimages; normal exit and port free.",
+    "next": "Safe per-scope preparation diagnostics and original paired-identity startup/inventory/dispatch/same-commit quality; real vendors, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2536,5 +2536,17 @@
     "next": "Visual multi-project local Pool configuration/preparation, real useful project execution/quality, trusted WorkBuddy code and all31/P0-P7/58limited34pending92total.",
     "full_platform_complete": false,
     "git_record": ".cache/pool-runner-pairing-208/post-git.json"
+  },
+  "pool_config_preparation": {
+    "stage": "T-POOL-CONFIG-PREPARATION-209",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/pool-config-preparation.md",
+    "report": "docs/quality/pool-config-preparation-verification.md",
+    "summary": "docs/quality/pool-config-preparation-summary.json",
+    "previous_commit": "3243ec931a11f81090950b7edaddfd331e343119",
+    "verification": "9distinct(8new1old); 2affectedGo checks rerun only after cache-key fix; fullWebtypes0/9594paired0hardcodes; one Panel/copiedPowerShell/finalGoCLI journey/2scope/create0/refuse1/0API-model-Worker-keyring/2Root-viewedimages; normal exit and port free.",
+    "next": "Safe per-scope preparation diagnostics and original paired-identity startup/inventory/dispatch/same-commit quality; real vendors, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total.",
+    "version": "1.0.0",
+    "full_platform_complete": false
   }
 }
