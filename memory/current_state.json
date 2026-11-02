@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "scoped_verified_git_delivery_recorded_separately",
-  "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
-  "updated_at": "2026-11-02T19:42:48.383Z",
+  "stage": "T-SHARED-TOOL-ONBOARDING-219",
+  "updated_at": "2026-11-02T20:43:40.713Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/team-workstation-recovery-verification.md",
-  "current_summary": "docs/quality/team-workstation-recovery-summary.json",
+  "current_evidence": "docs/quality/shared-tool-onboarding-verification.md",
+  "current_summary": "docs/quality/shared-tool-onboarding-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -636,24 +636,30 @@
       }
     ]
   },
-  "current_implementation": "Current owner exact Pool Runner read; original Tool Doctor -> public fixed source locator -> original shared configuration preparation/connection -> original source Quick. Monotonic30s freshness keeps draft while disabling expired actions; late catalog cannot cross retired shared source. Electron Stay-first single departure controller; real closed then original service/Runner drain. No second dispatcher/store or automatic tool enable.",
+  "current_implementation": "Shared discovery/preparation no longer presents ordinary Runner identity; original offline protocol preparation stays available. Exact new public8-field setup pin carries selected tool/Worker/project to current Pool owner and back to original Quick without an invented profile/replacement. Known HTTP401/403/404 or explicit200 invalid grant/runner/credential facts retire only the exact read-only preparation form; ordinary expiry/network retain inert draft. Current Pool owner may prepare an approved foreign-tenant scope offline; project read permission remains a separate link gate. Validated display-only form basis advances to newly read current identity, preventing a later TTL from reverting a v2 draft to v1.",
   "verified": {
-    "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
-    "current_report": "docs/quality/team-workstation-recovery-verification.md",
-    "current_summary": "docs/quality/team-workstation-recovery-summary.json",
-    "distinct_top_level": 22,
-    "new_top_level": 14,
-    "directly_affected_existing": 8,
-    "initial_full_web_typecheck_exit": 2,
-    "initial_new_test_diagnostics": 2,
-    "final_two_affected_files_semantic_errors": 0,
-    "catalog_keys": 9796,
+    "stage": "T-SHARED-TOOL-ONBOARDING-219",
+    "current_report": "docs/quality/shared-tool-onboarding-verification.md",
+    "current_summary": "docs/quality/shared-tool-onboarding-summary.json",
+    "distinct_top_level": 15,
+    "new": 11,
+    "direct_old": 4,
+    "groups": {
+      "root": 5,
+      "guide": 4,
+      "pool": 6
+    },
+    "initial_full_web_tsc_exit": 2,
+    "initial_type_diagnostics": 7,
+    "initial_type_diagnostic_cause": "Required credential_expires_at omitted from two new test fixture rows; no production diagnostics.",
+    "final_affected_semantic_files": 7,
+    "final_affected_semantic_errors": 0,
+    "whole_tsc_repeated": false,
+    "locale_pairs": 9808,
     "production_hardcodes": 0,
-    "api_paths": 452,
-    "contract_schemas": 1000,
-    "web_representative_groups": 3,
-    "desktop_actual_groups": 5,
-    "real_vendor_or_model_or_worker_or_approval": false
+    "go_runs": 0,
+    "model_calls": 0,
+    "vendor_calls": 0
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -663,36 +669,35 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
-    "current_stage_receipt": ".cache/team-workstation-recovery-218/post-git.json"
+    "previously_published_commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
+    "current_stage_receipt": ".cache/shared-tool-onboarding-219/post-git.json"
   },
   "existing_preview": {
     "updated": false,
     "user_database_modified": false,
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
-  "remaining_work": "Actual authorized target-machine repair and tool execution; autonomous code candidate -> independent different-Worker same-SHA tests -> manual acceptance -> issue return and baseline handoff. Continue all31/P0-P7/58limited34pending92total, multi-host/databases/installers/scale. Preserve outstanding lost-host fault matrix, terminal source containment and cross-platform installation; no full platform completion claimed.",
+  "remaining_work": "Actual authorized target-machine scanning/configuration and tool execution, autonomous candidates/different-Worker same-SHA independent testing/manual acceptance/issue return/baseline handoff; all31/P0-P7 and58limited34pending92total, physicalhosts/databases/installers/scale.",
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-TOOL-RECOVERY-NAVIGATION-217",
-    "commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
-    "evidence": "Ordinary tool recovery navigation scoped verified and pushed dev; complete31/P0-P7 remains active."
+    "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
+    "commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
+    "evidence": "50 necessary source/design files scoped verified, normal dev push and remote equality confirmed."
   },
   "current_work": {
-    "stage": "T-TEAM-WORKSTATION-RECOVERY-218",
+    "stage": "T-SHARED-TOOL-ONBOARDING-219",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/team-workstation-recovery.md",
-    "report": "docs/quality/team-workstation-recovery-verification.md",
-    "summary": "docs/quality/team-workstation-recovery-summary.json",
-    "previous_commit": "d13191e500070454ccfaf84f2ce543a49726d0e9",
-    "verification": "22 distinct focused checks, 14 new and 8 affected existing; original fixture/startup failures retained. Final late shared-source invalidation confirmed RED then GREEN only affected existing top. Whole Web TSC initial2 new fixture diagnostics; after fixes affected2 files semantic0. 9796 paired locale keys, 0 production hardcodes. One isolated Web build, representative3 groups plus prior Doctor entry reused; Desktop5 real-window groups with simulated dialog choices.",
-    "actual": "Web production components over synthetic readonly public HTTP and small fixture router, not full App/backend; 0 business writes, 1 original readonly matches POST in continuation. Root viewed Web3 and Desktop2 images. Desktop production controller and real beforeunload, simulated native choices; same-origin navigation and reload used synchronous fallback. Production main close-before-drain separately unit-verified. Late source guard post-visual overlay verified by affected top, no rebuild.",
-    "next": "Actual authorized target-machine repair and tool execution; autonomous code candidate -> independent different-Worker same-SHA tests -> manual acceptance -> issue return and baseline handoff. Continue all31/P0-P7/58limited34pending92total, multi-host/databases/installers/scale.",
+    "contract": "contracts/shared-tool-onboarding.md",
+    "report": "docs/quality/shared-tool-onboarding-verification.md",
+    "summary": "docs/quality/shared-tool-onboarding-summary.json",
+    "previous_commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
+    "verification": "15 distinct:11new4old; Root5/Guide4/Pool6. Real RED/GREEN for shared identity, current invalidation and validv2 expiry. FullTSC initial7 new fixture errors;7 affected semantic0, no fullrepeat.9808 locale pairs0hardcodes.",
+    "actual": "3 representative application groups over syntheticHTTP/smallrouter; 2isolatedbuilds4nativeexit0/closedports. Finalwrapperexit1 kept, exactexpected403 query classifiedoffline. Rootviewed3images; CNpositiveprefixreused. Latestvalidv2 retainedbasis branch afterGUI focusedverified, no extraGUIbuild.0business/model/vendor/tool execution.",
+    "next": "Actual authorized target-machine scanning/configuration and tool execution, autonomous candidates/different-Worker same-SHA independent testing/manual acceptance/issue return/baseline handoff; all31/P0-P7 and58limited34pending92total, physicalhosts/databases/installers/scale.",
     "full_platform_complete": false,
-    "git_record": ".cache/team-workstation-recovery-218/post-git.json",
-    "multica_commit": "a7a61f15f148ba8c901fe24a36a61d6d73e247d6"
+    "git_record": ".cache/shared-tool-onboarding-219/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2646,5 +2651,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/team-workstation-recovery-218/post-git.json",
     "multica_commit": "a7a61f15f148ba8c901fe24a36a61d6d73e247d6"
+  },
+  "shared_tool_onboarding": {
+    "stage": "T-SHARED-TOOL-ONBOARDING-219",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/shared-tool-onboarding.md",
+    "report": "docs/quality/shared-tool-onboarding-verification.md",
+    "summary": "docs/quality/shared-tool-onboarding-summary.json",
+    "previous_commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
+    "verification": "15 distinct:11new4old; Root5/Guide4/Pool6. Real RED/GREEN for shared identity, current invalidation and validv2 expiry. FullTSC initial7 new fixture errors;7 affected semantic0, no fullrepeat.9808 locale pairs0hardcodes.",
+    "actual": "3 representative application groups over syntheticHTTP/smallrouter; 2isolatedbuilds4nativeexit0/closedports. Finalwrapperexit1 kept, exactexpected403 query classifiedoffline. Rootviewed3images; CNpositiveprefixreused. Latestvalidv2 retainedbasis branch afterGUI focusedverified, no extraGUIbuild.0business/model/vendor/tool execution.",
+    "next": "Actual authorized target-machine scanning/configuration and tool execution, autonomous candidates/different-Worker same-SHA independent testing/manual acceptance/issue return/baseline handoff; all31/P0-P7 and58limited34pending92total, physicalhosts/databases/installers/scale.",
+    "full_platform_complete": false,
+    "git_record": ".cache/shared-tool-onboarding-219/post-git.json"
   }
 }

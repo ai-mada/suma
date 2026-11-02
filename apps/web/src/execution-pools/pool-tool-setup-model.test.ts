@@ -1,0 +1,21 @@
+import {expect,it} from 'vitest';
+import {buildPoolSetupOwnerHref,buildPoolSetupProjectHref,createPoolToolSetupPin,parsePoolToolSetupPin,serializePoolToolSetupPin,validPoolToolSetupPin} from './pool-tool-setup-model';
+import {parsePoolToolRecoveryPin} from './pool-tool-recovery-model';
+import type {AdapterDescriptor} from '../AdapterConnections';
+const adapter:AdapterDescriptor={id:'codex-jsonl',product:'Codex',entrypoint_kind:'cli',direction:'suma_to_tool',implementation:'implemented',setup_kind:'runner_profile',adapter:'codex',protocol:'codex-jsonl-v1',capabilities:[],source_refs:[],limitations:[]};
+const row={id:'runner',pool_id:'pool',worker_id:'pool-runner',status:'active',name:'Shared machine',credential_expires_at:'2026-12-03T00:00:00Z'};
+const page={items:[row],as_of:'2026-11-03T00:00:00Z'};
+it('T219 keeps new shared setup public, exact and separate from existing profile recovery',()=>{
+ const pin=createPoolToolSetupPin(adapter,'pool-runner','tenant','project',page)!;expect(pin).toBeDefined();
+ const panel=serializePoolToolSetupPin(pin);expect(parsePoolToolSetupPin(panel)).toEqual(pin);expect(parsePoolToolRecoveryPin(panel)).toBeUndefined();
+ expect(new URLSearchParams(buildPoolSetupOwnerHref(pin)!.slice(1)).get('record')).toBe('pool');
+ const project=new URLSearchParams(buildPoolSetupProjectHref(pin)!.slice(1));expect(project.get('record')).toBe('');expect(project.get('panel')).toBe(panel);
+ expect(validPoolToolSetupPin({...pin,tool_profile_id:'invented'})).toBe(false);
+ expect(validPoolToolSetupPin({...pin,worker_id:'ordinary'})).toBe(false);
+ expect(validPoolToolSetupPin({...pin,protocol:'acp-stdio-v1'})).toBe(false);
+ expect(validPoolToolSetupPin({...pin,adapter_id:'cursor-cli'})).toBe(false);
+ expect(parsePoolToolSetupPin(panel+':extra')).toBeUndefined();expect(parsePoolToolSetupPin(panel.replace('project','../secret'))).toBeUndefined();
+ expect(createPoolToolSetupPin(adapter,'pool-runner','tenant','project',{...page,items:[row,row]})).toBeUndefined();
+ expect(createPoolToolSetupPin(adapter,'pool-runner','tenant','project',{...page,items:[{...row,status:'revoked'}]})).toBeUndefined();
+ expect(createPoolToolSetupPin({...adapter,direction:'tool_to_suma'},'pool-runner','tenant','project',page)).toBeUndefined();
+});

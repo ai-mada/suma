@@ -1,0 +1,479 @@
+{
+  "version": "1.0.0",
+  "stage": "T-SHARED-TOOL-ONBOARDING-219",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "date": "2026-11-03",
+  "base_commit": "33dc8a16e2b03dbc6b8831cda362f71746489eb9",
+  "contract": "contracts/shared-tool-onboarding.md",
+  "report": "docs/quality/shared-tool-onboarding-verification.md",
+  "full_goal": {
+    "status": "active",
+    "version": "1.0.0",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
+    "target_design": "docs/suma-architecture-design.html",
+    "stage_delivery_is_not_full_completion": true
+  },
+  "delivered": [
+    "Shared discovery/preparation no longer presents ordinary Runner identity; original offline protocol preparation stays available.",
+    "Exact new public8-field setup pin carries selected tool/Worker/project to current Pool owner and back to original Quick without an invented profile/replacement.",
+    "Known HTTP401/403/404 or explicit200 invalid grant/runner/credential facts retire only the exact read-only preparation form; ordinary expiry/network retain inert draft.",
+    "Current Pool owner may prepare an approved foreign-tenant scope offline; project read permission remains a separate link gate.",
+    "Validated display-only form basis advances to newly read current identity, preventing a later TTL from reverting a v2 draft to v1."
+  ],
+  "checks": {
+    "distinct_top_level": 15,
+    "new": 11,
+    "direct_old": 4,
+    "groups": {
+      "root": 5,
+      "guide": 4,
+      "pool": 6
+    },
+    "initial_full_web_tsc_exit": 2,
+    "initial_type_diagnostics": 7,
+    "initial_type_diagnostic_cause": "Required credential_expires_at omitted from two new test fixture rows; no production diagnostics.",
+    "final_affected_semantic_files": 7,
+    "final_affected_semantic_errors": 0,
+    "whole_tsc_repeated": false,
+    "locale_pairs": 9808,
+    "production_hardcodes": 0,
+    "go_runs": 0,
+    "model_calls": 0,
+    "vendor_calls": 0
+  },
+  "actual": {
+    "summary": {
+      "stage": "T-SHARED-TOOL-ONBOARDING-219",
+      "status": "three_representative_groups_passed_with_retained_wrapper_classifier_failure",
+      "scope": "Production ToolWorkspace/Guide/Pool preparation/connection/Quick with synthetic public HTTP and a small fixture router; not full App or a real platform backend",
+      "browser_path": "Installed isolated Electron/Playwright harness; active application browser not exercised",
+      "groups": {
+        "cn_exact_shared_guide_owner_preparation_and_new_quick": {
+          "passed": true,
+          "prior_successful_guide_and_owner_entry_reused": true,
+          "command_copied_not_executed": true,
+          "new_setup_not_existing_profile": true,
+          "exact_adapter": "codebuddy-cli",
+          "exact_worker": "pool-cccccccccccccccccccccccccccccccc"
+        },
+        "source_invalid_and_owner_forbidden_do_not_fall_back_to_ordinary_identity": {
+          "passed": true,
+          "invalid_current_shared_source_rejected": true,
+          "expiry_preserved_exact_draft": true,
+          "owner_403_closed_exact_retained_form": true
+        },
+        "en_390_dark_shared_target_progressive_preparation": {
+          "passed": true,
+          "guide_layout": {
+            "width": 390,
+            "scroll_width": 373,
+            "controls": [
+              {
+                "name": "Prepare shared runner connection",
+                "height": 44
+              }
+            ]
+          },
+          "card_layout": {
+            "width": 390,
+            "scroll_width": 373,
+            "controls": [
+              {
+                "name": "Check again",
+                "height": 44
+              },
+              {
+                "name": "Prepare this project connection",
+                "height": 44
+              }
+            ]
+          },
+          "form_layout": {
+            "width": 390,
+            "scroll_width": 390,
+            "controls": [
+              {
+                "name": "Choose the target shellPowerShellBash",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "Remove project scope 1",
+                "height": 44
+              },
+              {
+                "name": "Enter tenant and project IDs manuallyOriginal project · dddd",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "Repository and other local files",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "INPUT",
+                "height": 44
+              },
+              {
+                "name": "Add project scope",
+                "height": 44
+              },
+              {
+                "name": "Copy preparation command",
+                "height": 44
+              }
+            ]
+          },
+          "no_ordinary_identity": true
+        }
+      },
+      "attempts": [
+        {
+          "command": {
+            "path": ".cache/shared-tool-onboarding-219/actual/driver-20261102T201955726Z.command.json",
+            "sha256": "1d53717a592048b06cdc2e855767b4e6716348a274a89d721e4a7ddd2799cefc"
+          },
+          "exit_code": 1,
+          "kind": "installed_isolated_Electron_Playwright",
+          "result": {
+            "path": ".cache/shared-tool-onboarding-219/actual/visual/20261102T201955807Z/result.json",
+            "sha256": "ba92165f0e84685d843654876a0b7fb3d016a02d4b9bcaf10ed9c048316a682a"
+          },
+          "description": "Initial focus timeout; cause unknown, zero completed groups.",
+          "completed_groups": 0,
+          "native_pid": 29564,
+          "native_exit": {
+            "code": 0,
+            "signal": null
+          },
+          "forced": false,
+          "port": 58790,
+          "port_closed": true
+        },
+        {
+          "command": {
+            "path": ".cache/shared-tool-onboarding-219/actual/driver-20261102T202347313Z.command.json",
+            "sha256": "37228ae312e39972b8f2d59f5c9a9793bbb9920aaa01100871b6da125949636a"
+          },
+          "exit_code": 1,
+          "kind": "focused_passive_diagnostic_same_assets",
+          "result": {
+            "path": ".cache/shared-tool-onboarding-219/actual/visual/20261102T202347463Z/result.json",
+            "sha256": "ae1d599f71f6e43d66447f3e29ff483849874c0d96a3bd01813d8e6be61a5a37"
+          },
+          "description": "Same-assets passive diagnostic observed correct focus, then fixture tool-selector strictness failure.",
+          "completed_groups": 0,
+          "native_pid": 49260,
+          "native_exit": {
+            "code": 0,
+            "signal": null
+          },
+          "forced": false,
+          "port": 62815,
+          "port_closed": true
+        },
+        {
+          "command": {
+            "path": ".cache/shared-tool-onboarding-219/actual/driver-20261102T203036305Z.command.json",
+            "sha256": "61fbb1731d1509866ed454b059a18824e99ffd29ad117589fce969703311603e"
+          },
+          "exit_code": 1,
+          "kind": "remaining_original_three_groups_after_Pool_authority_fix",
+          "result": {
+            "path": ".cache/shared-tool-onboarding-219/actual/visual/20261102T203036401Z/result.json",
+            "sha256": "828c436d97dbcc2b5ed27c904e63748f257796df21785019a1e2813ac80e3358"
+          },
+          "description": "Updated Pool build: correct Guide focus/owner card/empty fields recorded; fixture omitted required Shell, so no preview.",
+          "completed_groups": 0,
+          "native_pid": 15516,
+          "native_exit": {
+            "code": 0,
+            "signal": null
+          },
+          "forced": false,
+          "port": 60817,
+          "port_closed": true
+        },
+        {
+          "command": {
+            "path": ".cache/shared-tool-onboarding-219/actual/driver-20261102T203325124Z.command.json",
+            "sha256": "f6f00032556386934315cf4bcfeb3e257a68f663b350db4dd28cdcc0d8f83eb0"
+          },
+          "exit_code": 1,
+          "kind": "authorized_same_assets_remaining_work_continuation",
+          "result": {
+            "path": ".cache/shared-tool-onboarding-219/actual/visual/20261102T203325263Z/result.json",
+            "sha256": "5f6242c98edc9c443f8c9473fa0bae12248d82b2c74b4c3290293fcd8613ca56"
+          },
+          "description": "Same-assets remaining-work continuation: three groups pass; exact expected403 query classification caused retained wrapperexit1.",
+          "completed_groups": 3,
+          "native_pid": 17392,
+          "native_exit": {
+            "code": 0,
+            "signal": null
+          },
+          "forced": false,
+          "port": 50439,
+          "port_closed": true
+        }
+      ],
+      "builds": 2,
+      "build_reason": "Second necessary build incorporates confirmed Pool authority-invalid response fixes; initial inputs/assets/output retained by rename under the same task.",
+      "build_evidence": [
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/build-initial.command.json",
+          "sha256": "8142f72b381dba020beb4f597054c534130b29fae67e2f49d76415e2880001a5"
+        },
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/build.command.json",
+          "sha256": "42189cc6e703c297a5c4fda6a169b566c05ad9a663df1f68503fc6543baa4db3"
+        },
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/build-inputs-initial.json",
+          "sha256": "906c8d612aec803f63e0973fb7a642bd02bdf828f34968894309fec2ac785271"
+        },
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/build-inputs.json",
+          "sha256": "21b8221f976d3dfae0343742d47da8bb971282824caca5a82cc912397f3883df"
+        },
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/build-assets-initial.json",
+          "sha256": "0bb5a609923cf14648cc697fc47b98e63e1bfb05428070224eca8b36798a7988"
+        },
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/build-assets.json",
+          "sha256": "4db846a51f0a84488eac6737774c1aeeeaab6e0541c3864cc5912a540a12c249"
+        }
+      ],
+      "source_manifest": {
+        "path": ".cache/shared-tool-onboarding-219/actual/source-manifest-delivery.json",
+        "sha256": "0f7c537877f62e930ff885cea155b3303da06633daee4d84e1ff2743fe29b608"
+      },
+      "fixture_manifest": {
+        "path": ".cache/shared-tool-onboarding-219/actual/fixture-source-manifest-final.json",
+        "sha256": "d4e58ff00ac61e9c0bcf50f592d8e69eedeccda9db446a17815f600ad7ace5c8"
+      },
+      "executed_driver_sha256": "0f67bbbaa0b20670e6fd6ac2844e423c4bb59bfb381ee5891c630f73a6009a45",
+      "current_driver_sha256": "6ce3042e7717f0bb9cbf3854b9b22cfb33ada0aa7ce5a94f141a6348ee8f4edf",
+      "classification": {
+        "path": ".cache/shared-tool-onboarding-219/actual/console-classification.json",
+        "sha256": "d391a1628791370ab0f2e2182609e5ac5c7303d94032f946b3f868dae97f7b30"
+      },
+      "final_wrapper_exit": 1,
+      "final_native_exit": {
+        "code": 0,
+        "signal": null
+      },
+      "forced": false,
+      "port_closed": true,
+      "final_api_requests": 55,
+      "final_read_only_matches_posts": 0,
+      "business_writes": 0,
+      "invented_profile_reads": 0,
+      "page_errors": 0,
+      "unexpected_console_after_exact_classification": 0,
+      "fixture_csp_warning_retained": [
+        {
+          "text": "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged.",
+          "url": "node:electron/js2c/sandbox_bundle"
+        },
+        {
+          "text": "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged.",
+          "url": "node:electron/js2c/sandbox_bundle"
+        },
+        {
+          "text": "%cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security\n  Policy set or a policy with \"unsafe-eval\" enabled. This exposes users of\n  this app to unnecessary security risks.\n\nFor more information and help, consult\nhttps://electronjs.org/docs/tutorial/security.\nThis warning will not show up\nonce the app is packaged.",
+          "url": "node:electron/js2c/sandbox_bundle"
+        }
+      ],
+      "images": [
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/visual/20261102T203036401Z/cn-shared-tool-guide.png",
+          "sha256": "3a00eafe8422deca90c055753ff7ee95020defa9cf33b6a22fd91c43d2287b7e",
+          "scope": "Prior verified Guide and owner-entry positive prefix reused; overall run failed on required Shell fixture omission."
+        },
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/visual/20261102T203036401Z/cn-shared-tool-owner.png",
+          "sha256": "03a67eea30524455b59e099dfec490e73cd09d2f9f473b706ae73d302d9092fe",
+          "scope": "Prior verified Guide and owner-entry positive prefix reused; overall run failed on required Shell fixture omission."
+        },
+        {
+          "path": ".cache/shared-tool-onboarding-219/actual/visual/20261102T203325263Z/en-mobile-shared-tool-preparation.png",
+          "sha256": "bf07f383a2cb33a3ceb11f9ef282a5279fe966e63115b1ef8f13a018a2273a86",
+          "scope": "Final EN390 dark preparation group."
+        }
+      ],
+      "boundaries": [
+        "Public synthetic HTTP and a small fixture router; not the full App, real backend, native tool scanning or real remote repair.",
+        "No registered ToolProfile was invented: empty profile list and unreported inventory throughout; precise new setup pin returns CodeBuddy and pool Worker to original Quick.",
+        "Current unknown/expired facts are not healthy, dispatch-ready or acceptance proof. Original default-paused registration and enable were not executed.",
+        "Configuration command copied only to an owned synthetic clipboard, never run; no vendor, model, Go, business task, credential, registration or enable action.",
+        "Current-owner forbidden reread closes only the exact retained preparation form; ordinary Runner identity was never rendered.",
+        "Thirty-second expiry used real performance timing; no clock substitution or passive observer focus mutation.",
+        "First focus timeout remains unexplained; passive diagnostic and updated-build positive prefix observed the correct actual focus.",
+        "CN positive prefix reused across hosts, not claimed one uninterrupted journey; all four native attempts observed exit0 and closed ports. Wrapper finalizer exit1 retained; posthoc classification only, no invented new driver/native exit0.",
+        "Three representative images only; new card/form 44px and horizontal-overflow assertions do not claim the full App matrix.",
+        "Original full31/P0-P7 and 58limited/34pending/92 baseline remain active."
+      ]
+    },
+    "status": "Three representative application groups passed; original final wrapper exit1 retained and separately classified from exact expected403 URL/query.",
+    "root_viewed_images": 3,
+    "source_after_gui_overlay": {
+      "manifest": ".cache/shared-tool-onboarding-219/pool/source-manifest-delivery.json",
+      "changed": [
+        "PoolWorkspace.tsx",
+        "PoolToolRecoveryPanel.test.tsx"
+      ],
+      "branch": "validv2 retained display basis then second expiry",
+      "proof": ".cache/shared-tool-onboarding-219/pool/display-basis-summary.json",
+      "rebuild_or_gui_repeated": false
+    },
+    "fixture_driver_after_execution": "Only expected403 query classification changed; original executed driver SHA and wrapper exit remain in actual summary."
+  },
+  "inputs": [
+    {
+      "path": ".cache/shared-tool-onboarding-219/root/source-manifest.json",
+      "sha256": "e171f1aba140912cf621fbccf031b82a78393c9e49f81bf7ce03f236fb6669d1"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/guide/source-manifest.json",
+      "sha256": "3384ccadb9263b9c741e2b8d0490cf848ddb444d23ec054fdfbfe6d3cdc51de3"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/pool/source-manifest-delivery.json",
+      "sha256": "f6e26661fb28e67ceea375dc786e5e0499895ff0e8f9482da99219be17378dad"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/actual/fixture-source-manifest-final.json",
+      "sha256": "d4e58ff00ac61e9c0bcf50f592d8e69eedeccda9db446a17815f600ad7ace5c8"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/shared-tool-onboarding-219/root/result.json",
+      "sha256": "5d53b6135a0a64016b14a359b4bd9549cde7b2a6e53337f814bbc69e7ac688e8"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/root-failed-only/result.json",
+      "sha256": "855a8d2df31fb39aa51c574f3d665892f38201858774878450518186ca23c8ee"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/root-final/result.json",
+      "sha256": "df8113a65c26624a65f4178884c23ac1b4240cfb15150f21d78bd400ba7bf05d"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/checks/types.json",
+      "sha256": "08126af10b005771ca18625723ca6f145f4f814cfad5402fb15998ab3b7d9abf"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/checks/final-semantic.json",
+      "sha256": "480705024f0ae1d634adb32ac16b4d174a7b08c0af5ed746a5cc1e9db3d98db7"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/checks/final-static.json",
+      "sha256": "8164e4a8166ba2f17d73a46af5acb765783602ea024dd0909eb58532bf6871ca"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/checks/last-pool-semantic.json",
+      "sha256": "5022a23e8aa6f50b1ce9a9cdd41a56f5c659b9f640d093b08e954f3a269a9cad"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/pool/summary.json",
+      "sha256": "d06ebe4dd184a396a480c3fba1777d9385d228ec0ae138c976b09d3ef8a7327a"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/pool/summary-final.json",
+      "sha256": "d516ae05258498d6a4f241d0985d546b94d7240d7b0c11196b58b76a34a5299c"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/pool/invalid-facts-summary.json",
+      "sha256": "3ef44b4f09d66344a262a05f70ce7530718e98dcdef0b068958ae3459b9c5d56"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/pool/display-basis-summary.json",
+      "sha256": "d089c7c915b08c825450ded887229051f2c4f00ec8a24a8ad7be669536d9e218"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/guide/summary.json",
+      "sha256": "8ca68ad5e708cdfc288ef639b140157d5eb012c6dcb920efd863e65e865ebffc"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/actual/summary.json",
+      "sha256": "70b6d2956fd73fc83f495224e94866ee2843980ce32485d3f8190ebc513df77c"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/actual/console-classification.json",
+      "sha256": "d391a1628791370ab0f2e2182609e5ac5c7303d94032f946b3f868dae97f7b30"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/review/root-review.json",
+      "sha256": "2ec1de994ea0a7d8755794a1d4d3884111e2f3d4f937ad0bf1e0d3ab78b1ffb0"
+    },
+    {
+      "path": ".cache/shared-tool-onboarding-219/review/pool-last-overlay-review.json",
+      "sha256": "9f8f34b151004ae525d252039634c18309c94a58697a34a58d0d4aef07bbcf1e"
+    }
+  ],
+  "retained_initial_failures": [
+    "Root two new component assertions queried host instead of original Modal document portal; fixture-only fix, not product RED. Only those failed2 repeated.",
+    "Guide shared identity leak had real RED then focused GREEN.",
+    "Known access denied retained private preparation had real RED; extended successful200 revocation variants share same top. Five real1s intervals initially exceeded fixture5s budget; scoped interval advancement fixed test scheduling, not product behavior.",
+    "Retained display basis v1/v2 expiry had real RED then affected new1 GREEN after actual GUI; GUI is explicitly pre-overlay evidence.",
+    "Full typecheck only7 new fixture errors, corrected through affected-file semantic checks; no global exit0 asserted.",
+    "Four GUI wrapper exits1 retained: initial unexplained focus timeout; passive correct focus then fixture ambiguous selector; positive CN prefix then omitted required Shell; final3groups passed but expected403 query console misclassification. Four native exits0/portsclosed, no forced stop."
+  ],
+  "remaining": [
+    "Actual tool scan/installation/remote repair and vendor/model execution were not performed by this synthetic UI fixture.",
+    "Complete App, production backend, physical distributed hosts, cross-platform installers, device/theme matrix, full31/P0-P7 and58limited34pending92total remain active."
+  ],
+  "git": {
+    "branch": "dev",
+    "remote": "git@github.com:ai-mada/suma.git",
+    "receipt": ".cache/shared-tool-onboarding-219/post-git.json",
+    "force": false,
+    "result": "Not recorded before publication."
+  }
+}

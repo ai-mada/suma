@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+T-SHARED-TOOL-ONBOARDING-219：[共享工具接入与 AI SOP](product/shared-tool-onboarding.md)／[交互设计](design/shared-tool-onboarding.md)／[限定验证](quality/shared-tool-onboarding-verification.md)。共享安装检测后的准备使用准确Pool身份，保留工具、节点和项目返回原Quick；新接入不制造旧档案。明确授权失效撤下旧表单，到期保留输入；跨租户离线配置与项目读取权分离。完整31项／P0–P7继续。
+
 T-TEAM-WORKSTATION-RECOVERY-218：[共享节点恢复与 AI SOP](product/team-workstation-recovery.md)／[交互设计](design/team-workstation-recovery.md)／[限定验证](quality/team-workstation-recovery-verification.md)。工具诊断可进入准确资源池、节点和项目配置，再返回原工具换新；核对到期保留输入，来源失效阻止迟到配置。桌面默认留下，实际关闭后才进入原收尾。中英文代表界面及原生窗口已限定验证；真实远程修复、完整31项／P0–P7继续。
 
 T-TOOL-RECOVERY-NAVIGATION-217：[工具恢复交接与AI SOP](product/tool-recovery-navigation.md)／[交互](design/tool-recovery-navigation.md)／[限定验证](quality/tool-recovery-navigation-verification.md)。常用操作前置，Doctor→准确普通节点→原连接准备／上报／Quick贯通；来源ABA、截止、共享边界与原未知保护保持。5项定向、类型0／9774对词条、4组代表合成界面通过；1次构建，失败与宿主退出分开记录。真实远程修复及完整31／P0–P7继续。

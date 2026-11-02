@@ -3,6 +3,7 @@ import { Check, ChevronRight, Copy, Plus, Trash2 } from 'lucide-react';
 import type { ExecutionPoolRunner, ExecutionPoolGrant } from '../../../../packages/contracts/src';
 import type {PoolToolRecovery} from './PoolToolRecoveryPanel';
 import {validPoolToolRecoveryPin} from './pool-tool-recovery-model';
+import {validPoolToolSetupPin} from './pool-tool-setup-model';
 import { useApi, useApiView } from '../api-context';
 import { formatNumber, tr, useLocale } from '../i18n';
 import { emptyPoolConfigScope, poolConfigPreparationCommands, poolConfigPreparationIssue, validPoolConfigID, type PoolConfigPreparationInput, type PoolConfigPreparationScope, type PoolConfigPreparationIssue } from './pool-config-preparation-model';
@@ -33,7 +34,7 @@ function scopeForProject(current: PoolConfigPreparationScope, tenantID: string, 
 }
 const t=(key: string, values?: Record<string, unknown>) => tr('pool-config-preparation.'+key, values);
 function recoveryGrant(value:PoolToolRecovery|undefined,owner:string,pool:string,runner:string):PoolConfigPreparationGrant|undefined{
-  if(!value||!validPoolToolRecoveryPin(value.pin)||value.pin.pool_id!==pool||value.pin.runner_id!==runner||value.pin.tenant_id!==owner||value.scope.tenant_id!==value.pin.tenant_id||value.scope.project_id!==value.pin.project_id||!validPoolConfigID(value.scope.grant_id)||value.scope.grant_version<1||value.scope.grant_status!=='approved'||!value.scope.can_open_project)return;
+  if(!value||!(validPoolToolRecoveryPin(value.pin)||validPoolToolSetupPin(value.pin))||value.pin.pool_id!==pool||value.pin.runner_id!==runner||value.scope.tenant_id!==value.pin.tenant_id||value.scope.project_id!==value.pin.project_id||!validPoolConfigID(value.scope.grant_id)||value.scope.grant_version<1||value.scope.grant_status!=='approved')return;
   return {id:value.scope.grant_id,pool_id:pool,owner_tenant_id:owner,tenant_id:value.scope.tenant_id,project_id:value.scope.project_id,status:'approved',shared_project_name:value.scope.shared_project_name};
 }
 function eligibleGrants(grants: PoolConfigPreparationGrant[]|undefined, ownerTenantID: string, poolID: string) {

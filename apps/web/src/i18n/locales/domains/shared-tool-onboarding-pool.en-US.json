@@ -1,0 +1,6 @@
+{
+  "shared-tool-onboarding-pool.title":"Connect a shared tool",
+  "shared-tool-onboarding-pool.tool":"Selected tool: {{tool}}",
+  "shared-tool-onboarding-pool.project_restricted":"You can prepare configuration for this approved shared scope. Your account cannot read the project, so a project return link is not offered.",
+  "shared-tool-onboarding-pool.boundary":"Prepare this project's shared connection only. This does not create a tool profile, start the runner or enable a tool. Explicitly run the prepared configuration on the target machine, then check its new complete inventory."
+}

@@ -1,5 +1,7 @@
 # 工具管理后续纵向切片
 
+T-SHARED-TOOL-ONBOARDING-219：[共享工具接入与 AI SOP](../product/shared-tool-onboarding.md)／[交互设计](../design/shared-tool-onboarding.md)／[限定验证](../quality/shared-tool-onboarding-verification.md)。共享安装检测后的准备使用准确Pool身份，保留工具、节点和项目返回原Quick；新接入不制造旧档案。明确授权失效撤下旧表单，到期保留输入；跨租户离线配置与项目读取权分离。完整31项／P0–P7继续。
+
 T-TEAM-WORKSTATION-RECOVERY-218：[共享节点恢复与 AI SOP](../product/team-workstation-recovery.md)／[交互设计](../design/team-workstation-recovery.md)／[限定验证](../quality/team-workstation-recovery-verification.md)。工具诊断可进入准确资源池、节点和项目配置，再返回原工具换新；核对到期保留输入，来源失效阻止迟到配置。桌面默认留下，实际关闭后才进入原收尾。中英文代表界面及原生窗口已限定验证；真实远程修复、完整31项／P0–P7继续。
 
 T217已完成[Doctor到准确节点恢复交接](../product/tool-recovery-navigation.md)及原常用操作前置；[限定验证](../quality/tool-recovery-navigation-verification.md)含5项定向与4组合成界面，未将准备当真实修复。下一步继续减少原远程准备手填、完善共享Pool所有者恢复入口、真实目标机器授权修复及完整31／P0–P7；不重复已有CRUD／重检／换新。

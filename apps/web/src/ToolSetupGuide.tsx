@@ -42,9 +42,10 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,expectedWorkerID,presetRequest,onPairRunner,onReportSelection,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;presetRequest?:{preset:ToolPreparationPreset|'octop';nonce:number};onPairRunner?:()=>void;onReportSelection?:(selection:ToolReportFeedbackSelection)=>void;disabled?:boolean}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunner,expectedWorkerID,presetRequest,onPairRunner,onReportSelection,onPrepareSharedPool,disabled}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;pairedRunner?:RunnerPairing;expectedWorkerID?:string;presetRequest?:{preset:ToolPreparationPreset|'octop';nonce:number};onPairRunner?:()=>void;onReportSelection?:(selection:ToolReportFeedbackSelection)=>void;onPrepareSharedPool?:(localTool:ToolPreparationSelection['localTool'],sourceCurrent:()=>boolean)=>void;disabled?:boolean}={}){
  useLocale();
- const targetPairing=!expectedWorkerID||pairedRunner?.worker_id===expectedWorkerID?pairedRunner:undefined;
+ const shared=typeof expectedWorkerID==='string'&&expectedWorkerID.startsWith('pool-');
+ const targetPairing=!shared&&(!expectedWorkerID||pairedRunner?.worker_id===expectedWorkerID)?pairedRunner:undefined;
  const caller=useApi(),view=useApiView(),scope=JSON.stringify([view?.userID,view?.organizationID,project,expectedWorkerID,targetPairing?.id,targetPairing?.project_id,targetPairing?.control_url,targetPairing?.worker_id,targetPairing?.version]),remoteGuide=useRef<HTMLDivElement>(null);
  const owner=useRef({scope,caller,epoch:0,seenRequest:0});if(owner.current.scope!==scope||owner.current.caller!==caller)owner.current={scope,caller,epoch:owner.current.epoch+1,seenRequest:owner.current.seenRequest};
  const epoch=owner.current.epoch,sourceKey=scope+':'+epoch,navigationNonce=useRef(0),reportNavigationNonce=navigationNonce.current;
@@ -57,14 +58,34 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
   if(disabled||owner.current.epoch!==epoch||!validCommandCompositionDraft(draft))return;
   const selectionNonce=currentNavigation?.value.nonce,intent=navigationNonce.current;
   setConfigurationRequest(previous=>({scope,caller,epoch,navigationNonce:intent,value:{...draft,nonce:(previous?.value.nonce||0)+1,...(selectionNonce?{selectionNonce}:{})}}));
-  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||navigationNonce.current!==intent)return;const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector<HTMLInputElement>('[name="remote-runner-commands"]')?.focus();}});
+  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||navigationNonce.current!==intent)return;if(shared){remoteGuide.current?.querySelector<HTMLElement>('[data-shared-pool-output]')?.focus();return;}const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector<HTMLInputElement>('[name="remote-runner-commands"]')?.focus();}});
  }
  function useRunnerConfiguration(draft:ConfigurationDraft){
   if(disabled||owner.current.epoch!==epoch||!currentNavigation||currentNavigation.value.nonce!==navigationNonce.current||currentNavigation.value.localTool!==draft.localTool||!validCursorSetupDraft(draft)&&!validClaudeSDKSetupDraft(draft)&&!validCodexAppServerSetupDraft(draft)&&!validOpenCodeSetupDraft(draft))return;
   setConfigurationRequest(previous=>({scope,caller,epoch,navigationNonce:navigationNonce.current,value:{...draft,nonce:(previous?.value.nonce||0)+1,selectionNonce:currentNavigation.value.nonce}}));
-  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||currentNavigation.value.nonce!==navigationNonce.current)return;const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector('summary')?.focus();}});
+  requestAnimationFrame(()=>{if(owner.current.epoch!==epoch||currentNavigation.value.nonce!==navigationNonce.current)return;if(shared){remoteGuide.current?.querySelector<HTMLElement>('[data-shared-pool-output]')?.focus();return;}const details=remoteGuide.current?.querySelector('details');if(details){details.open=true;details.querySelector('summary')?.focus();}});
  }
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
+ // A current selection is an ephemeral navigation source. A -> B -> A or an
+ // original pending lock must not revive the old parent's asynchronous read.
+ // Keep this separate from offline forms so blocking never erases their input.
+ const sharedBasis=JSON.stringify([scope,epoch,selected,navigationNonce.current,shared,!!disabled,!!onPrepareSharedPool]);
+ const sharedOwner=useRef({caller,basis:sharedBasis,generation:0});
+ if(sharedOwner.current.caller!==caller||sharedOwner.current.basis!==sharedBasis)sharedOwner.current={caller,basis:sharedBasis,generation:sharedOwner.current.generation+1};
+ const sharedGeneration=sharedOwner.current.generation,sharedNavigationNonce=navigationNonce.current,sharedAlive=useRef(true);
+ useEffect(()=>{sharedAlive.current=true;return()=>{sharedAlive.current=false;};},[]);
+ const [sharedCopy,setSharedCopy]=useState<{generation:number;path:string;failed:boolean}>();
+ const selectedTarget=preparationForPreset(selected);
+ const currentConfiguration=configurationRequest?.scope===scope&&configurationRequest.caller===caller&&configurationRequest.epoch===epoch&&configurationRequest.navigationNonce===navigationNonce.current&&configurationRequest.value.selectionNonce===currentNavigation?.value.nonce?configurationRequest.value:undefined;
+ const sharedAvailable=shared&&!disabled&&!!view?.userID&&!!view.organizationID&&!!project&&expectedWorkerID!=='pool-'&&!!selectedTarget&&!!onPrepareSharedPool;
+ function sharedSourceCurrent(){return sharedAlive.current&&navigationNonce.current===sharedNavigationNonce&&sharedOwner.current.caller===caller&&sharedOwner.current.basis===sharedBasis&&sharedOwner.current.generation===sharedGeneration&&owner.current.epoch===epoch&&owner.current.scope===scope;}
+ function prepareSharedPool(){if(sharedAvailable&&selectedTarget&&sharedSourceCurrent())onPrepareSharedPool?.(selectedTarget.localTool,sharedSourceCurrent);}
+ async function copySharedOutput(){
+  if(!shared||disabled||!currentConfiguration||!sharedSourceCurrent())return;
+  const path=currentConfiguration.commands;
+  try{await navigator.clipboard.writeText(path);if(sharedSourceCurrent())setSharedCopy({generation:sharedGeneration,path,failed:false});}
+  catch{if(sharedSourceCurrent())setSharedCopy({generation:sharedGeneration,path,failed:true});}
+ }
  function selectPreset(preset:Preset){setSelected(preset);setCopied('');setFailed(false);const target=preparationForPreset(preset);const nonce=++navigationNonce.current;setNavigation(target?{scope,caller,epoch,value:{localTool:target.localTool,nonce}}:undefined);}
  useEffect(()=>{if(!presetRequest||owner.current.epoch!==epoch||!Number.isSafeInteger(presetRequest.nonce)||presetRequest.nonce<=owner.current.seenRequest)return;owner.current.seenRequest=presetRequest.nonce;if(preparationForPreset(presetRequest.preset)||presetRequest.preset==='octop')selectPreset(presetRequest.preset);},[presetRequest?.nonce,epoch]);
  const [launchMode,setLaunchMode]=useState<'native'|'node'>('native'),[entry,setEntry]=useState('');
@@ -118,7 +139,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,pairedRunne
    </>}
    {project&&<DeveloperClientConnections project={project}/>}
    <CommandCompositionSetup key={sourceKey} disabled={disabled} onUseCommands={useComposedCommands}/>
-   <div ref={remoteGuide}><RemoteRunnerSetupGuide key={sourceKey+':'+(preparationForPreset(selected)?'tools':selected)} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onReportSelection={onReportSelection?value=>{if(owner.current.epoch===epoch&&navigationNonce.current===reportNavigationNonce)onReportSelection(value);}:undefined} onPairRunner={onPairRunner} disabled={disabled} selectionRequest={currentNavigation?.value} configurationRequest={configurationRequest?.scope===scope&&configurationRequest.caller===caller&&configurationRequest.epoch===epoch&&configurationRequest.navigationNonce===navigationNonce.current&&configurationRequest.value.selectionNonce===currentNavigation?.value.nonce?configurationRequest.value:undefined} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')} onConfigureTool={localTool=>{const target=preparationForLocalTool(localTool);if(target)configureRunner(target.preset);}}/></div>
+   <div ref={remoteGuide}>{shared?<section className="tool-shared-pool-guide" data-shared-pool-guide><h4>{t('shared-tool-onboarding-guide.title')}</h4><p>{t('shared-tool-onboarding-guide.boundary')}</p><p><code>{expectedWorkerID}</code></p>{!sharedAvailable&&<p role="status">{t('shared-tool-onboarding-guide.unavailable')}</p>}<button type="button" data-shared-pool-prepare disabled={!sharedAvailable} onClick={prepareSharedPool}>{t('shared-tool-onboarding-guide.prepare')}</button>{currentConfiguration&&<div className="tool-shared-pool-output" data-shared-pool-output tabIndex={-1}><p>{t('shared-tool-onboarding-guide.output_hint')}</p><code>{currentConfiguration.commands}</code><button type="button" data-shared-pool-copy-output disabled={disabled} onClick={()=>void copySharedOutput()}>{t(sharedCopy?.generation===sharedGeneration&&sharedCopy.path===currentConfiguration.commands&&!sharedCopy.failed?'shared-tool-onboarding-guide.copied':'shared-tool-onboarding-guide.copy_output')}</button>{sharedCopy?.generation===sharedGeneration&&sharedCopy.failed&&<p role="alert">{t('cli-setup.copy_failed')}</p>}</div>}</section>:<RemoteRunnerSetupGuide key={sourceKey+':'+(preparationForPreset(selected)?'tools':selected)} project={project} pairedRunner={targetPairing} expectedWorkerID={expectedWorkerID} onReportSelection={onReportSelection?value=>{if(owner.current.epoch===epoch&&navigationNonce.current===reportNavigationNonce)onReportSelection(value);}:undefined} onPairRunner={onPairRunner} disabled={disabled} selectionRequest={currentNavigation?.value} configurationRequest={currentConfiguration} onConfigureCursor={()=>configureRunner('cursor')} onConfigureClaudeSDK={()=>configureRunner('claude-sdk')} onConfigureTool={localTool=>{const target=preparationForLocalTool(localTool);if(target)configureRunner(target.preset);}}/>}</div>
   </div>
  </details>;
 }

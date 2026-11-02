@@ -22,8 +22,9 @@ import { PoolCreateForm, RunnerForm, GrantDecision } from "./Forms";
 import { CredentialDialog } from "./CredentialDialog";
 import {PoolRunnerPairingPanel} from "./PoolRunnerPairingPanel";
 import {PoolConfigPreparationPanel} from "./PoolConfigPreparationPanel";
-import {PoolToolRecoveryPanel,type PoolToolRecoverySnapshot} from './PoolToolRecoveryPanel';
-import {parsePoolToolRecoveryPin,serializePoolToolRecoveryPin} from './pool-tool-recovery-model';
+import {PoolToolRecoveryPanel,serializePoolToolTargetPin,type PoolToolRecoverySnapshot} from './PoolToolRecoveryPanel';
+import {parsePoolToolRecoveryPin} from './pool-tool-recovery-model';
+import {parsePoolToolSetupPin} from './pool-tool-setup-model';
 import { PoolPolicyWorkspace } from "./Previews";
 import "./pools.css";
 type Dialog =
@@ -54,7 +55,7 @@ function ScopedPoolWorkspace({
     [pairingLocked,setPairingLocked]=useState(false),
     [recoverySnapshot,setRecoverySnapshot]=useState<PoolToolRecoverySnapshot&{ownerEpoch:number}>(),
     [recoveryReadRevision,setRecoveryReadRevision]=useState(0);
-  const recoveryPin=useMemo(()=>parsePoolToolRecoveryPin(panel),[panel]);
+  const recoveryPin=useMemo(()=>parsePoolToolRecoveryPin(panel)??parsePoolToolSetupPin(panel),[panel]);
   const recoveryOwner=useRef({panel,epoch:0});if(recoveryOwner.current.panel!==panel)recoveryOwner.current={panel,epoch:recoveryOwner.current.epoch+1};
   const recoveryEpoch=recoveryOwner.current.epoch;
   const recovery = useMemo(
@@ -93,11 +94,11 @@ function ScopedPoolWorkspace({
           : "grants";
   // A local preparation dialog never retains its original row as authority.
   // Refresh, revocation and capacity changes use the exact current list item.
-  const currentRecovery=recoveryPin&&recoveryPin.pool_id===selected&&recoverySnapshot?.ownerEpoch===recoveryEpoch&&serializePoolToolRecoveryPin(recoverySnapshot.recovery.pin)===panel&&performance.now()<recoverySnapshot.expiresAt?recoverySnapshot:undefined;
+  const currentRecovery=recoveryPin&&recoveryPin.pool_id===selected&&recoverySnapshot?.ownerEpoch===recoveryEpoch&&serializePoolToolTargetPin(recoverySnapshot.recovery.pin)===panel&&performance.now()<recoverySnapshot.expiresAt?recoverySnapshot:undefined;
   // Keep the explicitly opened form's public basis for display only. Expiry
   // removes current eligibility, not the user's private paths. A new actor,
   // API, Pool or source intent still unmounts that old form.
-  const recoveryForm=dialog?.kind==='prepare-config'&&dialog.recovery?.ownerEpoch===recoveryEpoch&&serializePoolToolRecoveryPin(dialog.recovery.recovery.pin)===panel?dialog.recovery:undefined;
+  const recoveryForm=dialog?.kind==='prepare-config'&&dialog.recovery?.ownerEpoch===recoveryEpoch&&serializePoolToolTargetPin(dialog.recovery.recovery.pin)===panel?dialog.recovery:undefined;
   const preparationRunner = dialog?.kind === "prepare-config"
     ? dialog.recovery?recoveryForm&&(currentRecovery?.runner??recoveryForm.runner):runners.items.find(item => item.id === dialog.runnerID && item.pool_id === selected && item.status === "active")
     : undefined;
@@ -123,6 +124,21 @@ function ScopedPoolWorkspace({
     action.clearError();
     setDialog(value);
   };
+  function acceptRecoverySnapshot(value:PoolToolRecoverySnapshot|undefined){
+    if(recoveryOwner.current.epoch!==recoveryEpoch||value&&serializePoolToolTargetPin(value.recovery.pin)!==panel)return;
+    const next=value?{...value,ownerEpoch:recoveryEpoch}:undefined;setRecoverySnapshot(next);
+    // The retained display basis advances only after a valid current read.
+    // Later expiry must not revert a newly reviewed identity to an old one.
+    if(next)setDialog(before=>before?.kind==='prepare-config'&&before.recovery?.ownerEpoch===recoveryEpoch&&serializePoolToolTargetPin(before.recovery.recovery.pin)===panel?{...before,recovery:next}:before);
+  }
+  function discardInvalidatedPreparation(){
+    if(recoveryOwner.current.epoch!==recoveryEpoch)return;
+    setRecoverySnapshot(undefined);
+    // Expiry and transient failures retain drafts. A known current access
+    // denial or explicit invalid authority erases this exact preparation, never another
+    // dialog or the original write-recovery operation.
+    setDialog(before=>before?.kind==='prepare-config'&&before.recovery?.ownerEpoch===recoveryEpoch&&serializePoolToolTargetPin(before.recovery.recovery.pin)===panel?undefined:before);
+  }
   return (
     <div className="execution-pools" aria-label={tr("pools.workspace.title")}>
       <p className="pool-scope">
@@ -287,7 +303,7 @@ function ScopedPoolWorkspace({
                     components={{ code: <code /> }}
                   />
                 </p>
-                {recoveryPin&&recoveryPin.pool_id===selected&&<PoolToolRecoveryPanel pin={recoveryPin} pool={pool} disabled={blocked||stale} refresh={refresh+revision+recoveryReadRevision} onSnapshot={value=>{if(recoveryOwner.current.epoch===recoveryEpoch)setRecoverySnapshot(value?{...value,ownerEpoch:recoveryEpoch}:undefined);}} onPrepare={value=>{if(recoveryOwner.current.epoch!==recoveryEpoch||blocked||stale||value.runner.id!==recoveryPin.runner_id||value.runner.pool_id!==selected||performance.now()>=value.expiresAt)return;open({kind:'prepare-config',runnerID:value.runner.id,recovery:{...value,ownerEpoch:recoveryEpoch}});}} onManage={runner=>{if(recoveryOwner.current.epoch!==recoveryEpoch||blocked||stale)return;if(runner.allowed_actions.includes('rotate_credential'))open({kind:'rotate',runner});else if(runners.allowed.includes('register'))open({kind:'pair'});}}/>}
+                {recoveryPin&&recoveryPin.pool_id===selected&&<PoolToolRecoveryPanel pin={recoveryPin} pool={pool} disabled={blocked||stale} refresh={refresh+revision+recoveryReadRevision} onSnapshot={acceptRecoverySnapshot} onPrepare={value=>{if(recoveryOwner.current.epoch!==recoveryEpoch||blocked||stale||value.runner.id!==recoveryPin.runner_id||value.runner.pool_id!==selected||performance.now()>=value.expiresAt)return;open({kind:'prepare-config',runnerID:value.runner.id,recovery:{...value,ownerEpoch:recoveryEpoch}});}} onManage={runner=>{if(recoveryOwner.current.epoch!==recoveryEpoch||blocked||stale)return;if(runner.allowed_actions.includes('rotate_credential'))open({kind:'rotate',runner});else if(runners.allowed.includes('register'))open({kind:'pair'});}} onSourceInvalidated={discardInvalidatedPreparation}/>}
                 <nav
                   className="pool-tabs"
                   aria-label={tr("pools.workspace.pages")}

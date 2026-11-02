@@ -12,6 +12,7 @@ import {
 import './PoolConfigConnection.css';
 import type {PoolToolRecovery} from './PoolToolRecoveryPanel';
 import {buildPoolRecoveryProjectHref,validPoolToolRecoveryPin} from './pool-tool-recovery-model';
+import {buildPoolSetupProjectHref,validPoolToolSetupPin} from './pool-tool-setup-model';
 
 export type PoolConfigConnectionPanelProps = {
   ownerTenantID: string;
@@ -65,9 +66,10 @@ function ConnectionScope({ poolID, runnerID, workerID, prepared, recovery, disab
   const current = active && phase === 'read' ? result?.value : undefined;
   // This link only opens the original project page, which rechecks current
   // access and tools. An inventory lease never grants or removes navigation.
-  const exactRecovery=recovery&&validPoolToolRecoveryPin(recovery.pin)&&recovery.pin.pool_id===poolID&&recovery.pin.runner_id===runnerID&&recovery.pin.worker_id===workerID&&current?.scope.tenant_id===recovery.pin.tenant_id&&current.scope.project_id===recovery.pin.project_id&&current.scope.grant_status==='approved';
+  const exactRecovery=recovery&&(validPoolToolRecoveryPin(recovery.pin)||validPoolToolSetupPin(recovery.pin))&&recovery.pin.pool_id===poolID&&recovery.pin.runner_id===runnerID&&recovery.pin.worker_id===workerID&&current?.scope.tenant_id===recovery.pin.tenant_id&&current.scope.project_id===recovery.pin.project_id&&current.scope.grant_status==='approved';
+  const exactHref=exactRecovery?(validPoolToolSetupPin(recovery.pin)?buildPoolSetupProjectHref(recovery.pin):buildPoolRecoveryProjectHref(recovery.pin)):undefined;
   const href = current && current.scope.can_open_project
-    ? exactRecovery?buildPoolRecoveryProjectHref(recovery.pin):buildPoolToolHref(current.scope.project_id, { poolID, runnerID }) : undefined;
+    ? exactHref??buildPoolToolHref(current.scope.project_id, { poolID, runnerID }) : undefined;
   const registrationState = (value: string) => t('registration_state.' + (['active', 'paused', 'revoked'].includes(value) ? value : 'unknown'));
   useEffect(() => {
     alive.current = true;

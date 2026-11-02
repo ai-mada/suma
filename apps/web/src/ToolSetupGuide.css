@@ -14,3 +14,9 @@
 .tool-cli-setup-body pre,.tool-cli-setup-command{display:block;padding:12px;border:1px solid var(--border);border-radius:5px;background:var(--surface-soft);font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto}
 .tool-cli-setup-body pre:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.tool-cli-setup-select{align-items:stretch;flex-direction:column;gap:6px}.tool-cli-setup-select select,.tool-cli-setup-entry input,.tool-cli-setup-actions button{min-height:44px}.tool-cli-setup-body{padding:0 12px 12px}}
+.tool-shared-pool-guide{border:1px solid var(--border);border-radius:7px;padding:14px;margin-top:16px;min-width:0}
+.tool-shared-pool-guide h4{margin:0}.tool-shared-pool-guide code{overflow-wrap:anywhere}
+.tool-shared-pool-guide button{min-height:44px;white-space:normal}
+.tool-shared-pool-output{margin-top:14px;padding-top:10px;border-top:1px solid var(--border);display:grid;gap:8px;min-width:0}
+.tool-shared-pool-output:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.tool-shared-pool-guide>button,.tool-shared-pool-output>button{width:100%}}

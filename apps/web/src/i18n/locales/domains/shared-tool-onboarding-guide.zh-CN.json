@@ -1,0 +1,9 @@
+{
+  "shared-tool-onboarding-guide.title": "继续准备共享节点",
+  "shared-tool-onboarding-guide.boundary": "共享节点使用独立的资源池身份。继续前将核对当前节点和项目授权，不会生成普通 Runner 身份或自动执行命令。",
+  "shared-tool-onboarding-guide.unavailable": "请重新核对节点及工具选择，或先完成原未确认操作。当前入口不可用时不会切换为普通节点接入。",
+  "shared-tool-onboarding-guide.prepare": "准备共享节点连接",
+  "shared-tool-onboarding-guide.output_hint": "本机输出文件引用：仅表示已选择路径。请在目标机器明确生成并核对文件，再填入原资源池配置；此处不会自动传递私有路径。",
+  "shared-tool-onboarding-guide.copy_output": "复制文件路径",
+  "shared-tool-onboarding-guide.copied": "已复制路径"
+}

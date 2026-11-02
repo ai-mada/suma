@@ -1,0 +1,9 @@
+{
+  "shared-tool-onboarding-guide.title": "Continue shared runner preparation",
+  "shared-tool-onboarding-guide.boundary": "Shared runners use a separate Pool identity. Continue to check the current runner and project grant. This does not create an ordinary Runner identity or execute commands.",
+  "shared-tool-onboarding-guide.unavailable": "Check the runner and selected tool again, or reconcile the original unconfirmed operation. An unavailable entry never falls back to ordinary runner setup.",
+  "shared-tool-onboarding-guide.prepare": "Prepare shared runner connection",
+  "shared-tool-onboarding-guide.output_hint": "Local output reference: this is a selected path only. Explicitly generate and verify the file on the target machine before using the original Pool configuration. Private paths are not transferred here.",
+  "shared-tool-onboarding-guide.copy_output": "Copy file path",
+  "shared-tool-onboarding-guide.copied": "Path copied"
+}

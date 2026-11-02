@@ -1,0 +1,6 @@
+{
+  "shared-tool-onboarding-pool.title":"接入共享工具",
+  "shared-tool-onboarding-pool.tool":"已选工具：{{tool}}",
+  "shared-tool-onboarding-pool.project_restricted":"可为已批准的共享范围准备配置；当前账号没有项目读取权限，暂不提供返回项目的链接。",
+  "shared-tool-onboarding-pool.boundary":"仅为当前项目准备共享连接，不会创建工具档案、启动节点或启用工具。配置生成后仍须明确在目标机器执行，并核对新的完整库存。"
+}
