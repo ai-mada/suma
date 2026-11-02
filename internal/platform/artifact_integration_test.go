@@ -50,6 +50,11 @@ func TestReleaseFixtureProcess(t *testing.T) {
 		if err = os.WriteFile(".cache/site/index.html", b, 0600); err != nil {
 			fail(35, err)
 		}
+	case "source_test":
+		b, err := os.ReadFile("site.html")
+		if err != nil || string(b) != releaseFixtureHTML {
+			fail(36, "independent source test did not receive candidate C")
+		}
 	case "package_test":
 		b, err := os.ReadFile("site.html")
 		if err != nil || string(b) != releaseFixtureHTML {
@@ -112,6 +117,8 @@ func newVerifiedReleaseCandidate(t *testing.T) (*fixture, ReleaseCandidate, stri
 	develop := command("develop")
 	build := command("build")
 	build.ArtifactOutput = ".cache/site"
+	sourceTest := command("source_test")
+	sourceTest.TestEvidence = true
 	test := command("package_test")
 	test.ArtifactInput = true
 	test.TestEvidence = true
@@ -123,26 +130,44 @@ func newVerifiedReleaseCandidate(t *testing.T) (*fixture, ReleaseCandidate, stri
 		}
 		return ReleaseProfileRegistration{ID: id, Kind: kind, SHA256: h}
 	}
-	profiles := []ReleaseProfileRegistration{profile("site-build", "build", build), profile("site-test", "package_test", test)}
+	profiles := []ReleaseProfileRegistration{profile("site-build", "build", build)}
 	registered, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "release-fixture-worker", "profiles": profiles, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	token := registered["token"].(string)
+	tester, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "release-fixture-tester", "profiles": []ReleaseProfileRegistration{profile("site-test", "package_test", test)}, "idempotency_key": newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "实际静态包交付", "acceptance_criteria": []string{"固定C构建", "下载封存包实际HTTP测试"}}), 201)
-	wf := dag.Workflow{Name: "真实发布制品流水线", Nodes: []dag.Node{{ID: "develop", Name: "开发C", Type: "command", Command: []string{"develop"}}, {ID: "build", Name: "固定C构建", Type: "command", Command: []string{"site-build"}, DependsOn: []string{"develop"}, Config: map[string]any{"candidate_from": "develop"}}, {ID: "package-test", Name: "实际包HTTP测试", Type: "test", Command: []string{"site-test"}, DependsOn: []string{"build"}, Config: map[string]any{"artifact_from": "build"}}}}
+	// Every code producer gets its own candidate_from test. The original
+	// artifact_from test remains a separate downloaded-package HTTP check.
+	wf := dag.Workflow{Name: "真实发布制品流水线", Nodes: []dag.Node{
+		{ID: "develop", Name: "开发C", Type: "command", Command: []string{"develop"}},
+		{ID: "develop-test", Name: "独立测试开发C", Type: "test", Command: []string{"source-test"}, DependsOn: []string{"develop"}, Config: map[string]any{"candidate_from": "develop"}},
+		{ID: "build", Name: "固定C构建", Type: "command", Command: []string{"site-build"}, DependsOn: []string{"develop-test"}, Config: map[string]any{"candidate_from": "develop"}},
+		{ID: "build-test", Name: "独立测试构建源码C", Type: "test", Command: []string{"source-test"}, DependsOn: []string{"build"}, Config: map[string]any{"candidate_from": "build"}},
+		{ID: "package-test", Name: "实际包HTTP测试", Type: "test", Command: []string{"site-test"}, DependsOn: []string{"build-test"}, Config: map[string]any{"artifact_from": "build"}},
+	}}
 	pub := f.call("POST", "/workflows", f.body(map[string]any{"name": wf.Name, "nodes": wf.Nodes}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": pub["id"], "task_id": task["id"], "expected_task_version": task["version"]}), 201)
-	server := httptest.NewServer(f.handler)
-	t.Cleanup(server.Close)
+	server := releaseFixtureServer(t, f)
 	client := &runner.Client{BaseURL: server.URL, Token: token, ProjectID: f.project}
 	journal, err := runner.OpenJournal(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = journal.Close() })
-	config := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"develop": develop, "site-build": build, "site-test": test}, Artifacts: client, Journal: journal}
-	runReleaseFixtureWorker(t, ctx, f, client, journal, "release-fixture-worker", run["id"].(string), config, 0)
+	testClient := &runner.Client{BaseURL: server.URL, Token: tester["token"].(string), ProjectID: f.project}
+	testJournal, err := runner.OpenJournal(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = testJournal.Close() })
+	config := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"develop": develop, "site-build": build}, Artifacts: client, Journal: journal}
+	testConfig := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"source-test": sourceTest, "site-test": test}, Artifacts: testClient, Journal: testJournal}
+	runReleaseFixtureWorkers(t, ctx, f, run["id"].(string), []releaseFixtureWorker{{ID: "release-fixture-worker", Client: client, Journal: journal, Exec: config}, {ID: "release-fixture-tester", Client: testClient, Journal: testJournal, Exec: testConfig}}, map[string]string{"develop": "release-fixture-worker", "build": "release-fixture-worker", "develop-test": "release-fixture-tester", "build-test": "release-fixture-tester", "package-test": "release-fixture-tester"})
 	if original := releaseGit(t, repo, "rev-parse", "HEAD"); original != base {
 		t.Fatal("original checkout HEAD changed")
 	}

@@ -1,0 +1,154 @@
+{
+  "format": "suma-source-dependency-delta-v1",
+  "stage": "T-TEST-DISPATCH-BINDINGS-216",
+  "generated_at": "2026-11-02T17:57:30.288Z",
+  "owner": "主集成",
+  "status": "official_pinned_source_dependencies_not_final_distribution_sbom",
+  "reason": "Current sqlite1.36.3 misses upstream cancel Rows leak and interruption-race fixes; prefer official driver upgrade over local bypasses.",
+  "upstream": [
+    "https://github.com/modernc-org/sqlite/blob/v1.61.1/CHANGELOG.md",
+    "https://github.com/modernc-org/sqlite/blob/v1.61.1/go.mod",
+    "https://github.com/modernc-org/sqlite/blob/v1.61.1/stmt.go"
+  ],
+  "go_mod_sha256": "088401ee04c05cb17a88e8e7e2e801f9e3b0eda30e76f363cfd75a553487f8e0",
+  "go_sum_sha256": "9b9c9ded53e78a15aaa0d3dc0a5f333c4b659ea2ef3ffefd568b678418852c78",
+  "go_sumdb": "sum.golang.org during official download",
+  "modules": [
+    {
+      "module": "github.com/mattn/go-isatty",
+      "before": "v0.0.20",
+      "version": "v0.0.24",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1099,
+          "sha256": "08eab1118c80885fa1fa6a6dd7303f65a379fcb3733e063d20d1bbc2c76e6fa1"
+        }
+      ]
+    },
+    {
+      "module": "modernc.org/sqlite",
+      "before": "v1.36.3",
+      "version": "v1.61.1",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1489,
+          "sha256": "c6fe05491a60ae13bcd223088d2705e36dede24e5587226231d2459ada5c4822"
+        },
+        {
+          "file": "LICENSE-3RD-PARTY.md",
+          "bytes": 74323,
+          "sha256": "4194f8e7119be72babd499db4f6f1f7547e36e8a7bffcb2b9c8df241b8f1576a"
+        },
+        {
+          "file": "LICENSE-SQLITE",
+          "bytes": 1506,
+          "sha256": "8438c9c89b849131ead81d5435cb97fcf052df5b0b286dda8a2d4c29e6cb3fd0"
+        },
+        {
+          "file": "LICENSE-SQLITE_VEC",
+          "bytes": 1068,
+          "sha256": "6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea"
+        }
+      ]
+    },
+    {
+      "module": "github.com/dustin/go-humanize",
+      "before": "v1.0.1",
+      "version": "v1.1.0",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1136,
+          "sha256": "a973b4498c13eb74baa2a8e5c351426a6826f2fcdd909916dbe53ee2e755fd71"
+        }
+      ]
+    },
+    {
+      "module": "github.com/ncruces/go-strftime",
+      "before": "v0.1.9",
+      "version": "v1.1.0",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1068,
+          "sha256": "38ae43959daf953a393a585b2988672cb65a5a541aca0d0be5e72595a0a16883"
+        }
+      ]
+    },
+    {
+      "module": "golang.org/x/sync",
+      "before": "v0.20.0",
+      "version": "v0.24.0",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1453,
+          "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+        }
+      ]
+    },
+    {
+      "module": "golang.org/x/sys",
+      "before": "v0.44.0",
+      "version": "v0.49.0",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1453,
+          "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+        }
+      ]
+    },
+    {
+      "module": "modernc.org/libc",
+      "before": "v1.61.13",
+      "version": "v1.79.0",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1482,
+          "sha256": "95ff867eb55a56935fa7492406cfa953fb7c13ca73f4c0a86ae05756b4605600"
+        },
+        {
+          "file": "LICENSE-3RD-PARTY.md",
+          "bytes": 10505,
+          "sha256": "f597097efe3d97021f89170746bd3a0fb9a8b6fb26b82043ed68a4e0283bee6c"
+        }
+      ]
+    },
+    {
+      "module": "modernc.org/memory",
+      "before": "v1.8.2",
+      "version": "v1.12.1",
+      "license_originals": [
+        {
+          "file": "LICENSE",
+          "bytes": 1484,
+          "sha256": "59895e669f48f168b6b858358f6005779cdf40a265f7828813061b56af67b496"
+        },
+        {
+          "file": "LICENSE-GO",
+          "bytes": 1479,
+          "sha256": "2d36597f7117c38b006835ae7f537487207d8ec407aa9d9980794b2030cbc067"
+        },
+        {
+          "file": "LICENSE-LOGO",
+          "bytes": 62,
+          "sha256": "5ae5bee3072a841376451b48d8cfcec7188e10543926d5870828d36c8a750dc5"
+        },
+        {
+          "file": "LICENSE-MMAP-GO",
+          "bytes": 1518,
+          "sha256": "c2eba69f20d05414538c3a5df7694dde392e065ff70882e1625e90f5d6659fff"
+        }
+      ]
+    }
+  ],
+  "bounds": [
+    "No driver fork, workspace-wide transaction bypass or schema migration.",
+    "License files are hashed unmodified originals in the exact module cache; final installers need complete redistribution notices/SBOM.",
+    "Previous generated inventory is a historical baseline; this delta supplies the current eight upgrades."
+  ]
+}

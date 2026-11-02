@@ -11,6 +11,7 @@ import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {RequirementDesignFacts} from './RequirementDesignFacts';
 import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
 import {TaskDispatchToolHandoff} from './TaskDispatchToolHandoff';
+import {TaskDispatchTestBindings,type TestBindingsChoice} from './TaskDispatchTestBindings';
 import type {ToolTaskHandoffPin} from './tool-task-handoff-model';
 import {DispatchRecommendation} from './DispatchRecommendation';
 import {UiError} from './i18n';
@@ -138,6 +139,14 @@ function TaskDispatchScope({
   const modelRequired=profile?.profile.model_execution_protocol==='suma-model-execution-v1';
   const codexRequired=profile?.profile.protocol==='codex-app-server-v1';
   const modelReady=!(modelRequired||codexRequired)||modelChoice.key===modelKey&&modelChoice.ready;
+  const testBasis=JSON.stringify([selectionScope,profile?.id,profile?.version,profile?.profile.profile_sha256,profile?.worker_id]);
+  const [testChoice,setTestChoice]=useState<TestBindingsChoice&{key:string}>({key:'',ready:true,hasIntent:false,selections:[]});
+  const testOwner=useRef({api,key:testBasis,epoch:0});
+  if(testOwner.current.api!==api||testOwner.current.key!==testBasis)testOwner.current={api,key:testBasis,epoch:testOwner.current.epoch+1};
+  const testEpoch=testOwner.current.epoch;
+  const testScope=JSON.stringify([testBasis,testEpoch]);
+  const currentTests=testChoice.key===testScope?testChoice:{ready:true,hasIntent:false,selections:[]};
+  const updateTests=useCallback((value:TestBindingsChoice)=>{if(testOwner.current.api===api&&testOwner.current.key===testBasis&&testOwner.current.epoch===testEpoch)setTestChoice({...value,key:testScope});},[api,testBasis,testScope,testEpoch]);
   const handoffScope=JSON.stringify([selectionScope,manualToolIntent]);
   const actualProfileKey=profile?JSON.stringify([selectionScope,profile.id,profile.version,profile.profile.profile_sha256]):'';
   const handoffAdopted=!!actualProfileKey&&handoffSelectionKey===actualProfileKey;
@@ -191,12 +200,12 @@ function TaskDispatchScope({
   async function prepare() {
     setError("");
     try {
-      if (!currentTask || !flow || !profile || !modelReady)
+      if (!currentTask || !flow || !profile || !modelReady || !currentTests.ready)
         throw new Error(t("development.dispatch.choose_a_current_task_a_published_workflow"));
       if(blocked||!selectionCurrent||!validKnowledgePins(knowledgeSelection))throw new UiError('knowledge.errors.ineligible');
       const result = await action.run<TaskDispatchPlan>(
         "/task-dispatch-plans",
-        {...dispatchRequest(project, currentTask, flow, agentID, profile),knowledge:knowledgeSelection,...(modelRequired&&modelChoice.selection?{model_execution_selection:modelChoice.selection}:{}),...(codexRequired&&modelChoice.codexSelection?{codex_execution_selection:modelChoice.codexSelection}:{})},
+        {...dispatchRequest(project, currentTask, flow, agentID, profile,currentTests.selections),knowledge:knowledgeSelection,...(modelRequired&&modelChoice.selection?{model_execution_selection:modelChoice.selection}:{}),...(codexRequired&&modelChoice.codexSelection?{codex_execution_selection:modelChoice.codexSelection}:{})},
       );
       if (result) saved("/task-dispatch-plans", result);
     } catch (error) {
@@ -225,7 +234,7 @@ function TaskDispatchScope({
         {planRead.loading && <p role="status">{t("development.dispatch.reading_immutable_execution_plan")}</p>}
         {knowledgeAccessBlocked?<section className="tool-notice" role="alert"><p>{t('knowledge-consumers.access_denied')}</p><button type="button" disabled={blocked||accessRefreshing} onClick={()=>void refreshTask()}>{t('knowledge-consumers.recheck_access')}</button></section>:!planID || planID === "new" ? (
           <>
-          {currentTask&&flow&&recommendationKnowledge&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<DispatchRecommendation session={session} scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID,knowledge:recommendationKnowledge}} inventory={profiles} disabled={directBlocked} onLockChange={setRecommendationLocked} onPrepared={plan=>saved('/task-dispatch-plans',plan)} onOpenPlan={id=>onPlan(id,currentTask.id)} onManual={()=>{requestAnimationFrame(()=>document.querySelector<HTMLSelectElement>('[data-dispatch-manual-tool]')?.focus());}}/>}
+          {currentTask&&flow&&recommendationKnowledge&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<DispatchRecommendation session={session} scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID,knowledge:recommendationKnowledge}} inventory={profiles} disabled={directBlocked} creationDisabled={currentTests.hasIntent||!currentTests.ready} onLockChange={setRecommendationLocked} onPrepared={plan=>saved('/task-dispatch-plans',plan)} onOpenPlan={id=>onPlan(id,currentTask.id)} onManual={()=>{requestAnimationFrame(()=>document.querySelector<HTMLSelectElement>('[data-dispatch-manual-tool]')?.focus());}}/>}
           <form
             className="tool-form"
             onSubmit={(event) => {
@@ -380,6 +389,7 @@ function TaskDispatchScope({
                 >
                   {t("development.dispatch.view_tool_configurations_and_unavailable_reasons")}</a>
               </small>
+              {currentTask&&flow&&profile&&<TaskDispatchTestBindings project={project} workflow={flow} agentID={agentID} developer={profile} scopeKey={testScope} inventory={profiles} disabled={blocked} onChange={updateTests}/>}
               {profile && (
                 <div className="tool-context">
                   <strong>{profile.name}</strong>
@@ -409,6 +419,7 @@ function TaskDispatchScope({
                 {t("development.workflow.cancel")}</button>
               <button
                 className="primary"
+                data-dispatch-prepare
                 disabled={
                   blocked ||
                   action.conflict ||
@@ -417,6 +428,7 @@ function TaskDispatchScope({
                   !agentID ||
                   !profile?.available ||
                   !modelReady ||
+                  !currentTests.ready ||
                   profiles.loading ||
                   !!profiles.error ||
                   workflows.loading ||

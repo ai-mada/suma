@@ -75,7 +75,10 @@ func (s *Service) checkTaskDispatchCurrentRouteTx(ctx context.Context, tx *sql.T
 	if err = s.checkTaskDispatchRouteBasisTx(ctx, tx, p.TenantID, project, plan.ID, route); err != nil {
 		return err
 	}
-	return s.checkDispatchProfileRouteTx(ctx, tx, p.TenantID, project, profile, route)
+	if err = s.checkDispatchProfileRouteTx(ctx, tx, p.TenantID, project, profile, route); err != nil {
+		return err
+	}
+	return s.checkTaskDispatchTestBindingsRouteTx(ctx, tx, p, project, plan, profile, route)
 }
 
 // This hook runs after Core has inserted the immutable run route and before
@@ -93,7 +96,10 @@ func (s *Service) checkTaskDispatchBoundRouteTx(ctx context.Context, tx *sql.Tx,
 	if err != nil {
 		return err
 	}
-	return s.checkDispatchProfileRouteTx(ctx, tx, p.TenantID, project, profile, route)
+	if err = s.checkDispatchProfileRouteTx(ctx, tx, p.TenantID, project, profile, route); err != nil {
+		return err
+	}
+	return s.checkTaskDispatchTestBindingsRouteTx(ctx, tx, p, project, plan, profile, route)
 }
 
 func unsupportedPoolRelease() error {

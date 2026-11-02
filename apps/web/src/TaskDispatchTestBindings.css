@@ -1,0 +1,15 @@
+.dispatch-test-bindings{--control-height:44px;min-width:0;border:1px solid var(--border);border-radius:8px;padding:10px}
+.dispatch-test-bindings>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;font-size:14px;font-weight:600}
+.dispatch-test-bindings>summary small{margin-inline-start:auto;color:var(--muted)}
+.dispatch-test-bindings[open]>summary>svg{transform:rotate(90deg)}
+.dispatch-test-bindings-body{display:grid;gap:12px;min-width:0;padding-top:8px}
+.dispatch-test-bindings-body>section{display:grid;gap:8px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:6px}
+.dispatch-test-bindings :is(p,h4){margin:0;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.dispatch-test-bindings h4{font-size:14px}
+.dispatch-test-bindings label{display:grid;gap:6px;min-width:0;font-size:13px}
+.dispatch-test-bindings select{box-sizing:border-box;width:100%;max-width:100%;min-width:0;align-self:start}
+.dispatch-test-bindings button{min-height:44px;max-width:100%;white-space:normal}
+.dispatch-test-muted,.dispatch-test-bindings small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.dispatch-test-actions{display:flex;gap:8px;flex-wrap:wrap}
+.dispatch-test-bindings :is(button,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.dispatch-test-actions{display:grid;grid-template-columns:minmax(0,1fr)}}

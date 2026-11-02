@@ -7039,6 +7039,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  test_bindings?: (TaskDispatchTestBinding)[];
   development_continuation?: DevelopmentContinuationBinding | null;
   execution_skills?: ExecutionSkillBundle | null;
   acp_execution?: ACPExecutionCapability | null;
@@ -7073,6 +7074,7 @@ export interface TaskDispatchPlan {
   reason: string;
 }
 export interface TaskDispatchPreviewRequest {
+  test_bindings?: (TaskDispatchTestSelection)[];
   codex_execution_selection?: CodexSelection;
   model_execution_selection?: ModelSelection;
   project_id: string;
@@ -7090,6 +7092,19 @@ export interface TaskDispatchStartRequest {
   project_id: string;
   expected_version: number;
   idempotency_key: string;
+}
+export interface TaskDispatchTestBinding {
+  node_id: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  worker_id: string;
+  command_id: string;
+}
+export interface TaskDispatchTestSelection {
+  node_id: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
 }
 export interface TaskDispatchToolOption {
   tool: ToolProfile;

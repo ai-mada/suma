@@ -3,10 +3,16 @@ package store
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
+	"fmt"
+	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
+
+	"modernc.org/sqlite"
 )
 
 func TestScopedTxFailedDeferredCommitReturnsCleanConnection(t *testing.T) {
@@ -148,5 +154,117 @@ func TestScopedTxCancelledBeginDoesNotConsumeConnection(t *testing.T) {
 	}
 	if err := db.PingContext(context.Background()); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// Reproduce the cancellation window with a real SQLite statement, not a fake
+// successful query. An interrupted QueryContext must close any driver.Rows it
+// created before returning an error: a leaked statement can keep close_v2's
+// zombie connection alive even when database/sql reports zero open handles.
+func TestSQLiteCancelledReadReleasesRowsAndDatabase(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	entered := make(chan struct{})
+	var validator driver.Validator
+	functionName := fmt.Sprintf("suma_cancelled_read_%x", time.Now().UnixNano())
+	if err := sqlite.RegisterScalarFunction(functionName, 0, func(*sqlite.FunctionContext, []driver.Value) (driver.Value, error) {
+		close(entered)
+		<-ctx.Done()
+		// The driver exposes this public health predicate and protects it with
+		// its connection mutex. Wait for the actual native interrupt rather
+		// than sleep and hope the cancellation goroutine has been scheduled.
+		deadline := time.Now().Add(time.Second)
+		for validator.IsValid() {
+			if time.Now().After(deadline) {
+				return nil, errors.New("native SQLite interrupt was not observed")
+			}
+			runtime.Gosched()
+		}
+		return int64(42), nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "cancelled-read.db")
+	db, err := Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err = db.Exec(`CREATE TABLE cancellation_probe(id INTEGER PRIMARY KEY); INSERT INTO cancellation_probe(id) VALUES(1)`); err != nil {
+		t.Fatal(err)
+	}
+	conn, err := db.Conn(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	queryDone := make(chan error, 1)
+	go func() {
+		queryErr := conn.Raw(func(value any) error {
+			var ok bool
+			validator, ok = value.(driver.Validator)
+			if !ok {
+				return errors.New("SQLite driver does not expose connection validation")
+			}
+			// All access to the physical driver stays within Raw. The SQLite
+			// scalar is invoked synchronously inside this QueryContext call.
+			defer func() { validator = nil }()
+			queryer, ok := value.(driver.QueryerContext)
+			if !ok {
+				return errors.New("SQLite driver does not expose contextual queries")
+			}
+			rows, err := queryer.QueryContext(ctx, `SELECT `+functionName+`(),id FROM cancellation_probe`, nil)
+			if rows != nil {
+				rows.Close()
+			}
+			return err
+		})
+		queryDone <- queryErr
+	}()
+	select {
+	case <-entered:
+	case <-time.After(2 * time.Second):
+		cancel()
+		t.Fatal("real SQLite callback was not entered")
+	}
+	cancel()
+	select {
+	case err = <-queryDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Errorf("interrupted query: %v, want context cancellation", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("interrupted SQLite query did not return")
+	}
+	probe, stop := context.WithTimeout(context.Background(), 3*time.Second)
+	defer stop()
+	var busy, logged, checkpointed int
+	if err = conn.QueryRowContext(probe, `PRAGMA wal_checkpoint(TRUNCATE)`).Scan(&busy, &logged, &checkpointed); err != nil || busy != 0 {
+		t.Errorf("cancelled query retained its native statement: busy=%d err=%v", busy, err)
+	}
+	if err = conn.Close(); err != nil {
+		t.Error(err)
+	}
+	if err = db.Close(); err != nil {
+		t.Error(err)
+	}
+	// Use another physical connection and a write/checkpoint, not just Ping:
+	// an old WAL reader can survive the first pool's apparent clean shutdown.
+	next, err := Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer next.Close()
+	if _, err = next.ExecContext(probe, `INSERT INTO cancellation_probe(id) VALUES(2)`); err != nil {
+		t.Errorf("next connection could not write after cancellation: %v", err)
+	}
+	if err = next.QueryRowContext(probe, `PRAGMA wal_checkpoint(TRUNCATE)`).Scan(&busy, &logged, &checkpointed); err != nil || busy != 0 {
+		t.Errorf("next connection could not checkpoint after cancellation: busy=%d err=%v", busy, err)
+	}
+	if err = next.Close(); err != nil {
+		t.Error(err)
+	}
+	if err = os.Rename(path, path+".released"); err != nil {
+		t.Errorf("closed SQLite pools retained the database file: %v", err)
 	}
 }

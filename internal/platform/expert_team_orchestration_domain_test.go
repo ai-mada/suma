@@ -53,8 +53,13 @@ func expertCompleteProtocol(t *testing.T, h *expertFixture, runID string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	testWorker, testToken := independentReviewWorker(t, f)
 	for i := 0; i < 2; i++ {
-		claimed := f.bearer("POST", "/runner/claim", h.runnerToken, f.body(map[string]any{"worker_id": "tool-worker", "capabilities": toolFixtureCapabilities(t, f), "idempotency_key": newID()}), 200)
+		worker, token := profile.WorkerID, h.runnerToken
+		if i == 1 {
+			worker, token = testWorker, testToken
+		}
+		claimed := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": worker, "capabilities": toolFixtureCapabilities(t, f), "idempotency_key": newID()}), 200)
 		var a dag.Assignment
 		raw, _ := json.Marshal(claimed["assignment"])
 		if json.Unmarshal(raw, &a) != nil || a.RunID != runID {
@@ -69,7 +74,7 @@ func expertCompleteProtocol(t *testing.T, h *expertFixture, runID string) {
 		if a.NodeID == "develop" {
 			result.ToolEvidence = &toolcontract.Evidence{Profile: profile.Profile, Terminal: "completed", EventCount: 1, UsageState: toolcontract.UsageUnreported}
 		}
-		f.bearer("POST", "/runner/results", h.runnerToken, f.body(map[string]any{"result": result}), 200)
+		f.bearer("POST", "/runner/results", token, f.body(map[string]any{"result": result}), 200)
 	}
 }
 

@@ -124,6 +124,61 @@ func reviewWorkspaceEvidence(head string, test bool) map[string]any {
 	return map[string]any{"attempt_key": strings.Repeat("a", 32), "base_commit": strings.Repeat("b", 40), "head_commit": strings.Repeat(head, 40), "state": "completed", "exit_code": 0, "outcome_unknown": false, "test_command": test, "clean": true, "diff_sha256": strings.Repeat("d", 64), "status_sha256": strings.Repeat("e", 64), "untracked_sha256": strings.Repeat("f", 64), "evidence_sha256": strings.Repeat("a", 64)}
 }
 
+// Register an actual separate fixture identity. A second slot or a changed
+// string in a result must not masquerade as an independently claimed attempt.
+func independentReviewWorker(t *testing.T, f *fixture) (string, string) {
+	t.Helper()
+	id := "review-test-" + newID()
+	worker := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": id, "profiles": []any{}, "deployment": false}), 201)
+	return id, worker["token"].(string)
+}
+
+func TestReviewRequiresIndependentWorkerForCurrentCandidate(t *testing.T) {
+	for _, independent := range []bool{false, true} {
+		t.Run(map[bool]string{false: "same-worker-rejected", true: "separate-worker-accepted"}[independent], func(t *testing.T) {
+			f := newFixture(t)
+			task := f.call("POST", "/tasks", f.body(map[string]any{"title": "Review the exact independently tested candidate"}), 201)
+			workflow := f.call("POST", "/workflows", f.body(map[string]any{"name": "Explicit producer and fixed candidate test", "nodes": []any{
+				map[string]any{"id": "code", "type": "command", "command": []string{"edit"}},
+				map[string]any{"id": "test", "type": "test", "command": []string{"verify"}, "depends_on": []string{"code"}, "config": map[string]any{"candidate_from": "code"}},
+			}}), 201)
+			run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": workflow["id"], "task_id": task["id"]}), 201)
+			producerID, producerToken := independentReviewWorker(t, f)
+			testID, testToken := producerID, producerToken
+			if independent {
+				testID, testToken = independentReviewWorker(t, f)
+			}
+			for index := 0; index < 2; index++ {
+				worker, token := producerID, producerToken
+				if index == 1 {
+					worker, token = testID, testToken
+				}
+				wire := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": worker, "capabilities": toolFixtureCapabilities(t, f)}), 200)
+				var assignment dag.Assignment
+				if json.Unmarshal([]byte(stringify(wire["assignment"])), &assignment) != nil || assignment.RunID != run["id"] || assignment.WorkerID != worker {
+					t.Fatal("original worker did not claim its actual current assignment")
+				}
+				proof := reviewWorkspaceEvidence("c", assignment.Type == "test")
+				if assignment.Type == "test" {
+					if assignment.CandidateFrom != "code" || assignment.CandidateCommit == "" {
+						t.Fatal("test assignment did not receive the scheduler's candidate pin")
+					}
+					proof["base_commit"], proof["head_commit"] = assignment.CandidateCommit, assignment.CandidateCommit
+					proof["candidate_from"], proof["candidate_attempt"], proof["candidate_fence"], proof["candidate_evidence_sha256"] = assignment.CandidateFrom, assignment.CandidateAttempt, assignment.CandidateFence, assignment.CandidateEvidenceSHA256
+				}
+				result := dag.Result{RunID: assignment.RunID, NodeID: assignment.NodeID, Attempt: assignment.Attempt, Fence: assignment.Fence, WorkerID: assignment.WorkerID, OperationID: newID(), WorkspaceEvidence: proof}
+				f.bearer("POST", "/runner/results", token, f.body(map[string]any{"result": result}), 200)
+			}
+			current := f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)
+			want := 400
+			if independent {
+				want = 200
+			}
+			f.call("POST", "/tasks/"+task["id"].(string)+"/review", f.body(map[string]any{"expected_version": current["version"], "run_id": run["id"], "decision": "accepted", "reason": "Explicit fixture review of the current candidate pair, not vendor execution"}), want)
+		})
+	}
+}
+
 func TestWorkspaceMetadataCannotReplaceExplicitTestNode(t *testing.T) {
 	f := newFixture(t)
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "Command is not a test"}), 201)

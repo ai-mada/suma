@@ -2603,5 +2603,20 @@
     "new_file_only": true,
     "automatic_execution": false,
     "path_adoption_only": true
+  },
+  "test_dispatch_bindings": {
+    "stage": "T-TEST-DISPATCH-BINDINGS-216",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/test-dispatch-bindings.md",
+    "report": "docs/quality/test-dispatch-bindings-verification.md",
+    "summary": "docs/quality/test-dispatch-bindings-summary.json",
+    "previous_commit": "51a40255b4c5fca11ee4fa3d679d3138c16c8994",
+    "verification": "25primary(11new14old),9769paired0hardcodes/wholeWebtypes0/schema999-path451; affected catalog5/expert7/runtime3/release8 scopes recorded; officialSQLite1.61.1+matchinglibc1.79.0:store13+platform10+releaseHealth1 passed. First fullpackage10m timedout, partial/skipped/unexecuted preserved, not wholepackage green.",
+    "actual": "1realHTTPpreview,1originalrun,2Workers/attempts,same commit realGit+JUnit,fixtureReview accepted/customer_signoff false;0vendor/model. UI createspreview/Go hoststartsreviews; CN1366light+EN390dark Rootviewed. Original actual usedold driver; newdriver recovery tests separate. Native normal0/knownPIDabsent/portsfree; separate forced teardown not productStop.",
+    "sqlite": "Official driver upgrade fixes nativecancelRows leak, validoldRED175440685->newstore13green175546118->ReleaseHealthgreen175859683; originalTxn/permissions unchanged. Earliest Raw-lifetime fixtureRED excluded.",
+    "next": "Doctor exact-node recovery connection navigation; recommendation tester propagation; actual autonomous code/vendor/human acceptance/baseline; trusted WorkBuddy artifacts; all31/P0-P7/58limited34pending92total remain.",
+    "full_platform_complete": false,
+    "git_record": ".cache/test-dispatch-bindings-216/post-git.json"
   }
 }

@@ -58,7 +58,10 @@ func init() {
 		case "model/list":
 			reply(map[string]any{"data": []any{map[string]any{"id": "owned-workspace-model", "model": "owned-workspace-model", "supportedReasoningEfforts": []any{map[string]any{"reasoningEffort": "low"}}, "defaultReasoningEffort": "low"}}, "nextCursor": nil})
 		case "thread/start":
-			reply(map[string]any{"thread": map[string]any{"id": "workspace-thread"}, "model": "owned-workspace-model", "modelProvider": "owned103", "reasoningEffort": "low", "cwd": request.Params["cwd"], "approvalPolicy": "never", "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{request.Params["cwd"]}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}})
+			if request.Params["approvalPolicy"] != cc.ApprovalPolicy {
+				os.Exit(75)
+			}
+			reply(map[string]any{"thread": map[string]any{"id": "workspace-thread"}, "model": "owned-workspace-model", "modelProvider": "owned103", "reasoningEffort": "low", "cwd": request.Params["cwd"], "approvalPolicy": cc.ApprovalPolicy, "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{request.Params["cwd"]}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}})
 		case "turn/start":
 			turn := map[string]any{"id": "workspace-turn", "status": "inProgress"}
 			notify("turn/started", map[string]any{"threadId": "workspace-thread", "turn": turn})
@@ -179,8 +182,12 @@ func TestCodexWorkspaceActualOutboundReadAndCancellation(t *testing.T) {
 	worker := &runner.Worker{Client: &runner.Client{BaseURL: control.URL, ProjectID: f.project, Token: token}, Journal: journal, ID: workerID, Exec: cfg, PollInterval: 100 * time.Millisecond, HeartbeatInterval: time.Second}
 	done := make(chan error, 1)
 	go func() { done <- worker.Run(ctx) }()
+	workerReturned := false
 	defer func() {
 		cancel()
+		if workerReturned {
+			return
+		}
 		select {
 		case <-done:
 		case <-time.After(5 * time.Second):
@@ -191,12 +198,23 @@ func TestCodexWorkspaceActualOutboundReadAndCancellation(t *testing.T) {
 		t.Helper()
 		until := time.Now().Add(10 * time.Second)
 		for time.Now().Before(until) {
+			select {
+			case workerErr := <-done:
+				workerReturned = true
+				t.Fatalf("%s: owned Worker returned before the condition: %v", label, workerErr)
+			default:
+			}
 			if condition() {
 				return
 			}
 			time.Sleep(25 * time.Millisecond)
 		}
-		t.Fatal(label)
+		current, readErr := f.e.GetRun(context.Background(), f.user.TenantID, f.project, run["id"].(string))
+		var states []string
+		for _, node := range current.Nodes {
+			states = append(states, fmt.Sprintf("%s state=%s error=%s", node.ID, node.State, node.Error))
+		}
+		t.Fatalf("%s: run=%s nodes=%v read_error=%v", label, current.State, states, readErr)
 	}
 	waitFor("owned protocol child did not start", func() bool { _, e := os.Stat(readyPath); return e == nil })
 	var host struct {

@@ -263,8 +263,13 @@ func TestExpertCodexCurrentCatalogConfigurationAndPolicyGateReadStartClaim(t *te
 func expertCodexCompleteRoot(t *testing.T, h *expertFixture, p ExpertTeamPlan, profile ToolProfile) {
 	t.Helper()
 	f, ctx := h.f, context.Background()
-	for range 2 {
-		wire := f.bearer("POST", "/runner/claim", h.runnerToken, f.body(map[string]any{"worker_id": profile.WorkerID, "capabilities": []string{"command:" + profile.Profile.CommandID, "command:independent-tests"}}), 200)
+	testWorker, testToken := independentReviewWorker(t, f)
+	for index := 0; index < 2; index++ {
+		worker, token := profile.WorkerID, h.runnerToken
+		if index == 1 {
+			worker, token = testWorker, testToken
+		}
+		wire := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": worker, "capabilities": []string{"command:" + profile.Profile.CommandID, "command:independent-tests"}}), 200)
 		var a dag.Assignment
 		if json.Unmarshal([]byte(stringify(wire["assignment"])), &a) != nil || a.RunID != p.Items[0].RunID {
 			t.Fatal("missing original Codex root assignment", wire)

@@ -40,7 +40,7 @@ func applicationStatus(err error) int {
 func TestApplicationToolsCurrentCatalogueAndAuthority(t *testing.T) {
 	f := newFixture(t)
 	agent, api, runner := applicationActor(t, f, "agent"), applicationActor(t, f, "api"), applicationActor(t, f, "runner")
-	wantLegacy := []string{"project.overview", "project.tasks", "project.search", "project.knowledge", "project.knowledge.search"}
+	wantReadOnly := []string{"project.overview", "project.tasks", "project.search", "project.knowledge", "project.knowledge.search", "project.knowledge.index_search"}
 	for _, actor := range []Actor{agent, f.actor} {
 		list, err := f.s.ApplicationTools(context.Background(), actor, f.project)
 		if err != nil {
@@ -50,11 +50,11 @@ func TestApplicationToolsCurrentCatalogueAndAuthority(t *testing.T) {
 		for _, d := range list.Items {
 			names = append(names, d.Name)
 			if !d.ReadOnly {
-				t.Fatal("legacy catalogue gained mutation")
+				t.Fatal("read-only catalogue gained mutation")
 			}
 		}
-		if !reflect.DeepEqual(names, wantLegacy) {
-			t.Fatalf("legacy catalogue %v", names)
+		if !reflect.DeepEqual(names, wantReadOnly) {
+			t.Fatalf("current read-only catalogue %v", names)
 		}
 	}
 	list, err := f.s.ApplicationTools(context.Background(), api, f.project)
@@ -91,8 +91,8 @@ func TestApplicationToolsDeclarationsAreIndependent(t *testing.T) {
 	first := DeclaredApplicationTools()
 	want := map[string]bool{
 		"project.overview": true, "project.tasks": true, "project.search": true, "project.knowledge": true,
-		"project.knowledge.search": true,
-		"project.requirements":     true, "project.requirement": true, "project.task": true,
+		"project.knowledge.search": true, "project.knowledge.index_search": true,
+		"project.requirements": true, "project.requirement": true, "project.task": true,
 		"project.requirement_design": true, "project.task_design": true, "project.knowledge_list": true,
 		"project.requirement_draft_create": true, "project.task_draft_create": true, "project.requirement_design_save": true,
 		"project.skill_catalog_list": true, "project.skill_catalog_get": true,
@@ -247,21 +247,22 @@ func TestApplicationToolsCurrentViewerCannotRecoverWriteReceipts(t *testing.T) {
 	// Discovery must expose only the current read tools with their declared
 	// credential scopes, rather than a count that predates catalogue additions.
 	expectedReads := map[string][]string{
-		"project.overview":           {"agent", "api"},
-		"project.tasks":              {"agent", "api"},
-		"project.search":             {"agent", "api"},
-		"project.knowledge":          {"agent", "api"},
-		"project.knowledge.search":   {"agent", "api"},
-		"project.requirements":       {"api"},
-		"project.requirement":        {"api"},
-		"project.task":               {"api"},
-		"project.requirement_design": {"api"},
-		"project.task_design":        {"api"},
-		"project.knowledge_list":     {"api"},
-		"project.skill_catalog_list": {"api"},
-		"project.skill_catalog_get":  {"api"},
-		"project.task_delivery":      {"api"},
-		"project.quality_execution":  {"api"},
+		"project.overview":               {"agent", "api"},
+		"project.tasks":                  {"agent", "api"},
+		"project.search":                 {"agent", "api"},
+		"project.knowledge":              {"agent", "api"},
+		"project.knowledge.search":       {"agent", "api"},
+		"project.knowledge.index_search": {"agent", "api"},
+		"project.requirements":           {"api"},
+		"project.requirement":            {"api"},
+		"project.task":                   {"api"},
+		"project.requirement_design":     {"api"},
+		"project.task_design":            {"api"},
+		"project.knowledge_list":         {"api"},
+		"project.skill_catalog_list":     {"api"},
+		"project.skill_catalog_get":      {"api"},
+		"project.task_delivery":          {"api"},
+		"project.quality_execution":      {"api"},
 	}
 	for _, definition := range list.Items {
 		scopes, exists := expectedReads[definition.Name]

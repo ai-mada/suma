@@ -33,6 +33,9 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
+	// TestBindings records only explicit overrides of published candidate tests.
+	// The copied Workflow must carry the exact same immutable references.
+	TestBindings            []TaskDispatchTestBinding          `json:"test_bindings,omitempty" wire:"nonnull"`
 	DevelopmentContinuation *dc.DevelopmentContinuationBinding `json:"development_continuation,omitempty"`
 	ExecutionSkills         *cc.ExecutionSkillBundle           `json:"execution_skills,omitempty"`
 	ACPExecution            *ac.Capability                     `json:"acp_execution,omitempty"`
@@ -70,6 +73,7 @@ type TaskDispatchPlan struct {
 }
 
 type TaskDispatchPreviewRequest struct {
+	TestBindings            []TaskDispatchTestSelection `json:"test_bindings,omitempty" wire:"nonnull"`
 	CodexExecutionSelection *cc.Selection               `json:"codex_execution_selection,omitempty" wire:"nonnull"`
 	ModelExecutionSelection *modelcontract.Selection    `json:"model_execution_selection,omitempty" wire:"nonnull"`
 	ProjectID               string                      `json:"project_id"`
@@ -82,6 +86,25 @@ type TaskDispatchPreviewRequest struct {
 	ExpectedToolVersion     int                         `json:"expected_tool_version"`
 	IdempotencyKey          string                      `json:"idempotency_key"`
 	Knowledge               []ProjectKnowledgeReference `json:"knowledge,omitempty"`
+}
+
+// TaskDispatchTestSelection selects an existing static candidate test; it does
+// not authorize a new node, a different producer or a workflow publication.
+type TaskDispatchTestSelection struct {
+	NodeID              string `json:"node_id"`
+	ToolProfileID       string `json:"tool_profile_id"`
+	ExpectedToolVersion int    `json:"expected_tool_version"`
+}
+
+// TaskDispatchTestBinding is a server-resolved snapshot. Worker and command
+// facts are rechecked against the current exact profile before admission.
+type TaskDispatchTestBinding struct {
+	NodeID             string `json:"node_id"`
+	ToolProfileID      string `json:"tool_profile_id"`
+	ToolProfileVersion int    `json:"tool_profile_version"`
+	ToolProfileSHA256  string `json:"tool_profile_sha256"`
+	WorkerID           string `json:"worker_id"`
+	CommandID          string `json:"command_id"`
 }
 
 type TaskDispatchStartRequest struct {

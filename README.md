@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-TEST-DISPATCH-BINDINGS-216：[明确开发／独立测试工具与AI SOP](docs/product/test-dispatch-bindings.md)／[交互](docs/design/test-dispatch-bindings.md)／[限定验证](docs/quality/test-dispatch-bindings-verification.md)。原派发按需选择并冻结另一Worker测试工具，准确来源及同提交质量门贯通；真实Git／双Worker／JUnit及夹具Review通过，SQLite取消泄漏沿官方稳定驱动修复。25项主要定向及新版存储／关键平台检查通过；全包曾超时，未声称整包或完整31／P0–P7完成。
+
 T-COMMAND-COMPOSITION-215新增[已有命令配置安全组合](docs/product/command-composition.md)：自动核对跨文件引用、重名和新文件边界，明确采用输出路径继续原连接指南。[交互](docs/design/command-composition.md)与[实际本机限定验证](docs/quality/command-composition-verification.md)区分准备、工具资格和正式质量；完整平台继续。
 
 T-TASK-DELIVERY-NAVIGATION-214修正[交付记录的准确入口](docs/product/task-delivery-navigation.md)：团队计划、问题、回流需求和原验收可直接定位，刷新不重复打开、异步运行选择不丢失。[交互](docs/design/task-delivery-navigation.md)与[限定验证](docs/quality/task-delivery-navigation-verification.md)保留完整平台边界。

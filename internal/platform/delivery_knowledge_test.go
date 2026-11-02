@@ -129,20 +129,22 @@ func TestDeliveryKnowledgeSealedCandidateIdentity(t *testing.T) {
 func TestDeliveryKnowledgeWorkspaceRevisionDoesNotClaimSealedBundle(t *testing.T) {
 	f, ctx := newFixture(t), context.Background()
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "Reviewed workspace-only delivery"}), 201)
-	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "Exact workspace candidate and independent test", "nodes": []any{map[string]any{"id": "code", "type": "command", "command": []string{"edit"}}, map[string]any{"id": "test", "type": "test", "command": []string{"verify"}, "depends_on": []string{"code"}}}}), 201)
+	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "Exact workspace candidate and independent test", "nodes": []any{map[string]any{"id": "code", "type": "command", "command": []string{"edit"}}, map[string]any{"id": "test", "type": "test", "command": []string{"verify"}, "depends_on": []string{"code"}, "config": map[string]any{"candidate_from": "code"}}}}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"], "task_id": task["id"]}), 201)
-	for _, worker := range []string{"workspace-producer", "independent-test-worker"} {
-		a, err := f.e.Claim(ctx, f.user.TenantID, f.project, worker, toolFixtureCapabilities(t, f))
-		if err != nil || a == nil {
-			t.Fatal(a, err)
+	producer, producerToken := independentReviewWorker(t, f)
+	tester, testerToken := independentReviewWorker(t, f)
+	for _, worker := range []struct{ id, token string }{{producer, producerToken}, {tester, testerToken}} {
+		wire := f.bearer("POST", "/runner/claim", worker.token, f.body(map[string]any{"worker_id": worker.id, "capabilities": toolFixtureCapabilities(t, f)}), 200)
+		var a dag.Assignment
+		if json.Unmarshal([]byte(stringify(wire["assignment"])), &a) != nil || a.WorkerID != worker.id {
+			t.Fatal("current registered worker did not claim its candidate assignment")
 		}
 		proof := reviewWorkspaceEvidence("c", a.Type == "test")
 		if a.Type == "test" {
-			proof["base_commit"] = proof["head_commit"]
+			proof["base_commit"], proof["head_commit"] = a.CandidateCommit, a.CandidateCommit
+			proof["candidate_from"], proof["candidate_attempt"], proof["candidate_fence"], proof["candidate_evidence_sha256"] = a.CandidateFrom, a.CandidateAttempt, a.CandidateFence, a.CandidateEvidenceSHA256
 		}
-		if err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: newID(), WorkspaceEvidence: proof}); err != nil {
-			t.Fatal(err)
-		}
+		f.bearer("POST", "/runner/results", worker.token, f.body(map[string]any{"result": dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: newID(), WorkspaceEvidence: proof}}), 200)
 	}
 	current := f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)
 	f.call("POST", "/tasks/"+task["id"].(string)+"/review", f.body(map[string]any{"expected_version": current["version"], "run_id": run["id"], "decision": "accepted", "reason": "Explicitly review the same workspace candidate and separate worker test"}), 200)

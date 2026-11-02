@@ -64,6 +64,16 @@ func codeCandidateProofInteger(v any, expected int64) bool {
 	return false
 }
 
+// Match provenance against an already authoritative current source identity.
+// The DB-backed reader supplies its immutable scheduler pin; the pure Run
+// acceptance gate supplies its current producer projection. This predicate
+// does not itself read a workflow or attest a dag_candidate_revisions row.
+func codeCandidateSourceProofMatches(proof map[string]any, source string, attempt int, fence int64, evidenceSHA string) bool {
+	return source != "" && attempt > 0 && fence > 0 && contentDigest.MatchString(evidenceSHA) &&
+		proof["candidate_from"] == source && codeCandidateProofInteger(proof["candidate_attempt"], int64(attempt)) &&
+		codeCandidateProofInteger(proof["candidate_fence"], fence) && proof["candidate_evidence_sha256"] == evidenceSHA
+}
+
 // Code-bearing formal decisions require more than a green test-only run: every
 // selected report must verify its actual producer through the
 // scheduler's immutable candidate pin, on an independent execution identity.
@@ -104,7 +114,7 @@ func (s *Service) codeCandidateIndependentTestReadTx(ctx context.Context, tx *sq
 		return false, nil
 	}
 	proof := test.Result.WorkspaceEvidence
-	if proof["candidate_from"] != source || !codeCandidateProofInteger(proof["candidate_attempt"], int64(sourceAttempt)) || !codeCandidateProofInteger(proof["candidate_fence"], sourceFence) || proof["candidate_evidence_sha256"] != pinnedSHA {
+	if !codeCandidateSourceProofMatches(proof, source, sourceAttempt, sourceFence, pinnedSHA) {
 		return false, nil
 	}
 	producer, found, err := s.codeCandidateNodeResultReadTx(ctx, tx, p, project, run, source)

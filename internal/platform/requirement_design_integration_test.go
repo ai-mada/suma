@@ -207,8 +207,13 @@ func designIntegrationCompleteProtocol(t *testing.T, d *designIntegrationFixture
 	if err != nil {
 		t.Fatal(err)
 	}
+	testWorker, testToken := independentReviewWorker(t, f)
 	for i := 0; i < 2; i++ {
-		claimed := f.bearer("POST", "/runner/claim", d.runnerToken, f.body(map[string]any{"worker_id": "tool-worker", "capabilities": toolFixtureCapabilities(t, f)}), 200)
+		worker, token := profile.WorkerID, d.runnerToken
+		if i == 1 {
+			worker, token = testWorker, testToken
+		}
+		claimed := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": worker, "capabilities": toolFixtureCapabilities(t, f)}), 200)
 		var a dag.Assignment
 		raw, _ := json.Marshal(claimed["assignment"])
 		if err = json.Unmarshal(raw, &a); err != nil || a.RunID != runID {
@@ -223,7 +228,7 @@ func designIntegrationCompleteProtocol(t *testing.T, d *designIntegrationFixture
 		if a.NodeID == "develop" {
 			result.ToolEvidence = &toolcontract.Evidence{Profile: profile.Profile, Terminal: "completed", EventCount: 1, UsageState: toolcontract.UsageUnreported}
 		}
-		f.bearer("POST", "/runner/results", d.runnerToken, f.body(map[string]any{"result": result}), 200)
+		f.bearer("POST", "/runner/results", token, f.body(map[string]any{"result": result}), 200)
 	}
 	run := f.call("GET", "/runs/"+runID+"?project_id="+f.project, nil, 200)
 	if run["state"] != "succeeded" {

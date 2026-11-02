@@ -50,6 +50,11 @@ func TestReleaseDeploymentProcess(t *testing.T) {
 		if err = os.WriteFile(".cache/site/index.html", b, 0600); err != nil {
 			fail(err)
 		}
+	case "source_test":
+		b, err := os.ReadFile("site.html")
+		if err != nil || string(b) != html {
+			fail("independent source test has wrong second candidate")
+		}
 	case "package_test":
 		b, err := os.ReadFile("site.html")
 		if err != nil || string(b) != html {
@@ -95,6 +100,8 @@ func releaseVariantCandidate(t *testing.T, f *fixture) ReleaseCandidate {
 		return runner.CommandSpec{Executable: exe, Args: []string{"-test.run=^TestReleaseDeploymentProcess$", "--"}, Env: map[string]string{"SUMA_RELEASE_VARIANT_PHASE": phase, "SUMA_RELEASE_VARIANT_HTML": releaseVariantHTML, "GIT_AUTHOR_NAME": "Suma fixture", "GIT_AUTHOR_EMAIL": "fixture@example.test", "GIT_COMMITTER_NAME": "Suma fixture", "GIT_COMMITTER_EMAIL": "fixture@example.test", "GIT_CONFIG_NOSYSTEM": "1"}}
 	}
 	develop, build, test := command("develop"), command("build"), command("package_test")
+	sourceTest := command("source_test")
+	sourceTest.TestEvidence = true
 	build.ArtifactOutput = ".cache/site"
 	test.ArtifactInput = true
 	test.TestEvidence = true
@@ -110,15 +117,25 @@ func releaseVariantCandidate(t *testing.T, f *fixture) ReleaseCandidate {
 		}
 		profiles = append(profiles, ReleaseProfileRegistration{ID: entry.id, Kind: entry.kind, SHA256: hash})
 	}
-	registered, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "variant-builder", "profiles": profiles, "idempotency_key": newID()})
+	registered, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "variant-builder", "profiles": profiles[:1], "idempotency_key": newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tester, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "variant-tester", "profiles": profiles[1:], "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "第二个真实内容包B", "acceptance_criteria": []string{"真实固定B源码及封存包HTTP测试"}}), 201)
-	nodes := []dag.Node{{ID: "develop", Type: "command", Command: []string{"variant-develop"}}, {ID: "build", Type: "command", Command: []string{"variant-build"}, DependsOn: []string{"develop"}, Config: map[string]any{"candidate_from": "develop"}}, {ID: "package-test", Type: "test", Command: []string{"variant-test"}, DependsOn: []string{"build"}, Config: map[string]any{"artifact_from": "build"}}}
+	nodes := []dag.Node{
+		{ID: "develop", Type: "command", Command: []string{"variant-develop"}},
+		{ID: "develop-test", Type: "test", Command: []string{"variant-source-test"}, DependsOn: []string{"develop"}, Config: map[string]any{"candidate_from": "develop"}},
+		{ID: "build", Type: "command", Command: []string{"variant-build"}, DependsOn: []string{"develop-test"}, Config: map[string]any{"candidate_from": "develop"}},
+		{ID: "build-test", Type: "test", Command: []string{"variant-source-test"}, DependsOn: []string{"build"}, Config: map[string]any{"candidate_from": "build"}},
+		{ID: "package-test", Type: "test", Command: []string{"variant-test"}, DependsOn: []string{"build-test"}, Config: map[string]any{"artifact_from": "build"}},
+	}
 	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "真实第二候选包B", "nodes": nodes}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"], "task_id": task["id"], "expected_task_version": task["version"]}), 201)
-	control := httptest.NewServer(f.handler)
+	control := releaseFixtureServer(t, f)
 	defer control.Close()
 	client := &runner.Client{BaseURL: control.URL, Token: registered["token"].(string), ProjectID: f.project}
 	journal, err := runner.OpenJournal(t.TempDir())
@@ -126,8 +143,15 @@ func releaseVariantCandidate(t *testing.T, f *fixture) ReleaseCandidate {
 		t.Fatal(err)
 	}
 	defer journal.Close()
-	config := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"variant-develop": develop, "variant-build": build, "variant-test": test}, Artifacts: client, Journal: journal}
-	runReleaseFixtureWorker(t, ctx, f, client, journal, "variant-builder", run["id"].(string), config, 0)
+	testClient := &runner.Client{BaseURL: control.URL, Token: tester["token"].(string), ProjectID: f.project}
+	testJournal, err := runner.OpenJournal(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer testJournal.Close()
+	config := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"variant-develop": develop, "variant-build": build}, Artifacts: client, Journal: journal}
+	testConfig := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"variant-source-test": sourceTest, "variant-test": test}, Artifacts: testClient, Journal: testJournal}
+	runReleaseFixtureWorkers(t, ctx, f, run["id"].(string), []releaseFixtureWorker{{ID: "variant-builder", Client: client, Journal: journal, Exec: config}, {ID: "variant-tester", Client: testClient, Journal: testJournal, Exec: testConfig}}, map[string]string{"develop": "variant-builder", "build": "variant-builder", "develop-test": "variant-tester", "build-test": "variant-tester", "package-test": "variant-tester"})
 	current := f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)
 	accepted := f.call("POST", "/tasks/"+task["id"].(string)+"/review", f.body(map[string]any{"expected_version": current["version"], "run_id": run["id"], "decision": "accepted", "reason": "第二候选B已实际构建、收包、HTTP包测试"}), 200)
 	artifacts, _, _, err := f.s.ReleaseArtifacts(ctx, f.actor, f.project, 100, "")

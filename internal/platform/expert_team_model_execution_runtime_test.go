@@ -44,7 +44,7 @@ func TestExpertTeamModelSelectionActualRuntimeAndUsageLedger(t *testing.T) {
 		}
 		calls++
 		requestSHA = hash(raw)
-		reply, _ := json.Marshal(map[string]any{"id": "owned-model-response-040", "model": "owned-model-040", "choices": []any{map[string]any{"message": map[string]any{"content": "Owned protocol fixture; no source changes or formal acceptance claimed."}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 23, "completion_tokens": 17}})
+		reply, _ := json.Marshal(map[string]any{"id": "owned-model-response-040", "model": "owned-model-040", "choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "Owned protocol fixture; no source changes or formal acceptance claimed."}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 23, "completion_tokens": 17}})
 		responseSHA = hash(reply)
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(reply)
@@ -185,7 +185,7 @@ func TestExpertTeamModelSelectionActualRuntimeAndUsageLedger(t *testing.T) {
 	result := runner.Execute(ctx, *assignment, cfg)
 	result.OperationID = newID()
 	if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown || result.ToolEvidence == nil || result.ToolEvidence.UsageState != tc.UsageComplete || result.ToolEvidence.ModelExecution == nil {
-		t.Fatalf("actual native process failed: exit=%d error=%s unknown=%t output=%s", result.ExitCode, result.Error, result.OutcomeUnknown, result.Output)
+		t.Fatalf("actual native process failed: exit=%d error=%s unknown=%t output=%s gateway_evidence=%s", result.ExitCode, result.Error, result.OutcomeUnknown, result.Output, stringify(result.ToolEvidence))
 	}
 	receipt := result.ToolEvidence.ModelExecution
 	if calls != 1 || receipt.BindingSHA256 != binding.BindingSHA256 || receipt.DeploymentSHA256 != deployment.SHA256 || receipt.ParametersSHA256 != binding.ParametersSHA256 || receipt.Model != deployment.Model || len(receipt.Requests) != 1 || receipt.Requests[0].RequestSHA256 != requestSHA || receipt.Requests[0].ResponseSHA256 != responseSHA || receipt.Requests[0].ProviderModel != deployment.Model {

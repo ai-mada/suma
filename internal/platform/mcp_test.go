@@ -75,7 +75,7 @@ func mcpTestClient(t *testing.T, serverURL, project, token string, user Principa
 }
 
 // A stale initialization or an earlier tools/list must never enlarge Agent scope.
-func TestMCPRealSDKAgentListsOnlyFourAndCurrentRevocationRejects(t *testing.T) {
+func TestMCPRealSDKAgentListsOnlyCurrentReadsAndCurrentRevocationRejects(t *testing.T) {
 	f := newFixture(t)
 	token := f.call("POST", "/auth/tokens", f.body(map[string]any{"scope": "agent"}), 201)["token"].(string)
 	s := &Server{Service: f.s}
@@ -88,14 +88,20 @@ func TestMCPRealSDKAgentListsOnlyFourAndCurrentRevocationRejects(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(list.Tools) != 4 || list.CacheScope != "private" || list.TTLMs != 0 {
+			// T196/T197 add published-knowledge discovery, not management
+			// authority. This exact allowlist must never grow from list output.
+			allowed := map[string]bool{"suma_project_overview": true, "suma_project_tasks": true, "suma_project_search": true, "suma_project_knowledge": true, "suma_project_knowledge_search": true, "suma_project_knowledge_index_search": true}
+			if len(list.Tools) != len(allowed) || list.CacheScope != "private" || list.TTLMs != 0 {
 				t.Fatalf("unexpected Agent list/cache: %+v", list)
 			}
-			allowed := map[string]bool{"suma_project_overview": true, "suma_project_tasks": true, "suma_project_search": true, "suma_project_knowledge": true}
 			for _, tool := range list.Tools {
 				if !allowed[tool.Name] {
-					t.Fatalf("Agent discovered management tool %s", tool.Name)
+					t.Fatalf("Agent discovered an unauthorized or duplicate tool %s", tool.Name)
 				}
+				delete(allowed, tool.Name)
+			}
+			if len(allowed) != 0 {
+				t.Fatal("Agent lost declared read-only discovery", allowed)
 			}
 			result, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "suma_project_overview", Arguments: map[string]any{}})
 			if err != nil || result.IsError {

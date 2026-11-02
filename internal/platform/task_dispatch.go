@@ -184,6 +184,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if err != nil {
 		return err
 	}
+	if err = s.validateTaskDispatchTestBindingsTx(ctx, tx, auth, project, plan, profile); err != nil {
+		return err
+	}
 	if err = s.validateModelExecutionPlanTx(ctx, tx, p.TenantID, project, profile, plan); err != nil {
 		return err
 	}
@@ -313,6 +316,10 @@ func (s *Service) buildTaskDispatchSnapshotInputsTx(ctx context.Context, engine 
 	if err != nil {
 		return out, err
 	}
+	testBindings, err := s.freezeTaskDispatchTestBindingsTx(ctx, auth, project, &derived, request.AgentNodeID, profile, route, request.TestBindings)
+	if err != nil {
+		return out, err
+	}
 	modelBinding, err := s.taskDispatchSourceModelTx(ctx, tx, p.TenantID, project, profile, request, source)
 	if err != nil {
 		return out, err
@@ -336,6 +343,7 @@ func (s *Service) buildTaskDispatchSnapshotInputsTx(ctx context.Context, engine 
 	}
 	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Workflow: derived, ExecutionRoute: &route, Valid: true}
 	out.DevelopmentContinuation = continuation
+	out.TestBindings = testBindings
 	if continuation != nil {
 		out.CodeBaseline = nil
 	}

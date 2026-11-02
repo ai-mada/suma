@@ -1,5 +1,7 @@
 # 第三方来源与依赖清单
 
+T-TEST-DISPATCH-BINDINGS-216：SQLite取消竞态沿官方稳定`modernc.org/sqlite v1.61.1`及其匹配`libc v1.79.0`修复，八项依赖变化与准确原许可摘要见[增量记录](sqlite-cancellation-dependencies.json)。旧生成清单保留其采集时间；本记录不代替最终安装包SBOM。
+
 状态：本地依赖元数据快照；最终分发清单及许可审查未完成。日期：2026-10-24。Owner：集成、交付与发布负责人。
 
 关联：[P0/P7 实施计划](implementation-plan.md)、[能力矩阵](../product/capability-matrix.md)、[验证报告](../quality/verification.md)。证据：[锁定参考](../integrations/references.json)、[依赖与许可证文件哈希](third-party-dependencies.json)、[Go 依赖声明](../../go.mod)、[JS 锁文件](../../pnpm-lock.yaml)。本页记录来源和观察结果，不提供法律结论或分发许可保证。
@@ -59,7 +61,7 @@ Go 范围来自六平台 18 个实际二进制的 `go version -m` 去重信息�
 | github.com/jackc/pgx/v5 | v5.7.4 | MIT | PostgreSQL 驱动 |
 | github.com/mattn/go-isatty | v0.0.20 | MIT | 终端识别 |
 | golang.org/x/text | v0.21.0 | BSD-3-Clause | 已锁定依赖现作为直接依赖，用于BCP47语言标签与协商；没有升级版本 |
-| modernc.org/sqlite | v1.36.3 | BSD-3-Clause | 本机 SQLite 驱动 |
+| modernc.org/sqlite | v1.61.1 | BSD-3-Clause；附带原件见增量 | 本机 SQLite 驱动 |
 
 mysql 的许可证正文含其他许可兼容性说明，不能据此推断依赖采用额外 GNU 许可。modernc 模块的根许可证标签也不能替代其生成代码、上游 SQLite 与所有嵌入组件的文件级复核。
 
@@ -124,7 +126,7 @@ mysql 的许可证正文含其他许可兼容性说明，不能据此推断依�
 | golang.org/x/sync | v0.10.0 | BSD-3-Clause |
 | golang.org/x/sys | v0.36.0 | BSD-3-Clause |
 | golang.org/x/text | v0.21.0 | BSD-3-Clause |
-| modernc.org/libc | v1.61.13 | BSD-3-Clause |
+| modernc.org/libc | v1.79.0 | 原件及传递许可见增量 |
 | modernc.org/mathutil | v1.7.1 | BSD-3-Clause |
 | modernc.org/memory | v1.8.2 | BSD-3-Clause |
 

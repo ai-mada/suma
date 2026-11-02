@@ -1,0 +1,273 @@
+{
+  "stage": "T-TEST-DISPATCH-BINDINGS-216",
+  "version": "1.0.0",
+  "date": "2026-11-03",
+  "owner": "主集成＋控制面＋Runner质量＋工作台",
+  "status": "scoped_implementation_and_affected_checks_passed_not_complete_platform",
+  "base": "51a40255b4c5fca11ee4fa3d679d3138c16c8994",
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "complete": false
+  },
+  "contract": "contracts/test-dispatch-bindings.md",
+  "implementation": {
+    "request": "original preview optional max64 three-field test selections",
+    "snapshot": "six frozen test fields in original plan",
+    "revalidation": "original current scope/profile/versionSHA/inventory/route at preview, read, atomic start and final route",
+    "quality": "each producer requires exact current-source same-SHA test on another Worker; attempt1 on both is valid",
+    "new_api_paths": 0,
+    "new_tables": 0,
+    "new_dispatchers": 0
+  },
+  "checks": {
+    "primary_distinct": 25,
+    "primary_new": 11,
+    "primary_affected_old": 14,
+    "affected_fixture_groups": {
+      "catalog": 5,
+      "expert_candidate": 7,
+      "runtime": 3,
+      "release_artifact": 8
+    },
+    "web": {
+      "whole_types_exit": 0,
+      "paired_catalog_keys": 9769,
+      "production_hardcodes": 0,
+      "isolated_component_builds": 1
+    },
+    "schemas": {
+      "schemas": 999,
+      "paths": 451,
+      "check_exit": 0
+    },
+    "after_sqlite_update": {
+      "driver": "v1.61.1",
+      "libc": "v1.79.0",
+      "store_top_pass": 13,
+      "store_sub_pass": 16,
+      "platform_top_pass": 10,
+      "platform_sub_pass": 44,
+      "release_health_top_pass": 1,
+      "whole_service_suite_repeated": false
+    }
+  },
+  "actual": {
+    "kind": "production_dialog_original_HTTP_preview_and_deterministic_suma_host_original_workers_real_git_junit",
+    "passed": true,
+    "preview_count": 1,
+    "runs": 1,
+    "attempts": 2,
+    "run_id": "0c035e5d81b0cad2661cf5794d0b5eca",
+    "candidate_commit": "9910c4a545549d4265f359ee2b032a3da8737bf2",
+    "development_worker": "owned-developer216",
+    "test_worker": "owned-tester216",
+    "independent_report": "passed",
+    "fixture_reviewer": "accepted",
+    "customer_signoff": false,
+    "published_workflow_preserved": true,
+    "administrator_checkout_preserved": true,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "browser": "UI creates preview and shows frozen facts; Go host starts original run and performs fixture review",
+    "driver_at_journey": "v1.36.3; dependency-specific post-update checks recorded separately",
+    "ui_checks": 4,
+    "root_viewed_images": [
+      {
+        "name": "cn-test-dispatch-selection.png",
+        "width": 1366,
+        "theme": "light",
+        "sha256": "e93a175631ff06da4db5ccb580855c3742847baf0b9b4e11ac85fe251d6991b6"
+      },
+      {
+        "name": "en-test-dispatch-fixed.png",
+        "width": 390,
+        "theme": "dark",
+        "sha256": "43ac46766ed992b2302a09cffc46882699b48a6e2869f1a9e125089d36f9eac0"
+      }
+    ]
+  },
+  "native_cleanup": {
+    "actual_normal_exit": 0,
+    "owned_pids_absent": [
+      5956,
+      34380,
+      33616
+    ],
+    "ports_released": [
+      56714,
+      57013
+    ],
+    "fault_injection": "separate owned-child forced teardown smoke passed; not product Stop or normal journey",
+    "directory_process_scan": "unavailable due permissions; no universal no-process claim"
+  },
+  "sqlite_fix": {
+    "official_driver_upgrade": true,
+    "driver_fork": false,
+    "transaction_bypass": false,
+    "effective_old_driver_red": ".cache/follow155/root-go/20261102T175440685Z.command.json",
+    "new_store_green": ".cache/follow155/root-go/20261102T175546118Z.command.json",
+    "new_release_green": ".cache/follow155/root-go/20261102T175859683Z.command.json",
+    "earlier_invalid_fixture_red_excluded": ".cache/follow155/root-go/20261102T175234634Z.command.json",
+    "dependency_delta": "docs/delivery/sqlite-cancellation-dependencies.json",
+    "adr": "docs/adr/sqlite-cancellation.md"
+  },
+  "integration_milestone": {
+    "first_full_platform_exit": 1,
+    "reason": "10-minute total deadline; original failures and unexecuted tail preserved",
+    "first_pass": 537,
+    "first_skip": 15,
+    "first_failed_top": 23,
+    "first_interrupted_top": 1,
+    "whole_package_pass_claim": false,
+    "next": "Only affected checks rerun; final coverage snapshot added separately, no full suite repeat",
+    "final_evidence_coverage": {
+      "registered_platform": 1163,
+      "passed": 577,
+      "skipped": 15,
+      "failed": 0,
+      "interrupted": 1,
+      "never_started": 570,
+      "all_original_23_failures_have_targeted_pass": true,
+      "after_dependency_upgrade_only_platform": 11,
+      "after_dependency_upgrade_store": 13,
+      "whole_package_pass": false
+    }
+  },
+  "evidence": [
+    {
+      "path": ".cache/test-dispatch-bindings-216/control/summary.json",
+      "sha256": "9364c7b5347b4915572e1620d2ee65363fe25016caee61c2efbcbb352779b2ca"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/control/go-evidence.json",
+      "sha256": "6ca046f8648257832a5199cfd833681fee3782555ab05f552800ccc194f8bb34"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/gate/summary.json",
+      "sha256": "20cc1dc57433a63a2dd773cdea0babe62f0433454de04b6f59d510cae51a5777"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/gate/fixture-followup.json",
+      "sha256": "1b954a5b6ae6fb1ae56375395e0453a3e0add12da450953378be147e0f90eca9"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/ui/summary.json",
+      "sha256": "abb56bf4afcf0f8214e15441712a66753411c0d815348dfb0e1a4aa505c44574"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/ui/source-manifest.json",
+      "sha256": "51eda4d5a0a9d89a89c5531625312b7ea32f4f5e06c3e6c1d4c4a4ff5ab75b12"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/ui/refresh-overlay/source-manifest.json",
+      "sha256": "7ef792656309f74aa91f736578036de5bb2ced1df135c323072f273bdaf1897c"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/ui/late-receipt-overlay/source-manifest.json",
+      "sha256": "10f8ca15800db140486615a8f45eff81cd4a8231fa752fe22d83fb73211e32cf"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/checks/types.json",
+      "sha256": "c2054c9691c0b75bf9dee9e2efdfe8a4961e68d69dc99d447b93c3b277e2f762"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/checks/i18n.json",
+      "sha256": "0763f416d73b9ce17c76072e5f1a511e59cc90d665fe02d7ba2fc2a02599b3eb"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/checks/build.json",
+      "sha256": "b2247fd549fea52c2fec5189eefad99c6aa09a9678881aca5c2147020739dd91"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/checks/web-result.json",
+      "sha256": "37cec1b08c0bdaede2549e46af3f252edfd777c9794c0757c0bb319837146a66"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/catalog-regressions/summary.json",
+      "sha256": "7bd46e7b52f3cc879490ada2427f449058b758e7ac06c3a373379d449b4cc37f"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/runtime-regressions/summary.json",
+      "sha256": "83e410889634a1adf33cdac1058b103ecfc4e6c51fd5fed5d5b9824f7e6e0869"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/release-regressions/summary.json",
+      "sha256": "87494959a212ae78c2c369049a3f875b39c47f0a3f45f92493fff730ce8c3cb1"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/release-regressions/final-source-manifest.json",
+      "sha256": "8061cd6eb5a1ab6c3fe21ef5313162669cdbc90294532b53766b53be75f2a25c"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/post-driver-platform.json",
+      "sha256": "d1bea280b11f6aff1b9259df489d6d2a1c21335fd941496e302e3effae0d2f7f"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/actual/20261102T170130611828500Z/receipt.json",
+      "sha256": "2d70cd8e9894dab10812667c19113a79a7a4cf80df993ccf90abab949b33dc90"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/actual/20261102T170130611828500Z/ui-result.json",
+      "sha256": "9915214261de908bd52753c2a0f8fb2abf5337c328eb4273b068cf1a57996dc0"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/cleanup/20261102T170655520Z/result.json",
+      "sha256": "b59e7b74a6a532061c6d5cec216ab68b99d6d985cc3600120f4385545bd98961"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/closure.json",
+      "sha256": "872705eebc2f1ba0b707c8e3df50e588cac83e4715824f6befe2ae01c02c9acf"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/review-control.json",
+      "sha256": "164ab3c1e54823dba5698b5e7693e423eb565a8287dc262c9748e6c35b4f409f"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/review/review-ui.json",
+      "sha256": "161650b7a5abdae5eba392095670d251cb7a9af7fbb7ad5c4dc0c218ee86f82b"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/review-actual.json",
+      "sha256": "29231d068f55d81fae3d0311a4db520e849446bdee66eb940f1a3cf33a6e89de"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/dependency-review.json",
+      "sha256": "2b6ec36ee8af56eb83b3ee1711530da2655c341ff405bec7e817390d72661208"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/full-service-parse.json",
+      "sha256": "5c2dfcdfdede368a997fa663b73f1a4a8ac860cfd416ba0f0d36b9e8179f3ea4"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/coverage-current.json",
+      "sha256": "96c6e68e534cab7d41adc5a817d3dcc1bc78dfcbaad9256f4902424c93abcd12"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/cache-cleanup-receipt.json",
+      "sha256": "d28302da2cf23fe359a95c4bdabb009f035a3154440537e6ffb3f5f97578cf0a"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/coverage-final.json",
+      "sha256": "e6380c928443628d53e59c3a61ff6b1d1ccaeb52c8050c7c7e53627e69c23bbe"
+    },
+    {
+      "path": ".cache/test-dispatch-bindings-216/unexecuted-tail-final.json",
+      "sha256": "6414a1ef06771a6c5f3baaa711778bf99a6d08f4a6866777a043f7e93a91c1e8"
+    }
+  ],
+  "remaining": [
+    "Actual autonomous AI/vendor/model code development and complete human signoff, recommendation propagation of explicit testers and automatic independent capacity allocation.",
+    "Tool Doctor exact-node recovery navigation next; trusted WorkBuddy code/artifact contract and remaining tool protocols.",
+    "Physical distributed hosts, other databases, installers, scale, production and all31/P0-P7; earlier T171 explicit GUI Stop gap remains."
+  ],
+  "git": {
+    "target": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "method": "normal non-forced stage commit/push; exact post-Git receipt stored locally"
+  }
+}

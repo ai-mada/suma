@@ -1,5 +1,7 @@
 # 独立资源池 Runner 与多项目执行
 
+T216补充[开发与独立测试明确派发](../product/test-dispatch-bindings.md)：同Pool不同槽位不等于不同Worker，原计划和最终路由固定准确测试工具；每个producer需另一Worker对当前来源／attempt／fence／证据SHA的同提交测试。等待、配置可用、实际执行及人工验收分别记录，取消后的SQLite恢复见[决定](../adr/sqlite-cancellation.md)。
+
 T-COMMAND-COMPOSITION-215补充[已有命令配置组合](../product/command-composition.md)：在目标机器离线新建完整允许清单后，再把路径用于原项目／Pool配置。组合和采用路径都不启动节点、不读系统凭据、不增加Grant或工具资格，原配对、检测、登记与启用继续独立。
 
 状态：T-P4-006 实现与本机专项验证；最终集成、交付与实际平台旅程以阶段验收为准。负责人：Runtime／主集成。合同：[共享资源池](../../contracts/execution-pools.md)、[Core 接口](../../contracts/execution-pool-core.md)。实现：`internal/runner/pool_*.go`、`internal/platform/pool_runner_*.go`、`cmd/suma-runner/pool.go`。

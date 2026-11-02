@@ -52,8 +52,30 @@ func TestAdapterCatalogHTTPClosedQueryAndNoStore(t *testing.T) {
 func TestAdapterCatalogActualRouteAndLogout(t *testing.T) {
 	f := newFixture(t)
 	page := f.call("GET", "/adapter-catalog?project_id="+f.project, nil, 200)
-	if page["project_id"] != f.project || len(page["items"].([]any)) != 20 {
-		t.Fatal("catalog route missing or returned unrelated scope", page)
+	// Explicit public entrypoints, not a count copied from the implementation.
+	// Native CLI/SDK execution and inbound client guides are distinct products.
+	want := map[string]bool{
+		"suma-native": true, "command-cli": true, "codex-jsonl": true, "codex-app-server": true,
+		"opencode-sdk": true, "octop-acp": true, "dsh-multica": true, "codebuddy-cli": true,
+		"claude-code-cli": true, "claude-code-sdk": true, "qoder-acp": true, "cursor-cli": true,
+		"cursor-client": true, "claude-code-client": true, "codex-client": true, "opencode-client": true,
+		"qoder-client": true, "zed-client": true, "workbuddy-connector": true,
+		"harness-guide": true, "workbuddy-cloud": true,
+	}
+	items, ok := page["items"].([]any)
+	if page["project_id"] != f.project || !ok || len(items) != len(want) {
+		t.Fatalf("catalog route returned project=%v and %d items, expected the current public entrypoints", page["project_id"], len(items))
+	}
+	for _, raw := range items {
+		item, ok := raw.(map[string]any)
+		id, _ := item["id"].(string)
+		if !ok || !want[id] {
+			t.Fatalf("unexpected or duplicate public adapter: %v", raw)
+		}
+		delete(want, id)
+	}
+	if len(want) != 0 {
+		t.Fatal("catalog omitted public entrypoints", want)
 	}
 	f.call("GET", "/adapter-catalog?project_id="+f.project+"&worker_id=anything", nil, 400)
 	f.call("GET", "/adapter-catalog", nil, 400)

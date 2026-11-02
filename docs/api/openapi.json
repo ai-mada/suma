@@ -36117,6 +36117,14 @@
           "task_version": {
             "type": "integer"
           },
+          "test_bindings": {
+            "description": "Explicit overrides for existing static tests whose candidate_from is the selected Agent. Omitted preserves published definitions without proving independence. Preview freezes exact current tool/Worker/command; original Start rechecks current authority, route and observation.",
+            "items": {
+              "$ref": "#/components/schemas/TaskDispatchTestBinding"
+            },
+            "maxItems": 64,
+            "type": "array"
+          },
           "tool_profile_id": {
             "type": "string"
           },
@@ -36208,6 +36216,14 @@
           "task_id": {
             "type": "string"
           },
+          "test_bindings": {
+            "description": "Explicit overrides for existing static tests whose candidate_from is the selected Agent. Omitted preserves published definitions without proving independence. Preview freezes exact current tool/Worker/command; original Start rechecks current authority, route and observation.",
+            "items": {
+              "$ref": "#/components/schemas/TaskDispatchTestSelection"
+            },
+            "maxItems": 64,
+            "type": "array"
+          },
           "tool_profile_id": {
             "type": "string"
           },
@@ -36250,6 +36266,69 @@
           "project_id",
           "expected_version",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "TaskDispatchTestBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "type": "string"
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "tool_profile_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "tool_profile_id",
+          "tool_profile_version",
+          "tool_profile_sha256",
+          "worker_id",
+          "command_id"
+        ],
+        "type": "object"
+      },
+      "TaskDispatchTestSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_tool_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "tool_profile_id",
+          "expected_tool_version"
         ],
         "type": "object"
       },

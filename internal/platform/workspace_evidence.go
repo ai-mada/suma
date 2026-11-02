@@ -34,16 +34,27 @@ func workspaceRevision(proof map[string]any) (string, error) {
 // Test-only runs without a code workspace retain non-code test semantics; they
 // cannot be used to certify a code-producing run or merge a code candidate.
 func validateCodeTestEvidence(run dag.Run) error {
-	tested := map[string]bool{}
-	candidates := []string{}
+	tested := map[string][]dag.NodeRun{}
+	candidates := []dag.NodeRun{}
 	hasWorkspace := false
 	hasCode := false
+	for _, node := range run.Nodes {
+		if node.State != "skipped" && (node.Type == "command" || node.Type == "agent") {
+			hasCode = true
+		}
+	}
+	identities := map[string]bool{}
 	for _, n := range run.Nodes {
 		if n.State == "skipped" {
 			continue
 		}
-		if n.Type == "command" || n.Type == "agent" {
-			hasCode = true
+		if hasCode && (n.Type == "command" || n.Type == "agent" || n.Type == "test") {
+			// Both nodes may be on attempt 1. Independence is a different
+			// authenticated Worker and node, not unequal numeric attempts.
+			if n.ID == "" || identities[n.ID] || n.WorkerID == "" || n.Attempt < 1 || n.Fence < 1 || n.State != "succeeded" || n.Error != "" {
+				return invalid("代码和测试必须有明确成功的当前执行节点与尝试证据")
+			}
+			identities[n.ID] = true
 		}
 		if len(n.WorkspaceEvidence) == 0 {
 			continue
@@ -60,9 +71,10 @@ func validateCodeTestEvidence(run dag.Run) error {
 			if n.WorkspaceEvidence["test_command"] != true || n.WorkspaceEvidence["base_commit"] != head {
 				return invalid("测试必须由执行节点管理员指定，并保持固定候选提交不变")
 			}
-			tested[head] = true
+			source, _ := n.WorkspaceEvidence["candidate_from"].(string)
+			tested[source] = append(tested[source], n)
 		} else if n.Type == "command" || n.Type == "agent" {
-			candidates = append(candidates, head)
+			candidates = append(candidates, n)
 		}
 	}
 	if hasCode || hasWorkspace {
@@ -77,8 +89,19 @@ func validateCodeTestEvidence(run dag.Run) error {
 			}
 		}
 		for _, candidate := range candidates {
-			if !tested[candidate] {
-				return invalid("候选代码尚未被本次运行的测试覆盖，请显式交接候选提交后重新测试")
+			covered := false
+			for _, test := range tested[candidate.ID] {
+				if test.WorkerID == candidate.WorkerID || test.WorkspaceEvidence["head_commit"] != candidate.WorkspaceEvidence["head_commit"] {
+					continue
+				}
+				sha, _ := candidate.WorkspaceEvidence["evidence_sha256"].(string)
+				if codeCandidateSourceProofMatches(test.WorkspaceEvidence, candidate.ID, candidate.Attempt, candidate.Fence, sha) {
+					covered = true
+					break
+				}
+			}
+			if !covered {
+				return invalid("每个候选代码必须由另一执行节点按当前来源尝试独立测试")
 			}
 		}
 	}

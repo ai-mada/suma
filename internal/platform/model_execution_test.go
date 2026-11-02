@@ -3,11 +3,18 @@ package platform
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/modelcontract"
+	mg "github.com/ai-mada/suma/internal/modelgateway"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -140,39 +147,101 @@ func TestModelExecutionInventoryDriftAndMissingSelectionPreventStart(t *testing.
 func TestModelExecutionUncertainProviderUsageKeepsKnownCountersAndHold(t *testing.T) {
 	for _, scenario := range []string{"foreign_provider_model", "missing_host_gateway_receipt", "output_overrun"} {
 		t.Run(scenario, func(t *testing.T) {
-			f, _, _, p, deployments := modelExecutionFixture(t)
-			rate := modelRateForTest(t, f, p, deployments[0], 0)
-			binding, err := modelcontract.NewBinding(deployments[0], modelcontract.Parameters{MaxSteps: 2, MaxOutputTokens: 100}, nil, &modelcontract.RateSnapshot{ID: rate.ID, Version: rate.Version, Currency: rate.Currency, InputRateMicrosPerMillion: rate.InputRateMicrosPerMillion, OutputRateMicrosPerMillion: rate.OutputRateMicrosPerMillion})
-			if err != nil {
-				t.Fatal(err)
-			}
-			ref := dag.AccountingAttempt{TenantID: f.user.TenantID, ProjectID: f.project, RunID: newID(), NodeID: "develop", WorkerID: p.WorkerID, Attempt: 1, Fence: 1, Spec: dag.Node{ID: "develop", Type: "agent", Command: []string{p.Profile.CommandID}, Config: map[string]any{"tool_profile_id": p.ID, "tool_profile_sha256": p.Profile.ProfileSHA256, "model_execution": binding, "max_steps": 2, "max_output_tokens": 100}}}
-			tx, err := f.s.DB.Begin()
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err = f.s.ReserveAttemptTx(context.Background(), tx, ref); err != nil {
-				tx.Rollback()
-				t.Fatal(err)
-			}
-			if err = tx.Commit(); err != nil {
-				t.Fatal(err)
-			}
-			evidence := &modelcontract.Evidence{GatewayProtocol: modelcontract.GatewayProtocol, GatewayClosed: true, BindingSHA256: binding.BindingSHA256, DeploymentSHA256: binding.Deployment.SHA256, ParametersSHA256: binding.ParametersSHA256, Model: binding.Deployment.Model, Requests: []modelcontract.RequestEvidence{{State: "completed", Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: binding.Deployment.Model, OutputAllowance: 100, UsageState: tc.UsageComplete, Usage: &modelcontract.RequestUsage{InputTokens: usageInt(23), OutputTokens: usageInt(17)}}}}
+			ctx := context.Background()
+			f, token, request, p, deployments := modelExecutionFixture(t)
 			output := int64(17)
-			switch scenario {
-			case "foreign_provider_model":
-				evidence.Requests[0].ProviderModel = "foreign"
-			case "missing_host_gateway_receipt":
-				evidence = nil
-			case "output_overrun":
+			if scenario == "output_overrun" {
 				output = 101
 			}
-			if evidence != nil {
-				evidence.Requests[0].Usage.OutputTokens = &output
+			var calls atomic.Int32
+			provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				raw, err := io.ReadAll(io.LimitReader(r.Body, 4096))
+				var body map[string]any
+				if err != nil || json.Unmarshal(raw, &body) != nil || r.Method != "POST" || r.URL.Path != "/v1/chat/completions" || r.Header.Get("Authorization") != "Bearer owned-uncertain-provider" || body["model"] != deployments[0].Model || body["max_completion_tokens"] != float64(100) {
+					t.Error("owned provider did not receive the fixed host request")
+					w.WriteHeader(400)
+					return
+				}
+				model := deployments[0].Model
+				if scenario == "foreign_provider_model" {
+					model = "foreign"
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]any{"id": "owned-uncertain-response", "model": model, "choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "Owned protocol response"}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 23, "completion_tokens": output}})
+			}))
+			defer provider.Close()
+			deployments[0].EndpointOrigin = provider.URL
+			var err error
+			deployments[0].EndpointConfigSHA256, err = modelcontract.EndpointDigest(provider.URL + "/v1")
+			if err != nil {
+				t.Fatal(err)
 			}
-			result := dag.Result{RunID: ref.RunID, NodeID: ref.NodeID, WorkerID: ref.WorkerID, Attempt: 1, Fence: 1, OperationID: newID(), ToolEvidence: &tc.Evidence{Profile: p.Profile, Terminal: "failed", EventCount: 4, Usage: &tc.Usage{InputTokens: usageInt(23), OutputTokens: &output}, UsageState: tc.UsageComplete, ModelExecution: evidence}}
-			tx, err = f.s.DB.Begin()
+			deployments[0].SHA256 = modelcontract.DeploymentDigest(deployments[0])
+			if _, err = f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: p.Profile, Available: true, ModelDeployments: deployments}}}); err != nil {
+				t.Fatal(err)
+			}
+			modelRateForTest(t, f, p, deployments[0], 0)
+			request["model_execution_selection"] = modelcontract.Selection{DeploymentID: deployments[0].ID, DeploymentRevision: deployments[0].Revision, DeploymentSHA256: deployments[0].SHA256, Parameters: modelcontract.Parameters{MaxSteps: 2, MaxOutputTokens: 100}}
+			plan := f.call("POST", "/task-dispatch-plans", request, 201)
+			f.call("POST", "/task-dispatch-plans/"+plan["id"].(string)+"/start", f.body(map[string]any{"expected_version": plan["version"]}), 201)
+			claimed := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}}), 200)
+			var assignment dag.Assignment
+			if json.Unmarshal([]byte(stringify(claimed["assignment"])), &assignment) != nil || assignment.RunID != plan["run_id"] || assignment.Attempt < 1 || assignment.Fence < 1 {
+				t.Fatal("missing real admitted accounting attempt")
+			}
+			var spec dag.Node
+			var raw string
+			if err = f.s.DB.QueryRow(`SELECT spec FROM dag_nodes WHERE run_id=? AND id=?`, assignment.RunID, assignment.NodeID).Scan(&raw); err != nil || json.Unmarshal([]byte(raw), &spec) != nil {
+				t.Fatal("claimed attempt has no original node", err)
+			}
+			binding, err := dag.ModelBinding(spec)
+			if err != nil || binding == nil {
+				t.Fatal("claimed attempt lost its fixed model binding", err)
+			}
+			ref := dag.AccountingAttempt{TenantID: f.user.TenantID, ProjectID: f.project, RunID: assignment.RunID, NodeID: assignment.NodeID, WorkerID: assignment.WorkerID, Attempt: assignment.Attempt, Fence: assignment.Fence, Spec: spec}
+			var evidence *modelcontract.Evidence
+			if scenario != "missing_host_gateway_receipt" {
+				// The known counters come from a real durable host gateway receipt,
+				// never from a fabricated request digest or SDK usage assertion.
+				requestID, directory := digest(assignment.RunID+"/"+assignment.NodeID), filepath.Join(t.TempDir(), "gateway")
+				gateway, err := mg.Open(mg.Config{Context: ctx, RequestID: requestID, Directory: directory, Binding: *binding, BaseURL: provider.URL + "/v1", APIKey: "owned-uncertain-provider"})
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer gateway.Close()
+				connection := gateway.Connection()
+				body := stringify(map[string]any{"model": binding.Deployment.Model, "messages": []any{map[string]any{"role": "user", "content": "Owned accounting regression"}}, "stream": false, "max_completion_tokens": 100})
+				call, err := http.NewRequestWithContext(ctx, "POST", connection.BaseURL+"/chat/completions", strings.NewReader(body))
+				if err != nil {
+					t.Fatal(err)
+				}
+				call.Header.Set("Authorization", "Bearer "+connection.Token)
+				call.Header.Set("X-Suma-Model-Step", "0")
+				response, err := http.DefaultClient.Do(call)
+				if err != nil {
+					t.Fatal(err)
+				}
+				_, readErr := io.Copy(io.Discard, response.Body)
+				response.Body.Close()
+				if readErr != nil || response.StatusCode != http.StatusBadGateway || calls.Load() != 1 {
+					t.Fatal("host did not preserve and reject the unverified provider response", response.StatusCode, readErr)
+				}
+				snapshot, err := gateway.Close()
+				if err != nil {
+					t.Fatal(err)
+				}
+				saved, err := mg.ReadSnapshot(directory, requestID, binding.BindingSHA256)
+				if err != nil || stringify(saved) != stringify(snapshot) {
+					t.Fatal("host gateway receipt was not durably preserved", err)
+				}
+				actual := mg.Evidence(snapshot)
+				evidence = &actual
+			} else if calls.Load() != 0 {
+				t.Fatal("missing-receipt case unexpectedly contacted a provider")
+			}
+			result := dag.Result{RunID: ref.RunID, NodeID: ref.NodeID, WorkerID: ref.WorkerID, Attempt: ref.Attempt, Fence: ref.Fence, ExitCode: 1, Error: "Owned unverified provider response", OperationID: newID(), ToolEvidence: &tc.Evidence{Profile: p.Profile, Terminal: "failed", EventCount: 4, Usage: &tc.Usage{InputTokens: usageInt(23), OutputTokens: &output}, UsageState: tc.UsageComplete, ModelExecution: evidence}}
+			tx, err := f.s.DB.Begin()
 			if err != nil {
 				t.Fatal(err)
 			}

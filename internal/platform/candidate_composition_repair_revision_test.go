@@ -129,19 +129,18 @@ func TestCandidateRepairRevisionCertifiedFailureNewRunAndOriginalReceipt(t *test
 	if err != nil || !view.CanRevise || view.EligibilityMode != "certified_startup_failure" || view.RecoveryBasis == nil || len(view.RecoveryBasis.Attempts) != 1 {
 		t.Fatal(view, err)
 	}
-	// A disabled selected profile must not strand a known safe failure.
-	if _, err = f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, ExpectedVersion: profile.Version, Action: "pause", IdempotencyKey: newID()}); err != nil {
-		t.Fatal(err)
-	}
-	healthy, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: profile.WorkerID, Name: "Reviewed healthy replacement", Profile: profile.Profile, IdempotencyKey: newID()})
+	// Re-review the existing exact configuration rather than bypassing the
+	// registry's duplicate-profile guard with a new label or identity.
+	profiles := expertCount(t, f, "suma_tool_profiles")
+	paused, err := f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, ExpectedVersion: profile.Version, Action: "pause", IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	healthy, err = f.s.CommandToolProfile(ctx, f.actor, f.project, healthy.ID, ToolProfileCommandRequest{ProjectID: f.project, ExpectedVersion: healthy.Version, Action: "enable", IdempotencyKey: newID()})
-	if err != nil {
-		t.Fatal(err)
+	healthy, err := f.s.CommandToolProfile(ctx, f.actor, f.project, paused.ID, ToolProfileCommandRequest{ProjectID: f.project, ExpectedVersion: paused.Version, Action: "enable", IdempotencyKey: newID()})
+	if err != nil || healthy.ID != profile.ID || healthy.Version <= profile.Version || expertCount(t, f, "suma_tool_profiles") != profiles {
+		t.Fatal("explicit reapproval did not preserve the original exact profile", healthy, err)
 	}
-	r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: req.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, ExpectedRecoverySHA256: view.RecoveryBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: healthy.ID, ExpectedToolVersion: healthy.Version, Reason: "Replace disabled tool after certified startup failure", Acknowledge: true, IdempotencyKey: newID()}
+	r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: req.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, ExpectedRecoverySHA256: view.RecoveryBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: healthy.ID, ExpectedToolVersion: healthy.Version, Reason: "Use the explicitly reapproved current configuration after certified startup failure", Acknowledge: true, IdempotencyKey: newID()}
 	tasks, runs := expertCount(t, f, "suma_tasks"), expertCount(t, f, "dag_runs")
 	child, err := f.s.ReviseCandidateCompositionRepair(ctx, f.e, f.actor, f.project, parent.ID, r)
 	if err != nil || child.TaskID != parent.TaskID || child.RunID != "" || child.ToolProfileID != healthy.ID {

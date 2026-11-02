@@ -52,10 +52,16 @@ func orchestrationCompleteRoot(t *testing.T, h *expertFixture, p ExpertTeamPlan)
 	}
 	caps := []string{"command:" + profile.Profile.CommandID, "command:independent-tests"}
 	runID := p.Items[0].RunID
-	for range 2 {
-		a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "tool-worker", caps)
-		if err != nil || a == nil || a.RunID != runID {
-			t.Fatal("missing original root execution", a, err)
+	testWorker, testToken := independentReviewWorker(t, f)
+	for index := 0; index < 2; index++ {
+		worker, token := profile.WorkerID, h.runnerToken
+		if index == 1 {
+			worker, token = testWorker, testToken
+		}
+		wire := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": worker, "capabilities": caps}), 200)
+		var a dag.Assignment
+		if json.Unmarshal([]byte(stringify(wire["assignment"])), &a) != nil || a.RunID != runID || a.WorkerID != worker {
+			t.Fatal("missing original root execution on its registered worker", wire)
 		}
 		head, base := strings.Repeat("b", 40), strings.Repeat("a", 40)
 		proof := map[string]any{"head_commit": head, "base_commit": base, "evidence_sha256": strings.Repeat("c", 64), "state": "completed", "clean": true, "outcome_unknown": false, "exit_code": 0, "test_command": a.Type == "test"}
@@ -70,9 +76,7 @@ func orchestrationCompleteRoot(t *testing.T, h *expertFixture, p ExpertTeamPlan)
 			proof["candidate_fence"] = a.CandidateFence
 			proof["candidate_evidence_sha256"] = a.CandidateEvidenceSHA256
 		}
-		if err = f.e.Complete(ctx, f.user.TenantID, f.project, r); err != nil {
-			t.Fatal(err)
-		}
+		f.bearer("POST", "/runner/results", token, f.body(map[string]any{"result": r}), 200)
 	}
 	return runID
 }

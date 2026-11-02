@@ -1,5 +1,7 @@
 # 工具管理后续纵向切片
 
+T216已实现[本次独立测试工具选择](../product/test-dispatch-bindings.md)：原派发副本冻结准确工具／版本／SHA／Worker／命令，质量门核对每个producer的当前来源和不同Worker同提交测试；[真实限定验证](../quality/test-dispatch-bindings-verification.md)含Git／JUnit／夹具Review与SQLite取消修复。下一薄片优先Doctor→准确普通节点→原连接准备→新上报→原Quick，九种原准备协议及共享Pool授权边界保持，不重建已有CRUD／重检／换新。完整31／P0–P7继续。
+
 版本1.0.0；完整31项／P0–P7目标进行中。T193–T195已实现接入、准确重检与未知核对；T198补齐准确节点高级配置及具体原因入口；T199实现Doctor统一维护建议、原进度与跨配置准确定位；T200已实现配置换新的正式原子交接；T201补齐Claude SDK原生发现及桌面快捷连接；T202完成发现区渐进展示与键盘交互；T203贯通准确准备诊断、协议／节点交接及Codex原生配置生成。参见[维护建议验证](../quality/tool-doctor-maintenance-verification.md)与[换新合同](../../contracts/tool-profile-replacement.md)，不能把这些已有能力重新列为缺失CRUD。
 
 ## T200已实现：配置换新正式交接

@@ -1,6 +1,33 @@
 package platform
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+	"strings"
+
+	"github.com/ai-mada/suma/internal/strictjson"
+)
+
+// The ordinary DTO decoder deliberately preserves its existing semantics.
+// New explicit test selections need the same canonical, non-null boundary as
+// model selections before typed decoding could erase missing/null fields.
+func validateTaskDispatchTestSelectionFields(body map[string]any) error {
+	for key := range body {
+		if key != "test_bindings" && strings.EqualFold(key, "test_bindings") {
+			return invalidDiagnostic("validation.task_dispatch_test_binding", dispatchTestSelectionInvalid, nil)
+		}
+	}
+	value, present := body["test_bindings"]
+	if !present {
+		return nil
+	}
+	raw, err := json.Marshal(value)
+	var selections []TaskDispatchTestSelection
+	if err != nil || strictjson.Decode(raw, &selections, 2<<20) != nil || len(selections) > 64 {
+		return invalidDiagnostic("validation.task_dispatch_test_binding", dispatchTestSelectionInvalid, nil)
+	}
+	return nil
+}
 
 func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
 	if parts[0] != "task-dispatch-plans" {
@@ -13,6 +40,10 @@ func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, actor 
 	switch {
 	case len(parts) == 1 && r.Method == "POST":
 		var request TaskDispatchPreviewRequest
+		if err := validateTaskDispatchTestSelectionFields(m); err != nil {
+			writeError(w, err)
+			return true
+		}
 		if err := validateModelSelectionFields(m); err != nil {
 			writeError(w, err)
 			return true

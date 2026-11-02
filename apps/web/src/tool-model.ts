@@ -6,7 +6,7 @@ import {validClaudeSDKCapability} from './claude-sdk-execution-model';
 import {validACPCapability} from './acp-execution-model';
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
-import type { ToolDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation, ToolProfile as ContractToolProfile } from "../../../packages/contracts/src";
+import type { ToolDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation, ToolProfile as ContractToolProfile, TaskDispatchTestSelection } from "../../../packages/contracts/src";
 export type ToolProfileDefinition = ToolExecutionProfile;
 export type ToolObservation = ContractToolObservation;
 export type ToolProfile = ContractToolProfile;
@@ -373,6 +373,7 @@ export function dispatchRequest(
   workflow: Workflow,
   node: string,
   profile: ToolProfile,
+  testBindings?: TaskDispatchTestSelection[],
 ): Record<string, unknown> {
   if (
     !task.id ||
@@ -403,7 +404,7 @@ export function dispatchRequest(
       (item) =>
         item.type === "test" &&
         item.config?.candidate_from === node &&
-        item.command?.length === 1,
+        (item.command?.length === 1 || testBindings?.some(binding=>binding.node_id===item.id)),
     )
   )
     throw new UiError("development.model.the_workflow_lacks_an_independent_test_that");
@@ -416,6 +417,7 @@ export function dispatchRequest(
     agent_node_id: node,
     tool_profile_id: profile.id,
     expected_tool_version: profile.version,
+    ...(testBindings?.length?{test_bindings:testBindings.map(value=>({node_id:value.node_id,tool_profile_id:value.tool_profile_id,expected_tool_version:value.expected_tool_version}))}:{}),
   };
 }
 const eventKinds = new Set([
