@@ -1,0 +1,251 @@
+{
+  "stage": "T-TASK-DELIVERY-NAVIGATION-214",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "base_commit": "2a0195f08c39f282aadec361e9664084c3211079",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558"
+  },
+  "contract": "contracts/task-delivery-navigation.md",
+  "implementation": {
+    "new_business_api_paths": 0,
+    "new_tables": 0,
+    "new_generated_contracts": 0,
+    "new_dependencies": 0,
+    "new_dispatchers": 0,
+    "execution_or_quality_authority_changed": false,
+    "exact_navigation_targets": 4,
+    "review_locator": "task-acceptance:taskVersion:runID",
+    "route_consumption": "Current user/org ref and functional exact project/view/sub/record/panel compare; preserve newer routes.",
+    "review_selection": "Controlled initial linked run survives async options; explicit human changes and original pending body remain."
+  },
+  "focused": {
+    "distinct": 10,
+    "new": 8,
+    "direct_old": 2,
+    "model": 3,
+    "locator": {
+      "path": ".cache/task-delivery-navigation-214/locator/summary.json",
+      "sha256": "d0b280c39c1a005114c72388d1b32fd0f1804ad9e00c94f2d83305e42996139a"
+    },
+    "panel": {
+      "path": ".cache/task-delivery-navigation-214/panel/summary.json",
+      "sha256": "9adc34edc0add3b28a7409ad01d9a02aa2b6d2fb38fcadc07b11668716bbf3be"
+    },
+    "app": 2,
+    "model_original": {
+      "path": ".cache/task-delivery-navigation-214/model/summary.json",
+      "sha256": "2cc0f00cdbb70cabe7ebc4f8d675e536df6d35f5c9e39f235fe7b12f48b8361d"
+    },
+    "model_consumption": {
+      "path": ".cache/task-delivery-navigation-214/model/consumption-overlay.json",
+      "sha256": "39eb707f07c0e8e652eed28962cb445dd6835de97d0a9386d9589cbac8ab6418"
+    },
+    "app_initial": {
+      "path": ".cache/task-delivery-navigation-214/checks/app-result.json",
+      "sha256": "85960f4519e363bf7db6ae65a57e8627e60bf8bfcad89ff77affcebcf62d1101"
+    },
+    "app_followup": {
+      "path": ".cache/task-delivery-navigation-214/checks/app-followup-result.json",
+      "sha256": "a35517dfe773064bf76a525efcda5bef8a2ab1dd62ec9f828c483546d2441d7c"
+    },
+    "app_green": {
+      "path": ".cache/task-delivery-navigation-214/checks/app-final-result.json",
+      "sha256": "296fa4755560834d079edee953d948b2bdd5814b73776b3db31ad36138d854cd"
+    },
+    "app_consumption_only": {
+      "path": ".cache/task-delivery-navigation-214/checks/app-consumption-result.json",
+      "sha256": "b89faadbb0b059b0cc917f87cf84a7ffaf28582b67be863ab92e6ee822e00657"
+    },
+    "history": "Initial App2fail: lazy-button fixture wait and early empty run selection. After fixture wait1pass1fail; controlled run selection then2pass. Final route-CAS only affected new top1pass; no repeat of unchanged old top.",
+    "counting": "No repeated tops, unselected tests, loops, build or representative breakpoints added to distinct total.",
+    "write_boundary": "Original mocked App recovery check sends2 identical simulated Review POSTs. New locator App check and representative native journey send0POST; no real approval."
+  },
+  "shared": {
+    "whole_web_type_diagnostics": 0,
+    "types": {
+      "path": ".cache/task-delivery-navigation-214/checks/types.json",
+      "sha256": "be2fe113c4285e40496044a261ff5e2a1e41042ac790e7baee39688693c87395"
+    },
+    "final_root_semantic_errors": 0,
+    "final_semantic": {
+      "path": ".cache/task-delivery-navigation-214/checks/final-semantic.json",
+      "sha256": "1aa1ddbb5ff04b8e66c75db77c5dee996a1ddfed87a49f2436a49b3b1218e7f8"
+    },
+    "paired_catalog_keys": 9715,
+    "production_hardcodes": 0,
+    "i18n": {
+      "path": ".cache/task-delivery-navigation-214/checks/i18n.json",
+      "sha256": "a68b3217159e6c1bcb3de662ade8e5f584ad62d0c9ee4b580d8e563a1ce84ae6"
+    },
+    "representative_builds": 1,
+    "build": {
+      "path": ".cache/task-delivery-navigation-214/checks/build.json",
+      "sha256": "ce0d1e97e2a527c13cb841bfe9ce560718f5bcaf598bc7a2428a85ffb9315c97"
+    },
+    "reuse": "Later App/test changes are not imported by representative entry. Added route-consumption function unused there; rendered Panel/Locator and used URL functions unchanged. Existing isolated component build reused. No active preview overwrite.",
+    "go_or_runner_builds": 0,
+    "model_or_vendor_calls": 0
+  },
+  "reviews": {
+    "integration": {
+      "path": ".cache/task-delivery-navigation-214/review/integration-review.json",
+      "sha256": "782867f3883810d76f83d21c5109c120221182f289d7a2fa85a163ff3a288129"
+    },
+    "consumption_delta": {
+      "path": ".cache/task-delivery-navigation-214/review/consumption-overlay.json",
+      "sha256": "711b9217b9e8b378e72775fddde23a068a940631fe91dc9be345ec7e0c985581"
+    },
+    "visual_closure": {
+      "path": ".cache/task-delivery-navigation-214/review/visual-closure.json",
+      "sha256": "4c78a6850a8f4ed08883fcea5613afabe66251844a2b184176b11d04ce8c711f"
+    },
+    "remaining_confirmed_p1_p2": 0
+  },
+  "representative": {
+    "journeys": 1,
+    "scope": "Synthetic read-only HTTP with original production panel and locator. Original App Review form checked separately.",
+    "result": {
+      "path": ".cache/task-delivery-navigation-214/visual/20261102T151704474Z/result.json",
+      "sha256": "e439d11e1ecfe7f5ddf26f904ca3938c0f7faa1da42b5574627e6264a90d4e6e"
+    },
+    "checks": [
+      "native_exact_project_team_issue_and_requirement_hrefs_present_without_callbacks",
+      "review_native_link_consumes_exact_version_run_once_without_post",
+      "english_narrow_native_issue_navigation_preserves_exact_record",
+      "mismatched_review_locator_never_calls_entry"
+    ],
+    "synthetic_http_gets": 2,
+    "post_count": 0,
+    "page_errors": 0,
+    "native_pid": 52940,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "port": 64014,
+    "closure": "Independent read: PID absent and successful netstat output has no port64014 listener. No force/extra test or model.",
+    "geometry": {
+      "width": 390,
+      "scrollWidth": 373,
+      "controls": [
+        44,
+        44,
+        44,
+        44
+      ]
+    },
+    "root_viewed_images": [
+      {
+        "path": ".cache/task-delivery-navigation-214/visual/20261102T151704474Z/cn-delivery-actions.png",
+        "sha256": "4e897710d25dc801e75f3bc0340e1d8cba0252550749b1f9df8ddd114a6cf07e"
+      },
+      {
+        "path": ".cache/task-delivery-navigation-214/visual/20261102T151704474Z/en-delivery-actions.png",
+        "sha256": "3799ee1f7cdf5d016c55b3063eab6a539d5df522c639e8ad8eba379ccc558418"
+      }
+    ],
+    "full_app_or_backend_acceptance": false
+  },
+  "sources": [
+    {
+      "path": "apps/web/src/App.tsx",
+      "bytes": 110451,
+      "sha256": "a699cd722f18e961570ee091eb7bee9a611220f20f676b040ea43dcc583a4e9f"
+    },
+    {
+      "path": "apps/web/src/TaskDependenciesWorkspace.tsx",
+      "bytes": 27309,
+      "sha256": "f9c92e44d1b869dd7010bd9191c074a98efab22a9a52ab0de6e125dde75f3217"
+    },
+    {
+      "path": "apps/web/src/task-review-current-run.test.tsx",
+      "bytes": 8511,
+      "sha256": "7f99dd9d80704973cdad7561a76caeb06690c8fdedf8f3e81358c48ce27d7f33"
+    },
+    {
+      "path": "apps/web/src/task-delivery-navigation-model.ts",
+      "bytes": 2844,
+      "sha256": "ff2562de6d7ca1c537b4fe7ecb2904a6ad6430e58d5077b084f94f561f3f2473"
+    },
+    {
+      "path": "apps/web/src/task-delivery-navigation-model.test.ts",
+      "bytes": 5082,
+      "sha256": "e1798a23bd4ec436506f6c0a35e6fe3dc88f6b6580dfe8df3156302b4731e503"
+    },
+    {
+      "path": "apps/web/src/TaskDeliveryPanel.tsx",
+      "bytes": 10421,
+      "sha256": "9d575aa5710bea6aea193880883c64dd68de82ae6780eeea67a87d4576198179"
+    },
+    {
+      "path": "apps/web/src/TaskDeliveryPanel.test.tsx",
+      "bytes": 14890,
+      "sha256": "b374aee6642d34dae53ebca883097508c7686f974761929aeb33573b4fcefd6f"
+    },
+    {
+      "path": "apps/web/src/TaskDeliveryPanel.css",
+      "bytes": 2519,
+      "sha256": "c7a5c1278429729b56aa7d7cd7cd8e7ad67278dadfb197436dfba730971c51e5"
+    },
+    {
+      "path": "apps/web/src/TaskAcceptanceLocator.tsx",
+      "bytes": 3482,
+      "sha256": "40382dc84a9ef06952a4aa329ba997203fa03feea4334c198dd58114a6fe6ac4"
+    },
+    {
+      "path": "apps/web/src/TaskAcceptanceLocator.test.tsx",
+      "bytes": 4113,
+      "sha256": "2de2c1f65cb690b92116ae1a4fe6378662e00f1c009ea19e38d7475abfa9d509"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/task-delivery-navigation.zh-CN.json",
+      "bytes": 963,
+      "sha256": "96cb48e0b9008d8900189aaa23de02ec26ceef6f3374a408d2ab07884df9380b"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/task-delivery-navigation.en-US.json",
+      "bytes": 1039,
+      "sha256": "39667bd7595dc682985a84d4ee2d34d7d8410543325de77af21f68f8f78d0d38"
+    },
+    {
+      "path": "tests/integration/task-delivery-navigation/entry.tsx",
+      "bytes": 2234,
+      "sha256": "cc14872e91d602fc5643ce6a39a603a270dd50b82f95fb408b0e4d9993d3f2ce"
+    },
+    {
+      "path": "tests/integration/task-delivery-navigation/index.html",
+      "bytes": 721,
+      "sha256": "7f3aa09b550214942490401e3b11d1100760457883c277326e3aee7b1f2b122a"
+    },
+    {
+      "path": "tests/integration/task-delivery-navigation/build.cjs",
+      "bytes": 1543,
+      "sha256": "6fad9df03c880c3772ec3997c5da7e8456d43778ea017a7fe77051b302d3e0c9"
+    },
+    {
+      "path": "tests/integration/task-delivery-navigation/driver.cjs",
+      "bytes": 8029,
+      "sha256": "684537c4d646431ea94bb79560ab8d0e5924908c3a08f7a8fbee30d6a8cea5dc"
+    }
+  ],
+  "limits": [
+    "Representative browser uses synthetic readonly HTTP and observes locator callback. Real original App Review form is covered by focused jsdom tests, not production approval.",
+    "No code candidate/new independent evidence gate, automatic acceptance, Worker/model/vendor execution or new run-to-task provenance inference.",
+    "Safe combined development/test commands, trusted WorkBuddy code artifact contract, stable acceptance-item revisions, full original31/P0-P7, database/multi-host/installers/scale/production remain active."
+  ],
+  "reference": {
+    "retained_pin": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "source": "docs/integrations/multica-reference-211.md",
+    "new_multica_source_copied": 0
+  },
+  "git_delivery": ".cache/task-delivery-navigation-214/post-git.json"
+}

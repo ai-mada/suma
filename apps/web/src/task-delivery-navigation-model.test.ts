@@ -1,0 +1,70 @@
+import {describe,it,expect} from 'vitest';
+import {consumeTaskAcceptancePanel,parseTaskAcceptancePanel,taskAcceptancePanel,taskDeliveryHref} from './task-delivery-navigation-model';
+import type {WorkbenchRoute} from './navigation';
+
+describe('task delivery navigation targets',()=>{
+  it('round-trips only canonical three-part acceptance locators with exact bounded public identifiers',()=>{
+    for(const taskVersion of [1,27,2147483646]){
+      for(const runID of ['run-Exact_1.2','a'.repeat(64)]){
+        const panel=taskAcceptancePanel(taskVersion,runID);
+        expect(panel).toBe('task-acceptance:'+taskVersion+':'+runID);
+        expect(parseTaskAcceptancePanel(panel!)).toEqual({taskVersion,runID});
+      }
+    }
+    const invalidIDs=['','.','..','../run','run/child','run\\child','run:child','run?next=other','run#other','run&project=other','%2e%2e',' run','run ','run\n','run\r\n','run\0','a'.repeat(65)];
+    for(const runID of invalidIDs){
+      expect(taskAcceptancePanel(3,runID),JSON.stringify(runID)).toBeUndefined();
+      expect(parseTaskAcceptancePanel('task-acceptance:3:'+runID),JSON.stringify(runID)).toBeUndefined();
+    }
+    for(const taskVersion of [0,-1,1.5,2147483647,Number.MAX_SAFE_INTEGER,NaN,Infinity]){
+      expect(taskAcceptancePanel(taskVersion,'run-exact')).toBeUndefined();
+    }
+    for(const panel of ['','task-acceptance:1','task-acceptance:1:run:extra','other:1:run','task-acceptance:01:run','task-acceptance:+1:run','task-acceptance:1.0:run','task-acceptance:1e1:run','task-acceptance: 1:run','task-acceptance:0:run','task-acceptance:2147483647:run','task-acceptance:9007199254740993:run']){
+      expect(parseTaskAcceptancePanel(panel),panel).toBeUndefined();
+    }
+  });
+
+  it('links each exact project reference to the original page without carrying execution or acceptance authority',()=>{
+    const project='project-Exact_1.2',id='record-Exact_1.2';
+    const targets=[
+      {target:{kind:'issue' as const,id},fields:{project,view:'quality',sub:'issues',record:id,layout:'list'}},
+      {target:{kind:'requirement' as const,id},fields:{project,view:'requirements',sub:'',record:id,layout:'list'}},
+      {target:{kind:'team' as const,id},fields:{project,view:'development',sub:'runs',layout:'team',panel:'expert-team:'+id}},
+      {target:{kind:'review' as const,id,taskVersion:7,runID:'run-Exact_7'},fields:{project,view:'development',sub:'tasks',record:id,layout:'list',panel:'task-acceptance:7:run-Exact_7'}},
+    ];
+    for(const {target,fields} of targets){
+      const href=taskDeliveryHref(project,target)!;
+      expect(href.startsWith('?')).toBe(true);
+      expect(Object.fromEntries(new URLSearchParams(href))).toEqual(fields);
+      for(const invalid of ['','.','..','../other','other/child','other\\child','other:child','other&project=foreign','other?record=foreign','other#fragment','other\n','a'.repeat(65)]){
+        expect(taskDeliveryHref(invalid,target),JSON.stringify(invalid)).toBeUndefined();
+        expect(taskDeliveryHref(project,{...target,id:invalid}),JSON.stringify(invalid)).toBeUndefined();
+      }
+    }
+    // A navigation target is not a quality decision or a fallback to an
+    // arbitrary task: review always retains its original version and run.
+    for(const target of [{kind:'review' as const,id},{kind:'review' as const,id,taskVersion:0,runID:'run'},{kind:'review' as const,id,taskVersion:7,runID:'../other'}]){
+      expect(taskDeliveryHref(project,target)).toBeUndefined();
+    }
+  });
+
+  it('consumes only the matching originating route and preserves newer account, scope or panel objects',()=>{
+    const route:WorkbenchRoute={project:'project-a',view:'development',sub:'tasks',record:'task-a',panel:'task-acceptance:3:run-a',run:'',node:'',attempt:'',q:'keep this filter',status:'all',layout:'list',week:'2026-11-02',task_owner:'member-a'};
+    const owner={userID:'user-a',organizationID:'org-a'};
+    const expected={...owner,project:'project-a',taskID:'task-a',panel:'task-acceptance:3:run-a'};
+    const consumed=consumeTaskAcceptancePanel(route,owner,expected);
+    expect(consumed).not.toBe(route);
+    expect(consumed).toEqual({...route,panel:''});
+    expect(consumeTaskAcceptancePanel(consumed,owner,expected)).toBe(consumed);
+    for(const changedOwner of [{...owner,userID:'user-b'},{...owner,organizationID:'org-b'},{userID:undefined,organizationID:undefined}]){
+      expect(consumeTaskAcceptancePanel(route,changedOwner,expected)).toBe(route);
+    }
+    for(const patch of [{project:'project-b'},{view:'quality' as const},{sub:'runs'},{record:'task-b'},{panel:'task-acceptance:4:run-a'},{panel:'task-acceptance:3:run-b'},{panel:'dispatch:new'},{panel:''}]){
+      const newer={...route,...patch};
+      expect(consumeTaskAcceptancePanel(newer,owner,expected),JSON.stringify(patch)).toBe(newer);
+    }
+    for(const patch of [{project:'project-b'},{taskID:'task-b'},{panel:'task-acceptance:03:run-a'},{panel:'task-acceptance:3:run-a:extra'}]){
+      expect(consumeTaskAcceptancePanel(route,owner,{...expected,...patch}),JSON.stringify(patch)).toBe(route);
+    }
+  });
+});

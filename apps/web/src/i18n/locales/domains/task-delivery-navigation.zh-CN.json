@@ -1,0 +1,9 @@
+{
+ "task-delivery-navigation.locator.waiting":"正在核对准确任务与运行，以打开原验收界面…",
+ "task-delivery-navigation.locator.invalid":"验收链接依据不完整或格式无效，请从当前任务交付记录重新打开。",
+ "task-delivery-navigation.locator.scope_changed":"当前账户或组织与任务页面不符，请重新读取当前项目任务后再打开验收。",
+ "task-delivery-navigation.locator.basis_changed":"任务版本或运行已变化，请从当前交付记录重新打开验收；不会替换运行。",
+ "task-delivery-navigation.locator.blocked":"原操作尚未结束，暂不打开验收；请先处理当前操作。",
+ "task-delivery-navigation.locator.unconfirmed":"尚未确认打开验收。请先处理原操作，或从当前任务重新打开准确链接。",
+ "task-delivery-navigation.locator.opened":"已打开此准确任务与运行的原验收界面。此导航没有提交验收决定。"
+}

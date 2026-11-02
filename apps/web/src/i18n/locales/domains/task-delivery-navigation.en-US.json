@@ -1,0 +1,9 @@
+{
+ "task-delivery-navigation.locator.waiting":"Checking the exact task and run before opening the original review…",
+ "task-delivery-navigation.locator.invalid":"The review link is incomplete or invalid. Open it again from the current task delivery record.",
+ "task-delivery-navigation.locator.scope_changed":"The current account or organization does not match this task page. Reload the current project task before opening review.",
+ "task-delivery-navigation.locator.basis_changed":"The task version or run changed. Open review from the current delivery record; another run will not be substituted.",
+ "task-delivery-navigation.locator.blocked":"The original operation is unfinished. Resolve it before opening review.",
+ "task-delivery-navigation.locator.unconfirmed":"Opening review is unconfirmed. Resolve the original operation, or reopen the exact link from the current task.",
+ "task-delivery-navigation.locator.opened":"The original review for this exact task and run was opened. This navigation submitted no review decision."
+}
