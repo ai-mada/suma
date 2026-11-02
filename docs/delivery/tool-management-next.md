@@ -30,9 +30,13 @@ Claude SDK／OpenCode SDK受信检查输出有限准备原因，当前权限／�
 
 原持续Runner／Pool明确允许固定目录检测，空commands也可发现安装；原维护owner与Journal、当前授权、双向互斥及真实停止证明保持。仅维护模式不接业务，丢ACK恢复原body／key，来源变化和历史审计分开；准确工具／节点回原Guide。[需求](../product/remote-tool-installation-scan.md)与[限定验证](../quality/remote-tool-installation-scan-verification.md)记录真实受控native2树、0任务及双语视觉，不冒称实际供应方。
 
-## 下一步：简洁首屏、目标机器准备与统一自动化
+## T206已实现：简洁首屏与准确接入
 
-优先完成工具管理首屏密度与主操作布局的独立界面验收；三份在途布局源保留。继续Pool免令牌配对／多项目私有配置接续、OpenCode SDK新文件原生准备、WorkBuddy可信代码交付与同提交质量；不重建已完成检测／Doctor／换新。
+首屏单一添加、配置列表前置、更多接入首次按需挂载并保留草稿，原云授权独立生命周期保持；准确Guide／节点／预设和弹窗焦点交接沿原合同。双语代表整页合成界面与定向检查见[交互设计](../design/tool-management-experience.md)和[限定验证](../quality/tool-management-experience-verification.md)。原三份布局增量已纳入本阶段；不冒称新厂商执行。
+
+## 下一步：目标机器准备与统一自动化
+
+继续Pool免令牌配对／多项目私有配置接续、OpenCode SDK新文件原生准备、WorkBuddy可信代码交付与同提交质量；不重建已完成检测／Doctor／换新。
 
 继续把目标机器的原准备结果与具体资源检查接回当前项目／节点的可追溯事实，降低手工复制和重复配置；优先复用原配对、工具报告、Doctor、私有凭据及操作回执。准备建议、明确授权、机器实际执行、库存和派发资格分别保存；未知效果先核对。真实工具／模型、多机执行、分布式资源及完整部署验收按原能力矩阵推进，不将本阶段公开草稿和配置生成视为全部远程自动执行。
 

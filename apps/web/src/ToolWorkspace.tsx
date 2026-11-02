@@ -40,6 +40,7 @@ import {ToolInventoryField} from './ToolInventoryField';
 import {ToolDiscoveryPanel,type ToolDiscoveryAdoption} from './ToolDiscoveryPanel';
 import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
 import "./tool.css";
+import "./ToolWorkspace.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {toolPreparationTarget,preparationForLocalTool,type ToolPreparationPreset} from './tool-preparation-target';
@@ -142,6 +143,23 @@ function ScopedToolWorkspace({
   const [pairedSelection,setPairedSelection]=useState<{caller:typeof api;generation:number;context:string;value:RunnerPairing}>();
   const pairedRunner=pairedSelection?.caller===api&&pairedSelection.generation===pairingGeneration&&pairedSelection.context===contextKey?pairedSelection.value:undefined;
   const guideID = useId();
+  const workspaceElement=useRef<HTMLDivElement>(null),navigationIntent=useRef(0);
+  const [setupDisclosure,setSetupDisclosure]=useState(()=>({open:panel==='workbuddy'||/^workbuddy:[A-Za-z0-9_.-]+$/.test(panel),visited:false}));
+  // The optional directory is mounted only after a deliberate visit, then kept
+  // mounted so collapsing it never discards an authored setup draft.
+  function openSetup(){setSetupDisclosure({open:true,visited:true});}
+  function focusNavigation(resolve:()=>HTMLElement|null|undefined,optionalSetup=true){
+    if(optionalSetup)openSetup();
+    const intent=++navigationIntent.current,caller=api,generation=pairingGeneration;
+    // Radix restores its opener on close. Queue the explicit destination after
+    // that lifecycle, rather than changing the shared dialog's return policy.
+    setTimeout(()=>requestAnimationFrame(()=>{
+      if(!activeWorkspace.current||navigationIntent.current!==intent||pairingCaller.current.api!==caller||pairingCaller.current.generation!==generation)return;
+      const target=resolve();if(!target||!target.isConnected)return;
+      for(let ancestor=target.parentElement;ancestor&&ancestor!==workspaceElement.current;ancestor=ancestor.parentElement)if(ancestor instanceof HTMLDetailsElement)ancestor.open=true;
+      target.scrollIntoView?.({block:'start',behavior:'auto'});target.focus({preventScroll:true});
+    }),0);
+  }
   const workerRows = useRef(new Map<string, HTMLElement>());
   const sharedWorkerRows=useRef(new Map<string,HTMLElement>());
   // Guide consumers retain their nonce high-water mark across navigation.
@@ -302,7 +320,7 @@ function ScopedToolWorkspace({
     const sameTarget=publicDraft?.adapterID===adapter!.id&&publicDraft.workerID===expectedWorkerID;
     if(expectedWorkerID&&!sameTarget)beginPublicDraft({adapterID:adapter!.id,workerID:expectedWorkerID,commandID:'',name:'',nameEdited:false});
     setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID,preset:target.preset});setGuideOpen(true);
-    requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(discovery?'[data-remote-runner-allow-installed-discovery]':focusRemote?'[data-remote-runner-setup]>summary':'summary')?.focus());return true;
+    focusNavigation(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(discovery?'[data-remote-runner-allow-installed-discovery]':focusRemote?'[data-remote-runner-setup]>summary':'summary'));return true;
   }
   function openRemoteScan(workerID:string){
     if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
@@ -316,18 +334,18 @@ function ScopedToolWorkspace({
   function openGuide() {
     setConnectionSelection(undefined);
     setGuideOpen(true);
-    requestAnimationFrame(() => document.getElementById(guideID)?.querySelector('summary')?.focus());
+    focusNavigation(()=>document.getElementById(guideID)?.querySelector('summary'));
   }
   function setupConnection(descriptor:AdapterDescriptor){
     if(writeBlocked||!canLeave()||descriptor.implementation==='planned')return;
-    if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,cloud:true});return;}
+    if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,cloud:true});focusNavigation(()=>workspaceElement.current?.querySelector<HTMLElement>('.workbuddy-disclosure'),false);return;}
     if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
       beginPublicDraft(publicDraft?.adapterID===descriptor.id?publicDraft:{adapterID:descriptor.id,workerID:'',commandID:'',name:'',nameEdited:false},publicDraft?.adapterID===descriptor.id?replacementSource:undefined);
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:descriptor});return;
     }
     const clients:Record<string,DeveloperClientID>={'cursor-client':'cursor','claude-code-client':'claude-code','codex-client':'codex','opencode-client':'opencode','qoder-client':'qoder','zed-client':'zed','workbuddy-connector':'workbuddy'};
-    if(descriptor.direction==='tool_to_suma'&&clients[descriptor.id]){setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,client:clients[descriptor.id]});setGuideOpen(true);return;}
-    if(descriptor.id==='harness-guide'&&descriptor.setup_kind==='manual_guide'){setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,preset:'harness'});setGuideOpen(true);}
+    if(descriptor.direction==='tool_to_suma'&&clients[descriptor.id]){setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,client:clients[descriptor.id]});setGuideOpen(true);focusNavigation(()=>workspaceElement.current?.querySelector<HTMLElement>('[data-tool-workspace-client]'));return;}
+    if(descriptor.id==='harness-guide'&&descriptor.setup_kind==='manual_guide'){setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,preset:'harness'});setGuideOpen(true);focusNavigation(()=>document.getElementById(guideID)?.querySelector('summary'));}
   }
   function replaced(value:ToolProfileReplacement){
     if(!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||value.project_id!==project)return;
@@ -373,7 +391,7 @@ function ScopedToolWorkspace({
   }
   const returnRun = toolReturnRun(panel);
   return (
-    <div className="tool-workspace">
+    <div className="tool-workspace" ref={workspaceElement}>
       <div className="tool-intro">
         <div>
           <h2>{t("development.tools.execution_tools")}</h2>
@@ -387,18 +405,11 @@ function ScopedToolWorkspace({
         >
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
+      <div className="tool-workspace-primary-actions" data-tool-workspace-primary-actions>
+        <button type="button" className="primary" data-tools-add disabled={writeBlocked} onClick={openQuickConnect}><Plus size={16} aria-hidden="true"/>{t('tool-workspace-experience.add')}</button>
+        <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" data-tools-advanced-register disabled={writeBlocked} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
+      </div>
       <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={filters.state!=='active'||!!filters.query} onClearFilters={()=>{setSearch('');applyFilters({state:'active',query:''});}} onWorker={() => { if(writeBlocked)return;action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
-      <WorkBuddyConnections project={project} panel={panel} openRequest={connection?.cloud?connection.nonce:undefined}/>
-      <details className="panel adapter-catalog-disclosure" key={contextKey}>
-        <summary>
-          <ChevronRight aria-hidden="true" size={20}/>
-          <span className="adapter-catalog-disclosure-copy"><strong>{t('adapter-connections.title')}</strong><span>{t('adapter-connections.intro')}</span></span>
-          <span className="adapter-catalog-disclosure-action"><span className="when-closed">{t('adapter-connections.open_catalog')}</span><span className="when-open">{t('adapter-connections.close_catalog')}</span></span>
-        </summary>
-        <AdapterConnections project={project} onSetup={setupConnection}/>
-      </details>
-      {publicDraft&&guideOpen&&<div className="tool-connect-return"><p>{t('tool-workspace.draft_retained',{worker:publicDraft.workerID||t('tool-workspace.target_not_selected')})}</p><button type="button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button></div>}
-      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} expectedWorkerID={connection?.expectedWorkerID} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} onReportSelection={returnFromReport} disabled={writeBlocked}/>}
       {returnRun && (
         <a
           onClick={(event) => {
@@ -429,21 +440,11 @@ function ScopedToolWorkspace({
         </div>
       </div>
       <div className={"tool-columns " + (selected ? "with-detail" : "")}>
-        <section className="panel tool-list">
+        <section className="panel tool-list" data-tool-workspace-configurations>
           <div className="list-toolbar">
             <span>
               {t("development.tools.fixed_tool_configuration")}<b>{profiles.items ? formatNumber(profiles.total) : "—"}</b>
             </span>
-            <div className="inline">
-              <button
-                className="primary"
-                disabled={writeBlocked}
-                onClick={openQuickConnect}
-              >
-                <Plus size={14} />
-                {t('tool-quick-connect.title')}</button>
-              <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" disabled={writeBlocked} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
-            </div>
           </div>
           <div className="tool-filter-tabs" role="group" aria-label={t('tool-workspace.filter')}>
             {toolListStates.map(value => <button key={value} type="button" data-tools-state={value} aria-pressed={filters.state===value} onClick={() => applyFilters({...filters,state:value})}>{t('tool-workspace.state.'+value)}</button>)}
@@ -693,6 +694,22 @@ function ScopedToolWorkspace({
         )}
         {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers"><h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>{sharedWorkers.data.items.map(worker=><article key={worker.id} className="tool-worker-row" tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}><div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div><div><button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span></div></article>)}</div>}
       </section>
+      <WorkBuddyConnections project={project} panel={panel} openRequest={connection?.cloud?connection.nonce:undefined}/>
+      <details className="tool-workspace-more panel" data-tool-workspace-more open={setupDisclosure.open}>
+        <summary data-tool-workspace-more-toggle onClick={event=>{event.preventDefault();if(setupDisclosure.open&&!canLeave())return;setSetupDisclosure(before=>({open:!before.open,visited:true}));}}><ChevronRight size={18} aria-hidden="true"/><span><strong>{t('tool-workspace-experience.more')}</strong><small>{t('tool-workspace-experience.more_hint')}</small></span></summary>
+        {(setupDisclosure.visited||setupDisclosure.open)&&<div className="tool-workspace-more-body">
+      <details className="panel adapter-catalog-disclosure" key={contextKey}>
+        <summary>
+          <ChevronRight aria-hidden="true" size={20}/>
+          <span className="adapter-catalog-disclosure-copy"><strong>{t('adapter-connections.title')}</strong><span>{t('adapter-connections.intro')}</span></span>
+          <span className="adapter-catalog-disclosure-action"><span className="when-closed">{t('adapter-connections.open_catalog')}</span><span className="when-open">{t('adapter-connections.close_catalog')}</span></span>
+        </summary>
+        <AdapterConnections project={project} onSetup={setupConnection}/>
+      </details>
+      {publicDraft&&guideOpen&&<div className="tool-connect-return"><p>{t('tool-workspace.draft_retained',{worker:publicDraft.workerID||t('tool-workspace.target_not_selected')})}</p><button type="button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button></div>}
+      {connection?.client?<section className="panel" data-tool-workspace-client tabIndex={-1}><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} pairedRunner={pairedRunner} expectedWorkerID={connection?.expectedWorkerID} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined} onPairRunner={openRunnerPairing} onReportSelection={returnFromReport} disabled={writeBlocked}/>}
+        </div>}
+      </details>
       <Modal
         open={!!dialog}
         onClose={() => {
@@ -758,7 +775,7 @@ function ScopedToolWorkspace({
           />
           </>
         )}
-        {dialog?.kind==='remote-scan'&&dialog.context===contextKey&&dialog.caller===api&&dialog.generation===pairingGeneration&&<RemoteToolScanPanel project={project} workerID={dialog.workerID} disabled={writeBlocked} onPrepare={(adapter,workerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||workerID!==dialog.workerID)return;openToolPreparation(adapter,workerID,true);}} onGuide={()=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID:dialog.workerID});setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLElement>('[data-remote-runner-allow-installed-discovery]')?.focus());}}/>}
+        {dialog?.kind==='remote-scan'&&dialog.context===contextKey&&dialog.caller===api&&dialog.generation===pairingGeneration&&<RemoteToolScanPanel project={project} workerID={dialog.workerID} disabled={writeBlocked} onPrepare={(adapter,workerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||workerID!==dialog.workerID)return;openToolPreparation(adapter,workerID,true);}} onGuide={()=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID:dialog.workerID});setGuideOpen(true);focusNavigation(()=>document.getElementById(guideID)?.querySelector<HTMLElement>('[data-remote-runner-allow-installed-discovery]'));}}/>}
         {dialog?.kind === 'quick' && <ToolQuickConnect
           key={contextKey+':'+(dialog.adapter?.id||'')+':'+(dialog.preferredWorkerID||'')}
           project={project}

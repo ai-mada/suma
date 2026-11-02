@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-MANAGEMENT-EXPERIENCE-206：[工具管理交互](../design/tool-management-experience.md)／[English](../en/tool-management-experience.md)／[限定验证](../quality/tool-management-experience-verification.md)。首屏单一添加与列表前置、更多接入按需展开、原准确节点指南和焦点交接贯通；6个不同检查（3新／2直接旧／1复用）、完整Web类型0、9471对词条及3组代表整页合成界面限定通过。真实厂商与完整31／P0–P7继续。
+
 T-TOOL-PREPARATION-203：[工具准备与恢复](../product/tool-preparation-recovery.md)／[架构与AI SOP](../architecture/tool-preparation-recovery.md)／[交互](../design/tool-preparation-recovery.md)／[English](../en/tool-preparation-recovery.md)／[限定验证](../quality/tool-preparation-recovery-verification.md)。两SDK准确准备原因、当前权限与原回执优先、九协议／同节点指南及原生Codex配置生成贯通；29个不同定向检查、双语代表组件与一次真实配置生成限定通过。完整31／P0–P7继续。
 
 T-TOOL-DISCOVERY-202：[本机工具发现](../product/local-tools-discovery-experience.md)／[架构与AI SOP](../architecture/local-tools-discovery-experience.md)／[交互](../design/local-tools-discovery-experience.md)／[English](../en/local-tools-discovery-experience.md)／[限定验证](../quality/local-tools-discovery-experience-verification.md)。已发现、检测异常和当前选择保持首屏，其余工具键盘展开；准确原入口、44px触达及跨组焦点贯通。10个不同定向检查和两组双语代表组件验证通过，完整31／P0–P7继续。

@@ -710,16 +710,16 @@
     "evidence": "T204 original inventory feedback source,18focused,realHTTP/SQLite/two bilingual UI groups committed and pushed. Local post-git remote/dev=HEAD, tracked clean,32allowlisted files,2unrelated retained.",
     "commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183"
   },
-  "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
+  "previous_goal_turn": "progress: T205 remote fixed-directory discovery via original durable Runner maintenance; committed/pushed c56d5497a6a967f8110a621d09835b66938274b0. Full31/P0-P7 remains active.",
   "current_work": {
-    "stage": "T-REMOTE-TOOL-SCAN-205",
+    "stage": "T-TOOL-MANAGEMENT-EXPERIENCE-206",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/remote-tool-installation-scan.md",
-    "report": "docs/quality/remote-tool-installation-scan-verification.md",
-    "summary": "docs/quality/remote-tool-installation-scan-summary.json",
-    "previous_commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183",
-    "verification": "29distinct(20new9old), actual1Worker/2native trees/dual ACK recovery/0tasks; final readonly bilingual images; Web2type diagnostics corrected by scopedsemantic0;9468paired/0hardcodes.",
-    "next": "Separate first-screen layout verification; Pool tokenless pairing, OpenCode preparation, WorkBuddy trusted code/quality and full31/P0-P7/58limited34pending92total remain active."
+    "design": "docs/design/tool-management-experience.md",
+    "report": "docs/quality/tool-management-experience-verification.md",
+    "summary": "docs/quality/tool-management-experience-summary.json",
+    "previous_commit": "c56d5497a6a967f8110a621d09835b66938274b0",
+    "verification": "6distinct(3new2affectedold1reused),FullWebtypes0/9471paired0hardcodes;CN1366+exactGuide+EN390 synthetic production component; real visualP2fixed/narrowonlyreplay,0businesswrites/vendor/model.",
+    "next": "Pool tokenless pairing/multi-project config, OpenCode native new-file preparation, WorkBuddy trusted code/quality and full31/P0-P7/58limited34pending92total."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2500,5 +2500,17 @@
     "report": "docs/quality/remote-tool-installation-scan-verification.md",
     "summary": "docs/quality/remote-tool-installation-scan-summary.json",
     "full_platform_complete": false
+  },
+  "tool_management_experience": {
+    "stage": "T-TOOL-MANAGEMENT-EXPERIENCE-206",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "design": "docs/design/tool-management-experience.md",
+    "report": "docs/quality/tool-management-experience-verification.md",
+    "summary": "docs/quality/tool-management-experience-summary.json",
+    "previous_commit": "c56d5497a6a967f8110a621d09835b66938274b0",
+    "verification": "6distinct(3new2affectedold1reused),FullWebtypes0/9471paired0hardcodes;CN1366+exactGuide+EN390 synthetic production component; real visualP2fixed/narrowonlyreplay,0businesswrites/vendor/model.",
+    "next": "Pool tokenless pairing/multi-project config, OpenCode native new-file preparation, WorkBuddy trusted code/quality and full31/P0-P7/58limited34pending92total.",
+    "full_platform_complete": false,
+    "git_record": ".cache/tool-management-experience-206/post-git.json"
   }
 }

@@ -1,0 +1,340 @@
+{
+  "stage": "T-TOOL-MANAGEMENT-EXPERIENCE-206",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_interface_and_interaction_verified",
+  "full_platform_complete": false,
+  "scope": "Original tool management entry, progressive disclosure and exact guide handoff; no backend/Runner/API changes or dependency additions.",
+  "verification": {
+    "distinct_top_level": 6,
+    "new": 3,
+    "directly_affected_old": 2,
+    "reused_readiness": 1,
+    "full_web_type_diagnostics": 0,
+    "i18n_paired_keys": 9471,
+    "i18n_production_hardcodes": 0,
+    "isolated_builds": 3,
+    "browser_groups": 3,
+    "browser_runs": 4,
+    "backend_builds": 0,
+    "runner_or_vendor_probes": 0,
+    "model_calls": 0
+  },
+  "visual": {
+    "cn_first_screen": {
+      "passed": true,
+      "add_y": 168.6875,
+      "list_y": 438.875,
+      "layout": {
+        "width": 1366,
+        "scrollWidth": 1349,
+        "controls": [
+          {
+            "text": "添加工具",
+            "height": 44
+          },
+          {
+            "text": "高级接入",
+            "height": 44
+          },
+          {
+            "text": "登记配置",
+            "height": 56
+          },
+          {
+            "text": "复核配置",
+            "height": 44
+          },
+          {
+            "text": "查看接入指南",
+            "height": 44
+          },
+          {
+            "text": "工具接入流程",
+            "height": 44
+          },
+          {
+            "text": " 暂停自动刷新",
+            "height": 44
+          },
+          {
+            "text": "刷新工具配置",
+            "height": 44
+          },
+          {
+            "text": "当前接入",
+            "height": 44
+          },
+          {
+            "text": "已启用",
+            "height": 44
+          },
+          {
+            "text": "待启用",
+            "height": 44
+          },
+          {
+            "text": "已移除记录",
+            "height": 44
+          },
+          {
+            "text": "全部记录",
+            "height": 44
+          },
+          {
+            "text": "搜索接入",
+            "height": 44
+          },
+          {
+            "text": "搜索接入",
+            "height": 44
+          },
+          {
+            "text": "全部可派发待处理",
+            "height": 44
+          },
+          {
+            "text": "Codex team workspacecodex · team-runner-206 · team-codex本次读取",
+            "height": 78.09375
+          },
+          {
+            "text": "SDK awaiting reviewcodex · team-runner-206 · team-codex执行节点上",
+            "height": 101.6875
+          },
+          {
+            "text": "登记执行节点",
+            "height": 44
+          },
+          {
+            "text": "检测已安装工具",
+            "height": 44
+          },
+          {
+            "text": "撤销节点凭证",
+            "height": 44
+          },
+          {
+            "text": "WorkBuddy 账号授权管理你在当前项目中的 WorkBuddy 授权。管理授权",
+            "height": 44
+          },
+          {
+            "text": "更多接入方式查看工具目录、IDE 接入及详细配置指南。",
+            "height": 67.5
+          }
+        ]
+      }
+    },
+    "cn_guide_handoff": {
+      "passed": true,
+      "expected_worker": "team-runner-206",
+      "selected_preset": "codex-app-server",
+      "focus": "<summary><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-terminal\"><polyline points=\"4 17 10 11 4 5\"></polyline><line x1=\"12\" x2=\"20\" y1=\"19\" y2=\""
+    },
+    "en_narrow_detail": {
+      "passed": true,
+      "normal_dialog_focus_restored": true,
+      "add_available_with_hidden_list": true,
+      "readiness_height": 329.75,
+      "metadata_width": 315,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 373,
+        "controls": [
+          {
+            "text": "Add tool",
+            "height": 44
+          },
+          {
+            "text": "Advanced setup",
+            "height": 44
+          },
+          {
+            "text": "Register configuration",
+            "height": 56
+          },
+          {
+            "text": "Review configuration",
+            "height": 44
+          },
+          {
+            "text": "View setup guide",
+            "height": 44
+          },
+          {
+            "text": "Tool setup journey",
+            "height": 44
+          },
+          {
+            "text": " Pause auto-refresh",
+            "height": 44
+          },
+          {
+            "text": "Refresh tool configurations",
+            "height": 44
+          },
+          {
+            "text": "Return to configuration list",
+            "height": 44
+          },
+          {
+            "text": "Close tool details",
+            "height": 44
+          },
+          {
+            "text": "View exact target details",
+            "height": 44
+          },
+          {
+            "text": "View the four checks",
+            "height": 44
+          },
+          {
+            "text": "Open matching node",
+            "height": 44
+          },
+          {
+            "text": "Check again",
+            "height": 44
+          },
+          {
+            "text": "View scope and runs",
+            "height": 44
+          },
+          {
+            "text": "Configuration handoff history",
+            "height": 44
+          },
+          {
+            "text": "Adjust configuration",
+            "height": 44
+          },
+          {
+            "text": "Disable",
+            "height": 44
+          },
+          {
+            "text": "Remove connection",
+            "height": 44
+          },
+          {
+            "text": "Technical details and original evidence",
+            "height": 44
+          },
+          {
+            "text": "Register execution worker",
+            "height": 44
+          },
+          {
+            "text": "Detect installed tools",
+            "height": 44
+          },
+          {
+            "text": "Revoke worker credential",
+            "height": 44
+          },
+          {
+            "text": "WorkBuddy account authorizationsManage your WorkBuddy author",
+            "height": 58
+          },
+          {
+            "text": "More connection optionsTool catalog, IDE connections and det",
+            "height": 87
+          }
+        ]
+      }
+    },
+    "images": [
+      {
+        "path": "cn-first-screen.png",
+        "sha256": "589ed2e69511e9bb3787957af05fe2877ff33dcd972735229f535fd05a79a4c4"
+      },
+      {
+        "path": "cn-guide-handoff.png",
+        "sha256": "eab7906fdf874c4714a46519d7529b9ea190db59c20cc28af3cbeb959576558a"
+      },
+      {
+        "path": "en-narrow-detail.png",
+        "sha256": "a905d4aac34e104aa904b7aa87dc67569fa20aa2cee9c10f0e947e4f6a10572f"
+      }
+    ],
+    "scope": "Synthetic local HTTP responses and production ToolWorkspace. CN1366/light, EN390/dark; not full App or actual integration acceptance.",
+    "known_original_visual_issue": "The original full browser result passed automated overflow/target checks, but Root image inspection found narrow metadata squeezed into vertical letters. Original image retained; final narrow-only replay proves readable315px metadata and329.75px card.",
+    "business_writes": 0,
+    "requests_full": 26,
+    "requests_narrow_replay": 12,
+    "all_observed_native_exits_zero": true
+  },
+  "failures_retained": [
+    "New3 interaction RED before implementation; same3 GREEN afterward.",
+    "Original Readiness check CLI rejected --cache.dir before0 tests; previous corrected1 GREEN reused by exact hashes.",
+    "Browser attempts1and2 found Advanced setup37px target. Targeted specificity fixed to44px.",
+    "Full browser run3 automated checks passed but actual image showed EN narrow metadata layout defect; final narrow-only run4 passed stronger geometry guard."
+  ],
+  "reused": "Original Readiness1 and unchanged backend/Runner/business evidence. CN/guide browser groups reused after narrow-media-only CSS repair; no unrelated old suites repeated.",
+  "evidence": {
+    "ui": ".cache/tool-workspace-experience-206/ui/",
+    "checks": ".cache/tool-management-experience-206/checks/20261102T061158232Z/",
+    "visual_full": ".cache/tool-management-experience-206/visual/20261102T061418119Z/",
+    "visual_final_narrow": ".cache/tool-management-experience-206/visual/20261102T061550752Z/",
+    "readiness": ".cache/tool-management-layout-205/",
+    "review": ".cache/tool-management-experience-206/review/",
+    "normalization": ".cache/tool-management-experience-206/line-ending-normalization.json",
+    "post_git": ".cache/tool-management-experience-206/post-git.json"
+  },
+  "sources": [
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "6a8e11b92e9eb498d3b262836533a4c907ffa1fc06bbb0757860a0c3c9f8c870"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.css",
+      "sha256": "19cafbc828153068fbe30dd7194e3c92714fa39b334b7d07423b401f81c3030c"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace-experience.test.tsx",
+      "sha256": "2566a57509fd665aa60a1535e03e9239a974a305c37227bc56acb6c3934c21b0"
+    },
+    {
+      "path": "apps/web/src/ToolReadiness.tsx",
+      "sha256": "c338b08f2cb24e5d93734999e4cd0b818651faf5213097cea9d490ac5a72a472"
+    },
+    {
+      "path": "apps/web/src/ToolReadiness.css",
+      "sha256": "f480c7452866d3e47c771c78a9887aa26ef61886a1e010854ccad25d51b561fb"
+    },
+    {
+      "path": "apps/web/src/tool.css",
+      "sha256": "9692ec8d1b8906bae88d5428576e63f2575b7cdd5aaefa779e35a39feb936ed5"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-workspace-experience.en-US.json",
+      "sha256": "0fed30465c3be00bd91c44155cc7756eccc8e73edbb9a2e7cad6d724d40b3604"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-workspace-experience.zh-CN.json",
+      "sha256": "536e4d7f4b830b4f0f640156a74d8fce6498c21532019de49276430a7171bae4"
+    },
+    {
+      "path": "tests/integration/tool-management-experience/entry.tsx",
+      "sha256": "ed0074969a48eb2fbd71be82f795c8696f702f4763ab9621b36d0603f7bd204d"
+    },
+    {
+      "path": "tests/integration/tool-management-experience/index.html",
+      "sha256": "f4d5bd96ae8ce4d532c5ff8d8246fb7c2c5d847ead7b41ff006920f064217647"
+    },
+    {
+      "path": "tests/integration/tool-management-experience/build.cjs",
+      "sha256": "8aa1102481d4224c8ffd7661b3f25d98083952efd7218f5aac05e9718b77208f"
+    },
+    {
+      "path": "tests/integration/tool-management-experience/driver.cjs",
+      "sha256": "a6de3ac03ca66eab300a4bcd9a93f937d60e5491fcfa4579cda7292ceb014fa2"
+    }
+  ],
+  "remaining": [
+    "Full authenticated App/theme/device matrix and all vendor/Worker/runtime/acceptance journeys.",
+    "Pool tokenless pairing/multi-project local configuration; OpenCode SDK native new-file preparation; trusted WorkBuddy code delivery and same-commit quality.",
+    "Physical distributed hosts, real OceanBase/PostgreSQL matrix, installers, scale and production.",
+    "Complete original31/P0–P7;58limited/34pending/92total remains active."
+  ]
+}

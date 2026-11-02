@@ -1,0 +1,19 @@
+/* The primary entry remains outside the list/detail responsive container. */
+.tool-workspace{--control-height:44px;min-width:0}
+.tool-workspace-primary-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;min-width:0;margin:0 0 12px}
+.tool-workspace-primary-actions button,.tool-workspace-primary-actions summary{box-sizing:border-box;min-height:44px;max-width:100%;font-size:14px;white-space:normal;overflow-wrap:anywhere}
+.tool-workspace .tool-workspace-primary-actions .tool-quick-advanced>summary{display:flex;align-items:center;box-sizing:border-box;min-height:44px;padding:8px 10px;cursor:pointer}
+.tool-workspace-primary-actions .tool-quick-advanced[open]{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tool-workspace .tool-workspace-more{min-width:0;padding:0;margin-top:16px}
+.tool-workspace-more>summary{display:flex;align-items:center;gap:10px;min-height:56px;padding:12px 16px;cursor:pointer;list-style:none}
+.tool-workspace-more>summary::-webkit-details-marker{display:none}
+.tool-workspace-more>summary>svg{flex:none;color:var(--muted);transition:transform .15s}
+.tool-workspace-more[open]>summary>svg{transform:rotate(90deg)}
+.tool-workspace-more>summary>span{display:grid;min-width:0;gap:3px}
+.tool-workspace-more>summary strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.tool-workspace-more>summary small{font-size:13px;color:var(--muted);overflow-wrap:anywhere;line-height:1.5}
+.tool-workspace-more-body{display:grid;gap:16px;min-width:0;padding:0 16px 16px}
+.tool-workspace-more-body>.panel,.tool-workspace-more-body>.tool-cli-setup{margin:0}
+.tool-workspace :is([data-tools-add],[data-tools-advanced-register],[data-tool-workspace-more-toggle]):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.tool-workspace-primary-actions{justify-content:flex-start}.tool-workspace-primary-actions>[data-tools-add]{flex:1}.tool-workspace-more>summary{padding:12px}.tool-workspace-more-body{padding:0 12px 12px}.tool-workspace .tool-readiness-meta{flex:1 1 100%;width:100%}.tool-workspace .tool-readiness-meta>span{max-width:100%}}
+@media(prefers-reduced-motion:reduce){.tool-workspace-more>summary>svg{transition:none}}

@@ -367,8 +367,30 @@
 .tool-shared-workers { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
 .tool-shared-workers h4 { margin: 0 0 8px; font-size: 16px; }
 .tool-shared-workers .tool-worker-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Keep the tool list and its actions prominent; setup details expand on demand. */
+.tool-workspace { --control-height: 44px; gap: 16px; }
+.tool-workspace .tool-intro h2 { font-size: 18px; line-height: 1.5; }
+.tool-workspace .tool-intro p { margin: 4px 0 0; font-size: 14px; line-height: 1.55; }
+.tool-workspace .tool-intro > a { display: inline-flex; align-items: center; min-height: 44px; flex-shrink: 0; font-size: 14px; }
+.tool-workspace .tool-intro-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tool-workspace .tool-intro-actions > button { min-height: 44px; }
+.tool-workspace .adapter-catalog-disclosure:not([open]) > summary { min-height: 52px; padding: 8px 16px; gap: 10px; }
+.tool-workspace .adapter-catalog-disclosure:not([open]) .adapter-catalog-disclosure-copy > span { display: none; }
+.tool-workspace .adapter-catalog-disclosure:not([open]) .adapter-catalog-disclosure-copy strong { font-size: 14px; }
+.tool-workspace .workbuddy-disclosure[aria-expanded=false] { min-height: 52px; padding: 8px 16px; gap: 10px; }
+.tool-workspace .workbuddy-disclosure[aria-expanded=false] small { display: none; }
+.tool-workspace .tool-cli-setup:not([open]) > summary { min-height: 44px; padding: 10px 16px; }
+.tool-workspace .tool-refresh-bar { font-size: 12px; }
+.tool-workspace .tool-refresh-bar button { min-height: 44px; font-size: 14px; }
+.tool-workspace .tool-resource strong { font-size: 14px; }
+.tool-workspace .tool-resource small { font-size: 12px; }
 @media (max-width: 767px) {
   .tool-search-form > button, .tool-connect-return > button { min-height: 44px; }
   .tool-filter-tabs { overflow-x: auto; }
   .tool-filter-tabs button { flex-shrink: 0; min-height: 44px; }
+  .tool-workspace .tool-intro { align-items: flex-start; flex-wrap: wrap; }
+  .tool-workspace .tool-intro-actions { width: 100%; }
+  .tool-workspace .tool-intro-actions > .primary { flex: 1; }
+  .tool-workspace .adapter-catalog-disclosure:not([open]) > summary { flex-wrap: nowrap; }
+  .tool-workspace .adapter-catalog-disclosure:not([open]) .adapter-catalog-disclosure-action { flex-basis: auto; padding-left: 0; margin-left: auto; max-width: 92px; text-align: right; }
 }
