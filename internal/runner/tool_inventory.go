@@ -227,7 +227,7 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 		return "", fmt.Errorf("inventory persistence was not acknowledged")
 	}
 	if report.Maintenance != nil {
-		if reply.Maintenance == nil || *reply.Maintenance != *report.Maintenance {
+		if !sameToolMaintenance(reply.Maintenance, report.Maintenance) {
 			return "", fmt.Errorf("original maintenance capability was not acknowledged")
 		}
 	} else if reply.Maintenance != nil {
@@ -276,6 +276,13 @@ func (w *Worker) reportTools(ctx context.Context) (InventoryReport, bool, error)
 	}
 	if checkpoint != nil && !checkpoint.Complete && checkpoint.Inspection != nil {
 		return InventoryReport{}, false, fmt.Errorf("pending tool inspection requires its original reconciliation")
+	}
+	scan, err := w.Journal.installationCheckpoint()
+	if err != nil {
+		return InventoryReport{}, false, err
+	}
+	if scan != nil && !scan.Complete {
+		return InventoryReport{}, false, fmt.Errorf("pending installation scan requires its original discovery owner")
 	}
 	items, err := DescribeTools(ctx, w.Exec)
 	if err != nil {

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"regexp"
 	"time"
+
+	tii "github.com/ai-mada/suma/internal/toolinstallationcontract"
 )
 
 const MaintenanceProtocol = "suma-tool-maintenance-v1"
@@ -17,16 +19,18 @@ const MaxNativeProcesses = 2048
 // A continuous inventory owner declares its protocol, not tool health or proof
 // that an earlier native process stopped. One-off report-tools must omit it.
 type ToolMaintenanceCapability struct {
-	Protocol   string `json:"protocol"`
-	InstanceID string `json:"instance_id"`
+	Protocol           string          `json:"protocol"`
+	InstanceID         string          `json:"instance_id"`
+	InstalledDiscovery *tii.Capability `json:"installed_discovery,omitempty" wire:"nonnull"`
 }
 type ToolMaintenanceStatus struct {
-	State      string `json:"state"`
-	CheckedAt  string `json:"checked_at"`
-	Protocol   string `json:"protocol,omitempty"`
-	InstanceID string `json:"instance_id,omitempty"`
-	ObservedAt string `json:"observed_at,omitempty"`
-	ExpiresAt  string `json:"expires_at,omitempty"`
+	State              string          `json:"state"`
+	CheckedAt          string          `json:"checked_at"`
+	Protocol           string          `json:"protocol,omitempty"`
+	InstanceID         string          `json:"instance_id,omitempty"`
+	ObservedAt         string          `json:"observed_at,omitempty"`
+	ExpiresAt          string          `json:"expires_at,omitempty"`
+	InstalledDiscovery *tii.Capability `json:"installed_discovery,omitempty" wire:"nonnull"`
 }
 type ToolInspectionStopProof struct {
 	Protocol              string    `json:"protocol"`
@@ -118,7 +122,7 @@ type ToolInspectionRecoveryList struct {
 var maintenanceProtocol = regexp.MustCompile(`^suma-tool-maintenance-v[1-9][0-9]{0,3}$`)
 
 func ValidateMaintenanceCapability(v ToolMaintenanceCapability) error {
-	if !maintenanceProtocol.MatchString(v.Protocol) || !Operation(v.InstanceID) {
+	if !maintenanceProtocol.MatchString(v.Protocol) || !Operation(v.InstanceID) || v.InstalledDiscovery != nil && (v.Protocol != MaintenanceProtocol || tii.ValidateCapability(*v.InstalledDiscovery) != nil) {
 		return fmt.Errorf("invalid maintenance capability")
 	}
 	return nil

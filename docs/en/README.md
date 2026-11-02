@@ -1,5 +1,7 @@
 # suma 1.0.0 documentation
 
+[Remote node tool discovery](remote-tool-installation-scan.md): original maintenance owner, machine opt-in, durable recovery, exact guide and scoped actual/visual verification. Complete platform remains active.
+
 [Tool report feedback](tool-report-feedback.md): explicit current inventory, bounded new-report wait and exact Quick review; scoped real HTTP/SQLite and bilingual component verification passed. Complete platform remains active.
 
 - [Native Codex quick connection](codex-quick-connect.md): T-CODEX-QUICK-CONNECT-175 connects actual installation detection, scoped provider settings, the real native catalogue and the existing managed Runner/paused-registration path. Focused components and the installed CLI catalogue passed; full desktop/vendor/model acceptance remains separate.

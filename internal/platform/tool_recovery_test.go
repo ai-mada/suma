@@ -68,9 +68,15 @@ func TestToolRecoveryPoolCurrentGrantExpiryAndInitialSchema(t *testing.T) {
 	}
 	var expired toolRecoveryRow
 	json.Unmarshal([]byte(raw), &expired)
-	at, _ := time.Parse(time.RFC3339Nano, expired.Value.CreatedAt)
-	expired.Value.ExpiresAt = at.Add(time.Nanosecond).Format(time.RFC3339Nano)
-	if _, e = f.s.DB.Exec(`UPDATE suma_tool_inspection_recoveries SET payload=? WHERE id=?`, stringify(expired), recovery.ID); e != nil {
+	clock, e := f.s.toolInventoryClock(ctx, f.s.DB)
+	if e != nil {
+		t.Fatal(e)
+	}
+	// The SQLite clock has millisecond precision. Put both valid endpoints in
+	// the past instead of assuming a second transaction advances by one ns.
+	expired.Value.CreatedAt = clock.Add(-2 * time.Second).Format(time.RFC3339Nano)
+	expired.Value.ExpiresAt = clock.Add(-time.Second).Format(time.RFC3339Nano)
+	if _, e = f.s.DB.Exec(`UPDATE suma_tool_inspection_recoveries SET created_at=?,payload=? WHERE id=?`, expired.Value.CreatedAt, stringify(expired), recovery.ID); e != nil {
 		t.Fatal(e)
 	}
 	proof := tic.ToolInspectionStopProof{Protocol: tic.ProbeStopProtocol, Inspection: ref, SourceSHA256: tic.InspectionSourceSHA256(unknown), ReceiptSHA256: digest("owned-pool-stop-proof195"), ProbeReturned: true, AllNativeTreesStopped: true, NoPendingInventory: true, NativeProcessCount: 0, StoppedProcessCount: 0, ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)}

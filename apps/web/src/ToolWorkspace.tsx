@@ -45,6 +45,7 @@ import {ToolSetupGuide} from './ToolSetupGuide';
 import {toolPreparationTarget,preparationForLocalTool,type ToolPreparationPreset} from './tool-preparation-target';
 import {validToolReportFeedbackSelection,type ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import {ToolQuickConnect,type ToolConnectDraft} from './ToolQuickConnect';
+import {RemoteToolScanPanel} from './RemoteToolScanPanel';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
 import {ToolReinspectionPanel} from './ToolReinspectionPanel';
 import {hasToolInspectionLocalOperation,readToolInspectionTarget,toolInspectionPath,validToolInspectionLocator,type ToolInspectionLocator} from './tool-reinspection-model';
@@ -78,6 +79,7 @@ type Props = {
 type Dialog =
   | { kind: "create"; adapter?:AdapterDescriptor; resumeQuick?:boolean }
   | { kind: "quick"; adapter?:AdapterDescriptor; preferredWorkerID?:string }
+  | { kind: "remote-scan"; workerID:string; context:string; caller:unknown; generation:number }
   | { kind: "worker"; mode?:'manual'|'pairing' }
   | { kind: "inspection"; profile:ToolProfile;locator?:ToolInspectionLocator }
   | {
@@ -295,10 +297,16 @@ function ScopedToolWorkspace({
     void workers.read();void sharedWorkers.read();
     setDialog({kind:'quick',preferredWorkerID:value.worker_id});
   }
-  function openToolPreparation(adapter:AdapterDescriptor|undefined,expectedWorkerID?:string,focusRemote=false) {
+  function openToolPreparation(adapter:AdapterDescriptor|undefined,expectedWorkerID?:string,focusRemote=false,discovery=false) {
     const target=toolPreparationTarget(adapter);if(!target)return false;
+    const sameTarget=publicDraft?.adapterID===adapter!.id&&publicDraft.workerID===expectedWorkerID;
+    if(expectedWorkerID&&!sameTarget)beginPublicDraft({adapterID:adapter!.id,workerID:expectedWorkerID,commandID:'',name:'',nameEdited:false});
     setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID,preset:target.preset});setGuideOpen(true);
-    requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(focusRemote?'[data-remote-runner-setup]>summary':'summary')?.focus());return true;
+    requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(discovery?'[data-remote-runner-allow-installed-discovery]':focusRemote?'[data-remote-runner-setup]>summary':'summary')?.focus());return true;
+  }
+  function openRemoteScan(workerID:string){
+    if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+    action.clearError();setDialog({kind:'remote-scan',workerID,context:contextKey,caller:api,generation:pairingGeneration});
   }
   function preparePairedRunner(value:RunnerPairing,adapter:AdapterDescriptor) {
     if(writeBlocked||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||pairedRunner!==value||value.project_id!==project||value.state!=='approved'||!value.worker_id)return;
@@ -663,6 +671,7 @@ function ScopedToolWorkspace({
                   {worker.deployment ? t("development.tools.also_permitted_to_release") : t("development.tools.no_deployment_permission")}
                 </small>
               </div>
+              {worker.status === "active"&&<button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button>}
               {worker.status === "active" && (
                 <button
                   disabled={writeBlocked}
@@ -682,7 +691,7 @@ function ScopedToolWorkspace({
             description={t("development.tools.registration_issues_a_one_time_project_scoped")}
           />
         )}
-        {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers"><h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>{sharedWorkers.data.items.map(worker=><article key={worker.id} className="tool-worker-row" tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}><div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span></article>)}</div>}
+        {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers"><h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>{sharedWorkers.data.items.map(worker=><article key={worker.id} className="tool-worker-row" tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}><div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div><div><button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span></div></article>)}</div>}
       </section>
       <Modal
         open={!!dialog}
@@ -692,6 +701,8 @@ function ScopedToolWorkspace({
         title={
           dialog?.kind === "quick"
             ? t('tool-quick-connect.title')
+            : dialog?.kind === 'remote-scan'
+              ? t('remote-tool-scan.title')
             : dialog?.kind === 'inspection'
               ? t('tool-doctor.inspect_action')
             : dialog?.kind === "create"
@@ -747,6 +758,7 @@ function ScopedToolWorkspace({
           />
           </>
         )}
+        {dialog?.kind==='remote-scan'&&dialog.context===contextKey&&dialog.caller===api&&dialog.generation===pairingGeneration&&<RemoteToolScanPanel project={project} workerID={dialog.workerID} disabled={writeBlocked} onPrepare={(adapter,workerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||workerID!==dialog.workerID)return;openToolPreparation(adapter,workerID,true);}} onGuide={()=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID:dialog.workerID});setGuideOpen(true);requestAnimationFrame(()=>document.getElementById(guideID)?.querySelector<HTMLElement>('[data-remote-runner-allow-installed-discovery]')?.focus());}}/>}
         {dialog?.kind === 'quick' && <ToolQuickConnect
           key={contextKey+':'+(dialog.adapter?.id||'')+':'+(dialog.preferredWorkerID||'')}
           project={project}
@@ -759,6 +771,7 @@ function ScopedToolWorkspace({
           preferredWorkerID={dialog.preferredWorkerID}
           pairedRunner={pairedRunner}
           onPrepareRunner={preparePairedRunner}
+          onRemoteDiscoveryGuide={(adapter,workerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;openToolPreparation(adapter,workerID,true,true);}}
           workers={workers}
           sharedWorkers={sharedWorkers}
           action={action}

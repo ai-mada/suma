@@ -59,6 +59,13 @@ func operationID() string {
 	return hex.EncodeToString(b[:])
 }
 func OpenJournal(dir string) (*Journal, error) {
+	return openJournal(dir, false)
+}
+
+// OpenMaintenanceJournal checks original business checkpoints under the same
+// execution lock before normal restart handling can create an unknown result.
+func OpenMaintenanceJournal(dir string) (*Journal, error) { return openJournal(dir, true) }
+func openJournal(dir string, maintenanceOnly bool) (*Journal, error) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, err
 	}
@@ -93,6 +100,9 @@ func OpenJournal(dir string) (*Journal, error) {
 	if _, err = j.toolInspectionCheckpoint(); err != nil {
 		return nil, err
 	}
+	if _, err = j.installationCheckpoint(); err != nil {
+		return nil, err
+	}
 	if err = j.loadClaim(); err != nil {
 		return nil, err
 	}
@@ -101,6 +111,13 @@ func OpenJournal(dir string) (*Journal, error) {
 	}
 	if err = j.loadWorkspaceWrites(); err != nil {
 		return nil, err
+	}
+	if maintenanceOnly {
+		if err = j.requireNoPendingBusiness(); err != nil {
+			return nil, err
+		}
+		ok = true
+		return j, nil
 	}
 	for k, e := range j.entries {
 		if err = validSteeringCheckpoint(e.Assignment, e.Steering); err != nil {

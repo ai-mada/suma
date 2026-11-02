@@ -121,6 +121,8 @@ type PoolWorker struct {
 	Config                          PoolLocalConfig
 	StateDir                        string
 	AllowExec                       bool
+	AllowInstalledToolDiscovery     bool
+	MaintenanceOnly                 bool
 	PollInterval, HeartbeatInterval time.Duration
 	Diagnostic                      func(PoolDiagnostic)
 	local                           map[string]*Worker
@@ -192,6 +194,9 @@ func resolvedPoolConfig(c PoolLocalConfig) (PoolLocalConfig, error) {
 }
 
 func (w *PoolWorker) Run(ctx context.Context) error {
+	if w.MaintenanceOnly && !w.AllowInstalledToolDiscovery {
+		return fmt.Errorf("maintenance-only requires installed tool discovery")
+	}
 	frozen, err := resolvedPoolConfig(w.Config)
 	if err != nil {
 		return err
@@ -221,6 +226,11 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		return fmt.Errorf("pool state is already owned or unavailable")
 	}
 	defer unlock()
+	if w.MaintenanceOnly {
+		if err = requireDrainedPoolSlots(filepath.Join(w.StateDir, "slots")); err != nil {
+			return err
+		}
+	}
 	binding, _ := json.Marshal([]any{digest([]byte(strings.TrimRight(w.Client.BaseURL, "/"))), w.Config.PoolID, w.Config.RunnerID, w.credentialVersion, w.configSHA})
 	path := filepath.Join(w.StateDir, "identity.json")
 	if old, e := os.ReadFile(path); e == nil && !bytes.Equal(old, binding) {
@@ -239,7 +249,11 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 	}()
 	for _, scope := range w.Config.Scopes {
 		key := scopeKey(scope.TenantID, scope.ProjectID)
-		j, err := OpenJournal(filepath.Join(w.StateDir, "inventories", key))
+		open := OpenJournal
+		if w.MaintenanceOnly {
+			open = OpenMaintenanceJournal
+		}
+		j, err := open(filepath.Join(w.StateDir, "inventories", key))
 		if err != nil {
 			return err
 		}
@@ -248,13 +262,16 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		pool.TenantID, pool.ProjectID = scope.TenantID, scope.ProjectID
 		client.Pool = &pool
 		client.ProjectID = scope.ProjectID
-		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments, External: scope.External, Secrets: []string{w.Client.Token}}}
+		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, AllowInstalledToolDiscovery: w.AllowInstalledToolDiscovery, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments, External: scope.External, Secrets: []string{w.Client.Token}}}
 		if err = w.local[key].enableToolMaintenance(); err != nil {
 			return err
 		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	if w.MaintenanceOnly {
+		return w.runInventoryOwner(ctx)
+	}
 	done := make(chan error, w.Config.Slots+1)
 	// One owner services all project inventories independently of occupied
 	// execution slots. Slots only read the resulting readiness gates.

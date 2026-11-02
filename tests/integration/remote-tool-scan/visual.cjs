@@ -1,0 +1,33 @@
+'use strict';
+// Synthetic read-only visual replay of the original actual scan's public data.
+// No Worker, native probe, model, authentication or business operation runs.
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto'),assert=require('node:assert/strict'),{DatabaseSync}=require('node:sqlite');
+const root=path.resolve(__dirname,'../../..'),source=path.resolve(process.argv[2]||''),base=path.join(root,'.cache/remote-tool-scan-205'),sha=value=>crypto.createHash('sha256').update(value).digest('hex');
+assert.ok(source.startsWith(path.join(base,'actual')+path.sep));
+const original=JSON.parse(fs.readFileSync(path.join(source,'receipt.json'),'utf8'));assert.equal(original.passed,true);
+const database=path.join(source,'private.sqlite'),before=sha(fs.readFileSync(database)),db=new DatabaseSync(database,{readOnly:true}),stored=db.prepare('SELECT payload FROM suma_tool_installation_scans WHERE id=?').get(original.scan_id);db.close();
+const row=JSON.parse(stored.payload),scan={...row.value,source_changed:true},view={project_id:scan.project_id,worker_id:scan.worker_id,local_tool:'codebuddy-cli',session:{user:{id:scan.requested_by,name:'Owned replay',email:'owned@example.test'},organization:{id:row.tenant,name:'Owned replay'}}};
+const adapter={id:'codebuddy-cli',product:'CodeBuddy',entrypoint_kind:'cli',direction:'suma_to_tool',implementation:'implemented',setup_kind:'runner_profile',adapter:'codebuddy',protocol:'codebuddy-jsonl-v1',capabilities:[],source_refs:[],limitations:[]};
+const dir=path.join(base,'visual',new Date().toISOString().replace(/[^0-9TZ]/g,'')),partition='suma-fixture-remote-tools205-visual',result={stage:'T-REMOTE-TOOL-SCAN-205',scope:'Synthetic read-only public-scan replay after label-only correction, not another actual Worker journey.',source_receipt_sha256:sha(fs.readFileSync(path.join(source,'receipt.json'))),source_database_sha256:before,groups:{},images:[],requests:[],page_errors:[]};fs.mkdirSync(dir,{recursive:true});
+async function main(){let server,app,nativeExit;
+ try{
+  server=http.createServer((request,response)=>{const url=new URL(request.url,'http://127.0.0.1'),now=new Date().toISOString();result.requests.push({method:request.method,path:url.pathname});if(request.method!=='GET'){response.writeHead(405);response.end();return;}
+   let body;if(url.pathname==='/__fixture/view')body=view;else if(url.pathname==='/api/v1/adapter-catalog')body={project_id:scan.project_id,as_of:now,items:[adapter]};else if(url.pathname==='/api/v1/tool-installation-scans')body={project_id:scan.project_id,worker_id:scan.worker_id,as_of:now,maintenance:{state:'unknown',checked_at:now},items:[scan]};else if(url.pathname==='/api/v1/tool-installation-scans/'+scan.id)body=scan;
+   if(body){response.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});response.end(JSON.stringify(body));return;}
+   const name=({'/':'index.html','/fixture.js':'fixture.js','/fixture.css':'fixture.css'})[url.pathname];if(!name){response.writeHead(404);response.end();return;}response.writeHead(200,{'Content-Type':name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':'text/html'});response.end(fs.readFileSync(path.join(base,'web/out',name)));
+  });await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port;
+  const {_electron}=require(process.env.SUMA_PLAYWRIGHT_MODULE),env={};for(const [key,value]of Object.entries(process.env))if(['path','systemroot','windir','comspec','pathext','home','userprofile','homedrive','homepath','appdata','localappdata','programdata','programfiles','programfiles(x86)','programw6432'].includes(key.toLowerCase()))env[key]=value;
+  Object.assign(env,{TEMP:path.join(dir,'tmp'),TMP:path.join(dir,'tmp'),SUMA_FIXTURE_ORIGIN:origin,SUMA_FIXTURE_DIRECTORY:dir,SUMA_FIXTURE_PARTITION:partition});fs.mkdirSync(env.TEMP,{recursive:true});
+  app=await _electron.launch({executablePath:path.join(root,'apps/desktop/node_modules/electron/dist/electron.exe'),args:[path.join(__dirname,'../support/native.cjs')],cwd:root,env,timeout:15000});result.native_pid=app.process().pid;nativeExit=new Promise(resolve=>app.process().once('exit',(code,signal)=>resolve({code,signal})));const page=await app.firstWindow();page.on('pageerror',error=>result.page_errors.push(error.message));
+  for(const [name,locale,width,theme]of [['cn','zh-CN',1366,'light'],['en','en-US',390,'dark']]){
+   await page.setViewportSize({width,height:1050});await page.goto(origin+'/?replay=1&locale='+locale+'&theme='+theme);await page.waitForLoadState('networkidle');await page.locator('[data-remote-tool-scan-row="codebuddy-cli"]').waitFor();
+   const panel=page.locator('[data-remote-tool-scan]'),text=await panel.innerText();assert.ok(text.includes(scan.worker_id));assert.doesNotMatch(text,/\{(?:worker|detected|total|count)\}/);assert.ok(text.includes(name==='cn'?'已安装 1 项':'1 installed'));assert.ok(text.includes(name==='cn'?'已检查 1 项':'1 checked'));
+   assert.equal(await page.locator('[data-remote-tool-scan-create]').isDisabled(),true);assert.equal(await page.locator('[data-remote-tool-scan-prepare]').isDisabled(),true);
+   const layout=await panel.evaluate(element=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,heights:[...element.querySelectorAll('button,select,summary')].filter(node=>node.getClientRects().length).map(node=>node.getBoundingClientRect().height)}));assert.ok(layout.scrollWidth<=layout.width);assert.ok(layout.heights.every(height=>height>=43.5));
+   await panel.evaluate(element=>element.scrollIntoView({block:'center'}));const image=name+'-corrected.png';await page.screenshot({path:path.join(dir,image),fullPage:false});result.images.push({path:image,sha256:sha(fs.readFileSync(path.join(dir,image)))});result.groups[name]={passed:true,layout};
+  }
+  assert.deepEqual(result.page_errors,[]);assert.ok(result.requests.every(request=>request.method==='GET'));assert.equal(sha(fs.readFileSync(database)),before);result.source_unchanged=true;result.passed=true;
+ }finally{if(app){await app.close();result.native_exit=await nativeExit;}if(server)await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify(result,null,2));}
+ assert.deepEqual(result.native_exit,{code:0,signal:null});console.log(JSON.stringify({directory:path.relative(root,dir),passed:result.passed,images:result.images,requests:result.requests.length,native_exit:result.native_exit}));
+}
+main().catch(error=>{console.error(String(error.stack||error));process.exitCode=1;});

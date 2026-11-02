@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-REMOTE-TOOL-SCAN-205：[远程节点工具检测](../product/remote-tool-installation-scan.md)／[架构与AI SOP](../architecture/remote-tool-installation-scan.md)／[交互](../design/remote-tool-installation-scan.md)／[English](../en/remote-tool-installation-scan.md)／[限定验证](../quality/remote-tool-installation-scan-verification.md)。固定目录、明确机器允许、原维护owner与持久停止证明贯通，空commands检测后回准确Guide；29个不同检查、真实双ACK恢复／2原生树／0任务及最终双语只读视觉限定通过。完整31／P0–P7继续。
+
 T-TOOL-REPORT-FEEDBACK-204：[工具上报反馈](../product/tool-report-feedback.md)／[架构与AI SOP](../architecture/tool-report-feedback.md)／[交互](../design/tool-report-feedback.md)／[English](../en/tool-report-feedback.md)／[限定验证](../quality/tool-report-feedback-verification.md)。当前清单、限时等候及准确Quick返回贯通，旧ACK／时钟回退／过期与撤权分别处理；18个不同定向检查、9430对词条、真实HTTP／SQLite和两组双语代表界面限定通过。完整31／P0–P7继续。
 
 T-TOOL-PREPARATION-203：[工具准备与恢复](../product/tool-preparation-recovery.md)／[架构与AI SOP](../architecture/tool-preparation-recovery.md)／[交互](../design/tool-preparation-recovery.md)／[English](../en/tool-preparation-recovery.md)／[限定验证](../quality/tool-preparation-recovery-verification.md)。两SDK准确准备原因、当前权限与原回执优先、九协议／同节点指南及原生Codex配置生成贯通；29个不同定向检查、双语代表组件与一次真实配置生成限定通过。完整31／P0–P7继续。

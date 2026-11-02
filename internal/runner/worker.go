@@ -25,6 +25,8 @@ type Worker struct {
 	inventoryInterval               time.Duration
 	inventoryNext                   time.Time
 	maintenance                     *ti.ToolMaintenanceCapability
+	AllowInstalledToolDiscovery     bool
+	MaintenanceOnly                 bool
 }
 
 func (w *Worker) Run(ctx context.Context) error {
@@ -32,6 +34,9 @@ func (w *Worker) Run(ctx context.Context) error {
 	defer cancel()
 	if w.Client == nil || w.Journal == nil {
 		return fmt.Errorf("Runner client and durable journal are required")
+	}
+	if w.MaintenanceOnly && (!w.AllowInstalledToolDiscovery || w.Journal.requireNoPendingBusiness() != nil) {
+		return fmt.Errorf("maintenance-only requires installed discovery and a drained business journal")
 	}
 	if err := ValidateToolConfiguration(w.Exec); err != nil {
 		return err
@@ -54,6 +59,10 @@ func (w *Worker) Run(ctx context.Context) error {
 		}
 	}()
 	defer func() { cancel(); <-inventoryDone }()
+	if w.MaintenanceOnly {
+		<-ctx.Done()
+		return ctx.Err()
+	}
 	poll := w.PollInterval
 	if poll <= 0 {
 		poll = 2 * time.Second

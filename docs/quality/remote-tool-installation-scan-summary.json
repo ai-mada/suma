@@ -1,0 +1,274 @@
+{
+  "stage": "T-REMOTE-TOOL-SCAN-205",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_implementation_actual_worker_and_bilingual_visual_verified",
+  "full_platform_complete": false,
+  "scope": "Machine-opted-in fixed-directory discovery via original ordinary/Pool maintenance owner, durable ACK/stop recovery and exact original guide. No second dispatcher, arbitrary commands, install, model, automatic registration or enable.",
+  "verification": {
+    "distinct_top_level": 29,
+    "new": 20,
+    "directly_affected_old": 9,
+    "control": 7,
+    "runner_cli": 7,
+    "api": 2,
+    "web": 12,
+    "actual": 1,
+    "actual_browser_groups": 2,
+    "readonly_visual_groups": 2,
+    "full_web_types": {
+      "invocations": 1,
+      "initial_diagnostics": 2,
+      "files": [
+        "RemoteToolScanPanel.tsx",
+        "RemoteToolScanPanel.test.tsx"
+      ],
+      "final_targeted_diagnostics": 0,
+      "other_inputs_reused": true
+    },
+    "i18n": {
+      "invocations": 2,
+      "paired_keys": 9468,
+      "production_hardcodes": 0
+    },
+    "component_builds": 3,
+    "build_reasons": [
+      "Original isolated build",
+      "Two type fixes before actual",
+      "Three bilingual interpolation fixes plus labelled read-only replay"
+    ],
+    "active_preview_overwritten": false
+  },
+  "contracts": {
+    "added_models": 13,
+    "extended_models": [
+      "ToolMaintenanceCapability",
+      "ToolMaintenanceStatus"
+    ],
+    "added_paths": 6,
+    "added_operations": 7,
+    "old_paths_changed": 0,
+    "generator_models": 986,
+    "generator_paths": 445,
+    "structural_diff": {
+      "path": ".cache/remote-tool-scan-205/schema-diff.json",
+      "sha256": "12a4667f6756b5bab1d60492a14bf782285df39831d2b736aca9728b2984511e"
+    }
+  },
+  "focused": {
+    "control": {
+      "path": ".cache/tool-installation-205/control/summary.json",
+      "sha256": "baca24cd902b267cac464eacbba9a960d035b1e1e1426dcdd0d0716937e49d6a"
+    },
+    "runner": {
+      "path": ".cache/tool-installation-scan-205/runner/summary.json",
+      "sha256": "4a5dbd26fe14ab943663c1390a56e54b3dba1678d43c0abec30707062309609e"
+    },
+    "web": {
+      "path": ".cache/remote-tool-scan-205/ui/summary.json",
+      "sha256": "5fbe03231558a03f49ab48377549a5702ccd8df063bd4abfe9fddb0e8e2411a8"
+    },
+    "web_type_delta": {
+      "path": ".cache/remote-tool-scan-205/ui/type-delta-manifest.json",
+      "sha256": "c12ed4a9ebb88ee9757d1bf8062b47e644458f5cfbd141a4898eb5e57790d675"
+    },
+    "web_interpolation_delta": {
+      "path": ".cache/remote-tool-scan-205/ui/interpolation-delta-manifest.json",
+      "sha256": "eddcf08e1d694cb70a5cfdc5e5aba80017cc308ce457ac0072ad97ff4c39c172"
+    },
+    "web_type_result": {
+      "path": ".cache/remote-tool-scan-205/type-delta-result.json",
+      "sha256": "be1fece1d634fca1003e54992e1163794458b7a089b4ac71644897ce07279ef0"
+    }
+  },
+  "review": {
+    "control": {
+      "path": ".cache/remote-tool-scan-205/review/control-review.json",
+      "sha256": "47bc91369dcfe30b0154051db6f8c4820a9bd0a7ca6a2c6cce4c61f28a96ff4b"
+    },
+    "runner": {
+      "path": ".cache/tool-installation-205/review/runner-review.json",
+      "sha256": "3c220a9541104cfef92ad320522ab19c8246c2c0ca055e25c0ac58e964362ff1"
+    }
+  },
+  "root_commands": [
+    {
+      "path": ".cache/remote-tool-scan-205/root-go-1.command.json",
+      "sha256": "07a342163937b37dc1adcc92ff34e1942a36774a93b7943ebfa780cccc32c122",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/root-go-2.command.json",
+      "sha256": "2815c27e502906f6266d90d2185450f7019288a53cb18e6ac409442a742d8ed7",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/root-go-3.command.json",
+      "sha256": "793da954ba95fee1d79f3cfbdf9392211466213dff5729278247177a426e888b",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/root-go-4.command.json",
+      "sha256": "93182ec0983498803374f78dffe46ff4224f25304943b280e61c9dbe6c200366",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/root-go-5.command.json",
+      "sha256": "149190f414425d9a7291668945115e603d682deddf5ea9cf6b161429950ebabe",
+      "exit_code": 0
+    }
+  ],
+  "web_commands": [
+    {
+      "path": ".cache/remote-tool-scan-205/build-20261102T052231847Z.command.json",
+      "sha256": "af5220c6d37f76b65265013db3fea360af7190f7b783bc32aa3f83821e79605d",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/build-20261102T052640685Z.command.json",
+      "sha256": "52b4eda21fdfd082d6954e1ca2981d7747137d789c8db4e36a0e71a7a76b27b1",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/build-20261102T053903521Z.command.json",
+      "sha256": "4280e934091cead4a268708b1abacaa90ed823a13f66f00b83b36659fc458c8d",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/i18n-20261102T052201266Z.command.json",
+      "sha256": "9f5112b249860621cc3ee3d0d64916bd3988b1fc9f7d7f31f82cecd199cce371",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/i18n-20261102T054055009Z.command.json",
+      "sha256": "e0bdf87bc3732b01306a18c1dc1f8ebc7cdd5f8187e3727c1c49a447be4c381f",
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/remote-tool-scan-205/types-20261102T052201284Z.command.json",
+      "sha256": "87a090f1b330edd7416ae94a0cd6cc7157f05e8af73966162704da0e0b508c51",
+      "exit_code": 2
+    }
+  ],
+  "actual": {
+    "receipt": {
+      "path": ".cache/remote-tool-scan-205/actual/20261102T052756752867000Z/receipt.json",
+      "sha256": "ea3826c7ec74f6c48f569d43f3ed0951abab4c8e719ac903aaa23903ad9f6c0b"
+    },
+    "driver": {
+      "path": ".cache/remote-tool-scan-205/actual/20261102T052756752867000Z/driver-result.json",
+      "sha256": "0bd7277c0d02dfc84801ff20ba5fe03b0fc62d583bb0f3fd5d632422dd6d202a"
+    },
+    "requests": 129,
+    "worker_count": 1,
+    "counts": {
+      "dag_runs": 0,
+      "suma_tasks": 0,
+      "suma_tool_installation_scans": 1,
+      "suma_tool_profiles": 0
+    },
+    "native_process_trees": 2,
+    "native_probe_kinds": {
+      "--help": 1,
+      "--version": 1
+    },
+    "all_native_trees_stopped": true,
+    "worker_stopped": true,
+    "credentials_forwarded": false,
+    "home_isolated": true,
+    "create_ack_same_body_key": true,
+    "result_ack_same_body_key": true,
+    "go_exit": 0,
+    "driver_exit": 0,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "vendor_or_model_calls": 0,
+    "images": [
+      {
+        "path": ".cache/remote-tool-scan-205/actual/20261102T052756752867000Z/20261102T052757579Z-cn-installed.png",
+        "sha256": "69abea0c2fb965f0ecfae5092a618d3c9d053a036868d1ea09a39bc29ad23c4d",
+        "root_viewed": true
+      },
+      {
+        "path": ".cache/remote-tool-scan-205/actual/20261102T052756752867000Z/20261102T052757579Z-en-history.png",
+        "sha256": "de20797a53ce12e4d17b775653e8b6167b71a3db043bfa44f839cd5a92cf2e2d",
+        "root_viewed": true
+      }
+    ],
+    "private_snapshot": {
+      "path": ".cache/remote-tool-scan-205/actual/20261102T052756752867000Z/private.sqlite",
+      "sha256": "ceab1be68643102aec4bc0b1d60e982f91e4c0a6a21ec5cb246f0d9f5e0dd3cd"
+    }
+  },
+  "visual": {
+    "receipt": {
+      "path": ".cache/remote-tool-scan-205/visual/20261102T054029031Z/result.json",
+      "sha256": "72d402e35f2909cf9fd2e9014fbd0365e2e36d8ce6226d426c8724caf71397fd"
+    },
+    "scope": "Synthetic read-only public-scan replay after label-only correction, not another actual Worker journey.",
+    "requests": 12,
+    "posts": 0,
+    "source_unchanged": true,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "images": [
+      {
+        "path": ".cache/remote-tool-scan-205/visual/20261102T054029031Z/cn-corrected.png",
+        "sha256": "e12f0770e3c740182d03b2011c06e9e2adf36e4a751ae0ea9f8df8b833653b88",
+        "root_viewed": true
+      },
+      {
+        "path": ".cache/remote-tool-scan-205/visual/20261102T054029031Z/en-corrected.png",
+        "sha256": "52d947071645021826cedd91025ceebc422ee9742150d9af8a394ad99e642492",
+        "root_viewed": true
+      }
+    ]
+  },
+  "fixes_and_original_failures": [
+    "Control new cursor incorrectly combined tuple with ID-only decoder; corrected and only affected top rerun.",
+    "Maintenance payload corruption was too broadly downgraded to source_changed; restricted known codes and original history top verified.",
+    "Existing expiry fixture assumed a nanosecond was already past at DB millisecond precision; explicit past DB-time interval/index metadata corrected, product guard unchanged.",
+    "Runner deep capability clone RED, plus temporary-directory and exact Pool worker fixture failures preserved; per-top PASS does not relabel failed batches.",
+    "Web unsupported selected adapter must not silently scan all; restored403 must not permanently hide its original pending operation.",
+    "Two new Web type diagnostics corrected by equivalent boolean guard and explicit test type, then targeted semantic0.",
+    "Root viewed actual screenshots and found single-brace i18n placeholders. Only original representative top RED/GREEN, final readonly bilingual replay; actual Worker/probes were not repeated.",
+    "Root generator removed an unsupported available reason enum before actual integration; only new contract top and generation repeated."
+  ],
+  "formatting": {
+    "receipt": {
+      "path": ".cache/remote-tool-scan-205/line-ending-normalization.json",
+      "sha256": "5a33e8f4d55fb4ecec3bc11c8d0b386c1a950019d654d91f3222781ea819431e"
+    },
+    "files": 9,
+    "semantic_text_unchanged": true
+  },
+  "sources": {
+    "count": 71,
+    "all_match": true,
+    "manifest": {
+      "path": ".cache/remote-tool-scan-205/source-final.json",
+      "sha256": "a8ceb13af252ada6fb80e97d06f4a62c7d5cf31f898ef132681e4b2776c13455"
+    },
+    "excluded_unverified_layout": [
+      "apps/web/src/ToolReadiness.tsx",
+      "apps/web/src/ToolReadiness.css",
+      "apps/web/src/tool.css"
+    ]
+  },
+  "remaining": [
+    "Complete original31/P0–P7/58limited34pending92total remains active.",
+    "Actual vendors/models/billing; physical multi-host, other databases/OS containment, installers, load and production acceptance.",
+    "Pool tokenless pairing and multi-project local configuration, OpenCode native new-file preparation, WorkBuddy trusted code delivery and complete same-commit quality chain.",
+    "Separate ToolWorkspace first-screen layout stage; three external layout files are preserved and excluded here."
+  ],
+  "git": {
+    "branch": "dev",
+    "remote": "git@github.com:ai-mada/suma.git",
+    "receipt": ".cache/remote-tool-scan-205/post-git.json",
+    "normal_push_only": true
+  }
+}

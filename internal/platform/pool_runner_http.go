@@ -33,6 +33,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 	if s.poolToolInputsHTTP(w, r, token, path) {
 		return true
 	}
+	if s.poolToolInstallationScansHTTP(w, r, token, path) {
+		return true
+	}
 	if s.poolToolInspectionsHTTP(w, r, token, path) {
 		return true
 	}
@@ -78,6 +81,12 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			}
 			if value, present := fields["maintenance"]; present && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
 				return toolInspectionInvalid()
+			}
+			if value, present := fields["maintenance"]; present {
+				var maintenance map[string]any
+				if json.Unmarshal(value, &maintenance) != nil || !installationMaintenanceRaw(maintenance) {
+					return toolInstallationInvalid()
+				}
 			}
 		}
 		d := json.NewDecoder(bytes.NewReader(raw))

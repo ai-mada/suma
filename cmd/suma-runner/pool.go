@@ -13,7 +13,7 @@ import (
 	"github.com/ai-mada/suma/internal/runner"
 )
 
-func runPool(app *commandlocale.Command, control, path, state string, allow, describe bool) error {
+func runPool(app *commandlocale.Command, control, path, state string, allow, describe, installedDiscovery, maintenanceOnly bool) error {
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("%s", app.Text("资源池本地配置不可用", "pool local configuration unavailable"))
@@ -36,7 +36,7 @@ func runPool(app *commandlocale.Command, control, path, state string, allow, des
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	client := &runner.Client{BaseURL: control, Token: token, Pool: &runner.PoolContext{PoolID: config.PoolID, RunnerID: config.RunnerID}}
-	worker := &runner.PoolWorker{Client: client, Config: config, StateDir: filepath.Join(state, "pool"), AllowExec: allow, Diagnostic: func(d runner.PoolDiagnostic) { _ = json.NewEncoder(app.Stderr).Encode(d) }}
+	worker := &runner.PoolWorker{Client: client, Config: config, StateDir: filepath.Join(state, "pool"), AllowExec: allow, AllowInstalledToolDiscovery: installedDiscovery, MaintenanceOnly: maintenanceOnly, Diagnostic: func(d runner.PoolDiagnostic) { _ = json.NewEncoder(app.Stderr).Encode(d) }}
 	err = worker.Run(ctx)
 	if ctx.Err() != nil {
 		return nil

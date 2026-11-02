@@ -1,8 +1,9 @@
 import type {ToolMaintenanceStatus} from '../../../packages/contracts/src';
 import {wellFormed} from './i18n/catalog';
+import {validInstalledDiscoveryCapability} from './tool-installation-capability-model';
 
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value)&&[Object.prototype,null].includes(Object.getPrototypeOf(value));
-const closed=(value:Record<string,unknown>,keys:readonly string[])=>keys.every(key=>Object.hasOwn(value,key))&&Reflect.ownKeys(value).every(key=>typeof key==='string'&&keys.includes(key));
+const closed=(value:Record<string,unknown>,keys:readonly string[],optional:readonly string[]=[])=>keys.every(key=>Object.hasOwn(value,key))&&Reflect.ownKeys(value).every(key=>typeof key==='string'&&(keys.includes(key)||optional.includes(key)));
 function instant(value:unknown):bigint|undefined{
  if(typeof value!=='string')return;
  const match=/^(\d{4}-\d\d-\d\dT(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d)(?:\.(\d{1,9}))?Z$/.exec(value);if(!match)return;
@@ -20,7 +21,7 @@ function instance(value:unknown):value is string{
 export function readToolMaintenanceStatus(value:unknown):{status:ToolMaintenanceStatus;remainingMs:number}|undefined{
  if(!object(value))return;const checked=instant(value.checked_at);if(checked===undefined)return;
  if(value.state==='unknown')return closed(value,['state','checked_at'])?{status:value as unknown as ToolMaintenanceStatus,remainingMs:0}:undefined;
- if(!closed(value,['state','checked_at','protocol','instance_id','observed_at','expires_at'])||typeof value.protocol!=='string'||!/^suma-tool-maintenance-v[1-9][0-9]{0,3}$/.test(value.protocol)||!instance(value.instance_id))return;
+ if(!closed(value,['state','checked_at','protocol','instance_id','observed_at','expires_at'],['installed_discovery'])||Object.hasOwn(value,'installed_discovery')&&(!validInstalledDiscoveryCapability(value.installed_discovery)||!['supported','expired'].includes(String(value.state)))||typeof value.protocol!=='string'||!/^suma-tool-maintenance-v[1-9][0-9]{0,3}$/.test(value.protocol)||!instance(value.instance_id))return;
  const observed=instant(value.observed_at),expires=instant(value.expires_at);
  if(observed===undefined||expires===undefined||observed>checked||expires-observed!==60000000000n)return;
  const currentProtocol=value.protocol==='suma-tool-maintenance-v1';

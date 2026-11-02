@@ -13,11 +13,13 @@ import (
 	"regexp"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ti "github.com/ai-mada/suma/internal/toolinspectioncontract"
+	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
 )
 
 type toolProbeContextKey struct{}
@@ -25,11 +27,62 @@ type toolProbeContextKey struct{}
 var toolProbeReceiptID = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 type toolProbeSource struct {
-	Protocol     string       `json:"protocol"`
-	ScopeSHA256  string       `json:"scope_sha256"`
-	Inspection   ti.Reference `json:"inspection"`
-	SourceSHA256 string       `json:"source_sha256"`
+	Protocol         string       `json:"protocol"`
+	ScopeSHA256      string       `json:"scope_sha256"`
+	Inspection       ti.Reference `json:"inspection"`
+	InstallationScan ii.Reference `json:"installation_scan"`
+	SourceSHA256     string       `json:"source_sha256"`
 }
+
+// The two real maintenance requests have different immutable sources. Keep
+// inspection's original wire bytes; a scan never invents an inspection ID.
+func (s toolProbeSource) MarshalJSON() ([]byte, error) {
+	type wire struct {
+		Protocol   string        `json:"protocol"`
+		Scope      string        `json:"scope_sha256"`
+		Inspection *ti.Reference `json:"inspection,omitempty"`
+		Scan       *ii.Reference `json:"installation_scan,omitempty"`
+		Source     string        `json:"source_sha256"`
+	}
+	v := wire{Protocol: s.Protocol, Scope: s.ScopeSHA256, Source: s.SourceSHA256}
+	if s.Protocol == ii.StopProtocol {
+		v.Scan = &s.InstallationScan
+	} else {
+		v.Inspection = &s.Inspection
+	}
+	return json.Marshal(v)
+}
+func (s *toolProbeSource) UnmarshalJSON(raw []byte) error {
+	fields, err := decodeToolObject(raw)
+	if err != nil || len(fields) != 4 {
+		return fmt.Errorf("invalid maintenance probe source")
+	}
+	type wire toolProbeSource
+	var v wire
+	if json.Unmarshal(raw, &v) != nil {
+		return fmt.Errorf("invalid maintenance probe source")
+	}
+	required := "inspection"
+	if v.Protocol == ii.StopProtocol {
+		required = "installation_scan"
+		if ii.ValidateReference(v.InstallationScan) != nil {
+			return fmt.Errorf("invalid scan probe source")
+		}
+	} else if v.Protocol != ti.ProbeStopProtocol || ti.ValidateReference(v.Inspection) != nil {
+		return fmt.Errorf("invalid inspection probe source")
+	}
+	for key := range fields {
+		if key != "protocol" && key != "scope_sha256" && key != "source_sha256" && key != required {
+			return fmt.Errorf("mixed maintenance probe source")
+		}
+	}
+	if _, ok := fields[required]; !ok || !tc.ValidDigest(v.ScopeSHA256) || !tc.ValidDigest(v.SourceSHA256) {
+		return fmt.Errorf("incomplete maintenance probe source")
+	}
+	*s = toolProbeSource(v)
+	return nil
+}
+
 type toolProbeIntent struct {
 	Source        toolProbeSource `json:"source"`
 	ID            string          `json:"id"`
@@ -122,6 +175,11 @@ func newToolProbeCollector(j *Journal, p toolInspectionCheckpoint) (*toolProbeCo
 	if err != nil {
 		return nil, err
 	}
+	return newToolProbeCollectorAt(dir, source)
+}
+
+func newToolProbeCollectorAt(dir string, source toolProbeSource) (*toolProbeCollector, error) {
+	var err error
 	for _, part := range []string{filepath.Dir(dir), dir, filepath.Join(dir, "probes")} {
 		if err = os.Mkdir(part, 0700); err != nil && !os.IsExist(err) {
 			return nil, err
@@ -262,6 +320,11 @@ func (j *Journal) readToolProbeReceipt(p toolInspectionCheckpoint) (toolProbeRec
 	if err != nil {
 		return toolProbeReceipt{}, "", err
 	}
+	return readToolProbeReceiptAt(dir, source)
+}
+
+func readToolProbeReceiptAt(dir string, source toolProbeSource) (toolProbeReceipt, string, error) {
+	var err error
 	for _, part := range []string{filepath.Dir(dir), dir, filepath.Join(dir, "probes")} {
 		st, e := os.Lstat(part)
 		if e != nil || !st.IsDir() || st.Mode()&os.ModeSymlink != 0 {
@@ -340,6 +403,32 @@ type probeProcessController struct {
 func startProbeProcess(ctx context.Context, cmd *exec.Cmd) (*probeProcessController, error) {
 	p := &probeProcessController{cmd: cmd, collector: toolProbeCollectorFrom(ctx)}
 	if p.collector != nil {
+		if p.collector.source.Protocol == ii.StopProtocol {
+			directory := filepath.Join(p.collector.directory, "working")
+			if err := os.Mkdir(directory, 0700); err != nil && !os.IsExist(err) {
+				return nil, err
+			}
+			info, err := os.Lstat(directory)
+			if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+				return nil, fmt.Errorf("isolated installation probe directory unavailable")
+			}
+			cmd.Dir = directory
+			names := map[string]bool{}
+			for _, name := range []string{"HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "TEMP", "TMP", "TMPDIR", "CODEX_HOME"} {
+				names[name] = true
+			}
+			env := []string{}
+			for _, value := range cmd.Env {
+				name, _, _ := strings.Cut(value, "=")
+				if !names[strings.ToUpper(name)] {
+					env = append(env, value)
+				}
+			}
+			for name := range names {
+				env = append(env, name+"="+directory)
+			}
+			cmd.Env = env
+		}
 		var err error
 		p.id, err = p.collector.begin(cmd)
 		if err != nil {

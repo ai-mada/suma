@@ -105,6 +105,7 @@ func (s *Service) toolMaintenanceStatusTx(ctx context.Context, tx *sql.Tx, tenan
 	}
 	out.Protocol = capability.Protocol
 	out.InstanceID = capability.InstanceID
+	out.InstalledDiscovery = capability.InstalledDiscovery
 	out.ObservedAt = observed
 	out.ExpiresAt = at.Add(60 * time.Second).UTC().Format(time.RFC3339Nano)
 	out.State = "supported"

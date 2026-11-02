@@ -696,8 +696,8 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "3dcf0faccdb85d75a965879d38864d2983d0edc3",
-    "current_stage_receipt": ".cache/tool-report-feedback-204/post-git.json"
+    "previously_published_commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183",
+    "current_stage_receipt": ".cache/remote-tool-scan-205/post-git.json"
   },
   "existing_preview": {
     "updated": false,
@@ -707,19 +707,19 @@
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "T204 bounded inventory feedback, exact Quick handoff,18focused/real HTTP+SQLite/bilingual GUI verified; stage publication recorded in Git and local receipt. Full platform remains active.",
-    "previous_commit": "3dcf0faccdb85d75a965879d38864d2983d0edc3"
+    "evidence": "T204 original inventory feedback source,18focused,realHTTP/SQLite/two bilingual UI groups committed and pushed. Local post-git remote/dev=HEAD, tracked clean,32allowlisted files,2unrelated retained.",
+    "commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183"
   },
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-TOOL-REPORT-FEEDBACK-204",
+    "stage": "T-REMOTE-TOOL-SCAN-205",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/tool-report-feedback.md",
-    "report": "docs/quality/tool-report-feedback-verification.md",
-    "summary": "docs/quality/tool-report-feedback-summary.json",
-    "previous_commit": "3dcf0faccdb85d75a965879d38864d2983d0edc3",
-    "verification": "18distinct(10new8old), Web TSC0,9430paired/0hardcodes;1componentbuild; actual HTTP/SQLite2bilingual groups final pass; first2 fixture failures retained; no vendor/model/profile writes.",
-    "next": "Target preparation causal evidence and real native tools; full31/P0-P7/58limited/34pending/92total remains active."
+    "contract": "contracts/remote-tool-installation-scan.md",
+    "report": "docs/quality/remote-tool-installation-scan-verification.md",
+    "summary": "docs/quality/remote-tool-installation-scan-summary.json",
+    "previous_commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183",
+    "verification": "29distinct(20new9old), actual1Worker/2native trees/dual ACK recovery/0tasks; final readonly bilingual images; Web2type diagnostics corrected by scopedsemantic0;9468paired/0hardcodes.",
+    "next": "Separate first-screen layout verification; Pool tokenless pairing, OpenCode preparation, WorkBuddy trusted code/quality and full31/P0-P7/58limited34pending92total remain active."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2491,6 +2491,14 @@
     "contract": "contracts/tool-report-feedback.md",
     "report": "docs/quality/tool-report-feedback-verification.md",
     "summary": "docs/quality/tool-report-feedback-summary.json",
+    "full_platform_complete": false
+  },
+  "remote_tool_installation_scan": {
+    "stage": "T-REMOTE-TOOL-SCAN-205",
+    "status": "scoped_implementation_actual_worker_and_bilingual_visual_verified",
+    "contract": "contracts/remote-tool-installation-scan.md",
+    "report": "docs/quality/remote-tool-installation-scan-verification.md",
+    "summary": "docs/quality/remote-tool-installation-scan-summary.json",
     "full_platform_complete": false
   }
 }

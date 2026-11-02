@@ -42,6 +42,8 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	modelDeployments := app.String("model-deployments", "", "管理员本地模型部署 JSON 允许列表；凭证只使用环境变量引用", "administrator local model deployment JSON allowlist; credentials use environment references")
 	externalConfig := app.String("external-config", "", "管理员 JSON 配置：外部工作流插件端点和凭证环境变量名", "administrator JSON map of external workflow plugin endpoints and token environment names")
 	allow := app.Bool("allow-exec", false, "允许执行本地允许列表中的命令", "enable execution of local allowlisted commands")
+	allowInstalled := app.Bool("allow-installed-tool-discovery", false, "明确允许持续维护通道检测固定目录中的已安装工具；独立于任务执行权限", "allow the continuous maintenance channel to inspect the fixed installed-tool directory; independent of task execution")
+	maintenanceOnly := app.Bool("maintenance-only", false, "仅运行维护通道，不领取或执行开发任务；要求允许已安装工具检测且原业务日志已排空", "run maintenance only without claiming or executing development tasks; requires installed discovery and a drained business journal")
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
 	prepareTools := app.String("prepare-tools", "", "将可自动配置的本机工具写入全新命令允许列表文件；不连接控制面或领取任务", "prepare local tool commands in a new allowlist file; no control connection or tasks")
 	prepareACP := app.Bool("prepare-acp-stdin", false, "从私有标准输入准备明确的 Cursor 包配置；必须配合 --prepare-tools 全新文件", "prepare an explicit Cursor package configuration from private stdin; requires --prepare-tools with a new file")
@@ -58,6 +60,9 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	deviceName := app.String("device-name", "", "配对时自报的机器名称；默认本机名称", "self-reported pairing device name; defaults to the local hostname")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if (app.FlagProvided("allow-installed-tool-discovery") || app.FlagProvided("maintenance-only")) && toolModeHasAnyFlag(app, "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "report-tools", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "inspect-state", "pair-runner", "merge-preflight") || *maintenanceOnly && !*allowInstalled {
+		return app.Failure("安装检测选项仅用于持续执行器；仅维护模式需要明确允许安装检测", "Installation discovery options require a continuous worker; maintenance-only requires explicit installed discovery")
 	}
 	// Presence, including an explicit false value, is its own mode. This gate
 	// precedes every identity, credential, stdin and worker operation.
@@ -136,7 +141,7 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 		if *project != "" || *id != "" || *commands != "" || *modelDeployments != "" || *repository != "" || *baseCommit != "" || *worktrees != "" || *externalConfig != "" || *preflight != "" || (!*describe && app.Getenv("SUMA_RUNNER_TOKEN") != "") {
 			return app.Failure("资源池模式不能与 --project/--worker、项目执行器配置或凭证混用", "pool mode is independent of --project/--worker and project-runner configuration or credentials")
 		}
-		if err := runPool(app, *base, *poolConfig, *state, *allow, *describe); err != nil {
+		if err := runPool(app, *base, *poolConfig, *state, *allow, *describe, *allowInstalled, *maintenanceOnly); err != nil {
 			return fail(err)
 		}
 		return 0
@@ -254,7 +259,11 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	}
 	journal := reportJournal
 	if journal == nil {
-		journal, err = runner.OpenJournal(*state)
+		if *maintenanceOnly {
+			journal, err = runner.OpenMaintenanceJournal(*state)
+		} else {
+			journal, err = runner.OpenJournal(*state)
+		}
 		if err != nil {
 			return fail(err)
 		}
@@ -272,7 +281,7 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
-	w := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: runnerToken(), ProjectID: *project}, Journal: journal, ID: *id, Exec: runner.ExecConfig{AllowExec: *allow, Workspace: root, Repository: *repository, BaseCommit: *baseCommit, WorktreeRoot: *worktrees, Commands: specs, ModelDeployments: localModels, External: external, Secrets: []string{runnerToken()}}}
+	w := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: runnerToken(), ProjectID: *project}, Journal: journal, ID: *id, AllowInstalledToolDiscovery: *allowInstalled, MaintenanceOnly: *maintenanceOnly, Exec: runner.ExecConfig{AllowExec: *allow, Workspace: root, Repository: *repository, BaseCommit: *baseCommit, WorktreeRoot: *worktrees, Commands: specs, ModelDeployments: localModels, External: external, Secrets: []string{runnerToken()}}}
 	if *reportTools {
 		return runToolReport(ctx, app, &w)
 	}

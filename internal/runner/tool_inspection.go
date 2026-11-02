@@ -287,6 +287,11 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 			return false, e
 		}
 	}
+	if p == nil || p.Complete {
+		if handled, e := w.serviceInstallationScan(ctx); handled || e != nil {
+			return false, e
+		}
+	}
 	p, err = w.Journal.beginToolInspection(w.Client, w.ID)
 	if err != nil {
 		return false, err

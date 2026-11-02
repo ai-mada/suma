@@ -3,9 +3,16 @@ import {remoteRunnerSetupCommands,type RemoteRunnerSetupInput} from './remote-ru
 
 function input(shell:'powershell'|'bash',mode:'identity'|'environment'):RemoteRunnerSetupInput{
  const root=shell==='powershell'?"C:\\Users\\Dev's $(Write-Output unexpected)":"/home/dev's/$(printf unexpected)";
- return {mode,pairingID:'',identityPath:root+'/runner.identity.json',shell,control:'https://control.example.test/suma',project:'project-a',worker:'remote-original',commands:root+'/commands.json',state:root+'/runner.journal',localTool:'codex-jsonl',repository:root+'/checkout',baseCommit:'a'.repeat(40)};
+ return {mode,pairingID:'',identityPath:root+'/runner.identity.json',shell,control:'https://control.example.test/suma',project:'project-a',worker:'remote-original',commands:root+'/commands.json',state:root+'/runner.journal',localTool:'codex-jsonl',repository:root+'/checkout',baseCommit:'a'.repeat(40),allowInstalledDiscovery:false};
 }
 const quote=(value:string,shell:'powershell'|'bash')=>"'"+(shell==='powershell'?value.replaceAll("'","''"):value.replaceAll("'","'\"'\"'"))+"'";
+
+it('T205 requires explicit discovery consent and creates only a maintenance connection without workspace or commands while leaving report and task startup distinct',()=>{
+ for(const shell of ['powershell','bash'] as const)for(const mode of ['identity','environment','paired'] as const){const value:RemoteRunnerSetupInput={...input(shell,mode==='environment'?'environment':'identity'),mode,pairingID:'f'.repeat(32),allowInstalledDiscovery:true,commands:'',repository:'',baseCommit:''};const result=remoteRunnerSetupCommands(value);expect(result.discoveryStart,mode).toBeDefined();expect(result.discoveryStart).toContain('--allow-installed-tool-discovery --maintenance-only');expect(result.discoveryStart).not.toMatch(/--(?:commands|repository|base-commit|allow-exec|report-tools|prepare-tools)\b/);expect(result.start).toBeUndefined();expect(result.report).toBeUndefined();expect(remoteRunnerSetupCommands({...value,allowInstalledDiscovery:false}).discoveryStart).toBeUndefined();
+  const full=remoteRunnerSetupCommands({...value,commands:'/srv/commands.json',repository:'/srv/repo',baseCommit:'a'.repeat(40)});expect(full.start).toContain('--allow-installed-tool-discovery');expect(full.start).not.toContain('--maintenance-only');expect(full.report).not.toContain('--allow-installed-tool-discovery');expect(full.report).not.toContain('--maintenance-only');
+  const missing={...value} as Record<string,unknown>;delete missing.allowInstalledDiscovery;expect(remoteRunnerSetupCommands(missing)).toEqual({loopback:false});expect(remoteRunnerSetupCommands({...value,allowInstalledDiscovery:'true'})).toEqual({loopback:false});
+ }
+});
 
 it('builds explicit ordinary Worker startup from the exact same public identity or environment scope in either shell',()=>{
  for(const shell of ['powershell','bash'] as const)for(const mode of ['identity','environment'] as const){

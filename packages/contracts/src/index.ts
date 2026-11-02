@@ -4443,6 +4443,23 @@ export interface PoolToolInspectionRecoveryProofRequest {
   idempotency_key: string;
   proof: ToolInspectionStopProof;
 }
+export interface PoolToolInstallationScanClaimRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  claim_id: string;
+}
+export interface PoolToolInstallationScanResultRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  scan: ToolInstallationScanReference;
+  idempotency_key: string;
+  outcome: string;
+  items: (ToolInstallationItem)[];
+  failure_code: string;
+  stop_proof?: ToolInstallationStopProof;
+}
 export interface PoolToolInventoryRequest {
   runner_id: string;
   tenant_id: string;
@@ -7767,6 +7784,92 @@ export interface ToolInspectionStopProof {
   stopped_process_count: number;
   observed_at: string;
 }
+export interface ToolInstallationCapability {
+  protocol: string;
+  adapter_ids: (string)[];
+}
+export interface ToolInstallationItem {
+  adapter_id: string;
+  protocol: string;
+  installed: boolean;
+  launch_supported: boolean;
+  reason_code: string;
+  version?: string;
+  executable_sha256?: string;
+}
+export interface ToolInstallationScan {
+  id: string;
+  project_id: string;
+  worker_id: string;
+  adapter_ids: (string)[];
+  instance_id: string;
+  version: number;
+  state: string;
+  requested_by: string;
+  created_at: string;
+  expires_at: string;
+  source_sha256: string;
+  fence: number;
+  claim_id?: string;
+  claimed_at?: string;
+  lease_until?: string;
+  finished_at?: string;
+  result_code?: string;
+  result?: ToolInstallationScanResult;
+  source_changed?: boolean;
+}
+export interface ToolInstallationScanClaim {
+  scan: ToolInstallationScan | null;
+}
+export interface ToolInstallationScanClaimRequest {
+  project_id: string;
+  worker_id: string;
+  claim_id: string;
+}
+export interface ToolInstallationScanCreateRequest {
+  project_id: string;
+  worker_id: string;
+  adapter_ids: (string)[];
+  idempotency_key: string;
+}
+export interface ToolInstallationScanPage {
+  project_id: string;
+  worker_id: string;
+  as_of: string;
+  maintenance: ToolMaintenanceStatus;
+  items: (ToolInstallationScan)[];
+  next_cursor?: string;
+}
+export interface ToolInstallationScanReference {
+  scan_id: string;
+  claim_id: string;
+  fence: number;
+}
+export interface ToolInstallationScanResult {
+  items: (ToolInstallationItem)[];
+  stop_proof?: ToolInstallationStopProof;
+}
+export interface ToolInstallationScanResultRequest {
+  project_id: string;
+  worker_id: string;
+  scan: ToolInstallationScanReference;
+  idempotency_key: string;
+  outcome: string;
+  items: (ToolInstallationItem)[];
+  failure_code: string;
+  stop_proof?: ToolInstallationStopProof;
+}
+export interface ToolInstallationStopProof {
+  protocol: string;
+  scan: ToolInstallationScanReference;
+  source_sha256: string;
+  receipt_sha256: string;
+  probe_returned: boolean;
+  all_native_trees_stopped: boolean;
+  native_process_count: number;
+  stopped_process_count: number;
+  observed_at: string;
+}
 export interface ToolInventoryReceipt {
   acknowledged: boolean;
   observed_at: string;
@@ -7785,6 +7888,7 @@ export interface ToolInventoryRequest {
 export interface ToolMaintenanceCapability {
   protocol: string;
   instance_id: string;
+  installed_discovery?: ToolInstallationCapability;
 }
 export interface ToolMaintenanceStatus {
   state: "supported" | "expired" | "unsupported" | "unknown";
@@ -7793,6 +7897,7 @@ export interface ToolMaintenanceStatus {
   instance_id?: string;
   observed_at?: string;
   expires_at?: string;
+  installed_discovery?: ToolInstallationCapability;
 }
 export interface ToolObservation {
   profile: ToolExecutionProfile;

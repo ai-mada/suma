@@ -1008,6 +1008,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 		writeError(w, forbidden())
 		return
 	}
+	if s.runnerToolInstallationScansHTTP(w, r, actor, project, path, m) {
+		return
+	}
 	if s.runnerToolInspectionsHTTP(w, r, actor, project, path, m) {
 		return
 	}
@@ -1016,6 +1019,10 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 	}
 	switch path {
 	case "runner/tool-inventory":
+		if value, present := m["maintenance"]; present && !installationMaintenanceRaw(value) {
+			writeError(w, toolInstallationInvalid())
+			return
+		}
 		if value, present := m["maintenance"]; present && value == nil {
 			writeError(w, toolInspectionInvalid())
 			return

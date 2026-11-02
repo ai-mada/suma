@@ -1,5 +1,7 @@
 # HTTP、事件与客户端合同
 
+T-REMOTE-TOOL-SCAN-205增加13模型／6路径／7操作，原维护声明可选安装检测能力；浏览器创建及历史、普通／Pool固定目的领取与结果共用当前权威，真实stop counts显式必填。[合同](../../contracts/remote-tool-installation-scan.md)与[限定验证](../quality/remote-tool-installation-scan-verification.md)区分安装事实、配置、任务和历史。
+
 T-TURN-STEERING-188新增[原执行追加指令](../../contracts/turn-steering.md)：10接口／19模型、Codex安全steering证据。当前浏览器仅提交本人已保存message与准确session版本；机器Open基于真实turn ACK，四类普通／Pool调用复用完整原Assignment。原操作恢复不授予新写，Open正常非任务结果与权限／未知错误分开。
 
 T-TOOL-INPUTS-187新增[原执行问答](../../contracts/tool-inputs.md)：8接口／19模型、ToolExecutionProfile可选能力和Codex安全证据；与工具授权Choice分离。Answer仅当前浏览器用户，机器登记／轮询／观察绑定原完整Assignment，原回执恢复与fresh授权各自检查。

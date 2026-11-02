@@ -5,6 +5,7 @@ import (
 	"fmt"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
 	"io"
 	"os"
 	"path/filepath"
@@ -110,6 +111,32 @@ func discoverInstalledTools(ctx context.Context, adapterID string, paths []strin
 			return InstalledToolDiscovery{}, fmt.Errorf("unsupported local tool directory ID")
 		}
 	}
+	return discoverInstalledEntries(ctx, entries, paths, probe)
+}
+
+func discoverInstalledToolSubset(ctx context.Context, ids []string) (InstalledToolDiscovery, error) {
+	if err := ii.ValidateAdapterIDs(ids); err != nil {
+		return InstalledToolDiscovery{}, err
+	}
+	paths, err := localToolDiscoveryPaths(os.Getenv("PATH"))
+	if err != nil {
+		return InstalledToolDiscovery{}, err
+	}
+	entries := []localToolDirectoryEntry{}
+	for _, id := range ids {
+		for _, entry := range localToolDirectory() {
+			if entry.id == id {
+				entries = append(entries, entry)
+				break
+			}
+		}
+	}
+	ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
+	defer cancel()
+	return discoverInstalledEntries(ctx, entries, paths, localToolDiscoveryVersion)
+}
+
+func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryEntry, paths []string, probe func(context.Context, CommandSpec) (string, error)) (InstalledToolDiscovery, error) {
 	result := InstalledToolDiscovery{Protocol: InstalledToolDiscoveryProtocol, Items: make([]InstalledToolDiscoveryItem, len(entries))}
 	done := make(chan struct{}, len(entries))
 	for index, entry := range entries {

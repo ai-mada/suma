@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	ti "github.com/ai-mada/suma/internal/toolinspectioncontract"
+	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
 )
 
 type toolMaintenanceOwner struct {
@@ -39,6 +41,10 @@ func (w *Worker) enableToolMaintenance() error {
 		return fmt.Errorf("maintenance owner belongs to another scope or protocol")
 	}
 	capability := owner.Capability
+	capability.InstalledDiscovery = nil
+	if w.AllowInstalledToolDiscovery {
+		capability.InstalledDiscovery = &ii.Capability{Protocol: ii.Protocol, AdapterIDs: ii.AdapterIDs()}
+	}
 	w.maintenance = &capability
 	return nil
 }
@@ -48,5 +54,23 @@ func cloneToolMaintenance(p *ti.ToolMaintenanceCapability) *ti.ToolMaintenanceCa
 		return nil
 	}
 	copied := *p
+	if p.InstalledDiscovery != nil {
+		c := *p.InstalledDiscovery
+		c.AdapterIDs = append([]string{}, c.AdapterIDs...)
+		copied.InstalledDiscovery = &c
+	}
 	return &copied
+}
+
+func sameToolMaintenance(a, b *ti.ToolMaintenanceCapability) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	if a.Protocol != b.Protocol || a.InstanceID != b.InstanceID {
+		return false
+	}
+	if a.InstalledDiscovery == nil || b.InstalledDiscovery == nil {
+		return a.InstalledDiscovery == nil && b.InstalledDiscovery == nil
+	}
+	return a.InstalledDiscovery.Protocol == b.InstalledDiscovery.Protocol && slices.Equal(a.InstalledDiscovery.AdapterIDs, b.InstalledDiscovery.AdapterIDs)
 }
