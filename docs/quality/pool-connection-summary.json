@@ -1,0 +1,371 @@
+{
+  "stage": "T-POOL-CONNECTION-212",
+  "version": "1.0.0",
+  "date": "2026-11-02",
+  "status": "scoped_verified_git_delivery_recorded_separately",
+  "base_commit": "7b809facb91c7237da02b4101496216402ff40a1",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558"
+  },
+  "contract": "contracts/pool-connection.md",
+  "reference": {
+    "source": "docs/integrations/multica-reference-211.md",
+    "pinned_commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "new_multica_source_copied": 0,
+    "meaning": "Reuse the already retrieved official reference baseline; no new moving-main claim."
+  },
+  "focused": {
+    "distinct": 13,
+    "new": 9,
+    "direct_old": 4,
+    "control": 4,
+    "runner": 4,
+    "web": 4,
+    "generation": 1,
+    "api_check": {
+      "path": ".cache/follow155/root-go/20261102T122220192Z.command.json",
+      "sha256": "63871ade342e83f12ec34274eb085525736270b6ab82f59bca8b06625c1dcfcf"
+    },
+    "counting": "Repeated affected tops, initial zero-case collection errors, subcases, builds and actual breakpoints are not additional distinct checks.",
+    "initial_failures": "Genuine new HTTP404 and CLI unknown-flag RED retained. Web catalogue assembly and single-node selector fixture failures retained separately."
+  },
+  "shared": {
+    "full_web_type_diagnostics": 0,
+    "types": {
+      "path": ".cache/pool-connection-212/checks/types.json",
+      "sha256": "9f8616acae43348cf8baf32879defe98815d6267749fdce4f10c617e39181b58"
+    },
+    "paired_catalog_keys": 9675,
+    "production_source_hardcodes": 0,
+    "i18n": {
+      "path": ".cache/pool-connection-212/checks/i18n.json",
+      "sha256": "3424ebf7dac4824b164102c1d89ac62f551af0693831a1621643ab86256cd07a"
+    },
+    "final_timestamp_only": "Two original formatter calls now explicitly show localized date+hour/minute/second. One original affected UI top rerun0. Earlier full TSC/i18n and real journey reused; no repeated build/actual or final screenshot claimed.",
+    "schemas": 998,
+    "paths": 451,
+    "new_schemas": 5,
+    "new_paths": 1,
+    "old_schema_changes": 0,
+    "old_path_changes": 0,
+    "schema_diff": {
+      "path": ".cache/pool-connection-212/schema-diff.json",
+      "sha256": "1a7c9959f3d5bc06f3d211d0277d57416fe38b8ee17bf1b1c6ebc62ff11aba4a"
+    }
+  },
+  "evidence": {
+    "control/summary.json": {
+      "path": ".cache/pool-connection-212/control/summary.json",
+      "sha256": "a41312a9544ed2a7dcf34f48237421db947ff7c93bbd9d22ada73c993cb6d5f9"
+    },
+    "runner/summary.json": {
+      "path": ".cache/pool-connection-212/runner/summary.json",
+      "sha256": "a41b5b75bcc0ed1bf85f58f33441a09a2564f64bfe55a0196609b72b27021125"
+    },
+    "ui/summary.json": {
+      "path": ".cache/pool-connection-212/ui/summary.json",
+      "sha256": "8edd28f765db9632c238f3aba317c3fd0c9766557c81655a0544c6ed8e1fdc9a"
+    },
+    "review/runtime-review.json": {
+      "path": ".cache/pool-connection-212/review/runtime-review.json",
+      "sha256": "cda7a847843421ac390d7f4f50dd06e76570eb44eba89e3a297befc8f8a9a264"
+    },
+    "review/integration-review.json": {
+      "path": ".cache/pool-connection-212/review/integration-review.json",
+      "sha256": "165e437be0631f0cf4516abccb8d9c4946066c20208f09cf1cf595b8ed5fe337"
+    },
+    "review/actual-driver-review.json": {
+      "path": ".cache/pool-connection-212/review/actual-driver-review.json",
+      "sha256": "8a6ec860b22599ffb5c69fa1784b7f79c1c2cbb694f5b4d8b23926f36680a195"
+    },
+    "review/actual-closure.json": {
+      "path": ".cache/pool-connection-212/review/actual-closure.json",
+      "sha256": "77948a1fcdfbd4582bbb9006ea80cfa462fc95bf71aaf13b20982b85f9722e59"
+    },
+    "ui/time-overlay/summary.json": {
+      "path": ".cache/pool-connection-212/ui/time-overlay/summary.json",
+      "sha256": "586c8e6fa6b7fb3eb759520661a95aa013bdd0ec46027cab71e5bc9e72fa09b4"
+    }
+  },
+  "actual": {
+    "journeys": 1,
+    "runner_builds": 1,
+    "component_builds": 1,
+    "runner_build": {
+      "path": ".cache/follow155/root-go/20261102T130512951Z.command.json",
+      "sha256": "8ce0fa2261ffcb47995b18d24d23726056323ebaa5c852f682273a7f628542d3"
+    },
+    "runner_artifact": {
+      "path": ".cache/pool-connection-212/bin/suma-runner.exe",
+      "sha256": "585e467ae38372dd2f5b527e7f06743c575e06ba7bc558a5db5ae659b5544af8"
+    },
+    "go_actual": {
+      "path": ".cache/follow155/root-go/20261102T130832029Z.command.json",
+      "sha256": "8744bac39a471c3030dd73b4484762e07345a5a4675b9a58e4821c0c39919c27"
+    },
+    "receipt": {
+      "path": ".cache/pool-connection-212/actual/20261102T130849657213500Z/receipt.json",
+      "sha256": "10f6f8f562a41dd27e51185c0bf592803109109b64d6aa56a90cba5daa3672e5"
+    },
+    "driver": {
+      "path": ".cache/pool-connection-212/actual/20261102T130849657213500Z/result.json",
+      "sha256": "a22e90bbfe145a2e6eea65cf97b1588389f515bd63be3fc5010fa7d43cbcda69"
+    },
+    "compiled_check_calls": 1,
+    "foreground_start_command_executed": false,
+    "library_worker_starts": 2,
+    "library_worker_drains": 2,
+    "run_count": 1,
+    "attempt_count": 1,
+    "run_state": "succeeded",
+    "node_state": "succeeded",
+    "fence": 1,
+    "owned_readonly_child_passed": true,
+    "tool_profile_count": 0,
+    "installation_scan_requests": 0,
+    "system_credentials_created": 1,
+    "system_credentials_removed": 1,
+    "prepared_file_preserved": true,
+    "code_candidates": 0,
+    "human_acceptance": false,
+    "models": 0,
+    "vendors": 0,
+    "browser_api_gets": 9,
+    "browser_api_writes": 0,
+    "page_errors": 0,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "native_pid": 26776,
+    "owned_child_pid": 49240,
+    "port": 58448,
+    "closure": "Independent OS read confirmed both PIDs absent and port not listening; original library Workers drained normally, no forced termination.",
+    "root_viewed_images": [
+      {
+        "path": ".cache/pool-connection-212/actual/20261102T130849657213500Z/cn-current-pool-report.png",
+        "sha256": "47e6ae76e3f5897905ed6985758dda2a21401a6fc5d3006385cca52b0218ab61"
+      },
+      {
+        "path": ".cache/pool-connection-212/actual/20261102T130849657213500Z/en-current-pool-report.png",
+        "sha256": "5c2d4fffcccff258a05d9dceabd57a5298d0fa9340b2f0e3e348689d7bb126f6"
+      }
+    ],
+    "visual": "Original production components CN1366/light and EN390/dark; command details closed, current facts and exact project link visible. English no horizontal overflow, targets>=44px. These original images have date-only time; final seconds display covered by the focused render check.",
+    "boundary": "One real compiled check and explicit original library Worker journey. Fixture action is not compiled foreground CLI startup; original receipt.task_state is run.State, not business task acceptance. No vendor or model."
+  },
+  "source_manifests": [
+    {
+      "path": ".cache/pool-connection-212/control/source-manifest.json",
+      "sha256": "31ec5ae6e6f98e990b4c718d7f03b03ae4a0aace14949ec21d59cdf19e022345"
+    },
+    {
+      "path": ".cache/pool-connection-212/runner/source-manifest.json",
+      "sha256": "8a5e3a329496d9df08d640eb0398bfe5389000cf7e26273b36908286f46c5c40"
+    },
+    {
+      "path": ".cache/pool-connection-212/ui/source-manifest.json",
+      "sha256": "ea74270681c14720be32d31eefdfd3c7e40eac750af034ebfd452d58cd9f80b0"
+    },
+    {
+      "path": ".cache/pool-connection-212/ui/prefix-overlay/source-manifest.json",
+      "sha256": "31422121322c698c3604376cc4cdd77cd031cea95ef06836c44283d771e0a22b"
+    },
+    {
+      "path": ".cache/pool-connection-212/ui/http-host-overlay/source-manifest.json",
+      "sha256": "22b08595a52cde0992a68f429d9ebe525b3dbd365cd17185cf3c170a0bcb13c5"
+    },
+    {
+      "path": ".cache/pool-connection-212/ui/projection-overlay/source-manifest.json",
+      "sha256": "7a21ee359212038c689199e212209eb113e61ccd20787b4384d9ca59dc718b6d"
+    },
+    {
+      "path": ".cache/pool-connection-212/ui/time-overlay/source-manifest.json",
+      "sha256": "366e71358a1f3bd9c77459a7a8dc0b61d0c3908bed7a2aa574b8f63f5924e114"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/execution-pools/pool-config-connection-model.test.ts",
+      "bytes": 6547,
+      "sha256": "17d8d8f6fff3235747067ce01d957bc1486140c7569ece97c57fdf3957d5a73e"
+    },
+    {
+      "path": "apps/web/src/execution-pools/pool-config-connection-model.ts",
+      "bytes": 10182,
+      "sha256": "dc026dab077916e503d81ebdff1afc418164d619a3149be0c403929d90e676e1"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigConnection.css",
+      "bytes": 2406,
+      "sha256": "8069b9ba3d967f0e359d463e03b7d4fdda8fabd47e61121c7fb61174cf6334bc"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigConnectionPanel.test.tsx",
+      "bytes": 7643,
+      "sha256": "53063515d53b43abc6368e93a2f747cea53eb1ce524901871e4e5e1405a7423b"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigConnectionPanel.tsx",
+      "bytes": 11259,
+      "sha256": "7453cd579b84599a18fab1979e4454bdb7b7d45f729c7dfb407d41e1df30bb04"
+    },
+    {
+      "path": "apps/web/src/execution-pools/PoolConfigPreparationPanel.tsx",
+      "bytes": 19446,
+      "sha256": "1db727779cf54eba2fdddc1b97c49794fe994038ea4cb17b2348a0d4ac60a3fe"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-connection.en-US.json",
+      "bytes": 5199,
+      "sha256": "2c3717a1dfdd3a64c1c5946613ffc73dd311d5422bdbbf2c83a6e5a338efc1bf"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/pool-config-connection.zh-CN.json",
+      "bytes": 4981,
+      "sha256": "b47226b924c76aacce7b8ba269e81de80b343d92f712a71ce0bf6cf690602876"
+    },
+    {
+      "path": "apps/web/src/RunnerPairingWorkspace.test.tsx",
+      "bytes": 18263,
+      "sha256": "99fe20aa822f987bbb873f3aae623a1848b5f626bca9cab57ce27418e9fd9f5e"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "bytes": 83826,
+      "sha256": "44b7a2b0d8d7bd06adc2966a293a8acc64c9857f6a90bc46595edf5658c396e4"
+    },
+    {
+      "path": "cmd/suma-contracts/main.go",
+      "bytes": 27729,
+      "sha256": "63205af4f4e20f83110d8b43b8e02b59994e228aee2ebbd8420719a230e271e8"
+    },
+    {
+      "path": "cmd/suma-contracts/pool_connection_test.go",
+      "bytes": 2047,
+      "sha256": "124c28ebcbf2329ae76204e6b098f8789ce3f70cca0f24b401c6ef2af623ab36"
+    },
+    {
+      "path": "cmd/suma-contracts/pool_connection.go",
+      "bytes": 3882,
+      "sha256": "bb192d3f7db729ab54e44ed3028de5e3753126ced607d8d628c28ed0fedac812"
+    },
+    {
+      "path": "cmd/suma-runner/main.go",
+      "bytes": 29918,
+      "sha256": "54110518bd979e20a08621931cdfc7c4eb5fb3e40d5a61428b984c93febdf5f5"
+    },
+    {
+      "path": "cmd/suma-runner/pool_connection_test.go",
+      "bytes": 2085,
+      "sha256": "c953e3b598c4f02efa02b578214431b83a75e381a372f2a0c8b5e99c02cb1867"
+    },
+    {
+      "path": "cmd/suma-runner/pool_connection.go",
+      "bytes": 1322,
+      "sha256": "c7739989e439f25b10039333c95d45076405df4cc2749ac13086f018558b1178"
+    },
+    {
+      "path": "cmd/suma-runner/pool.go",
+      "bytes": 2833,
+      "sha256": "2144f62a7d9cb4de6f1c33b2476f0e2651667b5656b10db6ef09634628286723"
+    },
+    {
+      "path": "docs/api/openapi.json",
+      "bytes": 4959508,
+      "sha256": "48b22965e7e7bf3647209d0c07fe4426847b14dbb05ae40208e671c93a1c2c3e"
+    },
+    {
+      "path": "internal/platform/execution_pool_http.go",
+      "bytes": 8328,
+      "sha256": "0e5408d564685b48da2de1f2fbee56978e800338689d0aafe5fdc5e2f39288ee"
+    },
+    {
+      "path": "internal/platform/pool_connection_actual_test.go",
+      "bytes": 21095,
+      "sha256": "f854a1a5b9448cff3b6e5e67b48914eda97bb46c0e0df09cc6507d601d4ff3fc"
+    },
+    {
+      "path": "internal/platform/pool_runner_readiness_http.go",
+      "bytes": 878,
+      "sha256": "de3118b7fac0b6714162c8b498485b5805f34e64907457ca35995444f111f5a3"
+    },
+    {
+      "path": "internal/platform/pool_runner_readiness_service.go",
+      "bytes": 10023,
+      "sha256": "da4974c478d1e8bda5a84937a368536bd4fcc646c6afa4b3112ce1ceecc11440"
+    },
+    {
+      "path": "internal/platform/pool_runner_readiness_test.go",
+      "bytes": 9470,
+      "sha256": "872cd3805fe93fcdcbf5388c91fa6a49301c919d3f88f81d2509dbf6ce4a2f4a"
+    },
+    {
+      "path": "internal/platform/pool_runner_tools.go",
+      "bytes": 12404,
+      "sha256": "54a51e70f3343e5cf87cd45fbfc7602f861dd0299f287004e9cdfab295665672"
+    },
+    {
+      "path": "internal/platform/tool_discovery.go",
+      "bytes": 7276,
+      "sha256": "3e327ff2d79d9ca093f0a2dd663aaf7fe463da24ab85b109bd7b93df8678e110"
+    },
+    {
+      "path": "internal/poolconnectioncontract/types.go",
+      "bytes": 3998,
+      "sha256": "d2c58de1f1e86e12515eea1039bd9ed2caa056349fff913a7e9d29df761a5923"
+    },
+    {
+      "path": "internal/runner/pool_client.go",
+      "bytes": 6076,
+      "sha256": "e51d92d95452ea1722254e5e0965a24a18d521006f4391b9c035337967fb5584"
+    },
+    {
+      "path": "internal/runner/pool_connection_test.go",
+      "bytes": 6798,
+      "sha256": "19e0780980413151da768b303f91e0158372367ce6512253fef4cd7ca71214ed"
+    },
+    {
+      "path": "internal/runner/pool_connection.go",
+      "bytes": 6258,
+      "sha256": "40888de323246e153a27df464c5d0a97ff88b7ebf8acca09bd05288778752ed1"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "bytes": 225809,
+      "sha256": "ca77db7ecfa459d3e3d66a77fc75bd6d31ca38b2df71e6b1eeb659c4a856b570"
+    },
+    {
+      "path": "tests/integration/pool-connection/build.cjs",
+      "bytes": 1532,
+      "sha256": "da5ee166010c8e8db44663a8fd0cbe409a12864e8d70910ce5e1758e26a9a1c3"
+    },
+    {
+      "path": "tests/integration/pool-connection/driver.cjs",
+      "bytes": 12058,
+      "sha256": "69f4b9f79ebf1b21eeb579cf5554cde901271cdad210999a197fa671e4f70ca8"
+    },
+    {
+      "path": "tests/integration/pool-connection/entry.tsx",
+      "bytes": 2478,
+      "sha256": "f4f19d125397d7a67450c7988d665b1959609f3140b2fff2ad3cc48bed11891b"
+    },
+    {
+      "path": "tests/integration/pool-connection/index.html",
+      "bytes": 587,
+      "sha256": "0ddcfb7deaeb6111b9e0c5a290e374252c3f4c9061e59eb7a49c9650f56ea34f"
+    }
+  ],
+  "limits": [
+    "Formal code candidate, independent same-commit test, human acceptance and next-task baseline journey remain next work for this connection slice.",
+    "Real foreground startup command, actual vendors/models, trusted WorkBuddy code delivery, physical multi-host, OceanBase/PostgreSQL, other OS/installers, full App/device/theme/scale/production and all31/P0-P7 remain separate."
+  ],
+  "git_delivery": ".cache/pool-connection-212/post-git.json"
+}

@@ -4299,6 +4299,24 @@ export interface PoolClaimRequest {
   operation_id: string;
   scopes: (PoolCapabilityScope)[];
 }
+export interface PoolConnectionCheck {
+  protocol: string;
+  pool_id: string;
+  runner_id: string;
+  worker_id: string;
+  credential_version: number;
+  pool_active: boolean;
+  configured_slots: number;
+  current_max_slots: number;
+  configuration_file_sha256: string;
+  checked_at: string;
+  scopes: (PoolConnectionScope)[];
+}
+export interface PoolConnectionScope {
+  tenant_id: string;
+  project_id: string;
+  granted: boolean;
+}
 export interface PoolHostOperationProgressRequest {
   runner_id: string;
   tenant_id: string;
@@ -4385,6 +4403,38 @@ export interface PoolRunnerProgressRequest {
   operation_id: string;
   message: string;
   tool_event?: ToolEvent | null;
+}
+export interface PoolRunnerReadiness {
+  pool_id: string;
+  runner_id: string;
+  worker_id: string;
+  pool_status: string;
+  checked_at: string;
+  runner: PoolRunnerReadinessRunner;
+  scope: PoolRunnerReadinessScope;
+}
+export interface PoolRunnerReadinessRunner {
+  status: string;
+  version: number;
+  credential_version: number;
+  credential_state: string;
+  credential_expires_at: string;
+  historical_last_seen_at: string;
+}
+export interface PoolRunnerReadinessScope {
+  tenant_id: string;
+  project_id: string;
+  grant_id: string;
+  grant_version: number;
+  grant_status: string;
+  shared_project_name: string;
+  can_open_project: boolean;
+  route_state: string;
+  source_current: boolean;
+  source_reason: string;
+  inventory_observed_at: string;
+  inventory_expires_at: string;
+  inventory_item_count?: number | null;
 }
 export interface PoolRunnerResultRequest {
   runner_id: string;

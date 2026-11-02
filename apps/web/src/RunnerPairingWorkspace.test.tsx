@@ -114,3 +114,31 @@ it('continues an explicitly read approved node into its fixed preparation guide 
  await prepare();activeProject='f'.repeat(32);caller=ApiContext.bindApiView(activeSession,api);await render();noOldTarget();
  expect(writes).toEqual([]);
 });
+
+it('T212 opens a bounded Pool locator only through the current exact shared worker and catalog without scanning or registering',async()=>{
+ const pool='pool-one',runner='runner-one',sharedWorker='pool-'+runner,writes:string[]=[],discovery:string[]=[];
+ let sharedPool=pool,refresh=0;
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{
+  const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1','');
+  if((init.method||'GET')!=='GET'){writes.push(path);return Response.json({error:{code:'unexpected_write',message:'No business write'}},{status:400});}
+  if(path==='/tool-profiles')return Response.json({items:[],total:0});
+  if(path==='/release-workers')return Response.json({items:[]});
+  if(path==='/project-execution/runners')return Response.json({as_of:stamp,items:[{id:runner,pool_id:sharedPool,worker_id:sharedWorker,name:'Shared machine',status:'active',credential_expires_at:'2026-11-02T04:00:00Z'}]});
+  if(path==='/adapter-catalog')return Response.json({project_id:project,as_of:stamp,items:[adapter]});
+  if(path==='/tool-discovery'){discovery.push(url.searchParams.get('worker_id')!);return Response.json(inventory(url.searchParams.get('worker_id')!));}
+  return Response.json({items:[]});
+ }));
+ const draw=async(panel:string)=>{await act(async()=>root.render(<ApiViewProvider session={session}><ToolWorkspace project={project} session={session} selected="" onSelect={()=>{}} refresh={refresh} panel={panel}/></ApiViewProvider>));await settle();};
+ await draw('pool-tool:'+pool+':'+runner);
+ expect(document.querySelector('[data-quick-tool]')).not.toBeNull();
+ expect(discovery).toEqual([]);expect(writes).toEqual([]);
+ await change('[data-quick-tool]',adapter.id);
+ expect(document.querySelector('.tool-quick-node')?.textContent).toContain(sharedWorker);
+ expect(discovery).toEqual([sharedWorker]);
+ await click('[role=dialog] .dialog-heading .icon-button');
+ sharedPool='wrong-pool';refresh++;
+ await draw('pool-tool:'+pool+':another-runner');
+ expect(document.querySelector('[data-quick-tool]')).toBeNull();expect(writes).toEqual([]);
+ await draw('pool-tool:'+pool+':'+runner+':extra');
+ expect(document.querySelector('[data-quick-tool]')).toBeNull();expect(discovery).toEqual([sharedWorker]);
+});

@@ -14,13 +14,9 @@ import (
 )
 
 func runPool(app *commandlocale.Command, control, path, state string, allow, describe, installedDiscovery, maintenanceOnly bool) error {
-	raw, err := os.ReadFile(path)
+	config, _, err := runner.ReadPoolConfigFile(path)
 	if err != nil {
 		return fmt.Errorf("%s", app.Text("资源池本地配置不可用", "pool local configuration unavailable"))
-	}
-	config, err := runner.DecodePoolConfig(raw)
-	if err != nil {
-		return err
 	}
 	if describe {
 		items, err := runner.DescribePoolTools(context.Background(), config, allow)
@@ -37,11 +33,7 @@ func runPool(app *commandlocale.Command, control, path, state string, allow, des
 }
 
 func runPoolIdentity(app *commandlocale.Command, control, path, identityPath, state string, allow, installedDiscovery, maintenanceOnly bool, secrets runner.RunnerSecretStore) error {
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("pool local configuration unavailable")
-	}
-	config, err := runner.DecodePoolConfig(raw)
+	config, _, err := runner.ReadPoolConfigFile(path)
 	if err != nil {
 		return err
 	}

@@ -95,11 +95,11 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 	if !errors.Is(err, sql.ErrNoRows) {
 		return out, err
 	}
-	clock, err := s.automationClock(ctx, tx)
+	clock, err := s.toolInventoryClock(ctx, tx)
 	if err != nil {
 		return out, err
 	}
-	out = ToolInventoryReceipt{Acknowledged: true, ObservedAt: automationStamp(clock)}
+	out = ToolInventoryReceipt{Acknowledged: true, ObservedAt: clock.UTC().Format(time.RFC3339Nano)}
 	var old string
 	err = tx.QueryRowContext(ctx, s.q(`SELECT observed_at FROM suma_tool_inventories WHERE tenant_id=? AND project_id=? AND worker_id=?`), req.TenantID, req.ProjectID, runner.WorkerID).Scan(&old)
 	if errors.Is(err, sql.ErrNoRows) {

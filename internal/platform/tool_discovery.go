@@ -92,9 +92,23 @@ func (s *Service) discoverToolsTx(ctx context.Context, actor Actor, project, wor
 			return ToolDiscovery{}, forbidden()
 		}
 	}
+	out, err := s.readToolDiscoveryInventoryTx(ctx, tx, target.tenantID, project, worker, clock)
+	if err != nil {
+		return ToolDiscovery{}, err
+	}
+	if err = auth.assertTx(tx, target, purposeBrowserProjectRead); err != nil {
+		return ToolDiscovery{}, err
+	}
+	return out, tx.Commit()
+}
+
+// readToolDiscoveryInventoryTx is the sole bounded inventory freshness reader.
+// Callers must already hold current project read/identity authority in this tx.
+func (s *Service) readToolDiscoveryInventoryTx(ctx context.Context, tx *sql.Tx, tenant, project, worker string, clock time.Time) (ToolDiscovery, error) {
+	var err error
 	out := ToolDiscovery{ProjectID: project, WorkerID: worker, State: "unreported", AsOf: clock.UTC().Format(time.RFC3339Nano), Items: []toolcontract.Observation{}}
 	var observedAt, raw string
-	err = tx.QueryRowContext(ctx, s.q(`SELECT observed_at,items FROM suma_tool_inventories WHERE tenant_id=? AND project_id=? AND worker_id=?`), target.tenantID, project, worker).Scan(&observedAt, &raw)
+	err = tx.QueryRowContext(ctx, s.q(`SELECT observed_at,items FROM suma_tool_inventories WHERE tenant_id=? AND project_id=? AND worker_id=?`), tenant, project, worker).Scan(&observedAt, &raw)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return ToolDiscovery{}, err
 	}
@@ -113,10 +127,7 @@ func (s *Service) discoverToolsTx(ctx context.Context, actor Actor, project, wor
 			}
 		}
 	}
-	if err = auth.assertTx(tx, target, purposeBrowserProjectRead); err != nil {
-		return ToolDiscovery{}, err
-	}
-	return out, tx.Commit()
+	return out, nil
 }
 
 func (s *Service) toolDiscoveryPoolWorkerTx(ctx context.Context, tx *sql.Tx, tenant, project, worker, owner string, clock time.Time) error {

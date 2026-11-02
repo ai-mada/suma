@@ -22331,6 +22331,90 @@
         ],
         "type": "object"
       },
+      "PoolConnectionCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string"
+          },
+          "configuration_file_sha256": {
+            "description": "Original bounded file bytes, not resolved runtime Journal configuration.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "configured_slots": {
+            "type": "integer"
+          },
+          "credential_version": {
+            "type": "integer"
+          },
+          "current_max_slots": {
+            "type": "integer"
+          },
+          "pool_active": {
+            "type": "boolean"
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-pool-connection-check-v1",
+            "type": "string"
+          },
+          "runner_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "scopes": {
+            "items": {
+              "$ref": "#/components/schemas/PoolConnectionScope"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "type": "array"
+          },
+          "worker_id": {
+            "pattern": "^pool-[a-f0-9]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "pool_id",
+          "runner_id",
+          "worker_id",
+          "credential_version",
+          "pool_active",
+          "configured_slots",
+          "current_max_slots",
+          "configuration_file_sha256",
+          "checked_at",
+          "scopes"
+        ],
+        "type": "object",
+        "x-local-cli-only": true
+      },
+      "PoolConnectionScope": {
+        "additionalProperties": false,
+        "properties": {
+          "granted": {
+            "type": "boolean"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "granted"
+        ],
+        "type": "object"
+      },
       "PoolHostOperationProgressRequest": {
         "additionalProperties": false,
         "properties": {
@@ -22756,6 +22840,169 @@
           "assignment",
           "operation_id",
           "message"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerReadiness": {
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string"
+          },
+          "pool_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "pool_status": {
+            "type": "string"
+          },
+          "runner": {
+            "$ref": "#/components/schemas/PoolRunnerReadinessRunner"
+          },
+          "runner_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/PoolRunnerReadinessScope"
+          },
+          "worker_id": {
+            "pattern": "^pool-[a-f0-9]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pool_id",
+          "runner_id",
+          "worker_id",
+          "pool_status",
+          "checked_at",
+          "runner",
+          "scope"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerReadinessRunner": {
+        "additionalProperties": false,
+        "properties": {
+          "credential_expires_at": {
+            "type": "string"
+          },
+          "credential_state": {
+            "enum": [
+              "valid",
+              "expired",
+              "revoked",
+              "version_mismatch"
+            ],
+            "type": "string"
+          },
+          "credential_version": {
+            "type": "integer"
+          },
+          "historical_last_seen_at": {
+            "description": "Historical new inventory contact; retained through rotations, not current connection proof. Empty means unobserved.",
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "credential_version",
+          "credential_state",
+          "credential_expires_at",
+          "historical_last_seen_at"
+        ],
+        "type": "object"
+      },
+      "PoolRunnerReadinessScope": {
+        "additionalProperties": false,
+        "properties": {
+          "can_open_project": {
+            "type": "boolean"
+          },
+          "grant_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "grant_status": {
+            "type": "string"
+          },
+          "grant_version": {
+            "type": "integer"
+          },
+          "inventory_expires_at": {
+            "type": "string"
+          },
+          "inventory_item_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present only with current matching inventory; zero is an actual empty report, absence is unknown/restricted."
+          },
+          "inventory_observed_at": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "route_state": {
+            "enum": [
+              "restricted",
+              "unconfigured",
+              "different",
+              "current"
+            ],
+            "type": "string"
+          },
+          "shared_project_name": {
+            "type": "string"
+          },
+          "source_current": {
+            "description": "At checked_at only: current authenticated maintenance provenance, supported/fresh capability and the same fresh inventory observation. A current empty inventory is possible; this never qualifies a tool or task.",
+            "type": "boolean"
+          },
+          "source_reason": {
+            "enum": [
+              "project_access_required",
+              "route_not_current",
+              "inventory_unreported",
+              "inventory_stale",
+              "maintenance_unknown",
+              "maintenance_stale",
+              "observation_mismatch",
+              "current"
+            ],
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "grant_id",
+          "grant_version",
+          "grant_status",
+          "shared_project_name",
+          "can_open_project",
+          "route_state",
+          "source_current",
+          "source_reason",
+          "inventory_observed_at",
+          "inventory_expires_at"
         ],
         "type": "object"
       },
@@ -68171,6 +68418,97 @@
           "pool_runner"
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/execution-pools/{pool_id}/runners/{runner_id}/readiness": {
+      "get": {
+        "description": "Current Pool administration reads one exact public Grant. Private route/inventory/maintenance facts require a separate current project-read proof. SourceCurrent is an as-of matching report, not online, prepared-file identity or task/tool qualification.",
+        "operationId": "get_execution-pools_pool_id_runners_runner_id_readiness",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pool_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "runner_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact configured Grant scope; does not widen project access.",
+            "in": "query",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact configured Grant scope; does not widen project access.",
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerReadiness"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoolRunnerReadiness"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "runner",
+          "agent",
+          "pool_runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },
     "/execution-pools/{pool}": {

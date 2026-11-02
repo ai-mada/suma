@@ -5,6 +5,7 @@ import { useApi, useApiView } from '../api-context';
 import { formatNumber, tr, useLocale } from '../i18n';
 import { emptyPoolConfigScope, poolConfigPreparationCommands, poolConfigPreparationIssue, validPoolConfigID, type PoolConfigPreparationInput, type PoolConfigPreparationScope, type PoolConfigPreparationIssue } from './pool-config-preparation-model';
 import {analyzePoolConfigDiagnostic,type PoolConfigDiagnosticAnalysis} from './pool-config-diagnostic-model';
+import { PoolConfigConnectionPanel } from './PoolConfigConnectionPanel';
 import {wellFormed} from '../i18n/catalog';
 import './PoolConfigPreparation.css';
 export type PoolConfigPreparationGrant=Pick<ExecutionPoolGrant, 'id'|'pool_id'|'owner_tenant_id'|'tenant_id'|'project_id'|'status'|'shared_project_name'>;
@@ -258,6 +259,10 @@ function PreparationScope({ ownerTenantID, poolID, runner, grants, disabled=fals
         <pre tabIndex={0} data-pool-config-input aria-label={t('review')}>{JSON.stringify(preview.request, null, 2)}</pre>
       </details>
     </div>}
+    {preview&&!disabled&&previewBasis===sourceBasis&&<PoolConfigConnectionPanel
+      key={owner.current.revision + ':' + sourceBasis} ownerTenantID={ownerTenantID} poolID={poolID}
+      runnerID={runner.id} workerID={runner.worker_id}
+      prepared={{shell:shell as 'powershell'|'bash',output,scopes:preview.request.scopes.map(({tenant_id,project_id})=>({tenant_id,project_id}))}} />}
     {hasPrepared&&!disabled&&<details className="pool-config-diagnostic" data-pool-config-diagnostic>
       <summary><ChevronRight size={16} aria-hidden="true"/>{t('diagnostic.title')}</summary>
       <p className="pool-config-muted">{t('diagnostic.intro')}</p>

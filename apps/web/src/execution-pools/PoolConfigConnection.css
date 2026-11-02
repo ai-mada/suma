@@ -1,0 +1,23 @@
+.pool-config-connection{--control-height:44px;border-top:1px solid var(--border);padding-top:8px;min-width:0}
+.pool-config-connection summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;overflow-wrap:anywhere}
+.pool-config-connection summary>svg{flex:none}
+.pool-config-connection[open]>summary>svg{transform:rotate(90deg)}
+.pool-config-connection pre{box-sizing:border-box;min-width:0;max-width:100%;max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;font-size:13px;line-height:1.6;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft)}
+.pool-connection-body{display:grid;gap:12px;min-width:0;padding-top:8px}
+.pool-connection-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:12px}
+.pool-config-connection label{display:grid;align-content:start;gap:6px;min-width:0}
+.pool-config-connection :is(input,select){box-sizing:border-box;min-width:0;width:100%;align-self:start}
+.pool-config-connection .pool-connection-consent{display:flex;align-items:center;gap:10px}
+.pool-config-connection .pool-connection-consent input{width:18px;height:18px;min-height:18px;flex:0 0 18px;margin:0}
+.pool-connection-actions,.pool-connection-read{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.pool-connection-read>label{flex:1;min-width:160px}
+.pool-config-connection button,.pool-config-connection a.button{min-height:44px;max-width:100%;white-space:normal}
+.pool-connection-facts{display:grid;gap:10px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);min-width:0}
+.pool-connection-facts dl{display:grid;gap:10px;margin:0}
+.pool-connection-facts dl>div{display:grid;grid-template-columns:minmax(90px,.5fr) minmax(0,1fr);gap:8px}
+.pool-connection-facts :is(dt,dd){margin:0;overflow-wrap:anywhere}
+.pool-connection-facts dt{color:var(--muted)}
+.pool-connection-facts dd>span{display:block;font-size:13px}
+.pool-connection-facts a{justify-self:start}
+.pool-config-connection :is(button,a,input,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.pool-connection-fields{grid-template-columns:minmax(0,1fr)}.pool-connection-actions>*{width:100%}.pool-connection-read{display:grid;grid-template-columns:minmax(0,1fr)}.pool-connection-facts dl>div{grid-template-columns:minmax(0,1fr);gap:2px}}

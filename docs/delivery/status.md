@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-POOL-CONNECTION-212：[机器连接与准确项目工具](../product/pool-connection.md)／[架构与AI SOP](../architecture/pool-connection.md)／[交互](../design/pool-connection.md)／[限定验证](../quality/pool-connection-verification.md)。单次原身份检查、独立事实读取和准确工具交接贯通；13项定向、类型0／9675对词条、真实检查及原库Worker只读执行通过。完整31／P0–P7继续。
+
 T-POOL-PREPARATION-DIAGNOSTICS-211：[本机诊断与定位](../product/pool-preparation-diagnostics.md)／[限定验证](../quality/pool-preparation-diagnostics-verification.md)。七字段安全报告、准确输入关联和双语静态建议贯通；9项定向、类型0／9618对词条、真实CLI与只读诊断区通过。未运行模型或业务任务，原31／P0–P7继续。
 
 T-POOL-CONFIG-SCOPE-210：[项目切换隔离验证](../quality/pool-config-scope-verification.md)。修复新项目沿用旧本机配置的风险；1项RED→GREEN、窄类型0和5断点只读界面通过，0重复Go／CLI／业务。

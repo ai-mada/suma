@@ -13,6 +13,9 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, acto
 		writeError(w, forbidden())
 		return true
 	}
+	if s.poolRunnerReadinessHTTP(w, r, actor, parts) {
+		return true
+	}
 	var body map[string]any
 	var err error
 	if r.Method == http.MethodPost {

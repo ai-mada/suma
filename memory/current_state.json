@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-TOOL-PREPARATION-203",
-  "updated_at": "2026-11-02T03:16:30.571Z",
+  "stage": "T-POOL-CONNECTION-212",
+  "updated_at": "2026-11-02T13:23:02.298Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/tool-preparation-recovery-verification.md",
-  "current_summary": "docs/quality/tool-preparation-recovery-summary.json",
+  "current_evidence": "docs/quality/pool-connection-verification.md",
+  "current_summary": "docs/quality/pool-connection-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -641,7 +641,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "Paired zh-CN/en-US9407 keys, production hardcodes0; accurate preparation/target handoff and representative bilingual UI verified, wider journeys remain pending.",
+    "internationalization": "Paired zh-CN/en-US9675 keys, production hardcodes0; explicit original localized timestamp options in final affected check. Representative UI only; wider journeys remain pending.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -666,26 +666,25 @@
     "application_release_rollouts": "Protected Go service-bound original subworkflow, exact per-member approvals/identities, lazy environment reservation, pause/drain, unknown original-operation reconciliation and explicit current resume; same-host actual static provider and read-only CNEN390 verified. Known failure/new revision, automatic composite rollback and full distributed/platform acceptance remain open.",
     "task_conversation_replies": "Protected read-only multi-turn native replies: explicit latest saved turn/context1..20/model/version/one-call output/budget/ack; original Go DAG+Runner+SDK+gateway; original callback recovery, exact assistant provenance, no duplicate message. Actual three local protocol turns, UI-created third, CNEN1366/390 and refresh verified. No interactive shell/code execution or production claim.",
     "interactive_development": "Original durable terminal exchanges precede Result on restart; missing true stop stays unknown, exact reviewed failure disposition never result ACK or replay. Captured immutable source manifest recovered after crash before first exchange. Explicit stopped-source candidate preview/start reuses fixed command/parent seal/bundle/exact-SHA independent Worker/JUnit/fixture Review, accepted source adoption to unstarted task and canonical rejection issue/intake; original histories and current version revalidation retained. Actual Windows and focused tests verified, current browser rendering unavailable in Work settings; Unix/full distributed/production remain pending.",
-    "claude_sdk_connection": "Passive CLI2.1.314 discovery, official SDK0.3.314 resources, private ten-field Go authority, exact model/env-name echo and complete digest; original desktop Worker lifecycle and fresh inventory to explicit paused registration. Observe-only budget, model authentication, activation and quality remain independent."
+    "claude_sdk_connection": "Passive CLI2.1.314 discovery, official SDK0.3.314 resources, private ten-field Go authority, exact model/env-name echo and complete digest; original desktop Worker lifecycle and fresh inventory to explicit paused registration. Observe-only budget, model authentication, activation and quality remain independent.",
+    "pool_connection": "Prepared local configuration -> explicit original paired identity check -> original maintenance/task modes -> independent current project proof and source inventory -> exact project Tools locator. Single original PoolWorker/Session/Journal and execution authority; no automatic enablement or duplicate dispatcher."
   },
   "verified": {
-    "stage": "T-TOOL-PREPARATION-203",
-    "current_report": "docs/quality/tool-preparation-recovery-verification.md",
-    "current_summary": "docs/quality/tool-preparation-recovery-summary.json",
-    "distinct_top_level": 29,
-    "new_top_level": 14,
-    "directly_affected_existing": 15,
-    "go_top_level": 4,
-    "desktop_top_level": 7,
-    "web_top_level": 18,
+    "stage": "T-POOL-CONNECTION-212",
+    "current_report": "docs/quality/pool-connection-verification.md",
+    "current_summary": "docs/quality/pool-connection-summary.json",
+    "distinct_top_level": 13,
+    "new_top_level": 9,
+    "directly_affected_existing": 4,
     "full_web_typecheck_exit": 0,
-    "final_product_file_semantic_exit": 0,
-    "catalog_keys": 9407,
+    "catalog_keys": 9675,
     "production_hardcodes": 0,
-    "representative_synthetic_ui_groups": 2,
-    "gui_launches": 3,
-    "gui_group_executions": 5,
-    "actual_configuration_cli_executions": 1,
+    "actual_compiled_check_calls": 1,
+    "actual_library_worker_starts": 2,
+    "actual_library_worker_drains": 2,
+    "actual_runs": 1,
+    "actual_attempts": 1,
+    "actual_human_acceptance": false,
     "actual_vendor_model_or_full_platform": false
   },
   "production_integration_complete": false,
@@ -696,8 +695,8 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183",
-    "current_stage_receipt": ".cache/remote-tool-scan-205/post-git.json"
+    "previously_published_commit": "7b809facb91c7237da02b4101496216402ff40a1",
+    "current_stage_receipt": ".cache/pool-connection-212/post-git.json"
   },
   "existing_preview": {
     "updated": false,
@@ -707,19 +706,26 @@
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "T204 original inventory feedback source,18focused,realHTTP/SQLite/two bilingual UI groups committed and pushed. Local post-git remote/dev=HEAD, tracked clean,32allowlisted files,2unrelated retained.",
-    "commit": "56c7da0426f092c4c8778a70ca71e0d2973fc183"
+    "evidence": "T212 scoped connection/real library execution delivery; Git receipt recorded separately. Full31/P0-P7 active."
   },
-  "previous_goal_turn": "progress: T209/T210 preparation and scope isolation verified, committed/pushede1fae7c969a273750cda4535749d3c2064aa0655; complete original31/P0-P7 retained.",
-  "current_work": {
+  "previous_goal_turn": {
+    "classification": "progress",
     "stage": "T-POOL-PREPARATION-DIAGNOSTICS-211",
+    "commit": "7b809facb91c7237da02b4101496216402ff40a1",
+    "evidence": "Source, focused checks, actual CLI and representative visual evidence delivered to dev; full platform remains active."
+  },
+  "current_work": {
+    "stage": "T-POOL-CONNECTION-212",
+    "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/pool-preparation-diagnostics.md",
-    "report": "docs/quality/pool-preparation-diagnostics-verification.md",
-    "summary": "docs/quality/pool-preparation-diagnostics-summary.json",
-    "previous_commit": "e1fae7c969a273750cda4535749d3c2064aa0655",
-    "verification": "9distinct5new4old;FullWebtypes0/9618paired0hardcodes;2TSformat-onlyASTequal;1Go+1UIbuild/oneactual6breakpoints/nativeerror1->same-script-success0;readonlydiagnosticregion0build/CLI/repair;4Root-viewedimages;bothhostsnormal0/PIDgone/portsfree.",
-    "next": "Prepared config via original paired identity/PoolSession/fresh exact inventory/Doctor to useful dispatch and same-commit quality; trusted WorkBuddy delivery, remainingtools and all31/P0-P7/58limited34pending92total. Do not equate prepared-file digest with resolved-runtime Journal digest."
+    "contract": "contracts/pool-connection.md",
+    "report": "docs/quality/pool-connection-verification.md",
+    "summary": "docs/quality/pool-connection-summary.json",
+    "previous_commit": "7b809facb91c7237da02b4101496216402ff40a1",
+    "verification": "13distinct9new4old; FullWebtypes0/9675paired0hardcodes;1CLIbuild1UIbuild/1actualjourney/compiledcheck1/originalLibraryWorkers2starts2drains/ownedreadonlyrun1attempt1/nodeSucceeded/0candidate-humanAcceptance-vendor-model;2Root-viewedCN1366EN390images;finaltimestamp-onlyexistingUIcheck0;native0/PIDsabsent/portfree.",
+    "next": "Exact tool profile to formal code candidate/same-commit independent test/human acceptance/next baseline; real foreground CLI deployment, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total. Authentication, inventory, eligibility and acceptance stay distinct.",
+    "full_platform_complete": false,
+    "git_record": ".cache/pool-connection-212/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2572,5 +2578,18 @@
     "next": "Prepared config via original paired identity/PoolSession/fresh exact inventory/Doctor to useful dispatch and same-commit quality; trusted WorkBuddy delivery, remainingtools and all31/P0-P7/58limited34pending92total. Do not equate prepared-file digest with resolved-runtime Journal digest.",
     "version": "1.0.0",
     "full_platform_complete": false
+  },
+  "pool_connection": {
+    "stage": "T-POOL-CONNECTION-212",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/pool-connection.md",
+    "report": "docs/quality/pool-connection-verification.md",
+    "summary": "docs/quality/pool-connection-summary.json",
+    "previous_commit": "7b809facb91c7237da02b4101496216402ff40a1",
+    "verification": "13distinct9new4old; FullWebtypes0/9675paired0hardcodes;1CLIbuild1UIbuild/1actualjourney/compiledcheck1/originalLibraryWorkers2starts2drains/ownedreadonlyrun1attempt1/nodeSucceeded/0candidate-humanAcceptance-vendor-model;2Root-viewedCN1366EN390images;finaltimestamp-onlyexistingUIcheck0;native0/PIDsabsent/portfree.",
+    "next": "Exact tool profile to formal code candidate/same-commit independent test/human acceptance/next baseline; real foreground CLI deployment, trusted WorkBuddy delivery and all31/P0-P7/58limited34pending92total. Authentication, inventory, eligibility and acceptance stay distinct.",
+    "full_platform_complete": false,
+    "git_record": ".cache/pool-connection-212/post-git.json"
   }
 }

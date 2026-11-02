@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-POOL-CONNECTION-212新增[机器连接向导](docs/product/pool-connection.md)：已准备配置明确接续身份检查、维护或任务模式，按当前权限读取独立事实并打开准确项目工具；[交互](docs/design/pool-connection.md)与[限定验证](docs/quality/pool-connection-verification.md)记录实际范围，完整平台继续。
+
 T-TURN-STEERING-188新增[活回合追加指令](contracts/turn-steering.md)：原讨论明确选择本人消息和准确执行目标，在同一Codex回合继续协作，原模型预算／工作区保持绑定；[双语交互](docs/design/turn-steering.md)与[真实CLI限定验证](docs/quality/turn-steering-verification.md)分别记录保存、写出、原生接受和异常核对。完整平台继续。
 
 T-TOOL-INPUTS-187新增[执行中问答](contracts/tool-inputs.md)：本地Codex明确开启后，原节点接收问题、保存回答并向同一活回合投递；原意图恢复、实际写出和关闭分别留证。[简洁双语交互](docs/design/tool-inputs.md)及[实际CLI／限定验证](docs/quality/tool-inputs-verification.md)记录范围，完整平台继续。

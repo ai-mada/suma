@@ -2,7 +2,6 @@ package runner
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,16 +11,28 @@ import (
 
 type PoolRunnerSession struct {
 	Runner struct {
-		ID                string `json:"id"`
-		PoolID            string `json:"pool_id"`
-		WorkerID          string `json:"worker_id"`
-		MaxSlots          int    `json:"max_slots"`
-		CredentialVersion int    `json:"credential_version"`
+		ID                  string   `json:"id"`
+		PoolID              string   `json:"pool_id"`
+		WorkerID            string   `json:"worker_id"`
+		MaxSlots            int      `json:"max_slots"`
+		CredentialVersion   int      `json:"credential_version"`
+		Name                string   `json:"name,omitempty"`
+		Version             int      `json:"version,omitempty"`
+		Status              string   `json:"status,omitempty"`
+		CredentialExpiresAt string   `json:"credential_expires_at,omitempty"`
+		LastSeenAt          string   `json:"last_seen_at,omitempty"`
+		AllowedActions      []string `json:"allowed_actions,omitempty"`
+		CreatedAt           string   `json:"created_at,omitempty"`
 	} `json:"runner"`
 	PoolActive bool `json:"pool_active"`
 	Scopes     []struct {
-		TenantID  string `json:"tenant_id"`
-		ProjectID string `json:"project_id"`
+		TenantID      string `json:"tenant_id"`
+		ProjectID     string `json:"project_id"`
+		PoolID        string `json:"pool_id,omitempty"`
+		GrantID       string `json:"grant_id,omitempty"`
+		GrantVersion  int    `json:"grant_version,omitempty"`
+		ProjectWeight int    `json:"project_weight,omitempty"`
+		Status        string `json:"status,omitempty"`
 	} `json:"scopes"`
 }
 
@@ -51,10 +62,15 @@ func (c *Client) PoolSession(ctx context.Context) (PoolRunnerSession, error) {
 	if r.StatusCode != 200 {
 		return out, &runnerHTTPStatusError{Path: "pool-runner/session", Status: r.StatusCode}
 	}
-	if err = json.NewDecoder(io.LimitReader(r.Body, 2<<20)).Decode(&out); err != nil {
+	raw, readErr := io.ReadAll(io.LimitReader(r.Body, (2<<20)+1))
+	if readErr != nil || len(raw) > 2<<20 {
+		return out, fmt.Errorf("invalid bounded Pool session response")
+	}
+	out, err = decodePoolSession(raw)
+	if err != nil {
 		return out, fmt.Errorf("invalid pool session response")
 	}
-	if out.Runner.ID != c.Pool.RunnerID || out.Runner.PoolID != c.Pool.PoolID || out.Runner.WorkerID != "pool-"+out.Runner.ID || out.Runner.MaxSlots < 1 || out.Runner.MaxSlots > 128 || out.Runner.CredentialVersion < 1 || len(out.Scopes) > 256 {
+	if !validPoolLocalID(out.Runner.ID) || !validPoolLocalID(out.Runner.PoolID) || out.Runner.ID != c.Pool.RunnerID || out.Runner.PoolID != c.Pool.PoolID || out.Runner.WorkerID != "pool-"+out.Runner.ID || out.Runner.MaxSlots < 1 || out.Runner.MaxSlots > 128 || out.Runner.CredentialVersion < 1 || len(out.Scopes) > 256 {
 		return out, fmt.Errorf("pool session identity or capacity mismatch")
 	}
 	return out, nil

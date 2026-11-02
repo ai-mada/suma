@@ -41,6 +41,7 @@ import {ToolDiscoveryPanel,type ToolDiscoveryAdoption} from './ToolDiscoveryPane
 import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
 import "./tool.css";
 import "./ToolWorkspace.css";
+import { currentPoolToolWorker, parsePoolToolLocator } from './execution-pools/pool-config-connection-model';
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {toolPreparationTarget,preparationForLocalTool,type ToolPreparationPreset} from './tool-preparation-target';
@@ -217,6 +218,31 @@ function ScopedToolWorkspace({
     filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
   const replacementSourceCurrent=!!replacementSource&&!stale&&current?.id===replacementSource.id&&current.version===replacementSource.version&&current.worker_id===replacementSource.worker_id&&current.state===replacementSource.state&&sameToolProfile(current.profile,replacementSource.profile);
   const reportReturnOwner=useRef({api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked});reportReturnOwner.current={api,contextKey,generation:pairingGeneration,nonce:connection?.nonce,writeBlocked};
+  const poolNavigation=useRef<{caller:typeof api;generation:number;panel:string}|undefined>(undefined);
+  // The locator opens only the original UI. Current project identity and
+  // catalog reads remain authoritative; no scan, registration or enable runs.
+  useEffect(()=>{
+    const locator=parsePoolToolLocator(panel);
+    if(!locator||pending||action.busy||pairingLocked||inspectionLocked||sharedWorkers.loading||sharedWorkers.error||!sharedWorkers.data)return;
+    if(poolNavigation.current?.caller===api&&poolNavigation.current.generation===pairingGeneration&&poolNavigation.current.panel===panel)return;
+    const ticket={caller:api,generation:pairingGeneration,panel};poolNavigation.current=ticket;
+    const workerID=currentPoolToolWorker(locator,sharedWorkers.data);
+    if(!workerID){setConnectError(new UiError('tool-workspace.target_unavailable'));return;}
+    const controller=new AbortController(),nonce=++connectIntent.current;let completed=false;
+    setConnecting(true);setConnectError(undefined);
+    const owns=()=>activeWorkspace.current&&!controller.signal.aborted&&nonce===connectIntent.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration;
+    void(async()=>{
+      try{
+        const catalog=readAdapterCatalog(await api<unknown>('/adapter-catalog'+query(project),undefined,'GET',undefined,controller.signal),project);
+        if(!owns())return;
+        if(!catalog?.items.some(item=>item.direction==='suma_to_tool'&&item.implementation==='implemented'&&item.setup_kind==='runner_profile'))throw new UiError('tool-workspace.target_unavailable');
+        beginPublicDraft({adapterID:'',workerID,commandID:'',name:'',nameEdited:false});
+        action.clearError();setDialog({kind:'quick',preferredWorkerID:workerID});completed=true;
+      }catch(error){if(owns())setConnectError(error);}
+      finally{if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration&&(connectIntent.current===nonce||completed))setConnecting(false);}
+    })();
+    return()=>{controller.abort();if(!completed&&poolNavigation.current===ticket)poolNavigation.current=undefined;};
+  },[api,project,panel,pairingGeneration,pending,action.busy,pairingLocked,inspectionLocked,sharedWorkers.loading,sharedWorkers.error,sharedWorkers.data]);
   function applyFilters(value:ToolListFilters){
     if(!validToolListQuery(value.query)){setSearchError(true);return;}
     const next={...value,query:value.query.trim()};setSearchError(false);setFilters(next);setFilter('all');
