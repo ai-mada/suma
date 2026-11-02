@@ -1,5 +1,7 @@
 # 工具管理后续纵向切片
 
+T-ACCEPTED-TASK-BASELINE-222：[已验收任务交给后续开发](../product/accepted-task-baseline.md)／[架构与AI SOP](../architecture/accepted-task-baseline.md)／[交互](../design/accepted-task-baseline.md)／[限定验证](../quality/accepted-task-baseline-verification.md)。普通智能体候选经准确独测与Review后，可明确采用为未开始任务的基线，沿原broker和独立工作树继续开发；不继承旧验收、不自动开始。完整31项／P0–P7继续。
+
 T-QODER-TOOL-PREPARATION-221：[Qoder配置准备与AI SOP](../product/qoder-tool-preparation.md)／[交互设计](../design/qoder-tool-preparation.md)／[限定验证](../quality/qoder-tool-preparation-verification.md)。明确模型和本机信息沿原ACP准备器创建新文件，再采用准确普通字段或共享本机引用；手工JSON按需展开，来源切换可靠隔离。准备不运行Qoder或模型，真实发现／登记／启用分别核验。完整31项／P0–P7继续。
 
 T-LOCAL-TOOL-PREPARATION-220：[通用CLI准备与AI SOP](../product/local-tool-preparation.md)／[交互设计](../design/local-tool-preparation.md)／[限定验证](../quality/local-tool-preparation-verification.md)。四种通用CLI使用Shell与全新文件两字段，复用原发现／准备命令；手工JSON按需展开，明确采用路径接续普通字段或共享引用。复制、被动探测、文件准备、登记和模型执行分别记录。完整31项／P0–P7继续。
@@ -79,6 +81,8 @@ Claude SDK／OpenCode SDK受信检查输出有限准备原因，当前权限／�
 原指南按需组合已有文件，跨源checks只在合成后原完整校验；源保持、拒覆盖、固定安全回执和明确采用输出路径贯通。13项定向及实际PowerShell、双语代表界面见[产品与AI SOP](../product/command-composition.md)和[限定验证](../quality/command-composition-verification.md)。采用路径到原Guide由父子组件检查覆盖，代表GUI只验证组合表单和真实离线CLI。准备不是库存或同提交独测。
 
 ## 下一步：正式代码开发与质量交接
+
+T222已补齐普通已验收agent候选到后续任务的明确基线交接。当前另三处已核实待办：任务讨论开发计划、智能推荐采用和专家团队计划尚未传递原T216的本次test_bindings选择；单任务派发表单已有完整能力。后续复用原冻结与原Go派发逐项接通，保持现有推荐禁用保护，不能先删guard或静默丢弃独测选择。
 
 优先复用准确节点和当前工具档案，继续原正式开发候选、同提交独立测试、人工验收及后续基线接续、OpenCode真实环境和WorkBuddy可信代码交付；不重建已完成的诊断／配对／准备／检测／Doctor／换新，不把准备文件SHA与原解析运行配置SHA相等当作启动证明。
 

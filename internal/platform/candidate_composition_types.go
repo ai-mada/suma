@@ -78,13 +78,14 @@ type CandidateCompositionPage struct {
 	Total      int                        `json:"total"`
 }
 type CandidateCompositionSourceChoice struct {
-	TaskID       string     `json:"task_id"`
-	TaskVersion  int        `json:"task_version"`
-	Title        string     `json:"title"`
-	SourceNodeID string     `json:"source_node_id"`
-	Source       cc.Binding `json:"source"`
-	Eligible     bool       `json:"eligible"`
-	Blockers     []string   `json:"blockers"`
+	TaskID          string     `json:"task_id"`
+	TaskVersion     int        `json:"task_version"`
+	Title           string     `json:"title"`
+	SourceNodeID    string     `json:"source_node_id"`
+	Source          cc.Binding `json:"source"`
+	Eligible        bool       `json:"eligible"`
+	CanBindBaseline bool       `json:"can_bind_baseline"`
+	Blockers        []string   `json:"blockers"`
 }
 type CandidateCompositionOptions struct {
 	ProjectID   string                             `json:"project_id"`
@@ -102,6 +103,9 @@ type TaskCodeBaselineBindRequest struct {
 	ExpectedCompositionVersion           int    `json:"expected_composition_version,omitempty"`
 	TerminalCandidatePlanID              string `json:"terminal_candidate_plan_id,omitempty"`
 	ExpectedTerminalCandidatePlanVersion int    `json:"expected_terminal_candidate_plan_version,omitempty"`
+	SourceTaskID                         string `json:"source_task_id,omitempty"`
+	ExpectedSourceTaskVersion            int    `json:"expected_source_task_version,omitempty"`
+	SourceNodeID                         string `json:"source_node_id,omitempty"`
 	Acknowledge                          bool   `json:"acknowledge"`
 	Reason                               string `json:"reason"`
 	IdempotencyKey                       string `json:"idempotency_key"`

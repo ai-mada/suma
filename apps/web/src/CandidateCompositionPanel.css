@@ -11,3 +11,7 @@
 .composition-run-history{margin:0;padding-left:22px;display:grid;gap:12px;min-width:0}.composition-run-history li{padding:10px 0;display:grid;gap:8px;border-bottom:1px solid var(--border);min-width:0}.composition-run-history strong{font-size:12px;color:var(--muted)}
 .composition-body details{min-width:0}.composition-body summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:12px;font-weight:600}.composition-history ul{list-style:none;margin:0;padding:0}.composition-history button{text-align:left}.composition-facts{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr);gap:7px 10px;margin:0;font-size:12px}.composition-facts dt{color:var(--muted)}.composition-facts dd{margin:0;min-width:0;overflow-wrap:anywhere}.composition-raw{max-height:280px;overflow:auto;padding:10px;background:var(--surface-soft);font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:6px}.composition-success{color:var(--green);font-size:13px}
 @media(max-width:600px){.composition-body{padding:0 10px 12px}.composition-facts{grid-template-columns:1fr;gap:4px}.composition-facts dd{margin-bottom:6px}.composition-actions>button{flex:1}.composition-heading{align-items:flex-start}.composition-order,.composition-baseline,.composition-callout{padding:10px}}
+
+/* Keep baseline inputs and actions at 44px when global foundation rules use
+ * the inherited control-height token. Scope this to the existing panel. */
+.composition-task-baseline{--control-height:44px}

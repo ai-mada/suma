@@ -1,0 +1,17 @@
+{
+  "task-code-baseline-source.help":"为未开始任务明确选择已验收的智能体候选或合成结果。这里只固定代码输入，不启动开发或授予验收资格。",
+  "task-code-baseline-source.origin":"代码来源",
+  "task-code-baseline-source.accepted_task":"已验收任务候选",
+  "task-code-baseline-source.composition":"合成结果",
+  "task-code-baseline-source.source":"已验收任务与产出步骤",
+  "task-code-baseline-source.choose":"选择准确候选",
+  "task-code-baseline-source.option":"{{title}} · v{{version}} · {{node}}",
+  "task-code-baseline-source.bounded":"此处最多读取 200 条来源，不代表完整项目历史；同一任务的多个产出步骤须分别选择。",
+  "task-code-baseline-source.empty":"当前已加载范围中，没有可用于新基线绑定的候选。",
+  "task-code-baseline-source.changed":"所选来源已变化，或当前资格尚未确认。请刷新后重新明确选择候选。",
+  "task-code-baseline-source.node":"产出步骤",
+  "task-code-baseline-source.commit":"候选提交",
+  "task-code-baseline-source.open_source":"打开准确来源运行与尝试",
+  "task-code-baseline-source.refresh":"刷新来源与目标",
+  "task-code-baseline-source.pending_source":"原请求：{{task}} · v{{version}} · {{node}}。即使候选不再列出，仍核对这次原请求。"
+}

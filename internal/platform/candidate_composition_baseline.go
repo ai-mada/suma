@@ -101,9 +101,11 @@ func (s *Service) GetTaskCodeBaseline(ctx context.Context, actor Actor, project,
 	return out, nil
 }
 func (s *Service) BindTaskCodeBaseline(ctx context.Context, engine *dag.Engine, actor Actor, project, task string, req TaskCodeBaselineBindRequest) (out Record, err error) {
-	composition := handoffID(req.CompositionID, false) && req.ExpectedCompositionVersion > 0 && req.TerminalCandidatePlanID == "" && req.ExpectedTerminalCandidatePlanVersion == 0
-	terminal := handoffID(req.TerminalCandidatePlanID, false) && req.ExpectedTerminalCandidatePlanVersion > 0 && req.CompositionID == "" && req.ExpectedCompositionVersion == 0
-	if req.ProjectID != project || !handoffID(project, false) || !handoffID(task, false) || (!composition && !terminal) || req.ExpectedTaskVersion < 1 || req.ExpectedBindingVersion < 0 || !planningText(req.Reason, 2000) || !planningKey(req.IdempotencyKey) {
+	noTaskSource := req.SourceTaskID == "" && req.ExpectedSourceTaskVersion == 0 && req.SourceNodeID == ""
+	composition := handoffID(req.CompositionID, false) && req.ExpectedCompositionVersion > 0 && req.TerminalCandidatePlanID == "" && req.ExpectedTerminalCandidatePlanVersion == 0 && noTaskSource
+	terminal := handoffID(req.TerminalCandidatePlanID, false) && req.ExpectedTerminalCandidatePlanVersion > 0 && req.CompositionID == "" && req.ExpectedCompositionVersion == 0 && noTaskSource
+	ordinary := handoffID(req.SourceTaskID, false) && req.ExpectedSourceTaskVersion > 0 && diagnosisID(req.SourceNodeID, 150) && req.CompositionID == "" && req.ExpectedCompositionVersion == 0 && req.TerminalCandidatePlanID == "" && req.ExpectedTerminalCandidatePlanVersion == 0
+	if req.ProjectID != project || !handoffID(project, false) || !handoffID(task, false) || (!composition && !terminal && !ordinary) || req.ExpectedTaskVersion < 1 || req.ExpectedBindingVersion < 0 || !planningText(req.Reason, 2000) || !planningKey(req.IdempotencyKey) {
 		return out, compositionError(400, "invalid", compositionInvalid)
 	}
 	if !req.Acknowledge {
@@ -144,8 +146,15 @@ func (s *Service) BindTaskCodeBaseline(ctx context.Context, engine *dag.Engine, 
 	if oldVersion != req.ExpectedBindingVersion {
 		return out, compositionError(409, "baseline_changed", compositionBaseline)
 	}
-	binding := ccmp.CodeBaselineBinding{Protocol: ccmp.CodeBaselineProtocol, ID: newID(), ProjectID: project, TaskID: task, TaskVersion: out.Version + 1, CompositionID: req.CompositionID, CompositionVersion: req.ExpectedCompositionVersion, TerminalCandidatePlanID: req.TerminalCandidatePlanID, TerminalCandidatePlanVersion: req.ExpectedTerminalCandidatePlanVersion}
-	basis, err := s.codeBaselineAcceptedOriginTx(ctx, auth.tx, auth.currentPrincipal, project, binding)
+	binding := ccmp.CodeBaselineBinding{Protocol: ccmp.CodeBaselineProtocol, ID: newID(), ProjectID: project, TaskID: task, TaskVersion: out.Version + 1, CompositionID: req.CompositionID, CompositionVersion: req.ExpectedCompositionVersion, TerminalCandidatePlanID: req.TerminalCandidatePlanID, TerminalCandidatePlanVersion: req.ExpectedTerminalCandidatePlanVersion, SourceTaskID: req.SourceTaskID, SourceTaskVersion: req.ExpectedSourceTaskVersion}
+	var basis RepositoryIntegrationBasis
+	if ordinary {
+		// Only this explicit task/node choice is resolved. The caller cannot
+		// fill a partial CandidateBinding or select an implicit first producer.
+		basis, err = s.acceptedTaskCandidateBasisTx(ctx, auth.tx, auth.currentPrincipal, project, req.SourceTaskID, req.ExpectedSourceTaskVersion, req.SourceNodeID)
+	} else {
+		basis, err = s.codeBaselineAcceptedOriginTx(ctx, auth.tx, auth.currentPrincipal, project, binding)
+	}
 	if err != nil {
 		return out, err
 	}
@@ -225,6 +234,9 @@ func (s *Service) bindCodeBaselineExecutionTx(ctx context.Context, tx *sql.Tx, a
 	originID := b.CompositionID
 	if b.TerminalCandidatePlanID != "" {
 		originID = b.TerminalCandidatePlanID
+	}
+	if b.SourceTaskID != "" {
+		originID = b.SourceTaskID
 	}
 	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_candidate_composition_executions(run_id,tenant_id,project_id,plan_id,node_id,input_kind,payload)VALUES(?,?,?,?,?,'code_baseline',?)`), run, auth.target.tenantID, project, originID, node, stringify(r))
 	return err

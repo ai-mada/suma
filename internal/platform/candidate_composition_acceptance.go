@@ -119,6 +119,9 @@ func (s *Service) checkCodeBaselineAcceptanceTx(ctx context.Context, tx *sql.Tx,
 		if binding.TerminalCandidatePlanID != "" {
 			basisKey = "terminal:" + binding.TerminalCandidatePlanID + ":" + strconv.Itoa(binding.TerminalCandidatePlanVersion)
 		}
+		if binding.SourceTaskID != "" {
+			basisKey = acceptedTaskBaselineMemoKey(binding.SourceTaskID, binding.SourceTaskVersion, binding.Source)
+		}
 		basis, known := walk.bases[basisKey]
 		if !known {
 			basis, err = s.codeBaselineAcceptedOriginTx(ctx, tx, p, project, binding)

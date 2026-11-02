@@ -6820,6 +6820,9 @@
             },
             "type": "array"
           },
+          "can_bind_baseline": {
+            "type": "boolean"
+          },
           "eligible": {
             "type": "boolean"
           },
@@ -6846,6 +6849,7 @@
           "source_node_id",
           "source",
           "eligible",
+          "can_bind_baseline",
           "blockers"
         ],
         "type": "object"
@@ -10059,6 +10063,16 @@
                   "required": [
                     "terminal_candidate_plan_version"
                   ]
+                },
+                {
+                  "required": [
+                    "source_task_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "source_task_version"
+                  ]
                 }
               ]
             },
@@ -10079,12 +10093,52 @@
                   "required": [
                     "composition_version"
                   ]
+                },
+                {
+                  "required": [
+                    "source_task_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "source_task_version"
+                  ]
                 }
               ]
             },
             "required": [
               "terminal_candidate_plan_id",
               "terminal_candidate_plan_version"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "composition_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "composition_version"
+                  ]
+                },
+                {
+                  "required": [
+                    "terminal_candidate_plan_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "terminal_candidate_plan_version"
+                  ]
+                }
+              ]
+            },
+            "required": [
+              "source_task_id",
+              "source_task_version"
             ]
           }
         ],
@@ -10113,6 +10167,14 @@
           },
           "source": {
             "$ref": "#/components/schemas/CandidateBinding"
+          },
+          "source_task_id": {
+            "type": "string"
+          },
+          "source_task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
           },
           "task_id": {
             "type": "string"
@@ -33857,6 +33919,21 @@
                   "required": [
                     "expected_terminal_candidate_plan_version"
                   ]
+                },
+                {
+                  "required": [
+                    "source_task_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "expected_source_task_version"
+                  ]
+                },
+                {
+                  "required": [
+                    "source_node_id"
+                  ]
                 }
               ]
             },
@@ -33877,12 +33954,58 @@
                   "required": [
                     "expected_composition_version"
                   ]
+                },
+                {
+                  "required": [
+                    "source_task_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "expected_source_task_version"
+                  ]
+                },
+                {
+                  "required": [
+                    "source_node_id"
+                  ]
                 }
               ]
             },
             "required": [
               "terminal_candidate_plan_id",
               "expected_terminal_candidate_plan_version"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "composition_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "expected_composition_version"
+                  ]
+                },
+                {
+                  "required": [
+                    "terminal_candidate_plan_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "expected_terminal_candidate_plan_version"
+                  ]
+                }
+              ]
+            },
+            "required": [
+              "source_task_id",
+              "expected_source_task_version",
+              "source_node_id"
             ]
           }
         ],
@@ -33900,6 +34023,11 @@
             "type": "integer"
           },
           "expected_composition_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_source_task_version": {
             "maximum": 2147483646,
             "minimum": 1,
             "type": "integer"
@@ -33923,6 +34051,12 @@
             "type": "string"
           },
           "reason": {
+            "type": "string"
+          },
+          "source_node_id": {
+            "type": "string"
+          },
+          "source_task_id": {
             "type": "string"
           },
           "terminal_candidate_plan_id": {

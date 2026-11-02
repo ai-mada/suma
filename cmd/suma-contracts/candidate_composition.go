@@ -87,15 +87,30 @@ func candidateCompositionContracts(add operationAdder, api map[string]any) {
 	field("TaskCodeBaselineBindRequest", "expected_binding_version", map[string]any{"minimum": 0, "maximum": 2147483646})
 	field("TaskCodeBaselineBindRequest", "expected_terminal_candidate_plan_version", map[string]any{"minimum": 1, "maximum": 2147483646})
 	for _, model := range []string{"CodeBaselineBinding", "TaskCodeBaselineBindRequest"} {
-		compositionVersion, terminalVersion := "composition_version", "terminal_candidate_plan_version"
+		compositionVersion, terminalVersion, sourceVersion := "composition_version", "terminal_candidate_plan_version", "source_task_version"
 		if model == "TaskCodeBaselineBindRequest" {
-			compositionVersion, terminalVersion = "expected_composition_version", "expected_terminal_candidate_plan_version"
+			compositionVersion, terminalVersion, sourceVersion = "expected_composition_version", "expected_terminal_candidate_plan_version", "expected_source_task_version"
 		}
-		toolContractMap(api, "components", "schemas", model)["oneOf"] = []any{
-			map[string]any{"required": []string{"composition_id", compositionVersion}, "not": map[string]any{"anyOf": []any{map[string]any{"required": []string{"terminal_candidate_plan_id"}}, map[string]any{"required": []string{terminalVersion}}}}},
-			map[string]any{"required": []string{"terminal_candidate_plan_id", terminalVersion}, "not": map[string]any{"anyOf": []any{map[string]any{"required": []string{"composition_id"}}, map[string]any{"required": []string{compositionVersion}}}}},
+		groups := [][]string{{"composition_id", compositionVersion}, {"terminal_candidate_plan_id", terminalVersion}, {"source_task_id", sourceVersion}}
+		if model == "TaskCodeBaselineBindRequest" {
+			groups[2] = append(groups[2], "source_node_id")
 		}
+		variants := []any{}
+		for index, required := range groups {
+			forbidden := []any{}
+			for other, fields := range groups {
+				if other != index {
+					for _, name := range fields {
+						forbidden = append(forbidden, map[string]any{"required": []string{name}})
+					}
+				}
+			}
+			variants = append(variants, map[string]any{"required": required, "not": map[string]any{"anyOf": forbidden}})
+		}
+		toolContractMap(api, "components", "schemas", model)["oneOf"] = variants
+		field(model, sourceVersion, map[string]any{"minimum": 1, "maximum": 2147483646})
 	}
+
 	for _, pair := range [][2]string{{"CandidateCompositionSourceRequest", "expected_task_version"}, {"CandidateCompositionCreateRequest", "expected_task_version"}, {"CandidateCompositionCreateRequest", "workflow_version"}, {"CandidateCompositionStartRequest", "expected_version"}, {"CandidateCompositionCommandRequest", "expected_version"}, {"TaskCodeBaselineBindRequest", "expected_task_version"}, {"TaskCodeBaselineBindRequest", "expected_composition_version"}} {
 		field(pair[0], pair[1], map[string]any{"minimum": 1, "maximum": 2147483646})
 	}

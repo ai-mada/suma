@@ -50,7 +50,7 @@
  "candidate-composition.binding_unavailable":"当前权限或执行状态不允许为此任务绑定代码基线。",
  "candidate-composition.previous_baseline":"当前开发输入",
  "candidate-composition.admin_default":"管理员基准",
- "candidate-composition.next_baseline":"拟固定的合成输入",
+ "candidate-composition.next_baseline":"拟固定的代码输入",
  "candidate-composition.baseline_facts":"当前固定基线溯源",
  "candidate-composition.bind_reason":"基线绑定依据",
  "candidate-composition.bind_ack":"我已审阅准确的已验收候选，确认更改未开始任务的基线。旧预览将失效，已有运行保持。",

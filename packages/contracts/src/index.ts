@@ -1465,6 +1465,7 @@ export interface CandidateCompositionSourceChoice {
   source_node_id: string;
   source: CandidateBinding;
   eligible: boolean;
+  can_bind_baseline: boolean;
   blockers: (string)[];
 }
 export interface CandidateCompositionSourceRequest {
@@ -1999,6 +2000,8 @@ export interface CodeBaselineBinding {
   composition_version?: number;
   terminal_candidate_plan_id?: string;
   terminal_candidate_plan_version?: number;
+  source_task_id?: string;
+  source_task_version?: number;
   accepted_basis_sha256: string;
   source: CandidateBinding;
   binding_sha256: string;
@@ -6660,6 +6663,9 @@ export interface TaskCodeBaselineBindRequest {
   expected_composition_version?: number;
   terminal_candidate_plan_id?: string;
   expected_terminal_candidate_plan_version?: number;
+  source_task_id?: string;
+  expected_source_task_version?: number;
+  source_node_id?: string;
   acknowledge: boolean;
   reason: string;
   idempotency_key: string;

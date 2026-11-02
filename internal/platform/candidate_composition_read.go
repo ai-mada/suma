@@ -342,13 +342,21 @@ func (s *Service) CandidateCompositionOptions(ctx context.Context, engine *dag.E
 		return out, err
 	}
 	for _, c := range choices {
-		_, e := s.repositoryBasisReadTx(ctx, auth.tx, auth.currentPrincipal, project, c.TaskID, c.SourceNodeID)
+		basis, e := s.repositoryBasisReadTx(ctx, auth.tx, auth.currentPrincipal, project, c.TaskID, c.SourceNodeID)
 		c.Eligible = e == nil
 		if e != nil {
 			if !repositoryKnownError(e) {
 				return out, e
 			}
 			c.Blockers = append(c.Blockers, compositionSource)
+		} else if basis.TaskID == c.TaskID && basis.TaskVersion == c.TaskVersion && basis.SourceNodeID == c.SourceNodeID && basis.Source == c.Source {
+			// This is an additive ordinary-agent fact, independent of whether
+			// the target can create a new multi-source composition. An existing
+			// target baseline can still be explicitly replaced via its own CAS.
+			c.CanBindBaseline, e = s.acceptedTaskCandidateNodeTx(ctx, auth.tx, auth.currentPrincipal, project, basis)
+			if e != nil {
+				return out, e
+			}
 		}
 		out.Sources = append(out.Sources, c)
 	}

@@ -1,0 +1,17 @@
+{
+  "task-code-baseline-source.help":"Choose an exact accepted agent candidate or composition result for this unstarted task. This fixes its code input; it does not start development or grant acceptance.",
+  "task-code-baseline-source.origin":"Code source",
+  "task-code-baseline-source.accepted_task":"Accepted task candidate",
+  "task-code-baseline-source.composition":"Composition result",
+  "task-code-baseline-source.source":"Accepted task and producer step",
+  "task-code-baseline-source.choose":"Select an exact candidate",
+  "task-code-baseline-source.option":"{{title}} · v{{version}} · {{node}}",
+  "task-code-baseline-source.bounded":"This reads up to 200 source entries. It is not a complete project history; multiple producer steps are separate choices.",
+  "task-code-baseline-source.empty":"No candidate in this loaded scope currently qualifies for a new baseline binding.",
+  "task-code-baseline-source.changed":"The selected source changed or its current qualification is unconfirmed. Refresh and explicitly select the candidate again.",
+  "task-code-baseline-source.node":"Producer step",
+  "task-code-baseline-source.commit":"Candidate commit",
+  "task-code-baseline-source.open_source":"Open the exact source run and attempt",
+  "task-code-baseline-source.refresh":"Refresh source and target",
+  "task-code-baseline-source.pending_source":"Original request: {{task}} · v{{version}} · {{node}}. Reconcile this request even if the candidate is no longer listed."
+}

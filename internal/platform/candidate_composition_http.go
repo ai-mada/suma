@@ -57,28 +57,29 @@ func (s *Server) candidateCompositionHTTP(w http.ResponseWriter, r *http.Request
 		if reject(projectKnowledgeRequired(body, "project_id", "expected_task_version", "expected_binding_version", "reason", "acknowledge", "idempotency_key")) || reject(compositionBodyIntegers(body, "expected_task_version", "expected_binding_version")) {
 			return true
 		}
-		_, terminalOrigin := body["terminal_candidate_plan_id"]
-		if terminalOrigin {
-			if _, mixed := body["composition_id"]; mixed {
-				writeError(w, invalid(compositionInvalid))
-				return true
-			}
-			if _, mixed := body["expected_composition_version"]; mixed {
-				writeError(w, invalid(compositionInvalid))
-				return true
-			}
-			if reject(projectKnowledgeRequired(body, "terminal_candidate_plan_id", "expected_terminal_candidate_plan_version")) || reject(compositionBodyIntegers(body, "expected_terminal_candidate_plan_version")) {
-				return true
-			}
-		} else {
-			if _, mixed := body["expected_terminal_candidate_plan_version"]; mixed {
-				writeError(w, invalid(compositionInvalid))
-				return true
-			}
-			if reject(projectKnowledgeRequired(body, "composition_id", "expected_composition_version")) || reject(compositionBodyIntegers(body, "expected_composition_version")) {
-				return true
+		// Count presence, not zero-values: partial, null or mixed origins cannot
+		// be disguised as another source before the strict DTO decoder runs.
+		origins := [][]string{{"composition_id", "expected_composition_version"}, {"terminal_candidate_plan_id", "expected_terminal_candidate_plan_version"}, {"source_task_id", "expected_source_task_version", "source_node_id"}}
+		selected := -1
+		for index, fields := range origins {
+			for _, field := range fields {
+				if _, present := body[field]; present {
+					if selected >= 0 && selected != index {
+						writeError(w, invalid(compositionInvalid))
+						return true
+					}
+					selected = index
+				}
 			}
 		}
+		if selected < 0 {
+			writeError(w, invalid(compositionInvalid))
+			return true
+		}
+		if reject(projectKnowledgeRequired(body, origins[selected]...)) || reject(compositionBodyIntegers(body, origins[selected][1])) {
+			return true
+		}
+
 		if reject(strictAutomation(body, &req)) {
 			return true
 		}

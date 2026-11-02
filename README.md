@@ -1,5 +1,7 @@
 # 速码 suma
 
+T-ACCEPTED-TASK-BASELINE-222：[已验收任务交给后续开发](docs/product/accepted-task-baseline.md)／[架构与AI SOP](docs/architecture/accepted-task-baseline.md)／[交互](docs/design/accepted-task-baseline.md)／[限定验证](docs/quality/accepted-task-baseline-verification.md)。普通智能体候选经准确独测与Review后，可明确采用为未开始任务的基线，沿原broker和独立工作树继续开发；不继承旧验收、不自动开始。完整31项／P0–P7继续。
+
 T-QODER-TOOL-PREPARATION-221：[Qoder配置准备与AI SOP](docs/product/qoder-tool-preparation.md)／[交互设计](docs/design/qoder-tool-preparation.md)／[限定验证](docs/quality/qoder-tool-preparation-verification.md)。明确模型和本机信息沿原ACP准备器创建新文件，再采用准确普通字段或共享本机引用；手工JSON按需展开，来源切换可靠隔离。准备不运行Qoder或模型，真实发现／登记／启用分别核验。完整31项／P0–P7继续。
 
 T-LOCAL-TOOL-PREPARATION-220：[通用CLI准备与AI SOP](docs/product/local-tool-preparation.md)／[交互设计](docs/design/local-tool-preparation.md)／[限定验证](docs/quality/local-tool-preparation-verification.md)。四种通用CLI使用Shell与全新文件两字段，复用原发现／准备命令；手工JSON按需展开，明确采用路径接续普通字段或共享引用。复制、被动探测、文件准备、登记和模型执行分别记录。完整31项／P0–P7继续。

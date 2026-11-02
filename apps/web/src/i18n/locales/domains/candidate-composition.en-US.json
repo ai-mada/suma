@@ -50,7 +50,7 @@
  "candidate-composition.binding_unavailable":"This task cannot accept a code baseline under the current authority or execution state.",
  "candidate-composition.previous_baseline":"Current development input",
  "candidate-composition.admin_default":"Administrator baseline",
- "candidate-composition.next_baseline":"Proposed combined input",
+ "candidate-composition.next_baseline":"Proposed code input",
  "candidate-composition.baseline_facts":"Current fixed baseline provenance",
  "candidate-composition.bind_reason":"Reason for this baseline",
  "candidate-composition.bind_ack":"I reviewed this exact accepted candidate and confirm changing the unstarted task's baseline. Old previews become invalid; existing runs are unchanged.",

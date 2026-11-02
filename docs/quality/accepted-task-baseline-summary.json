@@ -1,0 +1,171 @@
+{
+  "stage": "T-ACCEPTED-TASK-BASELINE-222",
+  "version": "1.0.0",
+  "status": "scoped_verified",
+  "base": "87a9bc3ea85e5a55f2d02a6e1e07388574e874e3",
+  "full_goal": {
+    "status": "active",
+    "version": "1.0.0",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
+    "target_design": "docs/suma-architecture-design.html",
+    "stage_delivery_is_not_full_completion": true
+  },
+  "checks": {
+    "distinct_top_level": 17,
+    "new": 11,
+    "direct_old": 6,
+    "go": 11,
+    "web": 6,
+    "full_web_tsc_exit": 0,
+    "locale_pairs": 9873,
+    "production_hardcodes": 0,
+    "generated_models": 999,
+    "api_paths": 452,
+    "docs": {
+      "markdown": 747,
+      "api_paths": 452,
+      "schema_refs": 4176,
+      "exit_code": 0
+    }
+  },
+  "actual": {
+    "positive_journey_passed": true,
+    "worker_runtime": "Current Go testbinary original runner.Worker/Execute; no standalone CLI binary built",
+    "candidate_M": "299cf4ae660b73d9a03a663086513e0b6e8ee4f1",
+    "candidate_N": "2cff3d65a40d8a1f58867904b73b415663e9a079",
+    "parent_of_N": "299cf4ae660b73d9a03a663086513e0b6e8ee4f1",
+    "broker_http_reads": 1,
+    "ui_groups": 3,
+    "binding_posts": 1,
+    "go_host_attempts": 3,
+    "go_host_exits": [
+      1,
+      1,
+      0
+    ],
+    "ui_attempts": 4,
+    "final_ui_exit": 0,
+    "final_native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "forced": false,
+    "web_builds": 2,
+    "vendor_calls": 0,
+    "model_calls": 0,
+    "customer_signoff": false,
+    "source_runtime": {
+      "independent-journal_pending": 0,
+      "independent-journal_progress_pending": 0,
+      "source-developer-journal_pending": 0,
+      "source-developer-journal_progress_pending": 0
+    },
+    "followup_runtime": {
+      "followup-developer-journal_pending": 0,
+      "followup-developer-journal_progress_pending": 0,
+      "independent-journal_pending": 0,
+      "independent-journal_progress_pending": 0
+    },
+    "source_return": {
+      "legacy_status": 428,
+      "legacy_interpretation": "view_context_required; not evidence for source domain",
+      "current_status": 409,
+      "error_code": "repository_integration_basis",
+      "message_key": "repository_integration.basis",
+      "current_source_status": "blocked",
+      "current_source_version": 4,
+      "current_target_version": 1,
+      "fresh_target_unchanged": true,
+      "completed_target_unchanged": true,
+      "replayed_git_worker_review_browser": false,
+      "supplement_attempts": 2,
+      "original_database_hash_before_supplement": "06cfd85817e62c4a329477d0ab3b10a5e1c9243a35ef25f3367300e78ad1a4d5",
+      "original_database_hash_after_supplement": "06cfd85817e62c4a329477d0ab3b10a5e1c9243a35ef25f3367300e78ad1a4d5",
+      "original_pre_login_hash": "not captured; original test DB had one auth-only login write before copy-only requirement",
+      "snapshot_hash": "06cfd85817e62c4a329477d0ab3b10a5e1c9243a35ef25f3367300e78ad1a4d5"
+    },
+    "root_viewed_images": [
+      {
+        "path": ".cache/accepted-task-baseline-222/actual/20261102T230924209084400Z/cn-accepted-ordinary-baseline.png",
+        "sha256": "b2f3f19de98a66bff3a4e782741d88b449482894d31ce25296a473f1ff28f636"
+      },
+      {
+        "path": ".cache/accepted-task-baseline-222/actual/20261102T230924209084400Z/en-mobile-accepted-baseline.png",
+        "sha256": "c22788d13b0b8d011cd658ccd39f84175209b81a0d52e518dde3ee3274471dbb"
+      }
+    ],
+    "final_copy_only_overlay": ".cache/accepted-task-baseline-222/baseline-copy-overlay.json"
+  },
+  "evidence": {
+    "root": ".cache/accepted-task-baseline-222",
+    "checks": ".cache/accepted-task-baseline-222/checks-summary.json",
+    "actual": {
+      "path": ".cache/accepted-task-baseline-222/actual-summary.json",
+      "sha256": "0b45ead6e4ec142686445c7ad57845382debcd9870e237eb099cf33702deffcb"
+    },
+    "manifest": {
+      "path": ".cache/accepted-task-baseline-222/source-manifest-final.json",
+      "sha256": "4e2a64feba9f6702984e4c3fed13cb177034d0ba66dd80df4ed02fa2ce09e6d8"
+    },
+    "source_domain": {
+      "path": ".cache/accepted-task-baseline-222/actual/20261102T230924209084400Z/source-domain-recheck.json",
+      "sha256": "90ccdd15b3b658713e8e4884127308c4ff1235b1d610ddddfc20905876e68bd2",
+      "bytes": 1650
+    },
+    "css_overlay": ".cache/accepted-task-baseline-222/baseline-touch-target-overlay.json",
+    "copy_overlay": ".cache/accepted-task-baseline-222/baseline-copy-overlay.json",
+    "environment": ".cache/accepted-task-baseline-222/temporary-space-final.json",
+    "port_closure": {
+      "path": ".cache/accepted-task-baseline-222/port-closure.json",
+      "sha256": "f49f4b24a225d098bac054b4bc06156c5131d6e491a4bdc8df01c45a4ca50ef5",
+      "bytes": 234
+    },
+    "docs_check": ".cache/accepted-task-baseline-222/docs-check.json"
+  },
+  "failures": [
+    "Preserved Web invalid-fixture failures; product source validation not relaxed.",
+    "Preserved actual checkout LF/CRLF mismatch; fixed only owned repository attributes.",
+    "Preserved duplicate fixture reviewer invitation409; reused original Actor.",
+    "Actual36px UI fixed with one local44px token and one necessary rebuild.",
+    "Driver isolated request cookie401 fixed with same-origin reads, no repeated binding.",
+    "Legacy negative428 missing expected view headers withdrawn; accurate-current-source409 supplement proves domain guard.",
+    "First supplemental fixture expected rejected instead of actual blocked; one auth-only login on original test DB, no business POST. Subsequent check uses a verified copy."
+  ],
+  "hygiene": {
+    "preserved": [
+      {
+        "path": "docs/quality/conflict-resolution-2026-10-29-summary.json",
+        "sha256": "35f4764d64d4d91fcd4368ad7a67f64262597bde64e51dfaf1dd1c070751a10a"
+      },
+      {
+        "path": "docs/quality/conflict-resolution-2026-10-29.md",
+        "sha256": "c1e601f8d26166132a03e7a0bf0683aed388142dfef95e8825f0a342a278fe81"
+      }
+    ],
+    "generated_archives_removed": 6,
+    "generated_archive_bytes_removed": 127672114,
+    "cache_relocation": {
+      "source": "D:\\codes\\ai-dev-os\\suma\\.cache\\go-build",
+      "target": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\.cache\\suma-accepted-task-baseline-222\\go-cache",
+      "files": 4692,
+      "completed": 4692,
+      "bytes": 436385165,
+      "verified_sha256": true,
+      "passed": true
+    },
+    "production_dependencies_added": 0,
+    "validation_sdk_only": "playwright-core1.56.1, ignore-scripts/no browser download, ignored task directory"
+  },
+  "limits": [
+    "One Windows host with isolated Workers and real Git/HTTP/SQLite; no physical multi-host/database matrix claim.",
+    "Fixture Reviewer is not customer signoff; no supplier/model acceptance.",
+    "Copy-only final label change checked as paired catalog values; no extra screenshot or build claimed.",
+    "Full31/P0-P7 and58limited34pending92 total remains active."
+  ],
+  "git_record": ".cache/accepted-task-baseline-222/post-git.json"
+}

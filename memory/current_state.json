@@ -589,13 +589,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "scoped_verified_git_delivery_recorded_separately",
-  "stage": "T-QODER-TOOL-PREPARATION-221",
-  "updated_at": "2026-11-02T22:02:49.115Z",
+  "stage": "T-ACCEPTED-TASK-BASELINE-222",
+  "updated_at": "2026-11-02T23:23:06.682Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/qoder-tool-preparation-verification.md",
-  "current_summary": "docs/quality/qoder-tool-preparation-summary.json",
+  "current_evidence": "docs/quality/accepted-task-baseline-verification.md",
+  "current_summary": "docs/quality/accepted-task-baseline-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -636,8 +636,72 @@
       }
     ]
   },
-  "current_implementation": "Extend the original private ACP preparer with explicit Qoder native-file static preparation; exact model/version/machine form, optional credential NAME, separate copy and strict three-field output adoption into ordinary/shared Guide. Existing Cursor package policy retained; unique sibling component keys reliably reset source forms.",
+  "current_implementation": "Accepted ordinary agent producer is an explicit third baseline origin on original dual-CAS/Review/test authority and protected bundle broker. Existing panel supports exact producer and current source isolation;44px token correct. True M-to-N continuation and precise authenticated source-return409 independently evidenced.",
   "verified": {
+    "stage": "T-ACCEPTED-TASK-BASELINE-222",
+    "distinct_top_level": 17,
+    "new": 11,
+    "direct_old": 6,
+    "go": 11,
+    "web": 6,
+    "full_web_tsc_exit": 0,
+    "locale_pairs": 9873,
+    "production_hardcodes": 0,
+    "generated_models": 999,
+    "api_paths": 452,
+    "report": "docs/quality/accepted-task-baseline-verification.md",
+    "summary": "docs/quality/accepted-task-baseline-summary.json",
+    "actual_positive": true,
+    "actual_ui_groups": 3,
+    "source_return_domain_status": 409,
+    "source_return_domain_code": "repository_integration_basis"
+  },
+  "production_integration_complete": false,
+  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
+  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
+    "force_push": false,
+    "previously_published_commit": "87a9bc3ea85e5a55f2d02a6e1e07388574e874e3",
+    "current_stage_receipt": ".cache/accepted-task-baseline-222/post-git.json"
+  },
+  "existing_preview": {
+    "updated": false,
+    "user_database_modified": false,
+    "reason": "The initial schema uses a separate empty database; existing data are preserved."
+  },
+  "remaining_work": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
+  "last_goal_turn_classification": "progress",
+  "previous_goal_turn": {
+    "classification": "progress",
+    "stage": "T-QODER-TOOL-PREPARATION-221",
+    "commit": "87a9bc3ea85e5a55f2d02a6e1e07388574e874e3",
+    "evidence": "36 scoped files, 13 focused checks and 3 representative groups, normal dev push verified."
+  },
+  "current_work": {
+    "stage": "T-ACCEPTED-TASK-BASELINE-222",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/accepted-task-baseline.md",
+    "report": "docs/quality/accepted-task-baseline-verification.md",
+    "summary": "docs/quality/accepted-task-baseline-summary.json",
+    "previous_commit": "87a9bc3ea85e5a55f2d02a6e1e07388574e874e3",
+    "verification": "17distinct11new6old; Go11/Web6, fullWebTSC0/9873pairs0hardcodes;999models452paths; copy-only paired value overlay and local44px CSS recorded.",
+    "actual": "RealordinaryagentM299cf4ae→UIonePOST/doubleCAS→originalbroker→differentdeveloperN2cff3d65 withN^=M→independenttests/fixtureReview. Final3UI groups/native0;3Go hosts and4UI attempts retained. Weak428header rejection withdrawn; onlyretainedSQLitecopy supplement withcurrentAblockedv4/Cv1 proves409repository_integration_basis, businessfactsunchanged. No vendor/model/customer signoff/standaloneCLI claim.",
+    "next": "Thread original T216 test_bindings through discussion development, recommendation adoption and expert-team plans; keep existing guards until full propagation. Continue actual tool execution, distributed/OS/store/deployment acceptance and original31/P0-P7.",
+    "full_platform_complete": false,
+    "git_record": ".cache/accepted-task-baseline-222/post-git.json"
+  },
+  "terminal_130_historical_work": {
+    "stage": "T-TERMINAL-130",
+    "status": "scoped_verified_pending_git_delivery_with_explicit_browser_gap",
+    "report": "docs/quality/terminal-recovery-candidates-verification.md",
+    "full_goal": "active: all original P0-P7 and requirements1-26 retained",
+    "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
+  },
+  "previous_stage_verification": {
     "stage": "T-QODER-TOOL-PREPARATION-221",
     "current_report": "docs/quality/qoder-tool-preparation-verification.md",
     "current_summary": "docs/quality/qoder-tool-preparation-summary.json",
@@ -655,68 +719,6 @@
     "production_hardcodes": 0,
     "actual_distinct_groups": 3,
     "actual_native_sessions": 2
-  },
-  "production_integration_complete": false,
-  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
-  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
-  "git_delivery": {
-    "repository": "git@github.com:ai-mada/suma.git",
-    "branch": "dev",
-    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
-    "force_push": false,
-    "previously_published_commit": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
-    "current_stage_receipt": ".cache/qoder-tool-preparation-221/post-git.json"
-  },
-  "existing_preview": {
-    "updated": false,
-    "user_database_modified": false,
-    "reason": "The initial schema uses a separate empty database; existing data are preserved."
-  },
-  "remaining_work": "Continue actual tool dispatch/autonomous coding→same-SHA different-Worker independent tests→acceptance/issue return/baseline; other real CLI/OS/remote environments, all31/P0-P7 and58limited34pending92total.",
-  "last_goal_turn_classification": "progress",
-  "previous_goal_turn": {
-    "classification": "progress",
-    "stage": "T-LOCAL-TOOL-PREPARATION-220",
-    "commit": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
-    "evidence": "30 scoped files, necessary checks/native evidence, normal dev push and remote equality verified."
-  },
-  "current_work": {
-    "stage": "T-QODER-TOOL-PREPARATION-221",
-    "version": "1.0.0",
-    "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/qoder-tool-preparation.md",
-    "report": "docs/quality/qoder-tool-preparation-verification.md",
-    "summary": "docs/quality/qoder-tool-preparation-summary.json",
-    "previous_commit": "b76bcfb23eff6b006d2d7ef65efc171b32fc4d3d",
-    "verification": "13distinct7new6old; Go6/Web3/Root4; fullWebTSC0/9858paired0hardcodes. Real surrogate/key RED fixed with existing strict decoder/unique sibling keys; only failed tops continued.",
-    "actual": "OneWeb+onecurrentRunnerbuild. Threegroups across2native sessions; first2+CLI0/1 retained, EN-only sameassets driver bounded-effect wait passed. Static392byte newfile/refuseoverwrite sameSHA, explicitly non-Qoder ownedPE, vendor/model/login0, rootviewedCN/EN, bothnative0/portsclosed.38oldowncache750826746B recovered; original2 preserved.",
-    "next": "Continue real native/remote tool execution and current inventory→explicit dispatch/autonomous coding→same-SHA different-Worker tests→acceptance/issues/baselines; all31/P0-P7 remains active.",
-    "full_platform_complete": false,
-    "git_record": ".cache/qoder-tool-preparation-221/post-git.json"
-  },
-  "terminal_130_historical_work": {
-    "stage": "T-TERMINAL-130",
-    "status": "scoped_verified_pending_git_delivery_with_explicit_browser_gap",
-    "report": "docs/quality/terminal-recovery-candidates-verification.md",
-    "full_goal": "active: all original P0-P7 and requirements1-26 retained",
-    "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
-  },
-  "previous_stage_verification": {
-    "stage": "T-LOCAL-TOOL-PREPARATION-220",
-    "current_report": "docs/quality/local-tool-preparation-verification.md",
-    "current_summary": "docs/quality/local-tool-preparation-summary.json",
-    "distinct_top_level": 10,
-    "new": 7,
-    "direct_old": 3,
-    "groups": {
-      "model": 3,
-      "component": 3,
-      "root": 4
-    },
-    "full_web_tsc_exit": 0,
-    "locale_pairs": 9830,
-    "production_hardcodes": 0,
-    "go_tests_repeated": 0
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",
@@ -2699,5 +2701,19 @@
     "next": "Continue real native/remote tool execution and current inventory→explicit dispatch/autonomous coding→same-SHA different-Worker tests→acceptance/issues/baselines; all31/P0-P7 remains active.",
     "full_platform_complete": false,
     "git_record": ".cache/qoder-tool-preparation-221/post-git.json"
+  },
+  "accepted_task_baseline": {
+    "stage": "T-ACCEPTED-TASK-BASELINE-222",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/accepted-task-baseline.md",
+    "report": "docs/quality/accepted-task-baseline-verification.md",
+    "summary": "docs/quality/accepted-task-baseline-summary.json",
+    "previous_commit": "87a9bc3ea85e5a55f2d02a6e1e07388574e874e3",
+    "verification": "17distinct11new6old; Go11/Web6, fullWebTSC0/9873pairs0hardcodes;999models452paths; copy-only paired value overlay and local44px CSS recorded.",
+    "actual": "RealordinaryagentM299cf4ae→UIonePOST/doubleCAS→originalbroker→differentdeveloperN2cff3d65 withN^=M→independenttests/fixtureReview. Final3UI groups/native0;3Go hosts and4UI attempts retained. Weak428header rejection withdrawn; onlyretainedSQLitecopy supplement withcurrentAblockedv4/Cv1 proves409repository_integration_basis, businessfactsunchanged. No vendor/model/customer signoff/standaloneCLI claim.",
+    "next": "Thread original T216 test_bindings through discussion development, recommendation adoption and expert-team plans; keep existing guards until full propagation. Continue actual tool execution, distributed/OS/store/deployment acceptance and original31/P0-P7.",
+    "full_platform_complete": false,
+    "git_record": ".cache/accepted-task-baseline-222/post-git.json"
   }
 }
