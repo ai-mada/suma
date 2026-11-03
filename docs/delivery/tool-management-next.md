@@ -82,9 +82,13 @@ Claude SDK／OpenCode SDK受信检查输出有限准备原因，当前权限／�
 
 原指南按需组合已有文件，跨源checks只在合成后原完整校验；源保持、拒覆盖、固定安全回执和明确采用输出路径贯通。13项定向及实际PowerShell、双语代表界面见[产品与AI SOP](../product/command-composition.md)和[限定验证](../quality/command-composition-verification.md)。采用路径到原Guide由父子组件检查覆盖，代表GUI只验证组合表单和真实离线CLI。准备不是库存或同提交独测。
 
+## T224已实现：准确扫描到远程配置与暂停登记
+
+浏览器沿原扫描行填写固定模型和凭据名称、明确机器写入许可；当前Qoder／Cursor原ACP准备器接纳不可变代次，原库存与completed同事务，准确pin回Quick保存paused。普通／Pool启动指南明确独立opt-in，默认关闭。丢失两种已提交ACK恢复原body/key，不重写或探测。见[需求](../product/managed-tool-preparation.md)、[架构与AI SOP](../architecture/managed-tool-preparation.md)、[交互](../design/managed-tool-preparation.md)和[限定验证](../quality/managed-tool-preparation-verification.md)。其余七种自动factory、真实账号／模型与Pool实机尚未覆盖；不等于全部远程自动执行。
+
 ## 下一步：正式代码开发与质量交接
 
-T222已补齐普通已验收agent候选到后续任务的明确基线交接。当前另三处已核实待办：任务讨论开发计划、智能推荐采用和专家团队计划尚未传递原T216的本次test_bindings选择；单任务派发表单已有完整能力。后续复用原冻结与原Go派发逐项接通，保持现有推荐禁用保护，不能先删guard或静默丢弃独测选择。
+T222已补齐普通已验收agent候选到后续任务的明确基线交接；T223已将讨论、推荐明确采用与专家团队计划的本次test_bindings接通原冻结与派发，不再作为缺失功能重建。当前继续准确工具与远程准备的实际厂商／模型、物理多机和后续正式代码交接。
 
 优先复用准确节点和当前工具档案，继续原正式开发候选、同提交独立测试、人工验收及后续基线接续、OpenCode真实环境和WorkBuddy可信代码交付；不重建已完成的诊断／配对／准备／检测／Doctor／换新，不把准备文件SHA与原解析运行配置SHA相等当作启动证明。
 

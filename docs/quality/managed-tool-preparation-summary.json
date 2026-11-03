@@ -1,0 +1,256 @@
+{
+  "stage": "T-MANAGED-TOOL-PREPARATION-224",
+  "version": "1.0.0",
+  "date": "2026-11-03",
+  "base": "c3ef1cc9204c433372a971ac0a09f2173ed840c2",
+  "full_platform_complete": false,
+  "scope": [
+    "exact installed scan to explicit bounded preparation",
+    "immutable managed command generation and durable original ACK recovery",
+    "original inventory atomic completion and exact paused Quick handoff",
+    "ordinary and Pool independent opt-in guides"
+  ],
+  "focused": {
+    "distinct": 33,
+    "new": 23,
+    "affected_old": 10,
+    "go": {
+      "distinct": 21,
+      "new": 15,
+      "affected_old": 6,
+      "passed": 21,
+      "final_inventory_envelope_subcases": "Original HTTP top rerun only: both ordinary and Pool aliases/missing boolean rejected; canonical original-key retry succeeds"
+    },
+    "web": {
+      "distinct": 12,
+      "new": 8,
+      "affected_old": 4,
+      "passed": 12
+    },
+    "typecheck": {
+      "initial_full_diagnostics": 0,
+      "reachability_changed_files": 9,
+      "reachability_semantic_diagnostics": 0,
+      "final_current_full_diagnostics": 0,
+      "final_full_reason": "New required public inputs affect unchanged consumers; no test suite repeated"
+    },
+    "i18n": {
+      "paired_keys": 9944,
+      "production_hardcodes": 0
+    }
+  },
+  "contracts": {
+    "models": 1013,
+    "paths": 458,
+    "new_models": 14,
+    "new_paths": 6,
+    "new_tables": 1
+  },
+  "actual": {
+    "journeys": 1,
+    "ordinary_embedded_workers": 1,
+    "http_requests": 28,
+    "owned_native_version_processes": 2,
+    "scans": 1,
+    "preparations": 1,
+    "lost_committed_acknowledgements": 2,
+    "prepared_result_posts": 2,
+    "associated_inventory_posts": 2,
+    "total_inventory_posts": 3,
+    "original_body_key_replays": true,
+    "reprobes": 0,
+    "immutable_artifacts": 3,
+    "paused_profiles": 1,
+    "available": false,
+    "allow_exec": false,
+    "maintenance_only": true,
+    "enable_calls": 0,
+    "business_claims": 0,
+    "business_runs": 0,
+    "acp_initialize": 0,
+    "vendor_calls": 0,
+    "model_calls": 0,
+    "fixture_bytes": 4096,
+    "fixture_is_vendor": false,
+    "fixture_sha256": "c3d412791ca809af68aa2e75557efb19aa3f9d029fdf8e2f13b5977a418faeef",
+    "receipt_sha256": "1971782578bca6825903aa001dc68f8ef65f4fb45c325504351158916ce61814",
+    "compact_sha256": "ebd9c5f587553542204274ac564e82de4c6c395ffceb8eb55b3f2619204e8223",
+    "native_pids_absent": [
+      44884,
+      36060
+    ],
+    "port_free": 64965,
+    "scope": "Real ordinary HTTP/SQLite/embedded Worker; owned version-only PE, not vendor ACP/account/model or Pool physical deployment",
+    "final_source_delta": "After actual compilation only related inventory strict-envelope parser/test fix; affected original HTTP top passed, actual binary was not rebuilt/replayed"
+  },
+  "visual": {
+    "status": "two_representative_synthetic_groups_passed",
+    "builds": 1,
+    "attempts": 2,
+    "first_attempt": {
+      "groups": 0,
+      "requests": 0,
+      "images": 0,
+      "error": "Electron native GPU subprocess startup 0xC0000135 before about:blank; exact DLL root cause unknown",
+      "launcher_exit": 2147483651,
+      "owned_pids_later_absent": [
+        62704,
+        50144
+      ],
+      "port_free": 64482
+    },
+    "final_groups": {
+      "cn_exact_scan_configuration_inventory_and_paused_save": {
+        "passed": true,
+        "configuration_geometry": {
+          "width": 1366,
+          "scroll": 1349,
+          "controls": [
+            {
+              "tag": "BUTTON",
+              "height": 44
+            },
+            {
+              "tag": "INPUT",
+              "height": 44
+            },
+            {
+              "tag": "INPUT",
+              "height": 44
+            },
+            {
+              "tag": "BUTTON",
+              "height": 44
+            }
+          ]
+        },
+        "awaiting_inventory_blocks_handoff": true,
+        "exact_profile_sha256": "5951ddbf0b80bb9e3742e10cfd8832accf52b6319521aca80e9a50c3659869c0",
+        "available": false,
+        "saved_state": "paused",
+        "synthetic_preparation_creates": 1,
+        "synthetic_paused_creates": 1,
+        "enable_commands": 0
+      },
+      "en_390_same_command_changed_sha_requires_reselection": {
+        "passed": true,
+        "geometry": {
+          "width": 390,
+          "scroll": 373,
+          "controls": [
+            {
+              "tag": "BUTTON",
+              "height": 44
+            },
+            {
+              "tag": "SELECT",
+              "height": 44
+            },
+            {
+              "tag": "BUTTON",
+              "height": 44
+            },
+            {
+              "tag": "BUTTON",
+              "height": 44
+            },
+            {
+              "tag": "SELECT",
+              "height": 44
+            },
+            {
+              "tag": "BUTTON",
+              "height": 44
+            },
+            {
+              "tag": "BUTTON",
+              "height": 44
+            }
+          ]
+        },
+        "same_command": "managed-11f292aea5a95dd5715c9ff004646886ca7eb6f73ec8f219de6dafbd46b0e444",
+        "new_registration_writes": 0,
+        "new_matching_writes": 0,
+        "unknown_write_coverage": "Reused focused tests; no duplicate acknowledgement-loss browser journey"
+      }
+    },
+    "final_http": {
+      "get": 21,
+      "post": 3,
+      "prepared": 1,
+      "matches": 1,
+      "paused": 1
+    },
+    "real_database_writes": 0,
+    "workers": 0,
+    "native_tool_probes": 0,
+    "models": 0,
+    "native_pid": 15164,
+    "native_exit": 0,
+    "forced": false,
+    "port_free": 59268,
+    "page_errors": 0,
+    "console_errors": 0,
+    "retained_csp_warnings": 3,
+    "root_viewed_images": [
+      {
+        "path": "cn-explicit-configuration.png",
+        "sha256": "fc571621f0598e2c4350b8d8942e76f8b205e2ce95e8ecce9bd6dfb27feb5624"
+      },
+      {
+        "path": "cn-paused-configuration.png",
+        "sha256": "dd488693f11cea3f84a59b988e928417cc0e6fc665583d675f4b5af2c678adc1"
+      },
+      {
+        "path": "en-configuration-pin-drift.png",
+        "sha256": "7f6463b85a0d8f24ba11d1b4b4330f6ced10887867efb041eb31de4e1f97577c"
+      }
+    ],
+    "scope": "Production RemoteToolScanPanel and Quick over synthetic public HTTP, with an explicit fixture-only modal bridge; not full App routing, real database, Runner, native tool or model",
+    "result_sha256": "2751180530c65ee1223f40cfbe83076dc0663601f982f77c8ec71fa8d3f878a1",
+    "initial_ui_compact_sha256": "6ee6b3887885314d40b1ee6a4764e8a338434982a18794f2dba1d9f0a899fbcb",
+    "build_sources": 402,
+    "final_source_verification": "399 current raw-exact plus 3 CRLF-to-LF byte-reversible equivalents; 0 unexplained differences; other seven normalized owned files were not bundle inputs",
+    "line_ending_only_files": 10,
+    "final_ui_compact_sha256": "1badc1aeaa50df170fe5d596b9d2e8487c30487993fe94de2cebd3c2b42583d7",
+    "normalized_input_manifest_sha256": "26bc72152042abb6c9e0d26f3971f51a2def5dc0311e889f2af0e421e5ceee11"
+  },
+  "failures_retained": [
+    "Initial Pool shared Preparation field missing: seven compile diagnostics, added shared DTO field and generated contracts once successfully",
+    "Original unrelated saved inspection ACK recovery incorrectly required changed current config: corrected no-managed-head restore branch and reran only failed top plus new head test",
+    "Two compile diagnostics from local test err scope corrected before recovery rerun",
+    "Stable source hash, ACP preconfiguration eligibility, static native pins, durable head/snapshot recovery, raw JSON presence/aliases/number lexemes, and A-B-A callback isolation corrected",
+    "Final HTTP inventory-envelope regression RED accepted alias and completed operation; minimum new-bound branch strict decoding corrected, same original top GREEN",
+    "First native UI launch failed before page, then isolated driver environment whitelist and authorized retry succeeded on same bundle"
+  ],
+  "dependencies_added": 0,
+  "automatic_factories": [
+    "qoder-acp",
+    "cursor-cli"
+  ],
+  "reference": {
+    "repository": "https://github.com/multica-ai/multica",
+    "main_commit": "24b54bc09cebc4234af27ddafabd78b9c49626ad",
+    "local_untouched_head": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "verified_blob_files": 4,
+    "local_lf_normalized_equal": 4,
+    "source_manifest_sha256": "3dfd48c000449f006530e80104db51b4b3a45f2a9c5ca1d2f8b9942bc4247738",
+    "license_additional_terms": true,
+    "copied_product_sources": 0,
+    "executed_reference_code": false
+  },
+  "remaining": [
+    "Real Qoder/Cursor provider/account/model and subsequent code/test/acceptance",
+    "Other seven automatic factories",
+    "Pool independent foreground CLI and physical multi-host",
+    "OceanBase/PostgreSQL and full deployment/installers/device/theme/App/scale/production",
+    "Original 31 requirements and P0-P7 full platform"
+  ],
+  "docs": {
+    "markdown": 758,
+    "api_paths": 458,
+    "schema_references": 4248,
+    "links": "resolved",
+    "diff_check_exit": 0
+  }
+}

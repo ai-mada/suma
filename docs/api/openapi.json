@@ -19286,6 +19286,497 @@
         ],
         "type": "object"
       },
+      "ManagedToolPreparation": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_id": {
+            "enum": [
+              "qoder-acp",
+              "cursor-cli"
+            ],
+            "type": "string"
+          },
+          "claim_id": {
+            "type": "string"
+          },
+          "claimed_at": {
+            "type": "string"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/ManagedToolPreparationConfiguration"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expected_generation_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "fence": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "finished_at": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "installation_item": {
+            "$ref": "#/components/schemas/ToolInstallationItem"
+          },
+          "installation_reference": {
+            "$ref": "#/components/schemas/ToolInstallationScanReference"
+          },
+          "installation_scan_id": {
+            "type": "string"
+          },
+          "installation_scan_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "installation_source_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "installation_stop_proof": {
+            "$ref": "#/components/schemas/ToolInstallationStopProof"
+          },
+          "instance_id": {
+            "type": "string"
+          },
+          "inventory_observed_at": {
+            "type": "string"
+          },
+          "inventory_operation_id": {
+            "type": "string"
+          },
+          "lease_until": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/ManagedToolPreparationGenerationReceipt"
+          },
+          "requested_by": {
+            "type": "string"
+          },
+          "result_code": {
+            "type": "string"
+          },
+          "source_changed": {
+            "type": "boolean"
+          },
+          "source_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "claimed",
+              "awaiting_inventory",
+              "completed",
+              "failed",
+              "unknown",
+              "closed_unknown",
+              "expired",
+              "superseded"
+            ],
+            "type": "string"
+          },
+          "stop_proof": {
+            "$ref": "#/components/schemas/ManagedToolPreparationStopProof"
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_id",
+          "project_id",
+          "worker_id",
+          "version",
+          "state",
+          "adapter_id",
+          "configuration",
+          "instance_id",
+          "installation_scan_id",
+          "installation_scan_version",
+          "installation_reference",
+          "installation_source_sha256",
+          "installation_item",
+          "installation_stop_proof",
+          "expected_generation_sha256",
+          "requested_by",
+          "created_at",
+          "expires_at",
+          "source_sha256",
+          "fence"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter_ids": {
+            "items": {
+              "enum": [
+                "qoder-acp",
+                "cursor-cli"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "generation_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-managed-tool-preparation-v1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "adapter_ids",
+          "generation_sha256"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "preparation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ManagedToolPreparation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "worker_id",
+          "preparation"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationClaimRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "worker_id",
+          "claim_id"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationConfiguration": {
+        "additionalProperties": false,
+        "properties": {
+          "credential_env_ref": {
+            "description": "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Reserved process/provider variables are rejected.",
+            "type": "string"
+          },
+          "model": {
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 256
+          }
+        },
+        "required": [
+          "model",
+          "credential_env_ref"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_configuration_write": {
+            "const": true,
+            "type": "boolean"
+          },
+          "adapter_id": {
+            "enum": [
+              "qoder-acp",
+              "cursor-cli"
+            ],
+            "type": "string"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/ManagedToolPreparationConfiguration"
+          },
+          "expected_generation_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "expected_scan_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "installation_scan_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "worker_id",
+          "installation_scan_id",
+          "expected_scan_version",
+          "adapter_id",
+          "configuration",
+          "expected_generation_sha256",
+          "acknowledge_configuration_write",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationGenerationReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "command_id": {
+            "type": "string"
+          },
+          "generation_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "local_receipt_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "parent_generation_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ToolExecutionProfile"
+          },
+          "stop_proof": {
+            "$ref": "#/components/schemas/ManagedToolPreparationStopProof"
+          }
+        },
+        "required": [
+          "parent_generation_sha256",
+          "generation_sha256",
+          "command_id",
+          "artifact_sha256",
+          "local_receipt_sha256",
+          "profile",
+          "stop_proof"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationInventoryBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "generation_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "local_receipt_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/ManagedToolPreparationReference"
+          },
+          "source_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference",
+          "source_sha256",
+          "generation_sha256",
+          "local_receipt_sha256"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationReference": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "type": "string"
+          },
+          "fence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "preparation_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "preparation_id",
+          "claim_id",
+          "fence"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationResultRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_code": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "prepared",
+              "failed",
+              "unknown",
+              "closed_unknown"
+            ],
+            "type": "string"
+          },
+          "preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationReference"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/ManagedToolPreparationGenerationReceipt"
+          },
+          "source_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "stop_proof": {
+            "$ref": "#/components/schemas/ManagedToolPreparationStopProof"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "worker_id",
+          "preparation",
+          "source_sha256",
+          "idempotency_key",
+          "outcome",
+          "failure_code"
+        ],
+        "type": "object"
+      },
+      "ManagedToolPreparationStopProof": {
+        "additionalProperties": false,
+        "properties": {
+          "all_native_trees_stopped": {
+            "const": true,
+            "type": "boolean"
+          },
+          "native_process_count": {
+            "maximum": 2048,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationReference"
+          },
+          "probe_returned": {
+            "const": true,
+            "type": "boolean"
+          },
+          "protocol": {
+            "const": "suma-managed-tool-preparation-stop-v1",
+            "type": "string"
+          },
+          "receipt_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "source_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "stopped_process_count": {
+            "maximum": 2048,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "protocol",
+          "preparation",
+          "source_sha256",
+          "receipt_sha256",
+          "probe_returned",
+          "all_native_trees_stopped",
+          "native_process_count",
+          "stopped_process_count",
+          "observed_at"
+        ],
+        "type": "object"
+      },
       "ModelBinding": {
         "properties": {
           "binding_sha256": {
@@ -22534,6 +23025,83 @@
         ],
         "type": "object"
       },
+      "PoolManagedToolPreparationClaimRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "runner_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "runner_id",
+          "claim_id"
+        ],
+        "type": "object"
+      },
+      "PoolManagedToolPreparationResultRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_code": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "prepared",
+              "failed",
+              "unknown",
+              "closed_unknown"
+            ],
+            "type": "string"
+          },
+          "preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationReference"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/ManagedToolPreparationGenerationReceipt"
+          },
+          "runner_id": {
+            "type": "string"
+          },
+          "source_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "stop_proof": {
+            "$ref": "#/components/schemas/ManagedToolPreparationStopProof"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "runner_id",
+          "preparation",
+          "source_sha256",
+          "idempotency_key",
+          "outcome",
+          "failure_code"
+        ],
+        "type": "object"
+      },
       "PoolRepositoryAuthorizationRequest": {
         "properties": {
           "assignment": {
@@ -23717,6 +24285,10 @@
           },
           "operation_id": {
             "type": "string"
+          },
+          "preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationInventoryBinding",
+            "description": "Original preparation reference, input source, accepted generation and local receipt. Same-transaction inventory acknowledgement completes the original operation; replays retain the original observation time."
           },
           "project_id": {
             "type": "string"
@@ -44065,6 +44637,13 @@
           },
           "observed_at": {
             "type": "string"
+          },
+          "preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationInventoryBinding",
+            "description": "Original preparation reference, input source, accepted generation and local receipt. Same-transaction inventory acknowledgement completes the original operation; replays retain the original observation time."
+          },
+          "preparation_state": {
+            "type": "string"
           }
         },
         "required": [
@@ -44094,6 +44673,10 @@
             "minLength": 8,
             "type": "string"
           },
+          "preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationInventoryBinding",
+            "description": "Original preparation reference, input source, accepted generation and local receipt. Same-transaction inventory acknowledgement completes the original operation; replays retain the original observation time."
+          },
           "project_id": {
             "type": "string"
           },
@@ -44121,6 +44704,9 @@
             "type": "string",
             "x-max-utf8-bytes": 128,
             "x-min-utf8-bytes": 8
+          },
+          "managed_preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationCapability"
           },
           "protocol": {
             "pattern": "^suma-tool-maintenance-v[1-9][0-9]{0,3}$",
@@ -44230,6 +44816,9 @@
             "type": "string",
             "x-max-utf8-bytes": 128,
             "x-min-utf8-bytes": 8
+          },
+          "managed_preparation": {
+            "$ref": "#/components/schemas/ManagedToolPreparationCapability"
           },
           "observed_at": {
             "format": "date-time",
@@ -44992,6 +45581,40 @@
         "required": [
           "idempotency_key",
           "protocol"
+        ],
+        "type": "object"
+      },
+      "ToolPreparationPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ManagedToolPreparation"
+            },
+            "type": "array"
+          },
+          "maintenance": {
+            "$ref": "#/components/schemas/ToolMaintenanceStatus"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "worker_id",
+          "as_of",
+          "maintenance",
+          "items"
         ],
         "type": "object"
       },
@@ -92092,6 +92715,316 @@
         "x-response-cache-control": "no-store"
       }
     },
+    "/pool-runner/tool-preparations/claim": {
+      "post": {
+        "description": "Authenticated original maintenance owner; durable nonce/reference/fence/source and exact receipt replay. Prepared is awaiting_inventory. Only an original correlated inventory transaction completes acceptance. No arbitrary shell or new task permission.",
+        "operationId": "post_pool-runner_tool-preparations_claim",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolManagedToolPreparationClaimRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedToolPreparationClaim"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "pool"
+      }
+    },
+    "/pool-runner/tool-preparations/results": {
+      "post": {
+        "description": "Authenticated original maintenance owner; durable nonce/reference/fence/source and exact receipt replay. Prepared is awaiting_inventory. Only an original correlated inventory transaction completes acceptance. No arbitrary shell or new task permission.",
+        "operationId": "post_pool-runner_tool-preparations_results",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolManagedToolPreparationResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedToolPreparation"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "pool"
+      }
+    },
     "/pool-runner/workbuddy-cloud-submissions": {
       "post": {
         "description": "Exact current machine assignment, owner grant, run/node/attempt/fence/lease and project authority. Pool credentials retain their full current bilateral grant and credential versions. Current authority precedes receipt recovery. One durable control-plane prepare permits one Create only; prepared/unknown never authorizes another POST, including another attempt. Refresh only reads the original supplier task. No OAuth or ACP material is returned.",
@@ -117410,6 +118343,332 @@
         "x-response-cache-control": "no-store"
       }
     },
+    "/runner/tool-preparations/claim": {
+      "post": {
+        "description": "Authenticated original maintenance owner; durable nonce/reference/fence/source and exact receipt replay. Prepared is awaiting_inventory. Only an original correlated inventory transaction completes acceptance. No arbitrary shell or new task permission.",
+        "operationId": "post_runner_tool-preparations_claim",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagedToolPreparationClaimRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedToolPreparationClaim"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "runner"
+      }
+    },
+    "/runner/tool-preparations/results": {
+      "post": {
+        "description": "Authenticated original maintenance owner; durable nonce/reference/fence/source and exact receipt replay. Prepared is awaiting_inventory. Only an original correlated inventory transaction completes acceptance. No arbitrary shell or new task permission.",
+        "operationId": "post_runner_tool-preparations_results",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagedToolPreparationResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedToolPreparation"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-token-scope": "runner"
+      }
+    },
     "/runner/workbuddy-cloud-submissions": {
       "post": {
         "description": "Exact current machine assignment, owner grant, run/node/attempt/fence/lease and project authority. Pool credentials retain their full current bilateral grant and credential versions. Current authority precedes receipt recovery. One durable control-plane prepare permits one Create only; prepared/unknown never authorizes another POST, including another attempt. Refresh only reads the original supplier task. No OAuth or ACP material is returned.",
@@ -140781,6 +142040,683 @@
         "x-max-request-body-bytes": 1048576,
         "x-query-parameters-forbidden": true,
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/tool-preparations": {
+      "get": {
+        "description": "Explicit bounded preparation on the exact allowed maintenance owner. Configuration generation, original inventory acknowledgement, paused registration and enablement remain separate facts. Original operation replay does not authorize another native effect.",
+        "operationId": "get_tool-preparations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Current project.",
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact registered worker.",
+            "in": "query",
+            "name": "worker_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Bounded page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Original scope-bound cursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 2048,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "properties": {
+                  "expected_version": {
+                    "type": "integer"
+                  },
+                  "idempotency_key": {
+                    "type": "string"
+                  },
+                  "project_id": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolPreparationPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolPreparationPage"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
+      },
+      "post": {
+        "description": "Explicit bounded preparation on the exact allowed maintenance owner. Configuration generation, original inventory acknowledgement, paused registration and enablement remain separate facts. Original operation replay does not authorize another native effect.",
+        "operationId": "post_tool-preparations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagedToolPreparationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedToolPreparation"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/tool-preparations/{id}": {
+      "get": {
+        "description": "Explicit bounded preparation on the exact allowed maintenance owner. Configuration generation, original inventory acknowledgement, paused registration and enablement remain separate facts. Original operation replay does not authorize another native effect.",
+        "operationId": "get_tool-preparations_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Current project.",
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "properties": {
+                  "expected_version": {
+                    "type": "integer"
+                  },
+                  "idempotency_key": {
+                    "type": "string"
+                  },
+                  "project_id": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedToolPreparation"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedToolPreparation"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
         "x-response-cache-control": "no-store"
       }
     },

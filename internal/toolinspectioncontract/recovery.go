@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tii "github.com/ai-mada/suma/internal/toolinstallationcontract"
+	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
 
 const MaintenanceProtocol = "suma-tool-maintenance-v1"
@@ -22,6 +23,7 @@ type ToolMaintenanceCapability struct {
 	Protocol           string          `json:"protocol"`
 	InstanceID         string          `json:"instance_id"`
 	InstalledDiscovery *tii.Capability `json:"installed_discovery,omitempty" wire:"nonnull"`
+	ManagedPreparation *tp.Capability  `json:"managed_preparation,omitempty" wire:"nonnull"`
 }
 type ToolMaintenanceStatus struct {
 	State              string          `json:"state"`
@@ -31,6 +33,7 @@ type ToolMaintenanceStatus struct {
 	ObservedAt         string          `json:"observed_at,omitempty"`
 	ExpiresAt          string          `json:"expires_at,omitempty"`
 	InstalledDiscovery *tii.Capability `json:"installed_discovery,omitempty" wire:"nonnull"`
+	ManagedPreparation *tp.Capability  `json:"managed_preparation,omitempty" wire:"nonnull"`
 }
 type ToolInspectionStopProof struct {
 	Protocol              string    `json:"protocol"`
@@ -124,6 +127,23 @@ var maintenanceProtocol = regexp.MustCompile(`^suma-tool-maintenance-v[1-9][0-9]
 func ValidateMaintenanceCapability(v ToolMaintenanceCapability) error {
 	if !maintenanceProtocol.MatchString(v.Protocol) || !Operation(v.InstanceID) || v.InstalledDiscovery != nil && (v.Protocol != MaintenanceProtocol || tii.ValidateCapability(*v.InstalledDiscovery) != nil) {
 		return fmt.Errorf("invalid maintenance capability")
+	}
+	if v.ManagedPreparation != nil {
+		if v.Protocol != MaintenanceProtocol || tp.ValidateCapability(*v.ManagedPreparation) != nil || v.InstalledDiscovery == nil {
+			return fmt.Errorf("invalid managed preparation capability")
+		}
+		for _, id := range v.ManagedPreparation.AdapterIDs {
+			found := false
+			for _, source := range v.InstalledDiscovery.AdapterIDs {
+				if source == id {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("managed preparation requires its explicitly allowed discovery source")
+			}
+		}
 	}
 	return nil
 }

@@ -22,6 +22,8 @@ const id=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{32}$/.test(v);
 const hash=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
 const text=(v:unknown,max:number):v is string=>typeof v==='string'&&wellFormed(v)&&encoder.encode(v).length<=max&&!/\p{Cc}/u.test(v);
 const token=(v:unknown,max:number):v is string=>text(v,max)&&!!v&&v.trim()===v;
+/** Shared ACP model syntax only; it does not attest model availability. */
+export const validDesktopACPModel=(value:unknown):value is string=>token(value,256);
 const code=(v:unknown):v is string=>typeof v==='string'&&/^[a-z][a-z0-9_]{0,79}$/.test(v);
 const phases=new Set<DesktopACPPhase>(['unconfigured','detected','not_installed','wrapper_only','unavailable','needs_workspace','authorization_required','binding_changed','reading','ready','failed','unknown','expired','stop_unconfirmed']);
 const reservedPrefixes=['SUMA_','CODEX','OPENAI','ANTHROPIC','CLAUDE','AZURE_','GEMINI','GOOGLE_','QWEN','DASHSCOPE','DEEPSEEK','OPENCODE','DSH_','WORKBUDDY','CODEBUDDY','AWS_','HUGGINGFACE','HF_','GIT_','NODE_','PYTHON'];

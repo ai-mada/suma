@@ -122,6 +122,7 @@ type PoolWorker struct {
 	StateDir                        string
 	AllowExec                       bool
 	AllowInstalledToolDiscovery     bool
+	AllowToolPreparation            bool
 	MaintenanceOnly                 bool
 	PollInterval, HeartbeatInterval time.Duration
 	Diagnostic                      func(PoolDiagnostic)
@@ -194,6 +195,9 @@ func resolvedPoolConfig(c PoolLocalConfig) (PoolLocalConfig, error) {
 }
 
 func (w *PoolWorker) Run(ctx context.Context) error {
+	if w.AllowToolPreparation && !w.AllowInstalledToolDiscovery {
+		return fmt.Errorf("tool preparation requires installed discovery")
+	}
 	if w.MaintenanceOnly && !w.AllowInstalledToolDiscovery {
 		return fmt.Errorf("maintenance-only requires installed tool discovery")
 	}
@@ -262,7 +266,7 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		pool.TenantID, pool.ProjectID = scope.TenantID, scope.ProjectID
 		client.Pool = &pool
 		client.ProjectID = scope.ProjectID
-		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, AllowInstalledToolDiscovery: w.AllowInstalledToolDiscovery, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments, External: scope.External, Secrets: []string{w.Client.Token}}}
+		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, AllowInstalledToolDiscovery: w.AllowInstalledToolDiscovery, AllowToolPreparation: w.AllowToolPreparation, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments, External: scope.External, Secrets: []string{w.Client.Token}}}
 		if err = w.local[key].enableToolMaintenance(); err != nil {
 			return err
 		}
@@ -397,7 +401,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			if e != nil {
 				return e
 			}
-			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.Exec, inventory: local.currentInventory()}
+			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.currentExecSnapshot(), inventory: local.currentInventory()}
 			if e = executor.runAssignment(ctx, a, beat); e != nil {
 				return e
 			}
@@ -414,7 +418,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			if e != nil {
 				return e
 			}
-			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.Exec, inventory: local.currentInventory()}
+			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.currentExecSnapshot(), inventory: local.currentInventory()}
 			if e = executor.runAssignment(ctx, a, beat); e != nil {
 				return e
 			}
@@ -454,7 +458,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 		for _, scope := range w.Config.Scopes {
 			local := w.local[scopeKey(scope.TenantID, scope.ProjectID)]
 			if active[scopeKey(scope.TenantID, scope.ProjectID)] && local.canClaimInventory() {
-				caps := runnerCapabilities(local.Exec, ToolCapabilities(local.currentInventory()))
+				caps := runnerCapabilities(local.currentExecSnapshot(), ToolCapabilities(local.currentInventory()))
 				scopes = append(scopes, PoolCapabilityScope{TenantID: scope.TenantID, ProjectID: scope.ProjectID, Capabilities: caps})
 			}
 		}
@@ -520,7 +524,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 				w.notice("execution_not_started", slot)
 				continue
 			}
-			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.Exec, inventory: local.currentInventory()}
+			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.currentExecSnapshot(), inventory: local.currentInventory()}
 			w.notice("execution_started", slot)
 			if e = executor.runAssignment(ctx, *a, beat); e != nil {
 				return e

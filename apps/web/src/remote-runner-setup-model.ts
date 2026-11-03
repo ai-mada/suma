@@ -1,7 +1,7 @@
 import {wellFormed} from './i18n/catalog';
 import {localToolPreparationCommand} from './local-tool-preparation-model';
 
-export type RemoteRunnerSetupInput={mode:'environment'|'paired'|'identity';pairingID:string;identityPath:string;shell:''|'powershell'|'bash';control:string;project:string;worker:string;commands:string;state:string;localTool:string;repository:string;baseCommit:string;allowInstalledDiscovery:boolean};
+export type RemoteRunnerSetupInput={mode:'environment'|'paired'|'identity';pairingID:string;identityPath:string;shell:''|'powershell'|'bash';control:string;project:string;worker:string;commands:string;state:string;localTool:string;repository:string;baseCommit:string;allowInstalledDiscovery:boolean;allowToolPreparation:boolean};
 export const remoteRunnerLocalTools=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','claude-code-sdk','cursor-cli','qoder-acp','codex-app-server','opencode-sdk'] as const;
 const fields=['mode','pairingID','identityPath','shell','control','project','worker','commands','state','localTool','repository','baseCommit'] as const;
 const text=(value:string,max:number)=>!!value&&value.trim()===value&&value.length<=max&&wellFormed(value)&&!/[\p{Cc}\u2028\u2029]/u.test(value);
@@ -13,11 +13,11 @@ const id=(value:string)=>/^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$/.test(value);
 export function remoteRunnerSetupCommands(value:unknown):{prepare?:string;report?:string;start?:string;discoveryStart?:string;loopback:boolean}{
  if(!value||typeof value!=='object'||Array.isArray(value)||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return {loopback:false};
  const row=value as Record<string,unknown>;
- if(Reflect.ownKeys(row).length!==fields.length+1||!fields.every(key=>Object.hasOwn(row,key)&&typeof row[key]==='string')||!Object.hasOwn(row,'allowInstalledDiscovery')||typeof row.allowInstalledDiscovery!=='boolean')return {loopback:false};
+ if(Reflect.ownKeys(row).length!==fields.length+2||!fields.every(key=>Object.hasOwn(row,key)&&typeof row[key]==='string')||!Object.hasOwn(row,'allowInstalledDiscovery')||typeof row.allowInstalledDiscovery!=='boolean'||!Object.hasOwn(row,'allowToolPreparation')||typeof row.allowToolPreparation!=='boolean'||row.allowToolPreparation&&!row.allowInstalledDiscovery)return {loopback:false};
  const input=row as RemoteRunnerSetupInput;
  if(!['environment','paired','identity'].includes(input.mode)||!['powershell','bash'].includes(input.shell)||input.localTool!==''&&!remoteRunnerLocalTools.some(tool=>tool===input.localTool))return {loopback:false};
  const quote=(literal:string)=>"'"+(input.shell==='powershell'?literal.replaceAll("'","''"):literal.replaceAll("'","'\"'\"'"))+"'";
- const taskDiscoveryFlag=input.allowInstalledDiscovery?' --allow-installed-tool-discovery':'',maintenanceFlags=' --allow-installed-tool-discovery --maintenance-only';
+ const preparationFlag=input.allowToolPreparation?' --allow-tool-preparation':'',taskDiscoveryFlag=(input.allowInstalledDiscovery?' --allow-installed-tool-discovery':'')+preparationFlag,maintenanceFlags=' --allow-installed-tool-discovery --maintenance-only'+preparationFlag;
  // Explicit generic tools share the same new-file boundary as the concise
  // preparation card. Keep the original all-tools mode and runtime args intact.
  const commandPath=absolute(input.commands)&&/\.json$/i.test(input.commands),prepare=input.localTool===''?(commandPath?'suma-runner --prepare-tools '+quote(input.commands):undefined):localToolPreparationCommand({shell:input.shell,commands:input.commands,localTool:input.localTool})?.prepare;

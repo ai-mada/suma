@@ -49,6 +49,7 @@ function ConnectionScope({ poolID, runnerID, workerID, prepared, recovery, disab
   const [state, setState] = useState(prepared.output + '.runner-state');
   const [mode, setMode] = useState<'maintenance' | 'tasks'>('maintenance');
   const [discovery, setDiscovery] = useState(false);
+  const [preparation, setPreparation] = useState(false);
   const [control, setControl] = useState(window.location.origin);
   const [scopeIndex, setScopeIndex] = useState(0);
   const [result, setResult] = useState<{ value: PoolRunnerReadiness; receivedAt: number; requestMs: number }>();
@@ -60,7 +61,7 @@ function ConnectionScope({ poolID, runnerID, workerID, prepared, recovery, disab
   const latest = useRef({ active, scopeIndex });
   latest.current = { active, scopeIndex };
   const scope = prepared.scopes[scopeIndex];
-  const commands = poolConfigConnectionCommands({ prepared, identity, state, control, mode, discovery });
+  const commands = poolConfigConnectionCommands({ prepared, identity, state, control, mode, discovery, preparation });
   const elapsed = result ? performance.now() - result.receivedAt + result.requestMs : 0;
   const remaining = result ? poolRunnerReadinessRemainingMs(result.value, elapsed) : 0;
   const current = active && phase === 'read' ? result?.value : undefined;
@@ -134,11 +135,14 @@ function ConnectionScope({ poolID, runnerID, workerID, prepared, recovery, disab
         onChange={event => { changed(); setControl(event.target.value); }} /><small>{t('control_hint')}</small></label>
       {!validPoolConnectionControl(control) && <p role="status">{t('control_invalid')}</p>}
       <label>{t('mode')}<select data-pool-connection-field="mode" value={mode} disabled={!active}
-        onChange={event => { changed(); setMode(event.target.value as 'maintenance' | 'tasks'); setDiscovery(false); }}>
+        onChange={event => { changed(); setMode(event.target.value as 'maintenance' | 'tasks'); setDiscovery(false); setPreparation(false); }}>
         <option value="maintenance">{t('mode_maintenance')}</option><option value="tasks">{t('mode_tasks')}</option>
       </select></label>
       <label className="pool-connection-consent"><input type="checkbox" data-pool-connection-field="discovery" checked={discovery} disabled={!active}
-        onChange={event => { changed(); setDiscovery(event.target.checked); }} /><span>{t('discovery')}</span></label>
+        onChange={event => { changed(); setDiscovery(event.target.checked); if(!event.target.checked)setPreparation(false); }} /><span>{t('discovery')}</span></label>
+      <label className="pool-connection-consent"><input type="checkbox" data-pool-connection-field="preparation" checked={preparation} disabled={!active||!discovery}
+        onChange={event=>{if(!active||!discovery)return;changed();setPreparation(event.target.checked);}}/><span>{tr('managed-tool-preparation.allow_configuration')}</span></label>
+      <p className="pool-config-muted">{tr('managed-tool-preparation.allow_configuration_help')}</p>
       <p className="pool-config-muted">{t(mode === 'maintenance' ? 'maintenance_hint' : 'tasks_hint')}</p>
       {!commands && identity && <p role="status">{t('paths_invalid')}</p>}
       <div className="pool-connection-actions">

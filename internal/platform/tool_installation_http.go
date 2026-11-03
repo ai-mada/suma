@@ -12,12 +12,17 @@ import (
 // New optional declarations must be omitted or complete; explicit null must
 // not silently turn a current scan capability into an older default value.
 func installationMaintenanceRaw(value any) bool {
-	if !installationRawObject(value, []string{"protocol", "instance_id"}, "installed_discovery") {
+	if !installationRawObject(value, []string{"protocol", "instance_id"}, "installed_discovery", "managed_preparation") {
 		return false
 	}
 	row := value.(map[string]any)
 	if capability, present := row["installed_discovery"]; present {
-		return installationRawObject(capability, []string{"protocol", "adapter_ids"})
+		if !installationRawObject(capability, []string{"protocol", "adapter_ids"}) {
+			return false
+		}
+	}
+	if capability, present := row["managed_preparation"]; present {
+		return installationRawObject(capability, []string{"protocol", "adapter_ids", "generation_sha256"})
 	}
 	return true
 }

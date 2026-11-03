@@ -27,14 +27,6 @@ type ACPExecutionSpec struct {
 func acpLocalText(value string, maximum int) bool {
 	return value != "" && strings.TrimSpace(value) == value && len(value) <= maximum && utf8.ValidString(value) && !strings.ContainsFunc(value, unicode.IsControl)
 }
-func acpReservedCredentialEnv(name string) bool {
-	for _, prefix := range []string{"SUMA_", "CODEX", "OPENAI", "ANTHROPIC", "CLAUDE", "AZURE_", "GEMINI", "GOOGLE_", "QWEN", "DASHSCOPE", "DEEPSEEK", "OPENCODE", "DSH_", "WORKBUDDY", "CODEBUDDY", "AWS_", "HUGGINGFACE", "HF_", "GIT_", "NODE_", "PYTHON"} {
-		if strings.HasPrefix(name, prefix) {
-			return true
-		}
-	}
-	return map[string]bool{"HOME": true, "USERPROFILE": true, "PATH": true, "APPDATA": true, "LOCALAPPDATA": true, "TEMP": true, "TMP": true, "TMPDIR": true, "COMSPEC": true, "SYSTEMROOT": true, "WINDIR": true, "PATHEXT": true, "HOMEDRIVE": true, "HOMEPATH": true, "SYSTEMDRIVE": true, "PROGRAMDATA": true, "PROGRAMFILES": true, "PUBLIC": true, "LANG": true, "GOFLAGS": true, "GOCACHE": true, "GOTMPDIR": true}[name]
-}
 func validateACPExecutionSpec(spec CommandSpec) error {
 	if spec.ACP == nil && spec.Adapter != "qoder" && spec.Adapter != "cursor" && spec.Protocol != ac.Protocol && spec.Input != "acp-stdio" {
 		return nil
@@ -57,8 +49,7 @@ func validateACPExecutionSpec(spec CommandSpec) error {
 		}
 	}
 	if p.CredentialEnvRef != "" {
-		name := strings.ToUpper(p.CredentialEnvRef)
-		if name != p.CredentialEnvRef || !modelEnvName.MatchString(p.CredentialEnvRef) || acpReservedCredentialEnv(name) {
+		if !ac.ValidCredentialEnvRef(p.CredentialEnvRef) {
 			return fmt.Errorf("ACP credential reference must be a separate local credential")
 		}
 	}

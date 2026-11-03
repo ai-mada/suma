@@ -137,6 +137,9 @@ func generate() (map[string]any, string) {
 	for _, v := range toolRecoveryModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range managedToolPreparationModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range toolInstallationModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -452,6 +455,7 @@ func generate() (map[string]any, string) {
 	toolProfileReplacementRoutes(add)
 	toolReinspectionRoutes(add)
 	toolRecoveryRoutes(add)
+	managedToolPreparationRoutes(add)
 	toolInstallationRoutes(add)
 	schedulingContracts(add, paths)
 	executionPoolContracts(add)
@@ -539,6 +543,7 @@ func generate() (map[string]any, string) {
 	toolManagementContracts(api)
 	toolReinspectionSchemas(api)
 	toolRecoverySchemas(api)
+	managedToolPreparationSchemas(api)
 	toolInstallationSchemas(api)
 	poolRunnerPairingContracts(add, api)
 	poolConnectionContracts(add, api)

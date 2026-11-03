@@ -224,6 +224,9 @@ func (s *Service) CreateToolInstallationScan(ctx context.Context, actor Actor, p
 	if err = s.toolInstallationInspectionBusyTx(ctx, tx, auth.target.tenantID, project, req.WorkerID, clock); err != nil {
 		return out, err
 	}
+	if err = s.toolPreparationBusyTx(ctx, tx, auth.target.tenantID, project, req.WorkerID, clock); err != nil {
+		return out, err
+	}
 	var count int
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_installation_scans WHERE tenant_id=? AND project_id=?`), auth.target.tenantID, project).Scan(&count); err != nil {
 		return out, err

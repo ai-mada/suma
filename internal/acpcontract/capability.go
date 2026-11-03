@@ -37,3 +37,23 @@ func ValidateCapability(c Capability) error {
 func ValidHostExitCode(code *int) bool {
 	return code == nil || *code >= -1 && int64(*code) <= 4294967295
 }
+
+// ValidCredentialEnvRef is the common ACP isolated-environment name boundary.
+// The value is never accepted here; factories resolve it only on the machine.
+var credentialReference = regexp.MustCompile(`^[A-Z_][A-Z0-9_]{0,127}$`)
+
+func ValidCredentialEnvRef(name string) bool {
+	if !credentialReference.MatchString(name) {
+		return false
+	}
+	for _, prefix := range []string{"SUMA_", "CODEX", "OPENAI", "ANTHROPIC", "CLAUDE", "AZURE_", "GEMINI", "GOOGLE_", "QWEN", "DASHSCOPE", "DEEPSEEK", "OPENCODE", "DSH_", "WORKBUDDY", "CODEBUDDY", "AWS_", "HUGGINGFACE", "HF_", "GIT_", "NODE_", "PYTHON"} {
+		if strings.HasPrefix(name, prefix) {
+			return false
+		}
+	}
+	switch name {
+	case "HOME", "USERPROFILE", "PATH", "APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "TMPDIR", "COMSPEC", "SYSTEMROOT", "WINDIR", "PATHEXT", "HOMEDRIVE", "HOMEPATH", "SYSTEMDRIVE", "PROGRAMDATA", "PROGRAMFILES", "PUBLIC", "LANG", "GOFLAGS", "GOCACHE", "GOTMPDIR":
+		return false
+	}
+	return true
+}

@@ -5,7 +5,7 @@ import {preparationForLocalTool} from './tool-preparation-target';
 import {runnerSetupLiteral} from './cursor-setup-guide-model';
 
 const generic=['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli'] as const;
-const input:RemoteRunnerSetupInput={mode:'identity',pairingID:'',identityPath:'/srv/runner.identity.json',shell:'bash',control:'https://control.example.test',project:'project',worker:'worker',commands:'/srv/commands.json',state:'',localTool:'codex-jsonl',repository:'/srv/repository',baseCommit:'a'.repeat(40),allowInstalledDiscovery:false};
+const input:RemoteRunnerSetupInput={mode:'identity',pairingID:'',identityPath:'/srv/runner.identity.json',shell:'bash',control:'https://control.example.test',project:'project',worker:'worker',commands:'/srv/commands.json',state:'',localTool:'codex-jsonl',repository:'/srv/repository',baseCommit:'a'.repeat(40),allowInstalledDiscovery:false,allowToolPreparation:false};
 
 it('T220 explicit generic preparation shares the stable local JSON output boundary without changing original all-tools or special modes',()=>{
  for(const localTool of generic){

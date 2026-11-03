@@ -17,13 +17,16 @@ const observation = () => ({
 
 it('T212 keeps explicit command modes, exact current source leases and bounded project navigation separate from preparation success', () => {
   const input = { prepared: { shell: 'powershell' as const, output: "D:/new/O'Brien $(no).json", scopes: [{ tenant_id: target.tenantID, project_id: target.projectID }] },
-    identity: 'D:/private/pool identity.json', state: 'D:/new/config.runner-state', control: 'https://control.example.test', mode: 'maintenance' as const, discovery: false };
+    identity: 'D:/private/pool identity.json', state: 'D:/new/config.runner-state', control: 'https://control.example.test', mode: 'maintenance' as const, discovery: false, preparation: false };
   const check = poolConfigConnectionCommands(input)!;
   expect(check.check).toBe("suma-runner --check-pool-connection --control 'https://control.example.test' --pool-config 'D:/new/O''Brien $(no).json' --pool-identity 'D:/private/pool identity.json'");
   expect(check.start).toBeUndefined();
   const inspection = poolConfigConnectionCommands({ ...input, discovery: true })!;
   expect(inspection.start).toContain('--maintenance-only --allow-installed-tool-discovery');
   expect(inspection.start).not.toMatch(/--allow-exec|--describe-tools/);
+  const preparation = poolConfigConnectionCommands({...input,discovery:true,preparation:true})!;
+  expect(preparation.start).toContain('--allow-installed-tool-discovery --allow-tool-preparation');expect(preparation.start).not.toContain('--allow-exec');expect(preparation.check).not.toContain('--allow-tool-preparation');expect(inspection.start).not.toContain('--allow-tool-preparation');expect(poolConfigConnectionCommands({...input,preparation:true})).toBeUndefined();
+  expect(poolConfigConnectionCommands({...input,mode:'tasks',discovery:true,preparation:true})?.start).toContain('--allow-exec --allow-installed-tool-discovery --allow-tool-preparation');
   const tasks = poolConfigConnectionCommands({ ...input, mode: 'tasks', prepared: { ...input.prepared, shell: 'bash' } })!;
   expect(tasks.start).toContain("'D:/new/O'\"'\"'Brien $(no).json'");
   expect(tasks.start).toContain('--allow-exec'); expect(tasks.start).not.toContain('--allow-installed-tool-discovery');

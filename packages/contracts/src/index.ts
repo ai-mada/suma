@@ -3675,6 +3675,112 @@ export interface LocalizationParameter {
   name: string;
   kind: string;
 }
+export interface ManagedToolPreparation {
+  id: string;
+  tenant_id: string;
+  project_id: string;
+  worker_id: string;
+  version: number;
+  state: string;
+  adapter_id: string;
+  configuration: ManagedToolPreparationConfiguration;
+  instance_id: string;
+  installation_scan_id: string;
+  installation_scan_version: number;
+  installation_reference: ToolInstallationScanReference;
+  installation_source_sha256: string;
+  installation_item: ToolInstallationItem;
+  installation_stop_proof: ToolInstallationStopProof;
+  expected_generation_sha256: string;
+  requested_by: string;
+  created_at: string;
+  expires_at: string;
+  source_sha256: string;
+  fence: number;
+  claim_id?: string;
+  claimed_at?: string;
+  lease_until?: string;
+  finished_at?: string;
+  result_code?: string;
+  receipt?: ManagedToolPreparationGenerationReceipt;
+  stop_proof?: ManagedToolPreparationStopProof;
+  inventory_operation_id?: string;
+  inventory_observed_at?: string;
+  source_changed?: boolean;
+}
+export interface ManagedToolPreparationCapability {
+  protocol: string;
+  adapter_ids: (string)[];
+  generation_sha256: string;
+}
+export interface ManagedToolPreparationClaim {
+  tenant_id: string;
+  project_id: string;
+  worker_id: string;
+  preparation: ManagedToolPreparation | null;
+}
+export interface ManagedToolPreparationClaimRequest {
+  project_id: string;
+  worker_id: string;
+  claim_id: string;
+}
+export interface ManagedToolPreparationConfiguration {
+  model: string;
+  credential_env_ref: string;
+}
+export interface ManagedToolPreparationCreateRequest {
+  project_id: string;
+  worker_id: string;
+  installation_scan_id: string;
+  expected_scan_version: number;
+  adapter_id: string;
+  configuration: ManagedToolPreparationConfiguration;
+  expected_generation_sha256: string;
+  acknowledge_configuration_write: boolean;
+  idempotency_key: string;
+}
+export interface ManagedToolPreparationGenerationReceipt {
+  parent_generation_sha256: string;
+  generation_sha256: string;
+  command_id: string;
+  artifact_sha256: string;
+  local_receipt_sha256: string;
+  profile: ToolExecutionProfile;
+  stop_proof: ManagedToolPreparationStopProof;
+}
+export interface ManagedToolPreparationInventoryBinding {
+  reference: ManagedToolPreparationReference;
+  source_sha256: string;
+  generation_sha256: string;
+  local_receipt_sha256: string;
+}
+export interface ManagedToolPreparationReference {
+  preparation_id: string;
+  claim_id: string;
+  fence: number;
+}
+export interface ManagedToolPreparationResultRequest {
+  project_id: string;
+  worker_id: string;
+  preparation: ManagedToolPreparationReference;
+  source_sha256: string;
+  idempotency_key: string;
+  outcome: string;
+  failure_code: string;
+  receipt?: ManagedToolPreparationGenerationReceipt;
+  stop_proof?: ManagedToolPreparationStopProof;
+}
+export interface ManagedToolPreparationStopProof {
+  protocol: string;
+  preparation: ManagedToolPreparationReference;
+  source_sha256: string;
+  receipt_sha256: string;
+  probe_returned: boolean;
+  all_native_trees_stopped: boolean;
+  native_process_count: number;
+  stopped_process_count: number;
+  observed_at: string;
+}
 export interface ModelBinding {
   protocol: string;
   deployment: ModelDeployment;
@@ -4331,6 +4437,24 @@ export interface PoolHostOperationProgressRequest {
   operation_id: string;
   host_operation: WorkspaceOperationEvent;
 }
+export interface PoolManagedToolPreparationClaimRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  claim_id: string;
+}
+export interface PoolManagedToolPreparationResultRequest {
+  tenant_id: string;
+  project_id: string;
+  runner_id: string;
+  preparation: ManagedToolPreparationReference;
+  source_sha256: string;
+  idempotency_key: string;
+  outcome: string;
+  failure_code: string;
+  receipt?: ManagedToolPreparationGenerationReceipt;
+  stop_proof?: ManagedToolPreparationStopProof;
+}
 export interface PoolRepositoryAuthorizationRequest {
   project_id: string;
   assignment: CandidateAssignmentRef;
@@ -4571,6 +4695,7 @@ export interface PoolToolInstallationScanResultRequest {
   stop_proof?: ToolInstallationStopProof;
 }
 export interface PoolToolInventoryRequest {
+  preparation?: ManagedToolPreparationInventoryBinding;
   runner_id: string;
   tenant_id: string;
   project_id: string;
@@ -8000,6 +8125,8 @@ export interface ToolInstallationStopProof {
   observed_at: string;
 }
 export interface ToolInventoryReceipt {
+  preparation?: ManagedToolPreparationInventoryBinding;
+  preparation_state?: string;
   acknowledged: boolean;
   observed_at: string;
   inspection?: ToolInspectionReference;
@@ -8007,6 +8134,7 @@ export interface ToolInventoryReceipt {
   maintenance?: ToolMaintenanceCapability;
 }
 export interface ToolInventoryRequest {
+  preparation?: ManagedToolPreparationInventoryBinding;
   project_id: string;
   worker_id: string;
   operation_id: string;
@@ -8018,6 +8146,7 @@ export interface ToolMaintenanceCapability {
   protocol: string;
   instance_id: string;
   installed_discovery?: ToolInstallationCapability;
+  managed_preparation?: ManagedToolPreparationCapability;
 }
 export interface ToolMaintenanceStatus {
   state: "supported" | "expired" | "unsupported" | "unknown";
@@ -8027,6 +8156,7 @@ export interface ToolMaintenanceStatus {
   observed_at?: string;
   expires_at?: string;
   installed_discovery?: ToolInstallationCapability;
+  managed_preparation?: ManagedToolPreparationCapability;
 }
 export interface ToolObservation {
   profile: ToolExecutionProfile;
@@ -8112,6 +8242,14 @@ export interface ToolPermissionRequest {
   acp?: ACPToolPermissionSource;
   codex?: CodexApprovalRequest;
   claude?: ClaudePermissionSource;
+}
+export interface ToolPreparationPage {
+  project_id: string;
+  worker_id: string;
+  as_of: string;
+  maintenance: ToolMaintenanceStatus;
+  items: (ManagedToolPreparation)[];
+  next_cursor?: string;
 }
 export interface ToolProfile {
   id: string;

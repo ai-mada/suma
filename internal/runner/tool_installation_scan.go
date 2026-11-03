@@ -279,6 +279,11 @@ func (w *Worker) serviceInstallationScan(ctx context.Context) (bool, error) {
 			if probeErr == nil && interrupted == nil && closeErr == nil && proofErr == nil {
 				items, itemErr := installationItems(report, p.Scan.AdapterIDs)
 				if itemErr == nil {
+					if w.AllowToolPreparation {
+						if err = w.Journal.saveInstallationObservation(ctx, *p, report, items); err != nil {
+							return true, err
+						}
+					}
 					result.Outcome = "completed"
 					result.FailureCode = ""
 					result.Items = items

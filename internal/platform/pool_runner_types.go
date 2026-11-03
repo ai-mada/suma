@@ -4,9 +4,11 @@ import (
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
+	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
 
 type PoolToolInventoryRequest struct {
+	Preparation *tp.InventoryBinding           `json:"preparation,omitempty" wire:"nonnull"`
 	RunnerID    string                         `json:"runner_id"`
 	TenantID    string                         `json:"tenant_id"`
 	ProjectID   string                         `json:"project_id"`

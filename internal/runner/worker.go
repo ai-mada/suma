@@ -26,7 +26,13 @@ type Worker struct {
 	inventoryNext                   time.Time
 	maintenance                     *ti.ToolMaintenanceCapability
 	AllowInstalledToolDiscovery     bool
+	AllowToolPreparation            bool
 	MaintenanceOnly                 bool
+	execMu                          sync.RWMutex
+	managedCommands                 map[string]CommandSpec
+	managedGenerationSHA            string
+	managedBaseSHA                  string
+	managedRestored                 bool
 }
 
 func (w *Worker) Run(ctx context.Context) error {
@@ -34,6 +40,9 @@ func (w *Worker) Run(ctx context.Context) error {
 	defer cancel()
 	if w.Client == nil || w.Journal == nil {
 		return fmt.Errorf("Runner client and durable journal are required")
+	}
+	if w.AllowToolPreparation && !w.AllowInstalledToolDiscovery {
+		return fmt.Errorf("tool preparation requires explicit installed discovery")
 	}
 	if w.MaintenanceOnly && (!w.AllowInstalledToolDiscovery || w.Journal.requireNoPendingBusiness() != nil) {
 		return fmt.Errorf("maintenance-only requires installed discovery and a drained business journal")
@@ -111,7 +120,7 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 			continue
 		}
-		capabilities := runnerCapabilities(w.Exec, ToolCapabilities(w.currentInventory()))
+		capabilities := runnerCapabilities(w.currentExecSnapshot(), ToolCapabilities(w.currentInventory()))
 		request, err := w.Journal.BeginClaim(w.Client.BaseURL, w.Client.ProjectID, w.ID, capabilities)
 		if err != nil {
 			return err
@@ -153,7 +162,7 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	defer cancel()
 	results := make(chan Result, 1)
 	progress := make(chan struct{}, 1)
-	cfg := w.Exec
+	cfg := w.currentExecSnapshot()
 	cfg.TerminalClient = w.Client
 	cfg.CloudClient = w.Client
 	cfg.ToolInputClient = w.Client

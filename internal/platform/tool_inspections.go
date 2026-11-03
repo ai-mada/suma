@@ -161,6 +161,9 @@ func (s *Service) CreateToolInspection(ctx context.Context, actor Actor, project
 	if err = s.toolInstallationBusyTx(ctx, tx, auth.target.tenantID, project, p.WorkerID, clock); err != nil {
 		return out, err
 	}
+	if err = s.toolPreparationBusyTx(ctx, tx, auth.target.tenantID, project, p.WorkerID, clock); err != nil {
+		return out, err
+	}
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tool_inspections WHERE tenant_id=? AND project_id=? AND worker_id=? AND state IN ('pending','claimed','unknown') ORDER BY id`), auth.target.tenantID, project, p.WorkerID)
 	if err != nil {
 		return out, err

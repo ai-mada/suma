@@ -1,0 +1,14 @@
+# Multica参考与工具接入采用记录
+
+速码1.0.0 · T-MANAGED-TOOL-PREPARATION-224 · 负责人：主集成代理。
+
+本轮通过官方远端读取主分支提交 `24b54bc09cebc4234af27ddafabd78b9c49626ad`，再按该提交通过GitHub连接器取得并验证四份Git blob；不是把旧本地HEAD当作最新。本地 `D:/codes/github/multica` 保持 `e8b6a97643ccc35efbcf2a4675c8d088a288ed6e`，未修改；四份对应文件仅CRLF差异、规范化后内容一致。
+
+| 参考来源 | 采用方式与速码实现 |
+|---|---|
+| [agents_probe.go](https://github.com/multica-ai/multica/blob/24b54bc09cebc4234af27ddafabd78b9c49626ad/server/internal/daemon/agents_probe.go) | 借鉴分层探测及明确失败；速码沿原私有扫描回执核对准确安装、版本和完整依赖，拒绝静默换同名程序 |
+| [agents_refresh.go](https://github.com/multica-ai/multica/blob/24b54bc09cebc4234af27ddafabd78b9c49626ad/server/internal/daemon/agents_refresh.go) | 参考本机维护与能力刷新边界；速码沿单维护owner、持久Journal、不可变命令代次及原库存ACK，独立保持业务执行资格 |
+| [commands.ts](https://github.com/multica-ai/multica/blob/24b54bc09cebc4234af27ddafabd78b9c49626ad/packages/core/runtimes/commands.ts) | 参考明确运行方式；速码保留固定adapter、能力声明和准确项目／机器范围，不把目录存在当作运行成功 |
+| [LICENSE](https://github.com/multica-ai/multica/blob/24b54bc09cebc4234af27ddafabd78b9c49626ad/LICENSE) | 包含额外托管／商业嵌入、标识与署名条件，不能简写为纯Apache-2.0。此阶段为原创合同与实现，未复制产品／前端代码 |
+
+完整来源清单SHA256 `3dfd48c000449f006530e80104db51b4b3a45f2a9c5ca1d2f8b9942bc4247738`；只读取得记录SHA256 `a8a3ec1dd734a3cfcb3bc0968496d13f0f0ebc513cd5096cbb993b00b19c01e6`。原始文件留在忽略目录供审计，不提交参考源码、依赖或临时下载。不运行参考仓库脚本，不以参考设计代替速码验收。[当前实现与证据](../quality/managed-tool-preparation-verification.md)仍明确真实厂商、其他工具、分布式和生产的剩余范围。

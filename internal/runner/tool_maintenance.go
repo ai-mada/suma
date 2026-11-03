@@ -8,6 +8,7 @@ import (
 
 	ti "github.com/ai-mada/suma/internal/toolinspectioncontract"
 	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
+	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
 
 type toolMaintenanceOwner struct {
@@ -42,8 +43,18 @@ func (w *Worker) enableToolMaintenance() error {
 	}
 	capability := owner.Capability
 	capability.InstalledDiscovery = nil
+	capability.ManagedPreparation = nil
 	if w.AllowInstalledToolDiscovery {
 		capability.InstalledDiscovery = &ii.Capability{Protocol: ii.Protocol, AdapterIDs: ii.AdapterIDs()}
+	}
+	if w.AllowToolPreparation {
+		if !w.AllowInstalledToolDiscovery {
+			return fmt.Errorf("tool preparation requires installed discovery")
+		}
+		if err = w.initializeCommandGeneration(); err != nil {
+			return err
+		}
+		capability.ManagedPreparation = &tp.Capability{Protocol: tp.Protocol, AdapterIDs: tp.AdapterIDs(), GenerationSHA256: w.currentGenerationSHA()}
 	}
 	w.maintenance = &capability
 	return nil
@@ -59,6 +70,11 @@ func cloneToolMaintenance(p *ti.ToolMaintenanceCapability) *ti.ToolMaintenanceCa
 		c.AdapterIDs = append([]string{}, c.AdapterIDs...)
 		copied.InstalledDiscovery = &c
 	}
+	if p.ManagedPreparation != nil {
+		c := *p.ManagedPreparation
+		c.AdapterIDs = append([]string{}, c.AdapterIDs...)
+		copied.ManagedPreparation = &c
+	}
 	return &copied
 }
 
@@ -70,7 +86,25 @@ func sameToolMaintenance(a, b *ti.ToolMaintenanceCapability) bool {
 		return false
 	}
 	if a.InstalledDiscovery == nil || b.InstalledDiscovery == nil {
-		return a.InstalledDiscovery == nil && b.InstalledDiscovery == nil
+		if a.InstalledDiscovery != nil || b.InstalledDiscovery != nil {
+			return false
+		}
+	} else if a.InstalledDiscovery.Protocol != b.InstalledDiscovery.Protocol || !slices.Equal(a.InstalledDiscovery.AdapterIDs, b.InstalledDiscovery.AdapterIDs) {
+		return false
 	}
-	return a.InstalledDiscovery.Protocol == b.InstalledDiscovery.Protocol && slices.Equal(a.InstalledDiscovery.AdapterIDs, b.InstalledDiscovery.AdapterIDs)
+	if a.ManagedPreparation == nil || b.ManagedPreparation == nil {
+		return a.ManagedPreparation == nil && b.ManagedPreparation == nil
+	}
+	return a.ManagedPreparation.Protocol == b.ManagedPreparation.Protocol && a.ManagedPreparation.GenerationSHA256 == b.ManagedPreparation.GenerationSHA256 && slices.Equal(a.ManagedPreparation.AdapterIDs, b.ManagedPreparation.AdapterIDs)
+}
+
+func (w *Worker) toolMaintenanceForGeneration(generation string) *ti.ToolMaintenanceCapability {
+	capability := cloneToolMaintenance(w.maintenance)
+	if capability != nil && capability.ManagedPreparation != nil {
+		capability.ManagedPreparation.GenerationSHA256 = generation
+	}
+	return capability
+}
+func (w *Worker) currentToolMaintenance() *ti.ToolMaintenanceCapability {
+	return w.toolMaintenanceForGeneration(w.currentGenerationSHA())
 }

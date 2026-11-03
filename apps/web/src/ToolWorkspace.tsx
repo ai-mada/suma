@@ -135,6 +135,7 @@ function ScopedToolWorkspace({
   if(pairingCaller.current.api!==api)pairingCaller.current={api,generation:pairingCaller.current.generation+1};
   const pairingGeneration=pairingCaller.current.generation;
   const dialog=dialogState?.caller===api&&dialogState.generation===pairingGeneration?dialogState.value:undefined;
+  const currentDialog=useRef(dialog);currentDialog.current=dialog;
   const handoffIntent=useRef(0);
   const [taskHandoff,setTaskHandoff]=useState<{epoch:number;intent:number;tool:ToolProfile;task?:RecordItem;pin?:ToolTaskHandoffPin;planID?:string}>();
   function setDialog(value:Dialog|undefined){if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setDialogState(value?{caller:api,generation:pairingGeneration,value}:undefined);}
@@ -397,8 +398,19 @@ function ScopedToolWorkspace({
     if(connection?.expectedWorkerID&&value.workerID!==connection.expectedWorkerID)return;
     if(connection?.sourceEpoch!==undefined&&connection.sourceEpoch!==detailOwner.current.epoch)return;
     const sameTarget=publicDraft?.adapterID===value.adapterID&&publicDraft.workerID===value.workerID;
-    beginPublicDraft({adapterID:value.adapterID,workerID:value.workerID,commandID:value.commandID,name:sameTarget?publicDraft.name:'',nameEdited:sameTarget?publicDraft.nameEdited:false},sameTarget?replacementSource:undefined);
+    beginPublicDraft({adapterID:value.adapterID,workerID:value.workerID,commandID:value.commandID,name:sameTarget?publicDraft.name:'',nameEdited:sameTarget?publicDraft.nameEdited:false,observationPin:Object.freeze({profileSHA256:value.profileSHA256,observedAt:value.observedAt})},sameTarget?replacementSource:undefined);
     action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',preferredWorkerID:value.workerID});
+  }
+  async function returnFromManagedInventory(value:ToolReportFeedbackSelection,preparationID:string,source:Extract<Dialog,{kind:'remote-scan'}>){
+    const target=preparationForLocalTool(value.adapterID),nonce=++connectIntent.current;
+    const owns=()=>activeWorkspace.current&&!writeBlocked&&currentDialog.current===source&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration&&connectIntent.current===nonce;
+    if(!owns()||!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,149}$/.test(preparationID)||value.workerID!==source.workerID||!target||!validToolReportFeedbackSelection(value,{project,workerID:source.workerID,localTool:target.localTool}))return;
+    try{
+      const catalog=readAdapterCatalog(await api<unknown>('/adapter-catalog'+query(project)),project);if(!owns())return;
+      const choices=catalog?.items.filter(adapter=>adapter.id===value.adapterID&&toolPreparationTarget(adapter));if(choices?.length!==1)throw new UiError('tool-workspace.target_unavailable');
+      beginPublicDraft({adapterID:value.adapterID,workerID:value.workerID,commandID:value.commandID,name:'',nameEdited:false,observationPin:Object.freeze({profileSHA256:value.profileSHA256,observedAt:value.observedAt,preparationID})});
+      action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:choices[0],preferredWorkerID:value.workerID});
+    }catch(error){if(owns())setConnectError(error);}
   }
   function updatePublicDraft(value:ToolConnectDraft,nonce:number|undefined){
     const owner=connectDraft.current;
@@ -1021,7 +1033,7 @@ function ScopedToolWorkspace({
           />
           </>
         )}
-        {dialog?.kind==='remote-scan'&&dialog.context===contextKey&&dialog.caller===api&&dialog.generation===pairingGeneration&&<RemoteToolScanPanel project={project} workerID={dialog.workerID} disabled={writeBlocked} onPrepare={(adapter,workerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||workerID!==dialog.workerID)return;openToolPreparation(adapter,workerID,true);}} onGuide={()=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID:dialog.workerID});setGuideOpen(true);focusNavigation(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(dialog.workerID.startsWith('pool-')?'[data-shared-pool-prepare]':'[data-remote-runner-allow-installed-discovery]'));}}/>}
+        {dialog?.kind==='remote-scan'&&dialog.context===contextKey&&dialog.caller===api&&dialog.generation===pairingGeneration&&<RemoteToolScanPanel project={project} workerID={dialog.workerID} disabled={writeBlocked} onPreparedConfiguration={(value,preparationID)=>void returnFromManagedInventory(value,preparationID,dialog)} onPrepare={(adapter,workerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||workerID!==dialog.workerID)return;openToolPreparation(adapter,workerID,true);}} onGuide={()=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID:dialog.workerID});setGuideOpen(true);focusNavigation(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(dialog.workerID.startsWith('pool-')?'[data-shared-pool-prepare]':'[data-remote-runner-allow-installed-discovery]'));}}/>}
         {dialog?.kind === 'quick' && <ToolQuickConnect
           key={contextKey+':'+(dialog.adapter?.id||'')+':'+(dialog.preferredWorkerID||'')}
           project={project}

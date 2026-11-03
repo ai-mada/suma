@@ -8,6 +8,9 @@ import (
 )
 
 func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
+	if s.toolPreparationsHTTP(w, r, actor, scope, parts, project, m) {
+		return true
+	}
 	if s.toolInstallationScansHTTP(w, r, actor, scope, parts, project, m) {
 		return true
 	}

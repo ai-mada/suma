@@ -1,6 +1,7 @@
 import type {ToolMaintenanceStatus} from '../../../packages/contracts/src';
 import {wellFormed} from './i18n/catalog';
 import {validInstalledDiscoveryCapability} from './tool-installation-capability-model';
+import {validManagedToolPreparationCapability} from './managed-tool-preparation-capability-model';
 
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value)&&[Object.prototype,null].includes(Object.getPrototypeOf(value));
 const closed=(value:Record<string,unknown>,keys:readonly string[],optional:readonly string[]=[])=>keys.every(key=>Object.hasOwn(value,key))&&Reflect.ownKeys(value).every(key=>typeof key==='string'&&(keys.includes(key)||optional.includes(key)));
@@ -14,6 +15,11 @@ function instance(value:unknown):value is string{
  if(typeof value!=='string'||!wellFormed(value)||value.trim()!==value||/\p{Cc}/u.test(value))return false;
  const size=new TextEncoder().encode(value).length;return size>=8&&size<=128;
 }
+function managedDeclaration(value:Record<string,unknown>):boolean{
+ if(!Object.hasOwn(value,'managed_preparation'))return true;
+ const managed=value.managed_preparation,discovery=value.installed_discovery;
+ return ['supported','expired'].includes(String(value.state))&&validManagedToolPreparationCapability(managed)&&validInstalledDiscoveryCapability(discovery)&&managed.adapter_ids.every(id=>discovery.adapter_ids.includes(id));
+}
 
 /** Server state and observation lifetime only. Capability is neither current
  * authorization, native-stop evidence nor tool/model availability. The caller
@@ -21,7 +27,7 @@ function instance(value:unknown):value is string{
 export function readToolMaintenanceStatus(value:unknown):{status:ToolMaintenanceStatus;remainingMs:number}|undefined{
  if(!object(value))return;const checked=instant(value.checked_at);if(checked===undefined)return;
  if(value.state==='unknown')return closed(value,['state','checked_at'])?{status:value as unknown as ToolMaintenanceStatus,remainingMs:0}:undefined;
- if(!closed(value,['state','checked_at','protocol','instance_id','observed_at','expires_at'],['installed_discovery'])||Object.hasOwn(value,'installed_discovery')&&(!validInstalledDiscoveryCapability(value.installed_discovery)||!['supported','expired'].includes(String(value.state)))||typeof value.protocol!=='string'||!/^suma-tool-maintenance-v[1-9][0-9]{0,3}$/.test(value.protocol)||!instance(value.instance_id))return;
+ if(!closed(value,['state','checked_at','protocol','instance_id','observed_at','expires_at'],['installed_discovery','managed_preparation'])||Object.hasOwn(value,'installed_discovery')&&(!validInstalledDiscoveryCapability(value.installed_discovery)||!['supported','expired'].includes(String(value.state)))||!managedDeclaration(value)||typeof value.protocol!=='string'||!/^suma-tool-maintenance-v[1-9][0-9]{0,3}$/.test(value.protocol)||!instance(value.instance_id))return;
  const observed=instant(value.observed_at),expires=instant(value.expires_at);
  if(observed===undefined||expires===undefined||observed>checked||expires-observed!==60000000000n)return;
  const currentProtocol=value.protocol==='suma-tool-maintenance-v1';

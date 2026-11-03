@@ -16,6 +16,7 @@ export type PoolConfigConnectionInput = {
   control: string;
   mode: 'maintenance' | 'tasks';
   discovery: boolean;
+  preparation: boolean;
 };
 export type PoolToolLocator = { poolID: string; runnerID: string };
 /** Match the native cloudControlOrigin boundary. The browser never rewrites a
@@ -48,10 +49,10 @@ const timestamp = (value: unknown): value is string => {
 /** Reuse the original target-shell quoting and local path contract. Copying
  * either command is never evidence that a file exists or that a node started. */
 export function poolConfigConnectionCommands(input: PoolConfigConnectionInput): { check: string; start?: string } | undefined {
-  const { prepared, identity, state, control, mode, discovery } = input;
+  const { prepared, identity, state, control, mode, discovery, preparation } = input;
   if (!prepared || !['powershell', 'bash'].includes(prepared.shell) ||
       !validPoolConfigPath(prepared.output) || !validPoolConfigPath(identity) ||
-      !validPoolConfigPath(state) || !['maintenance', 'tasks'].includes(mode) || typeof discovery !== 'boolean') return;
+      !validPoolConfigPath(state) || !['maintenance', 'tasks'].includes(mode) || typeof discovery !== 'boolean' || typeof preparation !== 'boolean' || preparation && !discovery) return;
   if (!validPoolConnectionControl(control)) return;
   const quote = (value: string) => runnerSetupLiteral(value, prepared.shell);
   const base = 'suma-runner --control ' + quote(control) +
@@ -61,7 +62,7 @@ export function poolConfigConnectionCommands(input: PoolConfigConnectionInput): 
   const start = mode === 'maintenance'
     ? discovery ? base + ' --state ' + quote(state) + ' --maintenance-only --allow-installed-tool-discovery' : undefined
     : base + ' --state ' + quote(state) + ' --allow-exec' + (discovery ? ' --allow-installed-tool-discovery' : '');
-  return { check, ...(start ? { start } : {}) };
+  return { check, ...(start ? { start:start+(preparation?' --allow-tool-preparation':'') } : {}) };
 }
 
 /** A bounded locator is navigation intent, never a project or node grant. */

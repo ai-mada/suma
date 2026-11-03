@@ -237,6 +237,20 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 	if err != nil {
 		return false, err
 	}
+	if err = w.restoreToolGeneration(ctx); err != nil {
+		return false, err
+	}
+	// An accepted preparation owns its outbound inventory. Recover its prepared
+	// result first; sending that inventory before awaiting_inventory would break
+	// the two-phase control-plane transaction.
+	preparation, prepErr := w.Journal.preparationCheckpoint()
+	if prepErr != nil {
+		return false, prepErr
+	}
+	if preparation != nil && !preparation.Complete {
+		_, e := w.serviceToolPreparation(ctx)
+		return false, e
+	}
 	p, err := w.Journal.toolInspectionCheckpoint()
 	if err != nil {
 		return false, err
@@ -291,6 +305,9 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 		if handled, e := w.serviceInstallationScan(ctx); handled || e != nil {
 			return false, e
 		}
+		if handled, e := w.serviceToolPreparation(ctx); handled || e != nil {
+			return false, e
+		}
 	}
 	p, err = w.Journal.beginToolInspection(w.Client, w.ID)
 	if err != nil {
@@ -338,7 +355,7 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 			return false, w.finishInspectionFailure(ctx, p, "probe_failed")
 		}
 		probeCtx = collector.context(probeCtx)
-		items, probeErr := DescribeTools(probeCtx, w.Exec)
+		items, probeErr := w.describeToolSnapshot(probeCtx, w.currentExecSnapshot())
 		interrupted := probeCtx.Err()
 		cancel()
 		if collectErr = collector.closeReturned(); collectErr != nil || collector.hasUnverifiedNativeExit() {
@@ -355,7 +372,7 @@ func (w *Worker) serviceToolInventory(ctx context.Context, periodic bool) (bool,
 			return false, w.finishInspectionFailure(ctx, p, code)
 		}
 		ref := inspectionReference(*p.Inspection)
-		report, e := w.Journal.newToolInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items, &ref, w.maintenance)
+		report, e := w.Journal.newToolInventory(w.Client.BaseURL, w.Client.ProjectID, w.ID, items, &ref, w.currentToolMaintenance())
 		if e != nil {
 			return false, e
 		}

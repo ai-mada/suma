@@ -4,6 +4,7 @@ import (
 	"github.com/ai-mada/suma/internal/displaycontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
+	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
 
 type ToolProfile struct {
@@ -43,6 +44,7 @@ type ToolProfileList struct {
 	NextCursor string        `json:"next_cursor,omitempty"`
 }
 type ToolInventoryRequest struct {
+	Preparation *tp.InventoryBinding           `json:"preparation,omitempty" wire:"nonnull"`
 	ProjectID   string                         `json:"project_id"`
 	WorkerID    string                         `json:"worker_id"`
 	OperationID string                         `json:"operation_id"`
@@ -51,9 +53,11 @@ type ToolInventoryRequest struct {
 	Maintenance *tic.ToolMaintenanceCapability `json:"maintenance,omitempty" wire:"nonnull"`
 }
 type ToolInventoryReceipt struct {
-	Acknowledged    bool                           `json:"acknowledged"`
-	ObservedAt      string                         `json:"observed_at"`
-	Inspection      *tic.Reference                 `json:"inspection,omitempty" wire:"nonnull"`
-	InspectionState string                         `json:"inspection_state,omitempty"`
-	Maintenance     *tic.ToolMaintenanceCapability `json:"maintenance,omitempty" wire:"nonnull"`
+	Preparation      *tp.InventoryBinding           `json:"preparation,omitempty" wire:"nonnull"`
+	PreparationState string                         `json:"preparation_state,omitempty"`
+	Acknowledged     bool                           `json:"acknowledged"`
+	ObservedAt       string                         `json:"observed_at"`
+	Inspection       *tic.Reference                 `json:"inspection,omitempty" wire:"nonnull"`
+	InspectionState  string                         `json:"inspection_state,omitempty"`
+	Maintenance      *tic.ToolMaintenanceCapability `json:"maintenance,omitempty" wire:"nonnull"`
 }

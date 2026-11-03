@@ -39,6 +39,9 @@ func (s *Service) poolToolWorkerReasonTx(ctx context.Context, tx *sql.Tx, tenant
 
 func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req PoolToolInventoryRequest) (ToolInventoryReceipt, error) {
 	var out ToolInventoryReceipt
+	if req.Preparation != nil && req.Inspection != nil {
+		return out, toolPreparationInvalid()
+	}
 	if req.Maintenance != nil && tic.ValidateMaintenanceCapability(*req.Maintenance) != nil {
 		return out, toolInspectionInvalid()
 	}
@@ -72,6 +75,11 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 	if err = proof.assertScope(tx, proof.scopes[0]); err != nil {
 		return out, err
 	}
+	if req.Preparation != nil {
+		if _, err = s.toolPreparationInventoryReferenceTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, req.OperationID, req.Preparation); err != nil {
+			return out, err
+		}
+	}
 	if req.Inspection != nil {
 		if _, err = s.toolInspectionReferenceTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, req.Inspection); err != nil {
 			return out, err
@@ -94,6 +102,11 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return out, err
+	}
+	if req.Preparation == nil {
+		if err = s.toolPreparationUnboundInventoryTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, req.Maintenance, req.Items); err != nil {
+			return out, err
+		}
 	}
 	clock, err := s.toolInventoryClock(ctx, tx)
 	if err != nil {
@@ -120,6 +133,14 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 		ref := *req.Inspection
 		out.Inspection = &ref
 		out.InspectionState = "completed"
+	}
+	if req.Preparation != nil {
+		if err = s.completeToolPreparationInventoryTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, req.OperationID, out.ObservedAt, req.Preparation, req.Maintenance, req.Items); err != nil {
+			return out, err
+		}
+		binding := *req.Preparation
+		out.Preparation = &binding
+		out.PreparationState = "completed"
 	}
 	if err = s.recordToolMaintenanceTx(ctx, tx, req.TenantID, req.ProjectID, runner.WorkerID, out.ObservedAt, req.Maintenance); err != nil {
 		return out, err

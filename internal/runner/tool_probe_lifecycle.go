@@ -20,6 +20,7 @@ import (
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ti "github.com/ai-mada/suma/internal/toolinspectioncontract"
 	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
+	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
 
 type toolProbeContextKey struct{}
@@ -31,6 +32,7 @@ type toolProbeSource struct {
 	ScopeSHA256      string       `json:"scope_sha256"`
 	Inspection       ti.Reference `json:"inspection"`
 	InstallationScan ii.Reference `json:"installation_scan"`
+	Preparation      tp.Reference `json:"preparation"`
 	SourceSHA256     string       `json:"source_sha256"`
 }
 
@@ -38,14 +40,17 @@ type toolProbeSource struct {
 // inspection's original wire bytes; a scan never invents an inspection ID.
 func (s toolProbeSource) MarshalJSON() ([]byte, error) {
 	type wire struct {
-		Protocol   string        `json:"protocol"`
-		Scope      string        `json:"scope_sha256"`
-		Inspection *ti.Reference `json:"inspection,omitempty"`
-		Scan       *ii.Reference `json:"installation_scan,omitempty"`
-		Source     string        `json:"source_sha256"`
+		Protocol    string        `json:"protocol"`
+		Scope       string        `json:"scope_sha256"`
+		Inspection  *ti.Reference `json:"inspection,omitempty"`
+		Scan        *ii.Reference `json:"installation_scan,omitempty"`
+		Preparation *tp.Reference `json:"preparation,omitempty"`
+		Source      string        `json:"source_sha256"`
 	}
 	v := wire{Protocol: s.Protocol, Scope: s.ScopeSHA256, Source: s.SourceSHA256}
-	if s.Protocol == ii.StopProtocol {
+	if s.Protocol == tp.StopProtocol {
+		v.Preparation = &s.Preparation
+	} else if s.Protocol == ii.StopProtocol {
 		v.Scan = &s.InstallationScan
 	} else {
 		v.Inspection = &s.Inspection
@@ -63,7 +68,12 @@ func (s *toolProbeSource) UnmarshalJSON(raw []byte) error {
 		return fmt.Errorf("invalid maintenance probe source")
 	}
 	required := "inspection"
-	if v.Protocol == ii.StopProtocol {
+	if v.Protocol == tp.StopProtocol {
+		required = "preparation"
+		if tp.ValidateReference(v.Preparation) != nil {
+			return fmt.Errorf("invalid preparation probe source")
+		}
+	} else if v.Protocol == ii.StopProtocol {
 		required = "installation_scan"
 		if ii.ValidateReference(v.InstallationScan) != nil {
 			return fmt.Errorf("invalid scan probe source")
@@ -403,7 +413,7 @@ type probeProcessController struct {
 func startProbeProcess(ctx context.Context, cmd *exec.Cmd) (*probeProcessController, error) {
 	p := &probeProcessController{cmd: cmd, collector: toolProbeCollectorFrom(ctx)}
 	if p.collector != nil {
-		if p.collector.source.Protocol == ii.StopProtocol {
+		if p.collector.source.Protocol == ii.StopProtocol || p.collector.source.Protocol == tp.StopProtocol {
 			directory := filepath.Join(p.collector.directory, "working")
 			if err := os.Mkdir(directory, 0700); err != nil && !os.IsExist(err) {
 				return nil, err
