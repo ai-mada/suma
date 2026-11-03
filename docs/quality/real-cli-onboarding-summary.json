@@ -1,0 +1,185 @@
+{
+  "stage": "T-REAL-CLI-ONBOARDING-226",
+  "version": "1.0.0",
+  "date": "2026-11-03",
+  "base": "f716279e627295fcf8d742f29bd71a21e74d7454",
+  "full_platform_complete": false,
+  "full_scope": {
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "focused": {
+    "distinct": 18,
+    "new": 14,
+    "affected_old": 4,
+    "passed": 18,
+    "go": {
+      "distinct": 8,
+      "new": 8,
+      "passed": 8
+    },
+    "web": {
+      "distinct": 9,
+      "new": 5,
+      "affected_old": 4,
+      "passed": 9
+    },
+    "desktop": {
+      "distinct": 1,
+      "new": 1,
+      "passed": 1
+    },
+    "full_web_typecheck_diagnostics": 0,
+    "typecheck_note": "Initial and final full Web typecheck exit0; final follows structural history and new-operation/recovery separation; no full test-suite repeat",
+    "i18n": {
+      "paired_keys": 9971,
+      "production_hardcodes": 0,
+      "original_command_exit": 0
+    }
+  },
+  "contracts": {
+    "models": 1014,
+    "paths": 458,
+    "new_models": 1,
+    "new_paths": 0,
+    "new_tables": 0,
+    "new_dependencies": 0
+  },
+  "actual": {
+    "passed": true,
+    "go_builds": 2,
+    "attempts": 2,
+    "version": "codex-cli 0.166.0-alpha.5.1",
+    "native_bytes": 368970544,
+    "native_sha256": "3097c909fb6d5cd63510d44aceb1d42df9f6e85722a3e447e477def1ecf60e16",
+    "native_binary_copies": 0,
+    "scans": 1,
+    "preparations": 1,
+    "generations": 1,
+    "prepared_posts": 1,
+    "bound_inventory_posts": 1,
+    "paused_profiles": 1,
+    "available": false,
+    "native_metadata_processes": 4,
+    "version_processes": 2,
+    "exec_help_processes": 2,
+    "windows_job_start_stop_receipts": 4,
+    "all_parents_and_trees_stopped": true,
+    "host_exit": 0,
+    "port_closed": true,
+    "enable_calls": 0,
+    "business_claims": 0,
+    "business_runs": 0,
+    "prompt_requests": 0,
+    "login_commands": 0,
+    "model_call_requests": 0,
+    "node_copies": 0,
+    "independent_os_pid_snapshot": false,
+    "network_capture_performed": false,
+    "receipt": ".cache/real-cli-onboarding-226/actual/20261103T073127434021300Z/receipt.json",
+    "receipt_sha256": "11c3bc8f8473b0ec03576cf9993430baf78b90fa17c4dafb84186ace1cdf554f",
+    "successful_journeys": 2,
+    "totals": {
+      "native_metadata_processes": 8,
+      "version_processes": 4,
+      "exec_help_processes": 4,
+      "paused_profiles": 2
+    },
+    "count_basis": "Other scalar counts describe the final one-scan/preparation/generation/paused journey; first successful pre-fix journey retained separately",
+    "compiled_source_files": 26,
+    "compiled_source_hashes_match": true
+  },
+  "visual": {
+    "builds": 2,
+    "native_sessions": 2,
+    "groups": 3,
+    "passed": 3,
+    "images": 4,
+    "root_viewed": 4,
+    "production_components": true,
+    "fixture_observation_bridge": true,
+    "fixture_guide_callback": true,
+    "full_app_routing": false,
+    "real_os_ipc": false,
+    "widths": [
+      1366,
+      390
+    ],
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "minimum_action_height": 44,
+    "horizontal_overflow": false,
+    "http_writes": 0,
+    "actual_databases": 0,
+    "actual_workers": 0,
+    "actual_models": 0,
+    "actual_tool_probes": 0,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "forced": false,
+    "port_closed": true,
+    "post_visual_change": "Original representative bundle differs at exactly three production inputs after count and history/recovery fixes. Supplementary final history variant has all370 current inputs matched. No original screenshot represented as final raw source.",
+    "receipt": ".cache/real-cli-onboarding-226/web-actual/visual/20261103T071448727Z/result.json",
+    "receipt_sha256": "b3031121368ec245b28712ea8da62955ab6d646ef767162e62b32abb698fad6b",
+    "history_receipt": ".cache/real-cli-onboarding-226/web-history-recovery/visual/20261103T073203646Z/result.json",
+    "history_receipt_sha256": "2c828b68f5c9d865deb2407c73d2b0b182fe04e8fbd1d309c53a3501def28d63",
+    "final_input_matches": 370
+  },
+  "reference": {
+    "multica_commit": "2115a513a375bfe2910b76725b617504faee4b25",
+    "license_additional_terms": true,
+    "source_copied": false,
+    "new_zcode_status": "pending"
+  },
+  "evidence": [
+    {
+      "path": ".cache/real-cli-onboarding-226/verification-evidence.json",
+      "sha256": "cf5664106bddbb2eca8116648c5ddd413c6641c5395c69040fe06c72c8e607f1"
+    },
+    {
+      "path": ".cache/real-cli-onboarding-226/shared/runtime-review.json",
+      "sha256": "7507fa2411c84d42180347ec24b61236bc73f662a1364a09953c1ade8ff0a070"
+    },
+    {
+      "path": ".cache/real-cli-onboarding-226/reference/summary.json",
+      "sha256": "452d2c34ed5ac8f502f8637448d82d2e7744e66579f2409a518ca6f9755d0fc4"
+    },
+    {
+      "path": ".cache/real-cli-onboarding-226/checks/attention-result.json",
+      "sha256": "7f74a6d6a1ee4f0df198a29ecaacd869d78dacd8ca23ab63dcb76fc7cdf94586"
+    },
+    {
+      "path": ".cache/real-cli-onboarding-226/final-evidence.json",
+      "sha256": "0cf2d956bc9ac13eb0a5606718fdffeeaa2a60c2f4589401ce566e757482a521"
+    }
+  ],
+  "remaining": [
+    "Actual model, budget and native code development with same-commit independent tests and human acceptance",
+    "Other supplier CLI/SDK/AppServer actual integrations and authenticated providers",
+    "Complete desktop IPC and application navigation, physical multi-host, other OS/databases/installers/scale/production",
+    "All original 31 requirements and P0-P7 remain active"
+  ],
+  "known_unix_limitation": {
+    "source_confirmed": true,
+    "actual_run": false,
+    "complete_onboarding_available": false,
+    "behavior": "Without mature full-tree containment, standalone and collector probes return typed stop_unverified and retain private state; continuous probe/preparation acceptance remains blocked",
+    "process_group_absence_is_not_tree_stop": true
+  },
+  "docs": {
+    "markdown": 769,
+    "paths": 458,
+    "schema_refs": 4249
+  }
+}

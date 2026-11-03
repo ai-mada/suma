@@ -1,5 +1,7 @@
 # 工具管理后续纵向切片
 
+T-REAL-CLI-ONBOARDING-226：[产品](../product/real-cli-onboarding.md)／[架构与接入](../integrations/real-cli-onboarding.md)／[交互](../design/real-cli-onboarding.md)／[限定验证](../quality/real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。
+
 T-COLLABORATIVE-TEST-BINDINGS-223：[协作测试配置与工具自动核对](../product/collaborative-test-bindings.md)／[架构与AI SOP](../architecture/collaborative-test-bindings.md)／[交互](../design/collaborative-test-bindings.md)／[限定验证](../quality/collaborative-test-bindings-verification.md)。讨论、推荐采用及团队计划保留准确独测配置；工具按原live开关可见到期自动核对，后台刷新保留原请求，失败明确重试。真实同提交开发／独测和中英文代表组件分别核验；完整31项／P0–P7继续。
 
 T-ACCEPTED-TASK-BASELINE-222：[已验收任务交给后续开发](../product/accepted-task-baseline.md)／[架构与AI SOP](../architecture/accepted-task-baseline.md)／[交互](../design/accepted-task-baseline.md)／[限定验证](../quality/accepted-task-baseline-verification.md)。普通智能体候选经准确独测与Review后，可明确采用为未开始任务的基线，沿原broker和独立工作树继续开发；不继承旧验收、不自动开始。完整31项／P0–P7继续。

@@ -8050,6 +8050,12 @@ export interface ToolInstallationItem {
   reason_code: string;
   version?: string;
   executable_sha256?: string;
+  diagnostic?: ToolInstallationProbeDiagnostic;
+}
+export interface ToolInstallationProbeDiagnostic {
+  stage: string;
+  code: string;
+  next_action: string;
 }
 export interface ToolInstallationScan {
   id: string;

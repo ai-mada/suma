@@ -205,15 +205,16 @@ func probeCommand(ctx context.Context, exe string, args []string, spec CommandSp
 // Text help may use either stream. A versioned JSON probe must keep ordinary
 // stderr diagnostics separate from its authoritative stdout frame.
 func probeCommandStreams(ctx context.Context, exe string, args []string, spec CommandSpec, secrets []string, stdoutOnly bool) (string, error) {
+	stage := probeStage(args)
 	if ctx.Err() != nil {
-		return "", fmt.Errorf("read-only CLI probe cancelled")
+		return "", newProbeFailure(stage, "probe_timeout", ctx.Err())
 	}
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	cmd := exec.Command(exe, args...)
 	env, hidden, err := commandEnvironment(spec)
 	if err != nil {
-		return "", err
+		return "", newProbeFailure("source", "configuration_invalid", err)
 	}
 	cmd.Env = env
 	out := newOutput(32<<10, append(append([]string{}, secrets...), hidden...))
@@ -225,17 +226,8 @@ func probeCommandStreams(ctx context.Context, exe string, args []string, spec Co
 		cmd.Stderr = diagnostic
 	}
 	err, stopErr := runProbeProcess(ctx, cmd)
-	if ctx.Err() != nil {
-		return "", fmt.Errorf("read-only CLI probe timed out")
-	}
-	if stopErr != nil {
-		return "", fmt.Errorf("read-only CLI probe descendants unverified")
-	}
-	if err != nil {
-		return "", fmt.Errorf("read-only CLI probe failed")
-	}
-	if out.truncated || diagnostic != nil && diagnostic.truncated {
-		return "", fmt.Errorf("read-only CLI probe exceeded 32 KiB")
+	if failure := probeProcessFailure(ctx, stage, err, stopErr, out.truncated || diagnostic != nil && diagnostic.truncated); failure != nil {
+		return "", failure
 	}
 	return out.String(), nil
 }
@@ -288,7 +280,7 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 	default:
 		return "", fmt.Errorf("unsupported tool adapter")
 	}
-	version, err := probeCommand(ctx, exe, versionArgs, spec, secrets)
+	version, err := probeCommandStreams(ctx, exe, versionArgs, spec, secrets, true)
 	if err != nil {
 		return "", err
 	}
@@ -296,14 +288,17 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 	if err != nil {
 		return "", err
 	}
-	if spec.Adapter == "codex" && spec.Protocol != cc.Protocol && (!strings.Contains(version, "codex-cli ") || !strings.Contains(help, "--json") || !strings.Contains(help, "--sandbox")) {
-		return "", fmt.Errorf("installed Codex version/help does not match JSONL exec protocol")
+	if spec.Adapter == "codex" && !strings.Contains(version, "codex-cli ") {
+		return "", newProbeFailure("version", "version_unsupported", nil)
+	}
+	if spec.Adapter == "codex" && spec.Protocol != cc.Protocol && (!strings.Contains(help, "--json") || !strings.Contains(help, "--sandbox")) {
+		return "", newProbeFailure("help", "help_contract_mismatch", nil)
 	}
 	if spec.Protocol == cc.Protocol && (!strings.Contains(version, "codex-cli ") || !strings.Contains(help, "--listen")) {
-		return "", fmt.Errorf("installed Codex version/help does not match app-server stdio protocol")
+		return "", newProbeFailure("help", "help_contract_mismatch", nil)
 	}
 	if spec.Adapter == "suma" && (!strings.HasPrefix(version, "suma-agent-runtime ") || !strings.Contains(help, "JSONL") || !strings.Contains(help, "SUMA_AGENT_TOKEN")) {
-		return "", fmt.Errorf("installed Suma version/help does not match JSONL agent protocol")
+		return "", newProbeFailure("help", "help_contract_mismatch", nil)
 	}
 	if spec.NativeWorkspace != nil && spec.NativeWorkspace.ConflictRepair {
 		if err = probeNativeConflictRepair(ctx, exe, spec, secrets); err != nil {
@@ -342,7 +337,7 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 	}
 	version = strings.TrimSpace(strings.SplitN(version, "\n", 2)[0])
 	if version == "" || len(version) > 256 {
-		return "", fmt.Errorf("CLI version is missing or oversized")
+		return "", newProbeFailure("version", "probe_failed", nil)
 	}
 	return version, nil
 }

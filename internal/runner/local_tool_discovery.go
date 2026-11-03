@@ -26,17 +26,18 @@ type InstalledToolDiscovery struct {
 }
 
 type InstalledToolDiscoveryItem struct {
-	AdapterID        string             `json:"adapter_id"`
-	Product          string             `json:"product"`
-	Installed        bool               `json:"installed"`
-	LaunchSupported  bool               `json:"launch_supported"`
-	Executable       string             `json:"executable,omitempty"`
-	ExecutableSHA256 string             `json:"executable_sha256,omitempty"`
-	Version          string             `json:"version,omitempty"`
-	ReasonCode       string             `json:"reason_code"`
-	Command          *CommandSpec       `json:"command,omitempty"`
-	PinnedCommand    *CommandSpec       `json:"-"`
-	CursorPackage    *CursorPackageSpec `json:"-"`
+	AdapterID        string              `json:"adapter_id"`
+	Product          string              `json:"product"`
+	Installed        bool                `json:"installed"`
+	LaunchSupported  bool                `json:"launch_supported"`
+	Executable       string              `json:"executable,omitempty"`
+	ExecutableSHA256 string              `json:"executable_sha256,omitempty"`
+	Version          string              `json:"version,omitempty"`
+	ReasonCode       string              `json:"reason_code"`
+	Diagnostic       *ii.ProbeDiagnostic `json:"diagnostic,omitempty" wire:"nonnull"`
+	Command          *CommandSpec        `json:"command,omitempty"`
+	PinnedCommand    *CommandSpec        `json:"-"`
+	CursorPackage    *CursorPackageSpec  `json:"-"`
 }
 
 type localToolDirectoryEntry struct {
@@ -165,8 +166,9 @@ func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryE
 				return
 			}
 			item := InstalledToolDiscoveryItem{AdapterID: entry.id, Product: entry.product, ReasonCode: "not_installed"}
-			spec, resolverRoot, installed, reason := resolveLocalTool(entry, paths)
+			spec, resolverRoot, installed, reason, diagnostic := resolveLocalToolObserved(entry, paths)
 			item.Installed, item.ReasonCode = installed, reason
+			item.Diagnostic = diagnostic
 			if reason == "resolved" {
 				item.Executable = spec.Executable
 				var pinned *CommandSpec
@@ -174,6 +176,7 @@ func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryE
 					bound, err := pinResolvedInstalledCommand(ctx, entry.id, spec, resolverRoot)
 					if err != nil {
 						item.ReasonCode = "unsupported_launcher"
+						item.Diagnostic = probeDiagnostic(newProbeFailure("source", "source_unavailable", err))
 						result.Items[index] = item
 						return
 					}
@@ -182,10 +185,15 @@ func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryE
 				version, err := probe(ctx, spec)
 				if err != nil || !localToolSafeText(version, 256) {
 					item.ReasonCode = "probe_failed"
+					if err == nil {
+						err = newProbeFailure("version", "probe_failed", nil)
+					}
+					item.Diagnostic = probeDiagnostic(err)
 				} else {
 					if pinned != nil {
 						if validateInstalledCommandPins(ctx, *pinned) != nil {
 							item.ReasonCode = "probe_failed"
+							item.Diagnostic = probeDiagnostic(newProbeFailure("source", "source_changed", nil))
 							result.Items[index] = item
 							return
 						}
@@ -193,6 +201,7 @@ func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryE
 						item.PinnedCommand = pinned
 					}
 					item.Version, item.Command, item.LaunchSupported, item.ReasonCode = version, &spec, true, "workspace_required"
+					item.Diagnostic = nil
 				}
 			}
 			result.Items[index] = item
@@ -210,7 +219,7 @@ func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryE
 func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, error) {
 	exe, _, err := commandExecutable(spec)
 	if err != nil {
-		return "", err
+		return "", newProbeFailure("source", "source_unavailable", err)
 	}
 	if spec.Adapter == "claude" && spec.Protocol == tc.ClaudeSDKProtocol {
 		return passiveClaudeSDKVersion(ctx, exe)
@@ -223,7 +232,11 @@ func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, e
 		if err != nil {
 			return "", err
 		}
-		defer cleanup()
+		ctx, closeScope, err := bindPrivateProbeDirectory(ctx, directory, cleanup)
+		if err != nil {
+			return "", err
+		}
+		defer closeScope()
 		return probeQoderNativeVersion(ctx, exe, directory, nil)
 	}
 	if spec.Adapter == "codex" && spec.Protocol == cc.Protocol {
@@ -235,7 +248,18 @@ func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, e
 }
 
 func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpec, string, bool, string) {
+	spec, root, installed, reason, _ := resolveLocalToolObserved(entry, paths)
+	return spec, root, installed, reason
+}
+
+func resolveLocalToolObserved(entry localToolDirectoryEntry, paths []string) (CommandSpec, string, bool, string, *ii.ProbeDiagnostic) {
 	installed, reason := false, "not_installed"
+	var diagnostic *ii.ProbeDiagnostic
+	unavailable := func(err error) {
+		if err != nil && !os.IsNotExist(err) {
+			diagnostic = probeDiagnostic(newProbeFailure("resolve", "source_unavailable", err))
+		}
+	}
 	for _, directory := range paths {
 		name := entry.binary
 		if runtime.GOOS == "windows" {
@@ -244,13 +268,19 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 		candidate := filepath.Join(directory, name)
 		if _, err := os.Lstat(candidate); err == nil {
 			installed, reason = true, "unsupported_launcher"
-			if spec, ok := localToolNativeSpec(entry.command, candidate); ok {
-				return spec, "", true, "resolved"
+			if spec, err := localToolNativeSpecObserved(entry.command, candidate); err == nil {
+				return spec, "", true, "resolved", nil
+			} else {
+				diagnostic = probeDiagnostic(newProbeFailure("source", "source_unavailable", err))
 			}
+		} else {
+			unavailable(err)
 		}
 		for _, extension := range []string{".cmd", ".bat", ".ps1"} {
 			if _, err := os.Lstat(filepath.Join(directory, entry.binary+extension)); err == nil {
 				installed, reason = true, "unsupported_launcher"
+			} else {
+				unavailable(err)
 			}
 		}
 	}
@@ -267,11 +297,13 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 			seen[moduleRoot] = true
 			pkg := filepath.Join(moduleRoot, filepath.FromSlash(entry.packageName))
 			if _, err := os.Lstat(pkg); err != nil {
+				unavailable(err)
 				continue
 			}
 			installed, reason = true, "invalid_package"
 			manifest, err := localToolPackageManifest(moduleRoot, entry.packageName)
 			if err != nil {
+				diagnostic = probeDiagnostic(newProbeFailure("source", "source_unavailable", err))
 				continue
 			}
 			if entry.binary == "claude" {
@@ -280,7 +312,7 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 			}
 			if entry.binary == "codex" {
 				if spec, ok := localToolCodexVendor(entry.command, moduleRoot, pkg); ok {
-					return spec, "", true, "resolved"
+					return spec, "", true, "resolved", nil
 				}
 				reason = "unsupported_launcher"
 				continue
@@ -306,27 +338,41 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 			if validateTeamCLICommand(spec) != nil {
 				continue
 			}
-			return spec, moduleRoot, true, "resolved"
+			return spec, moduleRoot, true, "resolved", nil
 		}
 	}
-	return CommandSpec{}, "", installed, reason
+	if !installed && diagnostic != nil {
+		reason = "scan_incomplete"
+	}
+	return CommandSpec{}, "", installed, reason, diagnostic
 }
 
 func localToolNativeSpec(preset CommandSpec, candidate string) (CommandSpec, bool) {
+	spec, err := localToolNativeSpecObserved(preset, candidate)
+	return spec, err == nil
+}
+
+func localToolNativeSpecObserved(preset CommandSpec, candidate string) (CommandSpec, error) {
 	resolved, err := resolveExecutableTarget(candidate)
-	if err != nil || !filepath.IsAbs(resolved) || !localToolSafeText(resolved, 4096) {
-		return CommandSpec{}, false
+	if err != nil {
+		return CommandSpec{}, err
+	}
+	if !filepath.IsAbs(resolved) || !localToolSafeText(resolved, 4096) {
+		return CommandSpec{}, fmt.Errorf("native installation path is invalid")
 	}
 	extension := strings.ToLower(filepath.Ext(resolved))
 	if extension == ".cmd" || extension == ".bat" || extension == ".ps1" || localToolJavaScript(resolved) {
-		return CommandSpec{}, false
+		return CommandSpec{}, fmt.Errorf("native installation is a launcher")
 	}
 	info, err := os.Stat(resolved)
-	if err != nil || !info.Mode().IsRegular() || info.Size() > 1<<30 || runtime.GOOS != "windows" && info.Mode()&0111 == 0 {
-		return CommandSpec{}, false
+	if err != nil {
+		return CommandSpec{}, err
+	}
+	if !info.Mode().IsRegular() || info.Size() > 1<<30 || runtime.GOOS != "windows" && info.Mode()&0111 == 0 {
+		return CommandSpec{}, fmt.Errorf("native installation is not an executable regular file")
 	}
 	preset.Executable = resolved
-	return preset, true
+	return preset, nil
 }
 
 func localToolNode(paths []string) string {

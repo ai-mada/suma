@@ -18,16 +18,32 @@ func discoverLocalOpenCode(ctx context.Context, paths []string, probe func(conte
 	exe, sha, installed, reason := resolveLocalOpenCode(ctx, paths)
 	item.Installed, item.ReasonCode = installed, reason
 	if reason != "resolved" {
+		if !installed {
+			if d := incompleteLocalResolution(paths, "opencode", "opencode-ai"); d != nil {
+				item.ReasonCode = "scan_incomplete"
+				item.Diagnostic = d
+			}
+		}
 		return item
 	}
 	version, err := probe(ctx, CommandSpec{Adapter: "opencode", Executable: exe})
-	if err != nil || !localToolSafeText(version, 256) || strings.TrimSpace(version) != version || !sameACPProbeInstallation(ctx, exe, sha) {
+	if err != nil || !localToolSafeText(version, 256) || strings.TrimSpace(version) != version {
 		item.ReasonCode = "probe_failed"
+		if err == nil {
+			err = newProbeFailure("version", "probe_failed", nil)
+		}
+		item.Diagnostic = probeDiagnostic(err)
+		return item
+	}
+	if !sameACPProbeInstallation(ctx, exe, sha) {
+		item.ReasonCode = "probe_failed"
+		item.Diagnostic = probeDiagnostic(newProbeFailure("source", "source_changed", nil))
 		return item
 	}
 	item.Executable, item.ExecutableSHA256, item.Version, item.ReasonCode = exe, sha, version, "configuration_required"
 	if version != tc.OpenCodeSDKVersion {
 		item.ReasonCode = "version_unsupported"
+		item.Diagnostic = probeDiagnostic(newProbeFailure("version", "version_unsupported", nil))
 	}
 	return item // Passive installation facts never supply a launch command.
 }
@@ -133,7 +149,11 @@ func passiveNativeToolVersion(parent context.Context, exe string, fixedEnvironme
 	if err != nil {
 		return "", err
 	}
-	defer cleanup()
+	parent, closeScope, err := bindPrivateProbeDirectory(parent, directory, cleanup)
+	if err != nil {
+		return "", err
+	}
+	defer closeScope()
 	ctx, cancel := context.WithTimeout(parent, 5*time.Second)
 	defer cancel()
 	cmd := exec.Command(exe, "--version")
@@ -164,8 +184,11 @@ func passiveNativeToolVersion(parent context.Context, exe string, fixedEnvironme
 	truncated = truncated || diagnostic.truncated
 	diagnostic.mu.Unlock()
 	version := strings.TrimSpace(raw)
-	if waitErr != nil || stopErr != nil || ctx.Err() != nil || truncated || !localToolSafeText(version, 256) || strings.TrimSpace(out.String()) != version {
-		return "", fmt.Errorf("native version probe was not confirmed")
+	if failure := probeProcessFailure(ctx, "version", waitErr, stopErr, truncated); failure != nil {
+		return "", failure
+	}
+	if !localToolSafeText(version, 256) || strings.TrimSpace(out.String()) != version {
+		return "", newProbeFailure("version", "probe_failed", nil)
 	}
 	return version, nil
 }

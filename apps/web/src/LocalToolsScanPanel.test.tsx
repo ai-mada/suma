@@ -6,6 +6,7 @@ import {ApiViewProvider} from './api-context';
 import type {AdapterDescriptor} from './AdapterConnections';
 import {LocalToolsScanPanel} from './LocalToolsScanPanel';
 import {setLocale} from './i18n';
+import type {ToolInstallationProbeDiagnostic} from './tool-installation-probe-diagnostic-model';
 
 const project='1'.repeat(32),user='2'.repeat(32),tenant='3'.repeat(32);
 const session={user:{id:user,name:'Owner',email:'owner@example.test'},organization:{id:tenant,name:'Team'}};
@@ -86,4 +87,19 @@ it('T202 gives the empty primary list its existing node entry and localizes fold
  let worker=host.querySelector<HTMLButtonElement>('[data-local-tools-worker]')!;await click(worker);expect(onWorker).toHaveBeenCalledOnce();expect(scan).toHaveBeenCalledOnce();
  await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.querySelector('[data-local-tools-other] > summary')!.textContent).toContain('其他未发现工具（9）');expect(host.querySelector('[data-local-tools-installation-summary]')!.textContent).toBe('检测到安装：0 · 需要处理的检测：0');expect(scan).toHaveBeenCalledOnce();
  await click(rescan());expect(scan).toHaveBeenCalledTimes(2);expect(scan).toHaveBeenLastCalledWith({action:'scan',project_id:project,user_id:user,tenant_id:tenant,locale:'zh-CN',force:true});await draw(true);worker=host.querySelector<HTMLButtonElement>('[data-local-tools-worker]')!;expect(worker.disabled).toBe(true);await click(worker);expect(onWorker).toHaveBeenCalledOnce();expect(select).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
+});
+
+it('T226 opens the precise failed tool guide without changing selection and only rechecks locally on an explicit safe action',async()=>{
+ const sdk={...adapter,id:'claude-code-sdk',product:'Claude Code',adapter:'claude',protocol:'claude-sdk-v1'} as AdapterDescriptor,onAdvanced=vi.fn();
+ function failed(diagnostic:ToolInstallationProbeDiagnostic){const value=report();value.report.items[8]={...value.report.items[8],installed:true,reason_code:'probe_failed',diagnostic} as typeof value.report.items[number];return value;}
+ scan.mockResolvedValueOnce(failed({stage:'help',code:'help_contract_mismatch',next_action:'guide'}));
+ async function draw(advanced=false,disabled=false){await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[adapter,sdk]} selectedAdapterID={adapter.id} disabled={disabled} onSelect={select} {...(advanced?{onAdvanced}:{})}/></ApiViewProvider>));}
+ await draw();let row=host.querySelector('[data-local-tools-adapter="claude-code-sdk"]')!;
+ expect(row.querySelector('[data-tool-probe-diagnostic="help_contract_mismatch"]')).not.toBeNull();expect(row.textContent).toContain('Required command arguments were not confirmed');expect(row.querySelector('[data-local-tools-select]')).toBeNull();expect(row.querySelector('[data-local-tools-diagnostic-action]')).toBeNull();expect(scan).toHaveBeenCalledOnce();
+ await draw(true);await click(host.querySelector<HTMLButtonElement>('[data-local-tools-diagnostic-action="guide"]')!);expect(onAdvanced).toHaveBeenCalledExactlyOnceWith(sdk);expect(select).not.toHaveBeenCalled();expect(scan).toHaveBeenCalledOnce();
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('未能确认所需命令参数');
+ scan.mockResolvedValueOnce(failed({stage:'version',code:'probe_timeout',next_action:'scan'}));await click(rescan());expect(scan).toHaveBeenCalledTimes(2);expect(host.querySelector('[data-local-tools-diagnostic-action="guide"]')).toBeNull();
+ await draw(true,true);expect(host.querySelector<HTMLButtonElement>('[data-local-tools-diagnostic-action="scan"]')!.disabled).toBe(true);await click(host.querySelector<HTMLButtonElement>('[data-local-tools-diagnostic-action="scan"]')!);expect(scan).toHaveBeenCalledTimes(2);
+ await draw(true);scan.mockResolvedValueOnce(failed({stage:'version',code:'stop_unverified',next_action:'none'}));await click(host.querySelector<HTMLButtonElement>('[data-local-tools-diagnostic-action="scan"]')!);expect(scan).toHaveBeenCalledTimes(3);expect(scan).toHaveBeenLastCalledWith({action:'scan',project_id:project,user_id:user,tenant_id:tenant,locale:'zh-CN',force:true});
+ row=host.querySelector('[data-local-tools-adapter="claude-code-sdk"]')!;expect(row.textContent).toContain('尚未确认检测进程已停止');expect(row.querySelector('[data-local-tools-diagnostic-action]')).toBeNull();expect(rescan().disabled).toBe(true);await click(rescan());expect(scan).toHaveBeenCalledTimes(3);expect(fetch).not.toHaveBeenCalled();
 });

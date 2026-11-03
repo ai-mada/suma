@@ -1,5 +1,6 @@
 import {readInstalledToolDiscovery,type InstalledToolFact} from './tool-quick-connect-model';
 import {wellFormed} from './i18n/catalog';
+import {validToolInstallationProbeDiagnosticField} from './tool-installation-probe-diagnostic-model';
 export type LocalToolsScanScope=Readonly<{project:string;userID:string;organizationID:string}>;
 export type LocalToolsScanRequest={action:'scan';project_id:string;user_id:string;tenant_id:string;locale:'zh-CN'|'en-US';force?:boolean};
 export type LocalToolsScanResult={status:'observed';report:{protocol:'suma-installed-tools-v1';items:InstalledToolFact[]};scan:{id:string;project_id:string;user_id:string;tenant_id:string;observed_at:string;expires_at:string;cached:boolean}}|{status:'failed';code:string};
@@ -22,12 +23,12 @@ export function localToolsScanBridge(value:unknown=(window as unknown as {sumaDe
 }
 export function validLocalToolsScanScope(scope:LocalToolsScanScope):boolean{return object(scope)&&closed(scope,['project','userID','organizationID'])&&id(scope.project)&&id(scope.userID)&&id(scope.organizationID);}
 function readQoder(row:Record<string,unknown>):InstalledToolFact|undefined{
- if(row.product!=='Qoder CLI'||typeof row.installed!=='boolean'||row.launch_supported!==false||typeof row.reason_code!=='string'||!['not_installed','unsupported_launcher','probe_failed','acp_configuration_required'].includes(row.reason_code))return;
+ if(row.product!=='Qoder CLI'||typeof row.installed!=='boolean'||row.launch_supported!==false||typeof row.reason_code!=='string'||!['not_installed','scan_incomplete','unsupported_launcher','probe_failed','acp_configuration_required'].includes(row.reason_code))return;
  if(Object.hasOwn(row,'executable')&&(!text(row.executable,4096)||!(/^[A-Za-z]:[\\/]/.test(row.executable)||/^\/(?!\/)/.test(row.executable)||/^\\\\[^\\]+\\[^\\]+/.test(row.executable))))return;
  if(Object.hasOwn(row,'version')&&!text(row.version,256)||Object.hasOwn(row,'executable_sha256')&&!hash(row.executable_sha256))return;
- if(row.reason_code==='not_installed'&&(row.installed||['executable','version','executable_sha256'].some(key=>Object.hasOwn(row,key))))return;
+ if(['not_installed','scan_incomplete'].includes(row.reason_code)&&(row.installed||['executable','version','executable_sha256'].some(key=>Object.hasOwn(row,key))))return;
  if(row.reason_code==='acp_configuration_required'&&(!row.installed||!row.executable||!row.version||!row.executable_sha256))return;
- return {adapter_id:'qoder-acp',product:'Qoder CLI',installed:row.installed,launch_supported:false,reason_code:row.reason_code,...(typeof row.executable==='string'?{executable:row.executable}:{}),...(typeof row.version==='string'?{version:row.version}:{}),...(typeof row.executable_sha256==='string'?{executable_sha256:row.executable_sha256}:{})};
+ return {adapter_id:'qoder-acp',product:'Qoder CLI',installed:row.installed,launch_supported:false,reason_code:row.reason_code,...(typeof row.executable==='string'?{executable:row.executable}:{}),...(typeof row.version==='string'?{version:row.version}:{}),...(typeof row.executable_sha256==='string'?{executable_sha256:row.executable_sha256}:{}),...(Object.hasOwn(row,'diagnostic')?{diagnostic:row.diagnostic as InstalledToolFact['diagnostic']}:{})};
 }
 /** Scan time is the original desktop observation. Parsing never starts a new
  * sixty-second period or infers execution health from an installation row. */
@@ -45,7 +46,7 @@ export function readLocalToolsScanResult(value:unknown,scope:LocalToolsScanScope
  for(let index=0;index<scanAdapterIDs.length;index++){
   if(!Object.hasOwn(rows,index))return;
   const row=rows[index],adapter=scanAdapterIDs[index];
-  if(!object(row)||!closed(row,['adapter_id','product','installed','launch_supported','reason_code'],['executable','version','executable_sha256'])||row.adapter_id!==adapter||!Object.values(row).every(v=>typeof v!=='string'||wellFormed(v)))return;
+  if(!object(row)||!closed(row,['adapter_id','product','installed','launch_supported','reason_code'],['executable','version','executable_sha256','diagnostic'])||!validToolInstallationProbeDiagnosticField(row)||row.adapter_id!==adapter||!Object.values(row).every(v=>typeof v!=='string'||wellFormed(v)))return;
   for(const key of ['executable','version','executable_sha256'])if(Object.hasOwn(row,key)&&typeof row[key]!=='string')return;
   const item=adapter==='qoder-acp'?readQoder(row):readInstalledToolDiscovery({status:'observed',report:{protocol:'suma-installed-tools-v1',items:[row]}},adapter);
   if(!item)return;items.push(item);

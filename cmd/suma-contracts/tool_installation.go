@@ -6,7 +6,7 @@ import (
 )
 
 func toolInstallationModels() []any {
-	return []any{ii.ToolInstallationCapability{}, ii.ToolInstallationScanReference{}, ii.ToolInstallationItem{}, ii.ToolInstallationStopProof{}, ii.ToolInstallationScanResult{}, ii.ToolInstallationScan{}, ii.ToolInstallationScanCreateRequest{}, ii.ToolInstallationScanClaimRequest{}, ii.PoolToolInstallationScanClaimRequest{}, ii.ToolInstallationScanClaim{}, ii.ToolInstallationScanResultRequest{}, ii.PoolToolInstallationScanResultRequest{}, platform.ToolInstallationScanPage{}}
+	return []any{ii.ToolInstallationCapability{}, ii.ToolInstallationScanReference{}, ii.ToolInstallationProbeDiagnostic{}, ii.ToolInstallationItem{}, ii.ToolInstallationStopProof{}, ii.ToolInstallationScanResult{}, ii.ToolInstallationScan{}, ii.ToolInstallationScanCreateRequest{}, ii.ToolInstallationScanClaimRequest{}, ii.PoolToolInstallationScanClaimRequest{}, ii.ToolInstallationScanClaim{}, ii.ToolInstallationScanResultRequest{}, ii.PoolToolInstallationScanResultRequest{}, platform.ToolInstallationScanPage{}}
 }
 
 func toolInstallationRoutes(add operationAdder) {
@@ -97,7 +97,8 @@ func toolInstallationSchemas(api map[string]any) {
 		correspondence = append(correspondence, map[string]any{"if": map[string]any{"properties": map[string]any{"adapter_id": map[string]any{"const": id}}}, "then": map[string]any{"properties": map[string]any{"protocol": map[string]any{"const": ii.AdapterProtocol(id)}}}})
 	}
 	item["allOf"] = correspondence
-	toolContractMap(item, "properties", "reason_code")["enum"] = []string{"not_installed", "cursor_editor_only", "cursor_scan_incomplete", "unsupported_launcher", "invalid_package", "node_unavailable", "probe_failed", "cursor_agent_unverified", "cursor_launcher_unsupported", "workspace_required", "configuration_required", "version_unsupported", "acp_configuration_required"}
+	toolInstallationProbeDiagnosticSchemas(schemas, item)
+	toolContractMap(item, "properties", "reason_code")["enum"] = []string{"not_installed", "cursor_editor_only", "cursor_scan_incomplete", "scan_incomplete", "unsupported_launcher", "invalid_package", "node_unavailable", "probe_failed", "cursor_agent_unverified", "cursor_launcher_unsupported", "workspace_required", "configuration_required", "version_unsupported", "acp_configuration_required"}
 	toolContractMap(schemas, "ToolInstallationScan", "properties", "state")["enum"] = []string{"pending", "claimed", "completed", "failed", "unknown", "closed_unknown", "expired", "superseded"}
 	toolContractMap(schemas, "ToolInstallationScan", "properties", "result_code")["enum"] = []string{"scan_completed", "not_started", "probe_timeout", "probe_interrupted", "worker_restarted", "request_expired", "source_changed"}
 	for _, name := range []string{"ToolInstallationScanResultRequest", "PoolToolInstallationScanResultRequest"} {

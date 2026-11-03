@@ -152,7 +152,11 @@ func probeCodexVersion(ctx context.Context, exe string, spec CommandSpec, secret
 	if err != nil {
 		return "", err
 	}
-	defer os.RemoveAll(home)
+	ctx, closeScope, err := bindPrivateProbeDirectory(ctx, home, func() { _ = os.RemoveAll(home) })
+	if err != nil {
+		return "", err
+	}
+	defer closeScope()
 	// Even read-only --version/--help probes receive no current user home or
 	// account credential. CLI startup is not allowed to consult that context.
 	copy := spec
@@ -182,17 +186,26 @@ func probeCodexVersion(ctx context.Context, exe string, spec CommandSpec, secret
 		return "", err
 	}
 	help, err := probeCommand(ctx, exe, []string{"app-server", "--help"}, probe, secrets)
-	if err != nil || !strings.Contains(version, "codex-cli ") || !strings.Contains(help, "--listen") {
-		return "", fmt.Errorf("installed Codex version/help does not match app-server stdio protocol")
+	if err != nil {
+		return "", err
+	}
+	if !strings.Contains(version, "codex-cli ") {
+		return "", newProbeFailure("version", "version_unsupported", nil)
+	}
+	if !strings.Contains(help, "--listen") {
+		return "", newProbeFailure("help", "help_contract_mismatch", nil)
 	}
 	version = strings.TrimSpace(strings.SplitN(version, "\n", 2)[0])
 	if version == "" || len(version) > 256 {
-		return "", fmt.Errorf("Codex version is missing or oversized")
+		return "", newProbeFailure("version", "probe_failed", nil)
 	}
 	if provider.EnableUserInput {
 		features, err := probeCommandStreams(ctx, exe, []string{"features", "list"}, probe, secrets, true)
-		if err != nil || !codexUserInputFeatureEnabled(features) {
-			return "", fmt.Errorf("installed Codex does not confirm the enabled user input feature")
+		if err != nil {
+			return "", err
+		}
+		if !codexUserInputFeatureEnabled(features) {
+			return "", newProbeFailure("protocol", "protocol_mismatch", nil)
 		}
 	}
 	return version, nil
@@ -250,7 +263,11 @@ func probeCodexCatalog(ctx context.Context, exe string, spec CommandSpec, cfg Ex
 	}
 	// This is a newly owned random child of the checked probe directory; no
 	// configured or historical path is ever opened to recover a session.
-	defer os.RemoveAll(home)
+	ctx, closeScope, err := bindPrivateProbeDirectory(ctx, home, func() { _ = os.RemoveAll(home) })
+	if err != nil {
+		return nil, err
+	}
+	defer closeScope()
 	if err = prepareCodexHome(spec, home, home); err != nil {
 		return nil, err
 	}

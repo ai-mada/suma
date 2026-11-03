@@ -5,6 +5,7 @@ import {preparationForLocalTool} from './tool-preparation-target';
 import {toolDiscoveryTimestampNs} from './tool-discovery-model';
 import {wellFormed} from './i18n/catalog';
 import {UiError} from './i18n';
+import {validToolInstallationProbeDiagnosticField} from './tool-installation-probe-diagnostic-model';
 
 export type RemoteToolScanScope={project:string;workerID:string;userID:string;organizationID:string};
 export type RemoteToolScan=ToolInstallationScan;
@@ -27,8 +28,8 @@ const unknownCode=(value:unknown)=>['probe_timeout','probe_interrupted','worker_
 function invalid():never{throw new UiError('remote-tool-scan.invalid_response');}
 
 export function validRemoteToolScanItem(value:unknown):value is RemoteToolScanItem{
- if(!record(value)||!closed(value,['adapter_id','protocol','installed','launch_supported','reason_code'],['version','executable_sha256'])||preparationForLocalTool(value.adapter_id)?.protocol!==value.protocol||!preparationForLocalTool(value.adapter_id)||typeof value.installed!=='boolean'||typeof value.launch_supported!=='boolean'||Object.hasOwn(value,'version')&&!text(value.version,256)||Object.hasOwn(value,'executable_sha256')&&!digest(value.executable_sha256))return false;
- const absent=['not_installed','cursor_editor_only','cursor_scan_incomplete'].includes(String(value.reason_code));
+ if(!record(value)||!closed(value,['adapter_id','protocol','installed','launch_supported','reason_code'],['version','executable_sha256','diagnostic'])||!validToolInstallationProbeDiagnosticField(value)||preparationForLocalTool(value.adapter_id)?.protocol!==value.protocol||!preparationForLocalTool(value.adapter_id)||typeof value.installed!=='boolean'||typeof value.launch_supported!=='boolean'||Object.hasOwn(value,'version')&&!text(value.version,256)||Object.hasOwn(value,'executable_sha256')&&!digest(value.executable_sha256))return false;
+ const absent=['not_installed','scan_incomplete','cursor_editor_only','cursor_scan_incomplete'].includes(String(value.reason_code));
  if(absent)return !value.installed&&!value.launch_supported&&!Object.hasOwn(value,'version')&&!Object.hasOwn(value,'executable_sha256');
  if(['unsupported_launcher','invalid_package','node_unavailable','probe_failed','cursor_agent_unverified','cursor_launcher_unsupported'].includes(String(value.reason_code)))return !value.launch_supported;
  if(value.reason_code==='workspace_required')return value.installed&&value.launch_supported&&typeof value.version==='string'&&value.version!=='';

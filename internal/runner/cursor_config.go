@@ -107,8 +107,11 @@ func cursorVersion(parent context.Context, spec CommandSpec, secrets []string) (
 	}
 	secrets = append(append([]string{}, secrets...), value)
 	version, err := probeCursorVersion(parent, spec, secrets)
-	if err != nil || version != spec.ACP.ReviewedVersion {
-		return "", fmt.Errorf("Cursor complete reviewed version was not confirmed")
+	if err != nil {
+		return "", err
+	}
+	if version != spec.ACP.ReviewedVersion {
+		return "", newProbeFailure("version", "version_unsupported", nil)
 	}
 	return version, nil
 }
@@ -122,7 +125,11 @@ func probeCursorVersion(parent context.Context, spec CommandSpec, secrets []stri
 	if err != nil {
 		return "", err
 	}
-	defer cleanup()
+	parent, closeScope, err := bindPrivateProbeDirectory(parent, directory, cleanup)
+	if err != nil {
+		return "", err
+	}
+	defer closeScope()
 	source := filepath.Join(directory, "source")
 	if err = safeMkdir(source); err != nil {
 		return "", err
@@ -148,8 +155,11 @@ func probeCursorVersion(parent context.Context, spec CommandSpec, secrets []stri
 	truncated = truncated || diagnostic.truncated
 	diagnostic.mu.Unlock()
 	version := strings.TrimSpace(raw)
-	if waitErr != nil || stopErr != nil || ctx.Err() != nil || truncated || !acpLocalText(version, 256) || strings.TrimSpace(out.String()) != version {
-		return "", fmt.Errorf("Cursor complete reviewed version was not confirmed")
+	if failure := probeProcessFailure(ctx, "version", waitErr, stopErr, truncated); failure != nil {
+		return "", failure
+	}
+	if !acpLocalText(version, 256) || strings.TrimSpace(out.String()) != version {
+		return "", newProbeFailure("version", "probe_failed", nil)
 	}
 	if _, err = validateCursorPackage(*spec.ACP.CursorPackage); err != nil {
 		return "", err

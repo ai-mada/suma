@@ -7,33 +7,49 @@ const {strictJSON}=require('./local-acp-validation.cjs');
 const CHANNEL='suma:discover-installed-tools';
 const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code','cursor-cli':'Cursor','qoder-acp':'Qoder CLI','codex-app-server':'Codex','opencode-sdk':'OpenCode','claude-code-sdk':'Claude Code'});
 const ADAPTERS=Object.freeze(Object.keys(PRODUCTS));
-const REASONS=new Set(['not_installed','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
-const CURSOR_REASONS=new Set(['not_installed','cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete']);
+const REASONS=new Set(['not_installed','scan_incomplete','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
+const CURSOR_REASONS=new Set(['not_installed','scan_incomplete','cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete','probe_failed','acp_configuration_required']);
 const ID=/^[a-f0-9]{32}$/;
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,keys)=>plain(value)&&Object.keys(value).sort().join(',')===[...keys].sort().join(',');
 const text=(value,max)=>typeof value==='string'&&value.length>0&&Buffer.byteLength(value)<=max&&!/\p{Cc}/u.test(value);
 const failure=code=>({status:'failed',code});
+const PROBE_RULES=Object.freeze({
+ source_unavailable:[['resolve','source'],'guide'],source_changed:[['source'],'scan'],configuration_invalid:[['source'],'guide'],
+ permission_denied:[['resolve','source','version','help','protocol'],'guide'],version_unsupported:[['version'],'guide'],
+ launch_failed:[['version','help','protocol'],'guide'],probe_failed:[['version','help','protocol'],'guide'],probe_timeout:[['version','help','protocol'],'scan'],
+ output_limit_exceeded:[['version','help','protocol'],'guide'],help_contract_mismatch:[['help'],'guide'],protocol_mismatch:[['protocol'],'guide'],stop_unverified:[['version','help','protocol'],'none'],
+});
+function validProbeDiagnostic(value){
+ if(!plain(value)||![Object.prototype,null].includes(Object.getPrototypeOf(value))||Reflect.ownKeys(value).length!==3||!['stage','code','next_action'].every(key=>Object.hasOwn(value,key))||typeof value.code!=='string'||!Object.hasOwn(PROBE_RULES,value.code))return false;
+ const [stages,action]=PROBE_RULES[value.code];return stages.includes(value.stage)&&value.next_action===action;
+}
 
 // Local command definitions are deliberately stripped at this boundary. The
 // renderer receives installation observations, never process-launch authority.
 function validInstalledToolReport(value,adapterID){
  if(!exact(value,['protocol','items'])||value.protocol!=='suma-installed-tools-v1'||!Array.isArray(value.items)||value.items.length!==1)return;
  const row=value.items[0];
- if(!plain(row)||Object.keys(row).some(key=>!['adapter_id','product','installed','launch_supported','executable','version','reason_code','command','executable_sha256'].includes(key))||row.adapter_id!==adapterID||row.product!==PRODUCTS[adapterID]||typeof row.installed!=='boolean'||typeof row.launch_supported!=='boolean')return;
- if(row.executable_sha256!==undefined&&(!['qoder-acp','codex-app-server','opencode-sdk','claude-code-sdk'].includes(adapterID)||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
+ if(!plain(row)||Reflect.ownKeys(row).some(key=>!['adapter_id','product','installed','launch_supported','executable','version','reason_code','command','executable_sha256','diagnostic'].includes(key))||row.adapter_id!==adapterID||row.product!==PRODUCTS[adapterID]||typeof row.installed!=='boolean'||typeof row.launch_supported!=='boolean')return;
+ if(Object.hasOwn(row,'diagnostic')&&(!validProbeDiagnostic(row.diagnostic)||row.launch_supported||['not_installed','workspace_required','configuration_required','acp_configuration_required','cursor_editor_only'].includes(row.reason_code)||row.reason_code==='scan_incomplete'&&row.diagnostic.stage!=='resolve'))return;
+ if(row.reason_code==='scan_incomplete'&&(row.installed||row.launch_supported||['executable','version','executable_sha256','command'].some(key=>Object.hasOwn(row,key))))return;
+ if(row.executable_sha256!==undefined&&(!['cursor-cli','qoder-acp','codex-app-server','opencode-sdk','claude-code-sdk'].includes(adapterID)||typeof row.executable_sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
  if(row.executable!==undefined&&(!text(row.executable,4096)||!path.isAbsolute(row.executable)))return;
  // Cursor currently exposes passive file observations only. Even a well-formed
  // executable is not vendor identity, a verified protocol or dispatch authority.
- // Reject command/version fields rather than silently downgrading a contradictory
- // report into an apparently trusted connection fact.
+ // Only the original complete reviewed Node/ACP shape supplies version/hash.
+ // No Cursor observation supplies a command or execution authority.
  if(adapterID==='cursor-cli'){
-  if(!CURSOR_REASONS.has(row.reason_code)||row.launch_supported!==false||Object.hasOwn(row,'command')||Object.hasOwn(row,'version'))return;
+  if(!CURSOR_REASONS.has(row.reason_code)||row.launch_supported!==false||Object.hasOwn(row,'command'))return;
   const candidate=row.reason_code==='cursor_agent_unverified'||row.reason_code==='cursor_launcher_unsupported';
-  if(row.installed!==candidate||candidate!==Object.hasOwn(row,'executable')||candidate&&!row.executable)return;
+  if(row.reason_code==='acp_configuration_required'){
+   if(!row.installed||!row.executable||row.executable.trim()!==row.executable||!/[\\/]node(?:\.exe)?$/i.test(row.executable)||typeof row.version!=='string'||!row.version||row.version.trim()!==row.version||!/^[a-f0-9]{64}$/.test(row.executable_sha256))return;
+  }else if(row.reason_code==='probe_failed'){
+   if(!row.installed||['executable','version','executable_sha256'].some(key=>Object.hasOwn(row,key)))return;
+  }else if(row.installed!==candidate||candidate!==Object.hasOwn(row,'executable')||candidate&&!row.executable||['version','executable_sha256'].some(key=>Object.hasOwn(row,key)))return;
  }else if(adapterID==='qoder-acp'||adapterID==='codex-app-server'||adapterID==='opencode-sdk'||adapterID==='claude-code-sdk'){
   const configured=adapterID==='qoder-acp'?'acp_configuration_required':'configuration_required';
-  if(row.launch_supported||Object.hasOwn(row,'command')||!['not_installed','unsupported_launcher','probe_failed',configured,...(['opencode-sdk','claude-code-sdk'].includes(adapterID)?['version_unsupported']:[])].includes(row.reason_code))return;
+  if(row.launch_supported||Object.hasOwn(row,'command')||!['not_installed','scan_incomplete','unsupported_launcher','probe_failed',configured,...(['opencode-sdk','claude-code-sdk'].includes(adapterID)?['version_unsupported']:[])].includes(row.reason_code))return;
   if(row.reason_code===configured&&(!row.installed||!row.executable||!row.version||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
   if(adapterID==='opencode-sdk'&&(row.reason_code===configured&&row.version!=='1.19.4'||row.reason_code==='version_unsupported'&&(!row.installed||!row.executable||!row.version||row.version==='1.19.4'||!/^[a-f0-9]{64}$/.test(row.executable_sha256))))return;
   if(adapterID==='claude-code-sdk'&&(row.reason_code===configured&&row.version!=='2.1.314'||row.reason_code==='version_unsupported'&&(!row.installed||!row.executable||!row.version||row.version==='2.1.314'||!/^[a-f0-9]{64}$/.test(row.executable_sha256))))return;
@@ -44,7 +60,8 @@ function validInstalledToolReport(value,adapterID){
  const item={adapter_id:row.adapter_id,product:row.product,installed:row.installed,launch_supported:row.launch_supported,reason_code:row.reason_code};
  if(row.executable!==undefined)item.executable=row.executable;
  if(row.version!==undefined)item.version=row.version;
- if(['qoder-acp','codex-app-server','opencode-sdk','claude-code-sdk'].includes(adapterID)&&row.executable_sha256!==undefined)item.executable_sha256=row.executable_sha256;
+ if(['cursor-cli','qoder-acp','codex-app-server','opencode-sdk','claude-code-sdk'].includes(adapterID)&&row.executable_sha256!==undefined)item.executable_sha256=row.executable_sha256;
+ if(Object.hasOwn(row,'diagnostic'))item.diagnostic={stage:row.diagnostic.stage,code:row.diagnostic.code,next_action:row.diagnostic.next_action};
  return {protocol:value.protocol,items:[item]};
 }
 function validInstalledToolsBatch(value){

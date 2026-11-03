@@ -31,13 +31,14 @@ type ToolInstallationScanReference struct {
 	Fence   int64  `json:"fence"`
 }
 type ToolInstallationItem struct {
-	AdapterID        string `json:"adapter_id"`
-	Protocol         string `json:"protocol"`
-	Installed        bool   `json:"installed"`
-	LaunchSupported  bool   `json:"launch_supported"`
-	ReasonCode       string `json:"reason_code"`
-	Version          string `json:"version,omitempty"`
-	ExecutableSHA256 string `json:"executable_sha256,omitempty"`
+	AdapterID        string                           `json:"adapter_id"`
+	Protocol         string                           `json:"protocol"`
+	Installed        bool                             `json:"installed"`
+	LaunchSupported  bool                             `json:"launch_supported"`
+	ReasonCode       string                           `json:"reason_code"`
+	Version          string                           `json:"version,omitempty"`
+	ExecutableSHA256 string                           `json:"executable_sha256,omitempty"`
+	Diagnostic       *ToolInstallationProbeDiagnostic `json:"diagnostic,omitempty" wire:"nonnull"`
 }
 
 // Counts describe owned process trees, not the number of native descendants.
@@ -186,6 +187,9 @@ func safeText(value string, max int) bool {
 	return true
 }
 func ValidateItem(v Item) error {
+	if err := validateItemDiagnostic(v); err != nil {
+		return err
+	}
 	if adapterProtocols[v.AdapterID] != v.Protocol || v.Protocol == "" || !safeText(v.Version, 256) || (v.ExecutableSHA256 != "" && !digestPattern.MatchString(v.ExecutableSHA256)) {
 		return fmt.Errorf("invalid installation observation")
 	}
@@ -193,7 +197,7 @@ func ValidateItem(v Item) error {
 		return fmt.Errorf("installation observation is not launch-ready")
 	}
 	switch v.ReasonCode {
-	case "not_installed", "cursor_editor_only", "cursor_scan_incomplete":
+	case "not_installed", "cursor_editor_only", "cursor_scan_incomplete", "scan_incomplete":
 		if v.Installed || v.LaunchSupported || v.Version != "" || v.ExecutableSHA256 != "" {
 			return fmt.Errorf("missing installation has source facts")
 		}

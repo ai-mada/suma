@@ -14,7 +14,7 @@ import {preparationForLocalTool} from './tool-preparation-target';
 import {tr,useLocale,UiError} from './i18n';
 import './ManagedToolPreparationPanel.css';
 
-export type ManagedToolPreparationPanelProps={project:string;workerID:string;scan?:RemoteToolScan;item?:RemoteToolScanItem;selectedScanID?:string;selectionEpoch?:number;disabled?:boolean;onBlockedChange?:(blocked:boolean)=>void;onPreparedConfiguration?:(selection:ToolReportFeedbackSelection,preparationID:string)=>void};
+export type ManagedToolPreparationPanelProps={project:string;workerID:string;scan?:RemoteToolScan;item?:RemoteToolScanItem;selectedScanID?:string;selectionEpoch?:number;disabled?:boolean;newOperationsBlocked?:boolean;onBlockedChange?:(blocked:boolean)=>void;onPreparedConfiguration?:(selection:ToolReportFeedbackSelection,preparationID:string)=>void};
 const t=(key:string)=>tr('managed-tool-preparation.'+key);
 const denied=(error:unknown)=>error instanceof ApiError&&[401,403,404].includes(error.status);
 type Page=Awaited<ReturnType<typeof readManagedToolPreparationPage>>;
@@ -27,11 +27,12 @@ export function ManagedToolPreparationPanel(props:ManagedToolPreparationPanelPro
  const captured=owner.current,scope={project:props.project,workerID:props.workerID,userID:view.userID,organizationID:view.organizationID};
  return <PreparationController key={key+':'+captured.epoch} {...props} scope={scope} owns={()=>owner.current===captured}/>;
 }
-function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,disabled=false,onBlockedChange,onPreparedConfiguration,owns}:ManagedToolPreparationPanelProps&{scope:RemoteToolScanScope;owns:()=>boolean}){
+function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,disabled=false,newOperationsBlocked=false,onBlockedChange,onPreparedConfiguration,owns}:ManagedToolPreparationPanelProps&{scope:RemoteToolScanScope;owns:()=>boolean}){
  useLocale();const api=useApi(),storage=toolSessionStorage(),scopeKey=remoteToolScanScopeKey(scope),selectionKey='suma-managed-preparation-selected:'+scopeKey;
  const [selected,setSelected]=useState(()=>{try{return storage?.getItem(selectionKey)||'';}catch{return '';}}),selectedRef=useRef(selected);selectedRef.current=selected;
  const [page,setPage]=useState<Page>(),[operation,setOperation]=useState<ToolPreparationOperation>(),[loading,setLoading]=useState(true),[error,setError]=useState<unknown>(),[hidden,setHidden]=useState(false),[model,setModel]=useState(''),[credential,setCredential]=useState(''),[acknowledged,setAcknowledged]=useState(false),[timedOut,setTimedOut]=useState(false),[,tick]=useState(0);
- const alive=useRef(true),epoch=useRef(0),flight=useRef<AbortController|undefined>(undefined),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),waiting=useRef<{id:string;until:number}|undefined>(undefined),deadline=useRef(0),submitting=useRef(false),latest=useRef({disabled,onBlockedChange,onPreparedConfiguration,scan,item});latest.current={disabled,onBlockedChange,onPreparedConfiguration,scan,item};
+ const alive=useRef(true),epoch=useRef(0),flight=useRef<AbortController|undefined>(undefined),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),waiting=useRef<{id:string;until:number}|undefined>(undefined),deadline=useRef(0),submitting=useRef(false),latest=useRef({disabled,newOperationsBlocked,onBlockedChange,onPreparedConfiguration,scan,item});latest.current={disabled,newOperationsBlocked,onBlockedChange,onPreparedConfiguration,scan,item};
+ const newActionOwner=useRef({blocked:newOperationsBlocked});if(newActionOwner.current.blocked!==newOperationsBlocked)newActionOwner.current={blocked:newOperationsBlocked};
  const action=useWriteAction({scope:'managed-tool-preparation:'+scopeKey,storage,validateRequest:request=>validManagedToolPreparationRequest(request,scope),validateResponse:async(value,request)=>alive.current&&owns()&&await validManagedToolPreparationReceipt(value,request,scope)&&alive.current&&owns()});
  // Navigation ownership is separate from the durable operation. Switching a
  // scan retires only the old read-to-Quick intent; it never clears a write.
@@ -41,7 +42,7 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
  const maintenance=page?.maintenance.status,cap=maintenance?.managed_preparation,capCurrent=maintenance?.state==='supported'&&validManagedToolPreparationCapability(cap)&&performance.now()<deadline.current;
  const source=scan?.state==='completed'&&!scan.source_changed&&item&&canPrepareManagedToolItem(item)&&scan.result?.items.some(value=>value.adapter_id===item.adapter_id&&JSON.stringify(value)===JSON.stringify(item))?{scan,item}:undefined;
  const mode=managedToolPreparationMode(source?.item.adapter_id),configuration={model:mode==='existing_local_configuration'?'':model,credential_env_ref:mode==='model_and_credential'?credential:''};
- const canCreate=!disabled&&!hidden&&!loading&&!error&&!blocked&&!action.conflict&&capCurrent&&!!source&&cap.adapter_ids.some(adapter=>adapter===source.item.adapter_id)&&source.scan.instance_id===maintenance.instance_id&&validManagedToolPreparationConfiguration(source.item.adapter_id,configuration)&&acknowledged&&acknowledgedSource.current===sourceOwner.current;
+ const canCreate=!disabled&&!newOperationsBlocked&&!hidden&&!loading&&!error&&!blocked&&!action.conflict&&capCurrent&&!!source&&cap.adapter_ids.some(adapter=>adapter===source.item.adapter_id)&&source.scan.instance_id===maintenance.instance_id&&validManagedToolPreparationConfiguration(source.item.adapter_id,configuration)&&acknowledged&&acknowledgedSource.current===sourceOwner.current;
  function choose(id:string){selectedRef.current=id;setSelected(id);try{storage?.setItem(selectionKey,id);}catch{/* The write request, not this navigation locator, is durable authority. */}}
  function stop(){clearTimeout(timer.current);timer.current=undefined;}
  function current(sequence:number,controller:AbortController){return alive.current&&owns()&&epoch.current===sequence&&!controller.signal.aborted;}
@@ -63,14 +64,14 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
   finally{if(flight.current===controller)flight.current=undefined;}
  }
  async function create(restore=false){
-  if(submitting.current||busy||!owns()||!alive.current||hidden||disabled||!restore&&!canCreate)return;submitting.current=true;
+  if(submitting.current||busy||!owns()||!alive.current||hidden||disabled||!restore&&(latest.current.newOperationsBlocked||!canCreate))return;submitting.current=true;
   try{const original=action.pending,body=original?.body??{project_id:scope.project,worker_id:scope.workerID,installation_scan_id:source!.scan.id,expected_scan_version:source!.scan.version,adapter_id:source!.item.adapter_id,configuration,expected_generation_sha256:cap!.generation_sha256,acknowledge_configuration_write:true};const value=await action.run<ToolPreparationOperation>(original?.path??'/tool-preparations',body,original?.method??'POST');if(!owns()||!alive.current)return;if(value){choose(value.id);setOperation(value);}void read(value?.id||selectedRef.current,true);}
   finally{submitting.current=false;tick(value=>value+1);}
  }
  async function useInventory(){
-  if(!owns()||!alive.current||disabled||hidden||loading||error||pending||busy||operation?.state!=='completed'||operation.source_changed||!operation.receipt||selectedScanID&&operation.installation_scan_id!==selectedScanID||!latest.current.onPreparedConfiguration||flight.current)return;
-  const original=operation,controller=new AbortController(),sequence=++epoch.current,started=performance.now(),selectionOwner=sourceOwner.current,callback=latest.current.onPreparedConfiguration;
-  const ownsSelection=()=>current(sequence,controller)&&sourceOwner.current===selectionOwner;flight.current=controller;setLoading(true);setError(undefined);
+  if(!owns()||!alive.current||disabled||newOperationsBlocked||hidden||loading||error||pending||busy||operation?.state!=='completed'||operation.source_changed||!operation.receipt||selectedScanID&&operation.installation_scan_id!==selectedScanID||!latest.current.onPreparedConfiguration||flight.current)return;
+  const original=operation,controller=new AbortController(),sequence=++epoch.current,started=performance.now(),selectionOwner=sourceOwner.current,actionOwner=newActionOwner.current,callback=latest.current.onPreparedConfiguration;
+  const ownsSelection=()=>current(sequence,controller)&&sourceOwner.current===selectionOwner&&newActionOwner.current===actionOwner&&!latest.current.newOperationsBlocked;flight.current=controller;setLoading(true);setError(undefined);
   try{
    const head=await readManagedToolPreparation(await api<unknown>(managedToolPreparationPath(scope.project,original.id),undefined,'GET',undefined,controller.signal),scope,original.id);if(!ownsSelection())return;
    if(head.state!=='completed'||head.source_changed||head.version!==original.version||!head.receipt||!sameToolProfile(head.receipt.profile,original.receipt!.profile))throw new UiError('managed-tool-preparation.inventory_changed');
@@ -106,7 +107,7 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
    {!capCurrent&&<p>{t('capability_unavailable')}</p>}
    <button type="button" data-managed-preparation-create disabled={!canCreate} onClick={()=>void create()}>{t('create')}</button>
   </div>}
-  {!hidden&&operation&&<div className="managed-tool-preparation-progress"><code>{operation.id}</code>{operation.result_code&&<p>{t('result.'+operation.result_code)}</p>}{operation.receipt&&<><p>{t('configuration_accepted')}</p><code>{operation.receipt.profile.profile_sha256}</code></>}{operation.source_changed&&<p>{t('source_changed')}</p>}{timedOut&&unresolved&&<p>{t('wait_finished')}</p>}{operation.state==='completed'&&onPreparedConfiguration&&<button type="button" data-managed-preparation-use disabled={disabled||loading||busy||pending||!!error||!!operation.source_changed||!!selectedScanID&&operation.installation_scan_id!==selectedScanID} onClick={()=>void useInventory()}>{t('use')}</button>}</div>}
+  {!hidden&&operation&&<div className="managed-tool-preparation-progress"><code>{operation.id}</code>{operation.result_code&&<p>{t('result.'+operation.result_code)}</p>}{operation.receipt&&<><p>{t('configuration_accepted')}</p><code>{operation.receipt.profile.profile_sha256}</code></>}{operation.source_changed&&<p>{t('source_changed')}</p>}{timedOut&&unresolved&&<p>{t('wait_finished')}</p>}{operation.state==='completed'&&onPreparedConfiguration&&<button type="button" data-managed-preparation-use disabled={disabled||newOperationsBlocked||loading||busy||pending||!!error||!!operation.source_changed||!!selectedScanID&&operation.installation_scan_id!==selectedScanID} onClick={()=>void useInventory()}>{t('use')}</button>}</div>}
   <p className="managed-tool-preparation-boundary">{t('boundary')}</p>
  </section>;
 }

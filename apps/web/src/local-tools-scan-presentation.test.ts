@@ -34,3 +34,15 @@ it('retains false installation anomalies and counts installation observations wi
  expect(result.primary[0]).toBe(editorOnly);expect(result.primary[1]).toBe(unsupported);expect(unsupported.launch_supported).toBe(false);
  expect(projectLocalToolsScan([])).toEqual({primary:[],other:[],detectedCount:0,attentionCount:0});
 });
+
+it('T226 counts classified installation failures once while preserving detected installations and normal configuration observations',()=>{
+ const stopped:InstalledToolFact={adapter_id:'codebuddy-cli',product:'CodeBuddy Code',installed:true,launch_supported:false,reason_code:'probe_failed',diagnostic:{stage:'version',code:'stop_unverified',next_action:'none'}};
+ const help:InstalledToolFact={adapter_id:'codex-jsonl',product:'Codex',installed:true,launch_supported:false,reason_code:'probe_failed',diagnostic:{stage:'help',code:'help_contract_mismatch',next_action:'guide'}};
+ const incomplete:InstalledToolFact={adapter_id:'qoder-acp',product:'Qoder CLI',installed:false,launch_supported:false,reason_code:'scan_incomplete',diagnostic:{stage:'resolve',code:'source_unavailable',next_action:'guide'}};
+ const ready:InstalledToolFact={adapter_id:'dsh-multica',product:'DeepSeek Harness / dsh',installed:true,launch_supported:true,reason_code:'workspace_required'};
+ const configured:InstalledToolFact={adapter_id:'opencode-sdk',product:'OpenCode',installed:true,launch_supported:false,reason_code:'configuration_required'};
+ const unclassified:InstalledToolFact={adapter_id:'claude-code-cli',product:'Claude Code',installed:true,launch_supported:false,reason_code:'probe_failed'};
+ const absent=missing('claude-code-sdk','Claude Code'),items=Object.freeze([stopped,help,incomplete,ready,configured,unclassified,absent]),before=JSON.stringify(items),result=projectLocalToolsScan(items);
+ expect(result.detectedCount).toBe(5);expect(result.attentionCount).toBe(3);
+ expect(result.primary).toEqual([stopped,help,incomplete,ready,configured,unclassified]);expect(result.other).toEqual([absent]);expect(result.primary[0]).toBe(stopped);expect(result.primary[2]).toBe(incomplete);expect(JSON.stringify(items)).toBe(before);
+});

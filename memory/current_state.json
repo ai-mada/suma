@@ -681,18 +681,19 @@
     "evidence": "36 scoped files, 13 focused checks and 3 representative groups, normal dev push verified."
   },
   "current_work": {
-    "stage": "T-MANAGED-CLI-PREPARATION-225",
+    "stage": "T-REAL-CLI-ONBOARDING-226",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/managed-cli-preparation.md",
-    "report": "docs/quality/managed-cli-preparation-verification.md",
-    "summary": "docs/quality/managed-cli-preparation-summary.json",
-    "previous_commit": "1872774afc1b79c67fdac0b0b7a871f1d0261b23",
-    "verification": "18 distinct: Go14/Web4,12new6directOld; final targeted all pass. Full current typecheck0; final original i18n9946/0hardcodes. Source/copy/metadata fixture and protected-C directory identity failures retained; only affected checks resumed.1013models458paths. 763Markdown/4248schema refs and diff0;403UI inputs401raw+2copy-only;23compiledGo currenthashmatch.",
-    "actual": "Two original HTTP/SQLite/ordinary maintenance generations: Claude fixed model and CodeBuddy exact empty config, first exact CommandSpec/Profile retained,6artifacts/2paused;8owned metadata4version4help,0enable/business/vendor/model/Nodecopy.2Go builds/2attempts including failed old version-only fixture. Separate one-build/one-native CN1366/EN390 two synthetic groups/3Root-viewed images;4copy-only values after pictures.401raw+2reversiblelocale inputs;all23Go guard hashes match.",
-    "next": "Prioritize real installed CLI metadata/current inventory/paused profiles, then actual model-budget/code/independent-test/acceptance. Add remaining SDK/AppServer resource/provider preparation on original ports. Complete physical multi-host, cross-OS/database/installers/scale/production and original31/P0-P7. Do not replace vendor evidence with owned fixtures.",
+    "contract": "contracts/real-cli-onboarding.md",
+    "report": "docs/quality/real-cli-onboarding-verification.md",
+    "summary": "docs/quality/real-cli-onboarding-summary.json",
+    "previous_commit": "f716279e627295fcf8d742f29bd71a21e74d7454",
+    "verification": "18 distinct:8Go/9Web/1Desktop;14new4directOld all pass. Initial/final full Web TSC0;9971paired/0hardcodes;1014schemas458paths. Final typed tree-stop propagation, exact diagnostics/HTTP/readers, private scope/stdout, history-stable unknown protection and original recovery separation.",
+    "actual": "Two successful real installed Windows Codex0.166.0-alpha.5.1 metadata journeys before/after final stop propagation: final26Go input hashes match; each1scan/preparation/generation/bound inventory/paused and4WindowsJob stop receipts,0copies/enable/business/model requests.2isolated builds/native sessions,3representative groups/4Root-viewed images; final370UI inputs match, original3source differences explicitly retained.",
+    "next": "Prioritize real authenticated model/budget and code/candidate/independent-test/acceptance; remaining tool SDK/AppServer preparations, physical multi-host, cross-OS/databases/installers/scale/production and all original31/P0-P7. Preserve separate vendor and fixture evidence.",
     "full_platform_complete": false,
-    "git_record": ".cache/managed-cli-preparation-225/post-git.json"
+    "git_record": ".cache/real-cli-onboarding-226/post-git.json",
+    "known_limitations": "Unix full-tree containment is not available: typed stop_unverified now also reaches standalone callers. Continuous probes and formal onboarding remain blocked until dedicated containment/reconciliation. No Unix actual run; original full31/P0-P7 remains active."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2773,5 +2774,36 @@
     "design": "docs/design/managed-cli-preparation.md",
     "english": "docs/en/managed-cli-preparation.md",
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
+  },
+  "active_implementation": {
+    "stage": "T-REAL-CLI-ONBOARDING-226",
+    "version": "1.0.0",
+    "status": "scoped_verified_pending_stage_git_delivery",
+    "resume_requested": true,
+    "base": "f716279e627295fcf8d742f29bd71a21e74d7454",
+    "contract": "contracts/real-cli-onboarding.md",
+    "implementation": "Original real Codex metadata-to-paused chain, typed installation failure diagnostics and one-click explicit recheck, trusted private probe scopes and stdout-only versions.",
+    "full_platform_complete": false,
+    "source_complete": true,
+    "focused_verified": true,
+    "real_codex_metadata_verified": true,
+    "known_unix_onboarding_gap": true
+  },
+  "real_cli_onboarding": {
+    "stage": "T-REAL-CLI-ONBOARDING-226",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/real-cli-onboarding.md",
+    "report": "docs/quality/real-cli-onboarding-verification.md",
+    "summary": "docs/quality/real-cli-onboarding-summary.json",
+    "previous_commit": "f716279e627295fcf8d742f29bd71a21e74d7454",
+    "verification": "18 distinct:8Go/9Web/1Desktop;14new4directOld all pass. Initial/final full Web TSC0;9971paired/0hardcodes;1014schemas458paths. Final typed tree-stop propagation, exact diagnostics/HTTP/readers, private scope/stdout, history-stable unknown protection and original recovery separation.",
+    "actual": "Two successful real installed Windows Codex0.166.0-alpha.5.1 metadata journeys before/after final stop propagation: final26Go input hashes match; each1scan/preparation/generation/bound inventory/paused and4WindowsJob stop receipts,0copies/enable/business/model requests.2isolated builds/native sessions,3representative groups/4Root-viewed images; final370UI inputs match, original3source differences explicitly retained.",
+    "next": "Prioritize real authenticated model/budget and code/candidate/independent-test/acceptance; remaining tool SDK/AppServer preparations, physical multi-host, cross-OS/databases/installers/scale/production and all original31/P0-P7. Preserve separate vendor and fixture evidence.",
+    "full_platform_complete": false,
+    "git_record": ".cache/real-cli-onboarding-226/post-git.json",
+    "date": "2026-11-03",
+    "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
+    "known_limitations": "Unix full-tree containment is not available: typed stop_unverified now also reaches standalone callers. Continuous probes and formal onboarding remain blocked until dedicated containment/reconciliation. No Unix actual run; original full31/P0-P7 remains active."
   }
 }

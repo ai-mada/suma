@@ -68,7 +68,10 @@ func installationRawResult(m map[string]any, pool bool) bool {
 		return false
 	}
 	for _, item := range items {
-		if !installationRawObject(item, []string{"adapter_id", "protocol", "installed", "launch_supported", "reason_code"}, "version", "executable_sha256") {
+		if !installationRawObject(item, []string{"adapter_id", "protocol", "installed", "launch_supported", "reason_code"}, "version", "executable_sha256", "diagnostic") {
+			return false
+		}
+		if diagnostic, present := item.(map[string]any)["diagnostic"]; present && !installationRawObject(diagnostic, []string{"stage", "code", "next_action"}) {
 			return false
 		}
 	}

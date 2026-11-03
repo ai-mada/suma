@@ -110,18 +110,21 @@ func claudeVersion(ctx context.Context, exe string, spec CommandSpec, secrets []
 	if err := validateClaudeCommand(spec); err != nil {
 		return "", err
 	}
-	version, err := probeCommand(ctx, exe, []string{"--version"}, spec, secrets)
+	version, err := probeCommandStreams(ctx, exe, []string{"--version"}, spec, secrets, true)
 	version = strings.TrimSpace(version)
-	if err != nil || tc.ValidateClaudeCLIVersion(version) != nil {
-		return "", fmt.Errorf("Claude CLI requires the reviewed 2.1.314 protocol baseline")
+	if err != nil {
+		return "", err
+	}
+	if tc.ValidateClaudeCLIVersion(version) != nil {
+		return "", newProbeFailure("version", "version_unsupported", nil)
 	}
 	help, err := probeCommand(ctx, exe, []string{"--help"}, spec, secrets)
 	if err != nil {
-		return "", fmt.Errorf("Claude CLI fixed safety flags could not be probed")
+		return "", err
 	}
 	for _, flag := range []string{"--input-format", "--output-format", "--verbose", "--no-session-persistence", "--safe-mode", "--restricted", "--settings", "--strict-mcp-config", "--mcp-config", "--permission-mode", "--permission-prompts", "--tools", "--allowedTools", "--model"} {
 		if !strings.Contains(help, flag) {
-			return "", fmt.Errorf("Claude CLI help does not expose the fixed safety contract")
+			return "", newProbeFailure("help", "help_contract_mismatch", nil)
 		}
 	}
 	return version, nil

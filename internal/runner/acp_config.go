@@ -88,8 +88,11 @@ func acpVersion(ctx context.Context, exe string, spec CommandSpec, secrets []str
 	}
 	version, err := probeCommandStreams(ctx, exe, []string{"--version"}, CommandSpec{}, secrets, true)
 	version = strings.TrimSpace(version)
-	if err != nil || !acpLocalText(version, 256) || version != spec.ACP.ReviewedVersion {
-		return "", fmt.Errorf("ACP executable version differs from its exact administrator review")
+	if err != nil {
+		return "", err
+	}
+	if !acpLocalText(version, 256) || version != spec.ACP.ReviewedVersion {
+		return "", newProbeFailure("version", "version_unsupported", nil)
 	}
 	return version, nil
 }

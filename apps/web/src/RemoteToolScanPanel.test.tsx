@@ -7,6 +7,7 @@ import {RemoteToolScanPanel} from './RemoteToolScanPanel';
 import {ApiViewProvider} from './api-context';
 import {setLocale,tr} from './i18n';
 import type {ToolInstallationScan} from '../../../packages/contracts/src';
+import type {ToolInstallationProbeDiagnostic} from './tool-installation-probe-diagnostic-model';
 
 const session={user:{id:'user-one',name:'User',email:'user@example.test'},organization:{id:'team-one',name:'Team'}},at='2026-11-02T00:00:00Z';
 const sdk={id:'claude-code-sdk',product:'Claude Code SDK',entrypoint_kind:'sdk',direction:'suma_to_tool',implementation:'implemented',setup_kind:'runner_profile',adapter:'claude',protocol:'claude-sdk-v1',capabilities:[],source_refs:[],limitations:[]};
@@ -38,4 +39,30 @@ it('T205 retains completed audit history after worker revocation but disables cu
 
 it('T205 never substitutes other adapters for an unsupported explicit selection and reads nothing without a current view',async()=>{
  await draw(session,false);expect(fetch).not.toHaveBeenCalled();maintenance={...cap(),installed_discovery:{protocol:'suma-installed-tool-scan-v1',adapter_ids:['codebuddy-cli']}};await draw();expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-create]')?.disabled).toBe(true);await click('create');expect(posts).toHaveLength(0);await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('节点工具检测');expect(host.textContent).not.toContain('remote-tool-scan.');
+});
+
+it('T226 uses only the exact remote row guide or explicit adapter scan and preserves source, stop and original unknown-write gates',async()=>{
+ function failed(diagnostic:ToolInstallationProbeDiagnostic,sourceChanged=false){const value=scan('codebuddy-cli');value.source_changed=sourceChanged;value.result!.items=[{adapter_id:'codebuddy-cli',protocol:'codebuddy-jsonl-v1',installed:true,launch_supported:false,reason_code:'probe_failed',diagnostic}];return value;}
+ items=[failed({stage:'help',code:'help_contract_mismatch',next_action:'guide'})];await draw();
+ expect(host.querySelector('[data-tool-probe-diagnostic="help_contract_mismatch"]')).not.toBeNull();expect(host.querySelector('[data-remote-tool-scan-prepare]')).toBeNull();expect(posts).toHaveLength(0);
+ await click('diagnostic-action="guide"');expect(onPrepare).toHaveBeenCalledExactlyOnceWith(codebuddy,'worker-one');expect(onGuide).not.toHaveBeenCalled();expect(posts).toHaveLength(0);
+ // Stop-gap persistence and its explicit closure are covered by the history
+ // case below; an immutable result cannot be rewritten back to a timeout.
+ items=[failed({stage:'version',code:'probe_timeout',next_action:'scan'},true)];await click('refresh');expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-diagnostic-action="scan"]')!.disabled).toBe(true);await click('diagnostic-action="scan"');expect(posts).toHaveLength(0);
+ items=[failed({stage:'version',code:'probe_timeout',next_action:'scan'})];await click('refresh');lost=true;await click('diagnostic-action="scan"');expect(posts).toHaveLength(1);expect(posts[0].adapter_ids).toEqual(['codebuddy-cli']);expect(phase()).toBe('write_unknown');expect(host.querySelector('[data-remote-tool-scan-diagnostic-action]')).toBeNull();expect(host.querySelector('[data-remote-tool-scan-recover]')).not.toBeNull();
+ await draw();expect(posts).toHaveLength(1);expect(onPrepare).toHaveBeenCalledOnce();expect(onGuide).not.toHaveBeenCalled();expect(sessionStorage.length).toBeGreaterThan(0);
+});
+
+it('T226 keeps an observed unverified stop blocked when history changes from that result to another completed scan',async()=>{
+ const stopped=scan();stopped.result!.items=[{adapter_id:'claude-code-sdk',protocol:'claude-sdk-v1',installed:true,launch_supported:false,reason_code:'probe_failed',diagnostic:{stage:'version',code:'stop_unverified',next_action:'none'}}];
+ const ordinary=scan('codebuddy-cli'),source={ID:'scan-two',ProjectID:ordinary.project_id,WorkerID:ordinary.worker_id,AdapterIDs:ordinary.adapter_ids,InstanceID:ordinary.instance_id,RequestedBy:ordinary.requested_by,CreatedAt:ordinary.created_at,ExpiresAt:ordinary.expires_at};
+ ordinary.id=source.ID;ordinary.source_sha256=createHash('sha256').update(JSON.stringify(source)).digest('hex');ordinary.claim_id='claim-two';ordinary.result!.stop_proof={...ordinary.result!.stop_proof!,scan:{scan_id:ordinary.id,claim_id:ordinary.claim_id,fence:ordinary.fence},source_sha256:ordinary.source_sha256};
+ ordinary.result!.items=[{...ordinary.result!.items[0],launch_supported:true,reason_code:'workspace_required'}];maintenance={...cap(),managed_preparation:{protocol:'suma-managed-tool-preparation-v1',adapter_ids:['codebuddy-cli'],generation_sha256:'c'.repeat(64)}};
+ const originalFetch=fetch;vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>String(input).includes('/tool-preparations?')?Response.json({project_id:'p',worker_id:'worker-one',as_of:at,maintenance,items:[]}):originalFetch(input,init)));
+ items=[stopped,ordinary];await draw();expect(host.querySelector('[data-tool-probe-diagnostic="stop_unverified"]')).not.toBeNull();expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-create]')!.disabled).toBe(true);
+ const history=host.querySelector<HTMLSelectElement>('[data-remote-tool-scan-request]')!;await act(async()=>{history.value=ordinary.id;history.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
+ expect(history.value).toBe(ordinary.id);expect(host.querySelector('[data-remote-tool-scan-row="codebuddy-cli"]')).not.toBeNull();expect(host.querySelector('[data-tool-probe-diagnostic="stop_unverified"]')).toBeNull();expect(host.querySelector('[data-remote-tool-scan-stop-blocked]')!.textContent).toContain('Keep the original operation for reconciliation');expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-create]')!.disabled).toBe(true);expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-configure="codebuddy-cli"]')!.disabled).toBe(true);await click('create');await click('configure="codebuddy-cli"');expect(posts).toHaveLength(0);
+ ordinary.result!.items=[{adapter_id:'codebuddy-cli',protocol:'codebuddy-jsonl-v1',installed:true,launch_supported:false,reason_code:'probe_failed',diagnostic:{stage:'version',code:'probe_timeout',next_action:'scan'}}];await click('refresh');expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-diagnostic-action="scan"]')!.disabled).toBe(true);await click('diagnostic-action="scan"');expect(posts).toHaveLength(0);expect(onPrepare).not.toHaveBeenCalled();
+ items=[ordinary];await click('refresh');expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-diagnostic-action="scan"]')!.disabled).toBe(true);expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-create]')!.disabled).toBe(true);expect(posts).toHaveLength(0);
+ const closed={...stopped,version:stopped.version+1,state:'closed_unknown' as const,result_code:'probe_timeout',result:{items:[],stop_proof:stopped.result!.stop_proof}};items=[ordinary,closed];await click('refresh');expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-diagnostic-action="scan"]')!.disabled).toBe(false);expect(posts).toHaveLength(0);
 });

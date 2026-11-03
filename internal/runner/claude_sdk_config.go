@@ -322,10 +322,13 @@ func claudeSDKVersion(ctx context.Context, spec CommandSpec) (string, error) {
 	}
 	// The installation probe starts no SDK query and forwards no credential
 	// environment values. It is distinct from model or account verification.
-	version, err := probeCommand(ctx, native, []string{"--version"}, CommandSpec{}, nil)
+	version, err := probeCommandStreams(ctx, native, []string{"--version"}, CommandSpec{}, nil, true)
 	version = strings.TrimSpace(version)
-	if err != nil || version != tc.ClaudeSDKCLIVersion && version != tc.ClaudeSDKCLIVersion+" (Claude Code)" {
-		return "", fmt.Errorf("Claude SDK requires the reviewed native CLI version")
+	if err != nil {
+		return "", err
+	}
+	if version != tc.ClaudeSDKCLIVersion && version != tc.ClaudeSDKCLIVersion+" (Claude Code)" {
+		return "", newProbeFailure("version", "version_unsupported", nil)
 	}
 	return tc.ClaudeSDKCLIVersion, nil
 }

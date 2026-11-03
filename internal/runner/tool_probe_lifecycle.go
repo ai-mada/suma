@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"runtime"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -222,6 +221,9 @@ func toolProbeCollectorFrom(ctx context.Context) *toolProbeCollector {
 func (c *toolProbeCollector) begin(cmd *exec.Cmd) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.failed {
+		return "", newProbeFailure(probeStage(cmd.Args[1:]), "stop_unverified", nil)
+	}
 	if c.closed || len(c.entries) >= ti.MaxNativeProcesses {
 		c.failed = true
 		return "", fmt.Errorf("native probe receipt boundary is closed or full")
@@ -253,6 +255,9 @@ func (c *toolProbeCollector) record(stop toolProbeStop) error {
 	entry.StopSHA256 = sha
 	c.entries[stop.ID] = entry
 	c.stops[stop.ID] = stop
+	if stop.ResultCode != "stopped" || !stop.ParentStopped || !stop.TreeStopped {
+		c.failed = true
+	}
 	return nil
 }
 func (c *toolProbeCollector) closeReturned() error {
@@ -408,40 +413,21 @@ type probeProcessController struct {
 	exitCode     *int
 	stopErr      error
 	finished     bool
+	privateScope *privateProbeScope
+	closeScope   func()
 }
 
 func startProbeProcess(ctx context.Context, cmd *exec.Cmd) (*probeProcessController, error) {
 	p := &probeProcessController{cmd: cmd, collector: toolProbeCollectorFrom(ctx)}
+	var err error
+	p.privateScope, p.closeScope, err = prepareProbeScope(ctx, cmd)
+	if err != nil {
+		return nil, newProbeFailure("source", "source_unavailable", err)
+	}
 	if p.collector != nil {
-		if p.collector.source.Protocol == ii.StopProtocol || p.collector.source.Protocol == tp.StopProtocol {
-			directory := filepath.Join(p.collector.directory, "working")
-			if err := os.Mkdir(directory, 0700); err != nil && !os.IsExist(err) {
-				return nil, err
-			}
-			info, err := os.Lstat(directory)
-			if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-				return nil, fmt.Errorf("isolated installation probe directory unavailable")
-			}
-			cmd.Dir = directory
-			names := map[string]bool{}
-			for _, name := range []string{"HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "TEMP", "TMP", "TMPDIR", "CODEX_HOME"} {
-				names[name] = true
-			}
-			env := []string{}
-			for _, value := range cmd.Env {
-				name, _, _ := strings.Cut(value, "=")
-				if !names[strings.ToUpper(name)] {
-					env = append(env, value)
-				}
-			}
-			for name := range names {
-				env = append(env, name+"="+directory)
-			}
-			cmd.Env = env
-		}
-		var err error
 		p.id, err = p.collector.begin(cmd)
 		if err != nil {
+			p.closeScope()
 			return nil, err
 		}
 	}
@@ -449,12 +435,18 @@ func startProbeProcess(ctx context.Context, cmd *exec.Cmd) (*probeProcessControl
 	// output pipes; CommandContext's independent parent-only kill is not proof.
 	cmd.Cancel = nil
 	cmd.WaitDelay = 2 * time.Second
+	if err = p.privateScope.begin(); err != nil {
+		p.closeScope()
+		return nil, err
+	}
 	native, err := startProcess(cmd)
 	if err != nil {
+		p.privateScope.end(false)
+		p.closeScope()
 		if p.collector != nil {
 			_ = p.collector.record(toolProbeStop{Source: p.collector.source, ID: p.id, Containment: probeContainment(), ResultCode: "start_unverified", ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)})
 		}
-		return nil, err
+		return nil, newProbeFailure(probeStage(cmd.Args[1:]), "launch_failed", err)
 	}
 	p.native = native
 	return p, nil
@@ -494,11 +486,23 @@ func (p *probeProcessController) Stop() error {
 	}
 	return err
 }
+
+// A missing Unix process group proves neither detached-descendant absence nor
+// the stronger tree-stop contract. Keep that fact consistent for standalone
+// probes as well as collectors; retaining a directory alone is not failure.
+func requireProbeTreeStop(waitReturned bool, nativeErr error, containment string) error {
+	if waitReturned && nativeErr == nil && containment == "windows_job" {
+		return nil
+	}
+	return &toolProbeFailure{stage: "protocol", code: "stop_unverified", cause: nativeErr}
+}
+
 func (p *probeProcessController) Finish() error {
 	err := p.native.Finish()
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	err = errors.Join(p.stopErr, err)
+	err = requireProbeTreeStop(p.waitReturned, err, probeContainment())
 	if p.finished {
 		return err
 	}
@@ -513,6 +517,7 @@ func (p *probeProcessController) Finish() error {
 			err = errors.Join(err, writeErr)
 		}
 	}
+	p.privateScope.end(p.waitReturned && err == nil && runtime.GOOS == "windows")
 	return err
 }
 func (p *probeProcessController) Close() {
@@ -523,7 +528,11 @@ func (p *probeProcessController) Close() {
 	if unfinished && p.collector != nil {
 		_ = p.collector.record(toolProbeStop{Source: p.collector.source, ID: p.id, NativeStarted: true, Containment: probeContainment(), ResultCode: "stop_unverified", ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)})
 	}
+	if unfinished {
+		p.privateScope.end(false)
+	}
 	p.native.Close()
+	p.closeScope()
 }
 func waitProbeProcess(ctx context.Context, p *probeProcessController, done <-chan error) error {
 	select {

@@ -1,5 +1,7 @@
 # Multica参考与工具接入采用记录
 
+T226重新锁定 [Multica 2115a513](https://github.com/multica-ai/multica/tree/2115a513a375bfe2910b76725b617504faee4b25)：核验实际 daemon 探测源码与 LICENSE，保留安装发现／协议资格分离；许可证仍含 Part I 附加条件，本阶段未复制产品代码或素材。新增 ZCode 发现记入待实现，不能宣称平台已具备。真实 Codex 接入和诊断见[当前报告](../quality/real-cli-onboarding-verification.md)。
+
 速码1.0.0 · T-MANAGED-TOOL-PREPARATION-224 · 负责人：主集成代理。
 
 本轮通过官方远端读取主分支提交 `24b54bc09cebc4234af27ddafabd78b9c49626ad`，再按该提交通过GitHub连接器取得并验证四份Git blob；不是把旧本地HEAD当作最新。本地 `D:/codes/github/multica` 保持 `e8b6a97643ccc35efbcf2a4675c8d088a288ed6e`，未修改；四份对应文件仅CRLF差异、规范化后内容一致。

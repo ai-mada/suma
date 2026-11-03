@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-REAL-CLI-ONBOARDING-226：[产品](../product/real-cli-onboarding.md)／[架构与接入](../integrations/real-cli-onboarding.md)／[交互](../design/real-cli-onboarding.md)／[限定验证](../quality/real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。
+
 T-MANAGED-CLI-PREPARATION-225：[已安装CLI快速接入](../product/managed-cli-preparation.md)／[架构与AI SOP](../architecture/managed-cli-preparation.md)／[简洁交互](../design/managed-cli-preparation.md)／[限定验证](../quality/managed-cli-preparation-verification.md)。新增Codex JSONL、CodeBuddy、dsh和Claude CLI，当前六种自动工厂复用原准备／库存／暂停登记；准确来源进入摘要并在执行前复核。两代隔离配置实跑及中英文代表界面已验，厂商／模型和完整31项／P0–P7继续。
 
 T-MANAGED-TOOL-PREPARATION-224：[远程工具快速准备与接入](../product/managed-tool-preparation.md)／[架构与AI SOP](../architecture/managed-tool-preparation.md)／[简洁交互](../design/managed-tool-preparation.md)／[限定验证](../quality/managed-tool-preparation-verification.md)。准确扫描后明确模型与机器写入许可，原Runner接纳新配置并确认库存，再保存暂停；同一原操作恢复两种丢失回执。中英文代表组件已核验；当前自动准备仅Qoder／Cursor，真实厂商和完整31项／P0–P7继续。

@@ -111,36 +111,39 @@ func teamCLIVersion(ctx context.Context, exe string, spec CommandSpec, secrets [
 		}
 		return args
 	}
-	version, err := probeCommand(ctx, exe, probeArgs("--version"), spec, secrets)
+	version, err := probeCommandStreams(ctx, exe, probeArgs("--version"), spec, secrets, true)
 	if err != nil {
 		return "", err
 	}
 	version = strings.TrimSpace(strings.SplitN(version, "\n", 2)[0])
 	if version == "" || len(version) > 180 {
-		return "", fmt.Errorf("CLI version is missing or oversized")
+		return "", newProbeFailure("version", "probe_failed", nil)
 	}
 	if spec.Adapter == "harness" {
 		// The launcher's generic help cannot prove that this profile is present.
 		// This explicit upstream probe exits without execute/model/installation.
 		raw, err := probeCommandStreams(ctx, exe, probeArgs("--profile", "multica", "--probe"), spec, secrets, true)
 		if err != nil {
-			return "", fmt.Errorf("Harness multica runtime profile is unavailable or incompatible")
+			return "", err
 		}
 		frame, err := decodeToolObject([]byte(strings.TrimSpace(raw)))
 		if err != nil || textAt(frame, "type") != "probe" || textAt(frame, "runtime") != "dsh" {
-			return "", fmt.Errorf("Harness multica runtime profile is unavailable or incompatible")
+			return "", newProbeFailure("protocol", "protocol_mismatch", nil)
 		}
 		v, vok := nativeInteger(frame, "v")
 		protocol, pok := nativeInteger(frame, "protocol_version")
 		plugin := textAt(frame, "plugin_version")
 		if !vok || !pok || v != 1 || protocol != 1 || plugin == "" || len(plugin) > 64 || strings.ContainsAny(plugin, "\x00\r\n") {
-			return "", fmt.Errorf("Harness multica runtime profile is unavailable or incompatible")
+			return "", newProbeFailure("protocol", "protocol_mismatch", nil)
 		}
 		return version + " / multica " + plugin, nil
 	}
 	help, err := probeCommand(ctx, exe, probeArgs("--help"), spec, secrets)
-	if err != nil || !strings.Contains(help, "--input-format") || !strings.Contains(help, "--output-format") || !strings.Contains(help, "--verbose") {
-		return "", fmt.Errorf("installed CodeBuddy help does not match the fixed stream-json protocol")
+	if err != nil {
+		return "", err
+	}
+	if !strings.Contains(help, "--input-format") || !strings.Contains(help, "--output-format") || !strings.Contains(help, "--verbose") {
+		return "", newProbeFailure("help", "help_contract_mismatch", nil)
 	}
 	return version, nil
 }

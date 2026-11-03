@@ -25,8 +25,14 @@ func discoverCursorPackage(ctx context.Context, paths []string, probe func(conte
 			continue
 		}
 		version, err := probe(ctx, spec)
-		if err != nil || !acpLocalText(version, 256) || !cursorPackageUnchanged(*spec.ACP.CursorPackage) {
-			return InstalledToolDiscoveryItem{AdapterID: "cursor-cli", Product: "Cursor", Installed: true, ReasonCode: "probe_failed"}
+		if err != nil || !acpLocalText(version, 256) {
+			if err == nil {
+				err = newProbeFailure("version", "probe_failed", nil)
+			}
+			return InstalledToolDiscoveryItem{AdapterID: "cursor-cli", Product: "Cursor", Installed: true, ReasonCode: "probe_failed", Diagnostic: probeDiagnostic(err)}
+		}
+		if !cursorPackageUnchanged(*spec.ACP.CursorPackage) {
+			return InstalledToolDiscoveryItem{AdapterID: "cursor-cli", Product: "Cursor", Installed: true, ReasonCode: "probe_failed", Diagnostic: probeDiagnostic(newProbeFailure("source", "source_changed", nil))}
 		}
 		_, sha, err := qoderNativeTarget(ctx, spec.Executable)
 		if err != nil {

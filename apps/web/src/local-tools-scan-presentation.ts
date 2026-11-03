@@ -13,7 +13,7 @@ export function projectLocalToolsScan(items:readonly InstalledToolFact[],selecte
   if(ordinaryAbsence&&item.adapter_id!==selectedAdapterID)other.push(item);
   else primary.push(item);
   if(item.installed===true)detectedCount++;
-  else if(item.installed===false&&!ordinaryAbsence)attentionCount++;
+  if(item.diagnostic||item.installed===false&&!ordinaryAbsence)attentionCount++;
  }
  return {primary,other,detectedCount,attentionCount};
 }

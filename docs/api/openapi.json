@@ -44511,6 +44511,54 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "required": [
+                "diagnostic"
+              ]
+            },
+            "then": {
+              "properties": {
+                "launch_supported": {
+                  "const": false
+                },
+                "reason_code": {
+                  "not": {
+                    "enum": [
+                      "not_installed",
+                      "workspace_required",
+                      "configuration_required",
+                      "acp_configuration_required",
+                      "cursor_editor_only"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "reason_code": {
+                  "const": "scan_incomplete"
+                }
+              },
+              "required": [
+                "diagnostic"
+              ]
+            },
+            "then": {
+              "properties": {
+                "diagnostic": {
+                  "properties": {
+                    "stage": {
+                      "const": "resolve"
+                    }
+                  }
+                }
+              }
+            }
           }
         ],
         "properties": {
@@ -44527,6 +44575,10 @@
               "claude-code-sdk"
             ],
             "type": "string"
+          },
+          "diagnostic": {
+            "$ref": "#/components/schemas/ToolInstallationProbeDiagnostic",
+            "description": "Optional classified failure; absent does not prove success. A present value is non-null and closed. Global unknown/stop reconciliation still takes precedence over the suggestion."
           },
           "executable_sha256": {
             "pattern": "^[a-f0-9]{64}$",
@@ -44546,6 +44598,7 @@
               "not_installed",
               "cursor_editor_only",
               "cursor_scan_incomplete",
+              "scan_incomplete",
               "unsupported_launcher",
               "invalid_package",
               "node_unavailable",
@@ -44571,6 +44624,250 @@
           "installed",
           "launch_supported",
           "reason_code"
+        ],
+        "type": "object"
+      },
+      "ToolInstallationProbeDiagnostic": {
+        "additionalProperties": false,
+        "description": "Classified failed metadata observation only. No raw output, local path, credentials, repair command or execution authority.",
+        "oneOf": [
+          {
+            "properties": {
+              "code": {
+                "const": "source_unavailable"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "resolve",
+                  "source"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "source_changed"
+              },
+              "next_action": {
+                "const": "scan"
+              },
+              "stage": {
+                "enum": [
+                  "source"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "configuration_invalid"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "source"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "permission_denied"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "resolve",
+                  "source",
+                  "version",
+                  "help",
+                  "protocol"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "version_unsupported"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "version"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "launch_failed"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "version",
+                  "help",
+                  "protocol"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "probe_failed"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "version",
+                  "help",
+                  "protocol"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "probe_timeout"
+              },
+              "next_action": {
+                "const": "scan"
+              },
+              "stage": {
+                "enum": [
+                  "version",
+                  "help",
+                  "protocol"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "output_limit_exceeded"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "version",
+                  "help",
+                  "protocol"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "help_contract_mismatch"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "help"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "protocol_mismatch"
+              },
+              "next_action": {
+                "const": "guide"
+              },
+              "stage": {
+                "enum": [
+                  "protocol"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "code": {
+                "const": "stop_unverified"
+              },
+              "next_action": {
+                "const": "none"
+              },
+              "stage": {
+                "enum": [
+                  "version",
+                  "help",
+                  "protocol"
+                ]
+              }
+            }
+          }
+        ],
+        "properties": {
+          "code": {
+            "enum": [
+              "source_unavailable",
+              "source_changed",
+              "configuration_invalid",
+              "permission_denied",
+              "version_unsupported",
+              "launch_failed",
+              "probe_failed",
+              "probe_timeout",
+              "output_limit_exceeded",
+              "help_contract_mismatch",
+              "protocol_mismatch",
+              "stop_unverified"
+            ],
+            "type": "string"
+          },
+          "next_action": {
+            "enum": [
+              "guide",
+              "scan",
+              "none"
+            ],
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "resolve",
+              "source",
+              "version",
+              "help",
+              "protocol"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "code",
+          "next_action"
         ],
         "type": "object"
       },

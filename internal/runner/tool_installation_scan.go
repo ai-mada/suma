@@ -144,6 +144,7 @@ func installationItems(report InstalledToolDiscovery, ids []string) ([]ii.Item, 
 			return nil, fmt.Errorf("installation observation order differs")
 		}
 		result[i] = ii.Item{AdapterID: row.AdapterID, Protocol: ii.AdapterProtocol(row.AdapterID), Installed: row.Installed, LaunchSupported: row.LaunchSupported, ReasonCode: row.ReasonCode, Version: row.Version, ExecutableSHA256: row.ExecutableSHA256}
+		result[i].Diagnostic = cloneProbeDiagnostic(row.Diagnostic)
 		if err := ii.ValidateItem(result[i]); err != nil {
 			return nil, err
 		}

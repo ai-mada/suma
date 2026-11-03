@@ -96,27 +96,42 @@ func passiveCodexVersion(ctx context.Context, exe string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer cleanup()
+	ctx, closeScope, err := bindPrivateProbeDirectory(ctx, directory, cleanup)
+	if err != nil {
+		return "", err
+	}
+	defer closeScope()
 	input := CodexModelDiscoveryInput{Executable: exe, ProviderID: "suma-install-probe", BaseURL: "http://127.0.0.1:1/v1", WindowsSandbox: "unelevated"}
 	return probeCodexVersion(ctx, exe, codexDiscoveryCommand(input), nil, directory)
 }
 
 func discoverLocalCodex(ctx context.Context, entry localToolDirectoryEntry, paths []string, probe func(context.Context, CommandSpec) (string, error)) InstalledToolDiscoveryItem {
 	item := InstalledToolDiscoveryItem{AdapterID: "codex-app-server", Product: "Codex", ReasonCode: "not_installed"}
-	spec, _, installed, reason := resolveLocalTool(entry, paths)
+	spec, _, installed, reason, diagnostic := resolveLocalToolObserved(entry, paths)
 	item.Installed, item.ReasonCode = installed, reason
+	item.Diagnostic = diagnostic
 	if reason != "resolved" {
 		return item
 	}
 	exe, sha, err := qoderNativeTarget(ctx, spec.Executable)
 	if err != nil {
 		item.ReasonCode = "unsupported_launcher"
+		item.Diagnostic = probeDiagnostic(newProbeFailure("source", "source_unavailable", err))
 		return item
 	}
 	spec.Executable = exe
 	version, err := probe(ctx, spec)
-	if err != nil || !localToolSafeText(version, 256) || strings.TrimSpace(version) != version || !sameACPProbeInstallation(ctx, exe, sha) {
+	if err != nil || !localToolSafeText(version, 256) || strings.TrimSpace(version) != version {
 		item.ReasonCode = "probe_failed"
+		if err == nil {
+			err = newProbeFailure("version", "probe_failed", nil)
+		}
+		item.Diagnostic = probeDiagnostic(err)
+		return item
+	}
+	if !sameACPProbeInstallation(ctx, exe, sha) {
+		item.ReasonCode = "probe_failed"
+		item.Diagnostic = probeDiagnostic(newProbeFailure("source", "source_changed", nil))
 		return item
 	}
 	item.Executable, item.ExecutableSHA256, item.Version, item.ReasonCode = exe, sha, version, "configuration_required"
@@ -131,7 +146,11 @@ func prepareManagedCodex(ctx context.Context, value *DesktopManagedCodexConfigur
 	if err != nil {
 		return CommandSpec{}, err
 	}
-	defer cleanup()
+	ctx, closeScope, err := bindPrivateProbeDirectory(ctx, directory, cleanup)
+	if err != nil {
+		return CommandSpec{}, err
+	}
+	defer closeScope()
 	input := managedCodexDiscoveryInput(value)
 	exe, err := checkedCodexInstallation(ctx, input, directory, nil)
 	if err != nil {
@@ -182,7 +201,12 @@ func DiscoverCodexModels(parent context.Context, input CodexModelDiscoveryInput)
 		result.State, result.ErrorCode = "failed", "codex_discovery_failed"
 		return finish()
 	}
-	defer cleanup()
+	ctx, closeScope, err := bindPrivateProbeDirectory(ctx, directory, cleanup)
+	if err != nil {
+		result.State, result.ErrorCode = "failed", "codex_discovery_failed"
+		return finish()
+	}
+	defer closeScope()
 	exe, err := checkedCodexInstallation(ctx, input, directory, secrets)
 	if err != nil {
 		if ctx.Err() == nil {

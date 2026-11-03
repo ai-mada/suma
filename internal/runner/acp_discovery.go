@@ -215,8 +215,11 @@ func probeQoderNativeVersion(ctx context.Context, exe, directory string, secrets
 	truncated = truncated || diagnostic.truncated
 	diagnostic.mu.Unlock()
 	version := strings.TrimSpace(raw)
-	if waitErr != nil || stopErr != nil || ctx.Err() != nil || truncated || !acpLocalText(version, 256) || strings.TrimSpace(out.String()) != version {
-		return "", fmt.Errorf("ACP version probe was not confirmed")
+	if failure := probeProcessFailure(ctx, "version", waitErr, stopErr, truncated); failure != nil {
+		return "", failure
+	}
+	if !acpLocalText(version, 256) || strings.TrimSpace(out.String()) != version {
+		return "", newProbeFailure("version", "probe_failed", nil)
 	}
 	return version, nil
 }
@@ -258,18 +261,28 @@ func discoverLocalQoder(ctx context.Context, paths []string, probe func(context.
 			item.ReasonCode = "unsupported_launcher"
 			exe, sha, err := qoderNativeTarget(ctx, candidate)
 			if err != nil {
+				item.Diagnostic = probeDiagnostic(newProbeFailure("source", "source_unavailable", err))
 				continue
 			}
 			item.ReasonCode = "probe_failed"
 			version, err := probe(ctx, CommandSpec{Adapter: "qoder", Protocol: ac.Protocol, Executable: exe})
 			if err != nil || !acpLocalText(version, 256) {
+				if err == nil {
+					err = newProbeFailure("version", "probe_failed", nil)
+				}
+				item.Diagnostic = probeDiagnostic(err)
+				if item.Diagnostic != nil && item.Diagnostic.Code == "stop_unverified" {
+					return item
+				}
 				continue
 			}
 			latest, latestSHA, err := qoderNativeTarget(ctx, exe)
 			if err != nil || latest != exe || latestSHA != sha {
+				item.Diagnostic = probeDiagnostic(newProbeFailure("source", "source_changed", err))
 				continue
 			}
 			item.Executable, item.ExecutableSHA256, item.Version, item.ReasonCode = exe, sha, version, "acp_configuration_required"
+			item.Diagnostic = nil
 			return item
 		}
 		for _, extension := range []string{".cmd", ".bat", ".ps1"} {
@@ -277,6 +290,12 @@ func discoverLocalQoder(ctx context.Context, paths []string, probe func(context.
 				item.Installed = true
 				item.ReasonCode = "unsupported_launcher"
 			}
+		}
+	}
+	if !item.Installed {
+		if d := incompleteLocalResolution(paths, "qoder", ""); d != nil {
+			item.ReasonCode = "scan_incomplete"
+			item.Diagnostic = d
 		}
 	}
 	return item
@@ -296,7 +315,11 @@ func DiscoverACPModels(parent context.Context, input ACPModelDiscoveryInput) (ac
 	if err != nil {
 		return ac.ACPModelDiscoveryResult{}, err
 	}
-	defer cleanup()
+	parent, closeScope, err := bindPrivateProbeDirectory(parent, directory, cleanup)
+	if err != nil {
+		return ac.ACPModelDiscoveryResult{}, err
+	}
+	defer closeScope()
 	ctx, cancel := context.WithTimeout(parent, 20*time.Second)
 	defer cancel()
 	exe, err := checkedACPInstallation(ctx, input, directory)
