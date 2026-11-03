@@ -594,8 +594,8 @@
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/managed-tool-preparation-verification.md",
-  "current_summary": "docs/quality/managed-tool-preparation-summary.json",
+  "current_evidence": "docs/quality/managed-cli-preparation-verification.md",
+  "current_summary": "docs/quality/managed-cli-preparation-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -636,7 +636,7 @@
       }
     ]
   },
-  "current_implementation": "Exact installed scan and explicit fixed model/env-name/write acknowledgement -> original ordinary/Pool maintenance owner -> protected typed ACP factory -> immutable managed delta/head and snapshot -> prepared receipt -> original inventory same-transaction completed ACK -> exact paused Quick profile. Default-false separate machine opt-in; no arbitrary path/shell/secret or new business dispatcher.",
+  "current_implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency.",
   "verified": {
     "stage": "T-ACCEPTED-TASK-BASELINE-222",
     "distinct_top_level": 17,
@@ -681,18 +681,18 @@
     "evidence": "36 scoped files, 13 focused checks and 3 representative groups, normal dev push verified."
   },
   "current_work": {
-    "stage": "T-MANAGED-TOOL-PREPARATION-224",
+    "stage": "T-MANAGED-CLI-PREPARATION-225",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/managed-tool-preparation.md",
-    "report": "docs/quality/managed-tool-preparation-verification.md",
-    "summary": "docs/quality/managed-tool-preparation-summary.json",
-    "previous_commit": "c3ef1cc9204c433372a971ac0a09f2173ed840c2",
-    "verification": "33 distinct focused: Go21/Web12,23new10directOld; all final pass. Initial/full final current TSC0 plus9 affected-source0;9944 paired/0hardcodes;1013models458paths. Final bound-inventory alias/presence regression RED preserved then same HTTP top GREEN. 758Markdown/4248schema refs;399UI raw exact+3 line-ending equivalents/0unexplained.",
-    "actual": "One real ordinary HTTP/SQLite embedded maintenance Worker; owned4096-byte version fixture,2native/3artifacts/1paused. Two committed ACK losses recover same bodies,0reprobe/enable/task/vendor/model. Separate synthetic CN1366/EN390 two groups/3Root-viewed images pass; first native startup failure retained, final normal0/portfree. No actual Pool multi-host or vendor execution.",
-    "next": "Continue real provider/model and broader automatic factories on original ports, Pool foreground/multi-host collaboration, code/independent-test/acceptance chain and remaining original31/P0-P7. Do not rebuild completed T223 tester handoffs, add duplicate dispatchers or silently authorize repairs.",
+    "contract": "contracts/managed-cli-preparation.md",
+    "report": "docs/quality/managed-cli-preparation-verification.md",
+    "summary": "docs/quality/managed-cli-preparation-summary.json",
+    "previous_commit": "1872774afc1b79c67fdac0b0b7a871f1d0261b23",
+    "verification": "18 distinct: Go14/Web4,12new6directOld; final targeted all pass. Full current typecheck0; final original i18n9946/0hardcodes. Source/copy/metadata fixture and protected-C directory identity failures retained; only affected checks resumed.1013models458paths. 763Markdown/4248schema refs and diff0;403UI inputs401raw+2copy-only;23compiledGo currenthashmatch.",
+    "actual": "Two original HTTP/SQLite/ordinary maintenance generations: Claude fixed model and CodeBuddy exact empty config, first exact CommandSpec/Profile retained,6artifacts/2paused;8owned metadata4version4help,0enable/business/vendor/model/Nodecopy.2Go builds/2attempts including failed old version-only fixture. Separate one-build/one-native CN1366/EN390 two synthetic groups/3Root-viewed images;4copy-only values after pictures.401raw+2reversiblelocale inputs;all23Go guard hashes match.",
+    "next": "Prioritize real installed CLI metadata/current inventory/paused profiles, then actual model-budget/code/independent-test/acceptance. Add remaining SDK/AppServer resource/provider preparation on original ports. Complete physical multi-host, cross-OS/database/installers/scale/production and original31/P0-P7. Do not replace vendor evidence with owned fixtures.",
     "full_platform_complete": false,
-    "git_record": ".cache/managed-tool-preparation-224/post-git.json"
+    "git_record": ".cache/managed-cli-preparation-225/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2753,5 +2753,25 @@
     "english": "docs/en/managed-tool-preparation.md",
     "implementation": "Exact installed scan and explicit fixed model/env-name/write acknowledgement -> original ordinary/Pool maintenance owner -> protected typed ACP factory -> immutable managed delta/head and snapshot -> prepared receipt -> original inventory same-transaction completed ACK -> exact paused Quick profile. Default-false separate machine opt-in; no arbitrary path/shell/secret or new business dispatcher.",
     "reference_commit": "24b54bc09cebc4234af27ddafabd78b9c49626ad"
+  },
+  "managed_cli_preparation": {
+    "stage": "T-MANAGED-CLI-PREPARATION-225",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/managed-cli-preparation.md",
+    "report": "docs/quality/managed-cli-preparation-verification.md",
+    "summary": "docs/quality/managed-cli-preparation-summary.json",
+    "previous_commit": "1872774afc1b79c67fdac0b0b7a871f1d0261b23",
+    "verification": "18 distinct: Go14/Web4,12new6directOld; final targeted all pass. Full current typecheck0; final original i18n9946/0hardcodes. Source/copy/metadata fixture and protected-C directory identity failures retained; only affected checks resumed.1013models458paths. 763Markdown/4248schema refs and diff0;403UI inputs401raw+2copy-only;23compiledGo currenthashmatch.",
+    "actual": "Two original HTTP/SQLite/ordinary maintenance generations: Claude fixed model and CodeBuddy exact empty config, first exact CommandSpec/Profile retained,6artifacts/2paused;8owned metadata4version4help,0enable/business/vendor/model/Nodecopy.2Go builds/2attempts including failed old version-only fixture. Separate one-build/one-native CN1366/EN390 two synthetic groups/3Root-viewed images;4copy-only values after pictures.401raw+2reversiblelocale inputs;all23Go guard hashes match.",
+    "next": "Prioritize real installed CLI metadata/current inventory/paused profiles, then actual model-budget/code/independent-test/acceptance. Add remaining SDK/AppServer resource/provider preparation on original ports. Complete physical multi-host, cross-OS/database/installers/scale/production and original31/P0-P7. Do not replace vendor evidence with owned fixtures.",
+    "full_platform_complete": false,
+    "git_record": ".cache/managed-cli-preparation-225/post-git.json",
+    "date": "2026-11-03",
+    "product": "docs/product/managed-cli-preparation.md",
+    "architecture": "docs/architecture/managed-cli-preparation.md",
+    "design": "docs/design/managed-cli-preparation.md",
+    "english": "docs/en/managed-cli-preparation.md",
+    "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   }
 }

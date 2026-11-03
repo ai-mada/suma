@@ -103,7 +103,7 @@ func passiveCodexVersion(ctx context.Context, exe string) (string, error) {
 
 func discoverLocalCodex(ctx context.Context, entry localToolDirectoryEntry, paths []string, probe func(context.Context, CommandSpec) (string, error)) InstalledToolDiscoveryItem {
 	item := InstalledToolDiscoveryItem{AdapterID: "codex-app-server", Product: "Codex", ReasonCode: "not_installed"}
-	spec, installed, reason := resolveLocalTool(entry, paths)
+	spec, _, installed, reason := resolveLocalTool(entry, paths)
 	item.Installed, item.ReasonCode = installed, reason
 	if reason != "resolved" {
 		return item

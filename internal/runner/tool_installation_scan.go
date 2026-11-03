@@ -260,6 +260,9 @@ func (w *Worker) serviceInstallationScan(ctx context.Context) (bool, error) {
 		if !notStarted {
 			probeCtx, cancel := context.WithDeadline(ctx, deadline)
 			probeCtx = collector.context(probeCtx)
+			if w.AllowToolPreparation {
+				probeCtx = context.WithValue(probeCtx, installedCommandPinContext{}, true)
+			}
 			report, probeErr = discoverInstalledToolSubset(probeCtx, p.Scan.AdapterIDs)
 			interrupted = probeCtx.Err()
 			cancel()

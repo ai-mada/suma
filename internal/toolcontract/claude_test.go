@@ -22,10 +22,17 @@ func TestClaudeProfileClosedConfigurationAndIndependentValues(t *testing.T) {
 	if EqualProfile(copy, p) || p.ClaudeExecution.Model != "claude-sonnet-5" {
 		t.Fatal("profile capability aliases mutable input")
 	}
-	for _, pair := range [][2]string{{"claude", "codebuddy-jsonl-v1"}, {"codebuddy", ClaudeProtocol}, {"claude", "claude-sdk-v1"}} {
+	// CLI and SDK are both real identities, but their full capabilities are
+	// not interchangeable. Reject crossed tuples and then the borrowed profile.
+	for _, pair := range [][2]string{{"claude", "codebuddy-jsonl-v1"}, {"codebuddy", ClaudeProtocol}} {
 		if ValidCommandIdentity("fixed", pair[0], pair[1]) {
 			t.Fatal("invented interchangeable Claude adapter", pair)
 		}
+	}
+	sdkIdentity := CloneProfile(p)
+	sdkIdentity.Protocol = ClaudeSDKProtocol
+	if !ValidCommandIdentity(sdkIdentity.CommandID, sdkIdentity.Adapter, sdkIdentity.Protocol) || ValidateProfile(sdkIdentity, true) == nil {
+		t.Fatal("CLI capability borrowed the real SDK protocol")
 	}
 	for _, mutate := range []func(*Profile){func(p *Profile) { p.ReadOnly = true }, func(p *Profile) { p.WorkspaceToolsVersion = "attempt-workspace-v1" }, func(p *Profile) { p.ModelExecutionProtocol = "suma-model-execution-v1" }, func(p *Profile) { p.Adapter = "codebuddy"; p.Protocol = "codebuddy-jsonl-v1" }, func(p *Profile) { p.ToolVersion = "2.1.315" }, func(p *Profile) { p.ClaudeExecution.Model = "sonnet" }, func(p *Profile) { p.ClaudeExecution.BudgetMode = "enforce" }, func(p *Profile) { p.ClaudeExecution.AuthStrategy = "api_key_environment" }} {
 		q := CloneProfile(p)

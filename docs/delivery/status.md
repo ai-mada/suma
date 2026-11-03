@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MANAGED-CLI-PREPARATION-225：[已安装CLI快速接入](../product/managed-cli-preparation.md)／[架构与AI SOP](../architecture/managed-cli-preparation.md)／[简洁交互](../design/managed-cli-preparation.md)／[限定验证](../quality/managed-cli-preparation-verification.md)。新增Codex JSONL、CodeBuddy、dsh和Claude CLI，当前六种自动工厂复用原准备／库存／暂停登记；准确来源进入摘要并在执行前复核。两代隔离配置实跑及中英文代表界面已验，厂商／模型和完整31项／P0–P7继续。
+
 T-MANAGED-TOOL-PREPARATION-224：[远程工具快速准备与接入](../product/managed-tool-preparation.md)／[架构与AI SOP](../architecture/managed-tool-preparation.md)／[简洁交互](../design/managed-tool-preparation.md)／[限定验证](../quality/managed-tool-preparation-verification.md)。准确扫描后明确模型与机器写入许可，原Runner接纳新配置并确认库存，再保存暂停；同一原操作恢复两种丢失回执。中英文代表组件已核验；当前自动准备仅Qoder／Cursor，真实厂商和完整31项／P0–P7继续。
 
 T-COLLABORATIVE-TEST-BINDINGS-223：[协作测试配置与工具自动核对](../product/collaborative-test-bindings.md)／[架构与AI SOP](../architecture/collaborative-test-bindings.md)／[交互](../design/collaborative-test-bindings.md)／[限定验证](../quality/collaborative-test-bindings-verification.md)。讨论、推荐采用及团队计划保留准确独测配置；工具按原live开关可见到期自动核对，后台刷新保留原请求，失败明确重试。真实同提交开发／独测和中英文代表组件分别核验；完整31项／P0–P7继续。

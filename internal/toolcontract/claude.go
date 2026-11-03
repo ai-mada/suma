@@ -37,7 +37,9 @@ type ClaudeExecutionEvidence struct {
 	QueuedTurnCount       int    `json:"queued_turn_count,omitempty"`
 }
 
-var claudeModel = regexp.MustCompile(`^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$`)
+const ClaudeCLIModelPattern = `^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$`
+
+var claudeModel = regexp.MustCompile(ClaudeCLIModelPattern)
 
 // The reviewed release is explicit. A later version must be reviewed and
 // probed before changing this contract; a semantic version alone proves no flags.
@@ -47,8 +49,15 @@ func ValidateClaudeCLIVersion(v string) error {
 	}
 	return nil
 }
+
+// ValidClaudeCLIModel is the reviewed fixed-model token policy shared by
+// command validation and remote preparation; it does not infer availability.
+func ValidClaudeCLIModel(model string) bool {
+	return len(model) <= 256 && claudeModel.MatchString(model)
+}
+
 func ValidateClaudeExecutionCapability(c ClaudeExecutionCapability) error {
-	if len(c.Model) > 256 || !claudeModel.MatchString(c.Model) || c.ModelSource != "administrator_cli_argument" || !ValidDigest(c.ConfigurationSHA256) || c.BudgetMode != "observe_only" || c.IdentityEvidence != "configuration_ack_only" || c.AuthStrategy != "existing_cli_login" {
+	if !ValidClaudeCLIModel(c.Model) || c.ModelSource != "administrator_cli_argument" || !ValidDigest(c.ConfigurationSHA256) || c.BudgetMode != "observe_only" || c.IdentityEvidence != "configuration_ack_only" || c.AuthStrategy != "existing_cli_login" {
 		return fmt.Errorf("invalid fixed Claude CLI configuration")
 	}
 	return nil

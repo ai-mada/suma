@@ -117,6 +117,9 @@ func commandExecutable(spec CommandSpec) (string, string, error) {
 // Pin each interpreter and its reviewed entry. Cursor additionally checks its
 // complete package closure; the other existing entry policies remain scoped.
 func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error) {
+	if err := validateInstalledCommandPins(context.Background(), spec); err != nil {
+		return "", err
+	}
 	if spec.ClaudeSDK != nil || spec.Protocol == tc.ClaudeSDKProtocol {
 		configurationSHA, err := ClaudeSDKConfigurationDigest(spec)
 		if err != nil {
@@ -488,6 +491,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateInstalledCommandSpec(spec); err != nil {
+			return err
+		}
 		if err := validateTerminalSessionSpec(spec); err != nil {
 			return err
 		}

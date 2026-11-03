@@ -296,7 +296,7 @@ func (w *Worker) validateGenerationAssets(ctx context.Context, h *toolGeneration
 	}
 	for id, profile := range h.Generation.Profiles {
 		spec, ok := h.Generation.Commands[id]
-		if !ok || profile.CommandID != id || tc.ValidateProfile(profile, true) != nil || spec.ACP == nil || validateACPExecutionSpec(spec) != nil || !sameACPProbeInstallation(ctx, spec.Executable, profile.ExecutableSHA256) {
+		if !ok || profile.CommandID != id || tc.ValidateProfile(profile, true) != nil || validateManagedCommandPins(ctx, spec, profile) != nil {
 			return fmt.Errorf("managed native generation changed")
 		}
 		sha, err := effectiveCommandProfileDigest(w.Exec, spec, profile.ExecutableSHA256)
@@ -347,7 +347,7 @@ func (w *Worker) describeToolSnapshot(ctx context.Context, cfg ExecConfig) ([]tc
 			continue
 		}
 		spec := cfg.Commands[o.Profile.CommandID]
-		if sameACPProbeInstallation(ctx, spec.Executable, p.ExecutableSHA256) {
+		if validateManagedCommandPins(ctx, spec, p) == nil {
 			sha, e := effectiveCommandProfileDigest(cfg, spec, p.ExecutableSHA256)
 			if e == nil && sha == p.ProfileSHA256 {
 				observations[i].Profile = tc.CloneProfile(p)

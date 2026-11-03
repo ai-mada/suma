@@ -64,13 +64,8 @@ func validateClaudeCommand(spec CommandSpec) error {
 	}
 	model := spec.Args[len(spec.Args)-1]
 	// A named model is a fixed configuration request, never an alias or gateway.
-	if !strings.HasPrefix(model, "claude-") || len(model) > 200 || strings.ContainsAny(model, " /\\\x00\r\n\t") {
+	if !tc.ValidClaudeCLIModel(model) {
 		return fmt.Errorf("Claude CLI requires an explicit full model ID")
-	}
-	for _, r := range model {
-		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '.' || r == '_') {
-			return fmt.Errorf("Claude CLI model ID is invalid")
-		}
 	}
 	expected := claudeArguments(model)
 	if len(spec.Args) != len(expected) {

@@ -17,6 +17,7 @@ type installationNativeObservation struct {
 	Item          ii.Item            `json:"item"`
 	Executable    string             `json:"executable"`
 	CursorPackage *CursorPackageSpec `json:"cursor_package,omitempty"`
+	Command       *CommandSpec       `json:"command,omitempty"`
 }
 type installationPrivateReceipt struct {
 	Protocol     string                          `json:"protocol"`
@@ -42,7 +43,7 @@ func (j *Journal) saveInstallationObservation(ctx context.Context, p installatio
 	}
 	receipt := installationPrivateReceipt{Protocol: "suma-installed-tool-private-v1", ScopeSHA256: p.ScopeSHA256, Reference: scanReference(*p.Scan), SourceSHA256: p.Scan.SourceSHA256, Items: []installationNativeObservation{}}
 	for i, row := range report.Items {
-		if row.AdapterID != "qoder-acp" && row.AdapterID != "cursor-cli" || !row.Installed || row.ExecutableSHA256 == "" || row.Version == "" {
+		if row.AdapterID != "qoder-acp" && row.AdapterID != "cursor-cli" && !genericInstalledAdapter(row.AdapterID) || !row.Installed || row.ExecutableSHA256 == "" || row.Version == "" {
 			continue
 		}
 		native := installationNativeObservation{Item: items[i], Executable: row.Executable}
@@ -50,11 +51,22 @@ func (j *Journal) saveInstallationObservation(ctx context.Context, p installatio
 			return fmt.Errorf("scan native installation changed")
 		}
 		if row.AdapterID == "cursor-cli" {
-			pkg, version, err := inspectCursorPackage(filepath.Dir(row.Executable))
-			if err != nil || version != row.Version {
+			pkg, node, err := inspectCursorPackage(filepath.Dir(row.Executable))
+			if err != nil || row.CursorPackage == nil || pkg != *row.CursorPackage || !sameACPPath(node, row.Executable) {
 				return fmt.Errorf("scan package installation changed")
 			}
 			native.CursorPackage = &pkg
+		}
+		if genericInstalledAdapter(row.AdapterID) {
+			if row.PinnedCommand == nil || row.PinnedCommand.InstalledCommand == nil || row.PinnedCommand.InstalledCommand.AdapterID != row.AdapterID || row.PinnedCommand.InstalledCommand.HostSHA256 != row.ExecutableSHA256 || !sameACPPath(row.PinnedCommand.Executable, row.Executable) || validateInstalledCommandSpec(*row.PinnedCommand) != nil {
+				return fmt.Errorf("scan command source was not pinned by its original resolver")
+			}
+			copy, err := commandMapSnapshot(map[string]CommandSpec{"scan-source": *row.PinnedCommand})
+			if err != nil {
+				return err
+			}
+			command := copy["scan-source"]
+			native.Command = &command
 		}
 		receipt.Items = append(receipt.Items, native)
 	}
@@ -84,10 +96,13 @@ func (j *Journal) preparationNative(ctx context.Context, scope string, op tp.Ope
 			break
 		}
 		if op.AdapterID == "cursor-cli" {
-			pkg, v, err := inspectCursorPackage(filepath.Dir(native.Executable))
-			if err != nil || native.CursorPackage == nil || pkg != *native.CursorPackage || v != native.Item.Version {
+			pkg, node, err := inspectCursorPackage(filepath.Dir(native.Executable))
+			if err != nil || native.CursorPackage == nil || pkg != *native.CursorPackage || !sameACPPath(node, native.Executable) {
 				break
 			}
+		}
+		if genericInstalledAdapter(op.AdapterID) && (native.Command == nil || native.Command.InstalledCommand == nil || native.Command.InstalledCommand.AdapterID != op.AdapterID || native.Command.InstalledCommand.HostSHA256 != native.Item.ExecutableSHA256 || validateInstalledCommandPins(ctx, *native.Command) != nil) {
+			break
 		}
 		return native, nil
 	}

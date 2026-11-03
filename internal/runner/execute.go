@@ -52,6 +52,7 @@ type CommandSpec struct {
 	OpenCode               *OpenCodeSpec          `json:"opencode,omitempty"`
 	ACP                    *ACPExecutionSpec      `json:"acp,omitempty"`
 	ClaudeSDK              *ClaudeSDKSpec         `json:"claude_sdk,omitempty"`
+	InstalledCommand       *InstalledCommandPins  `json:"installed_command,omitempty" wire:"nonnull"`
 }
 
 type nativeAgentLimits struct {

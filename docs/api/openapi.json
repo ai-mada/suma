@@ -19288,11 +19288,203 @@
       },
       "ManagedToolPreparation": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "qoder-acp"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "minLength": 1,
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "cursor-cli"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "model": {
+                    "minLength": 1,
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "codex-jsonl"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "codebuddy-cli"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "dsh-multica"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "claude-code-cli"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "maxLength": 256,
+                    "pattern": "^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          }
+        ],
         "properties": {
           "adapter_id": {
             "enum": [
               "qoder-acp",
-              "cursor-cli"
+              "cursor-cli",
+              "codex-jsonl",
+              "codebuddy-cli",
+              "dsh-multica",
+              "claude-code-cli"
             ],
             "type": "string"
           },
@@ -19439,11 +19631,15 @@
             "items": {
               "enum": [
                 "qoder-acp",
-                "cursor-cli"
+                "cursor-cli",
+                "codex-jsonl",
+                "codebuddy-cli",
+                "dsh-multica",
+                "claude-code-cli"
               ],
               "type": "string"
             },
-            "maxItems": 2,
+            "maxItems": 6,
             "minItems": 1,
             "type": "array",
             "uniqueItems": true
@@ -19519,11 +19715,11 @@
         "additionalProperties": false,
         "properties": {
           "credential_env_ref": {
-            "description": "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Reserved process/provider variables are rejected.",
+            "description": "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Native CLI preparation requires an empty string and uses its original CLI identity. Reserved process/provider variables are rejected.",
             "type": "string"
           },
           "model": {
-            "minLength": 1,
+            "description": "Fixed model for ACP and Claude CLI only. Must be empty for the other exact native-command preparation adapters; unsupported options are never silently ignored.",
             "type": "string",
             "x-max-utf8-bytes": 256
           }
@@ -19536,6 +19732,194 @@
       },
       "ManagedToolPreparationCreateRequest": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "qoder-acp"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "minLength": 1,
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "cursor-cli"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "model": {
+                    "minLength": 1,
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "codex-jsonl"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "codebuddy-cli"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "dsh-multica"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "claude-code-cli"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "maxLength": 256,
+                    "pattern": "^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
+          }
+        ],
         "properties": {
           "acknowledge_configuration_write": {
             "const": true,
@@ -19544,7 +19928,11 @@
           "adapter_id": {
             "enum": [
               "qoder-acp",
-              "cursor-cli"
+              "cursor-cli",
+              "codex-jsonl",
+              "codebuddy-cli",
+              "dsh-multica",
+              "claude-code-cli"
             ],
             "type": "string"
           },

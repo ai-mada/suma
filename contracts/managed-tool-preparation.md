@@ -1,12 +1,12 @@
 # 远程工具受限准备、执行节点接纳与准确登记
 
-T-MANAGED-TOOL-PREPARATION-224，速码1.0.0，负责人：主集成代理。基线c3ef1cc9204c433372a971ac0a09f2173ed840c2。前阶段为已核实源码／真实链路／界面及76文件dev推送的progress；完整31项／P0–P7与58limited／34pending／92总账继续active。本阶段接通机器执行通道，不把新文件、安装、版本、配置、当前库存、启用、模型执行或质量验收混为同一事实。
+速码1.0.0当前维护准备合同，负责人：主集成代理。T225已将[四种原生CLI](managed-cli-preparation.md)并入同一当前实现；原T224质量报告保留当时两ACP的证据范围。原T224建设基线为c3ef1cc9204c433372a971ac0a09f2173ed840c2；当前T225基于已核实并推送的1872774afc1b79c67fdac0b0b7a871f1d0261b23继续；完整31项／P0–P7与58limited／34pending／92总账继续active。本阶段接通机器执行通道，不把新文件、安装、版本、配置、当前库存、启用、模型执行或质量验收混为同一事实。
 
 ## 用户目的与现有原路径
 
-浏览器在准确扫描结果上选择工具，只填固定模型和凭据环境变量名称，明确授权本次机器配置写入；受限Runner准备并持久接纳新命令代次，上报准确库存，返回原Quick选择／暂停登记，独立启用。复用原维护owner／Journal／普通与Pool出站身份／事务回执／原typed ACP准备器／库存和派发器。不会下载、安装、运行任意shell、收取环境值、扩展任务AllowExec或代用户启用。
+浏览器在准确扫描结果上选择工具，按实际配置模式填写必要字段，明确授权本次机器配置写入；受限Runner准备并持久接纳新命令代次，上报准确库存，返回原Quick选择／暂停登记，独立启用。复用原维护owner／Journal／普通与Pool出站身份／事务回执／原typed ACP准备器／库存和派发器。不会下载、安装、运行任意shell、收取环境值、扩展任务AllowExec或代用户启用。
 
-九项目录保留现有手工能力。当前自动准备明确只支持同一成熟ACP准备器的qoder-acp与cursor-cli，能力由本机真实资源及明确opt-in声明；不把目录枚举当自动支持。Qoder允许空凭据引用；Cursor保持原强校验与隔离引用。后续协议沿同一能力合同逐项接入，不重建独立准备中心。
+九项目录保留现有手工能力。当前自动准备六项：qoder-acp、cursor-cli、codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli，能力由本机真实来源及明确opt-in声明。Qoder允许空凭据引用；Cursor保持原要求；Claude CLI明确固定model且ref空，其他三原生配置两个字段都空。两SDK及Codex App Server的自动准备继续待办，不把目录当支持或增加独立准备中心。
 
 ## 独立允许与准确来源
 
@@ -40,7 +40,7 @@ Worker.currentExecSnapshot用于runAssignment、DescribeTools、Info能力等所
 
 Protocol=suma-managed-tool-preparation-v1；StopProtocol=suma-managed-tool-preparation-stop-v1。公共long名ManagedToolPreparation系列；Go短名只用于实现方便，不是旧产品兼容。
 
-- Capability{protocol,adapter_ids,generation_sha256}。Configuration{model,credential_env_ref}正好两字符串。
+- Capability{protocol,adapter_ids,generation_sha256}。Configuration{model,credential_env_ref}正好两字符串；六种adapter按当前ConfigurationMode闭形校验，不忽略不适用的模型或凭据输入。
 - CreateRequest{project_id,worker_id,installation_scan_id,expected_scan_version,adapter_id,configuration,expected_generation_sha256,acknowledge_configuration_write:true,idempotency_key}。
 - Reference{preparation_id,claim_id,fence}；ClaimRequest{project_id,worker_id,claim_id}；PoolClaimRequest{tenant_id,project_id,runner_id,claim_id}；Claim{preparation:Operation|null}。
 - Operation保存ID/project/worker/version/state/adapter/config、InstanceID、原scan及准确Item／ref／SourceSHA、ExpectedGenerationSHA、RequestedBy/timestamps、claim/fence与本操作SourceSHA；可选Receipt、ResultCode、InventoryOperationID／ObservedAt及只读SourceChanged。可变state/version/result与claim/lease字段不进入稳定SourceSHA；claim nonce/fence由准确Reference单独固定核对。
@@ -62,10 +62,10 @@ ToolReportFeedbackSelection的profileSHA256/observedAt不再丢失；通过ephem
 
 Root：本合同、唯一共享DTO／校验器、ToolMaintenance sharedcap/status、platform ToolInventory types、数据库初始化及主HTTP hook、OpenAPI/generated、原生本地化／设计文档／最终集成与Git。控制代理：platform新tool_preparation*.go/store/HTTP/tests、维护busy交叉及normal/Pool inventory同Tx关联。执行代理：Runner/CLI私有scanreceipt／typedfactory／journal／generation／所有snapshot读取和客户端，原维护cap clone；交互代理：原扫描新panel/model、Quick准确pin、Workspace/原Guide薄接线、CNEN与focused tests。共享文件变更先报Root。
 
-验证按必要边界：权限／opt-in／旧scan／source漂移；同scope维护排他与兄弟scope；same nonce/key/fence/result/inventory ACK丢失不重写或probe；崩溃前后generation恢复；在途旧snapshot；真实owned原生版本进程→新命令接纳→当前库存→HTTP暂停登记；至少一组CN/EN原生产组件代表状态。0真实厂商登录／模型／安装默认验收，不重播T223独测链或无关全量SDK套。真实供应方、其他七自动准备provider、多机／跨系统／其他数据库／规模和生产按完整矩阵继续，完整目标不缩小。
+验证按必要边界：权限／opt-in／旧scan／source漂移；同scope维护排他与兄弟scope；same nonce/key/fence/result/inventory ACK丢失不重写或probe；崩溃前后generation恢复；在途旧snapshot；真实owned原生版本进程→新命令接纳→当前库存→HTTP暂停登记；至少一组CN/EN原生产组件代表状态。0真实厂商登录／模型／安装默认验收，不重播T223独测链或无关全量SDK套。真实供应方、余下三种自动准备provider、多机／跨系统／其他数据库／规模和生产按完整矩阵继续，完整目标不缩小。
 
 补充冻结：Claim总带由当前机器认证生成的tenant_id/project_id/worker_id，preparation可null；无prepare cap只返回认证scope，不领取pending。仅已有managed head的恢复可用此只读身份结果核租户，默认无state且无opt-in不额外调用。Operation准确字段以internal/toolpreparationcontract/types.go为准，含TenantID及InstallationScanID/InstallationScanVersion/InstallationReference/InstallationSourceSHA256/InstallationItem/InstallationStopProof。Quick pin允许当前fresh observedAt晚于或等于原选择且完整SHA不变；不凭浏览器补续期或凭新timestamp改变配置选择。
 
-来源资格补充：原ACP安装观察的launch_supported=false／acp_configuration_required是需要准备的准确状态，不改写为已可启动。统一CanPrepareItem只允许此状态、准确两adapter、完整版本／nativeSHA及原合法Item，version_unsupported等禁止。SourceSHA只摘要不可变输入，claim/fence/lease单独按Reference核对，首次领取不改变用户确认的输入来源。
+来源资格补充：原ACP安装观察的launch_supported=false／acp_configuration_required是需要准备的准确状态，不改写为已可启动。当前CanPrepareItem对ACP两项只允许此状态；其他四项需要原launch_supported=true／workspace_required。均需完整版本／nativeSHA及原合法Item，Claude还需原受支持版本；version_unsupported等禁止。SourceSHA只摘要不可变输入，claim/fence/lease单独按Reference核对，首次领取不改变用户确认的输入来源。
 
 配置接纳与可执行性分开：maintenance-only不扩大AllowExec，新准备项可为Available=false但必须完整Profile；关联库存不强求available。原CreateToolProfile允许保存paused，Quick仅真实completed preparationID来源的准确当前配置可显示明确“保存暂停配置”，保持实际不可执行原因；普通反馈仍原available门。该pin需重新读取准确准备操作与完整Profile匹配，不能用id当权限；原enable／Start门保留。

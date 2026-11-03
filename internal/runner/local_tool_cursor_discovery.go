@@ -32,7 +32,7 @@ func discoverCursorPackage(ctx context.Context, paths []string, probe func(conte
 		if err != nil {
 			continue
 		}
-		return InstalledToolDiscoveryItem{AdapterID: "cursor-cli", Product: "Cursor", Installed: true, Executable: spec.Executable, ExecutableSHA256: sha, Version: version, ReasonCode: "acp_configuration_required"}
+		return InstalledToolDiscoveryItem{AdapterID: "cursor-cli", Product: "Cursor", Installed: true, Executable: spec.Executable, ExecutableSHA256: sha, Version: version, ReasonCode: "acp_configuration_required", CursorPackage: spec.ACP.CursorPackage}
 	}
 	return scanLocalCursor(ctx, paths, runtime.GOOS, os.Lstat)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/ai-mada/suma/internal/platform"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 	"strings"
 )
@@ -65,7 +66,7 @@ func managedToolPreparationSchemas(api map[string]any) {
 			case key == "adapter_id":
 				p["enum"] = tp.AdapterIDs()
 			case key == "adapter_ids":
-				p["minItems"], p["maxItems"], p["uniqueItems"] = 1, 2, true
+				p["minItems"], p["maxItems"], p["uniqueItems"] = 1, len(tp.AdapterIDs()), true
 				p["items"] = map[string]any{"type": "string", "enum": tp.AdapterIDs()}
 			}
 		}
@@ -77,13 +78,41 @@ func managedToolPreparationSchemas(api map[string]any) {
 	}
 	toolContractMap(schemas, "ManagedToolPreparationCreateRequest", "properties", "acknowledge_configuration_write")["const"] = true
 	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "model")["x-max-utf8-bytes"] = 256
-	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "model")["minLength"] = 1
-	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "credential_env_ref")["description"] = "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Reserved process/provider variables are rejected."
+	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "model")["description"] = "Fixed model for ACP and Claude CLI only. Must be empty for the other exact native-command preparation adapters; unsupported options are never silently ignored."
+	managedToolPreparationConfigurationSchemas(schemas)
+	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "credential_env_ref")["description"] = "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Native CLI preparation requires an empty string and uses its original CLI identity. Reserved process/provider variables are rejected."
 	toolContractMap(schemas, "ManagedToolPreparation", "properties", "state")["enum"] = tp.States()
 	for _, name := range []string{"ManagedToolPreparationResultRequest", "PoolManagedToolPreparationResultRequest"} {
 		toolContractMap(schemas, name, "properties", "outcome")["enum"] = []string{"prepared", "failed", "unknown", "closed_unknown"}
 	}
 	for _, name := range []string{"ToolInventoryRequest", "ToolInventoryReceipt", "PoolToolInventoryRequest"} {
 		toolContractMap(schemas, name, "properties", "preparation")["description"] = "Original preparation reference, input source, accepted generation and local receipt. Same-transaction inventory acknowledgement completes the original operation; replays retain the original observation time."
+	}
+}
+
+// The adapter and its options are one closed choice. Generate the same six
+// modes as the validator instead of widening model input for every tool.
+func managedToolPreparationConfigurationSchemas(schemas map[string]any) {
+	variants := []any{}
+	for _, id := range tp.AdapterIDs() {
+		model := map[string]any{"type": "string", "x-max-utf8-bytes": 256}
+		credential := map[string]any{"type": "string"}
+		switch tp.ConfigurationMode(id) {
+		case "model_and_credential":
+			model["minLength"] = 1
+			if id == "cursor-cli" {
+				credential["minLength"] = 1
+			}
+		case "fixed_claude_model":
+			model["pattern"], model["maxLength"] = tc.ClaudeCLIModelPattern, 256
+			credential["const"] = ""
+		case "existing_local_configuration":
+			model["const"], credential["const"] = "", ""
+		}
+		configuration := map[string]any{"type": "object", "additionalProperties": false, "required": []string{"model", "credential_env_ref"}, "properties": map[string]any{"model": model, "credential_env_ref": credential}}
+		variants = append(variants, map[string]any{"type": "object", "required": []string{"adapter_id", "configuration"}, "properties": map[string]any{"adapter_id": map[string]any{"const": id}, "configuration": configuration}})
+	}
+	for _, name := range []string{"ManagedToolPreparation", "ManagedToolPreparationCreateRequest"} {
+		toolContractMap(schemas, name)["oneOf"] = variants
 	}
 }

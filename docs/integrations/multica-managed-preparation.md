@@ -12,3 +12,7 @@
 | [LICENSE](https://github.com/multica-ai/multica/blob/24b54bc09cebc4234af27ddafabd78b9c49626ad/LICENSE) | 包含额外托管／商业嵌入、标识与署名条件，不能简写为纯Apache-2.0。此阶段为原创合同与实现，未复制产品／前端代码 |
 
 完整来源清单SHA256 `3dfd48c000449f006530e80104db51b4b3a45f2a9c5ca1d2f8b9942bc4247738`；只读取得记录SHA256 `a8a3ec1dd734a3cfcb3bc0968496d13f0f0ebc513cd5096cbb993b00b19c01e6`。原始文件留在忽略目录供审计，不提交参考源码、依赖或临时下载。不运行参考仓库脚本，不以参考设计代替速码验收。[当前实现与证据](../quality/managed-tool-preparation-verification.md)仍明确真实厂商、其他工具、分布式和生产的剩余范围。
+
+## T225当前接入扩展
+
+沿上述已锁定24b54参考和现有速码实现，当前六类自动工厂共用维护／来源／库存合同；新增四CLI复用速码原固定builder、版本／帮助／协议检查和rooted安装树核，不复制Multica产品代码或运行其脚本。两SDK与Codex App Server自动资源／provider接入继续，未把本地其他参考文件称为新核实的远端内容。[本次证据](../quality/managed-cli-preparation-verification.md)将自有metadata程序与真实厂商分开。

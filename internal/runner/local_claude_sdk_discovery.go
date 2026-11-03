@@ -11,7 +11,7 @@ import (
 // model authentication, a launch command, or dispatch permission.
 func discoverLocalClaudeSDK(ctx context.Context, entry localToolDirectoryEntry, paths []string, probe func(context.Context, CommandSpec) (string, error)) InstalledToolDiscoveryItem {
 	item := InstalledToolDiscoveryItem{AdapterID: entry.id, Product: entry.product, ReasonCode: "not_installed"}
-	spec, installed, reason := resolveLocalTool(entry, paths)
+	spec, _, installed, reason := resolveLocalTool(entry, paths)
 	item.Installed, item.ReasonCode = installed, reason
 	if reason != "resolved" {
 		return item

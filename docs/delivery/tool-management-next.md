@@ -84,11 +84,15 @@ Claude SDK／OpenCode SDK受信检查输出有限准备原因，当前权限／�
 
 ## T224已实现：准确扫描到远程配置与暂停登记
 
-浏览器沿原扫描行填写固定模型和凭据名称、明确机器写入许可；当前Qoder／Cursor原ACP准备器接纳不可变代次，原库存与completed同事务，准确pin回Quick保存paused。普通／Pool启动指南明确独立opt-in，默认关闭。丢失两种已提交ACK恢复原body/key，不重写或探测。见[需求](../product/managed-tool-preparation.md)、[架构与AI SOP](../architecture/managed-tool-preparation.md)、[交互](../design/managed-tool-preparation.md)和[限定验证](../quality/managed-tool-preparation-verification.md)。其余七种自动factory、真实账号／模型与Pool实机尚未覆盖；不等于全部远程自动执行。
+浏览器沿原扫描行填写固定模型和凭据名称、明确机器写入许可；当前Qoder／Cursor原ACP准备器接纳不可变代次，原库存与completed同事务，准确pin回Quick保存paused。普通／Pool启动指南明确独立opt-in，默认关闭。丢失两种已提交ACK恢复原body/key，不重写或探测。见[需求](../product/managed-tool-preparation.md)、[架构与AI SOP](../architecture/managed-tool-preparation.md)、[交互](../design/managed-tool-preparation.md)和[限定验证](../quality/managed-tool-preparation-verification.md)。T224之后由T225补齐四种，当前其余三种自动factory、真实账号／模型与Pool实机尚未覆盖；不等于全部远程自动执行。
+
+## T225已实现：四种CLI接续与安装来源
+
+当前自动工厂六项，Claude明确固定model，另三原生CLI双空配置不覆盖账号／模型；原私有scan、Node安装树及程序pins进入正式摘要，观察／执行／恢复前复核。Cursor正确核Node路径，Windows目录身份保共享no-follow真实FileID，权限不足仍拒。两代配置保留原命令、库存与暂停登记，以及CN／EN代表模式已限定核验。见[需求](../product/managed-cli-preparation.md)、[架构](../architecture/managed-cli-preparation.md)及[证据](../quality/managed-cli-preparation-verification.md)。
 
 ## 下一步：正式代码开发与质量交接
 
-T222已补齐普通已验收agent候选到后续任务的明确基线交接；T223已将讨论、推荐明确采用与专家团队计划的本次test_bindings接通原冻结与派发，不再作为缺失功能重建。当前继续准确工具与远程准备的实际厂商／模型、物理多机和后续正式代码交接。
+T222已补齐普通已验收agent候选到后续任务的明确基线交接；T223已将讨论、推荐明确采用与专家团队计划的本次test_bindings接通原冻结与派发，不再作为缺失功能重建。下一步优先核对真实本机CLI的版本／帮助元数据、准确库存与暂停档案，再验证原模型预算、实际代码／独测／验收交接。两SDK和Codex App Server的自动准备需可信资源与provider配置，沿同一合同补齐；物理多机与全平台范围继续。
 
 优先复用准确节点和当前工具档案，继续原正式开发候选、同提交独立测试、人工验收及后续基线接续、OpenCode真实环境和WorkBuddy可信代码交付；不重建已完成的诊断／配对／准备／检测／Doctor／换新，不把准备文件SHA与原解析运行配置SHA相等当作启动证明。
 

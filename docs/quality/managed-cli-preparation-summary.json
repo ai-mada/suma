@@ -1,0 +1,255 @@
+{
+  "stage": "T-MANAGED-CLI-PREPARATION-225",
+  "version": "1.0.0",
+  "date": "2026-11-03",
+  "base": "1872774afc1b79c67fdac0b0b7a871f1d0261b23",
+  "full_platform_complete": false,
+  "previous_goal_turn": "progress",
+  "automatic_factories": [
+    "qoder-acp",
+    "cursor-cli",
+    "codex-jsonl",
+    "codebuddy-cli",
+    "dsh-multica",
+    "claude-code-cli"
+  ],
+  "configuration": {
+    "acp": "fixed model and original credential-name rules",
+    "claude_cli": "explicit fixed model; empty credential reference",
+    "other_three": "both strings empty; original native model/account not overridden"
+  },
+  "focused": {
+    "distinct": 18,
+    "new": 12,
+    "affected_old": 6,
+    "go": {
+      "distinct": 14,
+      "new": 9,
+      "affected_old": 5,
+      "passed": 14,
+      "aggregation": "Latest authoritative event Time for each exact top-level; all original failed logs preserved"
+    },
+    "web": {
+      "distinct": 4,
+      "new": 3,
+      "affected_old": 1,
+      "passed": 4,
+      "copy_followup": "Only original unknown-recovery top rerun after its two footer literals changed; other three tests reused"
+    },
+    "types": {
+      "full_current_diagnostics": 0,
+      "after_check": "Only four locale values and two corresponding test text literals changed; no type-affecting changes or repeat"
+    },
+    "i18n": {
+      "final_original_command_exit": 0,
+      "paired_keys": 9946,
+      "production_hardcodes": 0
+    }
+  },
+  "contracts": {
+    "models": 1013,
+    "paths": 458,
+    "new_models": 0,
+    "new_paths": 0,
+    "new_tables": 0,
+    "new_dependencies": 0,
+    "configuration": "Same two required strings, six exact adapter-specific closed branches"
+  },
+  "actual": {
+    "attempts": 2,
+    "go_builds": 2,
+    "successful_journeys": 1,
+    "real": [
+      "original loopback HTTP",
+      "SQLite",
+      "ordinary embedded maintenance Worker",
+      "immutable generation",
+      "original bound inventory completion",
+      "HTTP paused profile"
+    ],
+    "scans": 2,
+    "preparations": 2,
+    "generations": 2,
+    "prepared_posts": 2,
+    "bound_inventory_posts": 2,
+    "artifacts": 6,
+    "paused_profiles": 2,
+    "first_exact_command_preserved": true,
+    "first_complete_profile_preserved": true,
+    "native_metadata_processes": 8,
+    "version_processes": 4,
+    "help_processes": 4,
+    "native_fixture_bytes": 4608,
+    "copies": 2,
+    "total_copy_bytes": 9216,
+    "node_copies": 0,
+    "enable": 0,
+    "business_claims": 0,
+    "business_runs": 0,
+    "model": 0,
+    "vendor": 0,
+    "sdk_initialize": 0,
+    "acp_initialize": 0,
+    "allow_exec": false,
+    "maintenance_only": true,
+    "available": false,
+    "receipt_sha256": "b232cba9f6437432e4496d42fa313ed10123d2127260f960448644133055687f",
+    "compact_sha256": "5cd891df5ffa7cad0e8eee9ef51232e7d02543dd3a01a4ba7ad9bdea41a6338a",
+    "compiled_stage_Go_sources": 23,
+    "compiled_sources_match": true,
+    "initial_failure": "Old version-only PE correctly rejected required --help; first scan exposed probe_failed, no preparation/profile. Retained.",
+    "closure": "Both hosts plus ten native processes from success and first failure absent; loopback56180/49678 no LISTEN",
+    "not_proven": [
+      "vendor version/login/model",
+      "Node vendor execution",
+      "standalone CLI",
+      "Pool physical multi-host"
+    ]
+  },
+  "visual": {
+    "builds": 1,
+    "attempts": 1,
+    "passed_groups": 2,
+    "groups": {
+      "cn_claude_explicit_model_only": {
+        "passed": true,
+        "geometry": {
+          "width": 1366,
+          "scroll": 1349,
+          "controls": [
+            {
+              "tag": "BUTTON",
+              "height": 44
+            },
+            {
+              "tag": "INPUT",
+              "height": 44
+            },
+            {
+              "tag": "BUTTON",
+              "height": 44
+            }
+          ]
+        },
+        "adapter_id": "claude-code-cli",
+        "configuration": {
+          "model": "claude-opus-5",
+          "credential_env_ref": ""
+        },
+        "awaiting_inventory_blocks_handoff": true,
+        "available": false,
+        "saved_state": "paused",
+        "enable_commands": 0
+      },
+      "en_390_codebuddy_existing_configuration_to_paused": {
+        "passed": true,
+        "geometry": {
+          "width": 390,
+          "scroll": 373,
+          "controls": [
+            {
+              "tag": "BUTTON",
+              "height": 44
+            },
+            {
+              "tag": "BUTTON",
+              "height": 44
+            }
+          ]
+        },
+        "adapter_id": "codebuddy-cli",
+        "configuration": {
+          "model": "",
+          "credential_env_ref": ""
+        },
+        "awaiting_inventory_blocks_handoff": true,
+        "available": false,
+        "saved_state": "paused",
+        "enable_commands": 0
+      }
+    },
+    "http": {
+      "get": 30,
+      "post": 6,
+      "prepare": 2,
+      "readonly_matches": 2,
+      "paused": 2
+    },
+    "images": [
+      {
+        "path": "cn-claude-model-only.png",
+        "sha256": "6ee5e7fb53a9f51691e7949f6295d512520dd82d23ae5651d911afe1cbba5171"
+      },
+      {
+        "path": "en-codebuddy-no-model-fields.png",
+        "sha256": "684430463251d9c73bdc29d3355be3f3da6188d91c36fc704c8dab4ccd266456"
+      },
+      {
+        "path": "en-codebuddy-paused.png",
+        "sha256": "d6a5161ffedafc2a3a36b8cab4698f876a0ca240047648c83f092e4994a33154"
+      }
+    ],
+    "root_viewed_images": 3,
+    "minimum_tested_control_height": 44,
+    "checkbox_excluded": true,
+    "no_horizontal_overflow": true,
+    "real_databases": 0,
+    "workers": 0,
+    "native_tool_probes": 0,
+    "models": 0,
+    "native_pid": 39160,
+    "native_exit": 0,
+    "forced": false,
+    "port_free": 63322,
+    "page_errors": 0,
+    "console_errors": 0,
+    "retained_csp_warnings": 3,
+    "build_inputs": 403,
+    "raw_current_match": 401,
+    "copy_only_locale_overlay": 2,
+    "changed_strings_per_locale": 2,
+    "copy_images_boundary": "Original images precede four copy-only locale values. Reversible before/after raw hash proofs; no rebuild/re-render claimed.",
+    "compact_sha256": "99e42793290c784dd73c115baa8a57bc75bef287e677e847d8aed083295a1cc6",
+    "scope": "Production RemoteScan/ManagedPanel/Quick and original write journal over synthetic public HTTP, reusing T224 fixture-only modal bridge; no full App, real DB/Runner, tool, account or model"
+  },
+  "source_safety": {
+    "native_and_Node_installation_pins": true,
+    "describe_execute_restore_revalidate": true,
+    "limits": {
+      "files": 10000,
+      "directories": 10000,
+      "bytes": 1073741824
+    },
+    "unknown_external_resolver_or_link": "Rejected; original manual guide retained",
+    "Windows_identity": "Shared zero-desired-access no-follow directory handle, actual FileID and original SameFile parent comparisons; no metadata/permission fallback",
+    "restricted_C_profile": "Observed AccessDenied remains fail-closed; Node positive used exact authorized sibling-workspace ignored scratch, then empty parent nonrecursively removed with outside audit"
+  },
+  "failures_retained": [
+    "Shared constant source-edit substitution corrected before compilation",
+    "Old ID-only SDK assertion replaced by stronger real identity/full capability separation",
+    "Claude maximum model fixture lacked a required numeric token; fixed without relaxing predicate",
+    "Go1.26 TempDir GOTMPDIR precedence and repository external node_modules exposed fixture/environment conflict",
+    "Windows lazy directory identity and explicit protected C metadata failure; real handle identity correction plus explicit authorized fixture root, permission denial retained",
+    "Original i18n --skip-audit mode omitted existing Trans allowlist; original complete command then passed, no existing markup changed",
+    "First actual metadata fixture insufficient for original help contract; original behavior unchanged, new tiny metadata-only fixture and one necessary Go rebuild"
+  ],
+  "reference": {
+    "locked_upstream": "24b54bc09cebc4234af27ddafabd78b9c49626ad",
+    "reuse": "Existing Suma fixed builders, original protocol probes and rooted traversal; prior pinned Multica patterns/terms retained",
+    "upstream_product_code_copied": 0
+  },
+  "remaining": [
+    "Real installed vendor metadata and paused configuration, then original model-budget/code/independent-test/acceptance chain",
+    "Claude SDK/OpenCode SDK and Codex App Server automatic resource/provider preparation",
+    "Physical multi-host/Pool foreground CLI",
+    "Cross-OS compilation and actual identity behavior, databases/installers/App/device/theme/scale/production",
+    "Original31/P0-P7 full platform"
+  ],
+  "docs": {
+    "markdown": 763,
+    "api_paths": 458,
+    "schema_references": 4248,
+    "links": "resolved",
+    "diff_check_exit": 0
+  }
+}

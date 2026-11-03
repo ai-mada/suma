@@ -39,6 +39,14 @@ func AdapterRuntime(adapter string) string {
 		return "qoder"
 	case "cursor-cli":
 		return "cursor"
+	case "codex-jsonl":
+		return "codex"
+	case "codebuddy-cli":
+		return "codebuddy"
+	case "dsh-multica":
+		return "harness"
+	case "claude-code-cli":
+		return "claude"
 	}
 	return ""
 }
@@ -61,18 +69,82 @@ func ValidateCapability(v Capability) error {
 	}
 	return ValidateAdapterIDs(v.AdapterIDs)
 }
-func ValidateConfiguration(adapter string, v Configuration) error {
-	if AdapterRuntime(adapter) == "" || !ac.ValidFixedText(v.Model, 256) || v.CredentialEnvRef != "" && !ac.ValidCredentialEnvRef(v.CredentialEnvRef) || adapter == "cursor-cli" && v.CredentialEnvRef == "" {
-		return fmt.Errorf("invalid explicit ACP preparation configuration")
+
+// ConfigurationMode distinguishes actual factory input semantics. Native
+// commands do not silently accept options that their reviewed builder ignores.
+func ConfigurationMode(adapter string) string {
+	switch adapter {
+	case "qoder-acp", "cursor-cli":
+		return "model_and_credential"
+	case "claude-code-cli":
+		return "fixed_claude_model"
+	case "codex-jsonl", "codebuddy-cli", "dsh-multica":
+		return "existing_local_configuration"
 	}
-	return nil
+	return ""
 }
 
-// ACP installation scans intentionally say configuration_required rather than
-// launch-ready. Only this exact supported, pinned source can be prepared.
-func CanPrepareItem(v ii.Item) bool {
-	return AdapterRuntime(v.AdapterID) != "" && ii.ValidateItem(v) == nil && v.Installed && !v.LaunchSupported && v.ReasonCode == "acp_configuration_required" && ac.ValidFixedText(v.Version, 256) && ValidDigest(v.ExecutableSHA256)
+func ValidateConfiguration(adapter string, v Configuration) error {
+	switch ConfigurationMode(adapter) {
+	case "model_and_credential":
+		if ac.ValidFixedText(v.Model, 256) && (v.CredentialEnvRef == "" || ac.ValidCredentialEnvRef(v.CredentialEnvRef)) && (adapter != "cursor-cli" || v.CredentialEnvRef != "") {
+			return nil
+		}
+	case "fixed_claude_model":
+		if tc.ValidClaudeCLIModel(v.Model) && v.CredentialEnvRef == "" {
+			return nil
+		}
+	case "existing_local_configuration":
+		if v.Model == "" && v.CredentialEnvRef == "" {
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid explicit managed tool preparation configuration")
 }
+
+// ACP scans are pinned but intentionally not launch-ready. Reviewed generic
+// scans carry an original command and require a workspace; neither is a login.
+func CanPrepareItem(v ii.Item) bool {
+	if ConfigurationMode(v.AdapterID) == "" || ii.ValidateItem(v) != nil || !v.Installed || !ac.ValidFixedText(v.Version, 256) || !ValidDigest(v.ExecutableSHA256) {
+		return false
+	}
+	if ConfigurationMode(v.AdapterID) == "model_and_credential" {
+		return !v.LaunchSupported && v.ReasonCode == "acp_configuration_required"
+	}
+	return v.LaunchSupported && v.ReasonCode == "workspace_required" && (v.AdapterID != "claude-code-cli" || tc.ValidateClaudeCLIVersion(v.Version) == nil)
+}
+
+// ProfileMatchesConfiguration verifies the exact reviewed public tuple and
+// capability. Opaque source pins remain bound by the complete profile digest.
+func ProfileMatchesConfiguration(adapter string, configuration Configuration, p tc.Profile) bool {
+	if ValidateConfiguration(adapter, configuration) != nil || tc.ValidateProfile(p, true) != nil || p.Adapter != AdapterRuntime(adapter) || p.ReadOnly {
+		return false
+	}
+	switch ConfigurationMode(adapter) {
+	case "model_and_credential":
+		return tc.SupportsACPExecutionProfile(p) && p.ACPExecution.Model == configuration.Model
+	case "fixed_claude_model":
+		return tc.SupportsClaudeExecutionProfile(p) && p.ClaudeExecution.Model == configuration.Model
+	case "existing_local_configuration":
+		protocol := map[string]string{"codex-jsonl": "codex-jsonl-v1", "codebuddy-cli": "codebuddy-jsonl-v1", "dsh-multica": "dsh-multica-jsonl-v1"}[adapter]
+		plain := tc.Profile{CommandID: p.CommandID, Adapter: p.Adapter, Protocol: protocol, ExecutableSHA256: p.ExecutableSHA256, ToolVersion: p.ToolVersion, ReadOnly: false, ProfileSHA256: p.ProfileSHA256}
+		return tc.EqualProfile(p, plain)
+	}
+	return false
+}
+
+func supportedGenerationProfile(p tc.Profile) bool {
+	if tc.SupportsACPExecutionProfile(p) || tc.SupportsClaudeExecutionProfile(p) {
+		return tc.ValidateProfile(p, true) == nil
+	}
+	for _, id := range []string{"codex-jsonl", "codebuddy-cli", "dsh-multica"} {
+		if ProfileMatchesConfiguration(id, Configuration{}, p) {
+			return true
+		}
+	}
+	return false
+}
+
 func ValidateCreateRequest(v CreateRequest) error {
 	if !ID(v.ProjectID) || !ID(v.WorkerID) || !ID(v.InstallationScanID) || v.ExpectedScanVersion < 1 || v.ExpectedScanVersion > 2147483646 || !ValidDigest(v.ExpectedGenerationSHA256) || !v.AcknowledgeConfigurationWrite || !ValidOperationID(v.IdempotencyKey) {
 		return fmt.Errorf("invalid managed preparation request")
@@ -109,7 +181,7 @@ func ValidateStopProof(v StopProof) error {
 }
 func StopProofDigest(v StopProof) string { return Digest(v) }
 func ValidateGenerationReceipt(v GenerationReceipt) error {
-	if !ValidDigest(v.ParentGenerationSHA256) || !ValidDigest(v.GenerationSHA256) || v.ParentGenerationSHA256 == v.GenerationSHA256 || !tc.ValidCommandID(v.CommandID) || !ValidDigest(v.ArtifactSHA256) || !ValidDigest(v.LocalReceiptSHA256) || tc.ValidateProfile(v.Profile, true) != nil || v.Profile.CommandID != v.CommandID || v.Profile.Protocol != ac.Protocol || v.Profile.ACPExecution == nil || v.StopProof == nil || ValidateStopProof(*v.StopProof) != nil {
+	if !ValidDigest(v.ParentGenerationSHA256) || !ValidDigest(v.GenerationSHA256) || v.ParentGenerationSHA256 == v.GenerationSHA256 || !tc.ValidCommandID(v.CommandID) || !ValidDigest(v.ArtifactSHA256) || !ValidDigest(v.LocalReceiptSHA256) || !supportedGenerationProfile(v.Profile) || v.Profile.CommandID != v.CommandID || v.StopProof == nil || ValidateStopProof(*v.StopProof) != nil {
 		return fmt.Errorf("invalid accepted generation receipt")
 	}
 	return nil

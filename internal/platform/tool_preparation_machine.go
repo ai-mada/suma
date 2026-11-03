@@ -7,7 +7,6 @@ import (
 	"errors"
 	"time"
 
-	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ti "github.com/ai-mada/suma/internal/toolinstallationcontract"
 	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
@@ -230,14 +229,10 @@ func preparationReference(value tp.Operation) tp.Reference {
 }
 
 func preparationReceiptMatches(value tp.Operation, receipt *tp.GenerationReceipt) bool {
-	if receipt == nil || tp.ValidateGenerationReceipt(*receipt) != nil || receipt.ParentGenerationSHA256 != value.ExpectedGenerationSHA256 || receipt.GenerationSHA256 == value.ExpectedGenerationSHA256 || receipt.CommandID != tp.CommandID(value.ID) || receipt.Profile.CommandID != receipt.CommandID || receipt.Profile.ExecutableSHA256 != value.InstallationItem.ExecutableSHA256 || receipt.Profile.ToolVersion != value.InstallationItem.Version || !tc.SupportsACPExecutionProfile(receipt.Profile) {
+	if receipt == nil || tp.ValidateGenerationReceipt(*receipt) != nil || receipt.ParentGenerationSHA256 != value.ExpectedGenerationSHA256 || receipt.GenerationSHA256 == value.ExpectedGenerationSHA256 || receipt.CommandID != tp.CommandID(value.ID) || receipt.Profile.CommandID != receipt.CommandID || receipt.Profile.ExecutableSHA256 != value.InstallationItem.ExecutableSHA256 || receipt.Profile.ToolVersion != value.InstallationItem.Version {
 		return false
 	}
-	expected := "qoder"
-	if value.AdapterID == "cursor-cli" {
-		expected = "cursor"
-	}
-	if receipt.Profile.Adapter != expected || receipt.Profile.ACPExecution.Model != value.Configuration.Model {
+	if !tp.ProfileMatchesConfiguration(value.AdapterID, value.Configuration, receipt.Profile) {
 		return false
 	}
 	return receipt.StopProof != nil && receipt.StopProof.Preparation == preparationReference(value) && receipt.StopProof.SourceSHA256 == value.SourceSHA256

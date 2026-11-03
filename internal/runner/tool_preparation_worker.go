@@ -101,7 +101,7 @@ func (w *Worker) serviceToolPreparation(ctx context.Context) (bool, error) {
 	if p.Started || p.Operation.State != "claimed" {
 		if !p.Started {
 			p.Started = true
-			p.Intent = &ACPToolPreparationInput{AdapterID: p.Operation.AdapterID, Model: p.Operation.Configuration.Model, CredentialEnvRef: p.Operation.Configuration.CredentialEnvRef, ReviewedVersion: p.Operation.InstallationItem.Version}
+			setPreparationSourceIntent(p)
 		}
 		head, e := w.Journal.readToolGenerationHead()
 		if e != nil {
@@ -207,7 +207,7 @@ func (w *Worker) finishPreparedInventory(ctx context.Context, p *toolPreparation
 }
 func (w *Worker) prepareManagedTool(ctx context.Context, p *toolPreparationCheckpoint) error {
 	op := *p.Operation
-	p.Intent = &ACPToolPreparationInput{AdapterID: op.AdapterID, ReviewedVersion: op.InstallationItem.Version, Model: op.Configuration.Model, CredentialEnvRef: op.Configuration.CredentialEnvRef}
+	setPreparationSourceIntent(p)
 	code := ""
 	deadline, _ := time.Parse(time.RFC3339Nano, op.LeaseUntil)
 	if ctx.Err() != nil || !time.Now().Before(deadline) {
@@ -226,7 +226,15 @@ func (w *Worker) prepareManagedTool(ctx context.Context, p *toolPreparationCheck
 				code = "rescan_required"
 			}
 		} else {
-			p.Intent.Executable = native.Executable
+			if genericInstalledAdapter(op.AdapterID) {
+				p.InstalledIntent, err = installedPreparationIntent(op, native)
+				if err != nil {
+					code = "configuration_invalid"
+					setPreparationSourceIntent(p)
+				}
+			} else {
+				p.Intent.Executable = native.Executable
+			}
 		}
 	}
 	// Persist the exact typed intent before ANY new file or native process.
@@ -290,8 +298,16 @@ func (w *Worker) buildManagedGeneration(ctx context.Context, p toolPreparationCh
 		return nil, err
 	}
 	artifact := filepath.Join(directory, p.Operation.ID+"-commands.json")
-	raw, _ := json.Marshal(p.Intent)
-	if _, err = PrepareACPToolCommands(ctx, artifact, bytes.NewReader(raw)); err != nil {
+	if p.InstalledIntent != nil {
+		if err = validateInstalledPreparationIntent(*p.Operation, *p.InstalledIntent); err != nil {
+			return nil, err
+		}
+		err = writeInstalledToolPreparation(ctx, artifact, *p.InstalledIntent)
+	} else {
+		raw, _ := json.Marshal(p.Intent)
+		_, err = PrepareACPToolCommands(ctx, artifact, bytes.NewReader(raw))
+	}
+	if err != nil {
 		return nil, err
 	}
 	// Recovering this file is NOT retrying preparation: this call occurs once,
@@ -334,7 +350,7 @@ func (w *Worker) buildManagedGeneration(ctx context.Context, p toolPreparationCh
 		if item.Profile.CommandID == id {
 			profile = item.Profile
 			if !current.AllowExec {
-				profile, err = observePreparedACP(ctx, current, id, spec)
+				profile, err = observePreparedTool(ctx, current, id, spec)
 				if err != nil {
 					return nil, err
 				}
@@ -344,7 +360,7 @@ func (w *Worker) buildManagedGeneration(ctx context.Context, p toolPreparationCh
 		}
 	}
 	if profile.CommandID != id || tc.ValidateProfile(profile, true) != nil {
-		return nil, fmt.Errorf("prepared tool did not produce an available complete profile")
+		return nil, fmt.Errorf("prepared tool did not produce a complete bound profile")
 	}
 	profiles := map[string]tc.Profile{}
 	delta := map[string]CommandSpec{}
@@ -375,7 +391,7 @@ func (w *Worker) buildManagedGeneration(ctx context.Context, p toolPreparationCh
 
 // The preparation probe observes only the original ACP metadata path. It does
 // not flip AllowExec, inspect provider login files, initialize ACP or call a model.
-func observePreparedACP(ctx context.Context, cfg ExecConfig, id string, spec CommandSpec) (tc.Profile, error) {
+func observePreparedTool(ctx context.Context, cfg ExecConfig, id string, spec CommandSpec) (tc.Profile, error) {
 	profile := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly}
 	executable, sha, err := commandExecutable(spec)
 	if err != nil {
@@ -390,17 +406,38 @@ func observePreparedACP(ctx context.Context, cfg ExecConfig, id string, spec Com
 	if err != nil {
 		return profile, err
 	}
-	profile.ACPExecution, err = localACPCapability(spec)
-	if err != nil {
-		return profile, err
-	}
-	if spec.ACP.Runtime == "cursor" {
-		profile.UserInputProtocol = cu.InputProtocol
+	if spec.ACP != nil {
+		profile.ACPExecution, err = localACPCapability(spec)
+		if err != nil {
+			return profile, err
+		}
+		if spec.ACP.Runtime == "cursor" {
+			profile.UserInputProtocol = cu.InputProtocol
+		}
+	} else {
+		if spec.InstalledCommand == nil || validateInstalledCommandPins(ctx, spec) != nil {
+			return profile, fmt.Errorf("installed tool metadata has no exact source pins")
+		}
+		profile.ClaudeExecution, err = localClaudeCapability(spec)
+		if err != nil {
+			return profile, err
+		}
 	}
 	if tc.ValidateProfile(profile, true) != nil {
-		return profile, fmt.Errorf("incomplete prepared ACP metadata")
+		return profile, fmt.Errorf("incomplete prepared tool metadata")
 	}
 	return profile, nil
+}
+
+func setPreparationSourceIntent(p *toolPreparationCheckpoint) {
+	op := p.Operation
+	if genericInstalledAdapter(op.AdapterID) {
+		p.Intent = nil
+		p.InstalledIntent = &installedToolPreparationInput{AdapterID: op.AdapterID}
+		return
+	}
+	p.InstalledIntent = nil
+	p.Intent = &ACPToolPreparationInput{AdapterID: op.AdapterID, ReviewedVersion: op.InstallationItem.Version, Model: op.Configuration.Model, CredentialEnvRef: op.Configuration.CredentialEnvRef}
 }
 func (w *Worker) persistManagedGeneration(p toolPreparationCheckpoint, h *toolGenerationHead) error {
 	dir, err := w.Journal.maintenanceDirectory("tool-command-generations")

@@ -16,7 +16,9 @@ const MaxProjectRequests = 10000
 const MaxNativeProcesses = 2048
 
 // AdapterIDs is the implemented remote factory set, not the full tool catalogue.
-func AdapterIDs() []string { return []string{"qoder-acp", "cursor-cli"} }
+func AdapterIDs() []string {
+	return []string{"qoder-acp", "cursor-cli", "codex-jsonl", "codebuddy-cli", "dsh-multica", "claude-code-cli"}
+}
 
 type ManagedToolPreparationCapability struct {
 	Protocol         string   `json:"protocol"`

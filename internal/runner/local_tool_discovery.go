@@ -26,15 +26,17 @@ type InstalledToolDiscovery struct {
 }
 
 type InstalledToolDiscoveryItem struct {
-	AdapterID        string       `json:"adapter_id"`
-	Product          string       `json:"product"`
-	Installed        bool         `json:"installed"`
-	LaunchSupported  bool         `json:"launch_supported"`
-	Executable       string       `json:"executable,omitempty"`
-	ExecutableSHA256 string       `json:"executable_sha256,omitempty"`
-	Version          string       `json:"version,omitempty"`
-	ReasonCode       string       `json:"reason_code"`
-	Command          *CommandSpec `json:"command,omitempty"`
+	AdapterID        string             `json:"adapter_id"`
+	Product          string             `json:"product"`
+	Installed        bool               `json:"installed"`
+	LaunchSupported  bool               `json:"launch_supported"`
+	Executable       string             `json:"executable,omitempty"`
+	ExecutableSHA256 string             `json:"executable_sha256,omitempty"`
+	Version          string             `json:"version,omitempty"`
+	ReasonCode       string             `json:"reason_code"`
+	Command          *CommandSpec       `json:"command,omitempty"`
+	PinnedCommand    *CommandSpec       `json:"-"`
+	CursorPackage    *CursorPackageSpec `json:"-"`
 }
 
 type localToolDirectoryEntry struct {
@@ -163,14 +165,33 @@ func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryE
 				return
 			}
 			item := InstalledToolDiscoveryItem{AdapterID: entry.id, Product: entry.product, ReasonCode: "not_installed"}
-			spec, installed, reason := resolveLocalTool(entry, paths)
+			spec, resolverRoot, installed, reason := resolveLocalTool(entry, paths)
 			item.Installed, item.ReasonCode = installed, reason
 			if reason == "resolved" {
 				item.Executable = spec.Executable
+				var pinned *CommandSpec
+				if wantsInstalledCommandPins(ctx) {
+					bound, err := pinResolvedInstalledCommand(ctx, entry.id, spec, resolverRoot)
+					if err != nil {
+						item.ReasonCode = "unsupported_launcher"
+						result.Items[index] = item
+						return
+					}
+					pinned = &bound
+				}
 				version, err := probe(ctx, spec)
 				if err != nil || !localToolSafeText(version, 256) {
 					item.ReasonCode = "probe_failed"
 				} else {
+					if pinned != nil {
+						if validateInstalledCommandPins(ctx, *pinned) != nil {
+							item.ReasonCode = "probe_failed"
+							result.Items[index] = item
+							return
+						}
+						item.ExecutableSHA256 = pinned.InstalledCommand.HostSHA256
+						item.PinnedCommand = pinned
+					}
 					item.Version, item.Command, item.LaunchSupported, item.ReasonCode = version, &spec, true, "workspace_required"
 				}
 			}
@@ -213,7 +234,7 @@ func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, e
 	return toolVersion(ctx, exe, normalizedCommand(spec), nil, "")
 }
 
-func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpec, bool, string) {
+func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpec, string, bool, string) {
 	installed, reason := false, "not_installed"
 	for _, directory := range paths {
 		name := entry.binary
@@ -224,7 +245,7 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 		if _, err := os.Lstat(candidate); err == nil {
 			installed, reason = true, "unsupported_launcher"
 			if spec, ok := localToolNativeSpec(entry.command, candidate); ok {
-				return spec, true, "resolved"
+				return spec, "", true, "resolved"
 			}
 		}
 		for _, extension := range []string{".cmd", ".bat", ".ps1"} {
@@ -259,7 +280,7 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 			}
 			if entry.binary == "codex" {
 				if spec, ok := localToolCodexVendor(entry.command, moduleRoot, pkg); ok {
-					return spec, true, "resolved"
+					return spec, "", true, "resolved"
 				}
 				reason = "unsupported_launcher"
 				continue
@@ -285,10 +306,10 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 			if validateTeamCLICommand(spec) != nil {
 				continue
 			}
-			return spec, true, "resolved"
+			return spec, moduleRoot, true, "resolved"
 		}
 	}
-	return CommandSpec{}, installed, reason
+	return CommandSpec{}, "", installed, reason
 }
 
 func localToolNativeSpec(preset CommandSpec, candidate string) (CommandSpec, bool) {

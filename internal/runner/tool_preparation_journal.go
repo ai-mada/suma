@@ -12,18 +12,19 @@ import (
 )
 
 type toolPreparationCheckpoint struct {
-	ScopeSHA256 string                   `json:"scope_sha256"`
-	WorkerID    string                   `json:"worker_id"`
-	ClaimID     string                   `json:"claim_id"`
-	Responded   bool                     `json:"responded"`
-	TenantID    string                   `json:"tenant_id"`
-	Operation   *tp.Operation            `json:"operation,omitempty"`
-	Started     bool                     `json:"started"`
-	Intent      *ACPToolPreparationInput `json:"intent,omitempty"`
-	Result      *tp.ResultRequest        `json:"result,omitempty"`
-	ResultAcked bool                     `json:"result_acked"`
-	Closure     *tp.ResultRequest        `json:"closure,omitempty"`
-	Complete    bool                     `json:"complete"`
+	ScopeSHA256     string                         `json:"scope_sha256"`
+	WorkerID        string                         `json:"worker_id"`
+	ClaimID         string                         `json:"claim_id"`
+	Responded       bool                           `json:"responded"`
+	TenantID        string                         `json:"tenant_id"`
+	Operation       *tp.Operation                  `json:"operation,omitempty"`
+	Started         bool                           `json:"started"`
+	Intent          *ACPToolPreparationInput       `json:"intent,omitempty"`
+	InstalledIntent *installedToolPreparationInput `json:"installed_intent,omitempty"`
+	Result          *tp.ResultRequest              `json:"result,omitempty"`
+	ResultAcked     bool                           `json:"result_acked"`
+	Closure         *tp.ResultRequest              `json:"closure,omitempty"`
+	Complete        bool                           `json:"complete"`
 }
 
 func (j *Journal) preparationPath() string {
@@ -47,7 +48,22 @@ func validateToolPreparationCheckpoint(p toolPreparationCheckpoint) error {
 			}
 		}
 	}
-	if p.Started && p.Intent == nil || p.Closure != nil && (p.Result == nil || !p.ResultAcked || p.Result.Outcome != "unknown" || p.Closure.Outcome != "closed_unknown" || p.Closure.IdempotencyKey == p.Result.IdempotencyKey) {
+	if p.Intent != nil && p.InstalledIntent != nil {
+		return fmt.Errorf("maintenance intents must be mutually exclusive")
+	}
+	if p.Started {
+		if genericInstalledAdapter(p.Operation.AdapterID) {
+			if p.Intent != nil || p.InstalledIntent == nil || p.InstalledIntent.AdapterID != p.Operation.AdapterID {
+				return fmt.Errorf("installed preparation has no exact typed intent")
+			}
+			if p.InstalledIntent.Command.Executable != "" && validateInstalledPreparationIntent(*p.Operation, *p.InstalledIntent) != nil {
+				return fmt.Errorf("installed typed intent source differs")
+			}
+		} else if p.Intent == nil || p.InstalledIntent != nil {
+			return fmt.Errorf("ACP preparation has no original typed intent")
+		}
+	}
+	if p.Closure != nil && (p.Result == nil || !p.ResultAcked || p.Result.Outcome != "unknown" || p.Closure.Outcome != "closed_unknown" || p.Closure.IdempotencyKey == p.Result.IdempotencyKey) {
 		return fmt.Errorf("preparation closure cannot rewrite original intent")
 	}
 	return nil
