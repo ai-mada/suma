@@ -11,6 +11,7 @@ import {validClaudeDispatchReceipt,validClaudePlan} from './claude-cli-model';
 import {validClaudeSDKDispatchReceipt,validClaudeSDKPlan} from './claude-sdk-execution-model';
 import {validACPDispatchReceipt,validACPPlan} from './acp-execution-model';
 import {validDevelopmentContinuationBinding,validDevelopmentContinuationSource} from './development-continuation-model';
+import {validTestSelectionFields, validTestBindingsPlan, validTestBindingsDispatchReceipt} from './task-dispatch-test-bindings-model';
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const closed = (value: Record<string, unknown>, names: string[]) => Object.keys(value).sort().join(',') === [...names].sort().join(',');
@@ -40,7 +41,7 @@ function validDiscussionContinuation(value:Record<string,unknown>,plan:Record<st
  * producer and mutually exclusive, complete bindings before exposing actions. */
 function validDevelopmentExecution(plan:Record<string,unknown>):boolean {
   if (!validModelPlan(plan)||!validOpenCodePlan(plan)||!validClaudePlan(plan)||!validClaudeSDKPlan(plan)||!validACPPlan(plan)||!validExecutionSkillPlan(plan)||
-    !object(plan.workflow)||!Array.isArray(plan.workflow.nodes)) return false;
+    !object(plan.workflow)||!Array.isArray(plan.workflow.nodes)||!validTestBindingsPlan(plan)) return false;
   const matching=plan.workflow.nodes.filter(node=>object(node)&&node.id===plan.agent_node_id),node=matching[0];
   if(matching.length!==1||!object(node)||node.type!=='agent'||!object(node.config)||
     node.config.tool_profile_id!==plan.tool_profile_id||node.config.tool_profile_sha256!==plan.tool_profile_sha256)return false;
@@ -84,13 +85,14 @@ export function validDiscussionDevelopmentRequest(request: WriteRecoveryRequest,
   if (request.method !== 'POST' || body.project_id !== project || body.idempotency_key !== request.idempotency_key) return false;
   if (request.path === '/task-discussion-development-plans') return fields(body, ['project_id', 'task_id', 'expected_task_version',
     'reply_id', 'expected_reply_version', 'workflow_id', 'workflow_version', 'agent_node_id', 'tool_profile_id', 'expected_tool_version',
-    'reviewed_goal', 'acceptance_criteria', 'acknowledge_execution', 'idempotency_key'],['model_execution_selection','codex_execution_selection','continuation_source']) &&
+    'reviewed_goal', 'acceptance_criteria', 'acknowledge_execution', 'idempotency_key'],['model_execution_selection','codex_execution_selection','continuation_source','test_bindings']) &&
     body.task_id === task && positive(body.expected_task_version) && id(body.reply_id) && positive(body.expected_reply_version) &&
     id(body.workflow_id) && positive(body.workflow_version) && id(body.agent_node_id) && id(body.tool_profile_id) &&
     positive(body.expected_tool_version) && !(Object.hasOwn(body,'model_execution_selection')&&Object.hasOwn(body,'codex_execution_selection')) &&
     (!Object.hasOwn(body,'model_execution_selection')||validModelSelection(body.model_execution_selection)) &&
     (!Object.hasOwn(body,'codex_execution_selection')||validCodexSelection(body.codex_execution_selection)) &&
     (!Object.hasOwn(body,'continuation_source')||validDevelopmentContinuationSource(body.continuation_source)) && developmentGoal(body.reviewed_goal) &&
+    (!Object.hasOwn(body,'test_bindings')||validTestSelectionFields(body.test_bindings)) &&
     developmentCriteria(body.acceptance_criteria) && body.acknowledge_execution === true;
   return /^\/task-discussion-development-plans\/[A-Za-z0-9_.-]{1,64}\/start$/.test(request.path) &&
     closed(body, ['project_id', 'expected_version', 'idempotency_key']) && positive(body.expected_version);
@@ -114,6 +116,6 @@ export function validDiscussionDevelopmentReceipt(value: unknown, request: Write
     plan.workflow_id===body.workflow_id&&plan.workflow_version===body.workflow_version&&plan.agent_node_id===body.agent_node_id&&
     plan.tool_profile_id===body.tool_profile_id&&plan.tool_profile_version===body.expected_tool_version&&
     Object.hasOwn(body,'codex_execution_selection')===Object.hasOwn(plan,'codex_execution')&&
-    validModelDispatchReceipt(plan,body)&&validCodexDispatchReceipt(plan,codexBody)&&
+    validTestBindingsDispatchReceipt(plan,body)&&validModelDispatchReceipt(plan,body)&&validCodexDispatchReceipt(plan,codexBody)&&
     validOpenCodeDispatchReceipt(plan,body)&&validClaudeDispatchReceipt(plan,body)&&validClaudeSDKDispatchReceipt(plan,body)&&validACPDispatchReceipt(plan,body);
 }

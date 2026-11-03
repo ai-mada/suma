@@ -13,7 +13,7 @@ func validExpertTeamItems(items []ExpertTeamPlanItemRequest) bool {
 	}
 	seen := map[string]bool{}
 	for _, item := range items {
-		if !handoffID(item.TaskID, false) || item.ExpectedTaskVersion < 1 || !expertRoleKey.MatchString(item.RoleKey) || seen[item.TaskID] {
+		if !handoffID(item.TaskID, false) || item.ExpectedTaskVersion < 1 || !expertRoleKey.MatchString(item.RoleKey) || seen[item.TaskID] || item.TestBindings != nil && len(*item.TestBindings) > 64 {
 			return false
 		}
 		seen[item.TaskID] = true

@@ -6,7 +6,13 @@ import {ApiViewProvider} from './api-context';
 import type {RecordItem,Session} from './api';
 import {setLocale} from './i18n';
 import {TeamTaskDispatchDialog} from './TeamTaskDispatchDialog';
+import type {Node as DAGNode,TaskDispatchPlan} from '../../../packages/contracts/src';
 const accessFailure=vi.fn();
+const fixtureNode=(id:string,type:string,extra:Partial<DAGNode>={}):DAGNode=>({id,type,name:id,command:[],depends_on:[],join:'all',quorum:0,timeout_seconds:300,max_retries:0,idempotent:false,...extra});
+function fixedTests(value:ReturnType<typeof plan>){
+ for(const item of value.items){const dispatch=item.plan as unknown as TaskDispatchPlan;dispatch.test_bindings=[{node_id:'verify',tool_profile_id:'tester',tool_profile_version:3,tool_profile_sha256:'a'.repeat(64),worker_id:'worker-test',command_id:'test-command'}];dispatch.workflow={...dispatch.workflow,nodes:[fixtureNode('code','agent',{name:'Develop'}),fixtureNode('verify','test',{name:'Verify',command:['test-command'],config:{candidate_from:'code',tool_profile_id:'tester',tool_profile_sha256:'a'.repeat(64)}})],edges:[{from:'code',to:'verify'}]};}
+ return value;
+}
 const sha='a'.repeat(64),project='project-a',session:Session={user:{id:'user-a',name:'Owner',email:'owner@example.test'},organization:{id:'org-a',name:'Org'},projects:[{id:project,version:1,title:'Project'}]};
 const tasks:RecordItem[]=[{id:'task-a',project_id:project,version:3,title:'Task A',status:'todo',depends_on:[]},{id:'task-b',project_id:project,version:4,title:'Task B',status:'todo',depends_on:['task-a']}];
 const configuration={project_id:project,team_id:'team-a',team_name:'Actual team',team_version:1,version:2,state:'published',roles:[{key:'developer',title:'Coding expert',resource_id:'resource-a',resource_version:1,resource_kind:'agent',resource_name:'Real agent',membership_id:'member-a',membership_version:1,workflow_id:'wf-a',workflow_version:1,agent_node_id:'code',tool_profile_id:'tool-a',tool_profile_version:2,tool_profile_sha256:sha,tool_name:'Actual CLI',knowledge:[]}],created_at:'',updated_at:'',valid:true,blockers:[],can_edit:false,can_publish:false,can_retire:false};
@@ -25,6 +31,28 @@ async function render(planID?:string,identity=session,p=project,selected=tasks,o
 async function click(selector:string){const element=document.querySelector<HTMLElement>(selector);expect(element,selector).not.toBeNull();await act(async()=>element!.click());await settle();}
 async function change(selector:string,value:string){const element=document.querySelector<HTMLSelectElement|HTMLInputElement|HTMLTextAreaElement>(selector)!;expect(element,selector).not.toBeNull();const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
 async function command(name:string){await click('[data-team-command='+name+']');await change('[name=team_plan_reason]','Reviewed '+name+' for the original plan');expect(document.querySelector<HTMLButtonElement>('[data-team-confirm-command]')?.disabled).toBe(true);await click('[name=team_plan_ack]');await click('[data-team-confirm-command]');}
+
+it('T223 carries explicit definition versus omitted team test intent and retains the original create key after a mismatched successful response',async()=>{
+ let mismatch=true;reply=async(path,init)=>{if(init?.body){current=mismatch?fixedTests(plan()):plan();return Response.json(current);}return defaults(path);};
+ await render();await change('[name=dispatch_team]','team-a');await settle();
+ const section=document.querySelector<HTMLDetailsElement>('[data-expert-test-task=task-a]')!;await act(async()=>{section.open=true;section.dispatchEvent(new Event('toggle'));});
+ await change('[data-expert-test-mode=task-a]','definition');await settle();await click('[data-team-preview]');expect(writes).toHaveLength(1);
+ expect(writes[0].body.items[0].test_bindings).toEqual([]);expect(Object.hasOwn(writes[0].body.items[1],'test_bindings')).toBe(false);expect(located).not.toHaveBeenCalled();expect(document.querySelector('[data-team-restore]')).not.toBeNull();
+ const original=structuredClone(writes[0].body);mismatch=false;await act(async()=>root!.unmount());root=undefined;await render();await click('[data-team-restore]');expect(writes).toHaveLength(2);expect(writes[1].body).toEqual(original);expect(located).toHaveBeenCalledOnce();expect(writes.every(value=>value.path==='/expert-team-plans')).toBe(true);
+});
+
+it('T223 retains fixed tests during an unstarted revision then explicitly restores the definition with exact unknown recovery and started siblings unchanged',async()=>{
+ current=fixedTests(plan('paused','executing','ready'));const startedBefore=structuredClone(current.items[0]);let loseClear=true;
+ reply=async(path,init)=>{if(!init?.body)return defaults(path);const body=JSON.parse(String(init.body));if(body.action==='revise'){
+  const clear=Object.hasOwn(body.items[0],'test_bindings');current={...current,version:current.version+1,revision:current.revision+1};
+  if(clear){const dispatch=current.items[1].plan as unknown as TaskDispatchPlan;delete dispatch.test_bindings;dispatch.workflow={...dispatch.workflow,nodes:[fixtureNode('code','agent'),fixtureNode('verify','test',{command:['published-tests'],config:{candidate_from:'code'}})]};if(loseClear){loseClear=false;throw TypeError('Lost revision acknowledgement');}}
+  return Response.json(current);
+ }return Response.json(current);};
+ await render('batch-a');await click('[data-team-command=revise]');await click('[name=team_revision_select_task-b]');await settle();expect(document.querySelector('[data-expert-test-retain=current]')).not.toBeNull();
+ await change('[name=team_plan_reason]','Keep exact same role and test configuration');await click('[name=team_plan_ack]');await click('[data-team-confirm-command]');expect(writes).toHaveLength(1);expect(Object.hasOwn(writes[0].body.items[0],'test_bindings')).toBe(false);expect((current.items[1].plan as unknown as TaskDispatchPlan).test_bindings).toHaveLength(1);
+ await click('[data-team-command=revise]');await click('[name=team_revision_select_task-b]');await settle();const detail=document.querySelector<HTMLDetailsElement>('[data-expert-test-task=task-b]')!;await act(async()=>{detail.open=true;detail.dispatchEvent(new Event('toggle'));});await change('[data-expert-test-mode=task-b]','definition');await settle();await change('[name=team_plan_reason]','Explicitly restore published test definition');await click('[name=team_plan_ack]');await click('[data-team-confirm-command]');expect(writes).toHaveLength(2);expect(writes[1].body.items[0].test_bindings).toEqual([]);const original=structuredClone(writes[1].body);
+ await act(async()=>root!.unmount());root=undefined;await render('batch-a',session,project,[]);const afterCommit=structuredClone(current);reply=async(path,init)=>init?.body?Response.json(afterCommit):defaults(path);await click('[data-team-command-restore]');expect(writes).toHaveLength(3);expect(writes[2].body).toEqual(original);expect(current.items[0]).toEqual(startedBefore);expect(document.querySelector('[data-team-command-restore]')).toBeNull();expect(reads.every(value=>!value.path.startsWith('/tool-profiles'))).toBe(true);
+});
 
 it('refreshes a successful pause in place without invoking guarded navigation while the command settles',async()=>{
  current=plan('active','waiting_execution');let release!:(response:Response)=>void;

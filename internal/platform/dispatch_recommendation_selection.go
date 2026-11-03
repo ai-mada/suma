@@ -128,6 +128,9 @@ func (s *Service) AdoptDispatchRecommendation(ctx context.Context, engine *dag.E
 		return out, err
 	}
 	request.ProjectID = project
+	// Test authority is the human's explicit adoption input, never part of
+	// the model's closed five-field Choice or the paid analysis source.
+	request.TestBindings = req.TestBindings
 	plan, err := s.buildTaskDispatchSnapshotTx(ctx, engine, auth, project, request)
 	if err != nil {
 		return out, err
@@ -148,6 +151,7 @@ func (s *Service) AdoptDispatchRecommendation(ctx context.Context, engine *dag.E
 		return out, err
 	}
 	a.AdoptedChoice = &adoptedChoice
+	a.AdoptedTestBindings = append([]TaskDispatchTestBinding(nil), plan.TestBindings...)
 	record.Recommendation = a
 	if err = s.saveDispatchRecommendationTx(ctx, auth.tx, auth.target.tenantID, record, previous); err != nil {
 		return out, err
@@ -175,7 +179,7 @@ func (s *Service) validateDispatchRecommendationProvenanceTx(ctx context.Context
 		return err
 	}
 	a := record.Recommendation
-	if a.State != "adopted" || a.PlanID != plan.ID || a.Version != p.RecommendationVersion+1 || a.Source.SHA256 != p.SourceSHA256 || a.OriginalOutputSHA256 != p.OriginalOutputSHA256 || digest(a.OriginalOutput) != p.OriginalOutputSHA256 || a.AdoptedChoice == nil || a.AdoptedChoice.CandidateID != p.CandidateID || digest(stringify(a.AdoptedChoice)) != p.ChoiceSHA256 {
+	if a.State != "adopted" || a.PlanID != plan.ID || a.Version != p.RecommendationVersion+1 || a.Source.SHA256 != p.SourceSHA256 || a.OriginalOutputSHA256 != p.OriginalOutputSHA256 || digest(a.OriginalOutput) != p.OriginalOutputSHA256 || a.AdoptedChoice == nil || a.AdoptedChoice.CandidateID != p.CandidateID || digest(stringify(a.AdoptedChoice)) != p.ChoiceSHA256 || !taskDispatchTestBindingsConsistent(plan) || !sameTaskDispatchTestBindings(a.AdoptedTestBindings, plan.TestBindings) {
 		return conflict(dispatchRecommendationVersion)
 	}
 	request, err := dispatchRecommendationSelection(a.Source, *a.AdoptedChoice)

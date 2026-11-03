@@ -35,9 +35,23 @@ func (s *Service) expertTeamSourceItemTx(ctx context.Context, engine *dag.Engine
 	if len(blockers) != 0 {
 		return out, expertError("expert_team_ineligible", expertTask)
 	}
-	snapshot, err := s.buildTaskDispatchSnapshotWithSourceTx(ctx, engine, auth, auth.target.projectID, TaskDispatchPreviewRequest{ProjectID: auth.target.projectID, TaskID: task.ID, ExpectedTaskVersion: task.Version, WorkflowID: role.WorkflowID, WorkflowVersion: role.WorkflowVersion, AgentNodeID: role.AgentNodeID, ToolProfileID: role.ToolProfileID, ExpectedToolVersion: role.ToolProfileVersion, Knowledge: role.Knowledge, ModelExecutionSelection: request.ModelExecutionSelection, CodexExecutionSelection: request.CodexExecutionSelection}, source)
+	var tests []TaskDispatchTestSelection
+	if request.TestBindings != nil {
+		tests = *request.TestBindings
+	} else if source != nil {
+		// This is an original source recheck, not a new user selection. Keep
+		// its frozen versions, including a deliberate zero-override snapshot.
+		tests, err = taskDispatchSelectionsForBindings(*source)
+		if err != nil {
+			return out, err
+		}
+	}
+	snapshot, err := s.buildTaskDispatchSnapshotWithSourceTx(ctx, engine, auth, auth.target.projectID, TaskDispatchPreviewRequest{ProjectID: auth.target.projectID, TaskID: task.ID, ExpectedTaskVersion: task.Version, WorkflowID: role.WorkflowID, WorkflowVersion: role.WorkflowVersion, AgentNodeID: role.AgentNodeID, ToolProfileID: role.ToolProfileID, ExpectedToolVersion: role.ToolProfileVersion, Knowledge: role.Knowledge, ModelExecutionSelection: request.ModelExecutionSelection, CodexExecutionSelection: request.CodexExecutionSelection, TestBindings: tests}, source)
 	if err != nil {
 		return out, err
+	}
+	if source != nil && request.TestBindings == nil && !sameTaskDispatchTestBindings(snapshot.TestBindings, source.TestBindings) {
+		return out, taskDispatchTestBindingChanged()
 	}
 	return ExpertTeamPlanItem{TaskID: task.ID, TaskVersion: task.Version, TaskBasisSHA256: taskBasis(task), SourceRevision: revision, DependsOn: append([]string{}, task.DependsOn...), Dependencies: []ExpertTeamDependencyFact{}, State: "ready", Blockers: []string{}, RoleKey: role.Key, RoleTitle: role.Title, ResourceID: role.ResourceID, ResourceName: role.ResourceName, Plan: snapshot}, nil
 }

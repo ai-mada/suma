@@ -4,14 +4,14 @@ import {createRoot,type Root} from 'react-dom/client';
 import {webcrypto,randomUUID} from 'node:crypto';
 import {beforeEach,afterEach,expect,it,vi} from 'vitest';
 import type {DispatchRecommendation as Recommendation,DispatchRecommendationAdoption,DispatchRecommendationChoice,DispatchRecommendationSource,ModelBinding,ModelExecutionOptions,ModelSelection,TaskDispatchPlan,ToolProfile} from '../../../packages/contracts/src';
-import {DispatchRecommendation} from './DispatchRecommendation';
+import {DispatchRecommendation,type RecommendationTestBindings} from './DispatchRecommendation';
 import {TaskDispatchDialog} from './TaskDispatch';
 import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
 import {setLocale} from './i18n';
 import {useWriteAction} from './write-action';
 import {dispatchChoiceJSON,dispatchChoiceSHA} from './dispatch-choice-json';
-import {validRecommendationChoice,validRecommendationResponse,validRecommendationSource,type RecommendationScope} from './dispatch-recommendation-model';
+import {validRecommendationChoice,validRecommendationRequest,validRecommendationResponse,validRecommendationSource,type RecommendationScope} from './dispatch-recommendation-model';
 
 const h=(value:string)=>value.repeat(64),stamp='2026-10-29T02:00:00Z',session:Session={user:{id:'user-a',name:'Owner',email:'owner@example.test',role:'owner'},organization:{id:'tenant-a',name:'Org'},projects:[{id:'project-a',version:1,title:'Project',role:'admin'}]},scope:RecommendationScope={project_id:'project-a',task_id:'task-a',expected_task_version:2,workflow_id:'flow-a',workflow_version:3,agent_node_id:'develop',knowledge:[]};
 const deployment={deployment_id:'real-deploy',revision:1,deployment_sha256:h('b'),protocol:'openai-chat-completions-v1',model:'fixture-model',endpoint_origin:'http://127.0.0.1:1234',endpoint_config_sha256:h('c'),context_window:32};
@@ -41,6 +41,57 @@ function view(creationDisabled=false){return <DispatchRecommendation session={se
 async function click(selector:string){const node=host.querySelector<HTMLElement>(selector);expect(node,selector).not.toBeNull();await act(async()=>node!.click());await settle();}
 async function change(selector:string,value:string){const node=host.querySelector<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(selector)!;expect(node,selector).not.toBeNull();const proto=node instanceof HTMLSelectElement?HTMLSelectElement.prototype:node instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(node,value);node.dispatchEvent(new Event(node instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});await settle();}
 function locate(){sessionStorage.setItem('suma-recommendation-locator-v1:'+JSON.stringify(['user-a','tenant-a','project-a','task-a']),'rec-a');}
+
+const testSelection={node_id:'verify',tool_profile_id:'independent-tester',expected_tool_version:3};
+const selectedTests:RecommendationTestBindings={workflow_id:'flow-a',workflow_version:3,agent_node_id:'develop',ready:true,hasIntent:true,selections:[testSelection]};
+function testProfile(worker='worker-test'):ToolProfile{
+ const profile={command_id:'verify-command',adapter:'command',protocol:'text-v1',read_only:false,test_report_protocol:'suma-junit-report-v1',tool_version:'1.0.0',profile_sha256:h('4'),executable_sha256:h('3')};
+ return {...creator,id:testSelection.tool_profile_id,version:3,worker_id:worker,name:'Independent tests',profile,observation:{profile:{...profile},available:true,reason:''}};
+}
+function testingView(bindings=selectedTests){return <DispatchRecommendation session={session} scope={scope} inventory={inventory} disabled={false} creationDisabled testBindings={bindings} onPrepared={prepared} onOpenPlan={()=>{}} onManual={()=>{}} onLockChange={()=>{}}/>;}
+async function testAdoption(choice=selectedChoice(),reason='Human reviewed this alternative'){
+ const result=await adoption(choice,reason),tester=testProfile(),frozen={node_id:'verify',tool_profile_id:tester.id,tool_profile_version:3,tool_profile_sha256:tester.profile.profile_sha256,worker_id:tester.worker_id,command_id:tester.profile.command_id};
+ result.recommendation.source.workflow.nodes.push({...structuredClone(result.recommendation.source.workflow.nodes[0]),id:'verify',name:'Independent tests',type:'test',depends_on:['develop'],command:['published-original-test'],config:{candidate_from:'develop'}});
+ result.plan.workflow.nodes.push({...structuredClone(result.plan.workflow.nodes[0]),id:'verify',name:'Independent tests',type:'test',depends_on:['develop'],command:[frozen.command_id],config:{candidate_from:'develop',tool_profile_id:frozen.tool_profile_id,tool_profile_sha256:frozen.tool_profile_sha256}});
+ result.plan.test_bindings=[frozen];result.recommendation.adopted_test_bindings=[{...frozen}];return result;
+}
+
+it('T223 keeps test authorization outside the five-field recommendation choice and validates the adopted frozen snapshot',async()=>{
+ const response=await testAdoption(),request={path:'/dispatch-recommendations/rec-a/adopt',method:'POST',idempotency_key:'original-tests',body:{project_id:'project-a',expected_version:2,source_sha256:h('9'),choice:selectedChoice(),reason:'Human reviewed this alternative',test_bindings:[testSelection],idempotency_key:'original-tests'}};
+ expect(validRecommendationRequest(request,scope)).toBe(true);expect(await validRecommendationResponse(response,request,scope)).toBe(true);
+ for(const value of [null,[testSelection,testSelection],[{...testSelection,expected_tool_version:0}],[{...testSelection,worker_id:'injected'}]])expect(validRecommendationRequest({...request,body:{...request.body,test_bindings:value}},scope)).toBe(false);
+ for(const mutate of [(value:DispatchRecommendationAdoption)=>{delete value.recommendation.adopted_test_bindings;},(value:DispatchRecommendationAdoption)=>{value.recommendation.adopted_test_bindings![0].worker_id='other-worker';},(value:DispatchRecommendationAdoption)=>{value.plan.test_bindings![0].tool_profile_version++;},(value:DispatchRecommendationAdoption)=>{value.plan.workflow.nodes[1].command=['other-command'];}]){
+  const changed=structuredClone(response);mutate(changed);expect(await validRecommendationResponse(changed,request,scope)).toBe(false);
+ }
+ expect(validRecommendationRequest({...request,body:{...request.body,choice:{...selectedChoice(),test_bindings:[testSelection]}}},scope)).toBe(false);
+});
+
+it('T223 adopts ready selections only for their exact workflow and the recommendation real independent worker',async()=>{
+ locate();let tester=testProfile('worker-a');const normal=send;
+ send=async(path,body)=>path.startsWith('/tool-profiles/independent-tester?')?Response.json(tester):path.endsWith('/adopt')&&body?Response.json(await testAdoption(body.choice,body.reason)):normal(path,body);
+ await render(testingView());await click('[data-recommendation-toggle]');await change('[data-recommendation-adoption-reason]','Use the reviewed independent test');
+ expect(host.querySelector<HTMLButtonElement>('[data-recommendation-adopt]')!.disabled).toBe(false);
+ await click('[data-recommendation-adopt]');expect(requests.filter(item=>item.path.endsWith('/adopt'))).toHaveLength(0);expect(host.textContent).toContain('shares this recommendation');
+ await render(testingView({...selectedTests,workflow_version:4}));expect(host.querySelector<HTMLButtonElement>('[data-recommendation-adopt]')!.disabled).toBe(true);expect(host.textContent).toContain('different or unconfirmed workflow');
+ tester=testProfile();await render(testingView());await click('[data-recommendation-adopt]');
+ const write=requests.find(item=>item.path.endsWith('/adopt'))!;expect(write.body!.test_bindings).toEqual([testSelection]);expect(Object.keys(write.body!.choice)).toHaveLength(5);expect(prepared).toHaveBeenCalledTimes(1);
+ expect(requests.filter(item=>item.path.startsWith('/tool-profiles/independent-tester?'))).toHaveLength(2);expect(requests.some(item=>item.path.endsWith('/start'))).toBe(false);
+});
+
+it('T223 fences late adoption reads across selection ABA while original uncertain adoption restores without today directory',async()=>{
+ locate();const normal=send;let release:((response:Response)=>void)|undefined,first=true,bad=true;
+ send=async(path,body)=>{
+  if(path.startsWith('/tool-profiles/independent-tester?')){if(first){first=false;return new Promise<Response>(resolve=>{release=resolve;});}return Response.json(testProfile());}
+  if(path.endsWith('/adopt')&&body){const value=await testAdoption(body.choice,body.reason);if(bad)delete value.recommendation.adopted_test_bindings;return Response.json(value);}
+  return normal(path,body);
+ };
+ await render(testingView());await click('[data-recommendation-toggle]');await change('[data-recommendation-adoption-reason]','Retain the exact original test intent');await click('[data-recommendation-adopt]');
+ await render(testingView({...selectedTests,workflow_version:4}));await render(testingView());await act(async()=>release?.(Response.json(testProfile())));await settle();expect(requests.filter(item=>item.path.endsWith('/adopt'))).toHaveLength(0);
+ await click('[data-recommendation-adopt]');expect(prepared).not.toHaveBeenCalled();expect(host.querySelector('[data-recommendation-restore]')).not.toBeNull();
+ const original=requests.find(item=>item.path.endsWith('/adopt'))!.body,reads=requests.filter(item=>item.path.startsWith('/tool-profiles/')).length;
+ bad=false;await render(testingView({...selectedTests,ready:false,workflow_version:4}));await click('[data-recommendation-restore]');
+ expect(prepared).toHaveBeenCalledTimes(1);expect(requests.filter(item=>item.path.endsWith('/adopt'))[1].body).toEqual(original);expect(requests.filter(item=>item.path.startsWith('/tool-profiles/'))).toHaveLength(reads);
+});
 
 it('T122 verifies the Go Choice golden, required nulls, immutable candidate limits and the exact adoption producer',async()=>{
  const golden={candidate_id:'candidate-a',max_steps:3,max_output_tokens:1024,reasoning_effort:'high',reason:'中文 <tag>& data\u2028line\u2029end'};expect(dispatchChoiceJSON(golden)).toBe('{"candidate_id":"candidate-a","max_steps":3,"max_output_tokens":1024,"reasoning_effort":"high","reason":"中文 \\u003ctag\\u003e\\u0026 data\\u2028line\\u2029end"}');expect(await dispatchChoiceSHA(golden)).toBe('6dc90fd753cc31dde87de619f18625945ad38fa91bcdb7e2a729bdf8c40d4d65');expect(dispatchChoiceJSON({candidate_id:'fixed',max_steps:null,max_output_tokens:null,reasoning_effort:null,reason:'Manual'})).toContain('"max_steps":null,"max_output_tokens":null,"reasoning_effort":null');expect(()=>dispatchChoiceJSON({...golden,reason:'\ud800'})).toThrow();

@@ -10,10 +10,10 @@ import type {ToolInspectionLocator} from './tool-reinspection-model';
 import {tr,useLocale} from './i18n';
 import './ToolProfileDoctor.css';
 
-export type ToolProfileDoctorProps={project:string;tool:ToolProfile;confirmed?:boolean;pending?:boolean;disabled?:boolean;onReview?:(tool:ToolProfile)=>void;onWorker?:(workerID:string)=>void;onSharedWorker?:(workerID:string)=>void;onRegister?:(tool:ToolProfile)=>void;onInspect?:(tool:ToolProfile,locator?:ToolInspectionLocator)=>void;onRun?:(runID:string,nodeID:string)=>void;onRefreshTool?:()=>void};
+export type ToolProfileDoctorProps={project:string;tool:ToolProfile;confirmed?:boolean;autoRefresh?:boolean;pending?:boolean;disabled?:boolean;onReview?:(tool:ToolProfile)=>void;onWorker?:(workerID:string)=>void;onSharedWorker?:(workerID:string)=>void;onRegister?:(tool:ToolProfile)=>void;onInspect?:(tool:ToolProfile,locator?:ToolInspectionLocator)=>void;onRun?:(runID:string,nodeID:string)=>void;onRefreshTool?:()=>void};
 type Props=ToolProfileDoctorProps;
 const t=(key:string)=>tr('tool-doctor.'+key);
-type Snapshot={caller:ApiCaller;key:string;deadline:number;report?:ToolProfileDiagnostics;error?:unknown};
+type Snapshot={caller:ApiCaller;key:string;deadline:number;started:number;report?:ToolProfileDiagnostics;error?:unknown};
 type AccessState={source:string;caller:ApiCaller;denied:boolean};
 
 /** Current reads stay separate from the original versioned write and receipt. */
@@ -22,25 +22,35 @@ export function ToolProfileDoctor(props:Props){
  const source=JSON.stringify([view?.userID,view?.organizationID,props.project,props.tool.id,props.tool.version,props.tool.state,props.tool.enabled_by,toolProfileMatchKey({project_id:props.project,worker_id:props.tool.worker_id,profile:props.tool.profile})]);
  const access=useRef<AccessState>({source,caller:api,denied:false});
  if(access.current.source!==source||access.current.caller!==api)access.current={source,caller:api,denied:false};
- if(!view||!props.confirmed||props.pending||props.disabled||props.tool.project_id!==props.project)return <ToolDoctorCard state="suspended" disabled onRefresh={()=>{}}/>;
+ if(!view||props.tool.project_id!==props.project)return <ToolDoctorCard state="suspended" disabled onRefresh={()=>{}}/>;
  return <ToolDoctorReader key={source} {...props} api={api} source={source} access={access.current} userID={view.userID} organizationID={view.organizationID}/>;
 }
 function ToolDoctorReader({api,source,access,userID,organizationID,...props}:Props&{api:ApiCaller;source:string;access:AccessState;userID:string;organizationID:string}){
  useLocale();
  const [revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<Snapshot>(),[,tick]=useState(0);
- const key=JSON.stringify([source,revision]),intent=useRef({api,key}),mounted=useRef(false);intent.current={api,key};
+ const key=JSON.stringify([source,revision]),intent=useRef({api,key}),mounted=useRef(false),settled=useRef(snapshot);intent.current={api,key};settled.current=snapshot;
+ const suspended=!props.confirmed||!!props.pending||!!props.disabled;
+ const admission=useRef(false);admission.current=!suspended;
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
+ const reader=useRef<{active:boolean;started:boolean;controller?:AbortController}|undefined>(undefined);
+ // Only a real write lock, identity/source change or unmount cancels a read.
+ // A transient detail refresh hides actions but preserves its in-flight owner.
  useEffect(()=>{
-  const controller=new AbortController();let latest=true;const started=performance.now();
+  const owner={active:true,started:false,controller:undefined as AbortController|undefined};reader.current=owner;
+  return()=>{owner.active=false;owner.controller?.abort();};
+ },[api,key,props.pending,props.disabled]);
+ useEffect(()=>{
+  const owner=reader.current;
+  if(suspended||!owner?.active||owner.started||settled.current?.caller===api&&settled.current.key===key)return;
+  owner.started=true;const controller=new AbortController();owner.controller=controller;const started=performance.now();
   setSnapshot(undefined);
   void api<unknown>('/tool-profiles/'+encodeURIComponent(props.tool.id)+'/diagnostics?project_id='+encodeURIComponent(props.project),undefined,'GET',{'X-Suma-Expected-User':userID,'X-Suma-Expected-Organization':organizationID},controller.signal).then(value=>{
-   if(!latest)return;
+   if(!owner.active||reader.current!==owner)return;
    const {report,remainingMs}=readToolProfileDiagnostics(value,{project:props.project,toolID:props.tool.id});
    access.denied=false;
-   setSnapshot({caller:api,key,report,deadline:started+remainingMs});
-  }).catch(error=>{if(latest&&!controller.signal.aborted){if(error instanceof ApiError&&[401,403,404].includes(error.status))access.denied=true;setSnapshot({caller:api,key,deadline:0,error});}});
-  return()=>{latest=false;controller.abort();};
- },[api,key,props.project,props.tool.id,userID,organizationID]);
+   setSnapshot({caller:api,key,report,started,deadline:started+remainingMs});
+  }).catch(error=>{if(owner.active&&reader.current===owner&&!controller.signal.aborted){if(error instanceof ApiError&&[401,403,404].includes(error.status))access.denied=true;setSnapshot({caller:api,key,started,deadline:0,error});}});
+ },[api,key,props.project,props.tool.id,userID,organizationID,suspended,props.pending,props.disabled]);
  const current=snapshot?.caller===api&&snapshot.key===key?snapshot:undefined,report=current?.report;
  useEffect(()=>{
   if(!report||!current)return;
@@ -53,11 +63,27 @@ function ToolDoctorReader({api,source,access,userID,organizationID,...props}:Pro
   expire();return()=>clearTimeout(timer);
  },[current,report]);
  const changed=!!report&&(report.tool.version!==props.tool.version||report.tool.worker_id!==props.tool.worker_id||report.tool.state!==props.tool.state||report.tool.enabled_by!==props.tool.enabled_by||!sameToolProfile(report.tool.profile,props.tool.profile));
- const state=!current?'loading':current.error?'error':!report?'loading':changed?'changed':performance.now()>=current.deadline?'expired':'ready';
- function live(){return mounted.current&&intent.current.api===api&&intent.current.key===key&&state==='ready'&&!!current&&performance.now()<current.deadline;}
+ const state=suspended?'suspended':!current?'loading':current.error?'error':!report?'loading':changed?'changed':performance.now()>=current.deadline?'expired':'ready';
+ // Only the selected visible profile is read automatically. The workspace's
+ // existing live switch pauses it; failures and source drift require an explicit
+ // retry. No probe, repair, registration or authorization is triggered here.
+ useEffect(()=>{
+  if(suspended||!props.autoRefresh||!current?.report||current.error||changed||access.denied)return;
+  let requested=false,timer:ReturnType<typeof setTimeout>|undefined;const due=Math.max(current.deadline,current.started+15000);
+  const recheck=()=>{
+   if(requested||!admission.current||document.visibilityState!=='visible'||!mounted.current||intent.current.api!==api||intent.current.key!==key)return;
+   const remaining=due-performance.now();
+   if(remaining>0){clearTimeout(timer);timer=setTimeout(recheck,Math.ceil(remaining));return;}
+   requested=true;setRevision(value=>value+1);
+  };
+  timer=setTimeout(recheck,Math.max(0,Math.ceil(due-performance.now())));
+  document.addEventListener('visibilitychange',recheck);window.addEventListener('focus',recheck);
+  return()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',recheck);window.removeEventListener('focus',recheck);};
+ },[api,key,current,changed,props.autoRefresh,access,suspended]);
+ function live(){return admission.current&&mounted.current&&intent.current.api===api&&intent.current.key===key&&state==='ready'&&!!current&&performance.now()<current.deadline;}
  function guarded(run:()=>void){if(live())run();else tick(value=>value+1);}
  const workerDestination=props.onWorker??props.onSharedWorker,sharedDestination=!props.onWorker&&!!props.onSharedWorker,denied=access.denied;
- function refresh(){if(mounted.current&&intent.current.api===api&&intent.current.key===key)setRevision(value=>value+1);}
+ function refresh(){if(admission.current&&mounted.current&&intent.current.api===api&&intent.current.key===key)setRevision(value=>value+1);}
  function resolveAction(action:ToolProfileDiagnostics['next_action']):ToolDoctorCheckActions[keyof ToolDoctorCheckActions]{
   if(state!=='ready'||!report)return;
   if(action==='review_profile'&&report.tool.state!=='revoked'&&props.onReview)return {action,onClick:()=>guarded(()=>props.onReview!(report.tool))};
@@ -80,8 +106,9 @@ function ToolDoctorReader({api,source,access,userID,organizationID,...props}:Pro
  const checkActions:ToolDoctorCheckActions={};
  for(const check of report?.checks??[]){if(check.status==='pass')continue;const action=resolveAction(check.next_action);if(action)checkActions[check.code]=action;}
  return <div className="tool-profile-doctor">
-  {!denied&&<div className="tool-profile-doctor-target" data-tool-profile-doctor-target><p><span>{t('selected_target')}</span><strong>{props.tool.name}</strong></p>{sharedDestination&&<p className="tool-profile-doctor-hint">{t('shared_readonly')}</p>}<details data-tool-profile-doctor-basis><summary>{t('target_details')}</summary><dl>{([['target_project',props.project],['target_worker',props.tool.worker_id],['target_adapter',props.tool.profile.adapter],['target_protocol',props.tool.profile.protocol],['target_profile',props.tool.id],['target_hash',props.tool.profile.profile_sha256]] as const).map(([label,value])=><div key={label}><dt>{t(label)}</dt><dd><code>{value}</code></dd></div>)}</dl></details></div>}
-  <ToolDoctorCard report={report} state={state} error={current?.error} primaryAction={primaryAction} maintenanceAction={maintenanceAction} checkActions={checkActions} onRefresh={refresh} onRefreshTool={state==='changed'&&props.onRefreshTool?()=>{if(mounted.current&&intent.current.api===api&&intent.current.key===key)props.onRefreshTool!();}:undefined}/>
+  {props.autoRefresh!==undefined&&<p className="muted" data-tool-doctor-auto={props.autoRefresh?'enabled':'paused'}>{t(props.autoRefresh?'auto_read':'auto_paused')}</p>}
+  {!suspended&&!denied&&<div className="tool-profile-doctor-target" data-tool-profile-doctor-target><p><span>{t('selected_target')}</span><strong>{props.tool.name}</strong></p>{sharedDestination&&<p className="tool-profile-doctor-hint">{t('shared_readonly')}</p>}<details data-tool-profile-doctor-basis><summary>{t('target_details')}</summary><dl>{([['target_project',props.project],['target_worker',props.tool.worker_id],['target_adapter',props.tool.profile.adapter],['target_protocol',props.tool.profile.protocol],['target_profile',props.tool.id],['target_hash',props.tool.profile.profile_sha256]] as const).map(([label,value])=><div key={label}><dt>{t(label)}</dt><dd><code>{value}</code></dd></div>)}</dl></details></div>}
+  <ToolDoctorCard report={report} state={state} error={current?.error} primaryAction={primaryAction} maintenanceAction={maintenanceAction} checkActions={checkActions} onRefresh={refresh} onRefreshTool={state==='changed'&&props.onRefreshTool?()=>{if(admission.current&&mounted.current&&intent.current.api===api&&intent.current.key===key)props.onRefreshTool!();}:undefined}/>
   {!denied&&<ToolProfileImpact impact={state==='ready'?report?.impact:undefined} onRun={state==='ready'&&props.onRun?(runID,nodeID)=>guarded(()=>props.onRun!(runID,nodeID)):undefined}/>}
  </div>;
 }

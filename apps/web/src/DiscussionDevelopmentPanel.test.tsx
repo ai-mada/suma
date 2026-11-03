@@ -59,8 +59,9 @@ const models: ModelExecutionOptions = {project_id: project, tool_profile_id: too
 
 // Exercises the real panel, option/model selectors, durable write validation
 // and original-run receipt read. HTTP/model facts here are protocol fixtures.
-it.each([{continued:false,name:'T129 reviews fresh coding selection and edited instructions, creates only a preview, then explicitly starts without accepting work'},
-  {continued:true,name:'T186 explicitly selects sealed code for a fresh reviewed preview and separate execution without inheriting old acceptance'}])('$name', async ({continued}) => {
+it.each([{continued:false,testing:false,name:'T129 reviews fresh coding selection and edited instructions, creates only a preview, then explicitly starts without accepting work'},
+  {continued:true,testing:false,name:'T186 explicitly selects sealed code for a fresh reviewed preview and separate execution without inheriting old acceptance'},
+  {continued:false,testing:true,name:'T223 discussion propagates explicit tests and rejects an old exact read after workflow ABA'}])('$name', async ({continued,testing}) => {
   await setLocale('en-US', {persist: false}); sessionStorage.clear(); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   const host = document.createElement('div'); document.body.append(host); const root = createRoot(host);
   const writes: {path: string; body: Record<string, any>; headers: Headers}[] = [];
@@ -68,11 +69,19 @@ it.each([{continued:false,name:'T129 reviews fresh coding selection and edited i
   const onRun = vi.fn(), lock = vi.fn(), onContinue=vi.fn();let sourceReads=0;
   const currentNote={...note,run_id:continued?continuationSource.run_id:''},currentAssistant={...assistant,run_id:continued?continuationSource.run_id:''};
   const currentReply={...previousReply,source:{...previousReply.source,task_run_id:continued?continuationSource.run_id:'',messages:[currentNote]}};
+  const testDefinition={command_id:'verify-command',adapter:'command',protocol:'text-v1',read_only:false,tool_version:'1.0.0',test_report_protocol:'suma-junit-report-v1',profile_sha256:'8'.repeat(64),executable_sha256:'9'.repeat(64)};
+  const tester:ToolProfile={...tool,id:'independent-tester',worker_id:'worker-test',profile:testDefinition,observation:{profile:{...testDefinition},available:true,reason:''}};
+  let delayTest=true,releaseTest:((value:Response)=>void)|undefined;
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
     const path = String(input).replace('/api/v1', ''), body = init?.body ? JSON.parse(String(init.body)) : undefined;
     if (body) writes.push({path, body, headers: new Headers(init?.headers)});
     if(path.startsWith('/tasks/task-a/development-continuation-options?')){sourceReads++;return Response.json(continuationOptions);}
     if (path.startsWith('/workflows?')) return Response.json({items: [workflow]});
+    if (path.startsWith('/tool-profiles?')) return Response.json({items:[tester],total:1,next_cursor:''});
+    if (path.startsWith('/tool-profiles/independent-tester?')) {
+      if(testing&&delayTest){delayTest=false;return new Promise<Response>(resolve=>{releaseTest=resolve;});}
+      return Response.json(tester);
+    }
     if (path.startsWith('/tasks/task-a/dispatch-options?')) return Response.json(dispatchOptions);
     if (path.startsWith('/model-execution/options?')) return Response.json(models);
     if (path === '/task-discussion-development-plans' && body) {
@@ -83,6 +92,7 @@ it.each([{continued:false,name:'T129 reviews fresh coding selection and edited i
         workflow: {...workflow, nodes: [{...workflow.nodes[0], max_retries: 0,
           config: {goal: body.reviewed_goal, tool_profile_id: tool.id, tool_profile_sha256: tool.profile.profile_sha256, model_execution: binding,...(continued?{development_continuation_id:continuationBinding.id}:{})}}, workflow.nodes[1]]},
         model_execution: binding, valid: true, reason: '',...(continued?{development_continuation:continuationBinding}:{})};
+      if(body.test_bindings){plan.test_bindings=[{node_id:'verify',tool_profile_id:tester.id,tool_profile_version:tester.version,tool_profile_sha256:tester.profile.profile_sha256,worker_id:tester.worker_id,command_id:tester.profile.command_id}];plan.workflow.nodes[1]={...plan.workflow.nodes[1],command:[tester.profile.command_id],config:{candidate_from:'code',tool_profile_id:tester.id,tool_profile_sha256:tester.profile.profile_sha256}};}
       saved = {id: plan.id, project_id: project, task_id: task, version: plan.version, reply_id: previousReply.id, reply_version: previousReply.version,
         source_sha256: '5'.repeat(64), message: {...currentAssistant, knowledge: [{...knowledgePin, title_at_post: fixedKnowledge.title, kind_at_post: fixedKnowledge.kind}]}, reviewed_goal: body.reviewed_goal, acceptance_criteria: body.acceptance_criteria,
         created_by: 'user-a', created_at: stamp, dispatch_plan: plan,...(continued?{development_continuation:continuationBinding}:{})};
@@ -112,6 +122,17 @@ it.each([{continued:false,name:'T129 reviews fresh coding selection and edited i
     await click('.discussion-development-tools button');
     await change('[data-model-select]', modelBinding.deployment.deployment_sha256);
     await change('[data-model-token-budget]', '400000');
+    if(testing){
+      const expand=async()=>{await act(async()=>{const details=host.querySelector<HTMLDetailsElement>('[data-dispatch-test-bindings]')!;details.open=true;details.dispatchEvent(new Event('toggle'));});await settle();};
+      await expand();await change('[data-dispatch-test-select="verify"]',tester.id);
+      expect(host.querySelector('[data-dispatch-test-status="reading"]')).not.toBeNull();
+      await change('.discussion-development-fields select','');await change('.discussion-development-fields select','flow-native@2');
+      await click('.discussion-development-tools button');await change('[data-model-select]',modelBinding.deployment.deployment_sha256);await change('[data-model-token-budget]','400000');
+      await act(async()=>releaseTest?.(Response.json(tester)));await settle();
+      expect(host.querySelector('[data-dispatch-test-status="ready"]')).toBeNull();
+      await expand();await change('[data-dispatch-test-select="verify"]',tester.id);
+      expect(host.querySelector('[data-dispatch-test-status="ready"]')).not.toBeNull();
+    }
     expect(sourceReads).toBe(0);
     if(continued){await click('[data-continuation-toggle]');expect(sourceReads).toBe(1);expect(host.querySelector<HTMLButtonElement>('[data-development-create]')!.disabled).toBe(true);await click('[data-continuation-source="'+continuationSource.node_id+'"]');}
     await click('.discussion-development-consent input');
@@ -123,6 +144,7 @@ it.each([{continued:false,name:'T129 reviews fresh coding selection and edited i
       reviewed_goal: 'Reviewed goal: implement the explicit behavior', acceptance_criteria: ['Verify the exact candidate', 'Check independent test results'],
       model_execution_selection: {deployment_id: modelBinding.deployment.deployment_id, parameters: {max_steps: 32, max_output_tokens: 65536}, budget: {token_limit: 400000}}});
     expect(writes[0].body.model_execution_selection.deployment_id).not.toBe(previousReply.model_execution!.deployment.deployment_id);
+    if(testing)expect(writes[0].body.test_bindings).toEqual([{node_id:'verify',tool_profile_id:tester.id,expected_tool_version:tester.version}]);
     expect(writes[0].headers.get('X-Suma-Expected-User')).toBe('user-a');
     expect(host.textContent).toContain(fixedKnowledge.content);
     expect(Object.hasOwn(writes[0].body, 'knowledge')).toBe(false); // canonical preview inherits the original reply, never a second client selection

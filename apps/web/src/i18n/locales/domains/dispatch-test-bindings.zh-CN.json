@@ -28,5 +28,6 @@
   "dispatch-test-bindings.fixed_tool": "冻结测试工具",
   "dispatch-test-bindings.worker": "Worker",
   "dispatch-test-bindings.command": "命令",
-  "dispatch-test-bindings.sha": "配置 SHA-256"
+  "dispatch-test-bindings.sha": "配置 SHA-256",
+  "dispatch-test-bindings.node": "测试节点"
 }

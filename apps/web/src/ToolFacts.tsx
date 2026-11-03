@@ -17,7 +17,7 @@ import type {WorkspaceEvidence} from './api';
 import type {AttemptToolScope} from './attempt-tool-history';
 import {WorkspaceOperations} from './WorkspaceOperations';
 import {workspaceOperationsForAttempt} from './workspace-operations-model';
-import type { ModelBinding, OpenCodeExecutionCapability } from "../../../packages/contracts/src";
+import type { ModelBinding, OpenCodeExecutionCapability, TaskDispatchTestBinding } from "../../../packages/contracts/src";
 import {
   taskPlanStarted,
   toolEventNames,
@@ -33,6 +33,18 @@ import {
 } from "./tool-model";
 import "./tool.css";
 import './ToolProfileFacts.css';
+/** Saved test bindings are historical plan facts, never current tool qualification. */
+export function FrozenTestBindingFacts({bindings}: {bindings?: TaskDispatchTestBinding[]}) {
+  useLocale();
+  if (!bindings?.length) return null;
+  return <>{bindings.map(binding => <dl className="tool-test-binding-facts" data-dispatch-fixed-test={binding.node_id} key={binding.node_id}>
+    <dt>{t('dispatch-test-bindings.node')}</dt><dd><code>{binding.node_id}</code></dd>
+    <dt>{t('dispatch-test-bindings.fixed_tool')}</dt><dd>{binding.tool_profile_id} · v{formatNumber(binding.tool_profile_version)}</dd>
+    <dt>{t('dispatch-test-bindings.worker')}</dt><dd>{binding.worker_id}</dd>
+    <dt>{t('dispatch-test-bindings.command')}</dt><dd>{binding.command_id}</dd>
+    <dt>{t('dispatch-test-bindings.sha')}</dt><dd><code>{binding.tool_profile_sha256}</code></dd>
+  </dl>)}</>;
+}
 export function TaskDispatchRunFacts({
   plan,
   onRun,
@@ -248,12 +260,7 @@ export function TaskDispatchFacts({ plan }: { plan: TaskDispatchPlan }) { useLoc
             {tests.map((node) => (
               <li key={node.id}>
                 {node.name} · <code>{node.id}</code>
-                {plan.test_bindings?.filter(binding=>binding.node_id===node.id).map(binding=><dl className="tool-test-binding-facts" data-dispatch-fixed-test={binding.node_id} key={binding.node_id}>
-                  <dt>{t('dispatch-test-bindings.fixed_tool')}</dt><dd>{binding.tool_profile_id} · v{formatNumber(binding.tool_profile_version)}</dd>
-                  <dt>{t('dispatch-test-bindings.worker')}</dt><dd>{binding.worker_id}</dd>
-                  <dt>{t('dispatch-test-bindings.command')}</dt><dd>{binding.command_id}</dd>
-                  <dt>{t('dispatch-test-bindings.sha')}</dt><dd><code>{binding.tool_profile_sha256}</code></dd>
-                </dl>)}
+                <FrozenTestBindingFacts bindings={plan.test_bindings?.filter(binding=>binding.node_id===node.id)} />
               </li>
             ))}
           </ul>

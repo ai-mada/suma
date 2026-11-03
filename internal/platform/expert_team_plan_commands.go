@@ -141,6 +141,19 @@ func (s *Service) reviseExpertTeamPlanTx(ctx context.Context, engine *dag.Engine
 		if !changed {
 			continue
 		}
+		if r.TestBindings == nil {
+			role, found := expertTeamRole(configuration, r.RoleKey)
+			if !found || len(item.Plan.TestBindings) > 0 && !expertTeamTestBindingsContext(item, role, r.TaskID, r.RoleKey) {
+				return taskDispatchTestBindingChanged()
+			}
+			// A pointer keeps explicit [] distinct from omission in the stable
+			// operation body. Only omission inherits this original selection.
+			selections, e := taskDispatchSelectionsForBindings(item.Plan)
+			if e != nil {
+				return e
+			}
+			r.TestBindings = &selections
+		}
 		fresh, e := s.expertTeamSourceItemTx(ctx, engine, auth, configuration, r, plan.Revision, nil)
 		if e != nil {
 			return e

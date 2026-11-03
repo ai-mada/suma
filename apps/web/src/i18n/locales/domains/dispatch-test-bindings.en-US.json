@@ -28,5 +28,6 @@
   "dispatch-test-bindings.fixed_tool": "Frozen test tool",
   "dispatch-test-bindings.worker": "Worker",
   "dispatch-test-bindings.command": "Command",
-  "dispatch-test-bindings.sha": "Configuration SHA-256"
+  "dispatch-test-bindings.sha": "Configuration SHA-256",
+  "dispatch-test-bindings.node": "Test node"
 }

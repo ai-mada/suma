@@ -11,6 +11,7 @@ import (
 // The editable goal and criteria supplement, rather than rewrite, the task's
 // formal scope or any published test/acceptance contract.
 type TaskDiscussionDevelopmentCreateRequest struct {
+	TestBindings            []TaskDispatchTestSelection       `json:"test_bindings,omitempty" wire:"nonnull"`
 	ContinuationSource      *dc.DevelopmentContinuationSource `json:"continuation_source,omitempty" wire:"nonnull"`
 	ProjectID               string                            `json:"project_id"`
 	TaskID                  string                            `json:"task_id"`

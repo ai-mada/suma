@@ -127,8 +127,12 @@ func (s *Server) dispatchRecommendationHTTP(w http.ResponseWriter, r *http.Reque
 		respond(w, http.StatusOK, out, err)
 	case len(parts) == 3 && parts[2] == "adopt" && r.Method == http.MethodPost:
 		var req DispatchRecommendationAdoptRequest
-		if !closed(body, []string{"project_id", "expected_version", "source_sha256", "choice", "reason", "idempotency_key"}, nil) || strictAutomation(body, &req) != nil {
+		if !closed(body, []string{"project_id", "expected_version", "source_sha256", "choice", "reason", "idempotency_key"}, []string{"test_bindings"}) || strictAutomation(body, &req) != nil {
 			return bad()
+		}
+		if err := validateTaskDispatchTestSelectionFields(body); err != nil {
+			writeError(w, err)
+			return true
 		}
 		// DispatchRecommendationChoice.UnmarshalJSON also requires every exact
 		// key, including null scalars, and rejects aliases, duplicates and bounds.

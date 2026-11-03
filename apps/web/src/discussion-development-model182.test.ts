@@ -29,6 +29,22 @@ function packet(selection:'native'|'codex'|'fixed'='codex',skills=false):Record<
 }
 const accepts=(value:unknown,req=request())=>validDiscussionDevelopmentReceipt(value,req,project,task,user);
 
+it('T223 binds discussion test choices to the exact derived preview and retains malformed receipts for reconciliation',()=>{
+ const selected={node_id:'verify',tool_profile_id:'independent-tester',expected_tool_version:3};
+ const original=request('fixed'),req={...original,body:{...original.body,test_bindings:[selected]}};
+ const value=packet('fixed'),frozen={node_id:'verify',tool_profile_id:selected.tool_profile_id,tool_profile_version:3,tool_profile_sha256:'7'.repeat(64),worker_id:'test-worker',command_id:'verify-command'};
+ value.dispatch_plan.test_bindings=[frozen];
+ Object.assign(value.dispatch_plan.workflow.nodes[1],{command:[frozen.command_id],config:{candidate_from:'develop',tool_profile_id:frozen.tool_profile_id,tool_profile_sha256:frozen.tool_profile_sha256}});
+ expect(validDiscussionDevelopmentRequest(req,project,task)).toBe(true);expect(accepts(value,req)).toBe(true);
+ for(const bad of [null,[selected,selected],[{...selected,expected_tool_version:0}],[{...selected,expected_tool_version:3.1}],[{...selected,worker_id:'injected'}]])
+  expect(validDiscussionDevelopmentRequest({...req,body:{...req.body,test_bindings:bad}},project,task)).toBe(false);
+ for(const mutate of [(v:Record<string,any>)=>delete v.dispatch_plan.test_bindings,(v:Record<string,any>)=>v.dispatch_plan.test_bindings[0].tool_profile_version++,
+  (v:Record<string,any>)=>v.dispatch_plan.workflow.nodes[1].command=['other'],(v:Record<string,any>)=>v.dispatch_plan.test_bindings[0].worker_id='']){
+  const changed=structuredClone(value);mutate(changed);expect(accepts(changed,req)).toBe(false);
+ }
+ expect(accepts(value,original)).toBe(false);
+});
+
 it('keeps an explicit code continuation identical across the reviewed wrapper, typed plan and original producer marker',()=>{
  const value=packet('codex',true),binding={...structuredClone(continuationBinding),id:value.id,task_version:3,source_task_version:2},original=request();
  const selected={...original,body:{...original.body,continuation_source:structuredClone(continuationSource)}};

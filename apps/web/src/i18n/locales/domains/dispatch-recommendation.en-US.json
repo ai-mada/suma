@@ -113,5 +113,8 @@
   "dispatch-recommendation.reason.version": "The recommendation version changed. Refresh before deciding.",
   "dispatch-recommendation.reason.unknown": "Reconcile this analysis against its original run.",
   "dispatch-recommendation.reason.failed": "The read-only analysis did not complete successfully.",
-  "dispatch-recommendation.reason.other": "The analysis returned another reason. Expand its original details for review."
+  "dispatch-recommendation.reason.other": "The analysis returned another reason. Expand its original details for review.",
+  "dispatch-recommendation.test_bindings_review": "The selected independent tests will be checked against this recommendation’s actual development worker before adoption.",
+  "dispatch-recommendation.test_bindings_other_source": "These test selections belong to a different or unconfirmed workflow. Use the formal preview below to review them.",
+  "dispatch-recommendation.test_bindings_changed": "The selected independent test tool changed or shares this recommendation’s development worker. Review the test tools in the formal preview."
 }

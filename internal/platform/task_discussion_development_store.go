@@ -68,7 +68,7 @@ func (s *Service) taskDiscussionDevelopmentProjectionTx(ctx context.Context, eng
 	if err != nil {
 		return TaskDiscussionDevelopmentPlan{}, err
 	}
-	if plan.TaskID != task || plan.RunID != out.DispatchPlan.RunID || plan.AgentNodeID != out.DispatchPlan.AgentNodeID || plan.Workflow.Nodes == nil || stringify(plan.DevelopmentContinuation) != stringify(out.DevelopmentContinuation) {
+	if plan.TaskID != task || plan.RunID != out.DispatchPlan.RunID || plan.AgentNodeID != out.DispatchPlan.AgentNodeID || plan.Workflow.Nodes == nil || stringify(plan.DevelopmentContinuation) != stringify(out.DevelopmentContinuation) || !sameTaskDispatchTestBindings(plan.TestBindings, out.DispatchPlan.TestBindings) {
 		return TaskDiscussionDevelopmentPlan{}, conflict(discussionDevelopmentChanged)
 	}
 	plan.Valid, plan.Reason = true, ""

@@ -40,12 +40,30 @@ export function readTestDispatchProfile(value: unknown, expected: ToolProfile, p
     return observation?.available && sameToolProfile(observation.profile, profile.profile) ? structuredClone(profile) : undefined;
   } catch { return; }
 }
-export function validTestSelections(value: unknown, workflow: Workflow, agentID: string): value is TaskDispatchTestSelection[] {
+/** Durable request validation cannot depend on a currently loaded directory or
+ * graph. Association and current eligibility are checked at their own seam. */
+export function validTestSelectionFields(value: unknown): value is TaskDispatchTestSelection[] {
   if (!Array.isArray(value) || value.length > 64) return false;
-  const tests = associatedDispatchTests(workflow, agentID), seen = new Set<string>();
+  const seen = new Set<string>();
   return value.every(item => {
     if (!object(item) || !exact(item, ['node_id', 'tool_profile_id', 'expected_tool_version']) || !id(item.node_id) ||
-        !id(item.tool_profile_id) || !positive(item.expected_tool_version) || seen.has(item.node_id) || !tests.some(node => node.id === item.node_id)) return false;
+        !id(item.tool_profile_id) || !positive(item.expected_tool_version) || seen.has(item.node_id)) return false;
+    seen.add(item.node_id); return true;
+  });
+}
+export function validTestSelections(value: unknown, workflow: Workflow, agentID: string): value is TaskDispatchTestSelection[] {
+  return validTestSelectionFields(value) && value.every(item => associatedDispatchTests(workflow, agentID).some(node => node.id === item.node_id));
+}
+
+/** A historical six-field snapshot is shape-checked without replacing any pin
+ * from today's profile directory or the unmodified published graph. */
+export function validTestBindingFields(value: unknown): value is TaskDispatchTestBinding[] {
+  if (!Array.isArray(value) || value.length > 64) return false;
+  const seen = new Set<string>();
+  return value.every(item => {
+    if (!object(item) || !exact(item, ['node_id', 'tool_profile_id', 'tool_profile_version', 'tool_profile_sha256', 'worker_id', 'command_id']) ||
+        !id(item.node_id) || !id(item.tool_profile_id) || !positive(item.tool_profile_version) || !hash(item.tool_profile_sha256) ||
+        !id(item.worker_id) || !id(item.command_id) || seen.has(item.node_id)) return false;
     seen.add(item.node_id); return true;
   });
 }
@@ -55,20 +73,17 @@ export function validTestSelections(value: unknown, workflow: Workflow, agentID:
 export function validTestBindingsPlan(value: unknown): boolean {
   if (!object(value)) return false;
   if (!Object.hasOwn(value, 'test_bindings')) return true;
-  if (!Array.isArray(value.test_bindings) || value.test_bindings.length > 64 || !id(value.agent_node_id) ||
+  if (!validTestBindingFields(value.test_bindings) || !id(value.agent_node_id) ||
       !object(value.workflow) || !Array.isArray(value.workflow.nodes)) return false;
-  const nodes = value.workflow.nodes, seen = new Set<string>();
+  const nodes = value.workflow.nodes;
   if (nodes.filter(node => object(node) && node.id === value.agent_node_id && node.type === 'agent').length !== 1) return false;
   return value.test_bindings.every(item => {
-    if (!object(item) || !exact(item, ['node_id', 'tool_profile_id', 'tool_profile_version', 'tool_profile_sha256', 'worker_id', 'command_id']) ||
-        !id(item.node_id) || !id(item.tool_profile_id) || !positive(item.tool_profile_version) || !hash(item.tool_profile_sha256) ||
-        !id(item.worker_id) || !id(item.command_id) || seen.has(item.node_id)) return false;
     const matching = nodes.filter(node => object(node) && node.id === item.node_id), node = matching[0];
     if (matching.length !== 1 || !object(node) || node.type !== 'test' || !object(node.config) ||
         node.config.candidate_from !== value.agent_node_id || Object.hasOwn(node.config, 'artifact_from') ||
         node.config.tool_profile_id !== item.tool_profile_id || node.config.tool_profile_sha256 !== item.tool_profile_sha256 ||
         !Array.isArray(node.command) || node.command.length !== 1 || node.command[0] !== item.command_id) return false;
-    seen.add(item.node_id); return true;
+    return true;
   });
 }
 export function validTestBindingsDispatchReceipt(value: unknown, body: Record<string, unknown>): boolean {

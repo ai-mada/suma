@@ -76,11 +76,14 @@ type ExpertTeamConfigurationPage struct {
 }
 
 type ExpertTeamPlanItemRequest struct {
-	TaskID                  string                   `json:"task_id"`
-	ExpectedTaskVersion     int                      `json:"expected_task_version"`
-	RoleKey                 string                   `json:"role_key"`
-	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty" wire:"nonnull"`
-	CodexExecutionSelection *codexcontract.Selection `json:"codex_execution_selection,omitempty" wire:"nonnull"`
+	// Omitted revision input preserves the original mapping; a present empty
+	// array explicitly restores workflow defaults. HTTP rejects explicit null.
+	TestBindings            *[]TaskDispatchTestSelection `json:"test_bindings,omitempty" wire:"nonnull"`
+	TaskID                  string                       `json:"task_id"`
+	ExpectedTaskVersion     int                          `json:"expected_task_version"`
+	RoleKey                 string                       `json:"role_key"`
+	ModelExecutionSelection *modelcontract.Selection     `json:"model_execution_selection,omitempty" wire:"nonnull"`
+	CodexExecutionSelection *codexcontract.Selection     `json:"codex_execution_selection,omitempty" wire:"nonnull"`
 }
 
 type ExpertTeamPlanCreateRequest struct {

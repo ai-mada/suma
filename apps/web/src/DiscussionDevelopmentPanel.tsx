@@ -8,7 +8,8 @@ import {ErrorNotice, Field, Loading} from './ui';
 import {ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {TaskDispatchFacts} from './ToolFacts';
 import {KnowledgeContextFacts} from './KnowledgeFacts';
-import {toolSessionStorage} from './tool-hooks';
+import {toolSessionStorage, useToolList} from './tool-hooks';
+import {TaskDispatchTestBindings, type TestBindingsChoice} from './TaskDispatchTestBindings';
 import type {ToolProfile} from './tool-model';
 import {useWriteAction, WriteNotice} from './write-action';
 import {useReplyRead} from './task-conversation-reply-hooks';
@@ -75,6 +76,18 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
   const plan = planRead.value || (created?.id === selected ? created : undefined);
   const tools = options.value?.items.filter(item => item.eligible && !item.tool.profile.read_only).map(item => item.tool) || [];
   const currentProfile = profile && tools.find(tool => tool.id === profile.id && tool.version === profile.version && tool.worker_id === profile.worker_id && sameToolProfile(tool.profile, profile.profile));
+  const testBasis = JSON.stringify([scope, reply.version, page?.task_version, flow?.id, flow?.version, agent,
+    currentProfile?.id, currentProfile?.version, currentProfile?.worker_id, currentProfile?.profile.profile_sha256]);
+  const testOwner = useRef({api, key: testBasis, epoch: 0});
+  if (testOwner.current.api !== api || testOwner.current.key !== testBasis)
+    testOwner.current = {api, key: testBasis, epoch: testOwner.current.epoch + 1};
+  const testEpoch = testOwner.current.epoch, testScope = JSON.stringify([testBasis, testEpoch]);
+  const [tests, setTests] = useState<TestBindingsChoice & {key: string}>({key: '', ready: true, hasIntent: false, selections: []});
+  const currentTests = tests.key === testScope ? tests : {ready: true, hasIntent: false, selections: []};
+  const changeTests = useCallback((value: TestBindingsChoice) => {
+    if (testOwner.current.api !== api || testOwner.current.key !== testBasis || testOwner.current.epoch !== testEpoch) return;
+    setTests({...value, key: testScope}); setConsent(false);
+  }, [api, testBasis, testEpoch, testScope]);
   const modelRequired = profile?.profile.model_execution_protocol === 'suma-model-execution-v1', codexRequired = profile?.profile.protocol === 'codex-app-server-v1';
   const modelReady = !(modelRequired && codexRequired) && (modelRequired ? model.ready && !!model.selection && !model.codexSelection : codexRequired ? model.ready && !!model.codexSelection && !model.selection : !model.selection && !model.codexSelection);
   const message = page?.items.find(item => item.id === reply.message_id && item.reply_id === reply.id && item.actor_kind === 'assistant');
@@ -82,7 +95,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
   const checks = criteria.split('\n').map(value => value.trim()).filter(Boolean);
   const readyReply = reply.state === 'completed' && reply.basis_current && !!page?.can_post && page.task_id === taskId && reply.source.task.id===taskId && reply.source.task.version===page.task_version;
   const canPrepare = !blocked && !disabled && !locked && !action.conflict && !action.persistenceBlocked && readyReply &&
-    !!flow && !!agent && !!currentProfile && modelReady && continuation.ready && consent && developmentGoal(goal) && developmentCriteria(checks) &&
+    !!flow && !!agent && !!currentProfile && modelReady && currentTests.ready && continuation.ready && consent && developmentGoal(goal) && developmentCriteria(checks) &&
     !options.loading && !options.error && !workflows.loading && !workflows.error;
   const modelChange = useCallback((value: ModelChoice) => {setModel(value); setConsent(false);}, []);
   const continuationChange=useCallback((value:{source?:DevelopmentContinuationSource;ready:boolean})=>{setContinuation(value);setConsent(false);},[]);
@@ -107,6 +120,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
       expected_tool_version: profile.version, ...(modelRequired && model.selection ? {model_execution_selection: model.selection} : {}),
       ...(codexRequired && model.codexSelection ? {codex_execution_selection: model.codexSelection} : {}), reviewed_goal: goal,
       ...(continuation.source?{continuation_source:continuation.source}:{}),
+      ...(currentTests.selections.length ? {test_bindings: currentTests.selections} : {}),
       acceptance_criteria: checks, acknowledge_execution: true});
     if (value && alive.current && owner.current === caller) remember(value);
   }
@@ -183,6 +197,8 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
                   data-development-tool={tool.id} onClick={() => {setProfile(tool); setModel({ready: false}); setConsent(false);}}><span><strong>{tool.name}</strong><small>{tool.profile.adapter} · {tool.profile.protocol}</small></span><small>{t('tool_basis', {worker: tool.worker_id, version: formatNumber(tool.version)})}</small></button></li>)}</ul>
                   : <p>{t('no_tool')}</p>}{options.value.next_cursor && <button type="button" disabled={locked || options.loading} onClick={() => {setProfile(undefined); setBefore(options.value!.next_cursor);}}>{t('more')}</button>}</>}
             </section>}
+            {flow && currentProfile && <DiscussionTestBindings key={testScope} project={project} workflow={flow} agentID={agent} developer={currentProfile}
+              scopeKey={testScope} disabled={disabled || locked || blocked || action.persistenceBlocked} onChange={changeTests}/>}
             {profile && <div className="discussion-development-model"><p className="discussion-development-note">{t(codexRequired ? 'selection_codex' : modelRequired ? 'selection_platform' : 'selection_fixed')}</p><ModelExecutionPanel key={JSON.stringify([profile.id,profile.version,profile.profile.profile_sha256])} scope={{project, profile: profile.id, version: profile.version, sha256: profile.profile.profile_sha256}}
               supported={modelRequired} codex={codexRequired} fixedOpenCode={profile.profile.opencode_execution} fixedClaude={profile.profile.claude_execution} fixedClaudeSDK={profile.profile.claude_sdk_execution} fixedACP={profile.profile.acp_execution} disabled={disabled || locked} onChange={modelChange}/></div>}
             <label className="discussion-development-consent"><input type="checkbox" checked={consent} disabled={disabled || locked || !readyReply} onChange={event => setConsent(event.target.checked)}/><span>{t('consent')}</span></label>
@@ -192,4 +208,11 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
       </>}
     </div>}
   </section>;
+}
+
+/** Load one shared tester directory only once this exact development choice is
+ * visible. Every explicit row still uses the original picker's exact GET. */
+function DiscussionTestBindings(props: Omit<Parameters<typeof TaskDispatchTestBindings>[0], 'inventory'>) {
+  const inventory = useToolList<ToolProfile>(props.project, 'tool-profiles');
+  return <TaskDispatchTestBindings {...props} inventory={inventory}/>;
 }

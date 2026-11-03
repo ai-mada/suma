@@ -1,0 +1,14 @@
+{
+  "expert-test-bindings.title":"独立测试工具",
+  "expert-test-bindings.intro":"按需核对测试选择，每项任务保留各自准确配置；发布流程与正式验收规则不变。",
+  "expert-test-bindings.mode":"测试配置",
+  "expert-test-bindings.retain":"保留固定选择",
+  "expert-test-bindings.adjust":"调整工具选择",
+  "expert-test-bindings.definition":"恢复发布定义",
+  "expert-test-bindings.retain_help":"保留本项固定选择；新项目项沿用发布定义。预览或修订时仍由服务端核对当前工具与路线。",
+  "expert-test-bindings.source_changed":"角色、流程或开发工具身份已变化。请明确调整工具或恢复发布定义，不能静默继承原选择。",
+  "expert-test-bindings.definition_help":"明确清除本项测试覆盖配置，使用发布流程定义；这不证明已完成独立测试。",
+  "expert-test-bindings.adjust_help":"请选择替换集合中要保留的全部覆盖项。未选测试步骤沿用发布定义，测试工具须属于另一 Worker。",
+  "expert-test-bindings.started":"本项已开始，已保存的测试选择只读。",
+  "expert-test-bindings.inputs_changed":"准确发布流程或开发工具不可用或已变化，请先刷新角色配置，再选择测试工具。"
+}

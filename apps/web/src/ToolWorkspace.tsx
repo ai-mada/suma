@@ -837,7 +837,7 @@ function ScopedToolWorkspace({
                       </>
                     )}
                   </div>
-                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} pending={pending} disabled={writeBlocked}
+                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} autoRefresh={live} pending={pending} disabled={writeBlocked}
                     onReview={value=>{if(stale||writeBlocked||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
                     onRegister={value=>{if(!stale&&!writeBlocked)void configureProfile(value);}}
                     onInspect={inspectProfile}

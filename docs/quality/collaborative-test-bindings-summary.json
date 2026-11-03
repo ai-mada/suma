@@ -1,0 +1,143 @@
+{
+  "stage": "T-COLLABORATIVE-TEST-BINDINGS-223",
+  "version": "1.0.0",
+  "date": "2026-11-03",
+  "base": "d1effe53157427e6c01f981a87fe796776e770ed",
+  "full_platform_complete": false,
+  "scope": [
+    "discussion explicit independent tests",
+    "recommendation adoption explicit independent tests",
+    "expert-team preserve/reset/replace choices",
+    "selected visible tool automatic diagnostics"
+  ],
+  "focused": {
+    "go": {
+      "distinct": 13,
+      "new": 9,
+      "affected_old": 4,
+      "passed": 13
+    },
+    "web": {
+      "distinct": 18,
+      "new": 13,
+      "affected_old": 5,
+      "passed": 18
+    },
+    "full_web_typecheck": {
+      "initial_diagnostics": 13,
+      "corrected_sources": 6,
+      "corrected_source_semantic_diagnostics": 0,
+      "final_doctor_sources": 2,
+      "final_doctor_diagnostics": 0,
+      "full_repeated": false
+    },
+    "i18n": {
+      "paired_keys": 9891,
+      "production_hardcodes": 0
+    }
+  },
+  "actual": {
+    "stage": "T-COLLABORATIVE-TEST-BINDINGS-223",
+    "passed": true,
+    "tasks": 3,
+    "business_runs": 1,
+    "run_state": "succeeded",
+    "candidate_commit": "73344fd58352caab7aba14c4854716851f189421",
+    "tested_commit": "73344fd58352caab7aba14c4854716851f189421",
+    "independent": true,
+    "junit": "passed",
+    "owned_provider_requests": 1,
+    "commercial_model_calls": 0,
+    "formal_reviews": 0,
+    "node_copies": 0,
+    "admin_unchanged": true,
+    "workflow_unchanged": true,
+    "receipt_sha256": "1b62475f951cd447c434049f469ddc54be27815ef9320a1e2214a0d55e07fffc"
+  },
+  "visual": {
+    "status": "four_representative_synthetic_groups_passed",
+    "builds": 2,
+    "attempts": 4,
+    "groups": {
+      "discussion": {
+        "passed": true,
+        "geometry": {
+          "width": 1366,
+          "scroll": 1349,
+          "minimum": 44
+        },
+        "preview_only": true
+      },
+      "team": {
+        "passed": true,
+        "geometry": {
+          "width": 1366,
+          "scroll": 1366,
+          "minimum": 36
+        },
+        "empty_array_is_explicit": true,
+        "started_runs": 0
+      },
+      "recommendation": {
+        "passed": true,
+        "geometry": {
+          "width": 390,
+          "scroll": 373,
+          "minimum": 44
+        },
+        "original_choice_fields": 5
+      },
+      "doctor": {
+        "passed": true,
+        "reads_before": 1,
+        "reads_after_visible": 2,
+        "reads_while_paused": 0,
+        "no_probe_or_write": true
+      }
+    },
+    "passed_group_synthetic_posts": 4,
+    "all_attempt_synthetic_posts": 5,
+    "real_db_writes": 0,
+    "worker_runs": 0,
+    "model_calls": 0,
+    "completed_native_exits": [
+      0,
+      0,
+      0
+    ],
+    "completed_ports_free": true,
+    "first_native_exit": "unknown; PID later observed absent",
+    "forced_termination": false,
+    "page_errors": 0,
+    "console_errors": 0,
+    "CSP_warnings_retained": true,
+    "summary_sha256": "8d92e3ddf4f4c94364c25741b3bdb489c36e100c53121d68a858e34f0fd54916",
+    "final_fixture_manifest_sha256": "0fbea0c2cc90359a1bbc08387b8702b3e580d8dd903d787b2396a3471f42b88d",
+    "final_build_inputs_sha256": "d24f634bacabc07543c8d0bdf3b68392d1eae150751d51a440b87992a7c13441",
+    "final_build_assets_sha256": "ef75926c2c092f14a41b2a34845bd35ee34f09003d4b5dd6014243018aad64db",
+    "root_viewed_images": [
+      "2075715b955bb33bf4276f02d38e1cb75bdb9bf628e2c2de72a1043bd6f6794a",
+      "974aab0fc41ac623b68bf2e1d4691ee67e77f71b06306b132878fbd5cf7ed1dd",
+      "412fdd510fbb0cc23d626f8777d98184defe187327ffc6d48598ff6572f5909a"
+    ],
+    "scope": "Production DiscussionDevelopmentPanel/DispatchRecommendation/TeamTaskDispatchDialog and selected ToolProfileDoctor over public synthetic HTTP; not full App, SQLite, Worker, model, authorization certification or native tool execution."
+  },
+  "failures_retained": [
+    "Doctor fake-timer fixtures advanced before asynchronous response body settled; original failing reports retained, corrected with Vitest async timer/wait utilities",
+    "Doctor source fixes: retain settled and in-flight reads during transient detail refresh; fence detached callbacks; re-arm early timers",
+    "Initial full TypeScript check: 13 real diagnostics in new generic reads and typed Node fixtures, corrected without broad suite repetition",
+    "Initial browser launch fixture omitted required directory/partition; launch PID subsequently observed absent, exit code not invented",
+    "CN discussion passed; team revision fixture needed explicit original task checkbox; only remaining groups continued",
+    "Recommendation synthetic coverage.complete=true required reason=complete; invalid fixture correctly withheld adoption editor. Only fixture corrected, final EN/Doctor groups continued."
+  ],
+  "dependencies_added": 0,
+  "new_api_paths": 0,
+  "new_tables": 0,
+  "paid_model_calls": 0,
+  "remaining": [
+    "Real commercial provider/CLI end-to-end",
+    "Physical multi-host and OceanBase/PostgreSQL",
+    "Complete device/theme/App/installers/scale/production acceptance",
+    "Original 31 requirements and P0–P7 full platform"
+  ]
+}

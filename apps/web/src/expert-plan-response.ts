@@ -12,17 +12,22 @@ export function expertPlanResponse(value: unknown, request: WriteRecoveryRequest
   if (!validOrchestratedPlan(plan,project)) return false;
   if (request.path==='/expert-team-plans') {
     return plan.team_id===body.team_id && plan.configuration_version===body.expected_configuration_version &&
-      validExpertModelItems(body.items) && plan.items.length===body.items.length && itemsMatch(plan,body.items);
+      validExpertModelItems(body.items) && plan.items.length===body.items.length && itemsMatch(plan,body.items,false);
   }
   const route=request.path.match(/^\/expert-team-plans\/([A-Za-z0-9_-]+)\/(start|commands)$/);
   if (!route || plan.id!==route[1] || typeof body.expected_version!=='number' || plan.version<=body.expected_version) return false;
   if (route[2]==='start') return plan.state!=='ready' && plan.activation_generation>0;
-  return body.action!=='revise' || validExpertModelItems(body.items) && plan.configuration_version===body.expected_configuration_version && itemsMatch(plan,body.items);
+  return body.action!=='revise' || validExpertModelItems(body.items) && plan.configuration_version===body.expected_configuration_version && itemsMatch(plan,body.items,true);
 }
-function itemsMatch(plan:ExpertTeamPlan, requests: ExpertTeamPlanItemRequest[]) {
+function itemsMatch(plan:ExpertTeamPlan, requests: ExpertTeamPlanItemRequest[],preserveOmitted:boolean) {
   return requests.every(request=>{
     const item=plan.items.find(item=>item.task_id===request.task_id);
     if (!item || item.task_version!==request.expected_task_version || item.role_key!==request.role_key) return false;
+    const frozen=item.plan.test_bindings||[];
+    if(Object.hasOwn(request,'test_bindings')){
+      const selected=request.test_bindings!;
+      if(frozen.length!==selected.length||!selected.every(value=>frozen.some(binding=>binding.node_id===value.node_id&&binding.tool_profile_id===value.tool_profile_id&&binding.tool_profile_version===value.expected_tool_version)))return false;
+    }else if(!preserveOmitted&&frozen.length)return false;
     const selection=request.model_execution_selection,binding=item.plan.model_execution,codexSelection=request.codex_execution_selection,codexBinding=item.plan.codex_execution;
     if (!modelBindingMatchesSelection(binding,selection) || !!codexSelection!==!!codexBinding) return false;
     if (!selection && !codexSelection) return true;

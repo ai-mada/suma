@@ -52,7 +52,7 @@ it('T195 resolves each blocked check through the exact live destination while pr
  status=403;await click('[data-tool-doctor-check-action="inventory"]');expect(state()).toBe('error');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();expect(host.querySelector('[data-tool-profile-doctor-target]')).toBeNull();
  const reads=fetcher.mock.calls.length;await render({...destinations,pending:true});expect(state()).toBe('suspended');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();expect(fetcher).toHaveBeenCalledTimes(reads);
  status=200;value={...multiple(),tool:{...tool,worker_id:'different-worker',profile:{...tool.profile,profile_sha256:'c'.repeat(64)}},maintenance_resolution:{...multiple().maintenance_resolution,worker_id:'different-worker'}};
- await render(destinations);expect(state()).toBe('changed');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();expect(onRegister).toHaveBeenCalledOnce();
+ await render(destinations);expect(state()).toBe('error');await click('[data-tool-doctor-refresh]');expect(state()).toBe('changed');expect(host.querySelector('[data-tool-doctor-check-action]')).toBeNull();expect(onRegister).toHaveBeenCalledOnce();
  expect(fetcher.mock.calls.every(([,init])=>init.method==='GET'&&init.body===undefined)).toBe(true);
 });
 
@@ -140,4 +140,38 @@ it('discards old-account and old-project responses while exposing only the new s
  await act(async()=>second.resolve(Response.json(report(other))));await settle();expect(state()).toBe('ready');
  await act(async()=>first.resolve(Response.json(report())));await settle();expect(state()).toBe('ready');await click('[data-tool-doctor-maintenance-action="open_worker"]');expect(onWorker).toHaveBeenCalledExactlyOnceWith('other-runner');
  expect((fetcher.mock.calls[1][1] as RequestInit).headers).toMatchObject({'X-Suma-Expected-User':'other','X-Suma-Expected-Organization':'other-org'});
+});
+
+
+it('T223 automatically rechecks only the visible selected tool after expiry and respects the workspace pause',async()=>{
+ vi.useFakeTimers();let now=0;vi.spyOn(performance,'now').mockImplementation(()=>now);let visible='visible';vi.spyOn(document,'visibilityState','get').mockImplementation(()=>visible as DocumentVisibilityState);
+ const fetcher=vi.fn(async(_input:string,_init:RequestInit)=>Response.json(report()));vi.stubGlobal('fetch',fetcher);
+ const onWorker=vi.fn();await render({autoRefresh:true,onWorker});await act(async()=>vi.advanceTimersByTimeAsync(0));await settle();expect(state()).toBe('ready');expect(fetcher).toHaveBeenCalledTimes(1);
+ const oldAction=action()!;await render({autoRefresh:true,onWorker,confirmed:false});await act(async()=>oldAction.click());expect(onWorker).not.toHaveBeenCalled();expect(fetcher).toHaveBeenCalledTimes(1);await render({autoRefresh:true,onWorker});
+ visible='hidden';now=16000;await act(async()=>vi.advanceTimersByTime(16000));await settle();expect(fetcher).toHaveBeenCalledTimes(1);
+ visible='visible';await act(async()=>document.dispatchEvent(new Event('visibilitychange')));await settle();expect(fetcher).toHaveBeenCalledTimes(2);
+ await act(async()=>window.dispatchEvent(new Event('focus')));await settle();expect(fetcher).toHaveBeenCalledTimes(2);
+ await render({autoRefresh:false});now=40000;await act(async()=>vi.advanceTimersByTime(24000));await act(async()=>window.dispatchEvent(new Event('focus')));await settle();expect(fetcher).toHaveBeenCalledTimes(2);expect(host.querySelector('[data-tool-doctor-auto="paused"]')).not.toBeNull();
+ await click('[data-tool-doctor-refresh]');expect(fetcher).toHaveBeenCalledTimes(3);expect(fetcher.mock.calls.every(call=>{const init=call[1] as RequestInit|undefined;return !init||init.method==='GET';})).toBe(true);
+});
+
+it('T223 stops automatic diagnostic reads after a refusal or drift and never performs a repair',async()=>{
+ vi.useFakeTimers();let now=0;vi.spyOn(performance,'now').mockImplementation(()=>now);vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');let denied=false;
+ const fetcher=vi.fn(async()=>Response.json(denied?{error:{code:'forbidden',message:'Access denied'}}:report(),{status:denied?403:200}));vi.stubGlobal('fetch',fetcher);const onInspect=vi.fn();
+ await render({autoRefresh:true,onInspect});await act(async()=>vi.advanceTimersByTimeAsync(0));await settle();expect(state()).toBe('ready');
+ await render({autoRefresh:true,onInspect,confirmed:false});expect(state()).toBe('suspended');await render({autoRefresh:true,onInspect});expect(fetcher).toHaveBeenCalledTimes(1);denied=true;now=15000;await act(async()=>vi.advanceTimersByTimeAsync(15000));await vi.waitFor(()=>expect(state()).toBe('error'));expect(fetcher).toHaveBeenCalledTimes(2);
+ now=60000;await act(async()=>vi.advanceTimersByTime(45000));await act(async()=>window.dispatchEvent(new Event('focus')));await settle();expect(fetcher).toHaveBeenCalledTimes(2);expect(onInspect).not.toHaveBeenCalled();
+ await render({autoRefresh:true,onInspect,confirmed:false});await render({autoRefresh:true,onInspect});expect(state()).toBe('error');expect(fetcher).toHaveBeenCalledTimes(2);
+ await render({autoRefresh:true,onInspect,tool:{...tool,version:2}});await act(async()=>vi.advanceTimersByTimeAsync(0));await vi.waitFor(()=>expect(state()).toBe('error'));expect(fetcher).toHaveBeenCalledTimes(3);await render({autoRefresh:true,onInspect,pending:true});expect(state()).toBe('suspended');now=90000;await act(async()=>vi.advanceTimersByTime(30000));expect(fetcher).toHaveBeenCalledTimes(3);expect(onInspect).not.toHaveBeenCalled();
+});
+
+
+it('T223 preserves an in-flight scoped read during background detail refresh and cancels it for a real pending write',async()=>{
+ const first=deferred(),second=deferred();const fetcher=vi.fn().mockImplementationOnce(()=>first.promise).mockImplementationOnce(()=>second.promise);vi.stubGlobal('fetch',fetcher);
+ await render({autoRefresh:true});expect(state()).toBe('loading');expect(fetcher).toHaveBeenCalledTimes(1);
+ const signal=(fetcher.mock.calls[0][1] as RequestInit).signal;
+ await render({autoRefresh:true,confirmed:false});expect(state()).toBe('suspended');expect(signal?.aborted).toBe(false);await render({autoRefresh:true});expect(fetcher).toHaveBeenCalledTimes(1);
+ await act(async()=>first.resolve(Response.json(report())));await vi.waitFor(()=>expect(state()).toBe('ready'));
+ await click('[data-tool-doctor-refresh]');expect(fetcher).toHaveBeenCalledTimes(2);const next=(fetcher.mock.calls[1][1] as RequestInit).signal;
+ await render({autoRefresh:true,pending:true});expect(state()).toBe('suspended');expect(next?.aborted).toBe(true);await act(async()=>second.resolve(Response.json(report())));await settle();expect(state()).toBe('suspended');expect(fetcher).toHaveBeenCalledTimes(2);
 });

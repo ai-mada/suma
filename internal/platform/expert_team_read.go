@@ -208,6 +208,9 @@ func (s *Service) checkExpertTeamPreviewReadTx(ctx context.Context, auth *author
 	if err = s.checkDispatchProfileRouteTx(ctx, auth.tx, auth.target.tenantID, plan.ProjectID, profile, route); err != nil {
 		return err
 	}
+	if err = s.checkTaskDispatchTestBindingsRouteTx(ctx, auth.tx, auth.currentPrincipal, plan.ProjectID, plan, profile, route); err != nil {
+		return err
+	}
 	if err = s.validateModelExecutionPlanTx(ctx, auth.tx, auth.target.tenantID, plan.ProjectID, profile, plan); err != nil {
 		return err
 	}

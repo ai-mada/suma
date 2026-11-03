@@ -594,8 +594,8 @@
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/accepted-task-baseline-verification.md",
-  "current_summary": "docs/quality/accepted-task-baseline-summary.json",
+  "current_evidence": "docs/quality/collaborative-test-bindings-verification.md",
+  "current_summary": "docs/quality/collaborative-test-bindings-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and original requirements1..31",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -636,7 +636,7 @@
       }
     ]
   },
-  "current_implementation": "Accepted ordinary agent producer is an explicit third baseline origin on original dual-CAS/Review/test authority and protected bundle broker. Existing panel supports exact producer and current source isolation;44px token correct. True M-to-N continuation and precise authenticated source-return409 independently evidenced.",
+  "current_implementation": "Original discussion, explicit recommendation adoption and team preview/revision carry the original tester selection; exact six-field snapshots, provenance and source rechecks. Team omission/[]/replacement remain distinct. Selected visible tool Doctor automatically reads with the original live toggle, >=15s, preserving in-flight/settled reads across background detail refresh; errors require explicit retry. No new API/table/dispatcher/dependency.",
   "verified": {
     "stage": "T-ACCEPTED-TASK-BASELINE-222",
     "distinct_top_level": 17,
@@ -681,18 +681,18 @@
     "evidence": "36 scoped files, 13 focused checks and 3 representative groups, normal dev push verified."
   },
   "current_work": {
-    "stage": "T-ACCEPTED-TASK-BASELINE-222",
+    "stage": "T-COLLABORATIVE-TEST-BINDINGS-223",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/accepted-task-baseline.md",
-    "report": "docs/quality/accepted-task-baseline-verification.md",
-    "summary": "docs/quality/accepted-task-baseline-summary.json",
-    "previous_commit": "87a9bc3ea85e5a55f2d02a6e1e07388574e874e3",
-    "verification": "17distinct11new6old; Go11/Web6, fullWebTSC0/9873pairs0hardcodes;999models452paths; copy-only paired value overlay and local44px CSS recorded.",
-    "actual": "RealordinaryagentM299cf4ae→UIonePOST/doubleCAS→originalbroker→differentdeveloperN2cff3d65 withN^=M→independenttests/fixtureReview. Final3UI groups/native0;3Go hosts and4UI attempts retained. Weak428header rejection withdrawn; onlyretainedSQLitecopy supplement withcurrentAblockedv4/Cv1 proves409repository_integration_basis, businessfactsunchanged. No vendor/model/customer signoff/standaloneCLI claim.",
-    "next": "Thread original T216 test_bindings through discussion development, recommendation adoption and expert-team plans; keep existing guards until full propagation. Continue actual tool execution, distributed/OS/store/deployment acceptance and original31/P0-P7.",
+    "contract": "contracts/collaborative-test-bindings.md",
+    "report": "docs/quality/collaborative-test-bindings-verification.md",
+    "summary": "docs/quality/collaborative-test-bindings-summary.json",
+    "previous_commit": "d1effe53157427e6c01f981a87fe796776e770ed",
+    "verification": "31 distinct: Go13/Web18,22new9directOld; initialTSC13 corrected6sources0/finalDoctor2sources0;9891paired0hardcodes;999models452paths;436finalbuildsourcesmatch/752docs4180refs.",
+    "actual": "Three-entry frozen tester bindings; one real native/gateway owned recommendation request; team revision/activation and Git candidate73344fd58352caab7aba14c4854716851f189421 with differentWorker sameSHAJUnit passed. Four synthetic component groups over retained attempts, separate from DB/Worker. Doctor visible16s1to2/paused30s0. First launch exitunknown;3native0/portsfree. No paidmodel/customerReview/Nodecopy/newCLIbinary.",
+    "next": "Continue simple tool onboarding and authorized recovery, real vendor CLI/model execution and multi-host collaboration. Complete OS/store/deployment/scale acceptance and remaining original31/P0-P7; do not re-add duplicate dispatchers or silently authorize repairs.",
     "full_platform_complete": false,
-    "git_record": ".cache/accepted-task-baseline-222/post-git.json"
+    "git_record": ".cache/collaborative-test-bindings-223/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2715,5 +2715,22 @@
     "next": "Thread original T216 test_bindings through discussion development, recommendation adoption and expert-team plans; keep existing guards until full propagation. Continue actual tool execution, distributed/OS/store/deployment acceptance and original31/P0-P7.",
     "full_platform_complete": false,
     "git_record": ".cache/accepted-task-baseline-222/post-git.json"
+  },
+  "collaborative_test_bindings": {
+    "stage": "T-COLLABORATIVE-TEST-BINDINGS-223",
+    "version": "1.0.0",
+    "date": "2026-11-03",
+    "status": "scoped_contract_runtime_and_representative_visual_verified",
+    "contract": "contracts/collaborative-test-bindings.md",
+    "product": "docs/product/collaborative-test-bindings.md",
+    "architecture": "docs/architecture/collaborative-test-bindings.md",
+    "design": "docs/design/collaborative-test-bindings.md",
+    "report": "docs/quality/collaborative-test-bindings-verification.md",
+    "summary": "docs/quality/collaborative-test-bindings-summary.json",
+    "implementation": "Original discussion, explicit recommendation adoption and team preview/revision carry the original tester selection; exact six-field snapshots, provenance and source rechecks. Team omission/[]/replacement remain distinct. Selected visible tool Doctor automatically reads with the original live toggle, >=15s, preserving in-flight/settled reads across background detail refresh; errors require explicit retry. No new API/table/dispatcher/dependency.",
+    "verification": "Go12platform+1contract pass; Web18 distinct (13new/5direct old), all final targeted pass. Full initial TSC13 diagnostics corrected; six affected-file semantic0, finalDoctor2 semantic0;9891 paired keys/0hardcodes. Original failed timer fixtures and source fixes retained; no unrelated full suite.",
+    "actual": "One SQLite/three tasks: existing controlled discussion completion fixture preview only; one original native/gateway request to owned deterministic provider then adopt only; one team revision/activation/tick and real Git candidate73344fd58352caab7aba14c4854716851f189421 + different Worker sameSHA/JUnit passed. No Review/customer signoff/paid provider/model/Node copies. Four production-component groups passed across three completed native hosts plus one failed launch fixture; actual/synthetic evidence remains separate. Two builds, first invalidated before native use. Team desktop minimum36 observed; discussion/recommendation44.",
+    "remaining": "Real commercial provider/CLI end-to-end, physical multi-host, OceanBase/PostgreSQL, complete device/theme/App/installers/scale and production. Complete original31/P0-P7 platform remains active.",
+    "full_platform_complete": false
   }
 }

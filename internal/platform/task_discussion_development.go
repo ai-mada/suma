@@ -25,7 +25,7 @@ func validTaskDiscussionDevelopmentCreate(r TaskDiscussionDevelopmentCreateReque
 		r.ExpectedTaskVersion < 1 || r.ExpectedTaskVersion > 2147483646 || r.ExpectedReplyVersion < 1 || r.ExpectedReplyVersion > 2147483646 ||
 		r.WorkflowVersion < 1 || r.WorkflowVersion > 2147483646 || r.ExpectedToolVersion < 1 || r.ExpectedToolVersion > 2147483646 ||
 		!planningKey(r.IdempotencyKey) || !testPlanText(r.ReviewedGoal, 8000, true) ||
-		len(r.AcceptanceCriteria) < 1 || len(r.AcceptanceCriteria) > 32 ||
+		len(r.AcceptanceCriteria) < 1 || len(r.AcceptanceCriteria) > 32 || len(r.TestBindings) > 64 ||
 		r.ModelExecutionSelection != nil && (r.CodexExecutionSelection != nil || mc.ValidateSelection(*r.ModelExecutionSelection) != nil) ||
 		r.CodexExecutionSelection != nil && cc.ValidateSelection(*r.CodexExecutionSelection) != nil {
 		return false
@@ -83,7 +83,7 @@ func (s *Service) CreateTaskDiscussionDevelopmentPlan(ctx context.Context, engin
 	// The source helper has verified this exact assistant message and its sealed
 	// ordered dependencies. Feed only its original pins to the resolver before
 	// task context, model bindings and native skill attachments are frozen.
-	preview := TaskDispatchPreviewRequest{ProjectID: project, TaskID: request.TaskID, ExpectedTaskVersion: request.ExpectedTaskVersion, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: request.ToolProfileID, ExpectedToolVersion: request.ExpectedToolVersion, ModelExecutionSelection: request.ModelExecutionSelection, CodexExecutionSelection: request.CodexExecutionSelection, Knowledge: knowledgeReferences(reply.Source.Knowledge), IdempotencyKey: request.IdempotencyKey}
+	preview := TaskDispatchPreviewRequest{ProjectID: project, TaskID: request.TaskID, ExpectedTaskVersion: request.ExpectedTaskVersion, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: request.ToolProfileID, ExpectedToolVersion: request.ExpectedToolVersion, ModelExecutionSelection: request.ModelExecutionSelection, CodexExecutionSelection: request.CodexExecutionSelection, Knowledge: knowledgeReferences(reply.Source.Knowledge), TestBindings: request.TestBindings, IdempotencyKey: request.IdempotencyKey}
 	id := newID()
 	var continuation *dc.DevelopmentContinuationBinding
 	if request.ContinuationSource != nil {

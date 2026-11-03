@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // Expert-team transports use the same current project and identity boundary as
@@ -103,17 +104,38 @@ func (s *Server) expertTeamHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		return true
 	}
 	if r.Method == http.MethodPost && (len(parts) == 1 || len(parts) == 3 && parts[2] == "commands" && m["action"] == "revise") {
-		if items, ok := m["items"].([]any); ok {
+		// Do not let a capitalized Items key or a malformed item bypass the
+		// model/test presence checks before ordinary typed JSON decoding.
+		for key := range m {
+			if key != "items" && strings.EqualFold(key, "items") {
+				bad()
+				return true
+			}
+		}
+		if rawItems, present := m["items"]; present {
+			items, ok := rawItems.([]any)
+			if !ok {
+				bad()
+				return true
+			}
 			for _, raw := range items {
-				if item, ok := raw.(map[string]any); ok {
-					if err := validateModelSelectionFields(item); err != nil {
-						writeError(w, err)
-						return true
-					}
+				item, ok := raw.(map[string]any)
+				if !ok {
+					bad()
+					return true
+				}
+				if err := validateModelSelectionFields(item); err != nil {
+					writeError(w, err)
+					return true
+				}
+				if err := validateTaskDispatchTestSelectionFields(item); err != nil {
+					writeError(w, err)
+					return true
 				}
 			}
 		}
 	}
+
 	switch {
 	case listing:
 		out, err := s.Service.ListExpertTeamPlans(r.Context(), s.Engine, actor, project, pageLimit, values.Get("before"))

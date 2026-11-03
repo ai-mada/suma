@@ -26,3 +26,4 @@
 .discussion-development-warning{color:var(--amber);line-height:1.6;margin:5px 0}
 .discussion-development button:focus-visible,.discussion-development summary:focus-visible,.discussion-development a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:650px){.discussion-development-fields{grid-template-columns:1fr}.discussion-development-actions>button{flex:1;justify-content:center}.discussion-development-profile>div{align-items:flex-start;flex-wrap:wrap}.discussion-development-tools button{align-items:flex-start;flex-direction:column}}
+.discussion-development{--control-height:44px}

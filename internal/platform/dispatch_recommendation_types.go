@@ -81,6 +81,8 @@ type DispatchRecommendationChoice = drc.DispatchRecommendationChoice
 type DispatchRecommendationProposal = drc.DispatchRecommendationProposal
 
 type DispatchRecommendation struct {
+	// Frozen by the original dispatch builder at explicit adoption, never by the model.
+	AdoptedTestBindings        []TaskDispatchTestBinding       `json:"adopted_test_bindings,omitempty" wire:"nonnull"`
 	ID                         string                          `json:"id"`
 	ProjectID                  string                          `json:"project_id"`
 	Version                    int                             `json:"version"`
@@ -121,6 +123,7 @@ type DispatchRecommendationCreateRequest struct {
 }
 
 type DispatchRecommendationAdoptRequest struct {
+	TestBindings    []TaskDispatchTestSelection  `json:"test_bindings,omitempty" wire:"nonnull"`
 	ProjectID       string                       `json:"project_id"`
 	ExpectedVersion int                          `json:"expected_version"`
 	SourceSHA256    string                       `json:"source_sha256"`

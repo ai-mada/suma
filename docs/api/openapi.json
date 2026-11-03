@@ -12244,6 +12244,15 @@
           "adopted_choice": {
             "$ref": "#/components/schemas/DispatchRecommendationChoice"
           },
+          "adopted_test_bindings": {
+            "description": "Exact six-field test bindings saved from the original adopted dispatch plan; compared during provenance validation, never reconstructed from today's catalogue.",
+            "items": {
+              "$ref": "#/components/schemas/TaskDispatchTestBinding"
+            },
+            "maxItems": 64,
+            "readOnly": true,
+            "type": "array"
+          },
           "allowed_actions": {
             "items": {
               "enum": [
@@ -12379,6 +12388,14 @@
           },
           "source_sha256": {
             "type": "string"
+          },
+          "test_bindings": {
+            "description": "Explicit overrides for existing static tests whose candidate_from is the selected Agent. Omitted preserves published definitions without proving independence. Preview freezes exact current tool/Worker/command; original Start rechecks current authority, route and observation.",
+            "items": {
+              "$ref": "#/components/schemas/TaskDispatchTestSelection"
+            },
+            "maxItems": 64,
+            "type": "array"
           }
         },
         "required": [
@@ -15322,6 +15339,14 @@
           },
           "task_id": {
             "type": "string"
+          },
+          "test_bindings": {
+            "description": "Create: omission uses published defaults. Unstarted revision: omission keeps the exact saved selection in the same role/workflow/Agent/developer context; [] explicitly restores published defaults; nonempty explicitly replaces. Null is rejected. Started items cannot be revised.",
+            "items": {
+              "$ref": "#/components/schemas/TaskDispatchTestSelection"
+            },
+            "maxItems": 64,
+            "type": "array"
           }
         },
         "required": [
@@ -35880,6 +35905,14 @@
           },
           "task_id": {
             "type": "string"
+          },
+          "test_bindings": {
+            "description": "Explicit overrides for existing static tests whose candidate_from is the selected Agent. Omitted preserves published definitions without proving independence. Preview freezes exact current tool/Worker/command; original Start rechecks current authority, route and observation.",
+            "items": {
+              "$ref": "#/components/schemas/TaskDispatchTestSelection"
+            },
+            "maxItems": 64,
+            "type": "array"
           },
           "tool_profile_id": {
             "type": "string"

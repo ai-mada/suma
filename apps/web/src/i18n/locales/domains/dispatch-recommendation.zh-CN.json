@@ -113,5 +113,8 @@
   "dispatch-recommendation.reason.version": "推荐版本已变化，请刷新后决定。",
   "dispatch-recommendation.reason.unknown": "分析结果需要核对原运行。",
   "dispatch-recommendation.reason.failed": "本次只读分析未成功完成。",
-  "dispatch-recommendation.reason.other": "原分析返回了其他原因，请展开原始信息核对。"
+  "dispatch-recommendation.reason.other": "原分析返回了其他原因，请展开原始信息核对。",
+  "dispatch-recommendation.test_bindings_review": "采用前将按此推荐实际使用的开发节点，重新核对已选独立测试工具。",
+  "dispatch-recommendation.test_bindings_other_source": "测试选择所属流程不同或尚未确认，请在下方正式预览中重新核对。",
+  "dispatch-recommendation.test_bindings_changed": "独立测试工具已变化，或与此推荐的开发节点相同，请在正式预览中重新核对测试工具。"
 }

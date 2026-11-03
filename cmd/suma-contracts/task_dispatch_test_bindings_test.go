@@ -5,7 +5,7 @@ import "testing"
 func TestTaskDispatchTestBindingContractsUseOriginalPreviewAndClosedPins(t *testing.T) {
 	api, _ := generate()
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, model := range []string{"TaskDispatchPreviewRequest", "TaskDispatchPlan"} {
+	for _, model := range []string{"TaskDispatchPreviewRequest", "TaskDispatchPlan", "TaskDiscussionDevelopmentCreateRequest", "DispatchRecommendationAdoptRequest", "ExpertTeamPlanItemRequest"} {
 		if toolContractMap(schemas, model, "properties", "test_bindings")["maxItems"] != 64 {
 			t.Fatal("explicit test bindings lost their limit", model)
 		}

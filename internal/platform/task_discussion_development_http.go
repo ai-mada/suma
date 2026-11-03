@@ -31,6 +31,17 @@ func (s *Server) taskDiscussionDevelopmentHTTP(w http.ResponseWriter, r *http.Re
 			return true
 		}
 		if len(parts) == 1 {
+			// Preserve raw presence and JSON numbers before a typed slice can erase
+			// null/omission or normalize a non-integer version.
+			var fields map[string]any
+			if woc.Decode(raw, &fields) != nil {
+				bad()
+				return true
+			}
+			if err := validateTaskDispatchTestSelectionFields(fields); err != nil {
+				writeError(w, err)
+				return true
+			}
 			var request TaskDiscussionDevelopmentCreateRequest
 			if woc.Decode(raw, &request) != nil || !validTaskDiscussionDevelopmentCreate(request) {
 				bad()

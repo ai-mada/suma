@@ -32,7 +32,25 @@ async function mount(){
   return Response.json({items:[]});
  }));host=document.createElement('div');document.body.append(host);root=createRoot(host);await act(async()=>root!.render(<View/>));await settle();
 }
-afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();document.body.innerHTML='';vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState({},'','/');});
+afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();document.body.innerHTML='';vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState({},'','/');});
+
+it('T223 keeps selected Doctor reads settled across workspace polling and errors while pausing live reads preserves explicit refresh',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','setInterval','clearInterval']});let now=0;vi.spyOn(performance,'now').mockImplementation(()=>now);vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+ await mount();const originalFetch=vi.mocked(fetch).getMockImplementation()!;let detailReads=0,doctorReads=0,denied=false;
+ vi.mocked(fetch).mockImplementation(async(input,init={})=>{
+  const path=new URL(String(input),'http://local.test').pathname.replace('/api/v1','');
+  if(path==='/tool-profiles/existing'){detailReads++;return Response.json(tool);}
+  if(path==='/tool-profiles/existing/diagnostics'){expect(init.method||'GET').toBe('GET');expect(init.body).toBeUndefined();doctorReads++;return denied?Response.json({error:{code:'forbidden',message:'Current diagnostic access denied'}},{status:403}):Response.json({...diagnostics(),checked_at:'2026-10-30T08:00:20Z',expires_at:'2026-10-30T08:00:32Z'});}
+  return originalFetch(input,init);
+ });
+ await act(async()=>host!.querySelector<HTMLButtonElement>('.tool-resource')!.click());await settle();expect(detailReads).toBe(1);expect(doctorReads).toBe(1);
+ now=10000;await act(async()=>vi.advanceTimersByTimeAsync(10000));await settle();expect(detailReads).toBeGreaterThan(1);expect(doctorReads).toBe(1);
+ denied=true;now=16000;await act(async()=>vi.advanceTimersByTimeAsync(6000));await settle();expect(doctorReads).toBe(2);expect(host!.querySelector('[data-tool-doctor-card]')?.getAttribute('data-tool-doctor-state')).toBe('error');
+ const afterFailure=detailReads;now=40000;await act(async()=>vi.advanceTimersByTimeAsync(24000));await settle();expect(detailReads).toBeGreaterThan(afterFailure);expect(doctorReads).toBe(2);expect(host!.querySelector('[data-tool-doctor-card]')?.getAttribute('data-tool-doctor-state')).toBe('error');
+ const pause=host!.querySelector<HTMLButtonElement>('.tool-refresh-bar .text-button')!;expect(pause).not.toBeNull();await act(async()=>pause.click());await settle();const pausedReads=detailReads;now=70000;await act(async()=>vi.advanceTimersByTimeAsync(30000));await settle();expect(detailReads).toBe(pausedReads);expect(doctorReads).toBe(2);expect(host!.querySelector('[data-tool-doctor-auto="paused"]')).not.toBeNull();
+ await act(async()=>host!.querySelector<HTMLButtonElement>('.tool-refresh-bar button[aria-label]')!.click());await settle();expect(detailReads).toBeGreaterThan(pausedReads);expect(doctorReads).toBe(2);
+ denied=false;await act(async()=>host!.querySelector<HTMLButtonElement>('[data-tool-doctor-refresh]')!.click());await settle();expect(doctorReads).toBe(3);expect(host!.querySelector('[data-tool-doctor-card]')?.getAttribute('data-tool-doctor-state')).toBe('ready');expect(writes).toEqual([]);
+});
 
 it('T195 keeps maintenance freshness tied to the original profile read and refreshes that exact profile without losing the dialog',async()=>{
  let monotonic=1000;vi.spyOn(performance,'now').mockImplementation(()=>monotonic);

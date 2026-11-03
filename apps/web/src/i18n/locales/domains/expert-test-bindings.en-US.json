@@ -1,0 +1,14 @@
+{
+  "expert-test-bindings.title":"Independent test tools",
+  "expert-test-bindings.intro":"Review test choices only when needed. Each task keeps its own exact configuration; published workflow and acceptance rules remain unchanged.",
+  "expert-test-bindings.mode":"Test configuration",
+  "expert-test-bindings.retain":"Keep fixed choices",
+  "expert-test-bindings.adjust":"Choose replacements",
+  "expert-test-bindings.definition":"Restore published definition",
+  "expert-test-bindings.retain_help":"Keep this item's fixed choices. A new item uses the published definition. The server rechecks current tools and routes when previewing or revising.",
+  "expert-test-bindings.source_changed":"The role, workflow or developer identity changed. Explicitly choose replacements or restore the published definition; old choices cannot be silently inherited.",
+  "expert-test-bindings.definition_help":"Explicitly remove this item's test overrides and use its published workflow definition. This does not prove independent test execution.",
+  "expert-test-bindings.adjust_help":"Select every override to keep in the replacement set. Unselected test steps use the published definition; another Worker is required.",
+  "expert-test-bindings.started":"This item has started. Its saved test choices are read-only.",
+  "expert-test-bindings.inputs_changed":"The exact published workflow or developer tool is unavailable or changed. Refresh the role configuration before choosing tests."
+}

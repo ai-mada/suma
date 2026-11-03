@@ -2438,6 +2438,7 @@ export interface DevelopmentContinuationSource {
   expected_run_version: number;
 }
 export interface DispatchRecommendation {
+  adopted_test_bindings?: (TaskDispatchTestBinding)[];
   id: string;
   project_id: string;
   version: number;
@@ -2465,6 +2466,7 @@ export interface DispatchRecommendation {
   adopted_choice?: DispatchRecommendationChoice;
 }
 export interface DispatchRecommendationAdoptRequest {
+  test_bindings?: (TaskDispatchTestSelection)[];
   project_id: string;
   expected_version: number;
   source_sha256: string;
@@ -2981,6 +2983,7 @@ export interface ExpertTeamPlanItem {
   run_state: string;
 }
 export interface ExpertTeamPlanItemRequest {
+  test_bindings?: (TaskDispatchTestSelection)[];
   task_id: string;
   expected_task_version: number;
   role_key: string;
@@ -6985,6 +6988,7 @@ export interface TaskDevelopmentContinuationOptions {
   reason?: string;
 }
 export interface TaskDiscussionDevelopmentCreateRequest {
+  test_bindings?: (TaskDispatchTestSelection)[];
   continuation_source?: DevelopmentContinuationSource;
   project_id: string;
   task_id: string;
