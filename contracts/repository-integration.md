@@ -103,6 +103,14 @@ normal result validation matches that persisted fact, never trusts Runner text.
 Control reconcile independently reads the fixed provider origin and validates the
 same request/receipt; no external IO inside SQL transactions.
 
+### Read-only export from a registered delivery branch
+
+`POST /source-exports` is an optional provider-to-service operation. It uses a dedicated full-object export secret and a source alias with a configured `delivery_base_alias`. Both aliases resolve to distinct direct branches in the same administrator-managed bare repository. The source target's configuration digest binds its designated baseline alias and configuration. Request fields are closed and required: `protocol` (`suma.repository-source-export.v1`), `tenant_id`, `project_id`, `provider_id`, `target_alias`, `target_ref`, `target_config_sha256`, `expected_head`, `expected_fence_oid`, `expected_generation`, `expected_base`. For a source with no fence, send an empty `expected_fence_oid` and zero `expected_generation`.
+
+The provider verifies both refs, source configuration, Git object format and generations, and requires the exact baseline to be a strict ancestor of the requested head. It builds a Git bundle with one exact prerequisite and one advertised `HEAD`, checks the pack envelope and Git bundle prerequisites, and reads both refs again before returning any bytes. Maximum bundle size is 64 MiB. Success returns `application/x-git-bundle`, `Content-Length`, `X-Suma-Bundle-SHA256` and `X-Suma-Source-Request-SHA256`. The request digest is SHA-256 of the validated typed request in canonical contract encoding. The body contains only the bundle. Rejections use JSON and omit bundle metadata. A concurrent export returns 429. This operation does not change source refs, import objects or create an integration record.
+
+Export credentials stay with trusted services. The receiving system must check the expected request and bytes, import into an isolated repository with the exact prerequisite and verify the objects and resulting commit. Code candidate admission, a separate Runner's same-commit test and human acceptance require their own task-scoped evidence. The provider response establishes the configured Git source, with external agent authorship tracked independently.
+
 ## Domain and public API (A writes DTOs first)
 
 `RepositoryIntegrationTarget`: id, project_id, version, name, provider_id,

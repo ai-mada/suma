@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-REPOSITORY-BUNDLE-EXPORT-243 受管仓库提供方可从固定入站分支按管理员基线导出精确 Git 包，已在独立仓库验证并导入同一提交。 [部署](../deployment/repository-integration.md#启用登记分支-git-包导出) · [验证](../quality/repository-bundle-export-verification.md)
+
 T-WORKBUDDY-REPOSITORY-SOURCE-242 在待交付尝试上按需核对项目已登记仓库的实时分支提交。读取前后检查任务、原执行和目标版本，候选与验收各自保留依据。 [合同](../../contracts/workbuddy-task-dispatch.md#核对已登记仓库的分支提交) · [验证](../quality/workbuddy-repository-source-verification.md)
 
 T-WORKBUDDY-MANAGE-UX 按连接状态突出刷新、替换链接或只读核对，按需展开账号管理。重新授权可直接沿用明确列出的权限，刷新提示与实际连接状态一致。 [交互](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-manage-ux-verification.md)

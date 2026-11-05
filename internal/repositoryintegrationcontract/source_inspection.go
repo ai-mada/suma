@@ -135,6 +135,24 @@ func (q *RepositorySourceInspectionRequest) UnmarshalJSON(raw []byte) error {
 		return fmt.Errorf("source request exceeds bound")
 	}
 	keys := []string{"protocol", "tenant_id", "project_id", "provider_id", "target_id", "target_alias", "target_ref", "target_config_sha256", "operation_id", "request_sha256", "receipt_sha256", "exact_commit", "relative_roots"}
+	if err := exactRepositorySourceFields(raw, keys); err != nil {
+		return err
+	}
+	type wire RepositorySourceInspectionRequest
+	var result wire
+	if json.Unmarshal(raw, &result) != nil {
+		return fmt.Errorf("invalid source request types")
+	}
+	if err := ValidateRepositorySourceInspectionRequest(RepositorySourceInspectionRequest(result)); err != nil {
+		return err
+	}
+	*q = RepositorySourceInspectionRequest(result)
+	return nil
+}
+
+// The two provider source operations use closed contracts. A missing, null,
+// duplicate or case-aliased field cannot silently change the request digest.
+func exactRepositorySourceFields(raw []byte, keys []string) error {
 	allowed := map[string]bool{}
 	for _, key := range keys {
 		allowed[key] = true
@@ -163,15 +181,6 @@ func (q *RepositorySourceInspectionRequest) UnmarshalJSON(raw []byte) error {
 	if _, err = decoder.Token(); err != io.EOF {
 		return fmt.Errorf("extra source request")
 	}
-	type wire RepositorySourceInspectionRequest
-	var result wire
-	if json.Unmarshal(raw, &result) != nil {
-		return fmt.Errorf("invalid source request types")
-	}
-	if err = ValidateRepositorySourceInspectionRequest(RepositorySourceInspectionRequest(result)); err != nil {
-		return err
-	}
-	*q = RepositorySourceInspectionRequest(result)
 	return nil
 }
 func RepositorySourceInspectionRequestDigest(q RepositorySourceInspectionRequest) (string, error) {

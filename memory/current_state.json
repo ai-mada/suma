@@ -695,6 +695,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "repository_bundle_export": {
+    "stage": "T-REPOSITORY-BUNDLE-EXPORT-243",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "f9776beac1f9bc0a7f5983c7662e2b0fd54477f9",
+    "contract": "contracts/repository-integration.md",
+    "report": "docs/quality/repository-bundle-export-verification.md",
+    "actual": "Dedicated provider credential, exact configured source and administrator baseline, bounded read-only Git bundle with exact request and content digests.",
+    "verification": "Real Windows Git SHA-1 bundle imported into independent baseline-only repository; refs, object store and operation ledger preserved. Provider, shared contracts and provider CLI regression coverage.",
+    "known_limitations": "Provider-stage operation. Formal task approval/intake, WorkBuddy authorship, independent Runner quality and SHA-256/multi-host deployment remain pending.",
+    "full_platform_complete": false,
+    "git_record": ".cache/repository-bundle-export-243/post-git.json"
+  },
   "workbuddy_repository_source": {
     "stage": "T-WORKBUDDY-REPOSITORY-SOURCE-242",
     "version": "1.0.0",

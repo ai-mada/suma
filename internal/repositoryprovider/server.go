@@ -20,21 +20,23 @@ import (
 )
 
 type TargetConfig struct {
-	BareRepository string `json:"bare_repository"`
-	Ref            string `json:"ref"`
+	BareRepository    string `json:"bare_repository"`
+	Ref               string `json:"ref"`
+	DeliveryBaseAlias string `json:"delivery_base_alias,omitempty"`
 }
 type Config struct {
-	ProviderID         string                  `json:"provider_id"`
-	TenantID           string                  `json:"tenant_id"`
-	ProjectID          string                  `json:"project_id"`
-	ControlURL         string                  `json:"control_url"`
-	ControlTokenEnv    string                  `json:"control_token_env"`
-	RunnerTokenEnv     string                  `json:"runner_token_env"`
-	ReconcileTokenEnv  string                  `json:"reconcile_token_env"`
-	SourceReadTokenEnv string                  `json:"source_read_token_env,omitempty"`
-	GitExecutable      string                  `json:"git_executable"`
-	Targets            map[string]TargetConfig `json:"targets"`
-	StateDir           string                  `json:"-"`
+	ProviderID           string                  `json:"provider_id"`
+	TenantID             string                  `json:"tenant_id"`
+	ProjectID            string                  `json:"project_id"`
+	ControlURL           string                  `json:"control_url"`
+	ControlTokenEnv      string                  `json:"control_token_env"`
+	RunnerTokenEnv       string                  `json:"runner_token_env"`
+	ReconcileTokenEnv    string                  `json:"reconcile_token_env"`
+	SourceReadTokenEnv   string                  `json:"source_read_token_env,omitempty"`
+	SourceExportTokenEnv string                  `json:"source_export_token_env,omitempty"`
+	GitExecutable        string                  `json:"git_executable"`
+	Targets              map[string]TargetConfig `json:"targets"`
+	StateDir             string                  `json:"-"`
 }
 type target struct {
 	config                                  TargetConfig
@@ -53,6 +55,7 @@ type Server struct {
 	cfg      Config
 	db       *sql.DB
 	mu       sync.Mutex
+	exportMu sync.Mutex
 	targets  map[string]*target
 	unlocks  []func() error
 	ctx      context.Context
@@ -108,11 +111,15 @@ func New(cfg Config) (result *Server, err error) {
 	}
 	// Source content has a separate opt-in read capability. A Runner or a
 	// reconciliation credential must not gain arbitrary repository content IO.
-	if cfg.SourceReadTokenEnv != "" {
-		value := os.Getenv(cfg.SourceReadTokenEnv)
-		if seen[cfg.SourceReadTokenEnv] || len(value) < 32 || values[value] || strings.TrimSpace(value) != value || strings.ContainsAny(value, "\r\n") {
-			return nil, fmt.Errorf("source read requires an independent credential of at least 32 bytes")
+	for _, env := range []string{cfg.SourceReadTokenEnv, cfg.SourceExportTokenEnv} {
+		if env == "" {
+			continue
 		}
+		value := os.Getenv(env)
+		if seen[env] || len(value) < 32 || values[value] || strings.TrimSpace(value) != value || strings.ContainsAny(value, "\r\n") {
+			return nil, fmt.Errorf("source access requires independent credentials of at least 32 bytes")
+		}
+		seen[env], values[value] = true, true
 	}
 	if !filepath.IsAbs(cfg.GitExecutable) {
 		return nil, fmt.Errorf("fixed absolute Git executable required")
@@ -207,6 +214,19 @@ func New(cfg Config) (result *Server, err error) {
 		t.rawConfigSHA = hashBytes(config)
 		t.configSHA, _ = rc.RepositoryCanonicalDigest(struct{ Protocol, Provider, Tenant, Project, Alias, Ref, Repository, GitSHA, ConfigSHA, Format string }{rc.RepositoryProtocol, cfg.ProviderID, cfg.TenantID, cfg.ProjectID, alias, c.Ref, repo, t.gitSHA, t.rawConfigSHA, t.format})
 	}
+	for _, t := range s.targets {
+		alias := t.config.DeliveryBaseAlias
+		if alias == "" {
+			continue
+		}
+		base := s.targets[alias]
+		if cfg.SourceExportTokenEnv == "" || base == nil || base.config.DeliveryBaseAlias != "" || base.config.Ref == t.config.Ref || !os.SameFile(t.identity, base.identity) {
+			return nil, fmt.Errorf("source export requires a distinct baseline target in the same bare repository and an independent credential")
+		}
+		// The source registration must change when its designated baseline
+		// changes, even if both branches temporarily point to the same commit.
+		t.configSHA, _ = rc.RepositoryCanonicalDigest(struct{ TargetConfigSHA256, DeliveryBaseAlias, DeliveryBaseConfigSHA256 string }{t.configSHA, alias, base.configSHA})
+	}
 	s.wg.Add(1)
 	go s.reportLoop()
 	return s, nil
@@ -216,6 +236,8 @@ func (s *Server) Close() error {
 		s.cancel()
 	}
 	s.wg.Wait()
+	s.exportMu.Lock()
+	defer s.exportMu.Unlock()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, t := range s.targets {

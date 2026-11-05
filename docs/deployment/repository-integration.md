@@ -50,6 +50,29 @@ Provider 配置示意（占位标识需要替换）：
 
 应用固定源码检查另使用独立可选`source_read_token_env`，不是上述Runner或核对密钥的别名；未配置禁止源码读取。两端配置、固定Node解析器和限额见[应用源码检查部署](application-source-inspector.md)。仓库集成权限不自动授予应用目录写入或版本登记权限。
 
+### 启用登记分支 Git 包导出
+
+为外部交付配置一条专用入站分支，以及同一裸仓库中由管理员管理的基线分支。两条分支必须已经存在。将下列字段合入原 Provider 配置并启动服务。
+
+```json
+{
+  "source_export_token_env": "SUMA_REPOSITORY_SOURCE_EXPORT_TOKEN",
+  "targets": {
+    "delivery": {
+      "bare_repository": "D:/suma-data/repositories/project.git",
+      "ref": "refs/heads/incoming/delivery",
+      "delivery_base_alias": "main"
+    },
+    "main": {
+      "bare_repository": "D:/suma-data/repositories/project.git",
+      "ref": "refs/heads/main"
+    }
+  }
+}
+```
+
+导出密钥至少 32 字节，独立于回调、Runner、核对和清单读取密钥。服务配置只保存环境变量名。以原核对凭据读取两个固定 `/targets/{alias}` 的当前提交、来源分支配置摘要和执行代次，随后由受信服务使用导出密钥提交固定请求。配置改动会改变入站分支的配置摘要，请登记专用新目标并保留既有目标和回执。使用者可按[导出合同](../../contracts/repository-integration.md#read-only-export-from-a-registered-delivery-branch)核对请求摘要、包摘要和大小，再在隔离仓库中核对 Git 对象和确切提交。
+
 ## 停止、备份与核对
 
 正常发送停止信号，等待 HTTP 排空、持久状态关闭和退出回执。保留控制面事务库、Provider 状态库、完整裸仓库对象／引用、制品原件及管理员配置的匹配快照。不要只恢复 SQLite 后覆盖 Git 引用，也不要清理未知操作的对象或回执。

@@ -179,6 +179,9 @@ func (s *Server) fence(ctx context.Context, t *target) (string, int64, error) {
 	return oid, receipt.Generation, nil
 }
 func bundleHeader(data []byte, base, head string) (int, error) {
+	return bundleHeaderRef(data, base, head, "HEAD")
+}
+func bundleHeaderRef(data []byte, base, head, ref string) (int, error) {
 	r := bufio.NewReader(bytes.NewReader(data))
 	version, e := r.ReadString('\n')
 	if e != nil || (version != "# v2 git bundle\n" && version != "# v3 git bundle\n") {
@@ -217,7 +220,7 @@ func bundleHeader(data []byte, base, head string) (int, error) {
 			prereq++
 			continue
 		}
-		if line != head+" HEAD\n" || heads != 0 {
+		if line != head+" "+ref+"\n" || heads != 0 {
 			return 0, fmt.Errorf("bundle head differs")
 		}
 		heads++

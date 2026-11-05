@@ -95,6 +95,10 @@ func (s *Server) Handler() http.Handler {
 			s.sourceInspectionHTTP(w, r)
 			return
 		}
+		if r.URL.Path == "/source-exports" {
+			s.sourceExportHTTP(w, r)
+			return
+		}
 		runner, reconciler := token(r, s.cfg.RunnerTokenEnv), token(r, s.cfg.ReconcileTokenEnv)
 		if !runner && !reconciler {
 			writeError(w, 403, "repository_forbidden")
