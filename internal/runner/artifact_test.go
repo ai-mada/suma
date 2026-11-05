@@ -279,6 +279,13 @@ func TestArtifactApplicationScopedBuildRejectsMismatchAndReplaysExactBasis(t *te
 			ArtifactOutput: ".cache/release/site",
 		}},
 	}
+	cfg.ToolInventory, err = DescribeTools(ctx, cfg)
+	if err != nil || len(cfg.ToolInventory) != 1 || !cfg.ToolInventory[0].Available {
+		t.Fatal("project build profile probe failed", err, cfg.ToolInventory)
+	}
+	if profile := cfg.ToolInventory[0].Profile; profile.ArtifactKind != "" || profile.ArtifactProfileSHA256 != "" {
+		t.Fatal("project build profile unexpectedly requires Pool-specific approval")
+	}
 	a := Assignment{RunID: "scoped-artifact", NodeID: "build", Attempt: 1, Fence: 1, WorkerID: "builder", Type: "command", Command: []string{"build"}}
 	wrong := basis
 	wrong.ScopeTreeOID = strings.TrimSpace(gitTest(t, repo, "rev-parse", "HEAD^{tree}"))

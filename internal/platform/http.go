@@ -250,6 +250,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.poolCodeInputHTTP(w, r, path) {
 		return
 	}
+	if s.poolArtifactHTTP(w, r, path) {
+		return
+	}
 	if s.poolCandidateTransferHTTP(w, r, path) {
 		return
 	}

@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/releasecontract"
 )
@@ -78,9 +79,86 @@ func (s *Service) currentArtifactAssignmentTx(ctx context.Context, tx *sql.Tx, p
 	return spec, err
 }
 
-func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project string, r releasecontract.ArtifactUploadRequest) (releasecontract.ArtifactUploadState, error) {
-	p := actor.Projection()
+// Artifact storage shares the same bytes, quotas and seal transaction across
+// the project and Pool transports. A Pool operation retains its machine proof;
+// its principal projection carries only the tenant used to address data.
+type artifactUploadAuthority struct {
+	project   *authorizedCommand
+	machine   *candidateAuthority
+	principal Principal
+	tokenHash string
+}
 
+func (a *artifactUploadAuthority) receipt(ctx context.Context, s *Service, operation string, payload any) (string, bool, error) {
+	if a.machine != nil {
+		assignment := a.machine.assignment
+		// Lease display changes on heartbeat; the dispatch identity remains fixed.
+		assignment.DispatchState, assignment.LeaseUntil = "", ""
+		return s.candidateReceipt(ctx, a.machine, operation, map[string]any{"artifact_pool_assignment": assignment, "payload": payload})
+	}
+	return s.commandReceipt(ctx, a.project, operation, payload)
+}
+
+func (a *artifactUploadAuthority) saveReceipt(ctx context.Context, s *Service, operation, fingerprint string, value any) error {
+	if a.machine != nil {
+		return s.saveCandidateReceipt(ctx, a.machine, operation, fingerprint, value)
+	}
+	return s.saveCommandReceipt(ctx, a.project, operation, fingerprint, value)
+}
+
+func (s *Service) artifactUploadAuthorityTx(ctx context.Context, tx *sql.Tx, subject candidateSubject, poolAssignment cc.AssignmentRef, assignment releasecontract.AssignmentRef, profileID, profileSHA, kind string) (*artifactUploadAuthority, error) {
+	if subject.pool {
+		if artifactCoreAssignment(poolAssignment) != assignment {
+			return nil, forbidden()
+		}
+		proof, profile, err := s.poolArtifactAuthorityTx(ctx, tx, subject, poolAssignment, "build")
+		if err != nil {
+			return nil, err
+		}
+		if kind != "build" || profile.Profile.CommandID != profileID || profile.Profile.ArtifactProfileSHA256 != profileSHA {
+			return nil, forbidden()
+		}
+		return &artifactUploadAuthority{machine: proof, principal: Principal{TenantID: subject.tenant}, tokenHash: subject.hash()}, nil
+	}
+	proof, err := s.releaseWorkerTx(ctx, tx, subject.actor, subject.project, assignment.WorkerID, profileID, profileSHA, kind)
+	if err != nil {
+		return nil, err
+	}
+	return &artifactUploadAuthority{project: proof, principal: subject.actor.Projection(), tokenHash: subject.hash()}, nil
+}
+
+// For fresh data access, verify the current grant and lease before returning or
+// reusing an upload identity. The same check runs before and after byte spooling.
+func (s *Service) ownedPoolArtifactUploadTx(ctx context.Context, tx *sql.Tx, subject candidateSubject, assignment cc.AssignmentRef, id string) (*artifactUploadAuthority, artifactUpload, error) {
+	proof, profile, err := s.poolArtifactAuthorityTx(ctx, tx, subject, assignment, "build")
+	if err != nil {
+		return nil, artifactUpload{}, err
+	}
+	a := &artifactUploadAuthority{machine: proof, principal: Principal{TenantID: subject.tenant}, tokenHash: subject.hash()}
+	u, err := s.loadArtifactUpload(ctx, tx, a.principal, subject.project, id)
+	if err != nil {
+		return nil, artifactUpload{}, err
+	}
+	if u.TokenHash != a.tokenHash || u.Assignment != artifactCoreAssignment(assignment) ||
+		u.ProfileID != profile.Profile.CommandID || u.ProfileSHA256 != profile.Profile.ArtifactProfileSHA256 {
+		return nil, artifactUpload{}, forbidden()
+	}
+	return a, u, nil
+}
+
+func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project string, r releasecontract.ArtifactUploadRequest) (releasecontract.ArtifactUploadState, error) {
+	return s.startArtifactUpload(ctx, projectCandidateSubject(actor, project), cc.AssignmentRef{}, r)
+}
+
+func (s *Service) startPoolArtifactUpload(ctx context.Context, subject candidateSubject, a cc.AssignmentRef, r releasecontract.ArtifactUploadRequest) (releasecontract.ArtifactUploadState, error) {
+	if !subject.pool || r.ProjectID != subject.project {
+		return releasecontract.ArtifactUploadState{}, forbidden()
+	}
+	return s.startArtifactUpload(ctx, subject, a, r)
+}
+
+func (s *Service) startArtifactUpload(ctx context.Context, subject candidateSubject, poolAssignment cc.AssignmentRef, r releasecontract.ArtifactUploadRequest) (releasecontract.ArtifactUploadState, error) {
+	project := subject.project
 	var out releasecontract.ArtifactUploadState
 	m, hash, err := releasecontract.CanonicalManifest(r.Manifest)
 	if err != nil {
@@ -93,11 +171,12 @@ func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project 
 	}
 	defer cancel()
 	defer tx.Rollback()
-	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, r.Assignment.WorkerID, r.ProfileID, r.ProfileSHA256, "build")
+	auth, err := s.artifactUploadAuthorityTx(ctx, tx, subject, poolAssignment, r.Assignment, r.ProfileID, r.ProfileSHA256, "build")
 	if err != nil {
 		return out, err
 	}
-	fingerprint, replay, err := s.commandReceipt(ctx, auth, r.OperationID, map[string]any{"artifact_upload": r})
+	p := auth.principal
+	fingerprint, replay, err := auth.receipt(ctx, s, r.OperationID, map[string]any{"artifact_upload": r})
 	if err != nil {
 		return out, err
 	}
@@ -105,19 +184,26 @@ func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project 
 		err = json.Unmarshal([]byte(fingerprint), &out)
 		return out, err
 	}
-	spec, err := s.currentArtifactAssignmentTx(ctx, tx, p, project, r.Assignment)
-	if err != nil {
-		return out, err
+	var spec dag.Node
+	if auth.machine != nil {
+		spec = auth.machine.spec
+	} else {
+		spec, err = s.currentArtifactAssignmentTx(ctx, tx, p, project, r.Assignment)
+		if err != nil {
+			return out, err
+		}
 	}
 	if spec.Type != "command" && spec.Type != "agent" || len(spec.Command) != 1 || spec.Command[0] != r.ProfileID {
 		return out, invalid("制品构建需绑定管理员登记命令")
 	}
-	basis, err := releasecontract.DecodeApplicationBuild(spec.Config)
-	if err != nil || basis != nil && spec.Type != "command" {
-		return out, invalid("固定应用构建配置无效")
-	}
-	if err = s.checkApplicationBuildBasisTx(ctx, tx, p, project, basis); err != nil {
-		return out, err
+	if auth.machine == nil {
+		basis, err := releasecontract.DecodeApplicationBuild(spec.Config)
+		if err != nil || basis != nil && spec.Type != "command" {
+			return out, invalid("固定应用构建配置无效")
+		}
+		if err = s.checkApplicationBuildBasisTx(ctx, tx, p, project, basis); err != nil {
+			return out, err
+		}
 	}
 	var total int64
 	for _, f := range m.Files {
@@ -138,7 +224,7 @@ func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project 
 		return out, conflict("本次构建已有上传会话，请恢复原操作")
 	}
 	id := newID()
-	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_uploads(id,tenant_id,project_id,worker_id,token_hash,run_id,node_id,attempt,fence,profile_id,profile_sha256,manifest_sha256,manifest,size_bytes,state,artifact_id,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'receiving','',?)`), id, p.TenantID, project, r.Assignment.WorkerID, actor.credential.digest, r.Assignment.RunID, r.Assignment.NodeID, r.Assignment.Attempt, r.Assignment.Fence, r.ProfileID, r.ProfileSHA256, hash, stringify(m), total, now())
+	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_uploads(id,tenant_id,project_id,worker_id,token_hash,run_id,node_id,attempt,fence,profile_id,profile_sha256,manifest_sha256,manifest,size_bytes,state,artifact_id,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'receiving','',?)`), id, p.TenantID, project, r.Assignment.WorkerID, auth.tokenHash, r.Assignment.RunID, r.Assignment.NodeID, r.Assignment.Attempt, r.Assignment.Fence, r.ProfileID, r.ProfileSHA256, hash, stringify(m), total, now())
 	if err != nil {
 		return out, err
 	}
@@ -151,7 +237,7 @@ func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project 
 		}
 	}
 	out = releasecontract.ArtifactUploadState{UploadID: id, State: "receiving", ManifestSHA256: hash, MissingBlobs: missing}
-	if err = s.saveCommandReceipt(ctx, auth, r.OperationID, fingerprint, out); err != nil {
+	if err = auth.saveReceipt(ctx, s, r.OperationID, fingerprint, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -205,10 +291,51 @@ func (s *Service) readArtifactBlob(path, digest string, size int64) ([]byte, err
 }
 
 func (s *Service) PutArtifactBlob(ctx context.Context, actor Actor, project, uploadID, blobHash, operation string, size int64, body io.Reader) error {
-	p := actor.Projection()
+	return s.putArtifactBlob(ctx, projectCandidateSubject(actor, project), cc.AssignmentRef{}, uploadID, blobHash, operation, size, body)
+}
 
+func (s *Service) putPoolArtifactBlob(ctx context.Context, subject candidateSubject, assignment cc.AssignmentRef, uploadID, blobHash, operation string, size int64, body io.Reader) error {
+	if !subject.pool {
+		return forbidden()
+	}
+	return s.putArtifactBlob(ctx, subject, assignment, uploadID, blobHash, operation, size, body)
+}
+
+func (u artifactUpload) permitsBlob(hash string, size int64) bool {
+	for _, file := range u.Manifest.Files {
+		if file.SHA256 == hash && file.SizeBytes == size {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Service) preflightPoolArtifactBlob(ctx context.Context, subject candidateSubject, assignment cc.AssignmentRef, uploadID, blobHash string, size int64) error {
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer cancel()
+	defer tx.Rollback()
+	_, upload, err := s.ownedPoolArtifactUploadTx(ctx, tx, subject, assignment, uploadID)
+	if err != nil {
+		return err
+	}
+	if !upload.permitsBlob(blobHash, size) {
+		return invalid("文件不属于已固定的制品清单")
+	}
+	return nil
+}
+
+func (s *Service) putArtifactBlob(ctx context.Context, subject candidateSubject, assignment cc.AssignmentRef, uploadID, blobHash, operation string, size int64, body io.Reader) error {
+	project := subject.project
 	if !releasecontract.ValidDigest(blobHash) || len(operation) < 8 || len(operation) > 128 || size < 0 || size > releasecontract.MaxFileBytes {
 		return invalid("制品摘要、长度或操作标识无效")
+	}
+	if subject.pool {
+		if err := s.preflightPoolArtifactBlob(ctx, subject, assignment, uploadID, blobHash, size); err != nil {
+			return err
+		}
 	}
 	// Spool a bounded, server-named file before taking database locks. Nothing is
 	// published until current authority, lease, manifest and bytes are committed.
@@ -250,27 +377,26 @@ func (s *Service) PutArtifactBlob(ctx context.Context, actor Actor, project, upl
 	}
 	defer cancel()
 	defer tx.Rollback()
-	u, err := s.loadArtifactUpload(ctx, tx, p, project, uploadID)
-	if err != nil {
-		return err
-	}
-	if u.TokenHash != actor.credential.digest {
-		return forbidden()
-	}
-	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, u.Assignment.WorkerID, u.ProfileID, u.ProfileSHA256, "build")
-	if err != nil {
-		return err
-	}
-	allowed := false
-	for _, v := range u.Manifest.Files {
-		if v.SHA256 == blobHash && v.SizeBytes == size {
-			allowed = true
+	var u artifactUpload
+	var auth *artifactUploadAuthority
+	if subject.pool {
+		auth, u, err = s.ownedPoolArtifactUploadTx(ctx, tx, subject, assignment, uploadID)
+	} else {
+		u, err = s.loadArtifactUpload(ctx, tx, subject.actor.Projection(), project, uploadID)
+		if err == nil {
+			if u.TokenHash != subject.hash() {
+				return forbidden()
+			}
+			auth, err = s.artifactUploadAuthorityTx(ctx, tx, subject, assignment, u.Assignment, u.ProfileID, u.ProfileSHA256, "build")
 		}
 	}
-	if !allowed {
+	if err != nil {
+		return err
+	}
+	if !u.permitsBlob(blobHash, size) {
 		return invalid("文件不属于已固定的制品清单")
 	}
-	fingerprint, replay, err := s.commandReceipt(ctx, auth, operation, map[string]any{"artifact_blob": uploadID, "sha256": blobHash, "size_bytes": size})
+	fingerprint, replay, err := auth.receipt(ctx, s, operation, map[string]any{"artifact_blob": uploadID, "sha256": blobHash, "size_bytes": size})
 	if err != nil {
 		return err
 	}
@@ -288,7 +414,7 @@ func (s *Service) PutArtifactBlob(ctx context.Context, actor Actor, project, upl
 		if err != nil {
 			return err
 		}
-		if err = s.saveCommandReceipt(ctx, auth, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
+		if err = auth.saveReceipt(ctx, s, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
 			return err
 		}
 		return tx.Commit()
@@ -299,13 +425,15 @@ func (s *Service) PutArtifactBlob(ctx context.Context, actor Actor, project, upl
 	if u.State != "receiving" {
 		return conflict("上传已封存，不能新增文件")
 	}
-	if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, project, u.Assignment); err != nil {
-		return err
+	if auth.machine == nil {
+		if _, err = s.currentArtifactAssignmentTx(ctx, tx, auth.principal, project, u.Assignment); err != nil {
+			return err
+		}
 	}
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_blobs(upload_id,digest,size_bytes,storage_path)VALUES(?,?,?,?)`), uploadID, blobHash, size, path); err != nil {
 		return err
 	}
-	if err = s.saveCommandReceipt(ctx, auth, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
+	if err = auth.saveReceipt(ctx, s, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
 		return err
 	}
 	if err = tx.Commit(); err != nil {
@@ -351,9 +479,36 @@ func (s *Service) InspectArtifactUpload(ctx context.Context, actor Actor, projec
 	return out, err
 }
 
-func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, id string, r releasecontract.ArtifactSealRequest) (releasecontract.ArtifactSealReceipt, error) {
-	p := actor.Projection()
+func (s *Service) inspectPoolArtifactUpload(ctx context.Context, subject candidateSubject, assignment cc.AssignmentRef, id string) (releasecontract.ArtifactUploadState, error) {
+	if !subject.pool {
+		return releasecontract.ArtifactUploadState{}, forbidden()
+	}
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
+	if err != nil {
+		return releasecontract.ArtifactUploadState{}, err
+	}
+	defer cancel()
+	defer tx.Rollback()
+	_, u, err := s.ownedPoolArtifactUploadTx(ctx, tx, subject, assignment, id)
+	if err != nil {
+		return releasecontract.ArtifactUploadState{}, err
+	}
+	return s.artifactUploadStateTx(ctx, tx, u)
+}
 
+func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, id string, r releasecontract.ArtifactSealRequest) (releasecontract.ArtifactSealReceipt, error) {
+	return s.sealArtifactUpload(ctx, projectCandidateSubject(actor, project), cc.AssignmentRef{}, id, r)
+}
+
+func (s *Service) sealPoolArtifactUpload(ctx context.Context, subject candidateSubject, assignment cc.AssignmentRef, id string, r releasecontract.ArtifactSealRequest) (releasecontract.ArtifactSealReceipt, error) {
+	if !subject.pool || r.ProjectID != subject.project || r.Assignment != artifactCoreAssignment(assignment) {
+		return releasecontract.ArtifactSealReceipt{}, forbidden()
+	}
+	return s.sealArtifactUpload(ctx, subject, assignment, id, r)
+}
+
+func (s *Service) sealArtifactUpload(ctx context.Context, subject candidateSubject, assignment cc.AssignmentRef, id string, r releasecontract.ArtifactSealRequest) (releasecontract.ArtifactSealReceipt, error) {
+	project := subject.project
 	var out releasecontract.ArtifactSealReceipt
 	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
@@ -361,11 +516,18 @@ func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, 
 	}
 	defer cancel()
 	defer tx.Rollback()
-	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, r.Assignment.WorkerID, "", "", "identity")
+	var u artifactUpload
+	var auth *artifactUploadAuthority
+	if subject.pool {
+		auth, u, err = s.ownedPoolArtifactUploadTx(ctx, tx, subject, assignment, id)
+	} else {
+		auth, err = s.artifactUploadAuthorityTx(ctx, tx, subject, assignment, r.Assignment, "", "", "identity")
+	}
 	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.commandReceipt(ctx, auth, r.OperationID, map[string]any{"seal": id, "body": r})
+	p := auth.principal
+	hash, replay, err := auth.receipt(ctx, s, r.OperationID, map[string]any{"seal": id, "body": r})
 	if err != nil {
 		return out, err
 	}
@@ -373,12 +535,14 @@ func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, 
 		err = json.Unmarshal([]byte(hash), &out)
 		return out, err
 	}
-	u, err := s.loadArtifactUpload(ctx, tx, p, project, id)
-	if err != nil {
-		return out, err
-	}
-	if u.TokenHash != actor.credential.digest || u.Assignment != r.Assignment {
-		return out, forbidden()
+	if auth.machine == nil {
+		u, err = s.loadArtifactUpload(ctx, tx, p, project, id)
+		if err != nil {
+			return out, err
+		}
+		if u.TokenHash != auth.tokenHash || u.Assignment != r.Assignment {
+			return out, forbidden()
+		}
 	}
 	if u.State == "abandoned" {
 		return out, conflict("上传已结束，不能封存")
@@ -386,8 +550,10 @@ func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, 
 	if u.State != "receiving" {
 		return out, conflict("已封存，请恢复原封存操作")
 	}
-	if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, project, r.Assignment); err != nil {
-		return out, err
+	if auth.machine == nil {
+		if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, project, r.Assignment); err != nil {
+			return out, err
+		}
 	}
 	for _, f := range u.Manifest.Files {
 		var path string
@@ -410,7 +576,7 @@ func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, 
 		return out, err
 	}
 	out = releasecontract.ArtifactSealReceipt{ArtifactID: artifactID, ManifestSHA256: u.ManifestSHA256, State: "sealed", SizeBytes: u.SizeBytes, FileCount: len(u.Manifest.Files)}
-	if err = s.saveCommandReceipt(ctx, auth, r.OperationID, hash, out); err != nil {
+	if err = auth.saveReceipt(ctx, s, r.OperationID, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()

@@ -81,7 +81,7 @@ func validatePoolLocalConfig(c PoolLocalConfig) error {
 		if err := ValidateToolConfiguration(ExecConfig{Commands: s.Commands, ModelDeployments: s.ModelDeployments}); err != nil {
 			return err
 		}
-		for _, spec := range s.Commands {
+		for id, spec := range s.Commands {
 			if spec.Adapter == "suma" {
 				if project := spec.Env["SUMA_PROJECT_ID"]; project != "" && project != s.ProjectID {
 					return fmt.Errorf("native agent project differs from its local pool scope")
@@ -93,7 +93,10 @@ func validatePoolLocalConfig(c PoolLocalConfig) error {
 				}
 			}
 			if spec.ArtifactInput || spec.ArtifactOutput != "" {
-				return fmt.Errorf("pool artifact execution requires a separate authorized protocol")
+				kind, _, err := localArtifactCapability(id, spec)
+				if err != nil || kind == "" {
+					return fmt.Errorf("pool artifacts require a dedicated build or package-test command")
+				}
 			}
 			for key := range spec.Env {
 				if strings.EqualFold(key, "SUMA_POOL_RUNNER_TOKEN") || strings.EqualFold(key, "SUMA_RUNNER_TOKEN") {
@@ -478,9 +481,14 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 				return e
 			}
 		}
-		if err := replayPool(ctx, w.Client, j); err != nil {
+		recovery := Worker{Client: w.Client, Journal: j, ID: worker}
+		replayErr := recovery.resumeArtifacts(ctx, beat)
+		if replayErr == nil {
+			replayErr = replayPool(ctx, w.Client, j)
+		}
+		if replayErr != nil {
 			var status *runnerHTTPStatusError
-			if errors.As(err, &status) && (status.Status == 401 || status.Status == 403) {
+			if errors.As(replayErr, &status) && (status.Status == 401 || status.Status == 403) {
 				return fmt.Errorf("pool callback authority rejected; original outbox retained for reconciliation")
 			}
 			w.notice("callback_pending", slot)

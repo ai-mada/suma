@@ -250,13 +250,17 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 	}
 	// Managed production/external effects need a separate pool capability and
 	// authorization protocol; their project-runner privileges are not inherited.
-	if _, scopedBuild := n.Config[rc.ApplicationBuildConfigKey]; n.Type == "external_workflow" || n.Config["artifact_from"] != nil || scopedBuild {
+	if n.Type == "external_workflow" {
 		return false, nil
 	}
 	if eligible, err := s.codeInputNodeEligibleTx(ctx, tx, scope.TenantID, scope.ProjectID, run, node, n); err != nil || !eligible {
 		return false, err
 	}
 	_, hash, bound, err := dag.ToolBinding(n)
+	if err != nil {
+		return false, nil
+	}
+	artifactKind, err := poolArtifactNodeKind(n, p)
 	if err != nil {
 		return false, nil
 	}
@@ -278,6 +282,19 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 	p, err = s.toolProfileForPoolTx(ctx, tx, proof, scope, p)
 	if err != nil || !p.Available {
 		return false, err
+	}
+	if artifactKind == "build" {
+		basis, err := rc.DecodeApplicationBuild(n.Config)
+		if err != nil {
+			return false, nil
+		}
+		if err = s.checkApplicationBuildBasisTx(ctx, tx, Principal{TenantID: scope.TenantID}, scope.ProjectID, basis); err != nil {
+			var unavailable *APIError
+			if errors.As(err, &unavailable) {
+				return false, nil
+			}
+			return false, err
+		}
 	}
 	return s.modelExecutionClaimEligibleTx(ctx, tx, scope.TenantID, scope.ProjectID, p, n)
 }
@@ -305,35 +322,40 @@ func (s *Service) ValidatePoolToolProgressTx(ctx context.Context, tx *sql.Tx, pr
 }
 
 func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, proof *poolMachineProof, a dag.Assignment, result dag.Result) error {
+	_, _, err := s.validatePoolToolResultNodeTx(ctx, tx, proof, a, result)
+	return err
+}
+
+func (s *Service) validatePoolToolResultNodeTx(ctx context.Context, tx *sql.Tx, proof *poolMachineProof, a dag.Assignment, result dag.Result) (dag.Node, ToolProfile, error) {
 	if err := proof.assertAssignment(tx, a); err != nil {
-		return err
+		return dag.Node{}, ToolProfile{}, err
 	}
 
 	n, p, err := s.poolBoundToolNodeTx(ctx, tx, dag.PoolScope{TenantID: a.TenantID, ProjectID: a.ProjectID}, a.RunID, a.NodeID)
 	if err != nil {
-		return err
+		return n, p, err
 	}
 	if dag.WorkBuddyCloudNode(n) {
 		if result.WorkBuddyCloudWait == nil || result.ToolEvidence != nil || result.Stopped {
-			return cloudInvalid()
+			return n, p, cloudInvalid()
 		}
-		return nil
+		return n, p, nil
 	}
 	if result.ToolEvidence == nil {
 		if result.Stopped && p.Profile.Protocol == tc.OpenCodeSDKProtocol {
-			return invalid(opencodeExecutionInvalid)
+			return n, p, invalid(opencodeExecutionInvalid)
 		}
-		return nil
+		return n, p, nil
 	}
 	_, hash, bound, err := dag.ToolBinding(n)
 	if err != nil {
-		return err
+		return n, p, err
 	}
 	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || !tc.EqualProfile(result.ToolEvidence.Profile, p.Profile) || n.Type == "command" && (p.Profile.Adapter != "command" || p.Profile.Protocol != "text-v1") {
-		return invalid("工具结果与本项目固定档案不匹配")
+		return n, p, invalid("工具结果与本项目固定档案不匹配")
 	}
 	if err := tc.ValidateOpenCodeResultStop(*result.ToolEvidence, result.Stopped, result.OutcomeUnknown); err != nil {
-		return invalid(opencodeExecutionInvalid)
+		return n, p, invalid(opencodeExecutionInvalid)
 	}
-	return nil
+	return n, p, nil
 }

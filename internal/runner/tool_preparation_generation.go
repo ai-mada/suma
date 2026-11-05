@@ -330,7 +330,7 @@ func samePreparedProfile(a, b tc.Profile) bool {
 // Disabled execution must remain disabled. Accepted metadata can remain a
 // complete, byte-pinned inactive observation; it never manufactures readiness.
 func (w *Worker) describeToolSnapshot(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error) {
-	observations, err := DescribeTools(ctx, cfg)
+	observations, err := describeTools(ctx, cfg, w.Client != nil && w.Client.Pool != nil)
 	if err != nil || cfg.AllowExec {
 		return observations, err
 	}

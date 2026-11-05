@@ -43,8 +43,17 @@ func repositoryDispatchPoolTool(t *testing.T, ctx context.Context, f *fixture, p
 		Pool: &runner.PoolContext{PoolID: poolID, RunnerID: machine.ID}}
 	inventoryClient := *client
 	inventoryClient.Pool = &runner.PoolContext{PoolID: poolID, RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project}
-	inventory, err := runner.DescribeTools(ctx, *cfg)
-	if err != nil || len(inventory) != 1 || !inventory[0].Available {
+	descriptions, err := runner.DescribePoolTools(ctx, runner.PoolLocalConfig{
+		SchemaVersion: 1, PoolID: poolID, RunnerID: machine.ID, Slots: 1,
+		Scopes: []runner.PoolLocalScope{{TenantID: f.user.TenantID, ProjectID: f.project, Workspace: cfg.Workspace,
+			Repository: cfg.Repository, BaseCommit: cfg.BaseCommit, Worktrees: cfg.WorktreeRoot, Commands: cfg.Commands,
+			ModelDeployments: cfg.ModelDeployments, External: cfg.External}},
+	}, cfg.AllowExec)
+	if err != nil || len(descriptions) != 1 {
+		t.Fatalf("actual Pool command description unavailable: %v", err)
+	}
+	inventory := descriptions[0].Items
+	if len(inventory) != 1 || !inventory[0].Available {
 		t.Fatalf("actual Pool command inventory unavailable: %+v %v", inventory, err)
 	}
 	scope, err := runner.InventoryScopeSHA256(controlURL, f.project, machine.WorkerID)

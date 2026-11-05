@@ -351,10 +351,14 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			proof, e = s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, a)
 			return e
 		}, func(tx *sql.Tx, state string) error {
-			if result.ArtifactEvidence != nil || result.ReleaseEvidence != nil {
-				return &APIError{422, "pool_capability_unsupported", "资源池制品与生产部署需独立授权协议", nil}
+			if result.ReleaseEvidence != nil {
+				return &APIError{422, "pool_capability_unsupported", "资源池生产部署需独立授权协议", nil}
 			}
-			if err := s.Service.ValidatePoolToolResultTx(r.Context(), tx, proof, a, result); err != nil {
+			spec, profile, err := s.Service.validatePoolToolResultNodeTx(r.Context(), tx, proof, a, result)
+			if err != nil {
+				return err
+			}
+			if err = s.Service.verifyPoolArtifactResultTx(r.Context(), tx, proof, a, digest(token), spec, profile, result, state); err != nil {
 				return err
 			}
 			authorize := func(current *sql.Tx) error {

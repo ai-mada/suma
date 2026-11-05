@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -26,6 +27,20 @@ func artifactProfile(alias string, spec CommandSpec) (releasecontract.CommandPro
 	return p, hash, err
 }
 
+// Only dedicated artifact commands advertise this extra authorization basis.
+// The release digest fixes their upload or package-test policy independently of
+// the broader tool inventory digest, which also binds the executable bytes.
+func localArtifactCapability(id string, spec CommandSpec) (kind, hash string, err error) {
+	if !validApplicationBuildCommand(spec) && !validPoolPackageTestCommand(spec) {
+		return "", "", nil
+	}
+	profile, hash, err := artifactProfile(id, spec)
+	if err != nil {
+		return "", "", err
+	}
+	return profile.Kind, hash, nil
+}
+
 func assignmentRef(a Assignment) releasecontract.AssignmentRef {
 	return releasecontract.AssignmentRef{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID}
 }
@@ -33,7 +48,29 @@ func artifactOperation(a Assignment, phase string) string {
 	return digest([]byte("artifact-v1/" + key(a) + "/" + a.WorkerID + "/" + phase))
 }
 
+func (c *Client) checkArtifactAssignment(a Assignment) error {
+	if c == nil {
+		return fmt.Errorf("artifact control client is required")
+	}
+	if c.Pool == nil && a.PoolID == "" {
+		return nil
+	}
+	if c.Pool == nil || c.Pool.Assignment == nil || a.ProjectID != c.ProjectID ||
+		a.PoolID != c.Pool.PoolID || a.PoolRunnerID != c.Pool.RunnerID ||
+		validPoolAssignment(a) != nil || !samePoolAssignmentIdentity(a, *c.Pool.Assignment) {
+		return fmt.Errorf("artifact request differs from frozen pool identity")
+	}
+	return nil
+}
+
 func (c *Client) artifactRequest(ctx context.Context, method, path string, a Assignment, body io.Reader, length int64, operation string) (*http.Response, error) {
+	return c.artifactHTTP(ctx, method, path, a, body, length, operation, "application/octet-stream")
+}
+
+func (c *Client) artifactHTTP(ctx context.Context, method, path string, a Assignment, body io.Reader, length int64, operation, contentType string) (*http.Response, error) {
+	if err := c.checkArtifactAssignment(a); err != nil {
+		return nil, err
+	}
 	u, err := url.Parse(c.BaseURL)
 	if err != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))) {
 		return nil, fmt.Errorf("invalid artifact control origin")
@@ -41,19 +78,30 @@ func (c *Client) artifactRequest(ctx context.Context, method, path string, a Ass
 	if strings.TrimSpace(c.Token) == "" {
 		return nil, fmt.Errorf("artifact worker credential required")
 	}
-	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(c.BaseURL, "/")+"/api/v1/runner/"+path, body)
+	namespace := "runner"
+	var assignment any = assignmentRef(a)
+	if c.Pool != nil {
+		namespace = "pool-runner"
+		assignment = candidateRef(a)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(c.BaseURL, "/")+"/api/v1/"+namespace+"/"+path, body)
 	if err != nil {
 		return nil, err
 	}
 	req.ContentLength = length
 	req.Header.Set("Authorization", "Bearer "+c.Token)
-	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("X-Suma-Operation-ID", operation)
-	identity, _ := json.Marshal(assignmentRef(a))
+	identity, _ := json.Marshal(assignment)
 	req.Header.Set("X-Suma-Assignment", base64.RawURLEncoding.EncodeToString(identity))
 	client := c.HTTP
 	if client == nil {
 		client = &http.Client{Timeout: 15 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	}
+	if c.Pool != nil {
+		safe := *client
+		safe.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+		client = &safe
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -61,9 +109,31 @@ func (c *Client) artifactRequest(ctx context.Context, method, path string, a Ass
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		_ = resp.Body.Close()
-		return nil, fmt.Errorf("artifact request rejected: HTTP %d", resp.StatusCode)
+		return nil, &runnerHTTPStatusError{Path: path, Status: resp.StatusCode}
 	}
 	return resp, nil
+}
+
+// The Pool carries the full original dispatch in its header. Keep the closed
+// artifact JSON body identical to the project protocol and never route a Pool
+// assignment through the private runner namespace.
+func (c *Client) postArtifact(ctx context.Context, path string, a Assignment, operation string, request, reply any) error {
+	if err := c.checkArtifactAssignment(a); err != nil {
+		return err
+	}
+	if c.Pool == nil {
+		return c.post(ctx, path, request, reply)
+	}
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	resp, err := c.artifactHTTP(ctx, http.MethodPost, path, a, bytes.NewReader(body), int64(len(body)), operation, "application/json")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return json.NewDecoder(io.LimitReader(resp.Body, 2<<20)).Decode(reply)
 }
 
 func resolveArtifact(ctx context.Context, a Assignment, cfg ExecConfig) (releasecontract.ArtifactBinding, error) {
@@ -72,7 +142,8 @@ func resolveArtifact(ctx context.Context, a Assignment, cfg ExecConfig) (release
 	if !ok || source == "" || source == a.NodeID {
 		return binding, fmt.Errorf("test config.artifact_from requires an explicit build ancestor")
 	}
-	err := cfg.Artifacts.post(ctx, "artifacts/resolve", releasecontract.ArtifactResolveRequest{ProjectID: cfg.Artifacts.ProjectID, Assignment: assignmentRef(a), OperationID: artifactOperation(a, "resolve"), SourceNodeID: source}, &binding)
+	operation := artifactOperation(a, "resolve")
+	err := cfg.Artifacts.postArtifact(ctx, "artifacts/resolve", a, operation, releasecontract.ArtifactResolveRequest{ProjectID: cfg.Artifacts.ProjectID, Assignment: assignmentRef(a), OperationID: operation, SourceNodeID: source}, &binding)
 	if err != nil {
 		return binding, err
 	}
@@ -277,7 +348,8 @@ func uploadArtifact(ctx context.Context, c *Client, p artifactTransfer) (release
 	if err != nil || hash != p.ManifestSHA256 {
 		return receipt, fmt.Errorf("durable artifact manifest changed")
 	}
-	err = c.post(ctx, "artifact-uploads", releasecontract.ArtifactUploadRequest{ProjectID: c.ProjectID, Assignment: assignmentRef(p.Assignment), OperationID: artifactOperation(p.Assignment, "upload"), ProfileID: p.ProfileID, ProfileSHA256: p.ProfileSHA256, Manifest: p.Manifest}, &state)
+	operation := artifactOperation(p.Assignment, "upload")
+	err = c.postArtifact(ctx, "artifact-uploads", p.Assignment, operation, releasecontract.ArtifactUploadRequest{ProjectID: c.ProjectID, Assignment: assignmentRef(p.Assignment), OperationID: operation, ProfileID: p.ProfileID, ProfileSHA256: p.ProfileSHA256, Manifest: p.Manifest}, &state)
 	if err != nil {
 		return receipt, err
 	}
@@ -304,7 +376,8 @@ func uploadArtifact(ctx context.Context, c *Client, p artifactTransfer) (release
 		}
 		_ = resp.Body.Close()
 	}
-	err = c.post(ctx, "artifact-uploads/"+url.PathEscape(state.UploadID)+"/seal", releasecontract.ArtifactSealRequest{ProjectID: c.ProjectID, Assignment: assignmentRef(p.Assignment), OperationID: artifactOperation(p.Assignment, "seal")}, &receipt)
+	operation = artifactOperation(p.Assignment, "seal")
+	err = c.postArtifact(ctx, "artifact-uploads/"+url.PathEscape(state.UploadID)+"/seal", p.Assignment, operation, releasecontract.ArtifactSealRequest{ProjectID: c.ProjectID, Assignment: assignmentRef(p.Assignment), OperationID: operation}, &receipt)
 	if err != nil {
 		return receipt, err
 	}

@@ -87,6 +87,13 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if p.ArtifactKind != "" || p.ArtifactProfileSHA256 != "" {
+		if (p.ArtifactKind != "build" && p.ArtifactKind != "package_test") || !ValidDigest(p.ArtifactProfileSHA256) ||
+			p.Adapter != "command" || p.Protocol != "text-v1" || p.ReadOnly || p.TestReportProtocol != "" ||
+			p.TerminalSessionProtocol != "" || p.WorkspaceToolsVersion != "" || p.ModelExecutionProtocol != "" {
+			return fmt.Errorf("invalid dedicated artifact command profile")
+		}
+	}
 	input := p.UserInputProtocol == cc.UserInputProtocol && p.Adapter == "codex" && p.Protocol == cc.Protocol || p.UserInputProtocol == cu.InputProtocol && p.Adapter == "cursor" && p.Protocol == ac.Protocol || p.UserInputProtocol == cl.InputProtocol && p.Adapter == "claude" && p.Protocol == cl.Protocol
 	if p.UserInputProtocol != "" && (!input || p.ReadOnly) {
 		return fmt.Errorf("user input requires its exact supported writable runtime profile")

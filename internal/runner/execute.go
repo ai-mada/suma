@@ -389,14 +389,21 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail("native conflict repair capability is not enabled")
 	}
 	if spec.ArtifactOutput != "" || spec.ArtifactInput {
+		if err := cfg.Artifacts.checkArtifactAssignment(a); err != nil {
+			return fail(err.Error())
+		}
+		if a.PoolID != "" {
+			_, artifactSource := a.Config["artifact_from"].(string)
+			if spec.ArtifactInput && (!validPoolPackageTestCommand(spec) || !artifactSource) ||
+				!spec.ArtifactInput && applicationBuild == nil {
+				return fail("pool artifacts require a scoped application build or its designated package test")
+			}
+		}
 		if _, _, err := artifactProfile(a.Command[0], spec); err != nil {
 			return fail("artifact profile: " + err.Error())
 		}
 		if spec.ArtifactInput && a.Type != "test" {
 			return fail("artifact input requires a test node")
-		}
-		if cfg.Artifacts == nil {
-			return fail("artifact control client is required")
 		}
 	}
 	if hasCandidate(a) && spec.ReadOnly {

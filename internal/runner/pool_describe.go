@@ -22,7 +22,7 @@ func DescribePoolTools(ctx context.Context, config PoolLocalConfig, allow bool) 
 	}
 	out := make([]PoolToolDescription, 0, len(resolved.Scopes))
 	for _, scope := range resolved.Scopes {
-		items, err := DescribeTools(ctx, ExecConfig{AllowExec: allow, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments})
+		items, err := describeTools(ctx, ExecConfig{AllowExec: allow, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments}, true)
 		if err != nil {
 			return nil, err
 		}

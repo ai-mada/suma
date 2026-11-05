@@ -9,6 +9,9 @@ import (
 )
 
 type ToolExecutionProfile struct {
+	// Artifact transport requires a separately approved exact release profile.
+	ArtifactKind            string `json:"artifact_kind,omitempty"`
+	ArtifactProfileSHA256   string `json:"artifact_profile_sha256,omitempty"`
 	CommandID               string `json:"command_id"`
 	Adapter                 string `json:"adapter"`
 	Protocol                string `json:"protocol"`

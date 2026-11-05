@@ -226,6 +226,45 @@ func releaseContracts(add operationAdder) {
 	runner(op)
 	header(op, "X-Suma-Assignment", "Base64url-encoded AssignmentRef for the current test attempt/fence/worker.")
 	binary(op)
+	// Pool transport retains the exact dispatch envelope on every request.
+	for _, route := range []struct{ path, method, response, request, status string }{
+		{"/pool-runner/artifact-uploads", "post", "ArtifactUploadState", "ArtifactUploadRequest", "201"},
+		{"/pool-runner/artifact-uploads/{id}", "get", "ArtifactUploadState", "", "200"},
+		{"/pool-runner/artifact-uploads/{id}/blobs/{sha256}", "put", "Acknowledgement", "", "200"},
+		{"/pool-runner/artifact-uploads/{id}/seal", "post", "ArtifactSealReceipt", "ArtifactSealRequest", "200"},
+		{"/pool-runner/artifacts/resolve", "post", "ArtifactBinding", "ArtifactResolveRequest", "200"},
+		{"/pool-runner/artifacts/{id}/blobs/{sha256}", "get", "", "", "200"},
+	} {
+		op = single(route.path, route.method, route.response, route.request != "", route.status)
+		op["security"] = []any{map[string]any{"poolRunnerAuth": []string{}}}
+		op["x-required-token-scope"] = "pool_runner"
+		op["description"] = "Exact live Pool dispatch and current bilateral grant, with an approved dedicated artifact command profile."
+		params := op["parameters"].([]any)
+		filtered := params[:0]
+		for _, raw := range params {
+			if raw.(map[string]any)["name"] != "project_id" {
+				filtered = append(filtered, raw)
+			}
+		}
+		op["parameters"] = filtered
+		if route.method != "post" {
+			query := queryParameter("project_id", "Exact project from the Pool assignment header.", map[string]any{"type": "string"})
+			query["required"] = true
+			appendQuery(op, query)
+		}
+		header(op, "X-Suma-Assignment", "Base64url JSON CandidateAssignmentRef with current tenant, project, Pool, Runner, slot, grant version, credential version, dispatch and lease fence.")
+		if route.request != "" {
+			request(op, route.request)
+		}
+		if route.method == "put" {
+			header(op, "X-Suma-Operation-ID", "Stable content-addressed upload operation identity.")
+			op["requestBody"] = map[string]any{"required": true, "content": map[string]any{"application/octet-stream": map[string]any{"schema": map[string]any{"type": "string", "format": "binary", "maxLength": rc.MaxFileBytes}}}}
+			op["x-request-schema-coverage"] = "raw content-addressed bytes; exact size, digest and current Pool assignment"
+		}
+		if route.response == "" {
+			binary(op)
+		}
+	}
 	op = single("/runner/release-authorizations", "post", "ReleaseAuthorization", true, "200")
 	runner(op)
 	request(op, "ReleaseAuthorizationRequest")

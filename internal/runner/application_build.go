@@ -16,7 +16,7 @@ func applicationBuildAssignment(a Assignment) (*rc.ApplicationBuildBasis, error)
 		return basis, err
 	}
 	_, repositorySource := a.Config[ri.RepositorySourceExecutionKey]
-	if a.Type != "command" || a.PoolID != "" || repositorySource || cloudReserved(a) || a.WorkBuddyCloud != nil ||
+	if a.Type != "command" || repositorySource || cloudReserved(a) || a.WorkBuddyCloud != nil ||
 		a.RepositoryIntegration != nil || a.ReleaseExecution != nil || a.CodeBaseline != nil ||
 		a.DevelopmentContinuation != nil || a.CandidateComposition != nil || a.CandidateConflictRepair != nil || a.ExecutionSkills != nil {
 		return nil, fmt.Errorf("application build requires a dedicated project command")
@@ -25,9 +25,16 @@ func applicationBuildAssignment(a Assignment) (*rc.ApplicationBuildBasis, error)
 }
 
 func validApplicationBuildCommand(spec CommandSpec) bool {
+	return dedicatedArtifactCommand(spec) && spec.ArtifactOutput != "" && !spec.ArtifactInput && !spec.TestEvidence
+}
+
+func validPoolPackageTestCommand(spec CommandSpec) bool {
+	return dedicatedArtifactCommand(spec) && spec.ArtifactOutput == "" && spec.ArtifactInput && spec.TestEvidence
+}
+
+func dedicatedArtifactCommand(spec CommandSpec) bool {
 	spec = normalizedCommand(spec)
-	return spec.Adapter == "command" && spec.Protocol == "text-v1" && !spec.ReadOnly &&
-		spec.ArtifactOutput != "" && !spec.ArtifactInput && !spec.TestEvidence && !spec.TestReport &&
+	return spec.Adapter == "command" && spec.Protocol == "text-v1" && !spec.ReadOnly && !spec.TestReport &&
 		spec.Input == "" && spec.NativeWorkspace == nil && spec.ModelExecutionProtocol == "" &&
 		spec.CodexAppServer == nil && spec.OpenCode == nil && spec.ACP == nil && spec.ClaudeSDK == nil &&
 		!spec.Planning && !spec.KnowledgeExtraction && !spec.FailureDiagnosis && !spec.IntelligentOperations &&

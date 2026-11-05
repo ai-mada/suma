@@ -550,6 +550,10 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	return nil
 }
 func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error) {
+	return describeTools(ctx, cfg, false)
+}
+
+func describeTools(ctx context.Context, cfg ExecConfig, poolArtifacts bool) ([]tc.Observation, error) {
 	if err := ValidateToolConfiguration(cfg); err != nil {
 		return nil, err
 	}
@@ -627,6 +631,13 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ProfileSHA256 = digest
+			if poolArtifacts {
+				o.Profile.ArtifactKind, o.Profile.ArtifactProfileSHA256, err = localArtifactCapability(id, spec)
+				if err != nil {
+					fail(err.Error())
+					return
+				}
+			}
 			if err := probeTerminalSessionSpec(spec); err != nil {
 				fail(err.Error())
 				return
@@ -796,6 +807,13 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	if err != nil {
 		return tc.Profile{}, "", fmt.Errorf("profile digest unavailable")
 	}
+	var artifactKind, artifactHash string
+	if a.PoolID != "" {
+		artifactKind, artifactHash, err = localArtifactCapability(a.Command[0], spec)
+		if err != nil {
+			return tc.Profile{}, "", err
+		}
+	}
 	var p tc.Profile
 	if cfg.ToolInventory != nil {
 		for _, o := range cfg.ToolInventory {
@@ -812,7 +830,7 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if e != nil {
 			return p, "", e
 		}
-		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
+		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec), ArtifactKind: artifactKind, ArtifactProfileSHA256: artifactHash}
 		p.ACPExecution, err = localACPCapability(spec)
 		if err != nil {
 			return p, "", err
@@ -878,6 +896,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	}
 	if err = tc.ValidateProfile(p, true); err != nil {
 		return p, "", fmt.Errorf("invalid tool profile")
+	}
+	if p.ArtifactKind != artifactKind || p.ArtifactProfileSHA256 != artifactHash {
+		return p, "", fmt.Errorf("artifact capability does not match local configuration")
 	}
 	if p.TestReportProtocol != testReportProtocol(spec) {
 		return p, "", fmt.Errorf("test report capability does not match local configuration")

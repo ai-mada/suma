@@ -179,7 +179,12 @@ func TestPoolConfigRejectsCredentialForwardingAndUnscopedArtifactPrivileges(t *t
 	command.ArtifactOutput = "dist"
 	config.Scopes[0].Commands["run"] = command
 	if validatePoolLocalConfig(config) == nil {
-		t.Fatal("ungranted pool artifact capability accepted")
+		t.Fatal("read-only artifact capability accepted")
+	}
+	command.ReadOnly = false
+	config.Scopes[0].Commands["run"] = command
+	if err := validatePoolLocalConfig(config); err != nil {
+		t.Fatal("dedicated build capability rejected", err)
 	}
 }
 

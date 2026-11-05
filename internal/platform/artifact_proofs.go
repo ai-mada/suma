@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
 	rc "github.com/ai-mada/suma/internal/releasecontract"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
 const artifactProofColumns = `id,project_id,run_id,node_id,attempt,fence,worker_id,kind,artifact_id,manifest_sha256,source_commit,profile_id,profile_sha256,workspace_sha256,created_at`
@@ -114,8 +116,6 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *
 	if err := auth.assertTx(tx, auth.target, purposeRunnerWrite); err != nil {
 		return err
 	}
-	p, project := auth.currentPrincipal, auth.target.projectID
-
 	e := result.ArtifactEvidence
 	if e != nil {
 		if err := s.releaseWorkerBindingTx(ctx, tx, auth, result.WorkerID, e.ProfileID, e.ProfileSHA256, e.Kind); err != nil {
@@ -126,6 +126,48 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *
 	if state != "succeeded" {
 		return nil
 	}
+	return s.storeVerifiedArtifactResultTx(ctx, tx, auth.currentPrincipal, auth.target.projectID, auth.actor.credential.digest, spec, result, false)
+}
+
+func (s *Service) verifyPoolArtifactResultTx(ctx context.Context, tx *sql.Tx, machine *poolMachineProof, a dag.Assignment, tokenHash string, spec dag.Node, profile ToolProfile, result dag.Result, state string) error {
+	if err := machine.assertAssignment(tx, a); err != nil {
+		return err
+	}
+	evidence := result.ArtifactEvidence
+	// Failed or stopped attempts may drain without creating new release proof.
+	if state != "succeeded" {
+		if evidence != nil {
+			return invalid("未成功的资源池执行不能形成制品证明")
+		}
+		return nil
+	}
+	kind, err := poolArtifactNodeKind(spec, profile)
+	if err != nil {
+		return err
+	}
+	if kind == "" {
+		if evidence != nil {
+			return forbidden()
+		}
+		return nil
+	}
+	if profile.State != "enabled" || evidence == nil || evidence.Kind != kind || evidence.ProfileID != profile.Profile.CommandID ||
+		evidence.ProfileSHA256 != profile.Profile.ArtifactProfileSHA256 || result.ToolEvidence == nil ||
+		!tc.EqualProfile(result.ToolEvidence.Profile, profile.Profile) {
+		return conflict("资源池制品证明缺少固定执行身份或档案依据")
+	}
+	// Machine completion may drain an old grant. New publication evidence still
+	// requires the exact current bilateral scope, just like artifact transfer.
+	if err = s.poolArtifactGrantActiveTx(ctx, tx, a); err != nil {
+		return err
+	}
+	return s.storeVerifiedArtifactResultTx(ctx, tx, Principal{TenantID: a.TenantID}, a.ProjectID, tokenHash, spec, result, true)
+}
+
+// Only invoke this core after checking the appropriate credential and approved
+// profile in the surrounding attempt-completion transaction.
+func (s *Service) storeVerifiedArtifactResultTx(ctx context.Context, tx *sql.Tx, p Principal, project, tokenHash string, spec dag.Node, result dag.Result, pool bool) error {
+	e := result.ArtifactEvidence
 	basis, err := checkApplicationBuildEvidence(spec, e)
 	if err != nil || e == nil {
 		return err
@@ -167,7 +209,7 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *
 		if err != nil {
 			return err
 		}
-		if u.State != "sealed" || u.Assignment != artifactRef(result) || u.TokenHash != auth.actor.credential.digest || u.ProfileID != e.ProfileID || u.ProfileSHA256 != e.ProfileSHA256 {
+		if u.State != "sealed" || u.Assignment != artifactRef(result) || u.TokenHash != tokenHash || u.ProfileID != e.ProfileID || u.ProfileSHA256 != e.ProfileSHA256 {
 			return conflict("制品不属于本次构建身份或固定配置")
 		}
 	case "package_test":
@@ -186,8 +228,12 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *
 		if err = tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_artifact_proofs WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND kind='build' AND artifact_id=?`), p.TenantID, project, b.BuildRunID, b.BuildNodeID, b.BuildAttempt, b.BuildFence, b.ArtifactID).Scan(&buildID); err != nil {
 			return conflict("原构建证明不存在")
 		}
-		if _, err = s.currentArtifactProofTx(ctx, tx, p, project, buildID); err != nil {
+		build, err := s.currentArtifactProofTx(ctx, tx, p, project, buildID)
+		if err != nil {
 			return err
+		}
+		if pool && (build.ApplicationBuild == nil || build.Assignment.WorkerID == result.WorkerID) {
+			return conflict("资源池包测试需要另一执行节点的应用范围构建证明")
 		}
 	default:
 		return invalid("未知制品证明种类")
@@ -291,8 +337,59 @@ func (s *Service) ResolveArtifactInput(ctx context.Context, actor Actor, project
 	if !allowed {
 		return out, forbidden()
 	}
+	out, err = s.resolveArtifactBindingTx(ctx, tx, p, project, r, false)
+	if err != nil {
+		return out, err
+	}
+	if err = s.saveCommandReceipt(ctx, auth, r.OperationID, hash, out); err != nil {
+		return out, err
+	}
+	return out, tx.Commit()
+}
+
+func (s *Service) resolvePoolArtifactInput(ctx context.Context, subject candidateSubject, a cc.AssignmentRef, r rc.ArtifactResolveRequest) (rc.ArtifactBinding, error) {
+	var out rc.ArtifactBinding
+	if !subject.pool || r.ProjectID != subject.project || r.Assignment != artifactCoreAssignment(a) {
+		return out, forbidden()
+	}
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
+	if err != nil {
+		return out, err
+	}
+	defer cancel()
+	defer tx.Rollback()
+	auth, _, err := s.poolArtifactAuthorityTx(ctx, tx, subject, a, "package_test")
+	if err != nil {
+		return out, err
+	}
+	if auth.spec.Config["artifact_from"] != r.SourceNodeID {
+		return out, invalid("制品输入仅能取自本次测试的明确构建祖先")
+	}
+	// Heartbeats may extend the displayed lease without changing the dispatch.
+	identity := a
+	identity.DispatchState, identity.LeaseUntil = "", ""
+	hash, replay, err := s.candidateReceipt(ctx, auth, r.OperationID, map[string]any{"pool_artifact_resolve": r, "assignment": identity})
+	if err != nil {
+		return out, err
+	}
+	if replay {
+		err = json.Unmarshal([]byte(hash), &out)
+		return out, err
+	}
+	out, err = s.resolveArtifactBindingTx(ctx, tx, Principal{TenantID: subject.tenant}, subject.project, r, true)
+	if err != nil {
+		return out, err
+	}
+	if err = s.saveCandidateReceipt(ctx, auth, r.OperationID, hash, out); err != nil {
+		return out, err
+	}
+	return out, tx.Commit()
+}
+
+func (s *Service) resolveArtifactBindingTx(ctx context.Context, tx *sql.Tx, p Principal, project string, r rc.ArtifactResolveRequest, pool bool) (rc.ArtifactBinding, error) {
+	var out rc.ArtifactBinding
 	var raw string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT w.spec FROM dag_workflows w JOIN dag_runs r ON r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.workflow_id=w.id AND r.workflow_version=w.version WHERE r.id=?`), r.Assignment.RunID).Scan(&raw); err != nil {
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT w.spec FROM dag_workflows w JOIN dag_runs r ON r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.workflow_id=w.id AND r.workflow_version=w.version WHERE r.tenant_id=? AND r.project_id=? AND r.id=?`), p.TenantID, project, r.Assignment.RunID).Scan(&raw); err != nil {
 		return out, err
 	}
 	var wf dag.Workflow
@@ -322,12 +419,15 @@ func (s *Service) ResolveArtifactInput(ctx context.Context, actor Actor, project
 		return out, invalid("制品来源必须是流程的静态构建祖先")
 	}
 	var proofID string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT a.id FROM suma_artifact_proofs a JOIN dag_nodes n ON n.run_id=a.run_id AND n.id=a.node_id AND n.attempt=a.attempt AND n.fence=a.fence WHERE a.tenant_id=? AND a.project_id=? AND a.run_id=? AND a.node_id=? AND a.kind='build'`), p.TenantID, project, r.Assignment.RunID, r.SourceNodeID).Scan(&proofID); err != nil {
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT a.id FROM suma_artifact_proofs a JOIN dag_nodes n ON n.run_id=a.run_id AND n.id=a.node_id AND n.attempt=a.attempt AND n.fence=a.fence WHERE a.tenant_id=? AND a.project_id=? AND a.run_id=? AND a.node_id=? AND a.kind='build'`), p.TenantID, project, r.Assignment.RunID, r.SourceNodeID).Scan(&proofID); err != nil {
 		return out, conflict("上游尚无可用构建证明")
 	}
 	proof, err := s.currentArtifactProofTx(ctx, tx, p, project, proofID)
 	if err != nil {
 		return out, err
+	}
+	if pool && (proof.ApplicationBuild == nil || proof.Assignment.WorkerID == r.Assignment.WorkerID) {
+		return out, conflict("资源池包测试需要另一执行节点的应用范围构建证明")
 	}
 	manifest, err := s.releaseArtifactManifestTx(ctx, tx, p, project, proof.ArtifactID)
 	if err != nil {
@@ -345,48 +445,82 @@ func (s *Service) ResolveArtifactInput(ctx context.Context, actor Actor, project
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_bindings(tenant_id,project_id,run_id,node_id,attempt,fence,worker_id,source_node_id,binding)VALUES(?,?,?,?,?,?,?,?,?)`), p.TenantID, project, r.Assignment.RunID, r.Assignment.NodeID, r.Assignment.Attempt, r.Assignment.Fence, r.Assignment.WorkerID, r.SourceNodeID, stringify(out)); err != nil {
 		return out, err
 	}
-	if err = s.saveCommandReceipt(ctx, auth, r.OperationID, hash, out); err != nil {
-		return out, err
-	}
-	return out, tx.Commit()
+	return out, nil
 }
 
 func (s *Service) RunnerArtifactBlob(ctx context.Context, actor Actor, project, id, hash string, a rc.AssignmentRef) ([]byte, error) {
-	var ref artifactReadRef
 	target := commandTarget{tenantID: actor.credential.tenantID, projectID: project}
-	read := func(auth *authorizedCommand) error {
-		tx, p := auth.tx, auth.currentPrincipal
-		if err := s.releaseWorkerBindingTx(ctx, tx, auth, a.WorkerID, "", "", "identity"); err != nil {
+	read := func() (artifactReadRef, error) {
+		var ref artifactReadRef
+		err := s.withCurrentRead(ctx, actor, target, purposeRunnerRead, func(auth *authorizedCommand) error {
+			tx, p := auth.tx, auth.currentPrincipal
+			if err := s.releaseWorkerBindingTx(ctx, tx, auth, a.WorkerID, "", "", "identity"); err != nil {
+				return err
+			}
+			if _, err := s.currentArtifactAssignmentTx(ctx, tx, p, project, a); err != nil {
+				return err
+			}
+			var err error
+			ref, err = s.runnerArtifactBlobReferenceTx(ctx, tx, p, project, id, hash, a)
 			return err
-		}
-		var err error
-		if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, project, a); err != nil {
-			return err
-		}
-		var binding string
-		if err = tx.QueryRowContext(ctx, s.q(`SELECT binding FROM suma_artifact_bindings WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=?`), p.TenantID, project, a.RunID, a.NodeID, a.Attempt, a.Fence, a.WorkerID).Scan(&binding); err != nil {
-			return forbidden()
-		}
-		var b rc.ArtifactBinding
-		if json.Unmarshal([]byte(binding), &b) != nil || b.ArtifactID != id {
-			return forbidden()
-		}
-		ref, err = s.artifactBlobReferenceTx(ctx, tx, p, project, id, hash)
-		return err
+		})
+		return ref, err
+	}
+	return s.readAuthorizedArtifactBlob(read)
+}
 
+func (s *Service) poolArtifactBlob(ctx context.Context, subject candidateSubject, a cc.AssignmentRef, id, hash string) ([]byte, error) {
+	if !subject.pool {
+		return nil, forbidden()
 	}
-	if err := s.withCurrentRead(ctx, actor, target, purposeRunnerRead, read); err != nil {
-		return nil, err
+	read := func() (artifactReadRef, error) {
+		var ref artifactReadRef
+		ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
+		if err != nil {
+			return ref, err
+		}
+		defer cancel()
+		defer tx.Rollback()
+		auth, _, err := s.poolArtifactAuthorityTx(ctx, tx, subject, a, "package_test")
+		if err != nil {
+			return ref, err
+		}
+		if err = auth.assert(); err != nil {
+			return ref, err
+		}
+		return s.runnerArtifactBlobReferenceTx(ctx, tx, Principal{TenantID: subject.tenant}, subject.project, id, hash, artifactCoreAssignment(a))
 	}
-	initial := ref
-	b, err := s.readArtifactBlob(ref.path, ref.hash, ref.size)
+	return s.readAuthorizedArtifactBlob(read)
+}
+
+func (s *Service) runnerArtifactBlobReferenceTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, hash string, a rc.AssignmentRef) (artifactReadRef, error) {
+	var binding string
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT binding FROM suma_artifact_bindings WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=?`), p.TenantID, project, a.RunID, a.NodeID, a.Attempt, a.Fence, a.WorkerID).Scan(&binding); err != nil {
+		return artifactReadRef{}, forbidden()
+	}
+	var b rc.ArtifactBinding
+	if json.Unmarshal([]byte(binding), &b) != nil || b.ArtifactID != id {
+		return artifactReadRef{}, forbidden()
+	}
+	return s.artifactBlobReferenceTx(ctx, tx, p, project, id, hash)
+}
+
+// Read and verify bytes outside the authority transaction. Never release the
+// bytes if the current assignment or frozen binding changed during file I/O.
+func (s *Service) readAuthorizedArtifactBlob(read func() (artifactReadRef, error)) ([]byte, error) {
+	initial, err := read()
 	if err != nil {
 		return nil, err
 	}
-	if err = s.withCurrentRead(ctx, actor, target, purposeRunnerRead, read); err != nil {
+	b, err := s.readArtifactBlob(initial.path, initial.hash, initial.size)
+	if err != nil {
 		return nil, err
 	}
-	if ref != initial {
+	current, err := read()
+	if err != nil {
+		return nil, err
+	}
+	if current != initial {
 		return nil, conflict("制品读取依据已变化，请重试")
 	}
 	return b, nil

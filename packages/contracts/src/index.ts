@@ -8276,6 +8276,8 @@ export interface ToolEvidence {
   acp_execution?: ACPExecutionEvidence | null;
 }
 export interface ToolExecutionProfile {
+  artifact_kind?: string;
+  artifact_profile_sha256?: string;
   command_id: string;
   adapter: string;
   protocol: string;

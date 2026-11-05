@@ -304,9 +304,24 @@ func (w *Worker) resumeArtifacts(ctx context.Context, beat time.Duration) error 
 		if p.Assignment.WorkerID != w.ID {
 			return fmt.Errorf("artifact checkpoint belongs to another worker")
 		}
+		client := w.Client
+		if client.Pool != nil {
+			var err error
+			client, err = client.forPoolAssignment(p.Assignment)
+			if err != nil {
+				return err
+			}
+			cancelled, err := client.Heartbeat(ctx, p.Assignment)
+			if err != nil {
+				return err
+			}
+			if cancelled {
+				return fmt.Errorf("pool artifact checkpoint cancelled; original proof retained")
+			}
+		}
 		runCtx, cancel := context.WithCancel(ctx)
 		done := make(chan error, 1)
-		go func() { done <- resumeArtifact(runCtx, w.Client, w.Journal, p) }()
+		go func() { done <- resumeArtifact(runCtx, client, w.Journal, p) }()
 		timer := time.NewTicker(beat)
 		var err error
 	loop:
@@ -315,7 +330,7 @@ func (w *Worker) resumeArtifacts(ctx context.Context, beat time.Duration) error 
 			case err = <-done:
 				break loop
 			case <-timer.C:
-				requested, beatErr := w.Client.Heartbeat(runCtx, p.Assignment)
+				requested, beatErr := client.Heartbeat(runCtx, p.Assignment)
 				if requested || beatErr != nil {
 					cancel()
 				}

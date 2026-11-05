@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "pool_application_artifacts": {
+    "stage": "T-POOL-APPLICATION-ARTIFACTS-251",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "54c063fa905e49719b0a749672458127837f83d9",
+    "report": "docs/quality/pool-application-artifacts-verification.md",
+    "actual": "Approved Pool workers build and upload scoped application artifacts, independently download and test the same sealed manifest, and write proof only under current bilateral grant and exact lease. Browser acceptance and release candidate remain separate operations.",
+    "verification": "Actual Windows Git, SQLite, Node child processes and distinct Pool machine credentials; rejected grant drift before replay/result, wrong slot/version and wrong machine, restored exact resolve receipt. 5 Runner and 5 private artifact regressions; verified OpenAPI and TypeScript contracts.",
+    "known_limitations": "Same-host fixture using project-approved artifact profiles. Standalone cross-host operation, multi-source build, Pool artifact retention/cleanup and production remain separate.",
+    "full_platform_complete": false,
+    "git_record": ".cache/p251/post-git.json"
+  },
   "application_scoped_build": {
     "stage": "T-APPLICATION-SCOPED-BUILD-250",
     "version": "1.0.0",
