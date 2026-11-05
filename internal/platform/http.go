@@ -253,6 +253,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.poolCandidateTransferHTTP(w, r, path) {
 		return
 	}
+	if s.repositorySourceBundleHTTP(w, r, candidateSubject{pool: true}, path, "pool-runner/repository-source-intakes") {
+		return
+	}
 	if s.poolRunnerPairingMachineHTTP(w, r, parts) {
 		return
 	}
@@ -634,6 +637,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.candidateTransferHTTP(w, r, actor, project, path, m) {
 		return
 	}
+	if s.repositorySourceBundleHTTP(w, r, projectCandidateSubject(actor, project), path, "runner/repository-source-intakes") {
+		return
+	}
 	if s.artifactHTTP(w, r, actor, project, path, m) {
 		return
 	}
@@ -675,6 +681,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(parts) == 5 && parts[0] == "tasks" && parts[2] == "delivery" && parts[3] == "repository-source" && parts[4] == "intakes" {
 		s.taskDeliveryRepositoryIntakeHTTP(w, r, actor, project, parts[1], m)
+		return
+	}
+	if len(parts) == 7 && parts[0] == "tasks" && parts[2] == "delivery" && parts[3] == "repository-source" && parts[4] == "intakes" && parts[6] == "dispatch-plans" {
+		s.taskDeliveryRepositoryDispatchHTTP(w, r, actor, project, parts[1], parts[5], m)
 		return
 	}
 	if s.taskDeliveryHTTP(w, r, actor, scope, project, parts) {
@@ -1382,6 +1392,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.validateWorkspaceTerminalCandidateResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
+				return err
+			}
+			if err := s.Service.validateRepositorySourceResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
 				return err
 			}
 			if err := s.Service.validateCodeBaselineResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {

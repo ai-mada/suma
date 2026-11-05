@@ -11,6 +11,7 @@ import (
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	mg "github.com/ai-mada/suma/internal/modelgateway"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	ri "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
@@ -274,6 +275,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	// executors can enter a journal, network or non-development workspace.
 	if err := developmentContinuationInput(a); err != nil {
 		return Result{Assignment: a, ExitCode: -1, Error: err.Error()}
+	}
+	if _, present := a.Config[ri.RepositorySourceExecutionKey]; present {
+		return executeRepositorySourceCandidate(ctx, cloneModelAssignment(a), cfg)
 	}
 	if cloudReserved(a) || a.WorkBuddyCloud != nil {
 		return executeWorkBuddyCloud(ctx, a, cfg)

@@ -125,6 +125,14 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if plan.State != "ready" {
 		return conflict("计划已派发，不能创建另一运行；请打开原运行或恢复原操作")
 	}
+	if _, err := s.checkRepositorySourceDispatchModeTx(ctx, tx, auth, plan); err != nil {
+		return err
+	}
+	if auth.purpose == purposeProjectRead && repositorySourceDispatchMarked(plan) {
+		if err := s.validateRepositorySourceDispatchTx(ctx, tx, auth, plan); err != nil {
+			return err
+		}
+	}
 	clock, err := s.automationClock(ctx, tx)
 	if err != nil {
 		return err
@@ -408,7 +416,7 @@ func (s *Service) GetTaskDispatchPlan(ctx context.Context, engine *dag.Engine, a
 
 func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine, actor Actor, project, id string, request TaskDispatchStartRequest) (dag.Run, error) {
 	var out dag.Run
-	if request.ProjectID != project || request.ExpectedVersion < 1 {
+	if engine == nil || request.ProjectID != project || request.ExpectedVersion < 1 {
 		return out, invalid("请提供当前派发计划版本")
 	}
 	// The preview is a current-authorized read; admission and every replay
@@ -418,7 +426,11 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		return out, err
 	}
 	p := actor.Projection()
-	authority := s.engineAuthority(ctx, actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: id}, purposeProjectWrite)
+	purpose := purposeProjectWrite
+	if repositorySourceDispatchMarked(plan) {
+		purpose = purposeBrowserProjectApprove
+	}
+	authority := s.engineAuthority(ctx, actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: id}, purpose)
 	defer authority.close()
 	ctx = authority.ctx
 	var hash string
@@ -430,14 +442,19 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		if e := s.rejectExpertTeamOwnedPlanTx(ctx, tx, p.TenantID, project, id); e != nil {
 			return e
 		}
+		current, e := s.taskDispatchPlanTx(ctx, tx, p, project, id)
+		if e != nil {
+			return e
+		}
+		// Recovering a managed-run receipt still requires current browser approval
+		// for the exact protected plan. The pre-read marker alone grants nothing.
+		if _, e = s.checkRepositorySourceDispatchModeTx(ctx, tx, authority.proof, current); e != nil {
+			return e
+		}
 		var replay bool
 		hash, replay, err = s.commandReceipt(ctx, authority.proof, request.IdempotencyKey, map[string]any{"task_dispatch_start": id, "request": request})
 		if err != nil || replay {
 			return err
-		}
-		current, e := s.taskDispatchPlanTx(ctx, tx, p, project, id)
-		if e != nil {
-			return e
 		}
 		if current.Version != request.ExpectedVersion {
 			return conflict("派发计划已变化，请刷新并核对")
@@ -449,6 +466,13 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		}
 		if e := s.validateWorkspaceTerminalCandidateBindTx(ctx, tx, authority.proof, plan); e != nil {
 			return e
+		}
+		// Core has established pool/project locks. Recheck the old origin and
+		// retained intake immediately before the task changes to the new run.
+		if repositorySourceDispatchMarked(plan) {
+			if e := s.validateRepositorySourceDispatchTx(ctx, tx, authority.proof, plan); e != nil {
+				return e
+			}
 		}
 		if e := s.BindRunTx(ctx, tx, authority.proof, project, plan.TaskID, runID, plan.TaskVersion); e != nil {
 			return e

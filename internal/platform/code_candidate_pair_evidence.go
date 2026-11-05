@@ -160,5 +160,12 @@ func (s *Service) codeCandidateIndependentTestReadTx(ctx context.Context, tx *sq
 	if err = validateTerminalCandidateEvidence(producer.Result.WorkspaceEvidence, producer.Result.ToolEvidence, terminalSource); err != nil {
 		return false, nil
 	}
+	repositorySource, err := s.repositorySourceExecutionTx(ctx, tx, p.TenantID, project, run, source)
+	if err != nil {
+		return false, err
+	}
+	if err = validateRepositorySourceEvidence(producer.Result.WorkspaceEvidence, repositorySource); err != nil {
+		return false, nil
+	}
 	return true, nil
 }

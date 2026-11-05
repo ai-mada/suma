@@ -19,6 +19,7 @@ import (
 
 	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
+	ri "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 )
 
 var commitID = regexp.MustCompile(`^[0-9a-f]{40}([0-9a-f]{24})?$`)
@@ -379,6 +380,18 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 		return nil, fmt.Errorf("attempt Git identity changed")
 	}
 	expectedRepository := a.Repository
+	var sourceIntake *ri.RepositorySourceExecution
+	if raw, present := a.Assignment.Config[ri.RepositorySourceExecutionKey]; present {
+		binding, err := ri.DecodeRepositorySourceExecution(raw)
+		if err != nil || binding == nil || binding.BaseCommit != a.BaseCommit || binding.BaseCommit != a.AdminBaseCommit || !within(filepath.Join(a.Repository, ".cache"), a.Directory) || a.ConflictRepair != nil {
+			return nil, fmt.Errorf("repository source evidence basis changed")
+		}
+		sourceIntake = binding
+		expectedRepository = filepath.Join(a.Directory, "repository-source.git")
+		if resolved, e := realDirectory(expectedRepository); e != nil || resolved != expectedRepository {
+			return nil, fmt.Errorf("repository source evidence repository changed")
+		}
+	}
 	if a.ConflictRepair != nil {
 		if a.Assignment.CandidateConflictRepair == nil || a.ConflictRepair.Repository != filepath.Join(a.Directory, "repair.git") || !within(filepath.Join(a.Repository, ".cache"), a.Directory) {
 			return nil, fmt.Errorf("repair evidence repository identity changed")
@@ -399,6 +412,9 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	head, err := gitText(ctx, source, "rev-parse", "HEAD")
 	if err != nil || !commitID.MatchString(head) {
 		return nil, fmt.Errorf("attempt HEAD unavailable")
+	}
+	if sourceIntake != nil && head != sourceIntake.HeadCommit {
+		return nil, fmt.Errorf("repository source evidence head changed")
 	}
 	status, err := gitRun(ctx, source, "status", "--porcelain=v1", "-z", "--untracked-files=all")
 	if err != nil {
@@ -496,6 +512,9 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	}
 	evidence := map[string]any{"attempt_key": a.AttemptKey, "base_commit": a.BaseCommit, "head_commit": head, "state": a.State, "exit_code": result.ExitCode, "outcome_unknown": result.OutcomeUnknown, "test_command": a.TestCommand, "clean": len(status) == 0, "diff_sha256": digest(diff), "status_sha256": digest(status), "untracked_sha256": digest(inv), "captured_at": time.Now().UTC().Format(time.RFC3339Nano)}
 	evidence["admin_base_commit"] = a.AdminBaseCommit
+	if sourceIntake != nil {
+		evidence[ri.RepositorySourceExecutionKey] = *sourceIntake
+	}
 	if a.ConflictRepair != nil {
 		evidence["candidate_conflict_repair"] = a.ConflictRepair.Evidence
 	}

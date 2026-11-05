@@ -695,6 +695,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "repository_source_dispatch": {
+    "stage": "T-REPOSITORY-SOURCE-DISPATCH-245",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "7936058ebc25f8338ea29854009c3ad0f038d9b2",
+    "contract": "contracts/workbuddy-task-dispatch.md",
+    "report": "docs/quality/repository-source-dispatch-verification.md",
+    "actual": "An approved retained Git source launches a managed candidate and an independently tested commit via the existing DAG; successful execution must prove the exact sealed source bytes.",
+    "verification": "Real Git, SQLite and HTTP with two distinct project Runner identities and JUnit; unauthorized reads, stale fence, digest mismatch, start replay, blocked early Review and approved isolated fixture.",
+    "known_limitations": "Workbench workflow, Pool-specific multi-host validation, actual vendor attribution and production rollout remain pending.",
+    "full_platform_complete": false,
+    "git_record": ".cache/repository-dispatch-245/post-git.json"
+  },
   "repository_source_intake": {
     "stage": "T-REPOSITORY-SOURCE-INTAKE-244",
     "version": "1.0.0",

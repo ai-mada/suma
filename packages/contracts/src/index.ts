@@ -7167,6 +7167,15 @@ export interface TaskDeliveryNodeSummary {
   complete: boolean;
   items: (TaskDeliveryNode)[];
 }
+export interface TaskDeliveryRepositoryDispatchPreviewRequest {
+  project_id: string;
+  expected_task_version: number;
+  producer_profile_id: string;
+  expected_producer_profile_version: number;
+  test_profile_id: string;
+  expected_test_profile_version: number;
+  idempotency_key: string;
+}
 export interface TaskDeliveryRepositoryIntake {
   id: string;
   project_id: string;

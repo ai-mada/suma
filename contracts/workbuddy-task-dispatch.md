@@ -56,6 +56,14 @@
 
 回执中的基础提交、来源提交和摘要用于后续隔离导入。当前接口只返回回执元数据。候选封存、任务改绑、Runner 派发、独立测试和正式验收使用各自的合同。
 
+### 派发已批准仓库来源的候选和独立测试
+
+项目审批人在 `POST /tasks/{id}/delivery/repository-source/intakes/{intake}/dispatch-plans` 选择现有导入工具和另一 Worker 的 JUnit 工具。请求体指定 `project_id`、`expected_task_version`、`producer_profile_id`、`expected_producer_profile_version`、`test_profile_id`、`expected_test_profile_version` 和 `idempotency_key`。任务需已有发布的测试用例，且原 WorkBuddy 尝试仍待交付、任务没有活动终端。控制面生成固定的导入节点和同提交独立测试节点，并保留原审批包的提交、摘要、大小及当前工具版本。
+
+使用现有派发计划的启动接口明确启动。该类计划的启动和回执恢复均要求当前浏览器审批权限。DAG 和任务改绑同事务，改绑前再核对审批留存、任务、原尝试、目标登记和执行路由。原 WorkBuddy 运行作为来源保留。任务当前运行切换到独立候选 DAG。
+
+只有该候选生产节点的当前 Runner 租约可从受控接口读取原 Git 包。普通项目 Runner 和 Pool Runner 分别使用自己的机器凭据及 `X-Suma-Assignment`。读取前后重核任务绑定、租约和包摘要。导入节点在隔离 Git 对象库中从固定管理员基线验证原包并检出确切提交，使用现有候选协议封存同一份字节。生产节点成功回执须匹配确切封存记录，另一 Worker 通过既有候选传递协议取得同一提交并执行独立测试。人工验收核对新运行及测试证据。
+
 ## 验证及参考复用
 
 必要检查覆盖固定上下文／两阶段零外发、输入变化、原owner权限、CAS与准确回执、撤权重放、原事务失败回滚、私有／Pool原Runner领取与一次创建、供应方completed不绿。中英界面检查单账号默认、多个账号、无账号、预览、未知响应同key恢复及打开原节点；代表桌面／窄屏实际浏览器交互只验受影响范围。

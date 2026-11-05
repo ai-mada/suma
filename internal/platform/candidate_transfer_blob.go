@@ -15,8 +15,11 @@ import (
 // Bundle bytes use the existing confined artifact root, but their independent
 // 64 MiB limit does not expand release-artifact file or release-worker grants.
 func (s *Service) readCandidateBundle(ref candidateTransfer) ([]byte, error) {
-	b := ref.binding
-	if !storageBlobPath.MatchString(ref.path) || !cc.ValidHash(b.BundleSHA256) || b.SizeBytes < 1 || b.SizeBytes > cc.MaxBundleBytes {
+	return s.readFixedCandidateBytes(ref.path, ref.binding.BundleSHA256, ref.binding.SizeBytes)
+}
+
+func (s *Service) readFixedCandidateBytes(path, expectedSHA string, size int64) ([]byte, error) {
+	if !storageBlobPath.MatchString(path) || !cc.ValidHash(expectedSHA) || size < 1 || size > cc.MaxBundleBytes {
 		return nil, conflict("Candidate bundle storage reference is invalid")
 	}
 	root, err := s.artifactRoot()
@@ -24,29 +27,29 @@ func (s *Service) readCandidateBundle(ref candidateTransfer) ([]byte, error) {
 		return nil, err
 	}
 	defer root.Close()
-	info, err := root.Lstat(ref.path)
+	info, err := root.Lstat(path)
 	if err != nil || !info.Mode().IsRegular() {
 		return nil, conflict("Candidate bundle is missing or changed")
 	}
-	f, err := root.Open(ref.path)
+	f, err := root.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 	opened, err := f.Stat()
-	if err != nil || !os.SameFile(info, opened) || !opened.Mode().IsRegular() || opened.Size() != b.SizeBytes {
+	if err != nil || !os.SameFile(info, opened) || !opened.Mode().IsRegular() || opened.Size() != size {
 		return nil, conflict("Candidate bundle is missing or changed")
 	}
-	data, err := io.ReadAll(io.LimitReader(f, b.SizeBytes+1))
+	data, err := io.ReadAll(io.LimitReader(f, size+1))
 	if err != nil {
 		return nil, err
 	}
 	end, err := f.Stat()
-	if err != nil || !os.SameFile(opened, end) || end.Size() != b.SizeBytes || int64(len(data)) != b.SizeBytes {
+	if err != nil || !os.SameFile(opened, end) || end.Size() != size || int64(len(data)) != size {
 		return nil, conflict("Candidate bundle is missing or changed")
 	}
 	hash := sha256.Sum256(data)
-	if hex.EncodeToString(hash[:]) != b.BundleSHA256 {
+	if hex.EncodeToString(hash[:]) != expectedSHA {
 		return nil, conflict("Candidate bundle bytes do not match the manifest")
 	}
 	return data, nil

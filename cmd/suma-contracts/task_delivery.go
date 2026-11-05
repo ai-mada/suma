@@ -6,9 +6,10 @@ import (
 )
 
 const taskDeliveryRepositoryIntakePath = "/tasks/{id}/delivery/repository-source/intakes"
+const taskDeliveryRepositoryDispatchPath = taskDeliveryRepositoryIntakePath + "/{intake}/dispatch-plans"
 
 func taskDeliveryModels() []any {
-	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}}
+	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}, platform.TaskDeliveryRepositoryDispatchPreviewRequest{}}
 }
 
 // The selected-task view is separate from the complete editable dependency
@@ -38,6 +39,7 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	responses["503"] = map[string]any{"description": "Registered repository provider is unavailable"}
 	schemas := toolContractMap(api, "components", "schemas")
 	taskDeliveryRepositoryIntakeContract(add, schemas)
+	taskDeliveryRepositoryDispatchContracts(add, api, schemas)
 	for _, name := range []string{"TaskDelivery", "TaskDeliveryRun", "TaskDeliveryRunTarget", "TaskDeliveryNodeSummary", "TaskDeliveryNode", "TaskDeliveryExpertPlans", "TaskDeliveryExpertPlan", "TaskDeliveryIssues", "TaskDeliveryIssue", "TaskDeliveryRepositorySource"} {
 		model := toolContractMap(schemas, name)
 		model["additionalProperties"] = false
@@ -122,4 +124,54 @@ func taskDeliveryRepositoryIntakeContract(add operationAdder, schemas map[string
 	size := toolContractMap(properties, "size_bytes")
 	size["minimum"], size["maximum"] = 1, cc.MaxBundleBytes
 	toolContractMap(properties, "approved_at")["format"] = "date-time"
+}
+
+func taskDeliveryRepositoryDispatchContracts(add operationAdder, api, schemas map[string]any) {
+	const model = "TaskDeliveryRepositoryDispatchPreviewRequest"
+	op := add(taskDeliveryRepositoryDispatchPath, "post", "TaskDispatchPlan", false, true)
+	successStatus(op, "201")
+	browserOnly(op)
+	request(op, model)
+	op["description"] = "A current browser project approver previews a managed plan for one exact retained repository intake. The plan binds a fixed import profile and a different Worker's independent JUnit profile to the published task cases. Preview reserves a plan only."
+	op["x-request-schema-coverage"] = "exact task and intake path IDs and closed body; no query; current browser approval, original task basis, intake and independent test authority are server-enforced"
+	op["x-query-parameters-forbidden"] = true
+	op["x-response-cache-control"] = "no-store"
+	identifier := func() map[string]any { return map[string]any{"type": "string", "minLength": 1, "maxLength": 64} }
+	op["parameters"] = []any{
+		map[string]any{"in": "path", "name": "id", "required": true, "schema": identifier()},
+		map[string]any{"in": "path", "name": "intake", "required": true, "schema": identifier()},
+	}
+	toolContractMap(op, "responses")["404"] = map[string]any{"description": "Task, retained intake or selected profile is unavailable in this project"}
+	toolContractMap(schemas, model)["additionalProperties"] = false
+	fields := toolContractMap(schemas, model, "properties")
+	for _, name := range []string{"project_id", "producer_profile_id", "test_profile_id"} {
+		field := toolContractMap(fields, name)
+		field["minLength"], field["maxLength"] = 1, 64
+	}
+	for _, name := range []string{"expected_task_version", "expected_producer_profile_version", "expected_test_profile_version"} {
+		field := toolContractMap(fields, name)
+		field["minimum"], field["maximum"] = 1, 2147483647
+	}
+	key := toolContractMap(fields, "idempotency_key")
+	key["minLength"], key["maxLength"], key["x-max-utf8-bytes"] = 8, 128, 128
+
+	start := toolContractMap(api, "paths", "/task-dispatch-plans/{id}/start", "post")
+	start["description"] = start["description"].(string) + " A plan for an approved repository intake requires current browser project approval on initial start and receipt recovery. The original WorkBuddy attempt and retained intake are rechecked in the transaction before the task changes runs."
+	for _, route := range []struct{ namespace, security, scope string }{{"runner", "runnerAuth", "runner"}, {"pool-runner", "poolRunnerAuth", "pool"}} {
+		bundle := add("/"+route.namespace+"/repository-source-intakes/{id}/bundle", "get", "", false, false)
+		successStatus(bundle, "200")
+		bundle["description"] = "Download verified retained Git bundle bytes for the exact currently leased repository import producer. Project, worker, dispatch, attempt, fence, lease and task binding are checked before and after the storage read."
+		bundle["x-request-schema-coverage"] = "exact intake ID, required single project_id and X-Suma-Assignment; current producer lease and scope are server-enforced"
+		bundle["x-machine-only"], bundle["x-read-only"], bundle["x-response-cache-control"] = true, true, "no-store"
+		bundle["x-required-token-scope"] = route.scope
+		bundle["security"] = []any{map[string]any{route.security: []string{}}}
+		bundle["parameters"] = []any{
+			map[string]any{"in": "path", "name": "id", "required": true, "schema": identifier()},
+			map[string]any{"in": "query", "name": "project_id", "required": true, "schema": identifier()},
+			map[string]any{"in": "header", "name": "X-Suma-Assignment", "required": true, "description": "Unpadded base64url JSON CandidateAssignmentRef for the exact producer lease, with complete Pool identity when applicable.", "schema": map[string]any{"type": "string", "minLength": 1, "maxLength": 16384}},
+		}
+		responses := toolContractMap(bundle, "responses")
+		responses["404"] = map[string]any{"description": "Retained intake is unavailable to the current producer"}
+		responses["200"] = map[string]any{"description": "Verified retained Git bundle, at most 64 MiB", "content": map[string]any{"application/octet-stream": map[string]any{"schema": map[string]any{"type": "string", "format": "binary", "maxLength": cc.MaxBundleBytes}}}}
+	}
 }

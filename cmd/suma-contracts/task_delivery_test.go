@@ -2,7 +2,10 @@ package main
 
 import (
 	"slices"
+	"strings"
 	"testing"
+
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 )
 
 func TestTaskDeliveryBoundedReadContract(t *testing.T) {
@@ -87,5 +90,80 @@ func TestTaskDeliveryRepositoryIntakeContract(t *testing.T) {
 	receipt := mapAt(api, "components", "schemas", "TaskDeliveryRepositoryIntake")
 	if receipt["additionalProperties"] != false || len(mapAt(receipt, "properties")) != 14 {
 		t.Fatal("repository intake receipt leaked fields outside its public summary")
+	}
+}
+
+func TestTaskDeliveryRepositoryDispatchContract(t *testing.T) {
+	api, _ := generate()
+	paths := mapAt(api, "paths")
+	preview := mapAt(paths, taskDeliveryRepositoryDispatchPath, "post")
+	const model = "TaskDeliveryRepositoryDispatchPreviewRequest"
+	if mapAt(preview, "requestBody", "content", "application/json", "schema")["$ref"] != "#/components/schemas/"+model ||
+		mapAt(preview, "responses", "201", "content", "application/json", "schema")["$ref"] != "#/components/schemas/TaskDispatchPlan" || mapAt(preview, "responses")["200"] != nil {
+		t.Fatal("repository source preview lost its typed plan contract")
+	}
+	security := preview["security"].([]any)
+	if len(security) != 1 || mapAt(security[0])["cookieAuth"] == nil || !strings.Contains(preview["description"].(string), "browser project approver") {
+		t.Fatal("repository source preview must require a browser project approver")
+	}
+	pathFields := map[string]bool{"id": true, "intake": true}
+	for _, raw := range preview["parameters"].([]any) {
+		field := mapAt(raw)
+		if field["in"] == "query" {
+			t.Fatal("repository source preview accepts no query")
+		}
+		if field["in"] == "path" {
+			name := field["name"].(string)
+			if !pathFields[name] || field["required"] != true {
+				t.Fatal("unexpected repository source preview path parameter", field)
+			}
+			delete(pathFields, name)
+		}
+	}
+	if len(pathFields) != 0 || mapAt(preview, "responses")["428"] == nil {
+		t.Fatal("repository source preview lost its exact path or original browser view")
+	}
+	request := mapAt(api, "components", "schemas", model)
+	fields := []string{"project_id", "expected_task_version", "producer_profile_id", "expected_producer_profile_version", "test_profile_id", "expected_test_profile_version", "idempotency_key"}
+	if request["additionalProperties"] != false || len(request["required"].([]string)) != len(fields) || len(mapAt(request, "properties")) != len(fields) {
+		t.Fatal("repository source preview must have a closed body")
+	}
+	for _, field := range fields {
+		if !slices.Contains(request["required"].([]string), field) {
+			t.Fatal("missing required source preview field", field)
+		}
+	}
+	start := mapAt(paths, "/task-dispatch-plans/{id}/start", "post")
+	if !strings.Contains(start["description"].(string), "current browser project approval on initial start and receipt recovery") {
+		t.Fatal("task dispatch start must document conditional repository source approval")
+	}
+
+	for _, route := range []struct{ namespace, security, scope string }{{"runner", "runnerAuth", "runner"}, {"pool-runner", "poolRunnerAuth", "pool"}} {
+		path := "/" + route.namespace + "/repository-source-intakes/{id}/bundle"
+		bundle := mapAt(paths, path, "get")
+		security := bundle["security"].([]any)
+		if len(security) != 1 || len(mapAt(security[0])) != 1 || mapAt(security[0])[route.security] == nil || bundle["x-required-token-scope"] != route.scope || bundle["requestBody"] != nil {
+			t.Fatal("repository bundle lost its exact machine authority", path)
+		}
+		content := mapAt(bundle, "responses", "200", "content")
+		format := mapAt(content, "application/octet-stream", "schema")
+		if len(content) != 1 || format["format"] != "binary" || format["maxLength"] != cc.MaxBundleBytes || mapAt(bundle, "responses")["201"] != nil {
+			t.Fatal("repository bundle no longer advertises bounded binary bytes", path)
+		}
+		expected := map[string]string{"id": "path", "project_id": "query", "X-Suma-Assignment": "header"}
+		for _, raw := range bundle["parameters"].([]any) {
+			field := mapAt(raw)
+			name := field["name"].(string)
+			if field["required"] != true && field["in"] == "header" {
+				continue // Shared optional presentation headers.
+			}
+			if expected[name] != field["in"] || field["required"] != true {
+				t.Fatal("unexpected repository source bundle parameter", path, field)
+			}
+			delete(expected, name)
+		}
+		if len(expected) != 0 {
+			t.Fatal("repository source bundle is missing required scope fields", path, expected)
+		}
 	}
 }

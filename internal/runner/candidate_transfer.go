@@ -41,6 +41,10 @@ func candidateOperation(a Assignment, phase string) string {
 }
 
 func (c *Client) candidateRequest(ctx context.Context, method, path string, a Assignment, body io.Reader, length int64, operation string) (*http.Response, error) {
+	return c.scopedCandidateRequest(ctx, method, "candidate-transfers/"+path, a, body, length, operation)
+}
+
+func (c *Client) scopedCandidateRequest(ctx context.Context, method, path string, a Assignment, body io.Reader, length int64, operation string) (*http.Response, error) {
 	u, err := url.Parse(c.BaseURL)
 	if err != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))) || strings.TrimSpace(c.Token) == "" {
 		return nil, fmt.Errorf("candidate transfer requires an authenticated secure control origin")
@@ -58,7 +62,7 @@ func (c *Client) candidateRequest(ctx context.Context, method, path string, a As
 	if !ref.Valid() {
 		return nil, fmt.Errorf("candidate assignment identity invalid")
 	}
-	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(c.BaseURL, "/")+"/api/v1/"+namespace+"/candidate-transfers/"+path, body)
+	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(c.BaseURL, "/")+"/api/v1/"+namespace+"/"+path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +83,7 @@ func (c *Client) candidateRequest(ctx context.Context, method, path string, a As
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		response.Body.Close()
-		return nil, &runnerHTTPStatusError{Path: "candidate-transfers/" + path, Status: response.StatusCode}
+		return nil, &runnerHTTPStatusError{Path: path, Status: response.StatusCode}
 	}
 	return response, nil
 }
@@ -258,21 +262,27 @@ func finishCandidate(ctx context.Context, a Assignment, cfg ExecConfig, w *attem
 	if err != nil {
 		return err
 	}
+	return finishCandidateBundle(ctx, a, cfg, w, r, path, sha, size)
+}
+
+// Keep one journal and sealed transfer protocol for both locally created and
+// retained repository bundles. The latter preserves the approver's exact bytes.
+func finishCandidateBundle(ctx context.Context, a Assignment, cfg ExecConfig, w *attemptWorkspace, r *Result, path, sha string, size int64) error {
 	evidence, _ := r.WorkspaceEvidence["evidence_sha256"].(string)
 	p := candidateTransfer{Assignment: a, Result: *r, BundlePath: path, Request: cc.StartRequest{ProjectID: cfg.Artifacts.ProjectID, Assignment: candidateRef(a), OperationID: candidateOperation(a, "start"), BaseCommit: w.BaseCommit, BundleBaseCommit: w.AdminBaseCommit, HeadCommit: w.HeadCommit, EvidenceSHA256: evidence, BundleSHA256: sha, SizeBytes: size}}
 	if p.Result.OperationID == "" {
 		p.Result.OperationID = candidateOperation(a, "result")
 		r.OperationID = p.Result.OperationID
 	}
-	if err = p.Request.Validate(); err != nil {
+	if err := p.Request.Validate(); err != nil {
 		return err
 	}
 	raw, _ := json.MarshalIndent(p, "", "  ")
-	if err = writeEvidence(filepath.Join(w.Directory, "candidate-transfer.json"), raw); err != nil {
+	if err := writeEvidence(filepath.Join(w.Directory, "candidate-transfer.json"), raw); err != nil {
 		return err
 	}
 	if cfg.Journal != nil {
-		if err = cfg.Journal.checkpointCandidate(p); err != nil {
+		if err := cfg.Journal.checkpointCandidate(p); err != nil {
 			return err
 		}
 		r.candidatePending = true

@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-REPOSITORY-SOURCE-DISPATCH-245 核验实际 Git 留存来源派发、租约绑定、原包封存、独立 Runner 同提交测试与正式验收。 [阶段验证](repository-source-dispatch-verification.md)
+
 T-TOOL-NODE-MAINTENANCE 核验当前凭证管理权限、管理员与只读成员视图、权限降级、准确撤销和历史定位。 [阶段验证](tool-node-maintenance-verification.md)
 
 T-REPOSITORY-SOURCE-INTAKE-244 核验批准留存、原尝试变化拒绝、回执重放、凭据隔离及真实 Git 严格导入。 [阶段验证](repository-source-intake-verification.md)

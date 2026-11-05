@@ -32,6 +32,9 @@ func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenan
 	if eligible, err := s.workspaceTerminalCandidateNodeEligibleTx(ctx, tx, tenant, project, run, node, spec); err != nil || !eligible {
 		return eligible, err
 	}
+	if eligible, err := s.repositorySourceNodeEligibleTx(ctx, tx, tenant, project, run, node, spec); err != nil || !eligible {
+		return eligible, err
+	}
 	declaredComposition := spec.Config["purpose"] == "candidate_composition" || len(spec.Command) == 1 && spec.Command[0] == ccmp.CompositionCommand
 	declaredBaseline := spec.Config["code_baseline"] != nil
 	declaredRepair := spec.Config["purpose"] == "candidate_conflict_repair" || spec.Config["candidate_conflict_repair"] != nil
@@ -90,6 +93,15 @@ func sameCodeBaselineValue(value any, expected ccmp.CodeBaselineBinding) bool {
 }
 
 func (s *Service) checkCodeInputExecutionTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string, fresh bool) error {
+	source, err := s.repositorySourceExecutionTx(ctx, tx, tenant, project, run, node)
+	if err != nil {
+		return err
+	}
+	if source != nil && fresh {
+		if err = s.currentRepositorySourceTaskTx(ctx, tx, tenant, project, run, *source); err != nil {
+			return err
+		}
+	}
 	if err := s.checkWorkspaceTerminalCandidateExecutionTx(ctx, tx, tenant, project, run, node, fresh); err != nil {
 		return err
 	}
@@ -105,6 +117,17 @@ func (s *Service) checkCodeInputExecutionTx(ctx context.Context, tx *sql.Tx, ten
 // Only a durable baseline can distinguish a selected development base from
 // the bundle's administrator prerequisite; a manifest cannot grant inheritance.
 func (s *Service) validateCandidateInputAnchorTx(ctx context.Context, tx *sql.Tx, tenant, project string, request cc.StartRequest) error {
+	source, err := s.repositorySourceExecutionTx(ctx, tx, tenant, project, request.Assignment.RunID, request.Assignment.NodeID)
+	if err != nil {
+		return err
+	}
+	if source != nil {
+		if request.BaseCommit != source.BaseCommit || request.BundleBase() != source.BaseCommit || request.HeadCommit != source.HeadCommit ||
+			request.BundleSHA256 != source.BundleSHA256 || request.SizeBytes != source.SizeBytes {
+			return conflict("Candidate transfer differs from the approved repository source")
+		}
+		return s.currentRepositorySourceTaskTx(ctx, tx, tenant, project, request.Assignment.RunID, *source)
+	}
 	continuation, err := s.readDevelopmentContinuationExecutionTx(ctx, tx, tenant, project, request.Assignment.RunID, request.Assignment.NodeID)
 	if err != nil {
 		return err

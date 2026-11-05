@@ -56,7 +56,7 @@ func (s *Service) InitializeRepositoryIntegration(ctx context.Context) error {
 			return err
 		}
 	}
-	return nil
+	return s.initializeRepositorySourceDispatch(ctx)
 }
 
 func (s *Service) repositoryTargetTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (out RepositoryIntegrationTarget, err error) {
