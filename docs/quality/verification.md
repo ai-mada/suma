@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MULTICA-BOARD-SELECTION 验证跨泳道选中、同一查询的布局切换、正式排期写入和 390px 滚动操作。 [阶段验证](task-board-selection-verification.md)
+
 T-DESKTOP-STOP-RECOVERY-230 已验证 Windows 原 Go Worker 在桌面控制进程中断后的停止核对，并完成双语组件和窄屏交互检查。 [阶段验证](desktop-stop-recovery-verification.md)
 
 T-RUNNER-STOP-229 覆盖匹配停止回执、原领取与结果的恢复、迟到巡检和中英文停止状态。 [阶段验证](runner-stop-receipt-verification.md)

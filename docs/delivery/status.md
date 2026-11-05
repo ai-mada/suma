@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-BOARD-SELECTION 将列表和看板的多选与批量操作统一，支持在跨泳道选择后分配负责人、调整迭代或安排团队。已验证触屏滚动和正式事务。 [交互设计](../design/task-board-selection.md) · [验证记录](../quality/task-board-selection-verification.md)
+
 T-DESKTOP-STOP-RECOVERY-230 允许桌面重开后核对原停止操作。匹配同一节点、操作与退出证据后恢复手动连接入口，继续保留原任务记录。 [阶段验证](../quality/desktop-stop-recovery-verification.md)
 
 T-RUNNER-STOP-229 将本机停止、原任务结果和控制面回执分开确认。桌面仅在收到本次子进程的匹配回执并核实正常退出后确认停止，重连沿用原节点和持久请求。 [阶段验证](../quality/runner-stop-receipt-verification.md)

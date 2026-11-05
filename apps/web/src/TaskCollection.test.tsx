@@ -35,6 +35,41 @@ it('renders independent draft/custom/literal-all board columns and skips zero-co
  transport((path,params)=>Response.json(path.includes('/summary')?summary({total:3,groups:[{key:'draft',total:1},{key:'waiting_for_customer',total:1},{key:'all',total:1},{key:'todo',total:0}]}):page({items:[task({id:'task-'+params.get('status'),status:params.get('status')})],total:1})));await render({filters:{...props.filters,layout:'board'}});expect(host.querySelectorAll('[data-task-column]')).toHaveLength(3);expect(host.querySelectorAll('.task-collection-card')).toHaveLength(3);expect(reads.filter(read=>read.path.startsWith('/task-workspace')).map(read=>read.params.get('status')).sort()).toEqual(['all','draft','waiting_for_customer']);expect(host.textContent).toContain('waiting_for_customer');expect(host.textContent).toContain('separate live reads');
 });
 
+it('selects board tasks independently of opening details and keeps selected tasks removable at the limit',async()=>{
+ const picked=Array.from({length:16},(_,index)=>'task-'+index);
+ const tasks=[...picked,'task-16'].map((id,index)=>task({id,title:'Board task '+index}));
+ transport(path=>Response.json(path.includes('/summary')?summary({total:17,groups:[{key:'todo',total:17}]}):page({items:tasks,total:17})));
+ await render({filters:{...props.filters,layout:'board'}});
+ const card=(id:string)=>host.querySelector<HTMLElement>('.task-collection-card[data-task-id="'+id+'"]')!;
+ const checkbox=(id:string)=>card(id).querySelector<HTMLInputElement>('input[type=checkbox]')!;
+ expect(checkbox('task-0')).not.toBeNull();
+ expect(checkbox('task-0').getAttribute('aria-label')).toContain('Board task 0');
+ await act(async()=>checkbox('task-0').click());
+ expect(props.onToggleSelection).toHaveBeenLastCalledWith('task-0',true);
+ expect(props.onSelect).not.toHaveBeenCalled();
+ await render({selection:picked,selected:'task-16'});
+ expect(checkbox('task-0').checked).toBe(true);
+ expect(card('task-0').hasAttribute('data-batch-selected')).toBe(true);
+ expect(checkbox('task-16').checked).toBe(false);
+ expect(checkbox('task-16').disabled).toBe(true);
+ expect(card('task-16').hasAttribute('data-batch-selected')).toBe(false);
+ const detail=card('task-16').querySelector<HTMLButtonElement>('button.task-collection-card-open')!;
+ expect(detail.getAttribute('aria-pressed')).toBe('true');
+ expect(detail.contains(checkbox('task-16'))).toBe(false);
+ await act(async()=>detail.click());
+ expect(props.onSelect).toHaveBeenLastCalledWith('task-16');
+ expect(props.onToggleSelection).toHaveBeenCalledTimes(1);
+ await act(async()=>checkbox('task-0').click());
+ expect(props.onToggleSelection).toHaveBeenLastCalledWith('task-0',false);
+ expect(props.onSelect).toHaveBeenCalledTimes(1);
+ await render({selection:picked.slice(1),selectionBusy:true});
+ expect(checkbox('task-1').disabled).toBe(true);
+ expect(checkbox('task-16').disabled).toBe(true);
+ expect(detail.disabled).toBe(false);
+ await render({selectionBusy:false});
+ expect(checkbox('task-16').disabled).toBe(false);
+});
+
 it('distinguishes the literal all filter from all project task states',async()=>{
  transport((path,params)=>Response.json(path.includes('/summary')?summary({total:4,groups:[{key:'all',total:1},{key:'todo',total:3}]}):page({items:[task({status:params.get('status')||'todo'})],total:params.has('status')?1:4})));await render({filters:{...props.filters,task_status:'all'}});expect(reads.at(-1)?.params.get('status')).toBe('all');expect(host.textContent).toContain('Loaded 1 of 1');await change('task-collection-status','');await submit();expect(props.onFilter).toHaveBeenLastCalledWith(expect.objectContaining({task_status:''}));
 });

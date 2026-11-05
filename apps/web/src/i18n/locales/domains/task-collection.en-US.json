@@ -26,7 +26,7 @@
   "task-collection.empty": "No tasks match these filters",
   "task-collection.empty_hint": "Change or clear the filters, or create a task for this project.",
   "task-collection.board": "Task board by selected business grouping",
-  "task-collection.selection_help": "Select up to 16 loaded tasks for an expert team. Hidden tasks and tasks with changed versions are removed from the selection.",
+  "task-collection.selection_help": "Select up to 16 loaded tasks to assign an owner, move to an iteration, or arrange a team.",
   "task-collection.column_retry": "This page was cleared. Retry starts from its first page; other groups remain available.",
   "task-collection.changed_empty": "No tasks remain in this page's current scope. Refresh all to update the summary.",
   "task-collection.task": "Task",

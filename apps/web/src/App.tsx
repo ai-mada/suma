@@ -164,8 +164,14 @@ function TaskRecordsScope(props:Parameters<typeof GenericRecords>[0]){
  const empty=useRef<CollectionMetadata>({items:undefined,task_plans:[],total:0,next_cursor:'',as_of:'',loading:true,error:null,action:'first',groups:[],group_by:'status'}).current;
  const [collection,setCollection]=useState<{key:string;read:CollectionMetadata}>({key:'',read:empty}),[denial,setDenial]=useState<unknown>();
  const denied=!!denial,read=collection.key===collectionKey?collection.read:empty,emptyRows=useRef<RecordItem[]>([]).current,rows=denied?emptyRows:read.items||emptyRows;
- const [teamSelection,setTeamSelection]=useState<string[]>([]),[teamDialog,setTeamDialog]=useState(false),versions=useRef(new Map<string,number>());
- const selectedTasks=rows.filter(row=>teamSelection.includes(row.id)&&versions.current.get(row.id)===row.version),currentSelection=selectedTasks.map(row=>row.id);
+ const selectionScope=JSON.stringify([taskQueryKey({...preferences,sort:'updated_desc'}),filters.task_invalid||'']);
+ const [batch,setBatch]=useState(()=>({scope:selectionScope,versions:new Map<string,number>()}));
+ const [teamDialog,setTeamDialog]=useState(false);
+ // A membership change must clear old selections before the new view commits.
+ if(batch.scope!==selectionScope)setBatch({scope:selectionScope,versions:new Map()});
+ const selectedTasks=batch.scope===selectionScope?rows.filter(row=>batch.versions.get(row.id)===row.version):[];
+ const currentSelection=selectedTasks.map(row=>row.id),selectionPending=!denied&&read.loading&&batch.scope===selectionScope&&batch.versions.size>0;
+ const clearBatch=()=>setBatch(current=>current.versions.size?{...current,versions:new Map()}:current);
  const [members,setMembers]=useState<RecordItem[]>([]),[requirements,setRequirements]=useState<RecordItem[]>([]),[iterations,setIterations]=useState<Iteration[]>([]),[memberCursor,setMemberCursor]=useState(''),[requirementCursor,setRequirementCursor]=useState(''),[lookupBusy,setLookupBusy]=useState(false),[lookupError,setLookupError]=useState<unknown>();
  const [modal,setModal]=useState(false),[editing,setEditing]=useState<RecordItem>(),[direct,setDirect]=useState<RecordItem>(),[detailError,setDetailError]=useState<unknown>();
  const lookupGeneration=useRef(0),lookupController=useRef<AbortController|undefined>(undefined),alive=useRef(true),deniedRef=useRef(false),collectionKeyRef=useRef(collectionKey),selectRef=useRef(props.onSelect);
@@ -176,19 +182,34 @@ function TaskRecordsScope(props:Parameters<typeof GenericRecords>[0]){
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;lookupGeneration.current++;lookupController.current?.abort();};},[]);
  const clearAuthority=useCallback((error:unknown)=>{
   if(!alive.current)return;deniedRef.current=true;setDenial(error);lookupGeneration.current++;lookupController.current?.abort();
-  setCollection({key:collectionKeyRef.current,read:{...empty,loading:false,error}});setDirect(undefined);setDetailError(undefined);setMembers([]);setRequirements([]);setIterations([]);setMemberCursor('');setRequirementCursor('');setLookupBusy(false);setLookupError(undefined);setTeamSelection([]);versions.current.clear();setTeamDialog(false);setModal(false);setEditing(undefined);selectRef.current('');
+  setCollection({key:collectionKeyRef.current,read:{...empty,loading:false,error}});setDirect(undefined);setDetailError(undefined);setMembers([]);setRequirements([]);setIterations([]);setMemberCursor('');setRequirementCursor('');setLookupBusy(false);setLookupError(undefined);setBatch(current=>({...current,versions:new Map()}));setTeamDialog(false);setModal(false);setEditing(undefined);selectRef.current('');
  },[empty]);
  const restoreAuthority=()=>{if(!alive.current)return;deniedRef.current=false;setDenial(undefined);onRefresh();};
- const refreshAfterBatch=()=>{setTeamSelection([]);versions.current.clear();onRefresh();};
+ const refreshAfterBatch=()=>{clearBatch();onRefresh();};
  const receive=useCallback((_items:RecordItem[],_authorized:boolean,metadata?:CollectionMetadata)=>{
   if(alive.current&&!deniedRef.current&&metadata)setCollection({key:collectionKey,read:metadata});
  },[collectionKey]);
  const restart=()=>{deniedRef.current=false;setDenial(undefined);setCollection({key:'',read:empty});onRefresh();};
  const toggle=(id:string,checked:boolean)=>{
-  const row=rows.find(row=>row.id===id);if(checked&&!row)return;if(checked)versions.current.set(id,row!.version);else versions.current.delete(id);
-  setTeamSelection(before=>checked?before.includes(id)||before.length>=16?before:[...before,id]:before.filter(value=>value!==id));
+  const row=rows.find(item=>item.id===id);
+  if(!row||read.loading||denied)return;
+  setBatch(current=>{
+   if(current.scope!==selectionScope||current.versions.has(id)===checked||checked&&current.versions.size>=16)return current;
+   const versions=new Map(current.versions);
+   if(checked)versions.set(id,row.version);else versions.delete(id);
+   return {...current,versions};
+  });
  };
- useEffect(()=>{setTeamSelection(before=>{const next=before.filter(id=>rows.some(row=>row.id===id&&versions.current.get(id)===row.version));return next.length===before.length?before:next;});},[rows]);
+ // A presentation change can remount the read. Keep the old versions only
+ // while loading, then intersect with the currently loaded authoritative rows.
+ useEffect(()=>{
+  if(read.loading||denied)return;
+  setBatch(current=>{
+   if(current.scope!==selectionScope||!current.versions.size)return current;
+   const versions=new Map(rows.filter(row=>current.versions.get(row.id)===row.version).map(row=>[row.id,row.version]));
+   return versions.size===current.versions.size?current:{...current,versions};
+  });
+ },[rows,read.loading,denied,selectionScope]);
  useEffect(()=>{
   const sequence=++lookupGeneration.current,controller=new AbortController();lookupController.current?.abort();lookupController.current=controller;if(deniedRef.current)return;setLookupBusy(true);
   const headers={'X-Suma-Expected-User':session.user.id,'X-Suma-Expected-Organization':session.organization.id};
@@ -227,8 +248,8 @@ function TaskRecordsScope(props:Parameters<typeof GenericRecords>[0]){
  const collectionFilters={...taskViewToRoute(preferences),task_invalid:filters.task_invalid};
  const page={...read,reload:async()=>restart(),more:async()=>{}};
  return <div className={'records-layout '+(item?'has-detail':'')}>
-  {!denied&&(teamDialog||teamPlanID)&&<ErrorBoundary key={scopeKey+':expert-team'} inline><Suspense fallback={<Loading/>}><TeamTaskDispatchDialog project={project} session={session} tasks={selectedTasks} open onClose={()=>{if(!canNavigate())return;setTeamDialog(false);if(teamPlanID)onDesignPanel('');}} planID={teamPlanID||undefined} onPlan={id=>onDesignPanel(id?'expert-team:'+id:'')} onStarted={()=>{setTeamSelection([]);onRefresh();}}/></Suspense></ErrorBoundary>}
-  <TaskViews scope={scope} selectionActions={<><TaskOwnerChanges project={project} userID={session.user.id} organizationID={session.organization.id} tasks={selectedTasks} authorityError={denial} disabled={denied||read.loading} onForbidden={clearAuthority} onAuthorityRestored={restoreAuthority} onChanged={refreshAfterBatch}/><TaskIterationAssignments project={project} userID={session.user.id} organizationID={session.organization.id} tasks={selectedTasks} plans={read.task_plans} iterations={iterations} authorityError={denial} disabled={denied||read.loading||lookupBusy} onForbidden={clearAuthority} onAuthorityRestored={restoreAuthority} onRefresh={restart} onChanged={refreshAfterBatch}/></>} preferences={preferences} onChange={next=>{if(!canNavigate())return false;onFilter(taskViewToRoute(next));return true;}} page={page} groups={read.groups} members={members} requirements={requirements} iterations={iterations} moreMembers={!!memberCursor&&!denied} moreRequirements={!!requirementCursor&&!denied} onMoreRequirements={()=>void loadLookup('requirements')} lookupBusy={lookupBusy} lookupError={lookupError} onMoreMembers={()=>void loadLookup('members')} selected={selected} onSelect={select} selection={currentSelection} onToggle={toggle} onCreate={()=>openEdit()} onDependencies={()=>{if(canNavigate())props.onDependencies();}} onArrange={()=>{if(canNavigate())setTeamDialog(true);}} onRefresh={restart} renderContent={()=><TaskCollection columns={preferences.columns} embedded controls={null} project={project} userID={session.user.id} organizationID={session.organization.id} refresh={refresh} filters={collectionFilters} onFilter={patch=>{if(canNavigate())onFilter(patch);}} members={members} requirements={requirements} iterations={iterations} moreMembers={!!memberCursor&&!denied} moreRequirements={!!requirementCursor&&!denied} onMoreMembers={()=>void loadLookup('members')} onMoreRequirements={()=>void loadLookup('requirements')} lookupBusy={lookupBusy} selected={selected} selection={currentSelection} onToggleSelection={toggle} onRows={receive} onDenied={clearAuthority} blocked={denial} onRetryAuthority={restart} onSelect={select}/>}/>
+  {!denied&&(teamDialog||teamPlanID)&&<ErrorBoundary key={scopeKey+':expert-team'} inline><Suspense fallback={<Loading/>}><TeamTaskDispatchDialog project={project} session={session} tasks={selectedTasks} open onClose={()=>{if(!canNavigate())return;setTeamDialog(false);if(teamPlanID)onDesignPanel('');}} planID={teamPlanID||undefined} onPlan={id=>onDesignPanel(id?'expert-team:'+id:'')} onStarted={refreshAfterBatch}/></Suspense></ErrorBoundary>}
+  <TaskViews scope={scope} selectionActions={<><TaskOwnerChanges project={project} userID={session.user.id} organizationID={session.organization.id} tasks={selectedTasks} authorityError={denial} disabled={denied||read.loading} onForbidden={clearAuthority} onAuthorityRestored={restoreAuthority} onChanged={refreshAfterBatch}/><TaskIterationAssignments project={project} userID={session.user.id} organizationID={session.organization.id} tasks={selectedTasks} plans={read.task_plans} iterations={iterations} authorityError={denial} disabled={denied||read.loading||lookupBusy} onForbidden={clearAuthority} onAuthorityRestored={restoreAuthority} onRefresh={restart} onChanged={refreshAfterBatch}/></>} preferences={preferences} onChange={next=>{if(!canNavigate())return false;onFilter(taskViewToRoute(next));return true;}} page={page} groups={read.groups} members={members} requirements={requirements} iterations={iterations} moreMembers={!!memberCursor&&!denied} moreRequirements={!!requirementCursor&&!denied} onMoreRequirements={()=>void loadLookup('requirements')} lookupBusy={lookupBusy} lookupError={lookupError} onMoreMembers={()=>void loadLookup('members')} selected={selected} onSelect={select} selection={currentSelection} selectionPending={selectionPending} onClearSelection={clearBatch} onToggle={toggle} onCreate={()=>openEdit()} onDependencies={()=>{if(canNavigate())props.onDependencies();}} onArrange={()=>{if(canNavigate())setTeamDialog(true);}} onRefresh={restart} renderContent={()=><TaskCollection columns={preferences.columns} embedded controls={null} project={project} userID={session.user.id} organizationID={session.organization.id} refresh={refresh} filters={collectionFilters} onFilter={patch=>{if(canNavigate())onFilter(patch);}} members={members} requirements={requirements} iterations={iterations} moreMembers={!!memberCursor&&!denied} moreRequirements={!!requirementCursor&&!denied} onMoreMembers={()=>void loadLookup('members')} onMoreRequirements={()=>void loadLookup('requirements')} lookupBusy={lookupBusy} selected={selected} selection={currentSelection} selectionBusy={read.loading} onToggleSelection={toggle} onRows={receive} onDenied={clearAuthority} blocked={denial} onRetryAuthority={restart} onSelect={select}/>}/>
   {Boolean(detailError)&&selected&&!denied&&<aside className="detail-pane"><div className="detail-top"><span>{tr('records.record_details')}</span><button className="icon-button" onClick={()=>select('')} aria-label={tr('records.close_details')}><X size={18}/></button></div><ErrorNotice error={detailError}/></aside>}
   {item&&<Detail onWorkbenchTask={onWorkbenchTask} onTraceTask={onTraceTask} onTraceRun={onTraceRun} onExtractAcceptedDelivery={onExtractAcceptedDelivery} refresh={refresh} onOpenRequirement={onOpenRequirement} session={session} panel={panel} onDispatchPlan={onDispatchPlan} onRun={onRun} key={scopeKey+':'+item.id} item={item} kind="tasks" members={members} rows={rows} project={project} onProtectedDenied={clearAuthority} onClose={()=>select('')} onEdit={()=>openEdit(item)} onDesignPanel={onDesignPanel} onRefresh={onRefresh}/>}
   <Modal open={modal&&!denied} onClose={()=>{if(canNavigate())setModal(false);}} title={recordText('tasks',editing?'edit':'create')}><TaskRecordForm scope={scope} refresh={refresh} onDenied={clearAuthority} project={project} key={'tasks'+(editing?.id||'new')} kind="tasks" value={editing} members={members} requirements={requirements} onSave={save} moreMembers={!!memberCursor} moreRequirements={!!requirementCursor} onMoreMembers={()=>void loadLookup('members')} onMoreRequirements={()=>void loadLookup('requirements')} lookupBusy={lookupBusy} lookupError={lookupError}/></Modal>

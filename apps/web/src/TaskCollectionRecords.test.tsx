@@ -14,8 +14,8 @@ vi.mock('./Governance',async importOriginal=>{
 });
 
 const record=(id:string,title:string,status='draft',version=1)=>({id,project_id:'project-a',version,title,description:'Current project record',status,owner_id:'human-a',priority:'high',requirement_id:'',depends_on:[],acceptance_criteria:[],data:{},created_at:'2026-10-29T01:00:00Z',updated_at:'2026-10-29T02:00:00Z'});
-let host:HTMLDivElement,root:Root,reads:{path:string;headers:Headers}[],version:number,denied:boolean;
-beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);localStorage.clear();sessionStorage.clear();await setLocale('en-US',{persist:false});history.replaceState(null,'','/?project=project-a&view=development&sub=tasks&record=outside-task&q=literal&task_status=draft');host=document.createElement('div');document.body.append(host);root=createRoot(host);reads=[];version=1;denied=false;
+let host:HTMLDivElement,root:Root,reads:{path:string;headers:Headers}[],version:number,loadedVersion:number,denied:boolean;
+beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);localStorage.clear();sessionStorage.clear();await setLocale('en-US',{persist:false});history.replaceState(null,'','/?project=project-a&view=development&sub=tasks&record=outside-task&q=literal&task_status=draft');host=document.createElement('div');document.body.append(host);root=createRoot(host);reads=[];version=1;loadedVersion=1;denied=false;
  vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
   const url=new URL(String(input),location.href),path=url.pathname.replace(/^\/api\/v1/,'');reads.push({path,headers:new Headers(init?.headers)});
   if(path==='/auth/session')return Response.json({user:{id:'user-a',name:'User A',email:'a@example.test',role:'owner'},organization:{id:'org-a',name:'Org A'},projects:[record('project-a','Project A')]});
@@ -23,7 +23,7 @@ beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);localStorage
   if(path==='/overview')return Response.json({counts:{tasks:2,requirements:0},activity:[],capabilities:[]});
   if(path.startsWith('/task-collection/')&&denied)return Response.json({error:{code:'forbidden',message:'Current project access refused'}},{status:403});
   if(path==='/task-collection/summary')return Response.json({project_id:'project-a',group_by:url.searchParams.get('group_by')||'status',groups_total:1,groups_limit:20,next_group_cursor:'',as_of:'2026-10-29T03:00:00Z',total:1,groups:[{key:url.searchParams.get('group_by')==='owner'?'human-a':url.searchParams.get('group_by')==='priority'?'high':'draft',total:1}]});
-  if(path==='/task-workspace'){const limit=Number(url.searchParams.get('limit')||100);return Response.json({project_id:'project-a',limit,as_of:'2026-10-29T03:01:00Z',items:limit===100?[record('loaded-task','Loaded filtered task'),record('prerequisite-task','Independent prerequisite')]:[record('loaded-task','Loaded filtered task')],task_plans:(limit===100?['loaded-task','prerequisite-task']:['loaded-task']).map(task_id=>({task_id,iteration_id:'',plan_version:0})),total:limit===100?2:1,next_cursor:''});}
+  if(path==='/task-workspace'){const limit=Number(url.searchParams.get('limit')||100);return Response.json({project_id:'project-a',limit,as_of:'2026-10-29T03:01:00Z',items:limit===100?[record('loaded-task','Loaded filtered task'),record('prerequisite-task','Independent prerequisite')]:[record('loaded-task','Loaded filtered task','draft',loadedVersion)],task_plans:(limit===100?['loaded-task','prerequisite-task']:['loaded-task']).map(task_id=>({task_id,iteration_id:'',plan_version:0})),total:limit===100?2:1,next_cursor:''});}
   if(path==='/tasks/outside-task')return Response.json(record('outside-task','Outside filter details '+version,'todo',version));
   if(path==='/iterations')return Response.json({items:[],total:0});
   if(path==='/members')return Response.json({items:[{...record('human-a','Private member name','active'),kind:'human',data:{user_id:'user-a'}}],total:1});
@@ -113,4 +113,35 @@ it('clears the editor and selected facts when a CAS refresh reads HTTP403 after 
   if(path==='/tasks/outside-task'&&conflict){followup=true;return Response.json({error:{code:'forbidden',message:'Current task access revoked during refresh'}},{status:403});}
   return original(input,init);
  }));await render();await act(async()=>host.querySelector<HTMLButtonElement>('.detail-bottom button')!.click());await settle(()=>!!document.querySelector('[role=dialog] form'));await act(async()=>document.querySelector<HTMLFormElement>('[role=dialog] form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle(()=>host.textContent?.includes('Private tasks, counts and details have been cleared')??false);expect(conflict).toBe(true);expect(followup).toBe(true);expect(document.querySelector('[role=dialog]')).toBeNull();expect(host.querySelector('.detail-pane')).toBeNull();expect(host.querySelector('[data-task-collection-row]')).toBeNull();
+});
+
+it('shares exact loaded selections across layouts, clears old membership, and drops stale versions',async()=>{
+ await render();
+ const list=()=>host.querySelector<HTMLInputElement>('[data-task-collection-row="loaded-task"] input[type=checkbox]');
+ const board=()=>host.querySelector<HTMLInputElement>('.task-collection-card[data-task-id="loaded-task"] input[type=checkbox]');
+ const batch=()=>host.querySelector('.task-views-batch');
+ const action=(label:string)=>Array.from(host.querySelectorAll('button')).find(button=>button.textContent?.trim()===label)!;
+ await settle(()=>!!list()&&!list()!.disabled);
+ await act(async()=>list()!.click());
+ expect(batch()?.textContent).toContain('1 selected');
+ expect(batch()?.querySelector('[data-iteration-assignment-launch]')).not.toBeNull();
+ await act(async()=>action('Board view').click());
+ await settle(()=>board()?.checked===true&&!board()!.disabled);
+ expect(batch()?.textContent).toContain('1 selected');
+ expect(new URLSearchParams(location.search).get('record')).toBe('outside-task');
+ await act(async()=>action('List view').click());
+ await settle(()=>list()?.checked===true&&!list()!.disabled);
+ loadedVersion=2;
+ await act(async()=>host.querySelector<HTMLButtonElement>('[data-task-collection-refresh]')!.click());
+ await settle(()=>!!list()&&!list()!.disabled&&!list()!.checked);
+ expect(batch()?.textContent).not.toContain('1 selected');
+ await act(async()=>list()!.click());
+ const owner=host.querySelector<HTMLSelectElement>('[aria-labelledby=task-filter-owner_id]')!;
+ await act(async()=>{owner.value='value:human-a';owner.dispatchEvent(new Event('change',{bubbles:true}));});
+ await settle(()=>new URLSearchParams(location.search).get('task_owner')==='human-a'&&!!list()&&!list()!.disabled);
+ expect(list()?.checked).toBe(false);
+ await act(async()=>list()!.click());
+ await act(async()=>host.querySelector<HTMLButtonElement>('[data-task-selection-clear]')!.click());
+ expect(list()?.checked).toBe(false);
+ expect(document.activeElement).toBe(action('List view'));
 });

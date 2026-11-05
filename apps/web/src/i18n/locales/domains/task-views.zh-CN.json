@@ -1,4 +1,9 @@
 {
+  "task-views.batch_actions": "批量操作",
+  "task-views.batch_checking": "正在核对所选任务…",
+  "task-views.batch_count": "已选 {{count}} 项",
+  "task-views.batch_team": "安排团队",
+  "task-views.batch_clear": "清除选择",
   "task-views.matches": "匹配任务",
   "task-views.layout": "任务显示方式",
   "task-views.create": "新建任务",

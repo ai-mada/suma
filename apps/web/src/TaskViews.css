@@ -7,3 +7,20 @@
 .task-views .task-iteration-filter>small{font-size:12px;line-height:1.65;color:var(--muted);overflow-wrap:anywhere}
 .task-views :is(button,input,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 @media(max-width:760px){.task-views .task-views-filters :is(input,select){min-height:44px}.task-views .task-iteration-filter{flex-basis:100%;min-width:0}}
+
+.task-views-batch:empty{display:none}
+/* Clip the panel without creating a scroll container around the sticky controls. */
+.task-views:has(.task-views-batch:not(:empty)){overflow:clip}
+.task-views-batch{position:sticky;top:72px;z-index:4;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 16px 12px;padding:10px 12px;background:var(--surface-soft);border:1px solid var(--border);border-radius:8px}
+.task-views-batch-context{display:flex;align-items:center;gap:8px;margin-inline-end:auto;color:var(--text);min-height:36px}
+.task-views-batch-context svg{color:var(--accent);flex:none}
+.task-views-batch button{min-height:36px;max-width:100%}
+.task-views-batch:not(:empty)~.task-collection :is(button,input,select,summary){scroll-margin-top:142px}
+.task-views-batch .task-views-batch-clear{border-color:transparent;background:transparent;color:var(--muted)}
+.task-views-batch .task-views-batch-clear:hover{border-color:var(--border-strong);color:var(--text)}
+@media(max-width:600px){
+ .task-views-batch{margin-inline:12px;padding:8px}
+ .task-views-batch-context{flex-basis:100%;min-height:28px}
+ .task-views-batch button{min-height:44px;flex:1 1 124px}
+ .task-views-batch:not(:empty)~.task-collection :is(button,input,select,summary){scroll-margin-top:220px}
+}

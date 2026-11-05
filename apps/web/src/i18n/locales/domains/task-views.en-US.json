@@ -1,4 +1,9 @@
 {
+  "task-views.batch_actions": "Batch actions",
+  "task-views.batch_checking": "Checking selected tasks…",
+  "task-views.batch_count": "{{count}} selected",
+  "task-views.batch_team": "Arrange team",
+  "task-views.batch_clear": "Clear selection",
   "task-views.matches": "Matching tasks",
   "task-views.layout": "Task layout",
   "task-views.create": "Create task",
