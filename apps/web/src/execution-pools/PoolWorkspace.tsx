@@ -22,6 +22,7 @@ import { PoolCreateForm, RunnerForm, GrantDecision } from "./Forms";
 import { CredentialDialog } from "./CredentialDialog";
 import {PoolRunnerPairingPanel} from "./PoolRunnerPairingPanel";
 import {PoolConfigPreparationPanel} from "./PoolConfigPreparationPanel";
+import { PoolStateDiagnosticPanel } from "./PoolStateDiagnosticPanel";
 import {PoolToolRecoveryPanel,serializePoolToolTargetPin,type PoolToolRecoverySnapshot} from './PoolToolRecoveryPanel';
 import {parsePoolToolRecoveryPin} from './pool-tool-recovery-model';
 import {parsePoolToolSetupPin} from './pool-tool-setup-model';
@@ -31,6 +32,7 @@ type Dialog =
   | { kind: "create" | "pause" | "resume" | "register" | "pair" }
   | { kind: "grant"; grant: Grant; action: string }
   | { kind: "prepare-config"; runnerID: string; recovery?: PoolToolRecoverySnapshot&{ownerEpoch:number} }
+  | { kind: "diagnose-runner"; runnerID: string }
   | { kind: "rotate" | "revoke-runner"; runner: Runner };
 const mayLeave = () =>
   window.dispatchEvent(new Event("suma:navigate", { cancelable: true }));
@@ -101,6 +103,11 @@ function ScopedPoolWorkspace({
   const recoveryForm=dialog?.kind==='prepare-config'&&dialog.recovery?.ownerEpoch===recoveryEpoch&&serializePoolToolTargetPin(dialog.recovery.recovery.pin)===panel?dialog.recovery:undefined;
   const preparationRunner = dialog?.kind === "prepare-config"
     ? dialog.recovery?recoveryForm&&(currentRecovery?.runner??recoveryForm.runner):runners.items.find(item => item.id === dialog.runnerID && item.pool_id === selected && item.status === "active")
+    : undefined;
+  const ownsPool = pool?.owner_tenant_id === session.organization.id;
+  const canReadDiagnostic = ownsPool && !blocked && !stale && !runners.loading && !runners.error;
+  const diagnosticRunner = dialog?.kind === "diagnose-runner" && canReadDiagnostic
+    ? runners.items.find(item => item.id === dialog.runnerID && item.pool_id === selected)
     : undefined;
   function resolved(path: string, value: unknown) {
     setDialog(undefined);
@@ -459,6 +466,12 @@ function ScopedPoolWorkspace({
                               <RunnerFacts runner={item} />
                               <div className="pool-row-actions">
                                 {item.status === "active" && <button type="button" data-pool-config-open={item.id} disabled={blocked||stale||runners.loading||!!runners.error} onClick={()=>open({kind:"prepare-config",runnerID:item.id})}>{tr('pool-config-preparation.entry')}</button>}
+                                {ownsPool && item.pool_id === selected && (
+                                  <button type="button" data-pool-diagnostic-open={item.id} disabled={!canReadDiagnostic}
+                                    onClick={() => open({ kind: "diagnose-runner", runnerID: item.id })}>
+                                    {tr("pool-state-diagnostic.entry")}
+                                  </button>
+                                )}
                                 {item.allowed_actions.includes(
                                   "rotate_credential",
                                 ) && (
@@ -528,7 +541,9 @@ function ScopedPoolWorkspace({
           if (!blocked) setDialog(undefined);
         }}
         title={
-          dialog?.kind === "prepare-config"
+          dialog?.kind === "diagnose-runner"
+            ? tr("pool-state-diagnostic.title")
+            : dialog?.kind === "prepare-config"
             ? tr("pool-config-preparation.title")
             : dialog?.kind === "pair"
             ? tr("pool-runner-pairing.title")
@@ -546,8 +561,14 @@ function ScopedPoolWorkspace({
                       ? tr("pools.workspace.resume_pool")
                       : tr("pools.workspace.pause_pool")
         }
-        description={tr("pools.workspace.operation_scope")}
+        description={tr(dialog?.kind === "diagnose-runner" ? "pool-state-diagnostic.dialog_description" : "pools.workspace.operation_scope")}
       >
+        {dialog?.kind === "diagnose-runner" ? (
+          diagnosticRunner ? <PoolStateDiagnosticPanel
+            key={JSON.stringify([diagnosticRunner.id, diagnosticRunner.version, diagnosticRunner.credential_version])}
+            runnerLabel={diagnosticRunner.name}
+          /> : <p role="status">{tr("pool-state-diagnostic.unavailable")}</p>
+        ) : <>
         {dialog?.kind === "prepare-config" ? <>{notice}{dialog.recovery&&!currentRecovery&&recoveryForm&&<div className="pool-recovery"><p role="status">{tr('pool-tool-recovery.form_refresh')}</p><button type="button" data-pool-recovery-form-refresh disabled={blocked||stale} onClick={()=>setRecoveryReadRevision(before=>before+1)}>{tr('pool-tool-recovery.refresh')}</button></div>}{pool&&preparationRunner?<PoolConfigPreparationPanel key={dialog.recovery?JSON.stringify([panel,preparationRunner.version,preparationRunner.credential_version]):undefined} ownerTenantID={pool.owner_tenant_id} poolID={selected} runner={preparationRunner} grants={!grants.loading&&!grants.error?grants.items:undefined} recovery={dialog.recovery?(currentRecovery??recoveryForm)?.recovery:undefined} disabled={blocked||stale||(dialog.recovery?!currentRecovery:(runners.loading||!!runners.error))}/>:<p role="status">{tr('pool-config-preparation.unavailable')}</p>}</>:dialog?.kind==='pair'?<>{notice}<PoolRunnerPairingPanel poolID={selected} disabled={action.busy||!!action.pending||!!recovery.error||stale} canCreate={!stale&&!runners.loading&&!runners.error&&pool?.status==='active'&&runners.allowed.includes('register')} onLockChange={setPairingLocked} onPaired={value=>{if(value.pool_id!==selected||value.owner_tenant_id!==session.organization.id||value.state!=='approved')return;setDialog(undefined);setRevision(before=>before+1);onPanel('runners');}}/></>:dialog?.kind === "create" ? (
           <PoolCreateForm
             blocked={blocked}
@@ -632,6 +653,7 @@ function ScopedPoolWorkspace({
             </>
           )
         )}
+        </>}
       </Modal>
       <CredentialDialog
         key={

@@ -20,6 +20,8 @@ suma-runner --inspect-pool-state --state .cache/runner --language zh-CN
 suma-runner --inspect-state --state .cache/runner/pool/slots/0 --language zh-CN
 ```
 
+也可以在资源池的执行节点列表中，从对应机器打开“本机诊断”。选择目标机器的 Shell 并填写启动时使用的 `--state`，复制命令到目标机器运行。把总览 JSON 粘贴到同一弹窗即可预览槽位，再复制该槽位的原日志命令。导入内容只在当前页面处理。 [诊断合同](../../contracts/runner-journal-inspection.md#从资源池节点打开诊断)
+
 无需 Runner token、模型账号、控制面地址或工具配置。命令不会初始化目录、取得运行锁、修改结果、确认回执或重新启动任务；活动 Runner 可以继续持有自己的写锁。不要把诊断与执行参数混在同一次命令中。
 
 先看 `status`。`available` 表示本地日志已读取；`missing` 表示指定日志不存在；`invalid`、`unreadable`、`over_limit` 分别表示内容无法解析、不能安全读取或超过 16 MiB。失败不会输出原始载荷，也不会把局部数据当成完整摘要。

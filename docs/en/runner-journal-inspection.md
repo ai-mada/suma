@@ -20,6 +20,8 @@ Look for slots with unknown results, pending deliveries or unfinished local clai
 suma-runner --inspect-state --state .cache/runner/pool/slots/0 --language en-US
 ```
 
+From the Pool runner list, open **Local diagnostics** on the target machine. Choose its shell and enter the original startup state directory. Run the copied command on that machine, then paste the overview JSON into the dialog to preview slots and copy the original journal command. The page processes the imported summary locally.
+
 No Runner token, model account, control-plane URL or tool configuration is required. Inspection does not initialize a directory, take the runtime write lock, change a result, acknowledge delivery or restart a task. Do not combine it with execution options.
 
 Read `status` first. `available` means the local journal was read; `missing` means it does not exist. `invalid`, `unreadable` and `over_limit` indicate invalid content, an unsafe or inaccessible input, and the 16 MiB read limit. A failed read does not emit private payloads or a partial summary.

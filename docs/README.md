@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+从共享执行池节点打开本机诊断见 T-POOL-DIAGNOSTIC-GUIDE-233。 [交互](design/execution-pools.md#节点本机诊断) · [验证](quality/pool-diagnostic-guide-verification.md)
+
 共享执行池本机槽位总览与原尝试定位见 T-POOL-INSPECTION-232。 [诊断指南](agents/runner-journal-inspection.md) · [阶段验证](quality/pool-state-inspection-verification.md)
 
 共享执行池停止、槽位诊断与原日志核对见 T-POOL-SHUTDOWN-231。 [值班手册](agents/execution-pool-runner.md#停止与核对) · [阶段验证](quality/pool-shutdown-verification.md)

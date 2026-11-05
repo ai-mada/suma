@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-POOL-DIAGNOSTIC-GUIDE-233 已验证真实 Windows CLI 摘要在 390 像素资源池节点弹窗内预览，并按槽位生成原日志命令。 [阶段验证](pool-diagnostic-guide-verification.md)
+
 T-MANUAL-RUNNER-ROTATION 验证手动节点原凭证失效、一次性签发、原回执恢复及代表界面。 [阶段验证](manual-runner-rotation-verification.md)
 
 T-POOL-INSPECTION-232 已验证原 Windows 控制台停止记录的槽位总览、单槽位定位和部分证据处理。 [阶段验证](pool-state-inspection-verification.md)

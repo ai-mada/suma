@@ -1,0 +1,46 @@
+{
+  "stage": "T-POOL-DIAGNOSTIC-GUIDE-233",
+  "base": "d97df7f67d1ab2b3b57a1cb55975e2628856af35",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "focused": {
+    "model": 5,
+    "related_pool_recovery": 10,
+    "typescript": "scoped_passed",
+    "paired_locale_keys": 10174,
+    "production_hardcoded_messages": 0,
+    "full_worktree_typecheck": "initial_path_type_error_fixed; unrelated_in_progress_file_reported_separately"
+  },
+  "browser": {
+    "scope": "Production PoolWorkspace and diagnostic dialog in Chrome with synthetic read-only Pool APIs and actual Windows CLI JSON",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "no_requests_on_import": true,
+    "owner_switch_clears": true,
+    "original_slot_command": true,
+    "preview_focus_restored": true,
+    "errors": 0,
+    "screenshot_sha256": "3377767ece08ed7827588f04cb89b3c6e43621c27f9cba0aebe36196cecc2e01"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "f230f9f55bdfc4de68015473b07de329a5079f87",
+    "source_copied": false
+  },
+  "pending": [
+    "physical_multi_host_operations",
+    "unix_runtime",
+    "live_vendor_execution",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "model": ".cache/pool-diagnostic-guide-233/model-final.log",
+    "locales": ".cache/pool-diagnostic-guide-233/i18n-final.log",
+    "types": ".cache/pool-diagnostic-guide-233/type-scoped.json",
+    "browser": ".cache/pool-diagnostic-guide-233/web/visual-result-release.json",
+    "browser_build": ".cache/pool-diagnostic-guide-233/web/build-release.json"
+  }
+}

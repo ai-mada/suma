@@ -676,24 +676,24 @@
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-POOL-SHUTDOWN-231",
-    "commit": "1c3c97c132de94eaf49053ee5af4a7f8817e0730",
-    "evidence": "Actual Windows console signals and concurrent two-slot shutdown/replay committed and pushed."
+    "stage": "T-POOL-INSPECTION-232",
+    "commit": "8d58e3850713023b366ad730388d99cb99306b4b",
+    "evidence": "Read-only multi-slot state, actual Windows original console-stop records and partial junction case; committed and pushed."
   },
   "current_work": {
-    "stage": "T-POOL-INSPECTION-232",
+    "stage": "T-POOL-DIAGNOSTIC-GUIDE-233",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
     "contract": "contracts/runner-journal-inspection.md",
-    "report": "docs/quality/pool-state-inspection-verification.md",
-    "summary": "docs/quality/pool-state-inspection-summary.json",
-    "previous_commit": "1c3c97c132de94eaf49053ee5af4a7f8817e0730",
-    "verification": "3 Runner and 5 CLI focused checks; actual Windows CLI three cases; Linux amd64 CLI cross-build.",
-    "actual": "Original T231 Windows console-stop state inspected in both languages without modifying files; original slot attempt 3/fence 7 located. A malformed sidecar and separate-directory junction produce partial output and nonzero.",
-    "known_limitations": "Read-only host filesystem snapshots do not attest active process, current server receipts or multi-host health. Unix runtime, real vendor and full platform acceptance pending.",
-    "next": "Continue distributed service validation and live tool readiness, then connect runtime evidence to existing scoped operator workflows where justified.",
+    "report": "docs/quality/pool-diagnostic-guide-verification.md",
+    "summary": "docs/quality/pool-diagnostic-guide-summary.json",
+    "previous_commit": "d97df7f67d1ab2b3b57a1cb55975e2628856af35",
+    "verification": "5 model and 10 Pool recovery tests, scoped TypeScript, paired locales, actual Chrome 390×844 using real CLI JSON and isolated read-only Pool API fixture.",
+    "actual": "Owner-scoped target row opens offline diagnostic. PowerShell command quoted, actual Windows snapshots preview valid and partial rows, per-slot original command copied. Paste emits no requests; keyboard focus and organization invalidation verified.",
+    "known_limitations": "Browser Pool API is synthetic; full worktree type check included separate in-progress code. Multi-host and Unix runtime, real vendors and full platform acceptance remain pending.",
+    "next": "Qualify actual installed tool readiness and multi-host/Unix service evidence, continue the original platform scope.",
     "full_platform_complete": false,
-    "git_record": ".cache/pool-inspection-232/post-git.json"
+    "git_record": ".cache/pool-diagnostic-guide-233/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2776,10 +2776,10 @@
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   },
   "active_implementation": {
-    "stage": "T-POOL-INSPECTION-232",
+    "stage": "T-POOL-DIAGNOSTIC-GUIDE-233",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "base": "1c3c97c132de94eaf49053ee5af4a7f8817e0730",
+    "base": "d97df7f67d1ab2b3b57a1cb55975e2628856af35",
     "contract": "contracts/runner-journal-inspection.md",
     "full_platform_complete": false
   },
@@ -2890,5 +2890,20 @@
     "next": "Continue distributed service validation and live tool readiness, then connect runtime evidence to existing scoped operator workflows where justified.",
     "full_platform_complete": false,
     "git_record": ".cache/pool-inspection-232/post-git.json"
+  },
+  "pool_diagnostic_guide": {
+    "stage": "T-POOL-DIAGNOSTIC-GUIDE-233",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/runner-journal-inspection.md",
+    "report": "docs/quality/pool-diagnostic-guide-verification.md",
+    "summary": "docs/quality/pool-diagnostic-guide-summary.json",
+    "previous_commit": "d97df7f67d1ab2b3b57a1cb55975e2628856af35",
+    "verification": "5 model and 10 Pool recovery tests, scoped TypeScript, paired locales, actual Chrome 390×844 using real CLI JSON and isolated read-only Pool API fixture.",
+    "actual": "Owner-scoped target row opens offline diagnostic. PowerShell command quoted, actual Windows snapshots preview valid and partial rows, per-slot original command copied. Paste emits no requests; keyboard focus and organization invalidation verified.",
+    "known_limitations": "Browser Pool API is synthetic; full worktree type check included separate in-progress code. Multi-host and Unix runtime, real vendors and full platform acceptance remain pending.",
+    "next": "Qualify actual installed tool readiness and multi-host/Unix service evidence, continue the original platform scope.",
+    "full_platform_complete": false,
+    "git_record": ".cache/pool-diagnostic-guide-233/post-git.json"
   }
 }
