@@ -26,6 +26,8 @@
  "tool-quick-connect.node_reason":"Original node report",
  "tool-quick-connect.probe_confirmed":"Installation and protocol probe confirmed",
  "tool-quick-connect.read_only":"Read-only tool",
+ "tool-quick-connect.access_read_only":"Read-only",
+ "tool-quick-connect.access_write":"Worktree write",
  "tool-quick-connect.worktree_write":"Writes permitted in a separate worktree",
  "tool-quick-connect.name":"Configuration name",
  "tool-quick-connect.review_configuration":"Review configuration",

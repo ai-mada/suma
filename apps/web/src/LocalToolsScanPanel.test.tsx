@@ -41,6 +41,31 @@ it.each([['unique',true],['ambiguous',false],['expired',false],['unsupported',fa
   expect(select).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
  });
 
+it('offers fresh local shortcuts for distinct protocols and never auto-selects a setup-only entry',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});
+ const cli={...adapter,id:'codex-jsonl',protocol:'codex-jsonl-v1'};
+ const service={...adapter,entrypoint_kind:'app_server'};
+ const buddy={...cli,id:'codebuddy-cli',product:'CodeBuddy Code',adapter:'codebuddy',protocol:'codebuddy-jsonl-v1'};
+ const value=report(),onAutoSelect=vi.fn();
+ const observed={installed:true,launch_supported:false,reason_code:'configuration_required',executable:'C:/tools/codex.exe',version:'0.141.0',executable_sha256:'a'.repeat(64)};
+ value.report.items[0]={...value.report.items[0],...observed,launch_supported:true,reason_code:'workspace_required'};
+ value.report.items[1]={...value.report.items[1],...observed,reason_code:'unsupported_launcher'};
+ value.report.items[6]={...value.report.items[6],...observed};
+ scan.mockResolvedValueOnce(value);
+ await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project}
+  adapters={[cli,service,buddy]} compact onSelect={select} onAutoSelect={onAutoSelect}/></ApiViewProvider>));
+ const shortcut=(id:string)=>host.querySelector<HTMLButtonElement>('[data-local-tools-shortcut="'+id+'"]');
+ expect(host.querySelector<HTMLDetailsElement>('[data-local-tools-results]')?.open).toBe(false);
+ expect(shortcut(cli.id)?.textContent).toContain('Launch method confirmed');
+ expect(shortcut(service.id)?.textContent).toContain('Configuration required');
+ expect(shortcut(buddy.id)).toBeNull();
+ expect(onAutoSelect).toHaveBeenCalledExactlyOnceWith(cli);
+ await click(shortcut(service.id)!);expect(select).toHaveBeenCalledExactlyOnceWith(service);
+ await act(async()=>vi.advanceTimersByTimeAsync(60001));
+ expect(shortcut(cli.id)).toBeNull();expect(shortcut(service.id)).toBeNull();
+ expect(scan).toHaveBeenCalledOnce();expect(fetch).not.toHaveBeenCalled();
+});
+
 it('T193 keeps nine scan facts separate from registration and offers only explicit existing-profile or SDK configuration navigation',async()=>{
  const sdk={...adapter,id:'claude-code-sdk',product:'Claude Agent SDK',adapter:'claude',protocol:'claude-sdk-v1'} as AdapterDescriptor,onViewExisting=vi.fn();
  async function draw(disabled=false){await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[adapter,sdk]} disabled={disabled} onSelect={select} onViewExisting={onViewExisting}/></ApiViewProvider>));}

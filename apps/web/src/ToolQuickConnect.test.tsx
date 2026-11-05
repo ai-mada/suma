@@ -74,8 +74,13 @@ it('offers a real node connection action and advanced setup when no node is conn
  await click('[data-quick-advanced]');expect(props.onAdvanced).toHaveBeenCalledOnce();await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('连接执行节点');
 });
 it('requires a configuration choice and retains an authored name across a fresh inventory read',async()=>{
- const base=reply;reply=async path=>path.startsWith('/tool-discovery')?Response.json({...report(),items:[observation,{...observation,profile:{...profile,command_id:'codex-other'}},{...observation,available:false,reason:'not available',profile:{...profile,command_id:'other-protocol',protocol:'codex-app-server-v1'}}]}):base(path);
- await render();await change('[data-quick-tool]','codex-jsonl');expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(true);expect(host.textContent).not.toContain('other-protocol');
+ const base=reply;reply=async path=>path.startsWith('/tool-discovery')?Response.json({...report(),items:[observation,{...observation,profile:{...profile,command_id:'codex-other',read_only:true}},{...observation,available:false,reason:'not available',profile:{...profile,command_id:'other-protocol',protocol:'codex-app-server-v1'}}]}):base(path);
+ await render();await change('[data-quick-tool]','codex-jsonl');
+ const choices=host.querySelector<HTMLSelectElement>('[data-quick-configuration]')!;
+ expect(choices.value).toBe('');
+ expect(choices.querySelector('option[value="codex-team"]')?.textContent).toContain('Worktree write');
+ expect(choices.querySelector('option[value="codex-other"]')?.textContent).toContain('Read-only');
+ expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(true);expect(host.textContent).not.toContain('other-protocol');
  await change('[data-quick-configuration]','codex-team');await change('[data-quick-name]','My team tool');
  const refresh=[...host.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent==='Read again')!;await act(async()=>refresh.click());await settle();await change('[data-quick-configuration]','codex-other');expect(host.querySelector<HTMLInputElement>('[data-quick-name]')?.value).toBe('My team tool');expect(props.action.run).not.toHaveBeenCalled();
 });

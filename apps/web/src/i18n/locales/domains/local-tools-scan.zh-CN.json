@@ -1,6 +1,9 @@
 {
  "local-tools-scan.title":"本机开发工具",
  "local-tools-scan.compact_title":"本机工具",
+ "local-tools-scan.shortcuts":"选择本机检测到的工具",
+ "local-tools-scan.launch_confirmed":"启动方式已确认",
+ "local-tools-scan.setup_required":"需要配置",
  "local-tools-scan.results":"查看检测结果",
  "local-tools-scan.entrypoint_name":"{{tool}} · {{entrypoint}}",
  "local-tools-scan.intro":"检测安装情况，选择接入方式后继续配置。",

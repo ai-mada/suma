@@ -7,6 +7,7 @@ import {toolConnectionDiagnostic} from './tool-connection-diagnostics-model';
 import {desktopACPRuntimeForAdapter} from './desktop-acp-connector-model';
 import {localToolsScanBridge,readLocalToolsScanResult,validLocalToolsScanScope,scanAdapterIDs,type LocalToolsScanScope,type LocalToolsScanResult} from './local-tools-scan-model';
 import {projectLocalToolsScan} from './local-tools-scan-presentation';
+import {toolPreparationTarget} from './tool-preparation-target';
 import {hasUnverifiedInstallationStop} from './tool-installation-probe-diagnostic-model';
 import {formatNumber,tr,useLocale} from './i18n';
 import './LocalToolsScanPanel.css';
@@ -14,6 +15,7 @@ import './LocalToolsScanPanel.css';
 export type LocalToolsScanPanelProps={project:string;adapters:readonly AdapterDescriptor[];selectedAdapterID?:string;disabled?:boolean;compact?:boolean;onSelect:(adapter:AdapterDescriptor)=>void;onAutoSelect?:(adapter:AdapterDescriptor)=>void;onAdvanced?:(adapter:AdapterDescriptor)=>void;onWorker?:()=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void};
 const t=(key:string,values?:Record<string,unknown>)=>tr('local-tools-scan.'+key,values);
 const probeText=(key:string)=>tr('tool-installation-probe-diagnostics.'+key);
+const entrypointLabel=(adapter:AdapterDescriptor)=>tr('adapter-connections.entrypoint.'+adapter.entrypoint_kind,{defaultValue:adapter.entrypoint_kind.toUpperCase()});
 const cursorReasons=new Set(['cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete']);
 function rowGuidance(adapterID:string,code:string){
  if(adapterID==='opencode-sdk'&&code==='version_unsupported')return {reason:tr('opencode-quick-connect.version_unsupported'),hint:'',install:true};
@@ -50,6 +52,11 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSe
  const selected=eligible.find(adapter=>adapter.id===selectedAdapterID);
  const presentation=result?projectLocalToolsScan(result.report.items,selectedAdapterID):undefined;
  const stopBlocked=hasUnverifiedInstallationStop(result?.report.items??[]);
+ const shortcuts=compact&&!selectedAdapterID&&result&&!busy&&!expired&&!stopBlocked?result.report.items.flatMap(item=>{
+  if(!item.installed||item.diagnostic||!(item.launch_supported||['configuration_required','acp_configuration_required'].includes(item.reason_code)))return [];
+  const matches=eligible.filter(adapter=>adapter.id===item.adapter_id&&toolPreparationTarget(adapter));
+  return matches.length===1?[{adapter:matches[0],item}]:[];
+ }):[];
  useEffect(()=>{
   if(!onAutoSelect||suggested.current||disabled||busy||inflight.current||!active.current||selectedAdapterID||!result||expired||stopBlocked||performance.now()>=expiresAt.current)return;
   const launchable=result.report.items.filter(item=>item.installed&&item.launch_supported&&!item.diagnostic);
@@ -67,7 +74,7 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSe
   const target=[...panel.current.querySelectorAll<HTMLButtonElement>('[data-local-tools-select]')].find(button=>button.dataset.localToolsSelect===intent.adapterID);target?.focus();
  },[selectedAdapterID]);
  function row(item:InstalledToolFact){const candidates=eligible.filter(adapter=>adapter.id===item.adapter_id),adapter=candidates.length===1?candidates[0]:undefined,guidance=rowGuidance(item.adapter_id,item.reason_code),diagnostic=item.diagnostic;return <li key={item.adapter_id} data-local-tools-adapter={item.adapter_id}>
-  <div className="local-tools-scan-item"><div className="local-tools-scan-name"><strong>{adapter&&!isCursorConnectionGuide(adapter)?t('entrypoint_name',{tool:item.product,entrypoint:tr('adapter-connections.entrypoint.'+adapter.entrypoint_kind,{defaultValue:adapter.entrypoint_kind.toUpperCase()})}):item.product}</strong><span><Search size={14} aria-hidden="true"/>{item.reason_code==='scan_incomplete'?probeText('scan_incomplete'):t(item.installed?expired?'installation_recorded':'installed':'not_observed')}</span></div>
+  <div className="local-tools-scan-item"><div className="local-tools-scan-name"><strong>{adapter&&!isCursorConnectionGuide(adapter)?t('entrypoint_name',{tool:item.product,entrypoint:entrypointLabel(adapter)}):item.product}</strong><span><Search size={14} aria-hidden="true"/>{item.reason_code==='scan_incomplete'?probeText('scan_incomplete'):t(item.installed?expired?'installation_recorded':'installed':'not_observed')}</span></div>
   <p className="local-tools-scan-guidance" {...(diagnostic?{'data-tool-probe-diagnostic':diagnostic.code}:{})}><strong>{diagnostic?probeText('code.'+diagnostic.code):guidance.reason}</strong></p>
   <details data-local-tools-basis={item.adapter_id}><summary><CircleHelp size={14} aria-hidden="true"/>{t('reason')}</summary>{diagnostic?<p>{probeText('hint.'+diagnostic.next_action)}</p>:guidance.hint&&<p>{guidance.hint}</p>}<dl>{diagnostic&&<><dt>{probeText('stage_label')}</dt><dd>{probeText('stage.'+diagnostic.stage)}</dd></>}<dt>{t('protocol')}</dt><dd><code>{adapter?.protocol||item.adapter_id}</code></dd>{item.version&&<><dt>{t('version')}</dt><dd>{item.version}</dd></>}<dt>{t('reason_code')}</dt><dd><code>{item.reason_code}</code></dd></dl></details></div>
   {(adapter||diagnostic?.next_action==='scan')&&<div className="local-tools-scan-actions">{adapter&&onViewExisting&&<button type="button" className="text-button" data-local-tools-existing={item.adapter_id} disabled={disabled||busy} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onViewExisting(adapter);}}>{t('view_existing')}</button>}{diagnostic?diagnostic.next_action==='guide'&&adapter&&onAdvanced?<button type="button" data-local-tools-diagnostic-action="guide" disabled={disabled||busy} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onAdvanced(adapter);}}>{probeText('action.guide')}</button>:diagnostic.next_action==='scan'?<button type="button" data-local-tools-diagnostic-action="scan" disabled={disabled||busy||stopBlocked} onClick={()=>void scan(true)}>{probeText('action.local_scan')}</button>:null:adapter&&<button type="button" data-local-tools-select={item.adapter_id} aria-pressed={selectedAdapterID===item.adapter_id} disabled={disabled||busy} onClick={event=>{if(active.current&&!disabled&&!inflight.current){focusIntent.current=selectedAdapterID!==item.adapter_id&&event.currentTarget.ownerDocument.activeElement===event.currentTarget?{adapterID:item.adapter_id,button:event.currentTarget}:undefined;onSelect(adapter);if(resultsDisclosure.current)resultsDisclosure.current.open=false;}}}>{t(isCursorConnectionGuide(adapter)?'guide':guidance.install?'install':'configure')}</button>}</div>}
@@ -84,6 +91,16 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSe
   <header><div><h4><Monitor size={18} aria-hidden="true"/>{t(compact?'compact_title':'title')}</h4>{!compact&&<p>{t('intro')}</p>}</div><button type="button" data-local-tools-rescan disabled={disabled||busy||stopBlocked} onClick={()=>void scan(true)}><RefreshCw size={16} aria-hidden="true"/>{t(busy?'scanning':'rescan')}</button></header>
   {(!compact||!result||expired||busy||failure)&&<p className="local-tools-scan-status" role="status">{t(failure?'failed':busy?'scanning':result?expired?'expired':result.scan.cached?'cached':'observed':disabled?'deferred':'waiting')}</p>}
   {selected&&!compact&&<p className="local-tools-scan-target" data-local-tools-selected-target>{t('selected_target',{tool:selected.product})}</p>}
+  {shortcuts.length>0&&<ul className="local-tools-scan-shortcuts" aria-label={t('shortcuts')}>
+   {shortcuts.map(({adapter,item})=><li key={adapter.id}><button type="button" data-local-tools-shortcut={adapter.id} disabled={disabled} onClick={()=>{
+    if(!active.current||disabled||inflight.current||performance.now()>=expiresAt.current)return;
+    onSelect(adapter);
+    if(resultsDisclosure.current)resultsDisclosure.current.open=false;
+   }}>
+    <span><strong>{item.product}</strong><small>{entrypointLabel(adapter)}</small><small>{t(item.launch_supported?'launch_confirmed':'setup_required')}</small></span>
+    <ChevronRight size={16} aria-hidden="true"/>
+   </button></li>)}
+  </ul>}
   {compact?<details ref={resultsDisclosure} className="local-tools-scan-other" data-local-tools-results><summary><ChevronRight className="local-tools-scan-disclosure" size={16} aria-hidden="true"/><span>{t('results')}{counts&&<small data-local-tools-installation-summary>{counts}</small>}</span></summary>{details}</details>:<>
    {counts&&<p className="local-tools-scan-counts" data-local-tools-installation-summary>{counts}</p>}{details}
   </>}

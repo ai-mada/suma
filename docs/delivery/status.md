@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-QUICK-CHOICES-241 本机已确认的入口可直接选用，同名产品按协议类型区分。多份节点配置显示读写范围，单份已有配置直接展示可用操作。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-choices-verification.md)
+
 T-WORKBUDDY-CONNECTION-UX 将首次连接简化为直接选权限、在 WorkBuddy 确认。焦点随步骤移动，授权核对和账号管理分区展示。真实 WorkBuddy 应用联调仍待配置后验收。 [交互](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-connection-ux-verification.md)
 
 T-TOOL-QUICK-REVIEW-240 添加工具支持首屏配置核对、回车保存及暂停回执焦点。检测详情可展开，缺失或过期时直接显示处理入口。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-review-verification.md)

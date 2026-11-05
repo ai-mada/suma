@@ -28,6 +28,8 @@ async function change(selector:string,value:string){const field=host.querySelect
 
 it('reuses an exact paused profile after reopening without creating a profile or a registration notification',async()=>{
  const existing=item();query.mockImplementation(async()=>Response.json(matches([existing])));await render();
+ expect(host.querySelector('[data-existing-tool-choice]')).toBeNull();
+ expect(host.querySelector('[data-existing-tool-single]')?.textContent).toContain(existing.name);
  expect(query).toHaveBeenCalledExactlyOnceWith({project_id:'p',worker_id:'one',profile});expect(host.querySelector('[data-quick-register]')).toBeNull();expect(props.action.run).not.toHaveBeenCalled();expect(props.onRegistered).not.toHaveBeenCalled();expect(props.onEnable).not.toHaveBeenCalled();
  await click('[data-existing-tool-enable]');expect(props.onEnable).toHaveBeenCalledExactlyOnceWith(existing);expect(props.onOpen).not.toHaveBeenCalled();
 });

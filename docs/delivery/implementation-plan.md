@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-QUICK-CHOICES-241 [添加工具](../design/tool-quick-connect.md)在首屏提供本机确认入口，多配置在选用前展示读写范围，单份已有配置直接复用原操作。 [限定验证](../quality/tool-quick-choices-verification.md)
+
 T-TOOL-QUICK-REVIEW-240 [添加工具](../design/tool-quick-connect.md)在选中工具后优先显示核对与保存，按需展开检测信息。恢复已有工具的高级替换入口及原草稿。 [限定验证](../quality/tool-quick-review-verification.md)
 
 T-TOOL-QUICK-START-239 [添加工具](../design/tool-quick-connect.md)使用首屏工具选择、折叠检测详情和唯一已确认入口预填，复用项目节点库存、配置匹配及暂停登记。真实桌面安装、厂商模型与完整平台验收继续。 [限定验证](../quality/tool-quick-start-verification.md)

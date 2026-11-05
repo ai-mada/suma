@@ -8,3 +8,30 @@
 .local-tools-scan-compact h4{font-size:14px}
 .local-tools-scan-compact [data-local-tools-results]{border:0}
 .local-tools-scan-compact [data-local-tools-results]>summary small{display:block;color:var(--muted);font-size:12px}
+
+.local-tools-scan-shortcuts {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(192px,100%),1fr));
+  gap:8px;
+  list-style:none;
+  margin:4px 0;
+  padding:0;
+}
+
+.local-tools-scan-shortcuts li {min-width:0}
+.local-tools-scan-shortcuts button {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  height:100%;
+  padding:10px 12px;
+  text-align:start;
+  background:var(--surface-soft);
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+
+.local-tools-scan-shortcuts button:not(:disabled):hover {border-color:var(--accent)}
+.local-tools-scan-shortcuts button > span {display:grid;min-width:0;gap:2px}
+.local-tools-scan-shortcuts small {color:var(--muted);font-size:12px}

@@ -26,6 +26,8 @@
  "tool-quick-connect.node_reason":"节点原始说明",
  "tool-quick-connect.probe_confirmed":"安装与协议探测已确认",
  "tool-quick-connect.read_only":"只读工具",
+ "tool-quick-connect.access_read_only":"只读",
+ "tool-quick-connect.access_write":"工作树可写",
  "tool-quick-connect.worktree_write":"允许在独立工作树中写入",
  "tool-quick-connect.name":"配置名称",
  "tool-quick-connect.review_configuration":"核对配置",
