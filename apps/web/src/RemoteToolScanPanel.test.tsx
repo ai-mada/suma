@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import {createHash,webcrypto} from 'node:crypto';
-import {act} from 'react';
+import {setTimeout as waitReal} from 'node:timers/promises';
+import {act,StrictMode} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {RemoteToolScanPanel} from './RemoteToolScanPanel';
@@ -23,11 +24,68 @@ beforeEach(async()=>{
  await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('crypto',webcrypto);sessionStorage.clear();items=[];maintenance=cap();forbidden=false;writeForbidden=false;lost=false;posts=[];selected='claude-code-sdk';onPrepare=vi.fn();onGuide=vi.fn();host=document.createElement('div');document.body.append(host);root=createRoot(host);
  vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{const path=String(input).replace('/api/v1','');if(forbidden)return Response.json({error:{code:'forbidden',message:'No access'}},{status:403});if(path.startsWith('/adapter-catalog'))return Response.json({project_id:'p',as_of:at,items:[codebuddy,sdk]});if(init.method==='POST'){const body=JSON.parse(String(init.body));posts.push(body);if(writeForbidden)return Response.json({error:{code:'forbidden',message:'Access revoked'}},{status:403});items=[scan(body.adapter_ids[0])];if(lost&&posts.length===1)throw Error('Acknowledgement lost');return Response.json(scan(body.adapter_ids[0],'pending'),{status:201});}if(path.startsWith('/tool-installation-scans?'))return Response.json({project_id:'p',worker_id:'worker-one',as_of:at,maintenance,items});if(path.includes('/tool-installation-scans/'))return Response.json(items[0]);throw Error('Unexpected remote scan route: '+path);}));
 });
-afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();vi.unstubAllGlobals();vi.restoreAllMocks();});
-async function settle(){await act(async()=>{for(let i=0;i<4;i++){await new Promise(resolve=>setTimeout(resolve,0));}});}
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
+async function settle(){await act(async()=>{for(let i=0;i<4;i++)await waitReal(0);});}
 async function draw(identity=session,provider=true){const panel=<RemoteToolScanPanel project="p" workerID="worker-one" selectedAdapterID={selected} onPrepare={onPrepare} onGuide={onGuide}/>;await act(async()=>root.render(provider?<ApiViewProvider session={identity}>{panel}</ApiViewProvider>:panel));await settle();}
 async function click(hook:string){const element=host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-'+hook+']')!;expect(element).not.toBeNull();await act(async()=>element.click());await settle();}
 const phase=()=>host.querySelector('[data-remote-tool-scan-status]')?.getAttribute('data-remote-tool-scan-status');
+
+it('finishes the initial node read when the tab is hidden and reopened during loading',async()=>{
+ const visibility=vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+ const originalFetch=fetch;
+ let release!:()=>void;
+ const gate=new Promise<void>(resolve=>{release=resolve;});
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  if(String(input).includes('/tool-installation-scans?'))await gate;
+  if(init?.signal?.aborted)throw new DOMException('Aborted','AbortError');
+  return originalFetch(input,init);
+ }));
+ await draw();
+ expect(phase()).toBe('loading');
+ await act(async()=>{
+  visibility.mockReturnValue('hidden');
+  document.dispatchEvent(new Event('visibilitychange'));
+  visibility.mockReturnValue('visible');
+  document.dispatchEvent(new Event('visibilitychange'));
+  release();
+ });
+ await settle();
+ expect(phase()).toBe('ready');
+ expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-refresh]')?.disabled).toBe(false);
+ expect(posts).toHaveLength(0);
+});
+
+it('loads the current node after development mode restarts the initial read',async()=>{
+ await act(async()=>root.render(<StrictMode><ApiViewProvider session={session}><RemoteToolScanPanel project="p" workerID="worker-one"/></ApiViewProvider></StrictMode>));
+ await settle();
+ expect(phase()).toBe('ready');
+ expect(posts).toHaveLength(0);
+});
+
+it('keeps a manual refresh usable when the previous scan wait reaches its deadline',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});
+ items=[scan('claude-code-sdk','pending')];
+ await draw();
+ expect(phase()).toBe('pending');
+ await act(async()=>vi.advanceTimersByTimeAsync(59_000));
+ await settle();
+ const originalFetch=fetch;
+ let release!:()=>void;
+ const gate=new Promise<void>(resolve=>{release=resolve;});
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  if(String(input).includes('/tool-installation-scans?'))await gate;
+  if(init?.signal?.aborted)throw new DOMException('Aborted','AbortError');
+  return originalFetch(input,init);
+ }));
+ await click('refresh');
+ expect(phase()).toBe('loading');
+ await act(async()=>vi.advanceTimersByTimeAsync(1_001));
+ items=[scan()];
+ await act(async()=>release());
+ await settle();
+ expect(phase()).toBe('completed');
+ expect(posts).toHaveLength(0);
+});
 
 it('T205 restores the exact original unknown write, then explicitly prepares an installed SDK that still needs configuration',async()=>{
  lost=true;await draw();expect(phase()).toBe('ready');expect(posts).toHaveLength(0);await click('create');expect(phase()).toBe('write_unknown');expect(posts).toHaveLength(1);expect(host.querySelector('[data-remote-tool-scan-prepare]')).toBeNull();writeForbidden=true;await click('recover');expect(phase()).toBe('forbidden');expect(sessionStorage.length).toBeGreaterThan(0);writeForbidden=false;items=[scan('claude-code-sdk','pending')];await click('refresh');expect(phase()).toBe('write_unknown');await click('recover');expect(posts).toHaveLength(3);expect(posts[1]).toEqual(posts[0]);expect(posts[2]).toEqual(posts[0]);expect(phase()).toBe('completed');expect(host.querySelector<HTMLSelectElement>('[data-remote-tool-scan-request]')?.value).toBe('scan-one');expect(host.textContent).toContain('Target node: worker-one');expect(host.textContent).toContain('1 installed · 1 checked');expect(tr('remote-tool-scan.other',{count:'2'})).toBe('Other tools (2)');await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('目标节点：worker-one');expect(host.textContent).toContain('已安装 1 项 · 已检查 1 项');expect(tr('remote-tool-scan.other',{count:'2'})).toBe('其他工具（2）');expect(host.textContent).not.toMatch(/\{(?:worker|detected|total|count)\}/);await click('prepare="claude-code-sdk"');expect(onPrepare).toHaveBeenCalledExactlyOnceWith(sdk,'worker-one');expect(onGuide).not.toHaveBeenCalled();

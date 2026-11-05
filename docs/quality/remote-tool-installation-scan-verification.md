@@ -31,3 +31,11 @@ Windows，本机已有Go1.26.10、Node22.16、Electron及Playwright；过程临�
 实际原件：.cache/remote-tool-scan-205/actual/20261102T052756752867000Z；最终只读视觉：.cache/remote-tool-scan-205/visual/20261102T054029031Z。源、命令、原失败、图片和私有快照摘要见精简JSON。正式源码、设计与精简报告进入Git；数据库、运行日志、缓存、图片和构建产物不提交。
 
 真实厂商／模型／计费、物理多机、OceanBase／PostgreSQL实库、其他OS停止矩阵、安装包、负载和生产未由本阶段证明。完整31项／P0–P7／58limited／34pending／92总账继续，Pool免令牌接入、OpenCode原生准备、WorkBuddy可信代码及完整质量链继续交付。
+
+## 读取恢复补充验证
+
+T-REMOTE-TOOL-READ-RESUME 修复三条持续显示加载的路径。标签页切换只暂停后续轮询。开发模式的挂载重放释放原读取占用。扫描等待到期时，已发出的手动刷新按自身期限继续。
+
+- Windows、Node 22.16.0、Vitest 3.0.5。在 `apps/web` 执行 `vitest run src/RemoteToolScanPanel.test.tsx src/remote-tool-scan-model.test.ts`，3 项新增回归均先复现加载滞留，修复后合计 9 项通过。执行 `tsc --noEmit`，退出码 0。
+- 使用已安装的 Playwright 和 Chrome 156.0.8078.80，在独立回环 Vite 中渲染真实 `RemoteToolScanPanel`，中文 1366×768。无头标签页未触发原生可见性切换，验证脚本显式触发隐藏和恢复事件。真实按钮触发合成 HTTP 读取，页面从加载进入就绪，读取待处理请求，刷新跨过上一轮等待截止后呈现完成，模拟撤权后移除结果。共 4 次列表读取、1 次准确明细读取、0 次写入，未观察到未预期的页面错误。
+- 本轮证据覆盖浏览器读取生命周期。实际 Runner、供应方与完整工具管理界面验收沿既有证据和矩阵跟踪。复现脚本、结果及界面证据保存在 `.cache/remote-tool-read-resume/`。

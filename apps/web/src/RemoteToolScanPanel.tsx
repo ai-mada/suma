@@ -71,11 +71,21 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
  function stopWait(){clearTimeout(poll.current);clearTimeout(deadline.current);poll.current=undefined;deadline.current=undefined;wait.current=undefined;}
  function selectID(value:string){if(selectedRef.current!==value)managedSelection.current={...managedSelection.current,epoch:managedSelection.current.epoch+1};selectedRef.current=value;setSelected(value);try{storage?.setItem(selectionKey,value);}catch{/* Selection is navigation only; the durable write request remains separate. */}}
  function selectManagedTarget(value:{scanID:string;adapterID:string}|undefined){managedSelection.current={...managedSelection.current,epoch:managedSelection.current.epoch+1};setManagedTarget(value);}
- function deny(){++requestEpoch.current;flight.current?.abort();flight.current=undefined;stopWait();publish({loading:false,capDeadline:0,denied:true});}
+ function abortRead(){++requestEpoch.current;flight.current?.abort();flight.current=undefined;}
+ function deny(){abortRead();stopWait();publish({loading:false,capDeadline:0,denied:true});}
  function ownsRead(epoch:number,controller:AbortController){return alive.current&&owns()&&requestEpoch.current===epoch&&!controller.signal.aborted;}
  function schedule(value:RemoteToolScan|undefined,reset=false){
   clearTimeout(poll.current);if(!value||!unresolved(value)||hidden||latest.current.disabled){stopWait();return;}
-  if(reset||!wait.current||wait.current.id!==value.id){stopWait();setTimedOut(false);wait.current={id:value.id,until:performance.now()+60000};deadline.current=setTimeout(()=>{if(alive.current&&owns()&&wait.current?.id===value.id){clearTimeout(poll.current);++requestEpoch.current;flight.current?.abort();flight.current=undefined;setTimedOut(true);}},60000);}
+  if(reset||!wait.current||wait.current.id!==value.id){
+   stopWait();setTimedOut(false);wait.current={id:value.id,until:performance.now()+60000};
+   deadline.current=setTimeout(()=>{
+    if(!alive.current||!owns()||wait.current?.id!==value.id)return;
+    clearTimeout(poll.current);
+    // The scan wait bounds polling, while a full refresh has its own request deadline.
+    if(!snapshotRef.current.loading)abortRead();
+    setTimedOut(true);
+   },60000);
+  }
   if(performance.now()>=wait.current.until){setTimedOut(true);return;}if(document.visibilityState!=='hidden')poll.current=setTimeout(()=>void readCurrent(value.id),3000);
  }
  async function readCurrent(scanID:string){
@@ -117,12 +127,24 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
   if(!owns()||!alive.current||latest.current.disabled||current.denied||current.loading||current.error||newBlocked||item.diagnostic?.next_action!=='scan'||original?.state!=='completed'||original.source_changed||!original.result?.items.includes(item)||hasUnverifiedInstallationStop(original.result.items)||maintenance?.state!=='supported'||performance.now()>=current.capDeadline||!validInstalledDiscoveryCapability(capability)||!capability.adapter_ids.includes(item.adapter_id))return;
   void create([item.adapter_id]);
  }
- useLayoutEffect(()=>{alive.current=true;return()=>{alive.current=false;++requestEpoch.current;flight.current?.abort();stopWait();latest.current.onBlockedChange?.(false);};},[]);
+ useLayoutEffect(()=>{alive.current=true;return()=>{alive.current=false;abortRead();stopWait();latest.current.onBlockedChange?.(false);};},[]);
  useEffect(()=>{void readPage();},[]);
  useEffect(()=>{latest.current.onBlockedChange?.(blocked||managedBlocked||stopBlocked);},[blocked,managedBlocked,stopBlocked]);
  useEffect(()=>{if(writeDenied)deny();},[writeDenied]);
  useEffect(()=>{if(!snapshot.capDeadline)return;const remaining=snapshot.capDeadline-performance.now();if(remaining<=0)return;const timer=setTimeout(()=>tick(value=>value+1),Math.ceil(remaining));return()=>clearTimeout(timer);},[snapshot.capDeadline]);
- useEffect(()=>{const visibility=()=>{if(document.visibilityState==='hidden'){clearTimeout(poll.current);flight.current?.abort();}else if(wait.current){if(performance.now()>=wait.current.until)setTimedOut(true);else void readCurrent(wait.current.id);}};document.addEventListener('visibilitychange',visibility);return()=>document.removeEventListener('visibilitychange',visibility);},[]);
+ useEffect(()=>{
+  function visibility(){
+   if(document.visibilityState==='hidden'){
+    // An in-flight page or detail read can settle. Pause only scheduled polling.
+    clearTimeout(poll.current);
+   }else if(wait.current){
+    if(performance.now()>=wait.current.until)setTimedOut(true);
+    else void readCurrent(wait.current.id);
+   }
+  }
+  document.addEventListener('visibilitychange',visibility);
+  return()=>document.removeEventListener('visibilitychange',visibility);
+ },[]);
  const status=hidden?'forbidden':action.busy?'loading':pending?'write_unknown':snapshot.loading?'loading':snapshot.error?'invalid':timedOut&&activeScan?'timed_out':scan?.state??(capValid?'ready':'capability_unavailable');
  const rows=!hidden&&!pending&&scan?.state==='completed'?scan.result?.items??[]:[],primary=rows.filter(item=>item.installed||item.reason_code!=='not_installed'||item.adapter_id===selectedAdapterID),other=rows.filter(item=>!primary.includes(item));
  function row(item:RemoteToolScanItem){const candidates=snapshot.catalog?.filter(adapter=>adapter.id===item.adapter_id&&toolPreparationTarget(adapter))??[],adapter=candidates.length===1?candidates[0]:undefined,reason=toolConnectionDiagnostic(item.reason_code==='acp_configuration_required'?'configuration_required':item.reason_code),diagnostic=item.diagnostic;
