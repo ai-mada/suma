@@ -34,6 +34,8 @@ Read commands:
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  tasks dispatch-test-option --help   Check an exact independent test tool
+  tasks dispatch-plan PLAN
   models options --tool ID --expected-tool-version N
   tools list [--state STATE] [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
   tools matches --file JSON   Find exact existing profiles using a login session (no writes)
@@ -45,6 +47,8 @@ Read commands:
   tui                         Read-only Bubble Tea browser (default on a terminal)
 
 Explicit writes:
+  tasks dispatch-preview --file REQUEST_JSON|-
+  tasks dispatch-start PLAN --expected-version N --operation KEY
   workspace save --file request.json [--wait]
   workspace inspect-save ID --expected-version N [--operation KEY] [--wait]
   webhook deliver --ingress ID --delivery ID --file event.json [--secret-env SUMA_WEBHOOK_SECRET]
@@ -148,8 +152,13 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	if len(args) > 0 && args[0] == "task-views" {
 		return sharedTaskViewsCommand(ctx, c, args[1:], in, out)
 	}
-	if len(args) > 1 && args[0] == "tasks" && args[1] == "dispatch-options" {
-		return taskDispatchOptionsCommand(ctx, c, args[2:], out)
+	if len(args) > 1 && args[0] == "tasks" {
+		switch args[1] {
+		case "dispatch-options":
+			return taskDispatchOptionsCommand(ctx, c, args[2:], out)
+		case "dispatch-test-option", "dispatch-preview", "dispatch-plan", "dispatch-start":
+			return taskDispatchCommand(ctx, c, args[1], args[2:], in, out)
+		}
 	}
 	if len(args) > 0 && args[0] == "inbox" {
 		return notificationInboxCommand(ctx, c, args[1:], out)

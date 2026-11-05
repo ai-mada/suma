@@ -8,7 +8,7 @@ import (
 
 func (s *Server) taskDispatchTestOptionHTTP(w http.ResponseWriter, r *http.Request, actor Actor, project, taskID string) {
 	w.Header().Set("Cache-Control", "no-store")
-	if actor.kind != actorBrowser {
+	if actor.kind != actorBrowser && actor.kind != actorProjectAPI {
 		writeError(w, forbidden())
 		return
 	}

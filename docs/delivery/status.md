@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CLI-TASK-DISPATCH 从终端按当前项目授权读取工具选项、核对独立测试、预览、审阅及显式启动。重试使用原请求、版本和操作标识。 [终端操作](../operations/task-dispatch-options.md#终端任务派发) · [验证](../quality/cli-task-dispatch-verification.md)
+
 T-TEST-DISPATCH-PREFLIGHT 在任务派发中选择独立测试工具时，先核对发布流程、开发档案、测试节点和当前执行路由。结果显示原配置版本与读取时间；条件变化时在同一行提供原因。 [交互](../design/test-dispatch-bindings.md#工作台与推荐) · [验证](../quality/test-dispatch-preflight-verification.md)
 
 T-POOL-RUNNER-OCCUPANCY 从共享资源池的执行节点页查看已保留槽位和登记上限，区分执行中记录、待核对与未知占用。真实派发、保留和核对释放已定向验证。 [交互](../design/execution-pools.md#节点槽位占用) · [验证](../quality/pool-runner-occupancy-verification.md)

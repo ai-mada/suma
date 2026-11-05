@@ -58,7 +58,7 @@ func (s *Service) GetTaskDispatchTestOption(ctx context.Context, engine *dag.Eng
 	// The write proof is the eligibility required by the exact override
 	// validators. Only the in-memory graph is changed during this read.
 	target := commandTarget{tenantID: actor.credential.tenantID, projectID: project}
-	err = s.withCurrentRead(ctx, actor, target, purposeBrowserProjectWrite, func(auth *authorizedCommand) error {
+	err = s.withCurrentRead(ctx, actor, target, purposeProjectWrite, func(auth *authorizedCommand) error {
 		ctx, tx, p := auth.ctx, auth.tx, auth.currentPrincipal
 		if e := s.rejectReservedCandidateRepairTaskTx(ctx, tx, p.TenantID, project, taskID, ""); e != nil {
 			return e

@@ -55,6 +55,11 @@ var cliMessages = map[string]cliMessage{
 	compositionCLIRevisionInvalid:  {"cli.candidate_composition.revision_basis_required", "修复计划修订需要准确计划、任务、冲突和所选流程／工具版本、明确确认、理由及原操作标识"},
 	modelOptionsUsage:              {"cli.model_execution.usage", "模型选项需要：models options --tool 工具ID --expected-tool-version 当前版本"},
 	dispatchOptionsCLIUsage:        {"cli.task_dispatch_options.usage", "任务工具推荐需要：tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID；可选 --limit 1..200 与 --before 原分页游标"},
+	dispatchTestOptionCLIUsage:     {"cli.task_dispatch.test_option_usage", "独立测试预检须提供任务、流程、开发节点和两个工具的准确标识与版本，请查看 tasks dispatch-test-option --help"},
+	dispatchPreviewCLIUsage:        {"cli.task_dispatch.preview_usage", "派发预览须提供 --file 请求JSON|- 及正文中的明确 idempotency_key，长度为 8–128 个 UTF-8 字节"},
+	dispatchPreviewCLIJSON:         {"cli.task_dispatch.preview_json", "派发预览须提供一个键名唯一的 UTF-8 JSON 对象及明确的原 idempotency_key"},
+	dispatchPlanCLIUsage:           {"cli.task_dispatch.plan_usage", "派发计划读取须提供准确的 PLAN 标识"},
+	dispatchStartCLIUsage:          {"cli.task_dispatch.start_usage", "启动派发须提供 PLAN、--expected-version 当前版本和 --operation 原标识，长度为 8–128 个 UTF-8 字节"},
 	sharedTaskViewUsage:            {"cli.shared_task_views.usage", "task-views 需要 list、get ID、create --file JSON、update ID --file JSON 或 archive ID --file JSON，并提供 --project"},
 	taskDiscussionsCLIUsage:        {"cli.task_discussions.usage", "任务讨论需要 list --task、people --task、message 消息ID --task 或 post --file JSON|-；请查看 discussion --help"},
 	taskDiscussionsCLIInput:        {"cli.task_discussions.input", "讨论发送须保留与 --project 一致的 project_id、任务ID、正整数任务版本、非空原正文和明确原操作标识；可选唯一人员资源ID或准确知识引用，不能指定作者或角色"},
@@ -292,6 +297,8 @@ const helpZH = `suma — 速码控制面客户端
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  tasks dispatch-test-option --help   核对准确的独立测试工具
+  tasks dispatch-plan PLAN
   models options --tool 工具ID --expected-tool-version 当前版本
   tools list [--state 状态] [--query 检索文本] [--limit 1..200] [--cursor 原游标]
   tools matches --file JSON   使用登录会话查询完整匹配的已有工具档案（只读）
@@ -303,6 +310,8 @@ const helpZH = `suma — 速码控制面客户端
   tui                         只读 Bubble Tea 工作台（交互终端默认入口）
 
 显式写操作：
+  tasks dispatch-preview --file REQUEST_JSON|-
+  tasks dispatch-start PLAN --expected-version N --operation KEY
   workspace save --file request.json [--wait]
   workspace inspect-save ID --expected-version N [--operation KEY] [--wait]
   webhook deliver --ingress ID --delivery ID --file event.json [--secret-env SUMA_WEBHOOK_SECRET]

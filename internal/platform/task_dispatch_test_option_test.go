@@ -111,9 +111,6 @@ func TestTaskDispatchTestOptionRejectsBadQueryDriftAndUnauthorizedReaders(t *tes
 	f.call(http.MethodGet, base+q.Encode(), nil, http.StatusBadRequest)
 
 	path := base + taskDispatchTestOptionQuery(request).Encode()
-	token := f.call(http.MethodPost, "/auth/tokens", f.body(map[string]any{"scope": "api"}), http.StatusCreated)["token"].(string)
-	f.bearer(http.MethodGet, path, token, nil, http.StatusForbidden)
-
 	invitation := governanceInvite(f, "test-preflight-viewer@example.test", "member", []any{map[string]any{"project_id": f.project, "role": "viewer"}})
 	governanceAccept(f, invitation, "test-preflight-viewer@example.test")
 	f.call(http.MethodGet, "/tasks/"+request.TaskID+"?project_id="+f.project, nil, http.StatusOK)

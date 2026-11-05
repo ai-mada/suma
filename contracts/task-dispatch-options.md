@@ -34,7 +34,7 @@ Optional: `limit` (canonical decimal 1..200, default50), `before` (original acto
 
 Read the complete selected task context, including protected design and code baseline. Additional knowledge references are frozen/rechecked in the existing explicit preview. Tool availability must reuse authenticated real inventory, profile activation and current private/Pool execution identity; workflow compatibility must reuse the actual dispatch builder and DAG compiler. Declared capability is insufficient.
 
-All returned records use current organization/project authorization. The read must not invoke quota reservation or attempt accounting, insert dispatch rows, or alter any workflow/template. Errors in a candidate can exclude that candidate; database/authority failures must not be silently converted into a healthy recommendation.
+The current project read accepts a browser session or an API credential bound to that project. Responses use `Cache-Control: no-store`. All returned records use current organization/project authorization. The read must not invoke quota reservation or attempt accounting, insert dispatch rows, or alter any workflow/template. Errors in a candidate can exclude that candidate; database/authority failures must not be silently converted into a healthy recommendation.
 
 ## Ranking and model boundary
 

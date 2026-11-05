@@ -695,6 +695,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "cli_task_dispatch": {
+    "stage": "T-CLI-TASK-DISPATCH",
+    "version": "1.0.0",
+    "classification": "progress",
+    "contract": "contracts/test-dispatch-bindings.md#选择时检查",
+    "design": "docs/operations/task-dispatch-options.md#终端任务派发",
+    "report": "docs/quality/cli-task-dispatch-verification.md",
+    "actual": "Scoped project CLI discovers current developer options, validates one independent test binding, creates and reads the original plan, then explicitly starts with the reviewed version and exact operation ID.",
+    "known_limitations": "The CLI stage verifies configuration, admission and original replay on Windows and SQLite. Worker execution, real providers, physical multi-host and production remain separate.",
+    "full_platform_complete": false,
+    "git_record": ".cache/cli-task-dispatch/post-git.json"
+  },
   "test_dispatch_preflight": {
     "stage": "T-TEST-DISPATCH-PREFLIGHT",
     "version": "1.0.0",

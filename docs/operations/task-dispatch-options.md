@@ -13,6 +13,46 @@
 
 CLI只读查询：`suma --project PROJECT tasks dispatch-options TASK --expected-version VERSION --workflow WORKFLOW --workflow-version VERSION --node NODE`。使用现有身份与项目范围；`--limit`为1–200，`--before`只能复用该任务／流程／节点依据的原分页游标。HTTP、CLI和浏览器使用同一领域服务。
 
+## 终端任务派发
+
+将项目 API 凭证放入进程环境的 `SUMA_TOKEN`，所有命令使用同一个 `--project`。工具选项要求当前项目读取资格。独立测试核对、正式预览和启动要求当前项目写权限。CLI 输出 JSON 及可供脚本判断的退出状态。
+
+```text
+suma --project PROJECT tasks dispatch-options TASK --expected-version TASK_VERSION --workflow WORKFLOW --workflow-version FLOW_VERSION --node DEV_NODE
+suma --project PROJECT tasks dispatch-test-option TASK --expected-version TASK_VERSION --workflow WORKFLOW --workflow-version FLOW_VERSION --node DEV_NODE --tool DEV_TOOL --expected-tool-version DEV_VERSION --test-node TEST_NODE --test-tool TEST_TOOL --expected-test-tool-version TEST_VERSION
+suma --project PROJECT tasks dispatch-preview --file request.json
+suma --project PROJECT tasks dispatch-plan PLAN
+suma --project PROJECT tasks dispatch-start PLAN --expected-version PLAN_VERSION --operation ORIGINAL_START_KEY
+```
+
+- 核对结果中的 `binding` 提供 `node_id`、`tool_profile_id` 和 `tool_profile_version`。准备正式预览时，分别放入 `test_bindings` 项的 `node_id`、`tool_profile_id` 和 `expected_tool_version`。
+- `request.json` 使用原 `TaskDispatchPreviewRequest`，包含任务、流程、开发节点和工具的固定版本、明确的 `idempotency_key`，及适用的模型、知识或测试覆盖。使用 `--file -` 可从标准输入读取。
+- 审阅计划的准确任务、工具、路由和独立测试绑定，再显式启动。预览结果未知时保留原请求文件和键；启动结果未知时沿原计划、原版本及 `--operation` 恢复。退出码 2 表示本机用法错误，1 表示控制面或传输错误。
+
+以下是带独立测试覆盖的预览正文。命令将 `--project` 传给服务端；若正文也带 `project_id`，两处须一致。
+
+```json
+{
+  "task_id": "TASK",
+  "expected_task_version": 4,
+  "workflow_id": "WORKFLOW",
+  "workflow_version": 2,
+  "agent_node_id": "DEV_NODE",
+  "tool_profile_id": "DEV_TOOL",
+  "expected_tool_version": 3,
+  "test_bindings": [
+    {
+      "node_id": "TEST_NODE",
+      "tool_profile_id": "TEST_TOOL",
+      "expected_tool_version": 5
+    }
+  ],
+  "idempotency_key": "original-preview-key-01"
+}
+```
+
+启动回执中的运行 ID 可用于 `suma --project PROJECT run show RUN` 或 `run events RUN`。后续由调度器领取，任务验收沿原质量流程。 [独立测试合同](../../contracts/test-dispatch-bindings.md#选择时检查)
+
 ## IDE 保存回执恢复
 
 1. 保存请求固定当前项目、路径、原文件hash、提交内容、操作标识和原API调用者。请求结果未确定时保留它们；后续编辑只是新的草稿。

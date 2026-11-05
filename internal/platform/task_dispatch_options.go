@@ -75,7 +75,7 @@ func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine
 	if engine == nil || req.ProjectID != project || req.TaskID != taskID || !handoffID(project, false) || !handoffID(taskID, false) || req.ExpectedTaskVersion < 1 || !diagnosisID(req.WorkflowID, 100) || req.WorkflowVersion < 1 || !diagnosisID(req.AgentNodeID, 150) || req.Limit < 1 || req.Limit > 200 || len(req.Before) > 4096 || !utf8.ValidString(req.Before) {
 		return out, invalid(taskDispatchOptionsInvalid)
 	}
-	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeBrowserProjectRead, func(auth *authorizedCommand) error {
+	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeProjectRead, func(auth *authorizedCommand) error {
 		bounded, tx, p := auth.ctx, auth.tx, auth.currentPrincipal
 		if e := s.rejectReservedCandidateRepairTaskTx(bounded, tx, p.TenantID, project, taskID, ""); e != nil {
 			return e
@@ -109,7 +109,7 @@ func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine
 		if position != "" {
 			innerCursor = automationEncodeCursor(p, project, profileCursorScope, position)
 		}
-		profiles, e := s.listToolProfilesCurrentTx(bounded, auth, project, ToolProfileListQuery{State: "active", Limit: req.Limit, Cursor: innerCursor})
+		profiles, e := s.listToolProfilesForProjectTx(bounded, auth, project, ToolProfileListQuery{State: "active", Limit: req.Limit, Cursor: innerCursor})
 		if e != nil {
 			return e
 		}

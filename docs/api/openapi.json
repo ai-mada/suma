@@ -143489,12 +143489,18 @@
             "bearerAuth": []
           }
         ],
-        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       }
     },
     "/tasks/{id}/dispatch-test-option": {
       "get": {
-        "description": "Read compatibility of one explicit independent test binding against the current task, published workflow, development profile and execution route. Requires current browser project write authority and does not create a preview or execution.",
+        "description": "Read compatibility of one explicit independent test binding against the current task, published workflow, development profile and execution route. Requires current project write authority from a browser session or an exact project API credential. The read creates no preview or execution.",
         "operationId": "get_tasks_id_dispatch-test-option",
         "parameters": [
           {
@@ -143746,12 +143752,14 @@
         "security": [
           {
             "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
           }
         ],
         "x-disallowed-token-scopes": [
-          "api",
-          "agent",
-          "runner"
+          "runner",
+          "agent"
         ],
         "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
