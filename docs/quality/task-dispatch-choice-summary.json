@@ -1,0 +1,49 @@
+{
+  "stage": "T-TASK-DISPATCH-CHOICE-235",
+  "base": "579f3f37641c92a015b271d89a2c303e62737097",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "focused": {
+    "passed": 24,
+    "suites": 6,
+    "before_fix": "wrong tool receipt accepted and cleared pending request",
+    "knowledge_fixture_failed": 2,
+    "knowledge_fixture_reason": "Retired checkbox selector in the baseline. Both failed before preview.",
+    "typescript": "web_workspace_passed",
+    "paired_locale_keys": 10205,
+    "production_hardcoded_messages": 0
+  },
+  "browser": {
+    "scope": "Actual Chrome with production compatibility panel and controlled read-only HTTP response",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "exact_nonrecommended_adoption": true,
+    "blocked_row_no_action": true,
+    "locale_preserved_focus": true,
+    "api_gets": 1,
+    "mutations": 0,
+    "errors": 0,
+    "screenshot_sha256": "028c93251fd2f28f0ef7817715b9790fbe84909004e57b54a25f91ab04032fe7"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "source_copied": false
+  },
+  "pending": [
+    "unix_native_runner_signal",
+    "physical_multi_host_execution",
+    "vendor_execution",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "vitest": ".cache/task-dispatch-choice-235/vitest.log",
+    "locales": ".cache/task-dispatch-choice-235/i18n.log",
+    "type": ".cache/task-dispatch-choice-235/type.json",
+    "browser": ".cache/task-dispatch-choice-235/web/visual-result.json",
+    "browser_build": ".cache/task-dispatch-choice-235/web/build.json"
+  }
+}

@@ -70,7 +70,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
     expected_task_version: page.task_version, workflow_id: flow.id, workflow_version: flow.version, agent_node_id: agent} : undefined;
   const optionsPath = dispatchScope ? dispatchOptionsPath(dispatchScope, before) : '';
   const options = useReplyRead<TaskDispatchOptions>(optionsPath, open && !blocked && !selected && !!dispatchScope,
-    (value): value is TaskDispatchOptions => !!dispatchScope && validDispatchOptions(value, dispatchScope), refuse, refresh);
+    (value): value is TaskDispatchOptions => !!dispatchScope && validDispatchOptions(value, dispatchScope, session.organization.id), refuse, refresh);
   const planRead = useReplyRead('/task-discussion-development-plans/' + encodeURIComponent(selected) + query(project),
     !!selected && !blocked, (value): value is TaskDiscussionDevelopmentPlan => validDiscussionDevelopment(value, project, taskId), refuse, refresh);
   const plan = planRead.value || (created?.id === selected ? created : undefined);

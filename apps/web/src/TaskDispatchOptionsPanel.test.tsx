@@ -35,9 +35,9 @@ async function render(current=scope,disabled=false){await act(async()=>{root??=c
 async function click(selector:string){const node=document.querySelector<HTMLElement>(selector);expect(node,selector).not.toBeNull();await act(async()=>node!.click());await settle();}
 
 it('rejects mismatched basis, stale nested facts and fabricated or duplicate page recommendations',()=>{
- expect(validDispatchOptions(page(),scope)).toBe(true);
- const corruptions:((value:TaskDispatchOptions)=>void)[]=[value=>{value.project_id='other';},value=>{value.task_id='other';},value=>{value.task_version++;},value=>{value.workflow_version++;},value=>{value.agent_node_id='other';},value=>{value.context.task.version++;},value=>{value.execution_route.project_id='other';},value=>{value.items[1].tool.project_id='other';},value=>{value.items.push(value.items[1]);},value=>{value.total=0;},value=>{value.next_cursor='x'.repeat(4097);},value=>{value.recommended_tool_profile_id='tool-c';},value=>{value.items[1].eligible=false;},value=>{value.items[1].cost_state='free';},value=>{value.items[1].tool.observation!.profile.profile_sha256='d'.repeat(64);}];
- for(const corrupt of corruptions){const changed=structuredClone(page());corrupt(changed);expect(validDispatchOptions(changed,scope)).toBe(false);}
+ expect(validDispatchOptions(page(),scope,session.organization.id)).toBe(true);
+ const corruptions:((value:TaskDispatchOptions)=>void)[]=[value=>{value.project_id='other';},value=>{value.task_id='other';},value=>{value.task_version++;},value=>{value.workflow_version++;},value=>{value.agent_node_id='other';},value=>{value.context.task.version++;},value=>{value.execution_route.project_id='other';},value=>{value.execution_route.tenant_id='other';},value=>{value.items[1].tool.project_id='other';},value=>{value.items.push(value.items[1]);},value=>{value.total=0;},value=>{value.next_cursor='x'.repeat(4097);},value=>{value.recommended_tool_profile_id='tool-c';},value=>{value.items[1].eligible=false;},value=>{value.items[1].cost_state='free';},value=>{value.items[1].tool.observation!.profile.profile_sha256='d'.repeat(64);}];
+ for(const corrupt of corruptions){const changed=structuredClone(page());corrupt(changed);expect(validDispatchOptions(changed,scope,session.organization.id)).toBe(false);}
  expect(dispatchOptionsPath(scope,'page-2')).toContain('expected_task_version=4&workflow_id=flow-a&workflow_version=2&agent_node_id=code&limit=50&before=page-2');
 });
 
@@ -77,4 +77,36 @@ it('uses the newly observed exact profile version in the existing explicit previ
  const writes=requests.filter(request=>request.method==='POST');expect(writes).toHaveLength(1);expect(writes[0].body).toMatchObject({expected_task_version:4,tool_profile_id:'tool-b',expected_tool_version:3});
  const original=JSON.parse(sessionStorage.getItem('suma-tool-recovery-v1:org-a:user-a:project-a:dispatch')!);expect({...original.body,idempotency_key:original.idempotency_key}).toEqual(writes[0].body);
  const readCount=requests.filter(request=>request.path.includes('/dispatch-options?')).length;await renderDialog(5);expect(document.querySelector<HTMLButtonElement>('[data-dispatch-options-toggle]')?.disabled).toBe(true);expect(requests.filter(request=>request.path.includes('/dispatch-options?'))).toHaveLength(readCount);expect(JSON.parse(sessionStorage.getItem('suma-tool-recovery-v1:org-a:user-a:project-a:dispatch')!)).toEqual(original);
+});
+
+it('selects a nonrecommended compatible tool on a later page for the existing explicit preview',async()=>{
+ const alternate=option('tool-d');
+ alternate.tool={...alternate.tool,version:7,worker_id:'worker-d'};
+ const denied:TaskDispatchToolOption={...option('tool-e'),eligible:false,reason_code:'route_incompatible',reason:'Project execution route differs'};
+ reply=async(path,init)=>{
+  if(init?.body)throw new Error('receipt lost');
+  if(path.startsWith('/workflows?'))return Response.json({items:[workflow]});
+  if(path.startsWith('/tool-profiles?'))return Response.json({items:[profile('tool-b')],total:5,next_cursor:'inventory-next'});
+  if(path.includes('before=page-2'))return Response.json({...page([option('tool-c'),alternate,denied],''),total:5});
+  if(path.includes('/dispatch-options?'))return Response.json({...page(),total:5});
+  return Response.json({items:[],total:0,next_cursor:''});
+ };
+ await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><TaskDispatchDialog project={project} session={session} task={{id:'task-a',project_id:project,version:4,title:'Develop task'}} initialWorkflow={workflow} onPlan={vi.fn()} onClose={vi.fn()} onRun={vi.fn()}/></ApiViewProvider>);});
+ await settle();
+ await click('[data-dispatch-options-toggle]');
+ await click('[data-dispatch-options-more]');
+ const action='[data-dispatch-option="tool-d"] button';
+ expect(document.querySelector(action)).not.toBeNull();
+ expect(document.querySelector(action)?.getAttribute('aria-label')).toContain('Tool tool-d');
+ expect(document.querySelector('[data-dispatch-option="tool-c"] [data-dispatch-options-adopt]')).not.toBeNull();
+ expect(document.querySelector('[data-dispatch-option="tool-e"] button')).toBeNull();
+ await click(action);
+ const selector=document.querySelector<HTMLSelectElement>('[data-dispatch-manual-tool]');
+ expect(selector?.value).toBe('tool-d');
+ expect(selector?.selectedOptions[0]?.textContent).toContain('worker-d');
+ expect(requests.some(request=>request.method==='POST')).toBe(false);
+ await click('[data-dispatch-prepare]');
+ const writes=requests.filter(request=>request.method==='POST');
+ expect(writes).toHaveLength(1);
+ expect(writes[0]).toMatchObject({path:'/task-dispatch-plans',body:{expected_task_version:4,tool_profile_id:'tool-d',expected_tool_version:7}});
 });

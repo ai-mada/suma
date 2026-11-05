@@ -351,7 +351,7 @@ function TaskDispatchScope({
                   value={selectedProfileID}
                   onChange={(event) => {setManualToolIntent(value=>value+1);setHandoffSelectionKey('');setProfileScope(selectionScope);setProfileID(event.target.value);setAdoptedProfile(undefined);}}
                 >
-                  <option value="">{t("development.dispatch.choose_a_dispatchable_tool")}</option>
+                  <option value="">{t("development.dispatch.choose_a_tool_configuration")}</option>
                   {visibleProfiles.map((item) => (
                     <option
                       key={item.id}
@@ -363,7 +363,7 @@ function TaskDispatchScope({
                         !taskToolProtocol(item.profile)
                       }
                     >
-                      {literalText("development.dispatch.tool_option",{name:item.name,worker:item.worker_id,version:formatNumber(item.version),status:!taskToolProtocol(item.profile)?t("development.dispatch.unsupported"):item.profile.read_only?t("development.dispatch.read_only"):item.state!=="enabled"||!item.available?t("development.dispatch.blocked"):t("development.dispatch.eligible")})}
+                      {literalText("development.dispatch.tool_option",{name:item.name,worker:item.worker_id,version:formatNumber(item.version),status:!taskToolProtocol(item.profile)?t("development.dispatch.unsupported"):item.profile.read_only?t("development.dispatch.read_only"):item.state!=="enabled"||!item.available?t("development.dispatch.blocked"):t("development.dispatch.inventory_ready")})}
                     </option>
                   ))}
                 </select>

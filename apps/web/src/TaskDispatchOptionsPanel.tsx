@@ -10,6 +10,7 @@ import type {ToolProfile} from './tool-model';
 import {dispatchOptionsPath,dispatchOptionsScopeKey,selectedDispatchOption,validDispatchOptions,type DispatchOptionsScope} from './task-dispatch-options-model';
 import {ErrorNotice,Loading} from './ui';
 import './CandidateCompositionPanel.css';
+import './TaskDispatchOptionsPanel.css';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('task-dispatch-options.'+key,values);
 type Props={session:Session;scope:DispatchOptionsScope;disabled?:boolean;onAdopt:(tool:ToolProfile)=>void;onUnavailable:()=>void};
@@ -18,7 +19,7 @@ export function TaskDispatchOptionsPanel(props:Props){
  // stale page can render or adopt into a different task's selector.
  return <OptionsScope key={JSON.stringify([props.session.user.id,props.session.organization.id,dispatchOptionsScopeKey(props.scope)])} {...props}/>;
 }
-function OptionsScope({scope,disabled=false,onAdopt,onUnavailable}:Props){
+function OptionsScope({session,scope,disabled=false,onAdopt,onUnavailable}:Props){
  useLocale();const api=useApi(),bodyID=useId(),[open,setOpen]=useState(false),[page,setPage]=useState<TaskDispatchOptions>(),[pageNumber,setPageNumber]=useState(1),[loading,setLoading]=useState(false),[error,setError]=useState<unknown>(),epoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),unavailable=useRef(onUnavailable);
  unavailable.current=onUnavailable;
  useEffect(()=>()=>{epoch.current++;controller.current?.abort();},[]);
@@ -29,7 +30,7 @@ function OptionsScope({scope,disabled=false,onAdopt,onUnavailable}:Props){
   try{
    const value=await api<unknown>(dispatchOptionsPath(scope,before),undefined,'GET',undefined,abort.signal);
    if(request!==epoch.current||abort.signal.aborted)return;
-   if(!validDispatchOptions(value,scope)||before&&value.next_cursor===before)throw new UiError('task-dispatch-options.invalid_read');
+   if(!validDispatchOptions(value,scope,session.organization.id)||before&&value.next_cursor===before)throw new UiError('task-dispatch-options.invalid_read');
    setPage(value);setPageNumber(number);
   }catch(problem){
    if(request!==epoch.current||abort.signal.aborted)return;
@@ -52,17 +53,27 @@ function OptionsScope({scope,disabled=false,onAdopt,onUnavailable}:Props){
    {page&&<>
     <p className="composition-muted">{t('observed',{time:formatDateTime(page.observed_at,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})})}</p>
     {!page.items.length?<p data-dispatch-options-empty>{t('empty')}</p>:<>
+     {recommended?<p className="composition-muted">{t('recommended',{name:recommended.name})}</p>:<p>{t('none_eligible')}</p>}
      <ul className="composition-run-history" aria-label={t('tools')}>
-      {page.items.map(option=><li key={option.tool.id} data-dispatch-option={option.tool.id}>
-       <div className="composition-heading"><strong>{option.tool.name}</strong><span>{t('reason_'+option.reason_code)}</span></div>
-       <p className="composition-muted">{t('tool_basis',{worker:option.tool.worker_id,version:formatNumber(option.tool.version),toolVersion:option.tool.profile.tool_version})}</p>
-       {!option.eligible&&option.reason&&<p>{toolReason(option.reason,option.reason_diagnostic)}</p>}
-      </li>)}
+      {page.items.map(option=>{
+       const isRecommended=option.tool.id===recommended?.id;
+       const action=t(isRecommended?'adopt':'adopt_option');
+       return <li key={option.tool.id} data-dispatch-option={option.tool.id}>
+        <div className="composition-heading">
+         <strong>{option.tool.name}</strong>
+         <div className="composition-actions">
+          <span>{t('reason_'+option.reason_code)}</span>
+          {option.eligible&&<button type="button" data-dispatch-options-adopt={isRecommended?'':undefined} aria-label={t('adopt_named',{action,name:option.tool.name})} disabled={disabled||loading} onClick={()=>onAdopt(option.tool)}>{action}</button>}
+         </div>
+        </div>
+        <p className="composition-muted">{t('tool_basis',{worker:option.tool.worker_id,version:formatNumber(option.tool.version),toolVersion:option.tool.profile.tool_version})}</p>
+        {!option.eligible&&option.reason&&<p>{toolReason(option.reason,option.reason_diagnostic)}</p>}
+       </li>;
+      })}
      </ul>
-     {recommended?<div className="composition-callout"><p>{t('recommended',{name:recommended.name})}</p><button type="button" data-dispatch-options-adopt disabled={disabled||loading} onClick={()=>onAdopt(recommended)}>{t('adopt')}</button></div>:<p>{t('none_eligible')}</p>}
     </>}
     {page.next_cursor&&<button type="button" data-dispatch-options-more disabled={disabled||loading} onClick={()=>void read(page.next_cursor,pageNumber+1)}>{t('next')}</button>}
-    <details><summary>{t('boundaries')}</summary><dl className="composition-facts"><dt>{t('route')}</dt><dd>{page.execution_route.pool_id?t('route_pool',{pool:page.execution_route.pool_id}):t('route_local')}</dd><dt>{t('model')}</dt><dd>{recommended?.profile.model_execution_protocol==='suma-model-execution-v1'?tr('model-execution.select_after_tool'):t('model_fixed')}</dd><dt>{t('cost')}</dt><dd>{t('cost_unknown')}</dd></dl><p className="composition-muted">{t('recheck')}</p></details>
+    <details><summary>{t('boundaries')}</summary><dl className="composition-facts"><dt>{t('route')}</dt><dd>{page.execution_route.pool_id?t('route_pool',{pool:page.execution_route.pool_id}):t('route_local')}</dd><dt>{t('model')}</dt><dd>{t('model_depends_on_tool')}</dd><dt>{t('cost')}</dt><dd>{t('cost_unknown')}</dd></dl><p className="composition-muted">{t('recheck')}</p></details>
    </>}
   </div>}
  </section>;

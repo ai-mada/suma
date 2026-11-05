@@ -14,6 +14,8 @@
   "task-dispatch-options.tool_basis": "Worker {{worker}} · profile v{{version}} · tool {{toolVersion}}",
   "task-dispatch-options.recommended": "Current recommendation: {{name}}. This is the first compatible tool in stable ID order on this page; other pages have not been compared.",
   "task-dispatch-options.adopt": "Use current recommendation",
+  "task-dispatch-options.adopt_option": "Use this configuration",
+  "task-dispatch-options.adopt_named": "{{action}} · {{name}}",
   "task-dispatch-options.none_eligible": "No compatible tool on this page. Check the reasons, try the next page or update the tool configuration.",
   "task-dispatch-options.next": "Read next page",
   "task-dispatch-options.boundaries": "Model, cost and execution checks",
@@ -21,9 +23,9 @@
   "task-dispatch-options.route_pool": "Shared pool {{pool}}",
   "task-dispatch-options.route_local": "Project execution nodes",
   "task-dispatch-options.model": "Model",
-  "task-dispatch-options.model_fixed": "Fixed by the authorized tool configuration",
+  "task-dispatch-options.model_depends_on_tool": "Model options depend on the selected configuration.",
   "task-dispatch-options.cost": "Cost",
   "task-dispatch-options.cost_unknown": "Unknown; no price estimate is available",
-  "task-dispatch-options.recheck": "Using a recommendation only fills the tool selector. Explicit preview and Start recheck current permissions, task and workflow versions, knowledge, the 32 KiB context limit, budget and execution policy. This read does not reserve resources or change a model.",
+  "task-dispatch-options.recheck": "Choosing a tool fills the tool selector. Preview and Start each recheck current permissions, task and workflow versions, knowledge, the 32 KiB context limit, budget and execution policy. This read does not reserve resources or change a model.",
   "task-dispatch-options.invalid_read": "The tool recommendation response does not match this task, workflow or current page. Refresh and read the current options again."
 }

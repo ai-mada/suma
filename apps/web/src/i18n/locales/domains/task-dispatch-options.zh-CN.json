@@ -14,6 +14,8 @@
   "task-dispatch-options.tool_basis": "执行节点 {{worker}} · 配置 v{{version}} · 工具 {{toolVersion}}",
   "task-dispatch-options.recommended": "当前推荐：{{name}}。仅取本页按稳定 ID 顺序排列的首个兼容工具，未比较其他页面。",
   "task-dispatch-options.adopt": "采用当前推荐",
+  "task-dispatch-options.adopt_option": "使用此配置",
+  "task-dispatch-options.adopt_named": "{{action}} · {{name}}",
   "task-dispatch-options.none_eligible": "本页没有兼容工具。请查看原因、读取下一页或调整工具配置。",
   "task-dispatch-options.next": "读取下一页",
   "task-dispatch-options.boundaries": "模型、费用与执行检查",
@@ -21,9 +23,9 @@
   "task-dispatch-options.route_pool": "共享资源池 {{pool}}",
   "task-dispatch-options.route_local": "项目执行节点",
   "task-dispatch-options.model": "模型",
-  "task-dispatch-options.model_fixed": "由已授权的工具配置固定",
+  "task-dispatch-options.model_depends_on_tool": "可选模型取决于采用的工具配置。",
   "task-dispatch-options.cost": "费用",
   "task-dispatch-options.cost_unknown": "未知，当前没有价格估算依据",
-  "task-dispatch-options.recheck": "采用推荐只填写工具选择。明确预览与启动时会重新核验当前权限、任务及流程版本、知识、32 KiB 上下文上限、预算和执行策略。此次读取不预留资源，也不更改模型。",
+  "task-dispatch-options.recheck": "选择工具仅填写工具选择器。预览和启动时会分别核验当前权限、任务及流程版本、知识、32 KiB 上下文上限、预算和执行策略。此次读取不预留资源，也不更改模型。",
   "task-dispatch-options.invalid_read": "工具推荐响应与当前任务、流程或页面不匹配。请刷新后重新读取。"
 }

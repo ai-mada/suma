@@ -1,0 +1,7 @@
+.task-dispatch-options .composition-body {
+  overflow-wrap: anywhere;
+}
+
+.task-dispatch-options .composition-heading > strong {
+  min-width: 0;
+}

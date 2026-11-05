@@ -676,24 +676,24 @@
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-POOL-DIAGNOSTIC-GUIDE-233",
-    "commit": "0b29992bf00ae0128b8b1f35df0d98df8d5fd093",
-    "evidence": "Pool offline diagnostic, exact original slot command and Chrome with real Windows CLI snapshot; committed and pushed."
+    "stage": "T-CURSOR-EDITOR-234",
+    "commit": "67c7b3288041b66a97b2f781d3f8d3f54ccc343f",
+    "evidence": "Authorized Windows editor handoff, real isolated Cursor 3.27.22 window, commit and remote dev verified."
   },
   "current_work": {
-    "stage": "T-CURSOR-EDITOR-234",
+    "stage": "T-TASK-DISPATCH-CHOICE-235",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/desktop-workspace.md",
-    "report": "docs/quality/cursor-editor-launch-verification.md",
-    "summary": "docs/quality/cursor-editor-launch-summary.json",
-    "previous_commit": "63a62c076c79680e2fbcb7a68aba9304b8ab4334",
-    "verification": "Five native tests, 51 managed controller tests, three Web tests, paired locales and scoped TypeScript. Actual Chrome at 390×844 and actual isolated Cursor 3.27.22 window.",
-    "actual": "Windows desktop can open the original bound workspace in Cursor through a narrow IPC operation. Current project access, binding, directory and Git HEAD are checked again immediately before launch.",
-    "known_limitations": "Browser used an isolated native bridge fixture. Real Cursor used an isolated desktop and profile. Full worktree TypeScript reported separate in-progress changes. Installed Suma desktop default profile, Unix, and Cursor Agent CLI remain pending.",
-    "next": "Qualify physical multi-host and Unix operations and real vendor Agent CLI, continuing the original platform scope.",
+    "contract": "contracts/task-dispatch-options.md",
+    "report": "docs/quality/task-dispatch-choice-verification.md",
+    "summary": "docs/quality/task-dispatch-choice-summary.json",
+    "previous_commit": "579f3f37641c92a015b271d89a2c303e62737097",
+    "verification": "24 focused Web checks passed, whole Web TypeScript and 10205 paired catalog keys passed. 390px Chrome component with controlled HTTP.",
+    "actual": "Choose any compatible configuration in the current page; exact project, task, workflow, Agent node and tool version verified before accepting the ordinary preview receipt. Same-key recovery retained on wrong receipt. Cross-organization route is rejected.",
+    "known_limitations": "Two obsolete project-knowledge fixture cases fail before preview. Controlled browser HTTP and no vendor execution or new multi-host/Unix qualification.",
+    "next": "Qualify production CLI SIGTERM on Linux when a real host is available and continue Multica issue, agent and tool parity across the original platform scope.",
     "full_platform_complete": false,
-    "git_record": ".cache/cursor-editor-234/post-git.json"
+    "git_record": ".cache/task-dispatch-choice-235/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2776,11 +2776,11 @@
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   },
   "active_implementation": {
-    "stage": "T-CURSOR-EDITOR-234",
+    "stage": "T-TASK-DISPATCH-CHOICE-235",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "base": "63a62c076c79680e2fbcb7a68aba9304b8ab4334",
-    "contract": "contracts/desktop-workspace.md",
+    "base": "579f3f37641c92a015b271d89a2c303e62737097",
+    "contract": "contracts/task-dispatch-options.md",
     "full_platform_complete": false
   },
   "real_cli_onboarding": {
@@ -2920,5 +2920,20 @@
     "next": "Qualify physical multi-host and Unix operations and real vendor Agent CLI, continuing the original platform scope.",
     "full_platform_complete": false,
     "git_record": ".cache/cursor-editor-234/post-git.json"
+  },
+  "task_dispatch_choice": {
+    "stage": "T-TASK-DISPATCH-CHOICE-235",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/task-dispatch-options.md",
+    "report": "docs/quality/task-dispatch-choice-verification.md",
+    "summary": "docs/quality/task-dispatch-choice-summary.json",
+    "previous_commit": "579f3f37641c92a015b271d89a2c303e62737097",
+    "verification": "24 focused Web checks passed, whole Web TypeScript and 10205 paired catalog keys passed. 390px Chrome component with controlled HTTP.",
+    "actual": "Choose any compatible configuration in the current page; exact project, task, workflow, Agent node and tool version verified before accepting the ordinary preview receipt. Same-key recovery retained on wrong receipt. Cross-organization route is rejected.",
+    "known_limitations": "Two obsolete project-knowledge fixture cases fail before preview. Controlled browser HTTP and no vendor execution or new multi-host/Unix qualification.",
+    "next": "Qualify production CLI SIGTERM on Linux when a real host is available and continue Multica issue, agent and tool parity across the original platform scope.",
+    "full_platform_complete": false,
+    "git_record": ".cache/task-dispatch-choice-235/post-git.json"
   }
 }

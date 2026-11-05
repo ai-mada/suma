@@ -10,6 +10,26 @@ const fixed=()=>({model:'claude-sonnet-5',model_source:'administrator_cli_argume
 const plan=()=>({id:'plan159',project_id:project,state:'started',version:2,run_id:'run159',workflow_id:'published159',workflow_version:7,agent_node_id:'develop',claude_execution:fixed(),workflow:{id:'published159',version:7,nodes:[{id:'develop',type:'agent',max_retries:0,config:{claude_execution:fixed()}}]}});
 const run=()=>({id:'run159',project_id:project,workflow_id:'managed-run159',workflow_version:1});
 
+it('keeps an ordinary preview pending until the exact requested task, workflow and tool are returned',async()=>{
+ const body={project_id:project,task_id:'task-a',expected_task_version:4,workflow_id:'flow-a',workflow_version:2,agent_node_id:'develop',tool_profile_id:'tool-b',expected_tool_version:3};
+ const receipt={id:'plan-a',project_id:project,task_id:'task-a',task_version:4,workflow_id:'flow-a',workflow_version:2,agent_node_id:'develop',tool_profile_id:'tool-b',tool_profile_version:3};
+ const preview:ToolPendingRequest={path:'/task-dispatch-plans',method:'POST',body,idempotency_key:'original-preview'};
+ let response:unknown={...receipt,tool_profile_id:'other-tool'};
+ const writes:unknown[]=[];
+ const send:ApiCaller=async(path,input,method)=>{expect(path).toBe(preview.path);expect(method).toBe('POST');writes.push(structuredClone(input));return response as never;};
+ const action=new ToolWriteRecovery('dispatch-basis235',sessionStorage,send,(value,pending)=>validateTaskDispatchResponse(value,pending,send,project));
+ await expect(action.run(preview.path,body)).rejects.toThrow();
+ expect(action.pending?.body).toEqual(body);
+ for(const mismatch of [{}, {...receipt,id:''}, {...receipt,project_id:'other-project'}, {...receipt,task_id:'other-task'}, {...receipt,task_version:5}, {...receipt,workflow_id:'other-flow'}, {...receipt,workflow_version:3}, {...receipt,agent_node_id:'other-node'}, {...receipt,tool_profile_version:2}]){
+  expect(await validateTaskDispatchResponse(mismatch,preview,send,project)).toBe(false);
+ }
+ response=receipt;
+ await expect(action.restore()).resolves.toEqual(receipt);
+ expect(writes).toHaveLength(2);
+ expect(writes[1]).toEqual(writes[0]);
+ expect(action.pending).toBeUndefined();
+});
+
 it('T192 validates the SDK source before acknowledging the original managed Start receipt',async()=>{
  const sdk={sdk_version:'0.3.314',cli_version:'2.1.314',model:'claude-sonnet-5',configuration_sha256:'a'.repeat(64),model_source:'administrator_sdk_option',budget_mode:'observe_only',identity_evidence:'sdk_init_model_ack_only',auth_strategy:'api_key_env_ref'};
  const {claude_execution:_,...base}=plan();
