@@ -7514,6 +7514,29 @@ export interface TaskPlan {
   due_date: string;
   estimated_hours: number | null;
 }
+export interface TaskPriorityChangeReceipt {
+  task_id: string;
+  previous_version: number;
+  version: number;
+  previous_priority: string;
+  priority: string;
+  changed: boolean;
+}
+export interface TaskPriorityChangeRequest {
+  project_id: string;
+  priority: string;
+  tasks: (TaskPriorityChangeSelection)[];
+  idempotency_key: string;
+}
+export interface TaskPriorityChangeResult {
+  project_id: string;
+  operation_id: string;
+  changes: (TaskPriorityChangeReceipt)[];
+}
+export interface TaskPriorityChangeSelection {
+  task_id: string;
+  expected_version: number;
+}
 export interface TaskReviewDecision {
   review_id: string;
   reviewer_user_id: string;

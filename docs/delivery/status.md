@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-TASK-PRIORITY 支持任务列表和看板批量调整优先级。逐项预览、整批核对版本并保留既有验收证据，支持刷新后恢复原回执。 [合同](../../contracts/task-priority-changes.md) · [验证](../quality/task-priority-changes-verification.md)
+
 T-TASK-DISPATCH-CHOICE-235 支持从兼容结果直接选用任意兼容配置，并在确认预览时校验原任务、流程、节点和工具版本。 [合同](../../contracts/task-dispatch-options.md) · [验证](../quality/task-dispatch-choice-verification.md)
 
 T-CANDIDATE-TRANSFER-RECOVERY 在工具管理中核对手动登记节点的未封存 Git 包。原尝试确认失败或取消后，授权操作者可结束传递并保留原证据，再单独核对凭证轮换。 [合同](../../contracts/manual-worker-candidate-recovery.md) · [验证记录](../quality/candidate-transfer-recovery-verification.md)

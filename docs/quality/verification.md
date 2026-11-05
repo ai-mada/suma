@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MULTICA-TASK-PRIORITY 验证跨布局多选、逐项预览、正式验收保留及跨刷新恢复原回执。 [阶段验证](task-priority-changes-verification.md)
+
 T-TASK-DISPATCH-CHOICE-235 核对非推荐工具选用、组织归属及原预览回执异常恢复。 [阶段验证](task-dispatch-choice-verification.md)
 
 T-CANDIDATE-TRANSFER-RECOVERY 已验证真实 Git 包字节、原尝试核对、结束回执与后续凭证轮换。 [阶段验证](candidate-transfer-recovery-verification.md)
