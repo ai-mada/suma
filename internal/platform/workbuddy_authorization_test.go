@@ -142,6 +142,45 @@ func TestWorkBuddyConnectionsAuthorizationStateSessionProjectAndExpiry(t *testin
 	}
 }
 
+func TestWorkBuddyConnectionsReplacePendingAuthorizationOnSameConnection(t *testing.T) {
+	var calls atomic.Int32
+	f, w := workBuddyCommandFixture(t, func(out http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		workBuddyCommandResponse(out, "open-one", "user.task.readable user.task.invokable", "private-refresh")
+	})
+	ctx := context.Background()
+	old, original := workBuddyCommandStart(t, f, w)
+	page, err := w.List(ctx, f.actor, f.project, 20, "")
+	if err != nil || len(page.Items) != 1 || strings.Join(page.Items[0].AllowedActions, ",") != "authorize,disconnect" {
+		t.Fatalf("pending authorization cannot be replaced from the list: %+v, %v", page, err)
+	}
+	row, err := w.Get(ctx, f.actor, f.project, old.Connection.ID)
+	if err != nil || strings.Join(row.AllowedActions, ",") != "authorize,disconnect" {
+		t.Fatalf("pending authorization cannot be replaced from detail: %+v, %v", row, err)
+	}
+	replacement := original
+	replacement.ConnectionID = row.ID
+	replacement.ExpectedVersion = row.Version
+	replacement.IdempotencyKey = newID()
+	next, err := w.StartAuthorization(ctx, f.actor, f.project, replacement)
+	if err != nil || next.ID == old.ID || next.Connection.ID != row.ID || next.Connection.Version != row.Version+1 || next.AuthorizationURL == old.AuthorizationURL {
+		t.Fatalf("replacement did not advance the original connection: %+v, %v", next, err)
+	}
+	replayed, err := w.StartAuthorization(ctx, f.actor, f.project, original)
+	if err != nil || replayed.AuthorizationURL != "" {
+		t.Fatal("superseded authorization exposed its URL")
+	}
+	_, err = w.CompleteAuthorization(ctx, f.actor, f.project, old.ID, workBuddyCommandComplete(old))
+	requireAuthorityStatus(t, err, 409)
+	if calls.Load() != 0 {
+		t.Fatal("superseded callback exchanged a code")
+	}
+	connected, err := w.CompleteAuthorization(ctx, f.actor, f.project, next.ID, workBuddyCommandComplete(next))
+	if err != nil || connected.State != "connected" || connected.ID != row.ID || calls.Load() != 1 {
+		t.Fatalf("replacement did not connect exactly once: %+v, %v, calls=%d", connected, err, calls.Load())
+	}
+}
+
 func TestWorkBuddyConnectionsAuthorizationUnknownAndIdentityChange(t *testing.T) {
 	for _, kind := range []string{"unknown", "identity"} {
 		t.Run(kind, func(t *testing.T) {
@@ -229,7 +268,7 @@ func TestWorkBuddyConnectionsAuthorizationConcurrentPermitAndSaveFailure(t *test
 				<-release
 				workBuddyCommandResponse(out, "open-one", "user.task.readable", "private-refresh")
 			})
-			auth, _ := workBuddyCommandStart(t, f, w)
+			auth, start := workBuddyCommandStart(t, f, w)
 			req := workBuddyCommandComplete(auth)
 			if kind == "save_failure" {
 				if _, err := f.s.DB.Exec(`CREATE TRIGGER fail_workbuddy_grant BEFORE UPDATE ON suma_workbuddy_connections WHEN NEW.state='connected' BEGIN SELECT RAISE(ABORT,'test grant save rejected'); END`); err != nil {
@@ -243,6 +282,16 @@ func TestWorkBuddyConnectionsAuthorizationConcurrentPermitAndSaveFailure(t *test
 			}()
 			<-entered
 			if kind == "concurrent" {
+				row, err := w.Get(context.Background(), f.actor, f.project, auth.Connection.ID)
+				if err != nil || row.Version <= auth.Connection.Version || strings.Join(row.AllowedActions, ",") != "disconnect" {
+					close(release)
+					t.Fatalf("in-flight connection exposed a replacement action: %+v, %v", row, err)
+				}
+				start.ConnectionID, start.ExpectedVersion, start.IdempotencyKey = row.ID, row.Version, newID()
+				if _, err = w.StartAuthorization(context.Background(), f.actor, f.project, start); err == nil {
+					close(release)
+					t.Fatal("in-flight exchange was replaced")
+				}
 				if _, err := w.CompleteAuthorization(context.Background(), f.actor, f.project, auth.ID, req); err != nil {
 					close(release)
 					t.Fatal(err)

@@ -33,6 +33,16 @@ persistence:
 allowedOrigins: ""
 secureCookies: true
 
+# Enable with a registered clientID and an existing Kubernetes Secret.
+workBuddy:
+  publicURL: ""
+  clientID: ""
+  scopes: ""
+  existingSecret: ""
+  clientSecretKey: workbuddy-client-secret
+  # Required for shared databases. SQLite can use the persistent local key.
+  masterKey: ""
+
 knowledge:
   url: ""
   httpOrigins: ""

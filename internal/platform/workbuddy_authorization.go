@@ -61,6 +61,10 @@ func (w *WorkBuddyConnections) workBuddyCommandAuthorizationView(ctx context.Con
 		out.State = "expired"
 		return out, nil
 	}
+	if op.State == "pending" && row.ActiveOperationID != op.ID {
+		out.State = "cancelled"
+		return out, nil
+	}
 	if op.State != "pending" || row.ActiveOperationID != op.ID || row.Version != op.ConnectionVersion || row.State != "authorizing" {
 		return out, nil
 	}
@@ -139,11 +143,20 @@ func (w *WorkBuddyConnections) StartAuthorization(ctx context.Context, actor Act
 		if row.Version != req.ExpectedVersion || !workBuddyConnectionAuthorizationCapacity(row) {
 			return out, conflict(workBuddyVersion)
 		}
-		if row.State == "authorizing" || row.State == "refreshing" {
+		if row.State == "refreshing" {
 			return out, conflict(workBuddyEffectUnknown)
 		}
 		if row.ClientID != w.app.ClientID || row.AppDigest != w.appDigest {
 			return out, conflict(workBuddyReauthorize)
+		}
+		if row.State == "authorizing" {
+			pending, e := w.hasReplaceableAuthorization(ctx, auth, row)
+			if e != nil {
+				return out, e
+			}
+			if !pending {
+				return out, conflict(workBuddyEffectUnknown)
+			}
 		}
 		before = row.Version
 		row.GrantGeneration++
@@ -182,6 +195,22 @@ func (w *WorkBuddyConnections) StartAuthorization(ctx context.Context, actor Act
 	}
 	err = auth.tx.Commit()
 	return out, err
+}
+
+// Start holds the current connection row. A callback can acquire an exchange
+// permit only by advancing that same row. Leave the old operation untouched
+// to avoid taking its lock in the reverse order from the callback.
+func (w *WorkBuddyConnections) hasReplaceableAuthorization(ctx context.Context, auth *authorizedCommand, row workBuddyConnectionRow) (bool, error) {
+	if row.ActiveOperationID == "" {
+		return false, nil
+	}
+	op, err := w.opTx(ctx, auth.tx, row.TenantID, row.ProjectID, row.ActiveOperationID, false)
+	if err != nil {
+		return false, err
+	}
+	return op.Kind == "authorization" && op.State == "pending" && op.CodeHash == "" &&
+		op.ConnectionID == row.ID && op.OwnerID == row.OwnerID && op.AppDigest == row.AppDigest &&
+		op.ConnectionVersion == row.Version && op.GrantGeneration == row.GrantGeneration && op.TokenGeneration == row.TokenGeneration, nil
 }
 
 func (w *WorkBuddyConnections) CompleteAuthorization(ctx context.Context, actor Actor, project, id string, req WorkBuddyAuthorizationComplete) (WorkBuddyConnection, error) {

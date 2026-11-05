@@ -77,6 +77,26 @@ spec:
             - name: SUMA_ALLOWED_ORIGINS
               value: {{ .Values.allowedOrigins | quote }}
             {{- end }}
+            {{- if or .Values.workBuddy.clientID .Values.workBuddy.publicURL .Values.workBuddy.scopes .Values.workBuddy.existingSecret .Values.workBuddy.masterKey }}
+            - name: SUMA_PUBLIC_URL
+              value: {{ required "workBuddy.publicURL is required for the OAuth callback" .Values.workBuddy.publicURL | quote }}
+            - name: SUMA_WORKBUDDY_CLIENT_ID
+              value: {{ required "workBuddy.clientID is required when WorkBuddy is enabled" .Values.workBuddy.clientID | quote }}
+            - name: SUMA_WORKBUDDY_SCOPES
+              value: {{ required "workBuddy.scopes is required when WorkBuddy is enabled" .Values.workBuddy.scopes | quote }}
+            - name: SUMA_WORKBUDDY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "workBuddy.existingSecret is required when WorkBuddy is enabled" .Values.workBuddy.existingSecret | quote }}
+                  key: {{ .Values.workBuddy.clientSecretKey | quote }}
+            {{- if or (ne .Values.database.driver "sqlite") .Values.workBuddy.masterKey }}
+            - name: SUMA_WORKBUDDY_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.workBuddy.existingSecret | quote }}
+                  key: {{ required "workBuddy.masterKey is required for shared databases when WorkBuddy is enabled" .Values.workBuddy.masterKey | quote }}
+            {{- end }}
+            {{- end }}
             {{- if .Values.knowledge.url }}
             - name: SUMA_KNOWLEDGE_URL
               value: {{ .Values.knowledge.url | quote }}

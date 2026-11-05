@@ -65,7 +65,11 @@ func (w *WorkBuddyConnections) List(ctx context.Context, actor Actor, project st
 			if row.OwnerID != auth.currentPrincipal.ID {
 				return missing()
 			}
-			out.Items = append(out.Items, w.connectionView(row, write))
+			view, e := w.connectionReadView(auth, row, write)
+			if e != nil {
+				return e
+			}
+			out.Items = append(out.Items, view)
 		}
 		return nil
 	})
@@ -89,7 +93,7 @@ func (w *WorkBuddyConnections) Get(ctx context.Context, actor Actor, project, id
 		}
 		write, e := w.currentWrite(auth)
 		if e == nil {
-			out = w.connectionView(row, write)
+			out, e = w.connectionReadView(auth, row, write)
 		}
 		return e
 	})
@@ -97,6 +101,19 @@ func (w *WorkBuddyConnections) Get(ctx context.Context, actor Actor, project, id
 		return WorkBuddyConnection{}, err
 	}
 	return out, nil
+}
+
+func (w *WorkBuddyConnections) connectionReadView(auth *authorizedCommand, row workBuddyConnectionRow, write bool) (WorkBuddyConnection, error) {
+	view := w.connectionView(row, write)
+	if !write || row.State != "authorizing" || !w.configured || len(w.key) != 32 ||
+		row.AppDigest != w.appDigest || row.ClientID != w.app.ClientID || !workBuddyConnectionAuthorizationCapacity(row) {
+		return view, nil
+	}
+	pending, err := w.hasReplaceableAuthorization(auth.ctx, auth, row)
+	if pending {
+		view.AllowedActions = append([]string{"authorize"}, view.AllowedActions...)
+	}
+	return view, err
 }
 
 // Authorization returns an ephemeral URL only to the exact initiating browser

@@ -34,6 +34,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
  useLocale();const caller=useApi(),view=useApiView(),owner=view?.userID,scope='workbuddy-connections:'+context,desktop=desktopWorkspaceBridge(),native=desktop&&typeof(desktop as unknown as Partial<NativeAuthorizationBridge>).openWorkBuddyAuthorization==='function'?desktop as unknown as NativeAuthorizationBridge:undefined,desktopUnavailable=!!desktop&&!native;
  const [snapshot,setSnapshot]=useState<Snapshot>(),[cursor,setCursor]=useState(''),[history,setHistory]=useState<string[]>([]),[revision,setRevision]=useState(0),[form,setForm]=useState<Form>(),[selectedScopes,setSelectedScopes]=useState<string[]>([]),[confirmed,setConfirmed]=useState(false),[authorization,setAuthorization]=useState<WorkBuddyAuthorization>(),[notice,setNotice]=useState('');
  const [nativeBusy,setNativeBusy]=useState(false),nativeAttempt=useRef(0),nativePending=useRef(false),checkingCurrent=useRef(false);
+ const openedBrowserAuthorization=useRef('');
  const historyID=useId(),[historyDisclosure,setHistoryDisclosure]=useState<boolean>();
  const epoch=useRef(0),alive=useRef(true),activeCaller=useRef(caller);activeCaller.current=caller;
  const action=useWriteAction({scope,storage:toolSessionStorage(),validateRequest:request=>validWorkBuddyRecovery(request,project),validateResponse:(value,request)=>validWorkBuddyReceipt(value,request,project,owner)});
@@ -90,7 +91,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
  async function checkCurrent(){
   if(checkingCurrent.current)return;
   const request=action.pending,originalAuthorization=authorization,id=request?request.path==='/workbuddy-authorizations'?request.body.connection_id:request.path.split('/')[2]:originalAuthorization?.connection.id;
-  if(typeof id!=='string'){refresh();return;}
+  if(typeof id!=='string'||!id){refresh();return;}
   checkingCurrent.current=true;
   const generation=++epoch.current;setSnapshot({caller,revision,cursor,loading:true});
   try{
@@ -98,16 +99,18 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
    if(!alive.current||generation!==epoch.current||activeCaller.current!==caller)return;
    const row=readWorkBuddyConnection(value,project,owner);if(!row||row.id!==connectionID)throw new UiError('workbuddy-connections.invalid_response');
    if(originalAuthorization){
-    if(row.state!=='authorizing'||row.version!==originalAuthorization.connection.version)setAuthorization(undefined);
-    setNotice(row.state==='connected'?'authorization_complete':row.state==='authorizing'?'authorization_pending':'authorization_changed');
+    const sameGrant=row.grant_generation===originalAuthorization.connection.grant_generation;
+    const stillPending=sameGrant&&row.state==='authorizing'&&row.version===originalAuthorization.connection.version;
+    if(!stillPending)setAuthorization(undefined);
+    setNotice(sameGrant&&row.state==='connected'?'authorization_complete':stillPending?'authorization_pending':'authorization_changed');
    }else setNotice('status_checked');
    setRevision(value=>value+1);
   }catch(error){if(alive.current&&generation===epoch.current&&activeCaller.current===caller){setSnapshot({caller,revision,cursor,loading:false,error});if(error instanceof ApiError&&[403,404].includes(error.status))setAuthorization(undefined);}}
   finally{checkingCurrent.current=false;}
  }
  useEffect(()=>{
-  if(!native||!authorization||!page||denied||locked||form)return;
-  const onFocus=()=>{if(!nativePending.current)void checkCurrent();};
+  if(desktopUnavailable||!authorization||!page||denied||locked||form)return;
+  const onFocus=()=>{if(!nativePending.current&&(native||openedBrowserAuthorization.current===authorization.id))void checkCurrent();};
   window.addEventListener('focus',onFocus);return()=>window.removeEventListener('focus',onFocus);
  });
  async function openNativeAuthorization(){
@@ -124,16 +127,20 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
  const authorizationVisible=!desktopUnavailable&&page?.can_authorize&&authorization?.authorization_url&&!denied;
  return <div className="workbuddy-manager">
   <div className="workbuddy-toolbar"><p className="workbuddy-boundary"><ShieldCheck size={17} aria-hidden="true"/>{t('boundary')}</p><button type="button" disabled={current?.loading||action.busy||nativeBusy||!!form} onClick={refresh}><RefreshCw size={16} aria-hidden="true"/>{t('refresh_list')}</button></div>
-  {desktopUnavailable&&<DesktopAuthorizationGuide project={project}/>}
+  {desktopUnavailable&&page?.can_authorize&&<DesktopAuthorizationGuide project={project}/>}
   <WriteNotice action={action} onRebase={async()=>{cancelForm();refresh();}}/>
   {action.pending&&<div className="workbuddy-recovery" role="status"><p>{t(action.unknown?'unknown':'pending')}</p><div className="workbuddy-actions"><button type="button" disabled={action.busy||denied} onClick={()=>void checkCurrent()}>{t('check_current')}</button>{mayRecover&&(!desktopUnavailable||action.pending.path!=='/workbuddy-authorizations')&&<button type="button" disabled={action.busy} onClick={()=>{const request=action.pending!;void write(request.path,request.body,request.method);}}>{t('recover')}</button>}</div></div>}
   {notice&&!denied&&<p className="workbuddy-notice" role="status">{t(notice)}</p>}
-  {authorizationVisible&&<div className="workbuddy-authorization" role="status"><h4>{t('ready')}</h4><p>{t('ready_hint')}</p>{native?<button type="button" className="primary workbuddy-official-link" disabled={locked} onClick={()=>void openNativeAuthorization()}>{t(nativeBusy?'desktop_opening':'desktop_open')}<ExternalLink size={16} aria-hidden="true"/></button>:<a className="primary workbuddy-official-link" href={authorization.authorization_url} target="_blank" rel="noopener noreferrer">{t('official_link')}<ExternalLink size={16} aria-hidden="true"/></a>}<small>{t('link_expiry',{time:time(authorization.expires_at)})}</small><button type="button" disabled={nativeBusy||current?.loading} onClick={()=>void checkCurrent()}>{t('check_authorization')}</button></div>}
+  {authorizationVisible&&<div className="workbuddy-authorization" role="status"><h4>{t('ready')}</h4><p>{t('ready_hint')}</p>{native?<button type="button" className="primary workbuddy-official-link" disabled={locked} onClick={()=>void openNativeAuthorization()}>{t(nativeBusy?'desktop_opening':'desktop_open')}<ExternalLink size={16} aria-hidden="true"/></button>:<a className="primary workbuddy-official-link" href={authorization.authorization_url} target="_blank" rel="noopener noreferrer" onClick={()=>{openedBrowserAuthorization.current=authorization.id;}}>{t('official_link')}<ExternalLink size={16} aria-hidden="true"/></a>}<small>{t('link_expiry',{time:time(authorization.expires_at)})}</small><button type="button" disabled={nativeBusy||current?.loading} onClick={()=>void checkCurrent()}>{t('check_authorization')}</button></div>}
   {denied?<><p className="muted">{t('access_lost')}</p>{current?.error&&<ErrorNotice error={current.error}/>}</>:!current||current.loading?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={refresh}/>:page&&<>
-   {!page.configured&&<p className="workbuddy-config" role="status">{t('not_configured')}</p>}
+   {!page.configured&&<div className="workbuddy-config">
+    <h4>{t('not_configured')}</h4><p>{t('setup_contact')}</p>
+    <details><summary>{t('setup_details')}</summary><p>{t('setup_requirements')}</p><code>/api/v1/workbuddy-oauth/callback</code></details>
+   </div>}
    {!desktopUnavailable&&page.can_authorize&&<button type="button" className="primary" disabled={locked||!!form} onClick={()=>openForm({kind:'authorize'})}>{t('connect')}</button>}
    {form&&formAllowed&&<form className="workbuddy-form" onSubmit={event=>{event.preventDefault();if(locked||action.conflict)return;const connection=form.connection;if(form.kind==='authorize'){if(!selectedScopes.length)return;void write('/workbuddy-authorizations',{project_id:project,scopes:selectedScopes,...(connection?{connection_id:connection.id,expected_version:connection.version}:{})});}else{if(!confirmed)return;void write('/workbuddy-connections/'+encodeURIComponent(connection!.id)+'/disconnect',{project_id:project,expected_version:connection!.version,reason:'user_requested_local_disconnect'});}}}>
     <h4>{t(form.kind==='authorize'?'choose_scopes':'disconnect_title')}</h4>
+    {form.kind==='authorize'&&form.connection?.state==='authorizing'&&<p className="muted">{t('replace_link_hint')}</p>}
     {form.connection&&<p>{t('account')}: <code>{form.connection.open_id||t('account_pending')}</code></p>}
     <fieldset disabled={locked||action.conflict}><legend>{t(form.kind==='authorize'?'permissions':'confirmation')}</legend>{form.kind==='authorize'?<>
      {form.connection&&<div className="workbuddy-current-scopes"><h5>{t('current_permissions')}</h5><PermissionList scopes={form.connection.scopes}/><button type="button" disabled={locked||action.conflict} onClick={()=>setSelectedScopes(workBuddyReusableScopes(form.connection!.scopes,page.available_scopes))}>{t('reuse_permissions')}</button><p className="muted">{t('reuse_permissions_hint')}</p></div>}
@@ -150,7 +157,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
      <div id={historyID} className="workbuddy-history-content" hidden={!historyExpanded}><p>{t('retained_history')}</p><div className="workbuddy-list">{disconnectedRows.map(renderConnection)}</div></div>
     </section>}
    </div>}
-   {!rows.length&&<Empty title={t('empty')} description={t('empty_hint')}/>}
+   {!rows.length&&page.configured&&<Empty title={t('empty')} description={t(page.can_authorize?'empty_hint':'read_only_hint')}/>}
    {(history.length>0||page.next_cursor)&&<nav className="workbuddy-pagination" aria-label={t('pagination')}><button type="button" disabled={!history.length||locked||!!form} onClick={()=>{setAuthorization(undefined);setCursor(history[history.length-1]);setHistory(values=>values.slice(0,-1));}}>{t('previous')}</button><span>{t('page',{page:history.length+1})}</span><button type="button" disabled={!page.next_cursor||locked||!!form} onClick={()=>{setAuthorization(undefined);setHistory(values=>[...values,cursor]);setCursor(page.next_cursor);}}>{t('next')}</button></nav>}
   </>}
  </div>;
@@ -161,7 +168,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
    <header><div><span className="workbuddy-fact-label">{t('account')}</span><h4>{row.open_id||t('account_pending')}</h4></div><span className={'workbuddy-state workbuddy-state-'+row.state}>{t('state.'+row.state)}</span></header>
    <dl className="workbuddy-facts"><div><dt>{t('permissions')}</dt><dd>{row.scopes.length?row.scopes.map(scopeLabel).join(' · '):t('permissions_pending')}</dd></div><div><dt>{t('expires')}</dt><dd>{time(row.expires_at)}</dd></div><div><dt>{t('updated')}</dt><dd><time dateTime={row.updated_at}>{time(row.updated_at)}</time></dd></div></dl>
    {reason&&<p className="workbuddy-connection-reason">{t('reason.'+reason)}</p>}
-   <div className="workbuddy-actions">{!desktopUnavailable&&row.allowed_actions.includes('authorize')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'authorize',connection:row})}>{t('reauthorize')}</button>}{row.allowed_actions.includes('refresh')&&<button type="button" disabled={locked||!!form} onClick={()=>{setAuthorization(undefined);void write('/workbuddy-connections/'+encodeURIComponent(row.id)+'/refresh',{project_id:project,expected_version:row.version});}}>{t('refresh_authorization')}</button>}{row.allowed_actions.includes('disconnect')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'disconnect',connection:row})}>{t('disconnect')}</button>}</div>
+   <div className="workbuddy-actions">{!desktopUnavailable&&row.allowed_actions.includes('authorize')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'authorize',connection:row})}>{t(row.state==='authorizing'?'replace_link':'reauthorize')}</button>}{row.allowed_actions.includes('refresh')&&<button type="button" disabled={locked||!!form} onClick={()=>{setAuthorization(undefined);void write('/workbuddy-connections/'+encodeURIComponent(row.id)+'/refresh',{project_id:project,expected_version:row.version});}}>{t('refresh_authorization')}</button>}{row.allowed_actions.includes('disconnect')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'disconnect',connection:row})}>{t('disconnect')}</button>}</div>
    <details><summary>{t('technical')}</summary><dl className="workbuddy-technical"><div><dt>{t('connection_id')}</dt><dd><code>{row.id}</code></dd></div><div><dt>{t('version')}</dt><dd>{row.version}</dd></div><div><dt>{t('grant_generation')}</dt><dd>{row.grant_generation}</dd></div><div><dt>{t('token_generation')}</dt><dd>{row.token_generation}</dd></div></dl></details>
   </article>;
  }

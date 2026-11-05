@@ -54,6 +54,20 @@ Compose 将获准的秘密文件挂入 `/run/secrets`；镜像的 [入口脚本]
 
 停止服务使用 `docker compose -f deploy/compose.yaml down`，保留数据卷。备份与恢复应遵循[服务器部署与恢复](server.md)，不要把运行中的 SQLite 文件复制当成一致性备份。
 
+## WorkBuddy 账号授权
+
+在 WorkBuddy 开放平台登记第三方应用，登记 `https://你的速码域名/api/v1/workbuddy-oauth/callback` 为该应用的 OAuth 回调地址，并授权速码将要申请的任务权限。浏览器须使用同一速码源发起并完成授权。[WorkBuddy 官方 Open API](https://open.workbuddy.cn/docs/openapi)
+
+Compose 在 `deploy/.env` 中配置 `SUMA_PUBLIC_URL`、`SUMA_WORKBUDDY_CLIENT_ID` 和 `SUMA_WORKBUDDY_SCOPES`。使用 [Compose 样例](../../deploy/compose.env.example)中的文件路径，由秘密管理系统提供应用密钥和单独的 Base64 编码 32 字节主密钥。两份文件均应只允许获准的运维身份和控制面读取。若 SQLite 实例已有 `workbuddy-connections.key`，启用覆盖文件前应通过秘密管理系统将原密钥的 32 字节编码为 Base64 并沿用，以便解密原连接。
+
+```sh
+docker compose --env-file deploy/.env -f deploy/compose.yaml -f deploy/compose.workbuddy.yaml config --quiet
+```
+
+使用 PostgreSQL 或 OceanBase 时，在 WorkBuddy 覆盖文件之前加相应数据库覆盖文件。Helm 使用 `workBuddy.clientID`、`workBuddy.publicURL`、`workBuddy.scopes` 和 `workBuddy.existingSecret`。Secret 需要 `workBuddy.clientSecretKey` 指定的应用密钥项。共享数据库还须配置 `workBuddy.masterKey` 指定的独立主密钥项，SQLite 可以使用持久卷上的原密钥。
+
+控制面加载配置后，在使用同一公开地址访问的速码工具设置中刷新 WorkBuddy 列表，再由用户完成一次真实授权。反向代理需保留原 Host，并从访问日志中移除 OAuth 回调查询参数。详见[配置要求](../design/workbuddy-connections.md#操作者配置指南)。
+
 ## 可选 Runner：明确工作区与本地许可
 
 [Runner 覆盖文件](../../deploy/compose.runner.yaml) 需要四项明确配置：实际项目 ID、唯一稳定的 worker ID、已有主机工作区绝对路径、已有本地命令许可 JSON 绝对路径。另准备独立项目范围 `runner` 凭证文件 `deploy/secrets/runner-token`，并配置容器读取权限。

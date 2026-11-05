@@ -1,0 +1,15 @@
+# Optional WorkBuddy OAuth for the control service.
+services:
+  control:
+    environment:
+      SUMA_PUBLIC_URL: ${SUMA_PUBLIC_URL:?Set the public suma origin for WorkBuddy}
+      SUMA_WORKBUDDY_CLIENT_ID: ${SUMA_WORKBUDDY_CLIENT_ID:?Set the registered WorkBuddy app ID}
+      SUMA_WORKBUDDY_SCOPES: ${SUMA_WORKBUDDY_SCOPES:?Set the permitted WorkBuddy scopes}
+      SUMA_WORKBUDDY_CLIENT_SECRET_FILE: /run/secrets/workbuddy_client_secret
+      SUMA_WORKBUDDY_MASTER_KEY_FILE: /run/secrets/workbuddy_master_key
+    secrets: [workbuddy_client_secret, workbuddy_master_key]
+secrets:
+  workbuddy_client_secret:
+    file: ${SUMA_WORKBUDDY_CLIENT_SECRET_FILE:-./secrets/workbuddy-client-secret}
+  workbuddy_master_key:
+    file: ${SUMA_WORKBUDDY_MASTER_KEY_FILE:-./secrets/workbuddy-master-key}

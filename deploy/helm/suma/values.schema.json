@@ -34,6 +34,18 @@
         "key": {"type": "string", "minLength": 1}
       }
     },
+    "workBuddy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "publicURL": {"type": "string"},
+        "clientID": {"type": "string"},
+        "scopes": {"type": "string"},
+        "existingSecret": {"type": "string"},
+        "clientSecretKey": {"type": "string", "minLength": 1},
+        "masterKey": {"type": "string"}
+      }
+    },
     "secureCookies": {"type": "boolean"}
   }
 }

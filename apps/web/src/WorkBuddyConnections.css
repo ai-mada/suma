@@ -49,8 +49,11 @@
 .workbuddy-technical{display:grid;gap:9px;margin:0;padding:4px 0}
 .workbuddy-technical code,.workbuddy-form code{overflow-wrap:anywhere;white-space:normal}
 .workbuddy-form,.workbuddy-authorization,.workbuddy-recovery{padding:16px;border:1px solid var(--border);border-radius:var(--radius,10px);display:grid;gap:12px;min-width:0}
-.workbuddy-desktop-guide{padding:16px;border:1px solid var(--border);border-radius:8px;display:grid;gap:12px;min-width:0;background:var(--surface-soft)}
-.workbuddy-desktop-guide h4{font-size:14px;line-height:1.5}
+.workbuddy-desktop-guide,.workbuddy-config{padding:16px;border:1px solid var(--border);border-radius:8px;display:grid;gap:8px;min-width:0;background:var(--surface-soft)}
+.workbuddy-desktop-guide h4,.workbuddy-config h4{font-size:14px;line-height:1.5;margin:0;color:var(--text)}
+.workbuddy-config p{margin:0}
+.workbuddy-config summary{cursor:pointer;width:fit-content;line-height:44px;color:var(--text)}
+.workbuddy-config code{overflow-wrap:anywhere}
 .workbuddy-desktop-guide p,.workbuddy-desktop-guide label{font-size:12px;line-height:1.7}
 .workbuddy-desktop-guide label{display:grid;gap:7px;color:var(--muted)}
 .workbuddy-desktop-guide textarea{width:100%;font-size:12px;line-height:1.7;resize:vertical}
