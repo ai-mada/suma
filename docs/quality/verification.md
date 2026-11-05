@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-MANAGE-UX 核验连接卡片操作优先级、未知结果的精确只读核对和显式权限沿用。 [阶段验证](workbuddy-manage-ux-verification.md)
+
 T-WORKBUDDY-LATE-DELIVERY-240 核验原云任务的迟到完成、停止与过期尝试保护、原操作重放及交付事务回滚。 [阶段验证](workbuddy-late-delivery-verification.md)
 
 T-TOOL-QUICK-CHOICES-241 核验本机快捷选择、协议区分、配置读写范围与单份已有配置复用。 [阶段验证](tool-quick-choices-verification.md)

@@ -16,18 +16,31 @@ let host:HTMLDivElement,root:Root;
 beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);await setLocale('en-US',{persist:false});sessionStorage.clear();call.mockReset();call.mockResolvedValue(page());host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 async function render(project='p-a',session=identity){await act(async()=>root.render(<ApiViewProvider session={session}><WorkBuddyConnections project={project}/></ApiViewProvider>));}
-async function click(text:string){const button=[...host.querySelectorAll('button')].find(node=>node.textContent?.trim()===text);expect(button,text).toBeTruthy();await act(async()=>button!.click());}
+async function click(text:string){
+ const button=[...host.querySelectorAll('button')].find(node=>node.textContent?.trim()===text);
+ expect(button,text).toBeTruthy();
+ const management=button!.closest<HTMLDetailsElement>('.workbuddy-card-management');
+ if(management&&!management.open)await act(async()=>management.querySelector('summary')!.click());
+ await act(async()=>button!.click());
+}
 async function open(){await act(async()=>host.querySelector<HTMLButtonElement>('.workbuddy-disclosure')!.click());}
-async function chooseScope(){const box=host.querySelector<HTMLInputElement>('input[value="user.task.readable"]');expect(box).toBeTruthy();await act(async()=>box!.click());}
+async function chooseScope(){
+ const selector='input[value="user.task.readable"]';
+ if(!host.querySelector(selector))await click('Select and adjust permissions');
+ const box=host.querySelector<HTMLInputElement>(selector);
+ expect(box).toBeTruthy();
+ if(!box!.checked)await act(async()=>box!.click());
+}
 
 it('keeps reauthorization scopes empty until explicit reuse and separates a manually added permission',async()=>{
  await render();await open();await click('Authorize again');
  const form=host.querySelector<HTMLFormElement>('form')!;
- expect([...form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')].every(input=>!input.checked)).toBe(true);
- expect(form.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(true);
+ expect(form.querySelector('input[type="checkbox"]')).toBeNull();
+ expect(form.querySelector('button[type="submit"]')).toBeNull();
  expect(form.querySelector('.workbuddy-current-scopes')?.textContent).toContain('Read WorkBuddy tasks');
- await click('Reuse current requestable permissions');
+ await click('Select and adjust permissions');
  expect(form.querySelector<HTMLInputElement>('input[value="user.task.readable"]')?.checked).toBe(true);
+ expect(document.activeElement).toBe(form.querySelector('input[value="user.task.readable"]'));
  expect(form.querySelector<HTMLInputElement>('input[value="user.task.invokable"]')?.checked).toBe(false);
  expect(form.querySelector('[aria-label="Requested again"]')?.textContent).toContain('Read WorkBuddy tasks');
  expect(form.querySelector('[aria-label="New requests"]')?.textContent).toContain('None');
@@ -41,11 +54,44 @@ it('explains scope tightening and reuses only the still-requestable part of the 
  await render();await open();await click('Authorize again');
  expect(host.querySelector('form .workbuddy-current-scopes')?.textContent).toContain('Create WorkBuddy tasks');
  expect(host.querySelector('form input[value="user.task.invokable"]')).toBeNull();
- await click('Reuse current requestable permissions');
+ await click('Select and adjust permissions');
  expect(host.querySelector<HTMLInputElement>('form input[value="user.task.readable"]')?.checked).toBe(true);
  expect(host.querySelector('form [aria-label="Not requested again"]')?.textContent).toContain('Create WorkBuddy tasks');
  expect(host.querySelector('form .workbuddy-scope-unavailable')?.textContent).toContain('Create WorkBuddy tasks');
  expect(host.textContent).toContain('These are proposed changes');expect(call.mock.calls.every(([,body])=>!body)).toBe(true);
+});
+
+it('prepares reauthorization in one explicit action using only the displayed requestable grants',async()=>{
+ const previous={...row,scopes:['user.task.readable','user.task.invokable']};
+ const pending={...previous,state:'authorizing',version:4,grant_generation:2,allowed_actions:['authorize','disconnect']};
+ const receipt={id:'reuse-authorization',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=reuse',expires_at:'2099-01-01T00:00:00Z',state:'pending'};
+ call.mockResolvedValue({...page([previous]),available_scopes:['user.task.readable']});
+ await render();await open();await click('Authorize again');
+ expect(host.querySelector('.workbuddy-reuse')?.textContent).toContain('Read WorkBuddy tasks');
+ expect(host.querySelector('.workbuddy-reuse')?.textContent).toContain('Create WorkBuddy tasks');
+ expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(0);
+ call.mockImplementation(async(_path:string,body?:unknown)=>body?receipt:{...page([pending]),available_scopes:['user.task.readable']});
+ await click('Reuse these permissions and continue');
+ const writes=call.mock.calls.filter(([,body])=>body);
+ expect(writes).toHaveLength(1);
+ expect(writes[0][1]).toMatchObject({project_id:'p-a',connection_id:row.id,expected_version:3,scopes:['user.task.readable']});
+ expect(host.querySelector('a[target="_blank"]')).toBe(document.activeElement);
+});
+
+it('shows an uncertain refresh as uncertain and checks that exact connection with reads only',async()=>{
+ await render();await open();
+ const uncertain={...row,state:'refresh_unknown',version:4,expires_at:'',last_error:'workbuddy_effect_unknown',allowed_actions:['authorize','disconnect']};
+ call.mockImplementation(async(path:string,body?:unknown)=>body||path.startsWith('/workbuddy-connections/')?uncertain:page([uncertain]));
+ await click('Refresh authorization');
+ expect(host.textContent).toContain('The refresh result is still unknown');
+ expect(host.textContent).not.toContain('The authorization refresh was recorded');
+ const before=call.mock.calls.length;
+ await click('Check this connection');
+ expect(call.mock.calls.slice(before).map(([path,body])=>[path,body])).toEqual([
+  ['/workbuddy-connections/connection-a?project_id=p-a',undefined],
+  ['/workbuddy-connections?project_id=p-a&limit=20',undefined],
+ ]);
+ expect(host.textContent).toContain('Refresh outcome unknown');
 });
 
 it('shows safe bilingual reasons and timestamps while leaving unknown and pending connections outside disconnected history',async()=>{
@@ -59,7 +105,7 @@ it('shows safe bilingual reasons and timestamps while leaving unknown and pendin
  expect(host.querySelector('.workbuddy-history [data-workbuddy-connection-id="unknown-a"]')).toBeNull();
  expect(host.querySelector('[data-workbuddy-connection-id="unknown-a"] .workbuddy-connection-reason')?.textContent).toBe('The connection needs attention. Read its current status and review the currently allowed actions.');
  expect(host.querySelector('[data-workbuddy-connection-id="required-a"] .workbuddy-connection-reason')?.textContent).toContain('The original authorization needs confirmation again');
- expect(host.querySelector('[data-workbuddy-connection-id="required-a"] time')?.getAttribute('datetime')).toBe(row.updated_at);
+ expect(host.querySelector('[data-workbuddy-connection-id="required-a"] .workbuddy-facts>div:last-child time')?.getAttribute('datetime')).toBe(row.updated_at);
  expect(host.textContent).not.toContain('private-machine-token');expect(host.textContent).not.toContain('C:/private/account');
  expect(host.textContent).toContain('not every account in the project');expect(call.mock.calls.every(([,body])=>!body)).toBe(true);
  await act(async()=>{await setLocale('zh-CN',{persist:false});});
@@ -76,7 +122,7 @@ it('keeps an explicitly located disconnected account visible and reauthorizable 
  expect(host.querySelectorAll('[data-workbuddy-connection-id="history-target"]')).toHaveLength(1);
  expect(host.querySelector('[aria-label="Current authorizations and pending actions"] [data-workbuddy-connection-id="connection-a"]')).toBeTruthy();
  const reauthorize=[...card!.querySelectorAll('button')].find(button=>button.textContent==='Authorize again');await act(async()=>reauthorize!.click());
- expect(host.querySelector('form')?.textContent).toContain('history-account');expect(host.querySelector<HTMLInputElement>('form input[type="checkbox"]')?.checked).toBe(false);
+ expect(host.querySelector('form')?.textContent).toContain('history-account');expect(host.querySelector('form input[type="checkbox"]')).toBeNull();
  await chooseScope();await act(async()=>host.querySelector<HTMLButtonElement>('.workbuddy-history-toggle')!.click());
  expect(host.querySelector<HTMLDivElement>('.workbuddy-history-content')?.hidden).toBe(true);expect(host.querySelector<HTMLInputElement>('form input[value="user.task.readable"]')?.checked).toBe(true);
  await act(async()=>host.querySelector<HTMLButtonElement>('.workbuddy-history-toggle')!.click());expect(host.querySelector<HTMLInputElement>('form input[value="user.task.readable"]')?.checked).toBe(true);

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-MANAGE-UX 按连接状态突出刷新、替换链接或只读核对，按需展开账号管理。重新授权可直接沿用明确列出的权限，刷新提示与实际连接状态一致。 [交互](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-manage-ux-verification.md)
+
 T-WORKBUDDY-LATE-DELIVERY-240 可从原运行刷新云任务，将可推进的原尝试更新为待交付并开放准确定位。原执行结果与验收事实保留。 [合同](../../contracts/workbuddy-task-dispatch.md#迟到的云端完成观察) · [验证](../quality/workbuddy-late-delivery-verification.md)
 
 T-TOOL-QUICK-CHOICES-241 本机已确认的入口可直接选用，同名产品按协议类型区分。多份节点配置显示读写范围，单份已有配置直接展示可用操作。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-choices-verification.md)
