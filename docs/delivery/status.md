@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-TEAM-READS 团队成员可直接查看原云任务共享进度。原授权人核对私人账号时可先看进度，确认权限后再操作。 [交互](../design/workbuddy-cloud-task.md#更新记录与查询供应方) · [验证](../quality/workbuddy-cloud-status-verification.md#团队进度读取补充验证)
+
 T-TOOL-QUICK-DESKTOP-251 添加工具可从准确暂停回执直达启用审阅，窄屏优先展示节点、版本、权限和确认操作。Windows 桌面已用真实 Codex CLI 跑通检测、选择、保存与启用。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-desktop-verification.md)
 
 T-WORKBUDDY-DIRECT-AUTH 支持首次与重新授权直接打开 WorkBuddy。浏览器拦截时可打开原链接，超时或断开后定位原连接。真实供应方账号联调待部署配置后验收。 [交互](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-direct-auth-verification.md)

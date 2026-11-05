@@ -61,10 +61,57 @@ it('restores a lost delegation response after remount with the same body/key and
  expect(calls.every(call=>call.path.startsWith('/workbuddy-cloud-')||call.path.startsWith('/workbuddy-connections/'))).toBe(true);
 });
 
-it('does not expose another members connection or discard project-readable cloud progress on its private404',async()=>{
- node={...node,submission:submission(),allowed_actions:[]};transport(async path=>path.startsWith('/workbuddy-connections/')?Response.json({error:{code:'not_found',message:'Not found'}},{status:404}):Response.json(node));
- await render();expect(host.textContent).toContain('vendor-task-a');expect(host.textContent).toContain('working');expect(host.textContent).not.toContain(account.open_id);expect(host.textContent).not.toContain('Access changed');expect(host.querySelector('[data-cloud-action="refresh"]')).toBeNull();
+it('shows exact project-readable progress without requesting another member’s private connection',async()=>{
+ const teammate={...session,user:{id:'user-b',name:'B',email:'b@example.test'}};
+ node={...node,allowed_actions:[]};
+ transport(async path=>path.startsWith('/workbuddy-connections/')?Response.json({error:{code:'not_found',message:'Not found'}},{status:404}):Response.json(node));
+ await render('project-a','run-a','node-a',teammate,undefined,1);
+ expect(host.querySelector('[data-cloud-runner-phase]')?.textContent).toBe('Shared record');
+ expect(host.querySelector('.cloud-task-form,[data-cloud-action="delegate"]')).toBeNull();
+ expect(host.querySelector('[data-cloud-observation]')).toBeNull();
+ expect(calls.filter(call=>call.path.startsWith('/workbuddy-connections/'))).toHaveLength(0);
+
+ node={...node,run_version:4,submission:submission()};
+ await render('project-a','run-a','node-a',teammate,undefined,2);
+ expect(host.querySelector('[data-cloud-observation] .cloud-task-provider-state')?.textContent).toBe('working');
+ expect(host.querySelector('[data-cloud-observation] time')?.getAttribute('datetime')).toBe(stamp);
+ expect(host.querySelector('[data-cloud-execution-details]')?.textContent).toContain('vendor-task-a');
+ expect(host.textContent).not.toContain(account.open_id);
+ expect(host.querySelector('[data-cloud-action="refresh"]')).toBeNull();
+ expect(calls.filter(call=>call.path.startsWith('/workbuddy-connections/'))).toHaveLength(0);
+ expect(host.querySelector('[data-collaboration-source],.workbuddy-cloud-turns')).toBeNull();
+});
+
+it('shows saved progress during the owner’s account check and retires it on a current refusal',async()=>{
+ node={...node,delegation:delegation(),submission:submission(),allowed_actions:['revoke','observe']};
+ let resolveAccount:(response:Response)=>void;
+ transport(async path=>{
+  if(path.startsWith('/workbuddy-connections/'))return new Promise<Response>(resolve=>{resolveAccount=resolve;});
+  return Response.json(node);
+ });
+ const enabled=(name:string)=>!!host.querySelector(`[data-cloud-action="${name}"]:enabled`);
+ await render('project-a','run-a','node-a',session,undefined,1);
+ expect(calls.filter(call=>call.path.startsWith('/workbuddy-connections/'))).toHaveLength(1);
+ expect(host.querySelector('[data-cloud-observation] .cloud-task-provider-state')?.textContent).toBe('working');
+ expect(host.querySelector('[data-cloud-execution-details]')?.hasAttribute('open')).toBe(false);
+ for(const name of ['delegate','refresh','revoke','reconcile'])expect(enabled(name),name).toBe(false);
+ await act(async()=>resolveAccount(Response.json(account)));await settle();
+ expect(enabled('refresh')).toBe(true);
+ expect(enabled('revoke')).toBe(true);
  expect(JSON.parse(host.querySelector('[data-collaboration-source]')!.getAttribute('data-collaboration-source')!)).toEqual({project_id:'project-a',run_id:'run-a',node_id:'node-a',submission_id:node.submission!.id,submission_version:node.submission!.version,task_id:'vendor-task-a',node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256});
+
+ node={...node,run_version:4};
+ await render('project-a','run-a','node-a',session,undefined,2);
+ expect(calls.filter(call=>call.path.startsWith('/workbuddy-connections/'))).toHaveLength(2);
+ expect(host.querySelector('[data-cloud-observation] .cloud-task-provider-state')?.textContent).toBe('working');
+ for(const name of ['refresh','revoke'])expect(enabled(name),name).toBe(false);
+ await act(async()=>resolveAccount(Response.json({error:{code:'forbidden',message:'Access changed'}},{status:403})));await settle();
+ expect(host.textContent).toContain('Access changed');
+ expect(host.textContent).not.toContain('vendor-task-a');
+ expect(host.textContent).not.toContain(account.open_id);
+ expect(host.querySelector('[data-cloud-observation]')).toBeNull();
+ expect(host.querySelector('[data-collaboration-source]')).toBeNull();
+ expect(calls.some(call=>call.body)).toBe(false);
 });
 
 it('uses only the human observe endpoint and removes protected source after a current permission refusal',async()=>{

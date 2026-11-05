@@ -37,3 +37,11 @@ Windows Electron35.7.5软件离屏环境加载冻结的实际Panel、模型、�
 ## 验收边界
 
 本阶段只证明冻结组件的呈现、原动作不变及代表状态交互，不新增真实供应方、完整App、物理移动设备、多机、其他数据库／系统、规模、安装包或生产验收。原暂停／恢复权限、供应方执行、独立测试与业务验收仍由各自合同决定；完整31项要求、P0–P7及58限定／34待办／92总账不变。
+
+## 团队进度读取补充验证
+
+T-WORKBUDDY-TEAM-READS 将项目进度与本人账号读取分开。团队成员直接读取原节点，账号较慢时原授权人也能先看进度。当前授权拒绝移除保护内容。
+
+- Windows、Node 22.16.0、Vitest 3.0.5。先复现团队读取私人账号、账号阻塞进度两处失败。在 `apps/web` 执行 `vitest run src/WorkBuddyCloudTaskWorkspace.test.tsx src/WorkBuddyCloudTaskPanel.test.tsx src/WorkflowCloudIntegration.test.tsx src/workbuddy-cloud-runner.test.tsx`，合计 37 项通过。`tsc --noEmit` 退出 0。团队说明调整后复跑工作区和面板 22 项，计入前述总数。最终 `node scripts/check-i18n.mjs` 核对 10631 个词条并通过。
+- 已安装的 Chrome 156.0.8078.80、Playwright 1.62.1，英文 1366×768。隔离回环 HTTP 下使用实际工作区及应用样式，验证团队直接读取与手动重读、原授权人先看进度且操作锁定、有效账号回执解锁和账号接口 403 后清理。4 次准确节点读取、1 次本人会话摘要读取、2 次本人账号读取，团队私人账号读取和外部写入均为 0。证据位于 `.cache/cloud-team-reads/browser/`。
+- 这轮仅验证组件和合成 HTTP 下的授权呈现。真实供应方账号、实际云执行及生产验收仍按原合同单独验证。

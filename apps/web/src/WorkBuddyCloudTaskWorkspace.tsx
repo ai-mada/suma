@@ -66,18 +66,24 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
    if(!live(generation))return 'failed';
    if(!result)throw new UiError('workbuddy-cloud-task.invalid_source');
    let account:WorkBuddyConnection|undefined,connectionFailed=false;
-   try{
-    const rawAccount=await caller<unknown>('/workbuddy-connections/'+encodeURIComponent(result.binding.connection_id)+'?project_id='+encodeURIComponent(project),undefined,'GET',headers,abort.signal);
-    if(!live(generation))return 'failed';
-    account=readCloudConnection(rawAccount,scope,result);
-    if(!account)throw new UiError('workbuddy-cloud-task.invalid_connection');
-   }catch(error){
-    if(!live(generation))return 'failed';
-    // Another member's private connection is not needed to read shared task
-    // observations. A current session/project refusal still retires all data.
-    if(error instanceof ApiError&&error.status===404)account=undefined;
-    else if(refused(error))throw error;
-    else connectionFailed=true;
+   if(result.delegation||result.allowed_actions.includes('delegate')){
+    const saved=previous?.connection;
+    const matching=saved?.id===result.binding.connection_id&&saved.grant_generation===result.binding.grant_generation;
+    // Publish authorized project progress before the private lookup. Keep
+    // the same account as draft context only while commands are locked.
+    store({caller,node:result,connection:matching?saved:undefined,reading:true,denied:false,sourceFailed:false,connectionFailed:false});
+    try{
+     const rawAccount=await caller<unknown>('/workbuddy-connections/'+encodeURIComponent(result.binding.connection_id)+'?project_id='+encodeURIComponent(project),undefined,'GET',headers,abort.signal);
+     if(!live(generation))return 'failed';
+     account=readCloudConnection(rawAccount,scope,result);
+     if(!account)throw new UiError('workbuddy-cloud-task.invalid_connection');
+    }catch(error){
+     if(!live(generation))return 'failed';
+     // A missing account is distinct from a current session/project refusal.
+     if(error instanceof ApiError&&error.status===404)account=undefined;
+     else if(refused(error))throw error;
+     else connectionFailed=true;
+    }
    }
    if(!live(generation))return 'failed';
    store({caller,node:result,connection:account,reading:false,denied:false,sourceFailed:false,connectionFailed});
@@ -109,7 +115,7 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
 
  const reload=async()=>{if(await read(true)==='failed')throw new UiError('workbuddy-cloud-task.source_read_failed');};
  const run=async(path:string,body:Record<string,unknown>,method='POST'):Promise<WorkBuddyCloudActionResult>=>{
-  if(commandBusy.current||denied||!node||current.current?.reading)return {kind:'failed'};
+  if(commandBusy.current||denied||!node||current.current?.node!==node||current.current.reading||current.current.sourceFailed)return {kind:'failed'};
   commandBusy.current=true;
   try{
    const value=await action.run<unknown>(path,body,method);
@@ -148,6 +154,7 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
  };
  const model:WorkBuddyCloudTaskModel={
   scopeKey,sourceVersion,state:!validCloudScope(scope)?'unavailable':denied?'denied':!node?(current.current?.reading||!current.current?'loading':'unavailable'):'ready',unavailableReason:validCloudScope(scope)?'source_missing':'permission_changed',
+  sharedOnly:!!node&&!node.delegation&&!node.allowed_actions.includes('delegate'),
   execution:execution?.runVersion===node?.run_version?execution:undefined,
   task:{title:taskTitle||node?.binding.request.name||t('source_task'),runLabel:t('source_run',{id:runID}),nodeLabel:t('source_node',{id:nodeID}),prompt:node?.binding.request.prompt||'',name:node?.binding.request.name,requestDigest:node?.request_sha256||'',nodeDigest:node?.node_spec_sha256||''},
   connections:connection?[{id:connection.id,label:connection.open_id||connection.id,version:connection.version,grantGeneration:connection.grant_generation,eligible:eligible&&!!node?.allowed_actions.includes('delegate'),unavailableReason:connection.grant_generation!==node?.binding.grant_generation?'node_mismatch':'connection_unavailable'}]:[],
@@ -156,14 +163,19 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
   submission:node?.submission?{id:node.submission.id,version:node.submission.version,state:node.submission.state as 'prepared'|'unknown'|'task_known',taskID:node.submission.task?.task_id,providerStatus:node.submission.task?.status,observedAt:node.submission.observed_at,lastError:node.submission.last_error}:undefined,
   recovery:pending?{action:cloudRecoveryAction(pending)||'delegate',state:'unknown',canReconcile:mayRecover}:undefined,
  };
+ const submission=node?.submission;
+ const privateSource=!denied&&node?.delegation&&submission?.state==='task_known'&&submission.task?{
+  project_id:project,run_id:runID,node_id:nodeID,submission_id:submission.id,submission_version:submission.version,task_id:submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256,
+ }:undefined;
+ const sourceBusy=!!current.current?.reading||!!current.current?.sourceFailed;
  return <div className="workbuddy-cloud-workspace">
   {!denied&&current.current?.reading&&node&&<p className="cloud-task-hint" role="status">{t('reading_current')}</p>}
   {!denied&&(current.current?.sourceFailed||parentRefreshFailed)&&node&&<p className="cloud-task-inline-error" role="alert">{t('source_read_failed')}</p>}
   {!denied&&current.current?.connectionFailed&&node&&<p className="cloud-task-hint" role="status">{t('connection_read_failed')}</p>}
   {!denied&&<WriteNotice action={action}/>}
   <WorkBuddyCloudTaskPanel model={model} onDelegate={delegate} onRevoke={revoke} onRefresh={observe} onReload={reload} onReconcile={reconcile}/>
-  {!denied&&node?.submission?.state==='task_known'&&node.submission.task&&<WorkBuddyCloudCollaboration source={{project_id:project,run_id:runID,node_id:nodeID,submission_id:node.submission.id,submission_version:node.submission.version,task_id:node.submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256}} revision={revision} disabled={!!current.current?.reading||!!current.current?.sourceFailed} onShareSelection={setShareSelection} shareReset={shareReset}/>}
-  {!denied&&node?.submission?.state==='task_known'&&node.submission.task&&<Suspense fallback={<Loading/>}><WorkBuddyCloudTurns source={{project_id:project,run_id:runID,node_id:nodeID,submission_id:node.submission.id,submission_version:node.submission.version,task_id:node.submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256}} revision={revision} runVersion={execution?.runVersion} disabled={!!current.current?.reading||!!current.current?.sourceFailed} onChanged={onChanged}/></Suspense>}
-  <CloudHistorySharing project={project} runID={runID} nodeID={nodeID} selection={shareSelection} onClearSelection={clearShareSelection}/>
+  {privateSource&&<WorkBuddyCloudCollaboration source={privateSource} revision={revision} disabled={sourceBusy} onShareSelection={setShareSelection} shareReset={shareReset}/>}
+  {privateSource&&<Suspense fallback={<Loading/>}><WorkBuddyCloudTurns source={privateSource} revision={revision} runVersion={execution?.runVersion} disabled={sourceBusy} onChanged={onChanged}/></Suspense>}
+  <CloudHistorySharing project={project} runID={runID} nodeID={nodeID} selection={privateSource?shareSelection:undefined} onClearSelection={clearShareSelection}/>
  </div>;
 }
