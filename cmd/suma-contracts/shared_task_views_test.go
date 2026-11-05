@@ -62,3 +62,21 @@ func TestSharedTaskViewsContractKeepsScopesVersionsAndClosedPreferences(t *testi
 		}
 	}
 }
+
+func TestSharedTaskViewSyncContractExposesOnlyOpaqueRevision(t *testing.T) {
+	api, _ := generate()
+	op := mapAt(api, "paths", "/task-views/sync", "get")
+	if op["x-read-only"] != true || op["requestBody"] != nil {
+		t.Fatal("directory revision must remain a bodyless read")
+	}
+	schema := mapAt(op, "responses", "200", "content", "application/json", "schema")
+	if schema["$ref"] != "#/components/schemas/SharedTaskViewSync" {
+		t.Fatal("revision should use its minimal response model")
+	}
+	model := mapAt(api, "components", "schemas", "SharedTaskViewSync")
+	properties := mapAt(model, "properties")
+	if model["additionalProperties"] != false || len(properties) != 2 ||
+		mapAt(properties, "revision")["pattern"] != "^[0-9a-f]{64}$" || properties["project_id"] == nil {
+		t.Fatal("revision must not expose view details, identities or counts")
+	}
+}

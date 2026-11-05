@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func sharedTaskViewModels() []any {
-	return []any{platform.SharedTaskViewPreferences{}, platform.SharedTaskView{}, platform.SharedTaskViewPage{}, platform.SharedTaskViewCreateRequest{}, platform.SharedTaskViewUpdateRequest{}, platform.SharedTaskViewArchiveRequest{}}
+	return []any{platform.SharedTaskViewPreferences{}, platform.SharedTaskView{}, platform.SharedTaskViewPage{}, platform.SharedTaskViewCreateRequest{}, platform.SharedTaskViewUpdateRequest{}, platform.SharedTaskViewArchiveRequest{}, platform.SharedTaskViewSync{}}
 }
 
 // Saved conditions are presentation data, never a grant or a task snapshot.
@@ -29,6 +29,11 @@ func sharedTaskViewContracts(add operationAdder, api map[string]any) {
 			appendQuery(op, queryParameter("cursor", "Opaque ID continuation bound to current identity, project and page size.", map[string]any{"type": "string", "maxLength": 4096}))
 		}
 	}
+	sync := add("/task-views/sync", "get", "SharedTaskViewSync", false, false)
+	successStatus(sync, "200")
+	sync["x-disallowed-token-scopes"] = []string{"runner", "agent"}
+	sync["x-read-only"] = true
+	sync["description"] = "Return an opaque current-authorized directory revision for the caller's project and personal views. Compare for equality only. Reread authorized views on change. No private rows, names or counts are returned."
 	schemas := toolContractMap(api, "components", "schemas")
 	field := func(model, name string, attrs map[string]any) {
 		value := toolContractMap(schemas, model, "properties", name)
@@ -39,6 +44,9 @@ func sharedTaskViewContracts(add operationAdder, api map[string]any) {
 	for _, model := range []string{"SharedTaskViewPreferences", "SharedTaskView", "SharedTaskViewPage", "SharedTaskViewCreateRequest", "SharedTaskViewUpdateRequest", "SharedTaskViewArchiveRequest"} {
 		toolContractMap(schemas, model)["additionalProperties"] = false
 	}
+	toolContractMap(schemas, "SharedTaskViewSync")["additionalProperties"] = false
+	field("SharedTaskViewSync", "project_id", map[string]any{"readOnly": true, "minLength": 1, "maxLength": 64})
+	field("SharedTaskViewSync", "revision", map[string]any{"readOnly": true, "pattern": "^[0-9a-f]{64}$", "description": "Opaque revision scoped to current identity, project and management authority. It is not an authorization token or synchronization sequence."})
 	for _, model := range []string{"SharedTaskViewCreateRequest", "SharedTaskViewUpdateRequest", "SharedTaskViewArchiveRequest"} {
 		field(model, "project_id", map[string]any{"minLength": 1, "maxLength": 64})
 		field(model, "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128, "x-max-utf8-bytes": 128})

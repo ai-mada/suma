@@ -1730,6 +1730,7 @@
       <p>T-VIEWS-138将命名筛选保存为独立版本化对象：个人视图仅本人可见，项目共享视图由当前有项目权限的成员读取。只读成员可保存个人偏好；共享修改需项目写权限并为作者或组织管理员。视图不保存任务正文，也不授予任务、执行或审批权限。</p>
       <p>默认保存为个人；项目共享明确说明可见范围。多人修改使用版本比较，冲突展示服务器当前内容和本地草稿，允许另存或明确覆盖当前修订。未知写回执沿原操作标识核对；删除保留墓碑，旧更新不能复活。当前在线设备可重新读取；本机偏好保留且不自动上传，完整离线同步继续按原计划实施。</p>
       <div class="note">本阶段实现与实际验证分别记录：<a href="design/shared-task-views.md">交互与架构</a> · <a href="../contracts/shared-task-views.md">领域合同</a>。<a href="quality/shared-task-views-verification.md">限定实际验证</a>已通过，不作为完整多端或生产验收结论。</div>
+      <p>T-MULTICA-SHARED-VIEW-LIVE · 可见且在线的任务面板先核对当前账号的目录版本，有变化才重读正式目录及当前视图。另一设备的修订需明确应用。归档移除已保存视图，撤权清除受保护内容。<a href="../contracts/shared-task-views.md">视图合同</a> · <a href="design/shared-task-views.md#在线版本核对与显式应用">交互设计</a> · <a href="quality/shared-view-live-verification.md">验证记录</a></p>
       <h3>21.8 Multica优先采用：任务视图进入真实工作台</h3>
       <p>T-MULTICA-137在个人任务与命令入口上继续落实M06／M07任务视图切片。全项目搜索先由服务端核对当前权限、筛选和排序，再返回准确总数与分页；列表和看板共用结果。状态、负责人、优先级只改变展示分组，每列明确“已载入”，不把局部数量当全项目统计。</p>
       <div class="table-wrap"><table><thead><tr><th>工作步骤</th><th>界面与操作</th><th>结果与恢复</th></tr></thead><tbody>

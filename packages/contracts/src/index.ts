@@ -6585,6 +6585,10 @@ export interface SharedTaskViewPreferences {
   group_by: string;
   columns?: (string)[];
 }
+export interface SharedTaskViewSync {
+  project_id: string;
+  revision: string;
+}
 export interface SharedTaskViewUpdateRequest {
   project_id: string;
   name: string;

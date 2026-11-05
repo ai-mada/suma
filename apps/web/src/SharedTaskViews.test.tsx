@@ -6,12 +6,13 @@ import {SharedTaskViews,type SharedTaskView,sharedViewPreferences} from './Share
 import {defaultTaskView} from './task-views-model';
 import {ApiError} from './api';
 import {setLocale} from './i18n';
-const call=vi.hoisted(()=>vi.fn());vi.mock('./api',async original=>({...await original<typeof import('./api')>(),api:call}));
+const {call,syncCall}=vi.hoisted(()=>({call:vi.fn(),syncCall:vi.fn()}));
+vi.mock('./api',async original=>({...await original<typeof import('./api')>(),api:(path:string,...args:unknown[])=>(path.startsWith('/task-views/sync?')?syncCall:call)(path,...args)}));
 let host:HTMLDivElement,root:Root;const change=vi.fn((_value:typeof defaultTaskView)=>true);
 const row:SharedTaskView={id:'view-a',project_id:'project-a',owner_id:'user-a',name:'Team backlog',visibility:'project',version:1,state:'active',preferences:{...defaultTaskView,status:'todo'},created_at:'2026-10-29T00:00:00Z',updated_at:'2026-10-29T00:00:00Z',can_edit:true,can_delete:true};
 const page=(items=[row])=>({project_id:'project-a',items,total:items.length,limit:20,as_of:'now'});
-beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);await setLocale('en-US',{persist:false});call.mockReset();change.mockClear();call.mockResolvedValue(page());host=document.createElement('div');document.body.append(host);root=createRoot(host);});
-afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
+beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);await setLocale('en-US',{persist:false});call.mockReset();syncCall.mockReset();syncCall.mockResolvedValue(revision());change.mockClear();call.mockResolvedValue(page());host=document.createElement('div');document.body.append(host);root=createRoot(host);});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function render(user='user-a',denied=false,preferences=defaultTaskView){await act(async()=>root.render(<SharedTaskViews scope={[user,'org-a','project-a']} preferences={preferences} onChange={change} denied={denied}/>));}
 async function click(text:string){const b=[...document.querySelectorAll('button')].find(b=>b.textContent?.trim()===text);expect(b,text).toBeTruthy();await act(async()=>b!.click());}
 async function input(el:HTMLInputElement|HTMLSelectElement,value:string){await act(async()=>{const proto=el instanceof HTMLInputElement?HTMLInputElement.prototype:HTMLSelectElement.prototype;Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(el,value);el.dispatchEvent(new Event(el instanceof HTMLInputElement?'input':'change',{bubbles:true}));});}
@@ -41,4 +42,129 @@ it('refuses explicit invalid response columns instead of applying a default view
 });
 it('clones exact columns into the original unknown operation and retries the same body after the current display changes',async()=>{
  const columns=['title','updated','owner'];await render('user-a',false,{...defaultTaskView,status:'todo',columns});await click('Save synced view');await input(dialog().querySelector('input')!,'Column view');call.mockResolvedValueOnce({...row,preferences:{...defaultTaskView,status:'todo',columns:[]}});await click('Save');const first=call.mock.calls.at(-1)!;expect(first[1]).toMatchObject({preferences:{status:'todo',columns:['title','updated','owner']}});columns.splice(1,1);await render('user-a',false,{...defaultTaskView,status:'blocked',columns:['title']});expect(first[1].preferences.columns).toEqual(['title','updated','owner']);call.mockResolvedValueOnce({...row,preferences:first[1].preferences});await click('Check by retrying');const retry=call.mock.calls.at(-1)!;expect(retry[1]).toEqual(first[1]);expect(retry[1].idempotency_key).toBe(first[1].idempotency_key);expect(change).not.toHaveBeenCalled();
+});
+
+const revision=(digit='a')=>({project_id:'project-a',revision:digit.repeat(64)});
+const syncState=()=>host.querySelector('[data-shared-view-sync-state]')?.getAttribute('data-shared-view-sync-state');
+const focus=async()=>{await act(async()=>window.dispatchEvent(new Event('focus')));};
+const selectView=async(id=row.id)=>{await input(host.querySelector('.shared-task-views-picker select')!,id);};
+
+it('checks the directory only when its scoped marker changes and keeps the applied revision until explicit review',async()=>{
+ vi.useFakeTimers();
+ await render();await selectView();
+ expect(syncCall.mock.calls[0]?.[0]).toBe('/task-views/sync?project_id=project-a');
+ expect(syncCall.mock.invocationCallOrder[0]).toBeLessThan(call.mock.invocationCallOrder[0]!);
+ expect(syncState()).toBe('current');
+ await act(async()=>vi.advanceTimersByTimeAsync(30000));
+ expect(syncCall).toHaveBeenCalledTimes(3);expect(call).toHaveBeenCalledTimes(1);
+ const latest={...row,version:2,name:'Team in progress',preferences:{...row.preferences,status:'in_progress'}};
+ syncCall.mockResolvedValue(revision('b'));call.mockResolvedValue(page([latest]));
+ await focus();
+ expect(host.querySelector('[data-shared-view-update-notice]')?.textContent).toContain('Revision 2 is available');
+ expect(host.querySelector('.shared-task-views-meta')?.textContent).toContain('Revision 1');
+ expect(change).toHaveBeenCalledTimes(1);
+ expect(host.querySelector('[data-shared-view-update-notice]')?.textContent).toContain('In progress');
+ syncCall.mockRejectedValueOnce(new ApiError(0,'timeout','Transport interrupted'));
+ await click('Refresh views');
+ expect(syncState()).toBe('stale');
+ expect((host.querySelector('[data-shared-view-apply-update]') as HTMLButtonElement).disabled).toBe(true);
+ expect(host.textContent).toContain('Transport interrupted');
+ await focus();
+ expect(syncState()).toBe('current');
+ expect(host.textContent).not.toContain('Transport interrupted');
+ await click('Apply new revision');
+ expect(change).toHaveBeenLastCalledWith(expect.objectContaining({status:'in_progress'}));
+ expect(host.querySelector('[data-shared-view-update-notice]')).toBeNull();
+ expect(host.querySelector('.shared-task-views-meta')?.textContent).toContain('Revision 2');
+});
+
+it('serializes wakeups and rechecks the directory after a hidden or offline period',async()=>{
+ vi.useFakeTimers();
+ const visible=vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+ const online=vi.spyOn(window.navigator,'onLine','get').mockReturnValue(true);
+ await render();
+ let complete!:(value:unknown)=>void;
+ syncCall.mockImplementationOnce(()=>new Promise(resolve=>{complete=resolve;}));
+ await focus();await focus();
+ expect(syncCall).toHaveBeenCalledTimes(2);
+ await act(async()=>complete(revision()));
+ visible.mockReturnValue('hidden');
+ await act(async()=>document.dispatchEvent(new Event('visibilitychange')));
+ await act(async()=>vi.advanceTimersByTimeAsync(45000));await focus();
+ expect(syncCall).toHaveBeenCalledTimes(2);
+ online.mockReturnValue(false);visible.mockReturnValue('visible');
+ await act(async()=>window.dispatchEvent(new Event('offline')));
+ await act(async()=>vi.advanceTimersByTimeAsync(45000));
+ expect(syncState()).toBe('offline');expect(syncCall).toHaveBeenCalledTimes(2);
+ online.mockReturnValue(true);
+ await act(async()=>window.dispatchEvent(new Event('online')));
+ expect(syncState()).toBe('current');expect(syncCall).toHaveBeenCalledTimes(3);
+ expect(call).toHaveBeenCalledTimes(1);
+});
+
+it('checks the selected view beyond the first page and isolates a missing view from the current project',async()=>{
+ const paged={...row,id:'view-next',name:'Another saved view',preferences:{...defaultTaskView,status:'blocked'}};
+ call.mockResolvedValueOnce({...page(),next_cursor:'next'}).mockResolvedValueOnce(page([paged]));
+ await render();await click('Load more views');await selectView(paged.id);change.mockClear();
+ syncCall.mockResolvedValue(revision('b'));
+ call.mockResolvedValueOnce({...page(),next_cursor:'next'}).mockRejectedValueOnce(new ApiError(404,'not_found','Missing'));
+ await focus();
+ expect(call.mock.calls.at(-1)?.[0]).toBe('/task-views/view-next?project_id=project-a');
+ expect(host.textContent).toContain('Team backlog');
+ expect(host.textContent).not.toContain('Another saved view');
+ expect(host.querySelector('[data-shared-view-unavailable]')?.textContent).toContain('current filters are still active');
+ expect(change).not.toHaveBeenCalled();expect(syncState()).toBe('current');
+});
+
+it('keeps the editor draft on remote revision changes and removes an archived view without changing filters',async()=>{
+ await render();await selectView();await click('Update view');
+ await input(dialog().querySelector('input')!,'My local revision');
+ syncCall.mockResolvedValue(revision('b'));
+ const latest={...row,version:2,name:'Latest team view',preferences:{...row.preferences,status:'blocked'}};
+ call.mockResolvedValue(page([latest]));
+ await focus();
+ expect(dialog().textContent).toContain('Latest team view');
+ expect(dialog().textContent).toContain('Blocked');
+ expect((dialog().querySelector('input') as HTMLInputElement).value).toBe('My local revision');
+ expect((dialog().querySelector('button:not([type])') as HTMLButtonElement).disabled).toBe(true);
+ expect(change).toHaveBeenCalledTimes(1);
+ syncCall.mockResolvedValue(revision('c'));
+ call.mockResolvedValueOnce(page([])).mockResolvedValueOnce({...latest,state:'archived',version:3});
+ await focus();
+ expect(host.querySelector('[data-shared-view-unavailable]')).not.toBeNull();
+ expect(host.textContent).not.toContain('Latest team view');
+ expect(dialog().textContent).toContain('personal copy');
+ expect((dialog().querySelector('input') as HTMLInputElement).value).toBe('My local revision');
+ expect(change).toHaveBeenCalledTimes(1);
+});
+
+it('marks a failed marker stale and clears private material when live authority is revoked',async()=>{
+ await render();await selectView();await click('Update view');await input(dialog().querySelector('input')!,'Private unsaved name');
+ syncCall.mockResolvedValueOnce({project_id:'wrong-project',revision:'b'.repeat(64)});
+ await focus();
+ expect(syncState()).toBe('stale');expect(host.textContent).toContain('Team backlog');
+ expect(call).toHaveBeenCalledTimes(1);
+ syncCall.mockRejectedValueOnce(new ApiError(403,'forbidden','Forbidden'));
+ await focus();
+ expect(syncState()).toBe('denied');expect(host.textContent).not.toContain('Team backlog');
+ expect(document.querySelector('[role=dialog]')).toBeNull();
+ expect(change).toHaveBeenCalledTimes(1);
+ const reads=syncCall.mock.calls.length;await focus();expect(syncCall).toHaveBeenCalledTimes(reads);
+ syncCall.mockResolvedValue(revision('b'));await click('Refresh views');
+ expect(syncState()).toBe('current');expect(host.textContent).toContain('Team backlog');
+});
+
+it('updates same-revision edit rights and keeps a personal draft copy without writing the shared view',async()=>{
+ await render();await selectView();await click('Update view');await input(dialog().querySelector('input')!,'Local draft after role change');
+ syncCall.mockResolvedValue(revision('b'));call.mockResolvedValue(page([{...row,can_edit:false,can_delete:false}]));
+ await focus();
+ expect(dialog().textContent).toContain('Editing access changed');
+ expect((dialog().querySelector('button:not([type])') as HTMLButtonElement).disabled).toBe(true);
+ await act(async()=>dialog().querySelector('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+ expect(call.mock.calls.some(request=>request[2]==='PATCH')).toBe(false);
+ const copy=[...dialog().querySelectorAll('button')].find(button=>button.textContent==='Save a copy')!;
+ await act(async()=>copy.click());
+ expect((dialog().querySelector('input') as HTMLInputElement).value).toBe('Local draft after role change');
+ expect((dialog().querySelector('.field select') as HTMLSelectElement).value).toBe('private');
+ expect((dialog().querySelector('button:not([type])') as HTMLButtonElement).disabled).toBe(false);
 });

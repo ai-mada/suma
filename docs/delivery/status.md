@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-SHARED-VIEW-LIVE 支持共享任务视图的在线版本核对。另一设备修改时保留当前筛选，显式应用新版本。断网、归档和撤权分别处理。 [交互设计](../design/shared-task-views.md#在线版本核对与显式应用) · [验证](../quality/shared-view-live-verification.md)
+
 T-WORKBUDDY-DELIVERY-TRACE-238 在交付与质量面板直接定位当前任务绑定的 WorkBuddy 待交付尝试，覆盖通用列表之外的节点。 [合同](../../contracts/task-delivery-chain.md) · [验证](../quality/workbuddy-delivery-trace-verification.md)
 
 T-MULTICA-TASK-BATCH-CLI 在原速码命令行提供任务优先级和计划状态的预览与提交。使用同一项目权限与原操作回执。 [CLI 合同](../api/cli-task-batch-changes.md) · [验证](../quality/task-batch-cli-verification.md)

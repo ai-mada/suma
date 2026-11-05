@@ -35,5 +35,19 @@
   "shared-task-views.server": "服务端当前修订",
   "shared-task-views.mine": "我的草稿",
   "shared-task-views.replace": "用我的草稿更新当前修订",
-  "shared-task-views.any": "不限"
+  "shared-task-views.any": "不限",
+  "shared-task-views.sync_checking": "正在核对保存的视图…",
+  "shared-task-views.sync_current": "保存的视图已同步。",
+  "shared-task-views.sync_stale": "暂时无法核对变更，正在显示上次读取的视图。",
+  "shared-task-views.sync_offline": "当前离线，正在显示上次读取的视图。",
+  "shared-task-views.sync_pending": "保存结果待核对，已暂停同步。",
+  "shared-task-views.sync_denied": "访问权限已变化，已暂停同步。",
+  "shared-task-views.update_available": "可应用修订 {{version}}",
+  "shared-task-views.update_hint": "当前筛选仍在使用。可比较条件后再应用新版本。",
+  "shared-task-views.apply_update": "应用新版本",
+  "shared-task-views.current_filters": "当前使用的筛选",
+  "shared-task-views.unavailable": "此保存视图已不可用，当前筛选仍在使用。可选择其他视图或保存当前筛选。",
+  "shared-task-views.draft_unavailable": "此保存视图已不可用。你可以将草稿另存为个人视图。",
+  "shared-task-views.draft_readonly": "编辑权限已变化。可以将草稿另存为个人视图。",
+  "shared-task-views.invalid_response": "无法核对此项目的保存视图，请刷新后重试。"
 }

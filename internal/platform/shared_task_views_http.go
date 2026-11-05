@@ -19,6 +19,18 @@ func (s *Server) handleSharedTaskViews(w http.ResponseWriter, r *http.Request, a
 		writeError(w, forbidden())
 		return true
 	}
+	isSync := len(parts) >= 2 && parts[1] == "sync"
+	if isSync {
+		if r.URL.Path != "/api/v1/task-views/sync" {
+			writeError(w, missing())
+			return true
+		}
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", http.MethodGet)
+			writeError(w, &APIError{Status: http.StatusMethodNotAllowed, Code: "method_not_allowed", Message: "Method not allowed"})
+			return true
+		}
+	}
 	if len(parts) > 3 || len(parts) > 1 && !handoffID(parts[1], false) {
 		bad()
 		return true
@@ -46,6 +58,11 @@ func (s *Server) handleSharedTaskViews(w http.ResponseWriter, r *http.Request, a
 		}
 		if scope == "api" && project != boundProject {
 			writeError(w, forbidden())
+			return true
+		}
+		if isSync {
+			out, e := s.Service.SyncSharedTaskViews(r.Context(), actor, project)
+			respond(w, http.StatusOK, out, e)
 			return true
 		}
 		if len(parts) == 2 {

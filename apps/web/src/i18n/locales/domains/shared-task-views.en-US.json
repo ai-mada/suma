@@ -35,5 +35,19 @@
   "shared-task-views.server": "Current server revision",
   "shared-task-views.mine": "My draft",
   "shared-task-views.replace": "Update current revision with my draft",
-  "shared-task-views.any": "Any"
+  "shared-task-views.any": "Any",
+  "shared-task-views.sync_checking": "Checking the saved views…",
+  "shared-task-views.sync_current": "Saved views are up to date.",
+  "shared-task-views.sync_stale": "Couldn’t check for changes. Showing the last loaded views.",
+  "shared-task-views.sync_offline": "Offline. Showing the last loaded views.",
+  "shared-task-views.sync_pending": "Sync paused while the save result is unconfirmed.",
+  "shared-task-views.sync_denied": "Sync paused because access changed.",
+  "shared-task-views.update_available": "Revision {{version}} is available",
+  "shared-task-views.update_hint": "Your current filters are still active. Review the differences before applying.",
+  "shared-task-views.apply_update": "Apply new revision",
+  "shared-task-views.current_filters": "Filters in use",
+  "shared-task-views.unavailable": "This saved view is no longer available. Your current filters are still active. Choose another view or save these filters.",
+  "shared-task-views.draft_unavailable": "The saved view is no longer available. You can save this draft as a personal copy.",
+  "shared-task-views.draft_readonly": "Editing access changed. You can still save your draft as a personal copy.",
+  "shared-task-views.invalid_response": "The saved views could not be verified for this project. Refresh to check again."
 }
