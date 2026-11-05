@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-ORG-PROJECT-PORTFOLIO 在项目管理汇总当前组织内有权项目的验收、阻塞、活动风险和待完成里程碑。服务端搜索、分页和跨项目权限已验证。 [交互](../design/project-portfolio.md) · [验证](../quality/project-portfolio-verification.md)
+
 T-REPOSITORY-SOURCE-DISPATCH-245 项目审批人可将留存仓库来源派发为受管候选，Runner 隔离封存原包，另一 Runner 独立测试同一提交，再沿新运行验收。 [合同](../../contracts/workbuddy-task-dispatch.md#派发已批准仓库来源的候选和独立测试) · [验证](../quality/repository-source-dispatch-verification.md)
 
 T-TOOL-NODE-MAINTENANCE 工具管理按当前项目权限展示凭证维护。常用配置与检测直接可达，轮换和撤销集中处理。撤权后关闭旧写入确认，撤销后保留节点历史。 [交互](../design/tool-identity-management.md#节点操作与凭证维护) · [验证](../quality/tool-node-maintenance-verification.md)

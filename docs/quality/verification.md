@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-ORG-PROJECT-PORTFOLIO 核验授权范围、正式项目计数、最早未完成里程碑、查询与分页、真实撤权及桌面／窄屏导航。 [阶段验证](project-portfolio-verification.md)
+
 T-REPOSITORY-SOURCE-DISPATCH-245 核验实际 Git 留存来源派发、租约绑定、原包封存、独立 Runner 同提交测试与正式验收。 [阶段验证](repository-source-dispatch-verification.md)
 
 T-TOOL-NODE-MAINTENANCE 核验当前凭证管理权限、管理员与只读成员视图、权限降级、准确撤销和历史定位。 [阶段验证](tool-node-maintenance-verification.md)

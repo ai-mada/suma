@@ -946,9 +946,10 @@
       <div class="tab-panel" id="d2">
         <div class="grid c2">
           <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>想法→项目→子项目→微应用</li><li>应用代码归属与版本</li><li>依赖识别与影响</li></ul></div></div>
-          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>项目卡片 + 健康度</li><li>依赖图</li><li>版本时间线</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>组织项目组合：验收、阻塞、活动风险、里程碑</li><li>依赖图</li><li>版本时间线</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Idea/Project/Application/CodeVersion/Dependency</code>　<b>接口</b>：<code>/projects/*</code>、<code>/applications/*</code></p>
+        <p id="project-portfolio">组织项目组合按当前会话权限比较有权项目。服务端分页选择项目，每个项目的统计覆盖完整业务范围。授权和各来源在同一读取事务内核对。<a href="design/project-portfolio.md">交互设计</a> · <a href="quality/project-portfolio-verification.md">阶段验证</a></p>
         <p><span class="tag ok">F-05/06 已有受限实现</span> <span class="tag warn">F-07 依赖图待增强</span></p>
       </div>
       <div class="tab-panel" id="d3">

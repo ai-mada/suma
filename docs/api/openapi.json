@@ -27229,6 +27229,116 @@
         ],
         "type": "object"
       },
+      "ProjectPortfolioItem": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "active_risks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "blocked_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "description": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "next_milestone": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectPortfolioMilestone"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_total": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "title",
+          "description",
+          "status",
+          "task_total",
+          "accepted_tasks",
+          "blocked_tasks",
+          "active_risks"
+        ],
+        "type": "object"
+      },
+      "ProjectPortfolioMilestone": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "readOnly": true,
+            "type": "string"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "target_date"
+        ],
+        "type": "object"
+      },
+      "ProjectPortfolioPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectPortfolioItem"
+            },
+            "maxItems": 50,
+            "readOnly": true,
+            "type": "array"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "as_of"
+        ],
+        "type": "object"
+      },
       "ProjectRisk": {
         "additionalProperties": false,
         "properties": {
@@ -102286,6 +102396,187 @@
           {
             "bearerAuth": []
           }
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/project-portfolio": {
+      "get": {
+        "description": "Read a bounded page of currently accessible projects in the session organization. Per-project task, risk and milestone values describe the complete authorized project; there is no organization-wide total.",
+        "operationId": "get_project-portfolio",
+        "parameters": [
+          {
+            "description": "Literal title or description search after trimming.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 120,
+              "type": "string",
+              "x-max-utf8-bytes": 120
+            }
+          },
+          {
+            "description": "Projects per page.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque continuation for the same actor, organization, search and limit. The anchor must still be visible.",
+            "in": "query",
+            "name": "after",
+            "schema": {
+              "maxLength": 1024,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPortfolioPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
         ],
         "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"

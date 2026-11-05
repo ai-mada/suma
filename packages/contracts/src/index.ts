@@ -5159,6 +5159,27 @@ export interface ProjectPoolRunnerPage {
   items: (ProjectPoolRunner)[];
   as_of: string;
 }
+export interface ProjectPortfolioItem {
+  project_id: string;
+  title: string;
+  description: string;
+  status: string;
+  task_total: number;
+  accepted_tasks: number;
+  blocked_tasks: number;
+  active_risks: number;
+  next_milestone?: ProjectPortfolioMilestone | null;
+}
+export interface ProjectPortfolioMilestone {
+  id: string;
+  title: string;
+  target_date: string;
+}
+export interface ProjectPortfolioPage {
+  items: (ProjectPortfolioItem)[];
+  as_of: string;
+  next_cursor?: string;
+}
 export interface ProjectRisk {
   id: string;
   tenant_id: string;

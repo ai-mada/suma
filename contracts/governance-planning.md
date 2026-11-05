@@ -29,6 +29,14 @@ Governance owns internal/platform/governance*.go, governance*_test.go, docs/prod
 - GET/POST `/planning/baselines`: POST `{title,idempotency_key}` captures immutable task/plan scope, estimates and actual statuses; GET metadata includes snapshot. Capture is an explicit action. Scope changes and actual completion remain distinct from baseline assumptions.
 - GET `/planning/capacity` derives a Monday-based week from the current resource calendar. GET/PUT `/resource-calendars/{member_id}` owns the sole calendar write contract: seven Monday–Sunday nullable daily hours and bounded date exceptions, independent expected version and stable original operation. See [work calendar contract](resource-calendars.md). A complete task date interval is allocated by actual configured available-hour weights; missing boundaries, unknown days and zero denominator stay explicit. Planning estimates are separate from actual worklogs and machine quotas.
 
+## 组织项目组合
+
+`GET /api/v1/project-portfolio` 只接受当前组织的浏览器会话，支持可选 `q`、`limit`、`after`。搜索按标题与描述的字面值，去除首尾空白后最多 120 UTF-8 字节。默认 20 项，最多 50 项。新项目优先，创建时间相同按项目 ID 降序。请求不能指定组织、项目或任意过滤字段。
+
+`ProjectPortfolioPage` 返回 `items`、UTC 读取时间 `as_of` 及可选 `next_cursor`。续页传原游标，重新核对身份、组织、搜索、页大小及锚点当前可见性。每页按当前权限生成。仅组织 owner/admin 或当前具备有效项目角色的成员可查看对应项目。列表、统计、游标校验在同一授权事务完成。响应 `Cache-Control: no-store`。
+
+`ProjectPortfolioItem` 包含项目公开名称与状态、全部任务数、`accepted` 任务数、`blocked` 任务数、活动风险数（`open`、`mitigating`、`in_review`）。可选里程碑指本项目有计划日期且处于 `planned` 或 `active` 的最早一项，同日用 ID 稳定排序。没有合格里程碑时省略字段。该读不返回组合总量，不修改项目、任务、发布或调度事实。 [交互规格](../docs/design/project-portfolio.md)
+
 ## UI (workbench agent)
 
 Own apps/web, packages/ui, docs/design/planning-governance.md only. Preserve existing navigation hierarchy and design tokens. Add development tabs iterations/planning (milestones, timeline, baseline and capacity), settings tabs organization/teams/project-access; organization switch via real GET organizations + POST auth/switch followed by session reload. Invitation acceptance page reads token only from URL fragment/manual entry, never query/log; no automatic acceptance. Root routes public acceptance and switch to cookie session. All loading/error/empty/no-permission/conflict states and uncertain write replay guard remain. UI may store a new invitation token only in component memory until dismissed. No external design uploads (previously rejected).

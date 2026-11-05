@@ -1,0 +1,169 @@
+.project-portfolio {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  container-type: inline-size;
+}
+.project-portfolio-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.project-portfolio-heading h2 { margin: 4px 0; }
+.project-portfolio-heading p { max-width: 70ch; margin: 0; color: var(--muted); line-height: 1.65; }
+.project-portfolio-org {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.project-portfolio-org svg { flex-shrink: 0; }
+.project-portfolio-results { min-width: 0; padding: 0; }
+.project-portfolio-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.project-portfolio-search { min-width: 0; }
+.project-portfolio-search > label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.project-portfolio-search-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.project-portfolio-search-input { position: relative; width: min(32vw, 335px); }
+.project-portfolio-search-input svg {
+  position: absolute;
+  inset-inline-start: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.project-portfolio-search-input input { width: 100%; padding-inline-start: 34px; }
+.project-portfolio-toolbar button, .project-portfolio-search-input input,
+.project-portfolio-pagination button, .project-portfolio-settings { min-height: 40px; }
+.project-portfolio-search-error { margin: 6px 0 0; color: var(--red); font-size: 13px; }
+.project-portfolio-results-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.project-portfolio-results-heading h3 { margin: 0; font-size: 15px; overflow-wrap: anywhere; scroll-margin-top: 88px; }
+.project-portfolio-results-heading [role='status'] {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.project-portfolio-feedback { padding: 16px 20px; }
+.project-portfolio-list { margin: 0; padding: 0; list-style: none; }
+.project-portfolio-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr) minmax(0, .9fr) minmax(0, 1.25fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px 20px;
+  min-width: 0;
+}
+.project-portfolio-row + .project-portfolio-row { border-top: 1px solid var(--border); }
+.project-portfolio-row:focus-within { background: var(--accent-soft); }
+.project-portfolio-name h4 { margin: 0; min-width: 0; }
+.project-portfolio-name-line { display: flex; align-items: baseline; gap: 6px 9px; flex-wrap: wrap; }
+.project-portfolio-name button {
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 650;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.project-portfolio-name button svg { flex-shrink: 0; }
+.project-portfolio-name p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  margin: 2px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.project-portfolio-progress, .project-portfolio-milestone { display: grid; gap: 5px; }
+.project-portfolio-milestone strong { overflow-wrap: anywhere; }
+.project-portfolio-field-label, .project-portfolio-muted, .project-portfolio-milestone time {
+  color: var(--muted);
+  font-size: 12px;
+}
+.project-portfolio-field-label { display: flex; align-items: center; gap: 5px; }
+.project-portfolio-progress strong, .project-portfolio-signals dd { font-variant-numeric: tabular-nums; }
+.project-portfolio-progress progress {
+  appearance: none;
+  width: 100%;
+  height: 7px;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  color: var(--accent);
+  background: var(--border);
+}
+.project-portfolio-progress progress::-webkit-progress-bar { background: var(--border); }
+.project-portfolio-progress progress::-webkit-progress-value { background: var(--accent); border-radius: 999px; }
+.project-portfolio-progress progress::-moz-progress-bar { background: var(--accent); border-radius: 999px; }
+.project-portfolio-signals { display: grid; gap: 6px; margin: 0; font-size: 12px; }
+.project-portfolio-signals div { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.project-portfolio-signals dt { color: var(--muted); }
+.project-portfolio-signals dd { margin: 0; font-weight: 650; }
+.project-portfolio-signals div:not([data-portfolio-blocked='0']):not([data-portfolio-risks='0']) dd,
+.project-portfolio-overdue { color: var(--amber); }
+.project-portfolio-overdue { font-size: 12px; font-weight: 600; }
+.project-portfolio-settings { justify-self: end; }
+.project-portfolio-pagination {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+@container (max-width: 900px) {
+  .project-portfolio-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.2fr); }
+  .project-portfolio-name { grid-column: 1 / 3; }
+  .project-portfolio-settings { grid-column: 3; grid-row: 1; }
+}
+@container (max-width: 520px) {
+  .project-portfolio-toolbar, .project-portfolio-results-heading, .project-portfolio-row,
+  .project-portfolio-pagination { padding-inline: 14px; }
+  .project-portfolio-org { display: none; }
+  .project-portfolio-search { width: 100%; }
+  .project-portfolio-search-input { width: auto; min-width: 0; flex: 1 1 0; }
+  .project-portfolio-search-controls > .text-button { flex-basis: 100%; justify-content: flex-start; }
+  .project-portfolio-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .project-portfolio-name, .project-portfolio-milestone { grid-column: 1 / -1; }
+  .project-portfolio-settings { grid-column: 1 / -1; grid-row: auto; justify-self: start; }
+  .project-portfolio-pagination { justify-content: space-between; }
+  .project-portfolio button, .project-portfolio-search-input input { min-height: 44px; }
+}
