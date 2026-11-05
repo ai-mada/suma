@@ -1,6 +1,7 @@
 {
  "tool-quick-connect.title":"添加工具",
  "tool-quick-connect.intro":"选择工具，自动读取已登记节点的探测结果并填入配置。",
+ "tool-quick-connect.auto_selected":"已根据本机检测选择唯一确认可启动的入口。你也可以改选其他工具。",
  "tool-quick-connect.tool":"选择工具",
  "tool-quick-connect.choose_tool":"请选择要接入的工具",
  "tool-quick-connect.app_server":"应用服务",

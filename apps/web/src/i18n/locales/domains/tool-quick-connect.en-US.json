@@ -1,5 +1,6 @@
 {
  "tool-quick-connect.title":"Add tool",
+ "tool-quick-connect.auto_selected":"Selected the only entry point confirmed to launch on this device. You can choose another tool.",
  "tool-quick-connect.intro":"Choose a tool to read its registered node's inventory and fill in the configuration automatically.",
  "tool-quick-connect.tool":"Choose a tool",
  "tool-quick-connect.choose_tool":"Select a tool to connect",

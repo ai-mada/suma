@@ -1,5 +1,7 @@
 {
  "local-tools-scan.title":"Local development tools",
+ "local-tools-scan.results":"View detection results",
+ "local-tools-scan.entrypoint_name":"{{tool}} · {{entrypoint}}",
  "local-tools-scan.intro":"Check installed tools, then choose an integration to configure.",
  "local-tools-scan.web_hint":"Use the desktop app to detect local tools, or connect an existing execution node.",
  "local-tools-scan.worker":"Connect an execution node",
@@ -16,7 +18,7 @@
  "local-tools-scan.reason":"View detection details",
  "local-tools-scan.guide":"View setup guide",
  "local-tools-scan.configure":"Configure integration",
- "local-tools-scan.install":"Installation and setup",
+ "local-tools-scan.install":"View installation and setup",
  "local-tools-scan.boundary":"Installation observations do not establish a connection or dispatch readiness. The two Codex entries use different protocols.",
  "local-tools-scan.observation":"View observation times",
  "local-tools-scan.observed_at":"Observed at",

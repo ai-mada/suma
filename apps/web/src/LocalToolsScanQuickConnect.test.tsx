@@ -42,3 +42,20 @@ it('routes a scan selection through existing configuration while retaining per-t
  props.action={...props.action,pending:undefined};await render({...session,user:{...session.user,id:'4'.repeat(32)}});
  expect(host.querySelector<HTMLInputElement>('[data-quick-name]')).toBeNull();expect(host.querySelector<HTMLSelectElement>('[data-quick-tool]')!.value).toBe('');
 });
+
+it('puts the picker before discovery and uses a scan suggestion only before the user makes a choice',async()=>{
+ props.draft={adapterID:'',workerID:'',commandID:'',name:'',nameEdited:false};
+ await render();
+ const picker=host.querySelector<HTMLSelectElement>('[data-quick-tool]')!;
+ expect(picker.compareDocumentPosition(host.querySelector('[data-scan-choose]')!)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ picker.focus();
+ await act(async()=>scan.latest!.onAutoSelect?.(adapter));await settle();
+ expect(picker.value).toBe(adapter.id);
+ expect(document.activeElement).toBe(picker);
+ expect(host.querySelector<HTMLInputElement>('[data-quick-name]')!.value).toBe('codex-team');
+ expect(props.action.run).not.toHaveBeenCalled();
+ await act(async()=>{picker.value='';picker.dispatchEvent(new Event('change',{bubbles:true}));});
+ await act(async()=>scan.latest!.onAutoSelect?.(buddy));await settle();
+ expect(picker.value).toBe('');
+ expect(props.action.run).not.toHaveBeenCalled();
+});

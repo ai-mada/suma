@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-QUICK-START-239 [添加工具](../design/tool-quick-connect.md)使用首屏工具选择、折叠检测详情和唯一已确认入口预填，复用项目节点库存、配置匹配及暂停登记。真实桌面安装、厂商模型与完整平台验收继续。 [限定验证](../quality/tool-quick-start-verification.md)
+
 T-REAL-CLI-ONBOARDING-226：[产品](../product/real-cli-onboarding.md)／[架构与接入](../integrations/real-cli-onboarding.md)／[交互](../design/real-cli-onboarding.md)／[限定验证](../quality/real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。
 
 T-MANAGED-CLI-PREPARATION-225：[已安装CLI快速接入](../product/managed-cli-preparation.md)／[架构与AI SOP](../architecture/managed-cli-preparation.md)／[简洁交互](../design/managed-cli-preparation.md)／[限定验证](../quality/managed-cli-preparation-verification.md)。新增Codex JSONL、CodeBuddy、dsh和Claude CLI，当前六种自动工厂复用原准备／库存／暂停登记；准确来源进入摘要并在执行前复核。两代隔离配置实跑及中英文代表界面已验，厂商／模型和完整31项／P0–P7继续。

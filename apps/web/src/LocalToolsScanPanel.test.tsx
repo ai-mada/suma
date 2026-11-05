@@ -22,6 +22,25 @@ async function render(disabled=false,p=project,identity=session,strict=false){co
 const rescan=()=>host.querySelector<HTMLButtonElement>('[data-local-tools-rescan]')!;
 async function click(element:HTMLButtonElement){await act(async()=>element.click());}
 
+it.each([['unique',true],['ambiguous',false],['expired',false],['unsupported',false],['no exact descriptor',false]] as const)(
+ 'only suggests a current, uniquely supported catalog entry (%s)',async(state,expected)=>{
+  const cli={...adapter,id:'codex-jsonl',protocol:'codex-jsonl-v1'},buddy={...cli,id:'codebuddy-cli',adapter:'codebuddy',protocol:'codebuddy-jsonl-v1'};
+  const value=report(),onAutoSelect=vi.fn();
+  value.report.items[0]={...value.report.items[0],installed:true,launch_supported:state!=='unsupported',
+   reason_code:state==='unsupported'?'unsupported_launcher':'workspace_required',executable:'C:/tools/codex.exe',version:'0.141.0'} as typeof value.report.items[number];
+  if(state==='ambiguous')value.report.items[1]={...value.report.items[0],adapter_id:buddy.id,product:'CodeBuddy Code'};
+  if(state==='expired'){
+   const now=Date.now();value.scan.observed_at=new Date(now-61000).toISOString();value.scan.expires_at=new Date(now-1000).toISOString();
+  }
+  scan.mockResolvedValueOnce(value);
+  await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project}
+   adapters={state==='no exact descriptor'?[adapter,buddy]:[cli,adapter,buddy]} compact onSelect={select} onAutoSelect={onAutoSelect}/></ApiViewProvider>));
+  if(expected)expect(onAutoSelect).toHaveBeenCalledExactlyOnceWith(cli);
+  else expect(onAutoSelect).not.toHaveBeenCalled();
+  expect(host.querySelector<HTMLDetailsElement>('[data-local-tools-results]')?.open).toBe(false);
+  expect(select).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
+ });
+
 it('T193 keeps nine scan facts separate from registration and offers only explicit existing-profile or SDK configuration navigation',async()=>{
  const sdk={...adapter,id:'claude-code-sdk',product:'Claude Agent SDK',adapter:'claude',protocol:'claude-sdk-v1'} as AdapterDescriptor,onViewExisting=vi.fn();
  async function draw(disabled=false){await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[adapter,sdk]} disabled={disabled} onSelect={select} onViewExisting={onViewExisting}/></ApiViewProvider>));}

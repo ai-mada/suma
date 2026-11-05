@@ -44,7 +44,8 @@ it('blocks registration on an unread match set and retains the authored name thr
 });
 it('discards an existing-profile response after the inventory deadline instead of reviving an expired registration',async()=>{
  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});let finish!:(value:Response)=>void;query.mockImplementation(()=>new Promise<Response>(resolve=>{finish=resolve;}));await render();
- expect(host.querySelector<HTMLSelectElement>('[data-quick-tool]')?.disabled).toBe(true);await act(async()=>vi.advanceTimersByTimeAsync(40001));await act(async()=>finish(Response.json(matches([item()]))));await settle();
+ expect(host.querySelector<HTMLSelectElement>('[data-quick-tool]')?.disabled).toBe(false);expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(true);
+ await act(async()=>vi.advanceTimersByTimeAsync(40001));await act(async()=>finish(Response.json(matches([item()]))));await settle();
  expect(host.querySelector('[data-existing-tools]')).toBeNull();expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(true);expect(props.action.run).not.toHaveBeenCalled();expect(props.onEnable).not.toHaveBeenCalled();
 });
 it('gives the original uncertain write priority over a new read-only match query',async()=>{

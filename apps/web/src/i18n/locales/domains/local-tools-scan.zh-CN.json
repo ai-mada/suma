@@ -1,5 +1,7 @@
 {
  "local-tools-scan.title":"本机开发工具",
+ "local-tools-scan.results":"查看检测结果",
+ "local-tools-scan.entrypoint_name":"{{tool}} · {{entrypoint}}",
  "local-tools-scan.intro":"检测安装情况，选择接入方式后继续配置。",
  "local-tools-scan.web_hint":"请在桌面端检测本机工具，或接入已有执行节点。",
  "local-tools-scan.worker":"接入执行节点",
@@ -16,7 +18,7 @@
  "local-tools-scan.reason":"查看检测依据",
  "local-tools-scan.guide":"查看接入指南",
  "local-tools-scan.configure":"配置接入",
- "local-tools-scan.install":"安装与接入",
+ "local-tools-scan.install":"查看安装与接入",
  "local-tools-scan.boundary":"安装观察不代表已连接或可派发。Codex 的两个接入项使用不同协议。",
  "local-tools-scan.observation":"查看观察时间",
  "local-tools-scan.observed_at":"观察时间",

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-QUICK-START-239 简化添加工具。桌面端对唯一确认可启动的入口预填选择，自动接续当前项目的唯一节点和可用配置。检测结果可展开，登记仍需明确确认并保存为暂停。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-start-verification.md)
+
 T-MULTICA-SHARED-VIEW-LIVE 支持共享任务视图的在线版本核对。另一设备修改时保留当前筛选，显式应用新版本。断网、归档和撤权分别处理。 [交互设计](../design/shared-task-views.md#在线版本核对与显式应用) · [验证](../quality/shared-view-live-verification.md)
 
 T-WORKBUDDY-DELIVERY-TRACE-238 在交付与质量面板直接定位当前任务绑定的 WorkBuddy 待交付尝试，覆盖通用列表之外的节点。 [合同](../../contracts/task-delivery-chain.md) · [验证](../quality/workbuddy-delivery-trace-verification.md)

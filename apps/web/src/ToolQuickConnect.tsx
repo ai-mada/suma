@@ -47,6 +47,8 @@ export function ToolQuickConnect(props:ToolQuickConnectProps){
 function QuickConnectScope(props:ToolQuickConnectProps){
  useLocale();const api=useApi(),id=useId(),[revision,setRevision]=useState(0),[catalog,setCatalog]=useState<{caller:typeof api;revision:number;page?:AdapterCatalogPage;error?:unknown}>(),[selected,setSelected]=useState(props.adapter?.id||props.draft?.adapterID||''),[localBlocked,setLocalBlocked]=useState(false);
  const drafts=useRef(new Map<string,QuickToolDraft>(props.draft?[[props.draft.adapterID,{chosenWorker:props.draft.workerID,chosenCommand:props.draft.commandID,name:props.draft.name,nameEdited:props.draft.nameEdited,...(props.draft.observationPin!==undefined?{observationPin:props.draft.observationPin}:{})}]]:[])),toolChoice=useRef<HTMLSelectElement>(null),draftOwner=useRef({api,callback:props.onDraftChange}),lastPublished=useRef('');draftOwner.current={api,callback:props.onDraftChange};
+ const choiceMade=useRef(!!(props.adapter||props.draft?.adapterID||props.preferredWorkerID||props.replacementSource));
+ const [autoSelected,setAutoSelected]=useState(false);
  const rememberDraft=useCallback((adapterID:string,draft:QuickToolDraft)=>{
   if(draftOwner.current.api!==api)return;drafts.current.set(adapterID,draft);
   const value:ToolConnectDraft={adapterID,workerID:draft.chosenWorker,commandID:draft.chosenCommand,name:draft.name,nameEdited:draft.nameEdited,...(draft.observationPin!==undefined?{observationPin:draft.observationPin}:{})},key=JSON.stringify(value);
@@ -61,7 +63,12 @@ function QuickConnectScope(props:ToolQuickConnectProps){
   return()=>{active=false;controller.abort();};
  },[api,props.project,revision]);
  const current=catalog?.caller===api&&catalog.revision===revision?catalog:undefined,ordinary=current?.page?quickConnectAdapters(current.page.items):[],guide=current?.page?.items.find(isCursorConnectionGuide),adapters=guide?[...ordinary,guide]:ordinary,adapter=adapters.find(item=>item.id===selected),cursorGuide=!!adapter&&isCursorConnectionGuide(adapter),blocked=props.action.busy||!!props.action.pending||localBlocked;
- function choose(adapterID:string){if(blocked||adapterID&&!adapters.some(item=>item.id===adapterID))return false;setSelected(adapterID);rememberDraft(adapterID,drafts.current.get(adapterID)??{chosenWorker:'',chosenCommand:'',name:'',nameEdited:false});return true;}
+ function choose(adapterID:string,automatic=false){
+  if(blocked||draftOwner.current.api!==api||automatic&&choiceMade.current||adapterID&&!adapters.some(item=>item.id===adapterID))return false;
+  choiceMade.current=true;setAutoSelected(automatic);setSelected(adapterID);
+  rememberDraft(adapterID,drafts.current.get(adapterID)??{chosenWorker:'',chosenCommand:'',name:'',nameEdited:false});
+  return true;
+ }
  function openAdvanced(target=adapter){
   if(blocked||draftOwner.current.api!==api)return;
   if(target&&!adapters.includes(target))return;
@@ -71,9 +78,9 @@ function QuickConnectScope(props:ToolQuickConnectProps){
  return <div className="tool-quick-connect">
   {!cursorGuide&&<p className="tool-quick-intro">{t('intro')}</p>}
   {!current?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={()=>setRevision(value=>value+1)}/>:<>
-   <LocalToolsScanPanel project={props.project} adapters={adapters} selectedAdapterID={adapter?.id} disabled={blocked} onSelect={item=>{if(choose(item.id)){toolChoice.current?.focus({preventScroll:true});toolChoice.current?.scrollIntoView?.({block:'start',behavior:'auto'});}}} onAdvanced={item=>openAdvanced(item)} onWorker={props.onWorker} onViewExisting={props.onViewExisting}/>
-   <Field label={t('tool')}><select ref={toolChoice} data-quick-tool value={adapter?.id||''} disabled={blocked} onChange={event=>choose(event.target.value)} aria-describedby={cursorGuide?undefined:id}><option value="">{t('choose_tool')}</option>{adapters.map(item=><option key={item.id} value={item.id}>{isCursorConnectionGuide(item)?tr('cursor-connection.title'):<>{item.product} · {item.entrypoint_kind==='app_server'?t('app_server'):item.entrypoint_kind.toUpperCase()}</>}</option>)}</select></Field>
-   {!cursorGuide&&<p id={id} className="tool-quick-muted">{guide?tr('cursor-connection.picker_hint'):t('catalog_hint')}</p>}
+   <Field label={t('tool')}><select ref={toolChoice} data-quick-tool value={adapter?.id||''} disabled={blocked} onChange={event=>choose(event.target.value)} aria-describedby={cursorGuide?undefined:id}><option value="">{t('choose_tool')}</option>{adapters.map(item=><option key={item.id} value={item.id}>{isCursorConnectionGuide(item)?tr('cursor-connection.title'):tr('local-tools-scan.entrypoint_name',{tool:item.product,entrypoint:tr('adapter-connections.entrypoint.'+item.entrypoint_kind,{defaultValue:item.entrypoint_kind.toUpperCase()})})}</option>)}</select></Field>
+   {!cursorGuide&&<p id={id} className="tool-quick-muted" role={autoSelected?'status':undefined}>{autoSelected?t('auto_selected'):guide?tr('cursor-connection.picker_hint'):t('catalog_hint')}</p>}
+   <LocalToolsScanPanel compact project={props.project} adapters={adapters} selectedAdapterID={adapter?.id} disabled={blocked} onAutoSelect={choiceMade.current?undefined:item=>choose(item.id,true)} onSelect={item=>{if(choose(item.id)){toolChoice.current?.focus({preventScroll:true});toolChoice.current?.scrollIntoView?.({block:'start',behavior:'auto'});}}} onAdvanced={item=>openAdvanced(item)} onWorker={props.onWorker} onViewExisting={props.onViewExisting}/>
    {adapter&&(cursorGuide?<CursorConnectionGuide key={adapter.id} project={props.project} disabled={blocked}/>:<QuickToolConfiguration {...props} key={adapter.id} adapter={adapter} initialDraft={drafts.current.get(adapter.id)} onConfigurationDraftChange={rememberConfiguration} onLocalBlockedChange={setLocalBlocked}/>)}
   </>}
   {adapter?.id==='qoder-acp'&&!desktopACPBridge()&&<p className="tool-quick-muted">{tr('acp-runtime.setup_no_scan')}</p>}
@@ -183,7 +190,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
   const current=replacementGate.current;if(!alive.current||currentCaller.current!==api||!current.eligible||!current.prepared||replacementBusy.current||!onReplace)return;
   replacementBusy.current=true;try{await onReplace(current.prepared.draft);}finally{replacementBusy.current=false;}
  }
- useEffect(()=>{onLocalBlockedChange(localOperationBlocked||remoteScanBlocked||lookupBusy);},[localOperationBlocked,remoteScanBlocked,lookupBusy,onLocalBlockedChange]);
+ useEffect(()=>{onLocalBlockedChange(localOperationBlocked||remoteScanBlocked);},[localOperationBlocked,remoteScanBlocked,onLocalBlockedChange]);
  useEffect(()=>{
   const controller=new AbortController();let latest=true;setMatchSnapshot(undefined);
   if(matchEligible&&matchRequest){const request=matchRequest,deadline=current!.deadline;void api<unknown>('/tool-profiles/matches',request,'POST',undefined,controller.signal).then(value=>{
