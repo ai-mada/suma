@@ -270,6 +270,9 @@ func (s *Service) PutArtifactBlob(ctx context.Context, actor Actor, project, upl
 	if replay {
 		return nil
 	}
+	if u.State == "abandoned" {
+		return conflict("上传已结束，不能新增文件")
+	}
 	var oldPath string
 	var oldSize int64
 	err = tx.QueryRowContext(ctx, s.q(`SELECT storage_path,size_bytes FROM suma_artifact_blobs WHERE upload_id=? AND digest=?`), uploadID, blobHash).Scan(&oldPath, &oldSize)
@@ -369,6 +372,9 @@ func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, 
 	}
 	if u.TokenHash != actor.credential.digest || u.Assignment != r.Assignment {
 		return out, forbidden()
+	}
+	if u.State == "abandoned" {
+		return out, conflict("上传已结束，不能封存")
 	}
 	if u.State != "receiving" {
 		return out, conflict("已封存，请恢复原封存操作")

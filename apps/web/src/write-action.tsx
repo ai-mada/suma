@@ -24,6 +24,8 @@ export type WriteActionOptions = {
     storage?: StorageLike;
     validateRequest?: (request: WriteRecoveryRequest) => boolean;
     validateResponse?: (value: unknown, request: WriteRecoveryRequest) => boolean | Promise<boolean>;
+    /** Route-specific conflicts that prove the exact restored request did not commit. */
+    definitiveRefusalOnRestore?: (error: ApiError, request: WriteRecoveryRequest) => boolean;
 };
 type Pending = {
     request: WriteRecoveryRequest;
@@ -31,6 +33,7 @@ type Pending = {
     identity: string;
     uncertain: boolean;
     validateResponse?: WriteActionOptions['validateResponse'];
+    definitiveRefusalOnRestore?: WriteActionOptions['definitiveRefusalOnRestore'];
     outcome?: {
         ok: true;
         value: unknown;
@@ -77,7 +80,7 @@ function loadRecovery(options: WriteActionOptions, caller: typeof api, instance:
                 state.error = recoveryError('recovery_invalid');
                 return state;
             }
-            state.pending = { request, caller, identity: recoveryIdentity(state.scope, instance, request), uncertain: true, validateResponse: options.validateResponse };
+            state.pending = { request, caller, identity: recoveryIdentity(state.scope, instance, request), uncertain: true, validateResponse: options.validateResponse, definitiveRefusalOnRestore: options.definitiveRefusalOnRestore };
         }
     }
     catch {
@@ -127,7 +130,7 @@ export function useWriteAction(options: WriteActionOptions = {}) {
                         throw recoveryError('storage_unavailable');
                     current.storage.setItem(current.key, JSON.stringify(request));
                 }
-                current.pending = { request, caller: api, identity: recoveryIdentity(current.scope, instance.current, request), uncertain: false, validateResponse: options.validateResponse };
+                current.pending = { request, caller: api, identity: recoveryIdentity(current.scope, instance.current, request), uncertain: false, validateResponse: options.validateResponse, definitiveRefusalOnRestore: options.definitiveRefusalOnRestore };
             }
             catch (error) {
                 current.error = error instanceof UiError ? error : recoveryError('storage_unavailable');
@@ -168,7 +171,12 @@ export function useWriteAction(options: WriteActionOptions = {}) {
                 }
                 catch (error) {
                     if(!ownsRequest()){pending.uncertain=true;return;}
-                    if (restoring || uncertainWrite(error)) {
+                    let definitive = false;
+                    if (restoring && error instanceof ApiError && error.status === 409) {
+                        try { definitive = pending.definitiveRefusalOnRestore?.(error, structuredClone(originalRequest)) === true; }
+                        catch { /* Unverified refusal still retains the original request. */ }
+                    }
+                    if ((restoring && !definitive) || uncertainWrite(error)) {
                         pending.uncertain = true;
                         setConflict(false);
                         setError(error);

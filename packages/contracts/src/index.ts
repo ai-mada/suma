@@ -5663,6 +5663,40 @@ export interface ReleaseWorkerRotationResult {
   worker: ReleaseWorker;
   token?: string;
 }
+export interface ReleaseWorkerUploadAbandonRequest {
+  project_id: string;
+  expected_worker_version: number;
+  expected_manifest_sha256: string;
+  acknowledge_incomplete: boolean;
+  idempotency_key: string;
+}
+export interface ReleaseWorkerUploadAbandonResult {
+  project_id: string;
+  worker_registry_id: string;
+  upload_id: string;
+  operation_id: string;
+  state: string;
+}
+export interface ReleaseWorkerUploadRecoveryItem {
+  upload_id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: string;
+  manifest_sha256: string;
+  created_at: string;
+  size_bytes: number;
+  attempt_state: string;
+  disposition: string;
+}
+export interface ReleaseWorkerUploadRecoveryView {
+  project_id: string;
+  worker_registry_id: string;
+  worker_id: string;
+  worker_version: number;
+  items: (ReleaseWorkerUploadRecoveryItem)[];
+  next_cursor: string;
+}
 export interface Rendered {
   message_key: string;
   message_params?: { [key: string]: unknown };

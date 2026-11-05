@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-ARTIFACT-UPLOAD-RECOVERY 为手动节点增加未封存发布制品核对。以精确原尝试和围栏为依据结束上传，保留证据，凭证轮换由用户另行确认。 [合同](../../contracts/manual-worker-artifact-upload-recovery.md) · [验证记录](../quality/artifact-upload-recovery-verification.md)
+
 T-POOL-DIAGNOSTIC-GUIDE-233 在执行节点行加入本机命令与离线槽位预览。摘要只在当前浏览器会话中处理，按异常槽位继续核对原执行。 [交互](../design/execution-pools.md#节点本机诊断) · [验证](../quality/pool-diagnostic-guide-verification.md)
 
 T-MANUAL-RUNNER-ROTATION 支持工具管理中的手动登记节点凭证轮换，核对当前授权、原版本及未决执行后沿原节点签发新凭证。 [合同](../../contracts/manual-runner-rotation.md) · [验证记录](../quality/manual-runner-rotation-verification.md)

@@ -1,0 +1,24 @@
+.worker-upload-recovery,.worker-upload-recovery-notice{border:1px solid var(--border);border-radius:8px;min-width:0}
+.worker-upload-recovery-toggle{border:0;background:none;width:100%;display:flex;align-items:center;justify-content:flex-start;gap:8px;min-height:44px;text-align:start;padding:8px 10px}
+.worker-upload-recovery-toggle span{flex:1}
+.worker-upload-recovery-toggle[aria-expanded="true"]>svg:last-child{transform:rotate(180deg)}
+.worker-upload-recovery-body:not([hidden]),.worker-upload-recovery-notice{display:grid;gap:10px;padding:10px}
+.worker-upload-recovery :is(p,dl,ul),.worker-upload-recovery-notice p{margin:0}
+.worker-upload-recovery :is(p,dt,dd,code),.worker-upload-recovery-notice p{min-width:0;overflow-wrap:anywhere}
+.worker-upload-recovery-body>p,.worker-upload-row-meta,.worker-upload-row dt{color:var(--muted);font-size:13px}
+.worker-upload-list{display:grid;gap:8px;padding:0;list-style:none}
+.worker-upload-row,.worker-upload-confirm{display:grid;gap:8px;padding:10px;border:1px solid var(--border);border-radius:8px;min-width:0}
+.worker-upload-row-main,.worker-upload-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.worker-upload-row-main{justify-content:space-between}
+.worker-upload-disposition{border-radius:12px;background:var(--surface-soft);padding:3px 7px;color:var(--muted);font-size:12px}
+.worker-upload-disposition[data-disposition="eligible"]{color:var(--text);border:1px solid var(--accent)}
+.worker-upload-row dl{display:grid;grid-template-columns:minmax(75px,auto) minmax(0,1fr);gap:3px 8px}
+.worker-upload-row dd{margin:0}
+.worker-upload-row>button{justify-self:start}
+.worker-upload-recovery :is(button,summary),.worker-upload-recovery-notice button{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.worker-upload-row details{font-size:13px}
+.worker-upload-row details summary{display:list-item;padding-block:12px;cursor:pointer;box-sizing:border-box}
+.worker-upload-confirm{background:var(--surface-soft)}
+.worker-upload-confirm label{min-height:44px}
+.worker-upload-recovery-receipt{margin:0;padding:10px;border-inline-start:3px solid var(--accent);color:var(--text);font-size:13px;overflow-wrap:anywhere}
+@media(max-width:500px){.worker-upload-actions>button{flex:1 1 130px}.worker-upload-row-main{align-items:flex-start}.worker-upload-row dl{grid-template-columns:minmax(65px,auto) minmax(0,1fr)}}

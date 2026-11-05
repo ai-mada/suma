@@ -3,7 +3,7 @@ import {ToolTaskHandoffDialog} from './ToolTaskHandoffDialog';
 import {createToolTaskHandoffPin,type ToolTaskHandoffPin} from './tool-task-handoff-model';
 import { Trans } from "./i18n/Trans";
 import { tr as t, UiError, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
-import { lazy, Suspense, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ChevronRight,
   Plus,
@@ -51,6 +51,8 @@ import { currentPoolToolWorker, parsePoolToolLocator } from './execution-pools/p
 import {buildPoolRecoveryOwnerHref,createPoolToolRecoveryPin,parsePoolToolRecoveryPin,readPoolRecoveryTool,type PoolToolRecoveryPin} from './execution-pools/pool-tool-recovery-model';
 import {buildPoolSetupOwnerHref,createPoolToolSetupPin,parsePoolToolSetupPin,type PoolToolSetupPin} from './execution-pools/pool-tool-setup-model';
 import { ToolRecoveryNotice } from "./ToolActions";
+import {WorkerArtifactUploadRecovery,WorkerUploadRecoveryNotice,WorkerUploadRecoveryReceipt,useWorkerUploadRecoveryAction} from './WorkerArtifactUploadRecovery';
+import type {UploadAbandonReceipt} from './worker-artifact-upload-recovery-model';
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {toolPreparationTarget,preparationForLocalTool,type ToolPreparationPreset} from './tool-preparation-target';
 import {validToolReportFeedbackSelection,type ToolReportFeedbackSelection} from './tool-report-feedback-model';
@@ -223,6 +225,10 @@ function ScopedToolWorkspace({
       refresh + revision,
     );
   const workerAccessLost=workers.failure instanceof ApiError&&[401,403,404].includes(workers.failure.status);
+  const uploadAction=useWorkerUploadRecoveryAction(project,session.user.id,session.organization.id);
+  const uploadRecoveryLocked=uploadAction.busy||!!uploadAction.pending;
+  const [uploadReceipt,setUploadReceipt]=useState<UploadAbandonReceipt>();
+  useEffect(()=>{if(workerAccessLost)setUploadReceipt(undefined);},[workerAccessLost]);
   const credential=credentialState?.caller===api&&credentialState.generation===pairingGeneration&&!workerAccessLost?credentialState:undefined;
   const visibleCredential=useRef(credential);visibleCredential.current=credential;
   function clearCredential(){
@@ -255,12 +261,16 @@ function ScopedToolWorkspace({
     return () => clearInterval(timer);
   }, [live, refreshAll, taskHandoff]);
   const pending = !!action.pending,
-    writeBlocked = pending || action.busy || pairingLocked || inspectionLocked || connecting,
+    otherWriteBlocked = pending || action.busy || pairingLocked || inspectionLocked || connecting,
+    writeBlocked = otherWriteBlocked || uploadRecoveryLocked,
     current = detail.data,
     stale = detail.loading || !!detail.error,
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
     filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
   const workerIdentityRecords=workers.data?.items??[];
+  const rotationWorker=dialog?.kind==='rotate-worker'?dialog.worker:undefined;
+  const rotationWorkerCurrent=!!rotationWorker&&!workers.loading&&!workers.error&&workerIdentityRecords.some(row=>row.id===rotationWorker.id&&row.worker_id===rotationWorker.worker_id&&row.version===rotationWorker.version&&row.project_id===project&&row.status==='active'&&row.manual_rotation_allowed===true);
+  const rotationUploadReceipt=!workerAccessLost&&rotationWorker&&uploadReceipt?.worker_registry_id===rotationWorker.id?uploadReceipt:undefined;
   const workerIdentityView=projectToolWorkerIdentities(workerIdentityRecords,workerIdentityClock,workerIdentityPreferences.filter,workerIdentityPreferences.query);
   const matchingWorkerIdentityIDs=new Set(workerIdentityView.items.map(worker=>worker.id));
   // Keep the exact context row mounted and visible when a filter would hide an
@@ -685,6 +695,7 @@ function ScopedToolWorkspace({
         setWorkerIdentitySelection({caller:api,generation:pairingGeneration,filter:'current',query:workerIdentityPreferences.query});
       }
       setReceipt({key:'worker_rotated',name:result.worker.worker_id,scope:contextKey});
+      setUploadReceipt(undefined);
       setRevealed(false);
       setCopyState(undefined);
       setCredential({caller:api,generation:pairingGeneration,worker_id:result.worker.worker_id,token:result.token,rotation:true});
@@ -753,6 +764,10 @@ function ScopedToolWorkspace({
           {t("development.tools.return_to_the_original_run_and_selected")}</a>
       )}
       <ToolRecoveryNotice action={action} onRestored={saved} />
+      {(!rotationWorker||workerAccessLost)&&<>
+        {(uploadAction.pending||uploadAction.conflict)&&<WorkerUploadRecoveryNotice action={uploadAction} disabled={action.busy||workerAccessLost} onRestored={setUploadReceipt}/>}
+        {uploadReceipt&&!workerAccessLost&&<WorkerUploadRecoveryReceipt/>}
+      </>}
       {replacementReceipt&&<ToolProfileReplacementReceipt value={replacementReceipt} disabled={writeBlocked} onViewOriginal={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onViewReplacement={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onEnableReplacement={profile=>void reviewReplacementTarget(profile)}/>}
       {!!connectError&&<ErrorNotice error={renderDiagnostic(connectError)}/>}
       {receipt?.scope===contextKey&&<div className="tool-save-receipt" data-tool-receipt role="status"><CheckCircle2 size={18} aria-hidden="true"/><p>{t(receipt.key==='worker_rotated'?'worker-rotation.rotated':'tool-workspace.receipt.'+receipt.key,{name:receipt.name})}</p><button className="icon-button" aria-label={t('tool-workspace.dismiss_receipt')} onClick={()=>setReceipt(undefined)}><X size={16}/></button></div>}
@@ -1084,7 +1099,7 @@ function ScopedToolWorkspace({
       <Modal
         open={!!dialog&&(dialog.kind!=="rotate-worker"||!workerAccessLost)}
         onClose={() => {
-          if (!action.busy && !action.pending && !pairingLocked && !inspectionLocked) setDialog(undefined);
+          if (!action.busy && !action.pending && !pairingLocked && !inspectionLocked && !uploadRecoveryLocked) setDialog(undefined);
         }}
         title={
           dialog?.kind === "quick"
@@ -1202,7 +1217,12 @@ function ScopedToolWorkspace({
             key={dialog.worker.id+':'+dialog.worker.version}
             worker={dialog.worker}
             action={action}
-            disabled={writeBlocked||workers.loading||!!workers.error||!workerIdentityRecords.some(row=>row.id===dialog.worker.id&&row.worker_id===dialog.worker.worker_id&&row.version===dialog.worker.version&&row.project_id===project&&row.status==='active'&&row.manual_rotation_allowed===true)}
+            disabled={writeBlocked||!rotationWorkerCurrent}
+            closeBlocked={uploadRecoveryLocked}
+            uploadReceiptOperation={rotationUploadReceipt?.operation_id}
+            recovery={<WorkerArtifactUploadRecovery worker={dialog.worker} action={uploadAction}
+              disabled={otherWriteBlocked||!rotationWorkerCurrent} restoreDisabled={action.busy||workerAccessLost}
+              receipt={rotationUploadReceipt} onSaved={setUploadReceipt}/>}
             onClose={()=>setDialog(undefined)}
             onRefresh={()=>{
               setDialog(undefined);
@@ -1306,15 +1326,20 @@ function ScopedToolWorkspace({
     </div>
   );
 }
-function WorkerRotationForm({worker,action,disabled,onClose,onRefresh,onRotate}:{
+function WorkerRotationForm({worker,action,disabled,closeBlocked,uploadReceiptOperation,recovery,onClose,onRefresh,onRotate}:{
   worker:ExecutionWorker;
   action:ToolAction;
   disabled:boolean;
   onClose:()=>void;
   onRefresh:()=>void;
   onRotate:()=>Promise<void>;
+  closeBlocked:boolean;
+  uploadReceiptOperation?:string;
+  recovery:ReactNode;
 }){
-  const [stopped,setStopped]=useState(false);
+  const stopBasis=uploadReceiptOperation||'';
+  const [confirmedBasis,setConfirmedBasis]=useState<string>();
+  const stopped=confirmedBasis===stopBasis;
   return <form className="tool-form" data-worker-rotation-form onSubmit={event=>{
     event.preventDefault();
     if(stopped&&!disabled&&!action.conflict)void onRotate();
@@ -1322,15 +1347,16 @@ function WorkerRotationForm({worker,action,disabled,onClose,onRefresh,onRotate}:
     <strong>{worker.worker_id}</strong>
     <p>{t('worker-rotation.stop_instructions')}</p>
     <p className="warning">{t('worker-rotation.boundary')}</p>
+    {recovery}
     <label className="check">
-      <input type="checkbox" data-worker-rotation-stopped checked={stopped} disabled={disabled||action.conflict} onChange={event=>setStopped(event.target.checked)}/>
+      <input type="checkbox" data-worker-rotation-stopped checked={stopped} disabled={disabled||action.conflict} onChange={event=>setConfirmedBasis(event.target.checked?stopBasis:undefined)}/>
       {t('worker-rotation.acknowledge')}
     </label>
     {action.conflict&&<p role="status">{t('worker-rotation.conflict_remedy')}</p>}
     <div className="dialog-actions">
-      <button type="button" disabled={action.busy} onClick={onClose}>{t('development.workflow.cancel')}</button>
+      <button type="button" disabled={action.busy||closeBlocked} onClick={onClose}>{t('development.workflow.cancel')}</button>
       {action.conflict?
-        <button type="button" className="primary" data-worker-rotation-refresh onClick={onRefresh}>{t('worker-rotation.refresh')}</button>:
+        <button type="button" className="primary" data-worker-rotation-refresh disabled={closeBlocked} onClick={onRefresh}>{t('worker-rotation.refresh')}</button>:
         <button type="submit" className="primary" data-worker-rotation-submit disabled={disabled||!stopped}>{t('worker-rotation.submit')}</button>}
     </div>
   </form>;

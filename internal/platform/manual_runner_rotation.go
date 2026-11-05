@@ -82,6 +82,59 @@ func (s *Service) manualRunnerRotationAllowedTx(ctx context.Context, auth *autho
 	return out, rows.Err()
 }
 
+type manualRunnerRegistration struct {
+	worker                           ReleaseWorker
+	rawProfiles, tokenDigest, slotID string
+}
+
+func (s *Service) manualRunnerRegistrationTx(ctx context.Context, auth *authorizedCommand, project, id string) (out manualRunnerRegistration, err error) {
+	p := auth.currentPrincipal
+	worker := &out.worker
+	var slotOperation, issuanceOperation string
+	query := `SELECT w.id,w.project_id,w.worker_id,w.version,w.status,w.profiles,w.deployment,w.created_at,w.expires_at,
+		w.token_hash,c.id,c.operation_id,i.operation_id FROM suma_release_workers w` + manualRunnerIssuanceJoins + `
+		WHERE w.tenant_id=? AND w.project_id=? AND w.id=? AND w.created_by=? AND a.credential_kind=?`
+	err = auth.tx.QueryRowContext(ctx, s.q(s.currentSQL(query)), p.TenantID, project, id, p.ID, kindName(actorProjectRunner)).
+		Scan(&worker.ID, &worker.ProjectID, &worker.WorkerID, &worker.Version, &worker.Status, &out.rawProfiles, &worker.Deployment,
+			&worker.CreatedAt, &worker.ExpiresAt, &out.tokenDigest, &out.slotID, &slotOperation, &issuanceOperation)
+	if errors.Is(err, sql.ErrNoRows) {
+		return out, forbidden()
+	}
+	if err != nil {
+		return out, err
+	}
+	if !manualRunnerSlotMatches(p.TenantID, project, slotOperation, issuanceOperation) {
+		return out, forbidden()
+	}
+
+	return out, nil
+}
+
+func (s *Service) checkCurrentManualRunnerTx(ctx context.Context, auth *authorizedCommand, registration manualRunnerRegistration) error {
+	worker, p := registration.worker, auth.currentPrincipal
+	if worker.Status != "active" || worker.Version < 1 || worker.Version > math.MaxInt32 {
+		return forbidden()
+	}
+	// readCredential checks the current Grant, slot and source. Its separate
+	// expiry decision belongs to command authorization and is intentionally
+	// omitted here: the browser authorizes rotation of an expired credential.
+	old, err := s.readCredential(ctx, auth.tx, registration.tokenDigest, true)
+	if err != nil {
+		var apiErr *APIError
+		if errors.As(err, &apiErr) && apiErr.Status == 401 {
+			return forbidden()
+		}
+		return err
+	}
+	registeredExpiry, err := time.Parse(time.RFC3339Nano, worker.ExpiresAt)
+	if err != nil || !old.expires.Equal(registeredExpiry) || old.kind != actorProjectRunner ||
+		old.ref.tenantID != p.TenantID || old.ref.subjectID != p.ID || old.ref.projectID != worker.ProjectID ||
+		old.ref.slotID != registration.slotID || old.label != "release-worker:"+worker.WorkerID {
+		return forbidden()
+	}
+	return nil
+}
+
 func (s *Service) RotateReleaseWorkerCredential(ctx context.Context, actor Actor, project, id string, req ReleaseWorkerRotationRequest) (out ReleaseWorkerRotationResult, err error) {
 	if !desktopWorkspaceHex(id, 32) || project != req.ProjectID || !releaseID(project) ||
 		req.ExpectedVersion < 1 || req.ExpectedVersion >= math.MaxInt32 ||
@@ -99,24 +152,12 @@ func (s *Service) RotateReleaseWorkerCredential(ctx context.Context, actor Actor
 		return out, err
 	}
 	p := auth.currentPrincipal
-	var worker ReleaseWorker
-	var rawProfiles, oldDigest, slotID, slotOperation, issuanceOperation string
-	query := `SELECT w.id,w.project_id,w.worker_id,w.version,w.status,w.profiles,w.deployment,w.created_at,w.expires_at,
-		w.token_hash,c.id,c.operation_id,i.operation_id FROM suma_release_workers w` + manualRunnerIssuanceJoins + `
-		WHERE w.tenant_id=? AND w.project_id=? AND w.id=? AND w.created_by=? AND a.credential_kind=?`
-	err = tx.QueryRowContext(ctx, s.q(s.currentSQL(query)), p.TenantID, project, id, p.ID, kindName(actorProjectRunner)).
-		Scan(&worker.ID, &worker.ProjectID, &worker.WorkerID, &worker.Version, &worker.Status, &rawProfiles, &worker.Deployment,
-			&worker.CreatedAt, &worker.ExpiresAt, &oldDigest, &slotID, &slotOperation, &issuanceOperation)
-	if errors.Is(err, sql.ErrNoRows) {
-		return out, forbidden()
-	}
+	registration, err := s.manualRunnerRegistrationTx(ctx, auth, project, id)
 	if err != nil {
 		return out, err
 	}
-	if !manualRunnerSlotMatches(p.TenantID, project, slotOperation, issuanceOperation) {
-		return out, forbidden()
-	}
-
+	worker := registration.worker
+	oldDigest := registration.tokenDigest
 	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"rotate_release_worker": id, "body": req})
 	if err != nil {
 		return out, err
@@ -128,24 +169,10 @@ func (s *Service) RotateReleaseWorkerCredential(ctx context.Context, actor Actor
 	if worker.Status != "active" || worker.Version != req.ExpectedVersion {
 		return out, conflict("执行节点凭证已变化，请刷新")
 	}
-	// readCredential checks the current Grant, slot and source. Its separate
-	// expiry decision belongs to command authorization and is intentionally
-	// omitted here: the browser authorizes rotation of an expired credential.
-	old, err := s.readCredential(ctx, tx, oldDigest, true)
-	if err != nil {
-		var apiErr *APIError
-		if errors.As(err, &apiErr) && apiErr.Status == 401 {
-			return out, forbidden()
-		}
+	if err = s.checkCurrentManualRunnerTx(ctx, auth, registration); err != nil {
 		return out, err
 	}
-	registeredExpiry, err := time.Parse(time.RFC3339Nano, worker.ExpiresAt)
-	if err != nil || !old.expires.Equal(registeredExpiry) || old.kind != actorProjectRunner ||
-		old.ref.tenantID != p.TenantID || old.ref.subjectID != p.ID || old.ref.projectID != project ||
-		old.ref.slotID != slotID || old.label != "release-worker:"+worker.WorkerID {
-		return out, forbidden()
-	}
-	if err = json.Unmarshal([]byte(rawProfiles), &worker.Profiles); err != nil {
+	if err = json.Unmarshal([]byte(registration.rawProfiles), &worker.Profiles); err != nil {
 		return out, err
 	}
 	if worker.Profiles == nil {
@@ -160,7 +187,7 @@ func (s *Service) RotateReleaseWorkerCredential(ctx context.Context, actor Actor
 	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_credential_authority SET revoked=1 WHERE token_hash=? AND revoked=0`), oldDigest); err != nil {
 		return out, err
 	}
-	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_credential_slots SET revoked=1 WHERE id=? AND current_digest=? AND revoked=0`), slotID, oldDigest); err != nil {
+	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_credential_slots SET revoked=1 WHERE id=? AND current_digest=? AND revoked=0`), registration.slotID, oldDigest); err != nil {
 		return out, err
 	}
 	issued, err := s.issueRegisteredRunnerTx(ctx, tx, auth, "release-worker:"+worker.WorkerID, req.IdempotencyKey)
