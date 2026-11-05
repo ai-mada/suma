@@ -35,7 +35,10 @@ it('automatically uses the sole authorized node and saves paused, requiring a se
  await render();await change('[data-quick-tool]','codex-jsonl');
  expect(paths).toEqual(['/adapter-catalog?project_id=p','/tool-discovery?project_id=p&worker_id=one','/tool-profiles/matches']);
  expect(host.querySelector<HTMLInputElement>('[data-quick-name]')?.value).toBe('codex-team');expect(props.action.run).not.toHaveBeenCalled();
- await change('[data-quick-name]','Team Codex');await click('[data-quick-register]');
+ await change('[data-quick-name]','Team Codex');
+ const form=host.querySelector<HTMLInputElement>('[data-quick-name]')!.form;
+ expect(form).not.toBeNull();
+ await act(async()=>form!.requestSubmit());await settle();
  expect(props.action.run).toHaveBeenCalledExactlyOnceWith('/tool-profiles',{project_id:'p',worker_id:'one',name:'Team Codex',profile});
  expect(props.onRegistered).toHaveBeenCalledOnce();expect(props.onEnable).not.toHaveBeenCalled();expect(host.textContent).toContain('paused');
  await click('[data-quick-enable]');expect(props.onEnable).toHaveBeenCalledOnce();

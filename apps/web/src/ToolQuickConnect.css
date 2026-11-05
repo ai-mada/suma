@@ -5,3 +5,74 @@
 .tool-quick-target-mismatch{display:grid;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);font-size:14px;overflow-wrap:anywhere}.tool-quick-target-mismatch button{justify-self:start;min-height:44px}
 
 .tool-quick-unavailable{display:grid;gap:8px;min-width:0;padding:12px;border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:8px;background:var(--surface-soft);font-size:14px;overflow-wrap:anywhere}.tool-quick-unavailable strong{font-size:14px;font-weight:600}.tool-quick-unavailable p{white-space:pre-wrap}.tool-quick-unavailable button{justify-self:start;min-height:36px;max-width:100%;white-space:normal}@media(max-width:600px){.tool-quick-unavailable button{min-height:44px}}
+
+.tool-quick-picker,
+.tool-quick-save-form,
+.tool-quick-diagnostics-content {
+  display:grid;
+  gap:8px;
+  min-width:0;
+}
+
+.tool-quick-configuration {
+  gap:10px;
+  padding-top:12px;
+}
+
+.tool-quick-facts {
+  gap:4px;
+  border:1px solid var(--border);
+}
+
+.tool-quick-facts-title {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.tool-quick-facts-title svg {
+  flex:none;
+  color:var(--accent);
+}
+
+.tool-quick-facts-title h4 {
+  margin:0;
+  font-size:14px;
+}
+
+.tool-quick-facts p {color:var(--muted)}
+
+.tool-quick-save-actions,
+.tool-quick-node-actions {
+  display:flex;
+  align-items:center;
+  gap:8px 12px;
+  flex-wrap:wrap;
+}
+
+.tool-quick-save-actions {justify-content:space-between}
+.tool-quick-save-actions button {margin-inline-start:auto;min-height:44px}
+.tool-quick-node-actions:empty {display:none}
+.tool-quick-node-actions button {justify-content:flex-start;white-space:normal;text-align:start}
+
+.tool-quick-diagnostics {
+  min-width:0;
+  border-top:1px solid var(--border);
+  color:var(--muted);
+  font-size:13px;
+}
+
+.tool-quick-diagnostics > summary {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:44px;
+  cursor:pointer;
+}
+
+.tool-quick-diagnostics > summary svg {flex:none}
+.tool-quick-diagnostics[open] > summary svg {transform:rotate(90deg)}
+.tool-quick-diagnostics-content {padding:0 10px 10px;overflow-wrap:anywhere}
+.tool-quick-diagnostics-content code {white-space:normal}
+.tool-quick-node-scan {min-width:0}
+.tool-quick-saved strong:focus-visible {outline:2px solid var(--accent);outline-offset:3px}

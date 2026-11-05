@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-QUICK-REVIEW-240 添加工具支持首屏配置核对、回车保存及暂停回执焦点。检测详情可展开，缺失或过期时直接显示处理入口。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-review-verification.md)
+
 T-WORKBUDDY-ACCOUNT-RECOVERY 支持在原连接重新生成待兑换链接，并在浏览器返回后核对同一授权代次。未启用时显示部署要求，Compose 和 Helm 可引用服务端秘密。真实 WorkBuddy 应用联调与部署验收待完成。 [交互与配置](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-account-recovery-verification.md)
 
 T-WORKBUDDY-LOCAL-CANDIDATE-239 支持从等待交付的正式 WorkBuddy 尝试继续本机候选，保留原云来源，按新运行封存、独立测试和验收。 [合同](../../contracts/terminal-recovery-candidates.md#从原-workbuddy-尝试继续本机开发) · [验证](../quality/workbuddy-local-candidate-verification.md)

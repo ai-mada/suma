@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOL-QUICK-REVIEW-240 核验首屏配置、过期重读、回车保存、暂停回执及原工具替换上下文。 [阶段验证](tool-quick-review-verification.md)
+
 T-WORKBUDDY-ACCOUNT-RECOVERY 核验原连接链接替换、单次兑换、授权返回核对和部署配置。 [阶段验证](workbuddy-account-recovery-verification.md)
 
 T-WORKBUDDY-LOCAL-CANDIDATE-239 通过真实 Windows 终端、同提交独立测试及本地验收夹具，验证原云来源保留和启动原子核对。 [阶段验证](workbuddy-local-candidate-verification.md)

@@ -52,7 +52,13 @@ it('puts the picker before discovery and uses a scan suggestion only before the 
  await act(async()=>scan.latest!.onAutoSelect?.(adapter));await settle();
  expect(picker.value).toBe(adapter.id);
  expect(document.activeElement).toBe(picker);
- expect(host.querySelector<HTMLInputElement>('[data-quick-name]')!.value).toBe('codex-team');
+ const input=host.querySelector<HTMLInputElement>('[data-quick-name]')!;
+ expect(input.value).toBe('codex-team');
+ expect(input.compareDocumentPosition(host.querySelector('[data-scan-choose]')!)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ const diagnostics=host.querySelector<HTMLDetailsElement>('[data-quick-diagnostics]')!;
+ expect(diagnostics.open).toBe(false);
+ expect(diagnostics.querySelector('[data-quick-remote-scan]')).not.toBeNull();
+ expect(input.compareDocumentPosition(diagnostics)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
  expect(props.action.run).not.toHaveBeenCalled();
  await act(async()=>{picker.value='';picker.dispatchEvent(new Event('change',{bubbles:true}));});
  await act(async()=>scan.latest!.onAutoSelect?.(buddy));await settle();

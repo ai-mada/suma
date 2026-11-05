@@ -1,5 +1,6 @@
 {
  "local-tools-scan.title":"Local development tools",
+ "local-tools-scan.compact_title":"Local tools",
  "local-tools-scan.results":"View detection results",
  "local-tools-scan.entrypoint_name":"{{tool}} · {{entrypoint}}",
  "local-tools-scan.intro":"Check installed tools, then choose an integration to configure.",

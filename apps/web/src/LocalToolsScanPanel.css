@@ -5,5 +5,6 @@
 .local-tools-scan-compact{gap:4px;padding:10px 12px;border:1px solid var(--border);border-radius:8px}
 .local-tools-scan-compact header{align-items:center;gap:4px 12px}
 .local-tools-scan-compact header>div{min-width:min(144px,100%)}
+.local-tools-scan-compact h4{font-size:14px}
 .local-tools-scan-compact [data-local-tools-results]{border:0}
 .local-tools-scan-compact [data-local-tools-results]>summary small{display:block;color:var(--muted);font-size:12px}

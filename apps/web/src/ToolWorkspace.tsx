@@ -1184,7 +1184,11 @@ function ScopedToolWorkspace({
           onOpen={profile=>{if(action.busy||action.pending)return;setReceipt(undefined);setDialog(undefined);onSelect(profile.id);}}
           onViewExisting={adapter=>{if(writeBlocked)return;setSearch(adapter.adapter||adapter.product);applyFilters({state:'active',query:adapter.adapter||adapter.product});setDialog(undefined);requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('[data-tools-query]')?.focus());}}
           onEnable={profile=>{action.clearError();setDialog({kind:'decision',action:'enable',profile});}}
-          onAdvanced={(adapter,expectedWorkerID)=>{if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;action.clearError();if(!openToolPreparation(adapter,expectedWorkerID))setDialog({kind:'create',adapter,resumeQuick:true});}}
+          onAdvanced={(adapter,expectedWorkerID)=>{
+            if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+            action.clearError();
+            if(replacementSource||!openToolPreparation(adapter,expectedWorkerID))setDialog({kind:'create',adapter,resumeQuick:true});
+          }}
           onWorker={()=>{action.clearError();setDialog({kind:'worker'});}}
         />}
         {dialog?.kind === "worker" && <>

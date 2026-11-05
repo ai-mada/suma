@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-QUICK-REVIEW-240 [添加工具](../design/tool-quick-connect.md)在选中工具后优先显示核对与保存，按需展开检测信息。恢复已有工具的高级替换入口及原草稿。 [限定验证](../quality/tool-quick-review-verification.md)
+
 T-TOOL-QUICK-START-239 [添加工具](../design/tool-quick-connect.md)使用首屏工具选择、折叠检测详情和唯一已确认入口预填，复用项目节点库存、配置匹配及暂停登记。真实桌面安装、厂商模型与完整平台验收继续。 [限定验证](../quality/tool-quick-start-verification.md)
 
 T-REAL-CLI-ONBOARDING-226：[产品](../product/real-cli-onboarding.md)／[架构与接入](../integrations/real-cli-onboarding.md)／[交互](../design/real-cli-onboarding.md)／[限定验证](../quality/real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。
