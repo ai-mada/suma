@@ -134,6 +134,10 @@ type PoolWorker struct {
 
 var errPoolInventoryIdentity = errors.New("pool inventory machine identity changed")
 
+// ErrPoolShutdownUnconfirmed means the pool could not prove local execution
+// and ownership had ended. Remote result delivery remains a separate fact.
+var ErrPoolShutdownUnconfirmed = errors.New("pool shutdown could not be confirmed")
+
 func scopeKey(tenant, project string) string { return digest([]byte(tenant + "\x00" + project)) }
 func (w *PoolWorker) notice(code, slot string) {
 	if w.Diagnostic != nil {
@@ -194,7 +198,7 @@ func resolvedPoolConfig(c PoolLocalConfig) (PoolLocalConfig, error) {
 	return frozen, nil
 }
 
-func (w *PoolWorker) Run(ctx context.Context) error {
+func (w *PoolWorker) Run(ctx context.Context) (runErr error) {
 	if w.AllowToolPreparation && !w.AllowInstalledToolDiscovery {
 		return fmt.Errorf("tool preparation requires installed discovery")
 	}
@@ -229,7 +233,12 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("pool state is already owned or unavailable")
 	}
-	defer unlock()
+	defer func() {
+		if unlock() != nil {
+			w.notice("pool_shutdown_unconfirmed", "")
+			runErr = errors.Join(runErr, fmt.Errorf("%w: pool state ownership could not be released", ErrPoolShutdownUnconfirmed))
+		}
+	}()
 	if w.MaintenanceOnly {
 		if err = requireDrainedPoolSlots(filepath.Join(w.StateDir, "slots")); err != nil {
 			return err
@@ -246,9 +255,23 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		return err
 	}
 	w.local = map[string]*Worker{}
+	checkInventory := false
 	defer func() {
-		for _, local := range w.local {
-			local.Journal.Close()
+		for _, scope := range w.Config.Scopes {
+			local := w.local[scopeKey(scope.TenantID, scope.ProjectID)]
+			if local == nil {
+				continue
+			}
+			var evidenceErr error
+			if checkInventory {
+				evidenceErr = local.Journal.requireNoActiveToolMaintenance()
+			}
+			if closeErr := local.Journal.Close(); evidenceErr != nil || closeErr != nil {
+				if w.Diagnostic != nil {
+					w.Diagnostic(PoolDiagnostic{Code: "inventory_shutdown_unconfirmed", TenantID: scope.TenantID, ProjectID: scope.ProjectID})
+				}
+				runErr = errors.Join(runErr, fmt.Errorf("%w: inventory ownership or maintenance needs reconciliation", ErrPoolShutdownUnconfirmed))
+			}
 		}
 	}()
 	for _, scope := range w.Config.Scopes {
@@ -273,6 +296,7 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	checkInventory = true
 	if w.MaintenanceOnly {
 		return w.runInventoryOwner(ctx)
 	}
@@ -284,17 +308,23 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		go func(slot string) { done <- w.runSlot(ctx, slot, session.Runner.WorkerID) }(strconv.Itoa(i))
 	}
 	var first error
+	var unconfirmed []error
 	for i := 0; i < w.Config.Slots+1; i++ {
-		e := <-done
-		if e != nil && !errors.Is(e, context.Canceled) && !errors.Is(e, context.DeadlineExceeded) && first == nil {
-			first = e
-			cancel()
+		err := <-done
+		if err == nil {
+			continue
+		}
+		cancel()
+		if errors.Is(err, ErrPoolShutdownUnconfirmed) {
+			unconfirmed = append(unconfirmed, err)
+		} else if first == nil {
+			first = err
 		}
 	}
-	if first != nil {
+	if len(unconfirmed) == 0 {
 		return first
 	}
-	return ctx.Err()
+	return errors.Join(append(unconfirmed, first)...)
 }
 
 func (w *PoolWorker) refreshInventories(ctx context.Context) error {
@@ -313,6 +343,9 @@ func (w *PoolWorker) refreshInventories(ctx context.Context) error {
 		active[scopeKey(s.TenantID, s.ProjectID)] = true
 	}
 	for key, local := range w.local {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		if local.ID != session.Runner.WorkerID {
 			return fmt.Errorf("%w: worker changed", errPoolInventoryIdentity)
 		}
@@ -363,21 +396,37 @@ func (w *PoolWorker) runInventoryOwner(ctx context.Context) error {
 			if errors.Is(err, errPoolInventoryIdentity) || errors.As(err, &status) && (status.Status == 401 || status.Status == 403) {
 				return err
 			}
+			if ctx.Err() != nil {
+				break
+			}
 			w.notice("inventory_unavailable", "")
 		}
 		if !wait(ctx, poll) {
 			break
 		}
 	}
-	return ctx.Err()
+	return nil
 }
 
 func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 	j, err := OpenJournal(filepath.Join(w.StateDir, "slots", slot))
 	if err != nil {
-		return err
+		w.notice("slot_shutdown_unconfirmed", slot)
+		return fmt.Errorf("%w: slot %s original state is unavailable", ErrPoolShutdownUnconfirmed, slot)
 	}
-	defer j.Close()
+	priorUnknown := j.acknowledgedUnknownResults()
+	runErr := w.runSlotBusiness(ctx, slot, worker, j)
+	evidenceErr := j.requireShutdownBusinessEvidence(priorUnknown)
+	_, claimErr := loadPoolClaim(j)
+	closeErr := j.Close()
+	if evidenceErr != nil || claimErr != nil || closeErr != nil {
+		w.notice("slot_shutdown_unconfirmed", slot)
+		return fmt.Errorf("%w: slot %s needs original execution or state reconciliation", ErrPoolShutdownUnconfirmed, slot)
+	}
+	return runErr
+}
+
+func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j *Journal) error {
 	poll, beat := w.PollInterval, w.HeartbeatInterval
 	if poll <= 0 {
 		poll = 2 * time.Second
@@ -393,6 +442,9 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 	}
 	for ctx.Err() == nil {
 		for _, a := range j.pendingCloudExecutions() {
+			if ctx.Err() != nil {
+				return nil
+			}
 			local := w.local[scopeKey(a.TenantID, a.ProjectID)]
 			if local == nil || a.WorkerID != worker {
 				return fmt.Errorf("pool cloud recovery lacks its fixed local scope")
@@ -407,6 +459,9 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			}
 		}
 		for _, a := range j.pendingReleases() {
+			if ctx.Err() != nil {
+				return nil
+			}
 			if a.RepositoryIntegration == nil || a.ReleaseExecution != nil {
 				return fmt.Errorf("pool recovery requires a repository integration binding")
 			}
@@ -423,7 +478,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 				return e
 			}
 		}
-		if err = replayPool(ctx, w.Client, j); err != nil {
+		if err := replayPool(ctx, w.Client, j); err != nil {
 			var status *runnerHTTPStatusError
 			if errors.As(err, &status) && (status.Status == 401 || status.Status == 403) {
 				return fmt.Errorf("pool callback authority rejected; original outbox retained for reconciliation")
@@ -434,8 +489,14 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			}
 			continue
 		}
+		if ctx.Err() != nil {
+			return nil
+		}
 		_ = ReplayWorkspaceObservations(ctx, w.Client, j, nil)
 		_ = ReplayWorkspaceWrites(ctx, w.Client, j, nil)
+		if ctx.Err() != nil {
+			return nil
+		}
 		session, e := w.Client.PoolSession(ctx)
 		if e != nil {
 			if permanentInventoryError(e) {
@@ -475,9 +536,15 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			}
 			continue
 		}
+		if ctx.Err() != nil {
+			return nil
+		}
 		checkpoint, e := beginPoolClaim(j, w.Client.BaseURL, w.configSHA, w.credentialVersion, PoolClaimRequest{PoolID: w.Config.PoolID, RunnerID: w.Config.RunnerID, WorkerID: worker, SlotID: slot, Scopes: scopes})
 		if e != nil {
 			return e
+		}
+		if ctx.Err() != nil {
+			return nil
 		}
 		a, e := w.Client.ClaimPool(ctx, checkpoint.Request)
 		if e != nil {
@@ -493,6 +560,10 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			return e
 		}
 		if a != nil && a.DispatchState == "active" {
+			// The original claim response remains replayable until acceptance.
+			if ctx.Err() != nil {
+				return nil
+			}
 			if a.PoolCredentialVersion != w.credentialVersion {
 				return fmt.Errorf("dispatch credential differs from local session")
 			}
@@ -517,7 +588,12 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			// Close the receive-to-launch authority gap. Session is only a hint;
 			// this exact dispatch is checked again before any child is created.
 			cancelled, authorityErr := client.Heartbeat(ctx, *a)
-			if (cancelled || authorityErr != nil) && a.WorkBuddyCloud == nil {
+			if ctx.Err() != nil && a.WorkBuddyCloud != nil {
+				// A WorkBuddy result requires an original waiting proof. Preserve
+				// the accepted assignment for reconciliation without a provider call.
+				return nil
+			}
+			if (ctx.Err() != nil || cancelled || authorityErr != nil) && a.WorkBuddyCloud == nil {
 				if e = j.Finish(Result{Assignment: *a, ExitCode: -1, Error: "pool execution not started: pre-launch authority unavailable or cancellation requested"}); e != nil {
 					return e
 				}
@@ -540,5 +616,5 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			}
 		}
 	}
-	return ctx.Err()
+	return nil
 }

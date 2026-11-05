@@ -676,24 +676,24 @@
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-RUNNER-STOP-229",
-    "commit": "eec46189a24b09bb6b8c75d8906ed26b27cd2e36",
-    "evidence": "Identity-bound managed Runner shutdown, durable original claim and result replay, confirmed normal push."
+    "stage": "T-DESKTOP-STOP-RECOVERY-230",
+    "commit": "07bded0d7dd73ed4e5862e1cf104df414b46960f",
+    "evidence": "Actual original Windows managed child and parent restart, narrow browser, committed and pushed."
   },
   "current_work": {
-    "stage": "T-DESKTOP-STOP-RECOVERY-230",
+    "stage": "T-POOL-SHUTDOWN-231",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/desktop-managed-runner.md",
-    "report": "docs/quality/desktop-stop-recovery-verification.md",
-    "summary": "docs/quality/desktop-stop-recovery-summary.json",
-    "previous_commit": "eec46189a24b09bb6b8c75d8906ed26b27cd2e36",
-    "verification": "3 Go top-level with 11 protocol subcases, 63 Desktop including subtests, 9 Web, paired locales and representative Chrome. Linux control cross-build.",
-    "actual": "Actual Windows Go managed Worker with two Node processes hosting the production Desktop controller. Old parent exits before close, persisted stopping recovers to stopped for the exact PID/Worker/operation. No replacement or duplicate registration. Synthetic local control, session and probe.",
-    "known_limitations": "Operator path without positive proof, pool shutdown, full Electron restart, power loss, Unix runtime, vendor and full platform acceptance pending.",
-    "next": "Extend reliable shutdown to distributed Pool slots and operator-side reconciliation where original native proof is missing; continue real vendor and system acceptance.",
+    "contract": "contracts/execution-pools.md",
+    "report": "docs/quality/pool-shutdown-verification.md",
+    "summary": "docs/quality/pool-shutdown-summary.json",
+    "previous_commit": "2fdcd4f591cab93a87b180cce3feb2f5f5fe4762",
+    "verification": "4 Runner and 5 CLI top-level focused tests, actual isolated Windows console Ctrl-Break in two cases, read-only same-slot inspector, Linux CLI cross-build.",
+    "actual": "Two slots ran OS child processes under an HTTP fixture, including synthetic ACP. Known shutdown succeeds; ACP protocol unknown persists on original slot despite confirmed process stop. Reopened journals replay identical original callbacks. Built Windows CLI exits 0 idle, 1 with original unknown, and reports the original slot.",
+    "known_limitations": "No vendor calls, physical multi-host service stop or Linux/macOS runtime. Platform acceptance remains active.",
+    "next": "Extend operator evidence and real multi-host/service-managed stop, then qualify installed Qoder/Cursor and Unix execution across the original platform plan.",
     "full_platform_complete": false,
-    "git_record": ".cache/desktop-stop-recovery-230/post-git.json"
+    "git_record": ".cache/pool-shutdown-231/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2776,11 +2776,11 @@
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   },
   "active_implementation": {
-    "stage": "T-DESKTOP-STOP-RECOVERY-230",
+    "stage": "T-POOL-SHUTDOWN-231",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "base": "eec46189a24b09bb6b8c75d8906ed26b27cd2e36",
-    "contract": "contracts/desktop-managed-runner.md",
+    "base": "2fdcd4f591cab93a87b180cce3feb2f5f5fe4762",
+    "contract": "contracts/execution-pools.md",
     "full_platform_complete": false
   },
   "real_cli_onboarding": {
@@ -2860,5 +2860,20 @@
     "next": "Extend reliable shutdown to distributed Pool slots and operator-side reconciliation where original native proof is missing; continue real vendor and system acceptance.",
     "full_platform_complete": false,
     "git_record": ".cache/desktop-stop-recovery-230/post-git.json"
+  },
+  "pool_shutdown": {
+    "stage": "T-POOL-SHUTDOWN-231",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/execution-pools.md",
+    "report": "docs/quality/pool-shutdown-verification.md",
+    "summary": "docs/quality/pool-shutdown-summary.json",
+    "previous_commit": "2fdcd4f591cab93a87b180cce3feb2f5f5fe4762",
+    "verification": "4 Runner and 5 CLI top-level focused tests, actual isolated Windows console Ctrl-Break in two cases, read-only same-slot inspector, Linux CLI cross-build.",
+    "actual": "Two slots ran OS child processes under an HTTP fixture, including synthetic ACP. Known shutdown succeeds; ACP protocol unknown persists on original slot despite confirmed process stop. Reopened journals replay identical original callbacks. Built Windows CLI exits 0 idle, 1 with original unknown, and reports the original slot.",
+    "known_limitations": "No vendor calls, physical multi-host service stop or Linux/macOS runtime. Platform acceptance remains active.",
+    "next": "Extend operator evidence and real multi-host/service-managed stop, then qualify installed Qoder/Cursor and Unix execution across the original platform plan.",
+    "full_platform_complete": false,
+    "git_record": ".cache/pool-shutdown-231/post-git.json"
   }
 }

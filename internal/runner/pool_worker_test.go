@@ -80,7 +80,14 @@ func TestPoolWorkerRunsTwoRealProjectProcessesInIndependentSlots(t *testing.T) {
 			json.Unmarshal(raw, &req)
 			mu.Lock()
 			defer mu.Unlock()
-			if claimed[req.SlotID] {
+			authorized := false
+			for _, scope := range req.Scopes {
+				if scope.TenantID == "tenant-"+req.SlotID && scope.ProjectID == "project-"+req.SlotID {
+					authorized = true
+					break
+				}
+			}
+			if claimed[req.SlotID] || !authorized {
 				w.Write([]byte(`{"assignment":null}`))
 				return
 			}
@@ -136,7 +143,9 @@ func TestPoolWorkerRunsTwoRealProjectProcessesInIndependentSlots(t *testing.T) {
 	case <-ctx.Done():
 		t.Fatal("two slots did not run concurrently")
 	}
-	<-done
+	if err := <-done; err != nil {
+		t.Fatalf("pool rejected shutdown after both projects completed: %v", err)
+	}
 }
 
 func TestPoolClaimCheckpointReusesOriginalScopeAndOperation(t *testing.T) {
@@ -271,5 +280,7 @@ func TestPoolWorkerActuallyStopsProcessAfterScopedHeartbeatCancel(t *testing.T) 
 	case <-ctx.Done():
 		t.Fatal("actual process did not stop")
 	}
-	<-done
+	if err := <-done; err != nil {
+		t.Fatalf("pool rejected shutdown after the scoped process stopped: %v", err)
+	}
 }

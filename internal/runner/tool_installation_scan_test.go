@@ -3,7 +3,6 @@ package runner
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	ti "github.com/ai-mada/suma/internal/toolinspectioncontract"
 	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
 	"io"
@@ -303,8 +302,8 @@ func TestInstalledDiscoveryMaintenanceOnlyDoesNotClaimBusiness(t *testing.T) {
 			}
 			select {
 			case err := <-done:
-				if !errors.Is(err, context.Canceled) {
-					t.Fatal("maintenance cancellation not bounded", err)
+				if err != nil {
+					t.Fatal("idle maintenance cancellation did not confirm shutdown", err)
 				}
 			case <-time.After(5 * time.Second):
 				t.Fatal("maintenance owner did not stop")
@@ -365,7 +364,9 @@ func TestInstalledDiscoveryMaintenanceOnlyDoesNotClaimBusiness(t *testing.T) {
 		name, v, _ := strings.Cut(value, "=")
 		values[name] = v
 	}
-	if cmd.Dir != filepath.Join(dir, "working") || values["HOME"] != cmd.Dir || values["APPDATA"] != cmd.Dir || values["LOCALAPPDATA"] != cmd.Dir || values["PATH"] != "retained-path" || values["SYSTEMROOT"] != "retained-system" {
+	probeRoot := filepath.Dir(cmd.Dir)
+	home := filepath.Join(probeRoot, "home")
+	if filepath.Dir(probeRoot) != dir || filepath.Base(cmd.Dir) != "working" || values["HOME"] != home || values["APPDATA"] != home || values["LOCALAPPDATA"] != home || values["PATH"] != "retained-path" || values["SYSTEMROOT"] != "retained-system" {
 		t.Fatal("remote probe inherited original home/configuration or lost fixed OS/PATH")
 	}
 	if collector.closeReturned() != nil {

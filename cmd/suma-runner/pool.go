@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -32,7 +33,7 @@ func runPool(app *commandlocale.Command, control, path, state string, allow, des
 	return runConfiguredPool(app, control, config, state, allow, installedDiscovery, maintenanceOnly, toolPreparation, token)
 }
 
-func runPoolIdentity(app *commandlocale.Command, control, path, identityPath, state string, allow, installedDiscovery, maintenanceOnly, toolPreparation bool, secrets runner.RunnerSecretStore) error {
+func runPoolIdentity(app *commandlocale.Command, control, path, identityPath, state string, allow, installedDiscovery, maintenanceOnly, toolPreparation bool, secrets runner.RunnerSecretStore) (runErr error) {
 	config, _, err := runner.ReadPoolConfigFile(path)
 	if err != nil {
 		return err
@@ -41,7 +42,12 @@ func runPoolIdentity(app *commandlocale.Command, control, path, identityPath, st
 	if err != nil {
 		return err
 	}
-	defer identity.Close()
+	defer func() {
+		if err := identity.Close(); err != nil {
+			_ = json.NewEncoder(app.Stderr).Encode(runner.PoolDiagnostic{Code: "pool_shutdown_identity_lock"})
+			runErr = errors.Join(runErr, runner.ErrPoolShutdownUnconfirmed)
+		}
+	}()
 	if config.Slots > identity.Identity().MaxSlots {
 		return fmt.Errorf("local Pool slots exceed the paired identity")
 	}
@@ -58,9 +64,12 @@ func runConfiguredPool(app *commandlocale.Command, control string, config runner
 	defer cancel()
 	client := &runner.Client{BaseURL: control, Token: token, Pool: &runner.PoolContext{PoolID: config.PoolID, RunnerID: config.RunnerID}}
 	worker := &runner.PoolWorker{Client: client, Config: config, StateDir: filepath.Join(state, "pool"), AllowExec: allow, AllowInstalledToolDiscovery: installedDiscovery, AllowToolPreparation: toolPreparation, MaintenanceOnly: maintenanceOnly, Diagnostic: func(d runner.PoolDiagnostic) { _ = json.NewEncoder(app.Stderr).Encode(d) }}
-	err := worker.Run(ctx)
-	if ctx.Err() != nil {
-		return nil
-	}
-	return err
+	return worker.Run(ctx)
+}
+
+func reportUnconfirmedPoolShutdown(app *commandlocale.Command) int {
+	return app.Failure(
+		"资源池执行器的停止尚未确认。请保留原状态目录，按日志提示核对原执行。",
+		"Pool Worker shutdown is unconfirmed. Keep the original state directory and use the diagnostics to check the original executions.",
+	)
 }

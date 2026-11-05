@@ -1,0 +1,97 @@
+{
+  "stage": "T-POOL-SHUTDOWN-231",
+  "base": "2fdcd4f591cab93a87b180cce3feb2f5f5fe4762",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "windows_signal": {
+    "scope": "Built Windows suma-runner CLI, isolated real console signals and synthetic loopback control; unknown fixture is the original unfinished slot Journal",
+    "cases": [
+      {
+        "case": "idle",
+        "locale": "en-US",
+        "exit": 0,
+        "signal": "CTRL_BREAK_EVENT",
+        "diagnostic_codes": [
+          "waiting_for_scope_or_pool"
+        ],
+        "claim_requests": 1
+      },
+      {
+        "case": "original-unconfirmed",
+        "locale": "zh-CN",
+        "exit": 1,
+        "signal": "CTRL_BREAK_EVENT",
+        "diagnostic_codes": [
+          "callback_pending",
+          "slot_shutdown_unconfirmed",
+          "inventory_scope_unavailable"
+        ],
+        "claim_requests": 0,
+        "original_callback_preserved": true
+      }
+    ],
+    "binary_sha256": "89077f822ae378c00d4a085c4746bd06e97d88acdcd7c3332af6b08faa9b4c36"
+  },
+  "windows_parallel": {
+    "slots": 2,
+    "outcomes": [
+      "both_locally_known",
+      "acp_protocol_unknown_after_confirmed_process_stop"
+    ],
+    "new_claims_after_stop": 0,
+    "original_callbacks_replayed_byte_identically": true,
+    "all_locks_reacquired": true,
+    "vendor_api_used": false
+  },
+  "inspection": {
+    "status": "available",
+    "items": 1,
+    "run_id": "run",
+    "node_id": "node",
+    "attempt": 3,
+    "fence": 7,
+    "journal_unchanged": true
+  },
+  "focused": {
+    "runnerTests": [
+      "TestPoolShutdownJoinsOriginalSlotsAndPreservesOutbox",
+      "TestPoolWorkerRunsTwoRealProjectProcessesInIndependentSlots",
+      "TestPoolWorkerActuallyStopsProcessAfterScopedHeartbeatCancel",
+      "TestInstalledDiscoveryMaintenanceOnlyDoesNotClaimBusiness"
+    ],
+    "cliTests": [
+      "TestJournalInspectionCLIIsLocalReadOnlyAndCredentialIndependent",
+      "TestMissingCredentialsAndPoolExclusionRemainLocalized",
+      "TestPoolDescribeRetainsMachineIdentityAndDoesNotReadCredentials",
+      "TestPoolProjectCredentialExclusionIsPreserved",
+      "TestPoolPairingCLISavesOnlyPublicIdentityThenUsesOriginalPoolSession"
+    ],
+    "linux_amd64_cli": "cross_build_passed",
+    "fixture_corrections": [
+      "wait for matching project capability before returning assignment",
+      "assert private per-probe home and working directories"
+    ]
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "f230f9f55bdfc4de68015473b07de329a5079f87",
+    "source_copied": false
+  },
+  "pending": [
+    "linux_macos_runtime",
+    "physical_multi_host_service_shutdown",
+    "live_acp_vendor",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "runner_red": ".cache/pool-shutdown-231/go/pooltest-red-20261105T105144738Z.command.json",
+    "runner_group": ".cache/pool-shutdown-231/go/pooltest-final-20261105T105454707Z.command.json",
+    "runner_maintenance": ".cache/pool-shutdown-231/go/pooltest-maintenance-20261105T105557205Z.command.json",
+    "cli_checks": ".cache/pool-shutdown-231/go/cli-focused-20261105T105411364Z.command.json",
+    "windows_build": ".cache/pool-shutdown-231/go/cli-build-20261105T105102043Z.command.json",
+    "linux_build": ".cache/pool-shutdown-231/go/linux-build-20261105T105411660Z.command.json",
+    "windows_signal": ".cache/pool-shutdown-231/console-asbdnius/receipt.json",
+    "inspect": ".cache/pool-shutdown-231/inspect-receipt.json"
+  }
+}

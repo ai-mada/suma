@@ -186,6 +186,7 @@
   </nav>
 
   <main class="main">
+<section id="pool-shutdown-231"><h2>共享执行池关停与原槽位核对</h2><p>T-POOL-SHUTDOWN-231 在宿主停止时等待原槽位与库存管理活动收尾，再释放本机状态锁。原领取和已定案结果保留在原槽位。无法确认本机结束时，命令输出受影响范围的诊断并返回失败，任务结果仍由原运行管理。</p><p><a href="agents/execution-pool-runner.md#停止与核对">值班手册</a> · <a href="quality/pool-shutdown-verification.md">阶段证据</a></p></section>
 <section id="desktop-stop-recovery-230"><h2>桌面中断后的停止核对</h2><p>T-DESKTOP-STOP-RECOVERY-230 将原停止操作保存在本机加密记录，Worker 清理后同步写入同一身份的停止证据。重开桌面时，当前授权的状态读取可核对原操作、节点、PID 和系统进程存在性，再恢复手动连接入口。</p><p><a href="../contracts/desktop-managed-runner.md#停止回执">执行合同</a> · <a href="quality/desktop-stop-recovery-verification.md">阶段证据</a></p></section>
 <section id="runner-stop-receipt-229"><h2>本机 Runner 停止回执</h2><p>T-RUNNER-STOP-229 按原节点与进程确认本机退出。桌面先保存请求，再核验同一进程的退出和清理回执。控制面回执暂缺时，已持久化的原请求和已定案结果可以交由同一节点重连后继续处理。未确认的原执行保留待核对，业务任务以运行详情为准。</p><p><a href="../contracts/desktop-managed-runner.md#停止回执">执行合同</a> · <a href="quality/runner-stop-receipt-verification.md">阶段证据</a></p></section>
 <section id="cursor-foreground-recovery-228"><h2>Cursor 前台停止与原尝试核对</h2><p>T-CURSOR-RECOVERY-228 在前台停止后有限等待原生退出。退出未确认时保留原工作区与尝试，由 Journal 恢复同一结果回执，独立测试继续等待候选。当前尝试的操作界面要求明确结论与核对依据。</p><p><a href="../contracts/cursor-acp-execution.md">执行合同</a> · <a href="quality/cursor-foreground-recovery-verification.md">阶段证据</a></p></section>

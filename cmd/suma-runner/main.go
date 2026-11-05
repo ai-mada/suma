@@ -113,6 +113,9 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 			return app.Failure("仅维护模式需要明确允许安装检测", "Maintenance-only requires explicit installed discovery")
 		}
 		if err := runPoolIdentity(app, *base, *poolConfig, *poolIdentity, *state, *allow, *allowInstalled, *maintenanceOnly, *allowPreparation, secrets); err != nil {
+			if errors.Is(err, runner.ErrPoolShutdownUnconfirmed) {
+				return reportUnconfirmedPoolShutdown(app)
+			}
 			return app.Failure("资源池身份或当前配置不可用；请保留原文件并核对原配对和资源池授权", "Pool identity or current configuration is unavailable; preserve original files and review original pairing and Pool authority")
 		}
 		return 0
@@ -204,6 +207,9 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 			return app.Failure("资源池模式不能与 --project/--worker、项目执行器配置或凭证混用", "pool mode is independent of --project/--worker and project-runner configuration or credentials")
 		}
 		if err := runPool(app, *base, *poolConfig, *state, *allow, *describe, *allowInstalled, *maintenanceOnly, *allowPreparation); err != nil {
+			if errors.Is(err, runner.ErrPoolShutdownUnconfirmed) {
+				return reportUnconfirmedPoolShutdown(app)
+			}
 			return fail(err)
 		}
 		return 0
