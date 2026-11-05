@@ -38,14 +38,15 @@ func LoadRepositoryProviders(raw string, getenv func(string) string) ([]Reposito
 		return nil, fmt.Errorf("invalid repository provider configuration")
 	}
 	var entries []struct {
-		ID                 string   `json:"id"`
-		TenantID           string   `json:"tenant_id"`
-		ProjectID          string   `json:"project_id"`
-		TargetAliases      []string `json:"target_aliases"`
-		Origin             string   `json:"origin"`
-		TokenEnv           string   `json:"token_env"`
-		ReconcileTokenEnv  string   `json:"reconcile_token_env"`
-		SourceReadTokenEnv string   `json:"source_read_token_env"`
+		ID                   string   `json:"id"`
+		TenantID             string   `json:"tenant_id"`
+		ProjectID            string   `json:"project_id"`
+		TargetAliases        []string `json:"target_aliases"`
+		Origin               string   `json:"origin"`
+		TokenEnv             string   `json:"token_env"`
+		ReconcileTokenEnv    string   `json:"reconcile_token_env"`
+		SourceReadTokenEnv   string   `json:"source_read_token_env"`
+		SourceExportTokenEnv string   `json:"source_export_token_env"`
 	}
 	d := json.NewDecoder(strings.NewReader(raw))
 	d.DisallowUnknownFields()
@@ -80,6 +81,14 @@ func LoadRepositoryProviders(raw string, getenv func(string) string) ([]Reposito
 			}
 			secrets[digest(sourceRead)] = true
 		}
+		sourceExport := ""
+		if e.SourceExportTokenEnv != "" {
+			sourceExport = getenv(e.SourceExportTokenEnv)
+			if len(sourceExport) < 32 || strings.TrimSpace(sourceExport) != sourceExport || strings.ContainsAny(sourceExport, "\r\n") || secrets[digest(sourceExport)] {
+				return nil, fmt.Errorf("repository source export requires an independent process secret of at least 32 bytes")
+			}
+			secrets[digest(sourceExport)] = true
+		}
 		aliases := map[string]bool{}
 		for _, alias := range e.TargetAliases {
 			if !releaseID(alias) || aliases[alias] {
@@ -87,7 +96,7 @@ func LoadRepositoryProviders(raw string, getenv func(string) string) ([]Reposito
 			}
 			aliases[alias] = true
 		}
-		out = append(out, RepositoryProviderConfig{ID: e.ID, TenantID: e.TenantID, ProjectID: e.ProjectID, TargetAliases: append([]string{}, e.TargetAliases...), TokenHash: digest(token), Origin: strings.TrimRight(e.Origin, "/"), ReconcileToken: reconcile, SourceReadToken: sourceRead})
+		out = append(out, RepositoryProviderConfig{ID: e.ID, TenantID: e.TenantID, ProjectID: e.ProjectID, TargetAliases: append([]string{}, e.TargetAliases...), TokenHash: digest(token), Origin: strings.TrimRight(e.Origin, "/"), ReconcileToken: reconcile, SourceReadToken: sourceRead, SourceExportToken: sourceExport})
 	}
 	return out, nil
 }

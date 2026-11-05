@@ -695,6 +695,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "repository_source_intake": {
+    "stage": "T-REPOSITORY-SOURCE-INTAKE-244",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "60fa16a33e604c22b70c0b33a7f4cccf890a0d5a",
+    "contract": "contracts/workbuddy-task-dispatch.md",
+    "report": "docs/quality/repository-source-intake-verification.md",
+    "actual": "Exact approved registered Git source is retained with original task and WorkBuddy execution evidence, separate from candidate and acceptance. Existing Runner Git import verifies provider-produced bytes in an independent repository.",
+    "verification": "Real Git, loopback repository provider, SQLite HTTP approval, stale fence rejection, stable receipt, bounded binary responses and exact independent Git import.",
+    "known_limitations": "Browser approval interaction and managed claim-to-test path are pending; local verification did not use real WorkBuddy or distributed deployment.",
+    "full_platform_complete": false,
+    "git_record": ".cache/repository-intake-244/post-git.json"
+  },
   "repository_bundle_export": {
     "stage": "T-REPOSITORY-BUNDLE-EXPORT-243",
     "version": "1.0.0",

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-REPOSITORY-SOURCE-INTAKE-244 项目审批人可按确切基线及提交保留 WorkBuddy 待交付仓库的 Git 包。审批回执绑定原运行、节点和尝试，Runner 严格导入已独立验证。 [合同](../../contracts/workbuddy-task-dispatch.md#批准并保留确切仓库来源) · [验证](../quality/repository-source-intake-verification.md)
+
 T-REPOSITORY-BUNDLE-EXPORT-243 受管仓库提供方可从固定入站分支按管理员基线导出精确 Git 包，已在独立仓库验证并导入同一提交。 [部署](../deployment/repository-integration.md#启用登记分支-git-包导出) · [验证](../quality/repository-bundle-export-verification.md)
 
 T-WORKBUDDY-REPOSITORY-SOURCE-242 在待交付尝试上按需核对项目已登记仓库的实时分支提交。读取前后检查任务、原执行和目标版本，候选与验收各自保留依据。 [合同](../../contracts/workbuddy-task-dispatch.md#核对已登记仓库的分支提交) · [验证](../quality/workbuddy-repository-source-verification.md)

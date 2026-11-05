@@ -7163,6 +7163,32 @@ export interface TaskDeliveryNodeSummary {
   complete: boolean;
   items: (TaskDeliveryNode)[];
 }
+export interface TaskDeliveryRepositoryIntake {
+  id: string;
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  target_id: string;
+  target_version: number;
+  base_commit: string;
+  head_commit: string;
+  bundle_sha256: string;
+  size_bytes: number;
+  approved_at: string;
+}
+export interface TaskDeliveryRepositoryIntakeRequest {
+  project_id: string;
+  task_version: number;
+  run_id: string;
+  target_id: string;
+  target_version: number;
+  expected_head: string;
+  expected_base: string;
+  idempotency_key: string;
+}
 export interface TaskDeliveryRepositorySource {
   task_id: string;
   task_version: number;

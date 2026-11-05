@@ -31,6 +31,7 @@ func repositoryConflict(code, message string) error { return repositoryError(409
 func (s *Service) InitializeRepositoryIntegration(ctx context.Context) error {
 	for _, ddl := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_repository_targets(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,data TEXT NOT NULL,UNIQUE(tenant_id,project_id,id))`,
+		`CREATE TABLE IF NOT EXISTS suma_repository_source_intakes(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,storage_path VARCHAR(64) NOT NULL,data TEXT NOT NULL,UNIQUE(storage_path))`,
 		`CREATE TABLE IF NOT EXISTS suma_repository_plans(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,target_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,created_at VARCHAR(40) NOT NULL,data TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_repository_approvals(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,data TEXT NOT NULL,UNIQUE(plan_id,version))`,
 		`CREATE TABLE IF NOT EXISTS suma_repository_operations(operation_id VARCHAR(128) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL UNIQUE,node_id VARCHAR(150) NOT NULL,version INTEGER NOT NULL,data TEXT NOT NULL)`,
@@ -47,6 +48,7 @@ func (s *Service) InitializeRepositoryIntegration(ctx context.Context) error {
 		columns     []string
 	}{
 		{"suma_repository_target_scope", "suma_repository_targets", []string{"tenant_id", "project_id", "id"}},
+		{"suma_repository_source_intake_scope", "suma_repository_source_intakes", []string{"tenant_id", "project_id", "task_id", "run_id"}},
 		{"suma_repository_plan_scope", "suma_repository_plans", []string{"tenant_id", "project_id", "task_id", "created_at", "id"}},
 		{"suma_repository_operation_plan", "suma_repository_operations", []string{"tenant_id", "project_id", "plan_id"}},
 	} {

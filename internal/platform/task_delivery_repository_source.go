@@ -41,23 +41,38 @@ type taskDeliveryRepositoryBasis struct {
 	provider, alias, ref, configSHA, objectFormat, fenceOID string
 	generation                                              int64
 	providerOrigin, providerTokenSHA, reconcileTokenSHA     string
+	exportTokenSHA                                          string
+}
+
+func (s *Service) openTaskDeliveryRepositoryScope(ctx context.Context, actor Actor, query taskDeliveryRepositoryQuery, purpose commandPurpose) (context.Context, *authorizedCommand, func(), error) {
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
+	if err != nil {
+		return ctx, nil, nil, err
+	}
+	close := func() { tx.Rollback(); cancel() }
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: query.project, resourceID: query.task}, purpose)
+	if err == nil {
+		err = dag.GuardExecutionScopeTx(ctx, tx, s.Dialect, auth.target.tenantID, query.project, query.run)
+	}
+	if err != nil {
+		close()
+		return ctx, nil, nil, err
+	}
+	return ctx, auth, close, nil
 }
 
 func (s *Service) taskDeliveryRepositoryBasis(ctx context.Context, actor Actor, query taskDeliveryRepositoryQuery) (basis taskDeliveryRepositoryBasis, provider RepositoryProviderConfig, err error) {
-	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
+	ctx, auth, close, err := s.openTaskDeliveryRepositoryScope(ctx, actor, query, purposeBrowserProjectWrite)
 	if err != nil {
 		return basis, provider, err
 	}
-	defer cancel()
-	defer tx.Rollback()
-	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: query.project, resourceID: query.task}, purposeBrowserProjectWrite)
-	if err != nil {
-		return basis, provider, err
-	}
+	defer close()
+	return s.taskDeliveryRepositoryBasisTx(ctx, auth, query)
+}
+
+func (s *Service) taskDeliveryRepositoryBasisTx(ctx context.Context, auth *authorizedCommand, query taskDeliveryRepositoryQuery) (basis taskDeliveryRepositoryBasis, provider RepositoryProviderConfig, err error) {
+	tx := auth.tx
 	tenant := auth.target.tenantID
-	if err = dag.GuardExecutionScopeTx(ctx, tx, s.Dialect, tenant, query.project, query.run); err != nil {
-		return basis, provider, err
-	}
 	task, err := s.getRecordTx(ctx, auth, query.project, "tasks", query.task)
 	if err != nil {
 		return basis, provider, err
@@ -101,14 +116,14 @@ func (s *Service) taskDeliveryRepositoryBasis(ctx context.Context, actor Actor, 
 	basis = taskDeliveryRepositoryBasis{
 		origin: *origin, provider: target.ProviderID, alias: target.TargetAlias, ref: target.Ref,
 		configSHA: target.ConfigSHA256, generation: target.Generation,
-		providerOrigin: provider.Origin, providerTokenSHA: provider.TokenHash, reconcileTokenSHA: digest(provider.ReconcileToken),
+		providerOrigin: provider.Origin, providerTokenSHA: provider.TokenHash, reconcileTokenSHA: digest(provider.ReconcileToken), exportTokenSHA: digest(provider.SourceExportToken),
 	}
 	// A reconciled apply clears the old observation. The persisted target
 	// configuration digest still binds Git format, ref and repository identity.
 	if target.Observation != nil {
 		basis.objectFormat, basis.fenceOID = target.Observation.ObjectFormat, target.Observation.FenceOID
 	}
-	return basis, provider, auth.assertTx(tx, auth.target, purposeBrowserProjectWrite)
+	return basis, provider, auth.assertTx(tx, auth.target, auth.purpose)
 }
 
 func (s *Service) taskDeliveryRepositorySource(ctx context.Context, actor Actor, query taskDeliveryRepositoryQuery) (out TaskDeliveryRepositorySource, err error) {

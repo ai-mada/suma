@@ -99,6 +99,10 @@ func (s *Server) Handler() http.Handler {
 			s.sourceExportHTTP(w, r)
 			return
 		}
+		if strings.HasPrefix(r.URL.Path, sourceExportBasisPath) {
+			s.sourceExportBasisHTTP(w, r)
+			return
+		}
 		runner, reconciler := token(r, s.cfg.RunnerTokenEnv), token(r, s.cfg.ReconcileTokenEnv)
 		if !runner && !reconciler {
 			writeError(w, 403, "repository_forbidden")

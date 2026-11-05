@@ -73,6 +73,8 @@ Provider 配置示意（占位标识需要替换）：
 
 导出密钥至少 32 字节，独立于回调、Runner、核对和清单读取密钥。服务配置只保存环境变量名。以原核对凭据读取两个固定 `/targets/{alias}` 的当前提交、来源分支配置摘要和执行代次，随后由受信服务使用导出密钥提交固定请求。配置改动会改变入站分支的配置摘要，请登记专用新目标并保留既有目标和回执。使用者可按[导出合同](../../contracts/repository-integration.md#read-only-export-from-a-registered-delivery-branch)核对请求摘要、包摘要和大小，再在隔离仓库中核对 Git 对象和确切提交。
 
+控制面的 `SUMA_REPOSITORY_PROVIDERS_JSON` 在同一登记项配置 `"source_export_token_env": "SUMA_REPOSITORY_SOURCE_EXPORT_TOKEN"`，控制面进程和仓库提供方进程分别取得同一导出秘密。提供方的 `GET /source-export-basis/{alias}` 使用原核对凭据，返回成对的登记分支观察。它既不会接受调用方指定的基线分支，也不会返回 Git 包。项目审批人可用[来源保留接口](../../contracts/workbuddy-task-dispatch.md#批准并保留确切仓库来源)批准确切提交。备份时保留数据库和配置的数据目录，来源记录及对应 Git 包需要一起恢复。
+
 ## 停止、备份与核对
 
 正常发送停止信号，等待 HTTP 排空、持久状态关闭和退出回执。保留控制面事务库、Provider 状态库、完整裸仓库对象／引用、制品原件及管理员配置的匹配快照。不要只恢复 SQLite 后覆盖 Git 引用，也不要清理未知操作的对象或回执。

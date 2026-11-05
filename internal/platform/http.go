@@ -673,6 +673,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		s.deliveryKnowledgeSourceHTTP(w, r, actor, project, parts[1])
 		return
 	}
+	if len(parts) == 5 && parts[0] == "tasks" && parts[2] == "delivery" && parts[3] == "repository-source" && parts[4] == "intakes" {
+		s.taskDeliveryRepositoryIntakeHTTP(w, r, actor, project, parts[1], m)
+		return
+	}
 	if s.taskDeliveryHTTP(w, r, actor, scope, project, parts) {
 		return
 	}

@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func TestTaskDeliveryBoundedReadContract(t *testing.T) {
 	api, _ := generate()
@@ -50,5 +53,39 @@ func TestTaskDeliveryBoundedReadContract(t *testing.T) {
 	observed := mapAt(api, "components", "schemas", "TaskDeliveryRepositorySource")
 	if observed["additionalProperties"] != false || len(mapAt(observed, "properties")) != 11 {
 		t.Fatal("Repository observation leaked non-evidence fields")
+	}
+}
+
+func TestTaskDeliveryRepositoryIntakeContract(t *testing.T) {
+	api, _ := generate()
+	op := mapAt(api, "paths", taskDeliveryRepositoryIntakePath, "post")
+	if mapAt(op, "requestBody", "content", "application/json", "schema")["$ref"] != "#/components/schemas/TaskDeliveryRepositoryIntakeRequest" ||
+		mapAt(op, "responses", "201", "content", "application/json", "schema")["$ref"] != "#/components/schemas/TaskDeliveryRepositoryIntake" ||
+		mapAt(op, "responses")["200"] != nil {
+		t.Fatal("repository intake must return its typed 201 receipt")
+	}
+	security := op["security"].([]any)
+	if len(security) != 1 || mapAt(security[0])["cookieAuth"] == nil {
+		t.Fatal("repository intake must be browser-only")
+	}
+	for _, raw := range op["parameters"].([]any) {
+		if mapAt(raw)["in"] == "query" {
+			t.Fatal("repository intake must reject query selectors")
+		}
+	}
+	request := mapAt(api, "components", "schemas", "TaskDeliveryRepositoryIntakeRequest")
+	want := []string{"project_id", "task_version", "run_id", "target_id", "target_version", "expected_head", "expected_base", "idempotency_key"}
+	required := request["required"].([]string)
+	if request["additionalProperties"] != false || len(required) != len(want) || len(mapAt(request, "properties")) != len(want) {
+		t.Fatal("repository intake request must require the exact scoped fields")
+	}
+	for _, field := range want {
+		if !slices.Contains(required, field) {
+			t.Fatalf("repository intake request lost %q", field)
+		}
+	}
+	receipt := mapAt(api, "components", "schemas", "TaskDeliveryRepositoryIntake")
+	if receipt["additionalProperties"] != false || len(mapAt(receipt, "properties")) != 14 {
+		t.Fatal("repository intake receipt leaked fields outside its public summary")
 	}
 }

@@ -81,14 +81,32 @@ func (c *Client) codeInputBundle(ctx context.Context, a Assignment, kind, bindin
 	return nil
 }
 
-// Strict object import is shared; only its callers decide which authenticated
-// binding may be read. A pack's anchor and the selected source base are distinct.
 func importCandidateFile(ctx context.Context, repo, path string, b cc.Binding) error {
+	return importFixedGitBundle(ctx, repo, path, fixedGitBundle{
+		anchor: b.BundleBase(), base: b.BaseCommit, head: b.HeadCommit,
+		sha256: b.BundleSHA256, size: b.SizeBytes,
+	})
+}
+
+// fixedGitBundle carries byte and object identity only. The caller verifies
+// authority before importing, and the import grants no execution evidence.
+type fixedGitBundle struct {
+	anchor, base, head string
+	sha256             string
+	size               int64
+}
+
+// importFixedGitBundle imports objects without updating refs or checking out a
+// worktree. A pack's prerequisite and the selected source base can differ.
+func importFixedGitBundle(ctx context.Context, repo, path string, b fixedGitBundle) error {
+	if !cc.ValidCommit(b.anchor) || !cc.ValidCommit(b.base) || !cc.ValidCommit(b.head) || len(b.anchor) != len(b.head) || len(b.base) != len(b.head) || !cc.ValidHash(b.sha256) || b.size <= 0 || b.size > cc.MaxBundleBytes {
+		return fmt.Errorf("invalid fixed Git bundle manifest")
+	}
 	sha, size, err := candidateFileHash(path)
-	if err != nil || sha != b.BundleSHA256 || size != b.SizeBytes {
+	if err != nil || sha != b.sha256 || size != b.size {
 		return fmt.Errorf("candidate download hash mismatch")
 	}
-	if err = candidateBundleHeader(path, b.BundleBase(), b.HeadCommit); err != nil {
+	if err = candidateBundleHeader(path, b.anchor, b.head); err != nil {
 		return err
 	}
 	verify := nativeGitCommand(ctx, repo, "bundle", "verify", path)
@@ -120,7 +138,7 @@ func importCandidateFile(ctx context.Context, repo, path string, b cc.Binding) e
 	if index.Run() != nil {
 		return fmt.Errorf("candidate pack strict verification/import failed")
 	}
-	for _, relation := range [][2]string{{b.BundleBase(), b.BaseCommit}, {b.BaseCommit, b.HeadCommit}} {
+	for _, relation := range [][2]string{{b.anchor, b.base}, {b.base, b.head}} {
 		cmd := nativeGitCommand(ctx, repo, "merge-base", "--is-ancestor", relation[0], relation[1])
 		cmd.Stdout = out
 		cmd.Stderr = out
@@ -128,8 +146,8 @@ func importCandidateFile(ctx context.Context, repo, path string, b cc.Binding) e
 			return fmt.Errorf("candidate selected base or head is outside bundle anchor lineage")
 		}
 	}
-	resolved, err := gitText(context.WithValue(ctx, nativeGitScope{}, true), repo, "rev-parse", "--verify", b.HeadCommit+"^{commit}")
-	if err != nil || resolved != b.HeadCommit {
+	resolved, err := gitText(context.WithValue(ctx, nativeGitScope{}, true), repo, "rev-parse", "--verify", b.head+"^{commit}")
+	if err != nil || resolved != b.head {
 		return fmt.Errorf("import did not provide fixed candidate commit")
 	}
 	return nil
