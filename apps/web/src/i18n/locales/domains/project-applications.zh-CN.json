@@ -1,4 +1,12 @@
 {
+  "project-applications.handoff.title": "登记已集成源码",
+  "project-applications.handoff.intro": "请选择代码范围匹配的应用，预览并核对源码版本后再登记。",
+  "project-applications.handoff.clear": "清除来源",
+  "project-applications.handoff.receipt": "查看原 Git 回执",
+  "project-applications.handoff.match": "代码范围匹配",
+  "project-applications.handoff.no_match": "此应用没有与已集成仓库目标匹配的代码范围。",
+  "project-applications.handoff.pinned": "已按 Git 回执固定",
+  "project-applications.handoff.source_changed": "固定来源或代码范围已变化。请重新打开原回执后继续。",
   "project-applications.title": "应用与依赖",
   "project-applications.overview_hint": "管理应用责任、固定代码版本及依赖变更的影响范围。",
   "project-applications.open_catalog": "查看应用",

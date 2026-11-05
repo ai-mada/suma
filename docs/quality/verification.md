@@ -4,6 +4,8 @@ T-POOL-RUNNER-OCCUPANCY 核验拥有方当前授权、真实领取和待核对�
 
 T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
 
+T-REPOSITORY-APPLICATION-HANDOFF-249 核验真实受管回执到应用源码版本的同提交登记、过期拒绝、幂等与双语键盘操作。 [阶段验证](repository-application-handoff-verification.md)
+
 T-REPOSITORY-SOURCE-INTEGRATION-248 核验真实 Git 分支从基线推进到独立测试的同一提交，覆盖提前执行、计划版本漂移、错用回执与原结果重传。 [阶段验证](repository-source-integration-verification.md)
 
 T-REPOSITORY-SOURCE-POOL-247 核验项目及 Pool 的 Git 候选交接、授权版本隔离、两进程独立测试及槽位释放。 [阶段验证](repository-source-pool-verification.md)

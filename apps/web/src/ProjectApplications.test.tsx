@@ -23,6 +23,20 @@ function version(request:ApplicationVersionPreviewRequest,registered=false):Appl
 const request=():ApplicationVersionPreviewRequest=>({project_id:project,expected_application_version:2,label:'1.2.0',sources:[{scope_id:'scope-a',integration_plan_id:'integration-a',expected_integration_version:3}],dependencies:[],acknowledge_dependency_gaps:true,reason:'Register reviewed source'});
 function graph():ApplicationDependencyGraph{return {project_id:project,sha256:hash,nodes:[{application_id:'app-a',name:'Store application',kind:'application',state:'active',parent_application_id:'',owner_team_id:'team-a',version_id:'code-a',version_label:'1.2.0',dependency_coverage_complete:false},{application_id:'app-b',name:'Core library',kind:'library',state:'active',parent_application_id:'',owner_team_id:'team-a',version_id:'core-new',version_label:'2.0.0',dependency_coverage_complete:true}],edges:[{source_application_id:'app-a',source_version_id:'code-a',target_application_id:'app-b',target_version_id:'core-old',target_version_sha256:hash,observation_id:'observation-a',state:'historical_version'}],cycles:[],application_total:2,edge_total:1,edge_total_exact:true,complete:true,max_applications:500,max_edges:5000};}
 
+const handoffPlanID='integration-original',handoffVersion=5;
+function appliedPlan(version=handoffVersion){
+ const base='d'.repeat(40),protocol='suma.repository-integration.v1',operation='operation-a',effect='effect-a';
+ const source={schema_version:1,transfer_id:'transfer-a',project_id:project,state:'sealed',source:{run_id:'run-a',node_id:'developer',attempt:1,fence:1,worker_id:'worker-a'},base_commit:base,head_commit:commit,evidence_sha256:hash,bundle_sha256:hash,size_bytes:4096};
+ const origin={protocol,operation_id:operation,target_id:target.id,target_alias:target.target_alias,target_ref:target.ref,target_config_sha256:hash,prepared_sha256:hash,generation:1};
+ return {id:handoffPlanID,version,project_id:project,task_id:'task-a',target_id:target.id,target,state:'integrated',
+  basis:{task_id:'task-a',task_version:7,run_id:'run-a',source_node_id:'developer',source,basis_sha256:hash},
+  prepare_run_id:'prepare-run',apply_run_id:'apply-run',operation_id:operation,expires_at:date,blockers:[],can_approve:false,can_execute:false,can_reconcile:false,
+  preview:{target_head:base,candidate_head:commit,files:[],diff:'',diff_sha256:hash,source_bundle_sha256:hash,config_sha256:hash,prepared_sha256:hash,fast_forward:true,blocked_reason:''},prepared_sha256:hash,
+  observation:{protocol,phase:'apply',state:'applied',operation_id:operation,request_sha256:hash,observation_sha256:hash,receipt_sha256:hash,receipt_oid:commit,effect_grant_id:effect,
+   execution:{...origin,project_id:project,plan_id:handoffPlanID,provider_id:target.provider_id,phase:'apply',expected_target_head:base,source},
+   receipt:{...origin,state:'applied',request_sha256:hash,before_commit:base,result_commit:commit,source_bundle_sha256:hash,effect_grant_id:effect}}};
+}
+
 let host:HTMLDivElement,root:Root,server:ProjectApplicationView,versions:ApplicationCodeVersion[],writes:{path:string;body:Record<string,unknown>;headers:Headers}[],send:(path:string,init?:RequestInit)=>Promise<Response>;
 beforeEach(async()=>{versions=[];server=view();writes=[];await setLocale('en-US',{persist:false});localStorage.clear();sessionStorage.clear();vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('matchMedia',vi.fn(()=>({matches:true,addEventListener(){},removeEventListener(){}})));host=document.createElement('div');document.body.append(host);root=createRoot(host);send=async path=>{
  if(path.startsWith('/applications/options?'))return Response.json(options());
@@ -37,7 +51,7 @@ beforeEach(async()=>{versions=[];server=view();writes=[];await setLocale('en-US'
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();await setLocale('zh-CN',{persist:false});vi.unstubAllGlobals();});
 async function settle(){for(let count=0;count<4;count++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
 async function render(children:ReactNode){await act(async()=>root.render(<ApiViewProvider session={session}>{children}</ApiViewProvider>));await settle();}
-function Harness({initial='app-a'}:{initial?:string}){const [selected,setSelected]=useState(initial),[versionID,setVersionID]=useState(''),[refresh,setRefresh]=useState(0);return <ProjectApplications session={session} project={project} selected={selected} versionID={versionID} refresh={refresh} onLocate={(id,version='')=>{if(window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))){setSelected(id);setVersionID(version);}}} onOverview={()=>{}} onChanged={()=>setRefresh(value=>value+1)}/>;}
+function Harness({initial='app-a',sourcePanel,refreshSeed=0}:{initial?:string;sourcePanel?:string;refreshSeed?:number}){const [selected,setSelected]=useState(initial),[versionID,setVersionID]=useState(''),[refresh,setRefresh]=useState(0);return <ProjectApplications session={session} project={project} selected={selected} versionID={versionID} sourcePanel={sourcePanel} refresh={refresh+refreshSeed} onLocate={(id,version='')=>{if(window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))){setSelected(id);setVersionID(version);}}} onOverview={()=>{}} onChanged={()=>setRefresh(value=>value+1)}/>;}
 const node=(selector:string)=>document.body.querySelector<HTMLElement>(selector);
 async function click(selector:string){const value=node(selector);expect(value,selector).not.toBeNull();await act(async()=>value!.click());await settle();}
 async function change(selector:string,value:string){const element=node(selector) as HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;expect(element,selector).not.toBeNull();const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
@@ -66,6 +80,81 @@ it('T123 previews exact integrated sources, invalidates edited previews and reco
  let registrations=0;const previous=send;send=async(path,init)=>{if(path==='/applications/app-a/versions/preview'&&init?.body){const body=JSON.parse(String(init.body));return Response.json({version:version(body),preview_sha256:previewHash,can_register:body.acknowledge_dependency_gaps,blockers:body.acknowledge_dependency_gaps?[]:['application_dependency_gaps']});}if(path==='/applications/app-a/versions'&&init?.body){const body=JSON.parse(String(init.body)),result=version(body,true);versions=[result];return Response.json({version:registrations++===0?{...result,registered_preview_sha256:hash}:result,basis_current:true,blockers:[]});}return previous(path,init);};
  await render(<Harness/>);await click('[data-application-register]');await change('[name=application_version_label]','1.2.0');await change('[name=application_version_source_scope-a]','integration-a');await change('[name=application_version_reason]','Register reviewed source');await click('[name=application_dependency_gaps]');await click('[data-application-preview]');expect(node('[data-application-preview-result]')).not.toBeNull();expect(document.body.textContent).toContain('does not establish a successful build');await change('[name=application_version_label]','1.2.1');expect(node('[data-application-preview-result]')).toBeNull();await click('[data-application-preview]');await click('[name=application_version_ack]');await submit('[data-application-version-editor]');expect(node('[data-application-recover]')).not.toBeNull();await click('[data-application-recover]');
  const registered=writes.filter(write=>write.path==='/applications/app-a/versions');expect(registered).toHaveLength(2);expect(registered[0].body).toEqual(registered[1].body);expect(registered[0].body).toMatchObject({label:'1.2.1',expected_preview_sha256:previewHash,sources:[{scope_id:'scope-a',integration_plan_id:'integration-a',expected_integration_version:3}],acknowledge_dependency_gaps:true});expect(node('[role=dialog]')).toBeNull();expect(node('[data-application-version-detail=code-a]')).not.toBeNull();expect(document.body.querySelector('a[href*="record=task-a"]')).not.toBeNull();expect(writes.some(write=>/dispatch|\/runs|\/start/.test(write.path))).toBe(false);
+});
+
+it('hands off an applied receipt beyond the bounded picker without automatically previewing or registering',async()=>{
+ const previous=send;
+ send=async(path,init)=>{
+  if(path==='/repository-integrations/plans/'+handoffPlanID+'?project_id='+project)return Response.json(appliedPlan());
+  if(path==='/applications/app-a/versions/preview'&&init?.body){
+   const body=JSON.parse(String(init.body));
+   return Response.json({version:version(body),preview_sha256:previewHash,can_register:true,blockers:[]});
+  }
+  if(path==='/applications/app-a/versions'&&init?.body){
+   const body=JSON.parse(String(init.body)),result=version(body,true);
+   versions=[result];
+   return Response.json({version:result,basis_current:true,blockers:[]});
+  }
+  return previous(path,init);
+ };
+ const sourcePanel='application-source:'+handoffPlanID+':task-a:'+handoffVersion;
+ await render(<Harness initial="" sourcePanel={sourcePanel}/>);
+ const handoff=node('[data-application-source-handoff]')!;
+ expect(handoff.querySelector('code')?.textContent).toBe(commit);
+ const link=handoff.querySelector<HTMLAnchorElement>('a[href*="repository-integration"]')!;
+ expect(new URL(link.href).searchParams.get('record')).toBe('task-a');
+ expect(new URL(link.href).searchParams.get('panel')).toBe('repository-integration:'+handoffPlanID);
+ await click('[data-application-select=app-a]');
+ await click('[data-application-register]');
+ expect(node('[data-application-pinned-source] code')?.textContent).toBe(commit);
+ expect(node('[name=application_version_source_scope-a]')).toBeNull();
+ expect(writes).toHaveLength(0);
+ await change('[name=application_version_label]','1.3.0');
+ await change('[name=application_version_reason]','Register the reviewed Git commit');
+ await click('[name=application_dependency_gaps]');
+ await click('[data-application-preview]');
+ expect(writes).toHaveLength(1);
+ expect(writes[0]).toMatchObject({path:'/applications/app-a/versions/preview',body:{sources:[{scope_id:'scope-a',integration_plan_id:handoffPlanID,expected_integration_version:handoffVersion}]}});
+ await submit('[data-application-version-editor]');
+ expect(writes).toHaveLength(1);
+ await click('[name=application_version_ack]');
+ await submit('[data-application-version-editor]');
+ expect(writes[1]).toMatchObject({path:'/applications/app-a/versions',body:{expected_preview_sha256:previewHash,sources:writes[0].body.sources}});
+ expect(node('[data-application-version-detail=code-a] a[href*="repository-integration"]')).not.toBeNull();
+});
+
+it('blocks guided registration when the authoritative receipt version or task no longer matches',async()=>{
+ let observed=appliedPlan();
+ const previous=send;
+ send=async(path,init)=>{
+  if(path.startsWith('/repository-integrations/plans/'))return Response.json(observed);
+  if(path==='/applications/app-a/versions/preview'&&init?.body){
+   const body=JSON.parse(String(init.body));
+   return Response.json({version:version(body),preview_sha256:previewHash,can_register:true,blockers:[]});
+  }
+  return previous(path,init);
+ };
+ const sourcePanel='application-source:'+handoffPlanID+':task-a:'+handoffVersion;
+ await render(<Harness sourcePanel={sourcePanel}/>);
+ await click('[data-application-register]');
+ await change('[name=application_version_label]','1.3.0');
+ await change('[name=application_version_reason]','Reviewed Git source');
+ await click('[data-application-preview]');
+ await click('[name=application_version_ack]');
+ expect((node('[data-application-preview-result] button.primary') as HTMLButtonElement).disabled).toBe(false);
+ observed=appliedPlan(handoffVersion+1);
+ await render(<Harness sourcePanel={sourcePanel} refreshSeed={1}/>);
+ expect((node('[data-application-preview]') as HTMLButtonElement).disabled).toBe(true);
+ expect(node('[data-application-pinned-source]')).toBeNull();
+ expect(node('[data-application-source-handoff] a[href*="repository-integration"]')).toBeNull();
+ expect((node('[data-application-preview-result] button.primary') as HTMLButtonElement).disabled).toBe(true);
+ await submit('[data-application-version-editor]');
+ expect(writes.map(write=>write.path)).toEqual(['/applications/app-a/versions/preview']);
+ observed={...appliedPlan(),task_id:'other-task'};
+ await render(<Harness sourcePanel={sourcePanel} refreshSeed={2}/>);
+ expect((node('[data-application-preview]') as HTMLButtonElement).disabled).toBe(true);
+ expect(node('[data-application-pinned-source]')).toBeNull();
+ expect(writes.map(write=>write.path)).toEqual(['/applications/app-a/versions/preview']);
 });
 
 it('T123 keeps pinned graph versions and reverse impact distinct, then clears protected results after a refusal even if an old graph replies',async()=>{

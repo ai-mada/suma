@@ -12,7 +12,7 @@ const oid=(value:unknown)=>typeof value==='string'&&/^(?:[a-f0-9]{40}|[a-f0-9]{6
 const same=(left:unknown,right:unknown)=>JSON.stringify(left)===JSON.stringify(right);
 export const applicationPath=(project:string,id='')=>'/applications'+(id?'/'+encodeURIComponent(id):'')+'?project_id='+encodeURIComponent(project);
 export const applicationHref=(project:string,id='',version='')=>'?'+new URLSearchParams({project,view:'overview',layout:'applications',...(id?{panel:'application:'+id}:{}),...(version?{record:version}:{})});
-export const applicationTaskHref=(project:string,id:string)=>'?'+new URLSearchParams({project,view:'development',sub:'tasks',record:id,status:'all',layout:'list'});
+export const applicationTaskHref=(project:string,id:string,planID?:string)=>'?'+new URLSearchParams({project,view:'development',sub:'tasks',record:id,status:'all',layout:'list',...(planID?{panel:'repository-integration:'+planID}:{})});
 export const applicationRunHref=(project:string,id:string)=>'?'+new URLSearchParams({project,view:'development',sub:'runs',run:id});
 /** Empty is the repository root in the domain; the form displays a familiar
  * dot. Reject separators/parent segments before any request is prepared. */

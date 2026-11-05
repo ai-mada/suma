@@ -1,4 +1,5 @@
 {
+  "repository-integration.open_application_source": "用作应用源码",
  "repository-integration.title":"集成已测试候选",
  "repository-integration.intro":"审阅已验收且通过独立测试的候选，明确批准后更新受控目标分支。当前支持快进集成，不改变当前 IDE 工作区。",
  "repository-integration.refresh":"刷新当前事实",

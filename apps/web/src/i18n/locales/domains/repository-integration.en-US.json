@@ -1,4 +1,5 @@
 {
+  "repository-integration.open_application_source": "Use as application source",
  "repository-integration.title":"Integrate tested candidate",
  "repository-integration.intro":"Review an accepted, independently tested candidate and explicitly advance a managed target branch. This supports fast-forward integration; it does not change the current IDE workspace.",
  "repository-integration.refresh":"Refresh current facts",

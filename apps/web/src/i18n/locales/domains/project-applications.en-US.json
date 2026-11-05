@@ -1,4 +1,12 @@
 {
+  "project-applications.handoff.title": "Register an applied source",
+  "project-applications.handoff.intro": "Choose an application with a matching code scope. Review the source version before registering it.",
+  "project-applications.handoff.clear": "Clear source",
+  "project-applications.handoff.receipt": "Open original Git receipt",
+  "project-applications.handoff.match": "Matching code scope",
+  "project-applications.handoff.no_match": "This application has no code scope matching the applied repository target.",
+  "project-applications.handoff.pinned": "Pinned from the Git receipt",
+  "project-applications.handoff.source_changed": "The pinned source or code scope changed. Reopen the original receipt to continue.",
   "project-applications.title": "Applications & dependencies",
   "project-applications.overview_hint": "Manage application ownership, fixed code versions and the effect of dependency changes.",
   "project-applications.open_catalog": "View applications",

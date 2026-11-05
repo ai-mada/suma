@@ -721,6 +721,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "repository_application_handoff": {
+    "stage": "T-REPOSITORY-APPLICATION-HANDOFF-249",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "cf3287f195d47a8993a3ec587b04bc1c2f60cb16",
+    "report": "docs/quality/repository-application-handoff-verification.md",
+    "actual": "An exact applied Git receipt navigates to matching application code scopes. The application preview and explicit version registration preserve the same tested commit, applied receipt, accepted run and inspected tree.",
+    "verification": "Actual Git/SQLite/two Windows Runner CLI processes and pinned source inspector; expired source conflict, partial manifest acknowledgement, preview without mutation, idempotent registration and no release side effect. 12 focused UI checks; Chrome 390 zh-CN and 1280 en-US; isolated TypeScript and bilingual catalog.",
+    "known_limitations": "Fixture WorkBuddy service and same Windows host. Real vendor accounts, remote hosts, application-scoped build artifacts and production release remain separate.",
+    "full_platform_complete": false,
+    "git_record": ".cache/repository-application-handoff-249/post-git.json"
+  },
   "repository_source_integration": {
     "stage": "T-REPOSITORY-SOURCE-INTEGRATION-248",
     "version": "1.0.0",
