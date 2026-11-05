@@ -2,6 +2,8 @@
 
 本合同适用于工具管理中通过手动登记建立的项目执行节点。负责人持当前浏览器项目管理员权限时，可以从原节点行发起轮换。界面显示的轮换入口表示当前操作者具备该节点的管理资格。凭证到期、节点是否在线和执行是否排空分别判断。
 
+工具管理沿 `GET /api/v1/release-workers?project_id=P` 读取当前项目的节点清单。响应包含 `items` 和必填的 `credential_management_allowed`。读权限和节点管理资格在同一事务内检查。只有当前浏览器凭证具备原项目管理员资格时，管理字段为 `true`；空列表也返回此字段。该字段用于呈现手动登记与撤销入口，每个写命令仍独立核权。原行级 `manual_rotation_allowed` 继续表达准确凭证可轮换的资格。响应不进入缓存。
+
 `POST /api/v1/release-workers/{id}/rotate-credential` 接收 `project_id`、`expected_version`、`acknowledge_stopped:true` 和 `idempotency_key`。用户先停止节点并保留工作目录和执行日志，再确认。服务端以现有凭证签发、Grant、槽位和签发操作证明手动登记来源，并复核当前管理员、持有人、来源及节点版本。过期的原凭证仍可轮换，撤销或其他登记方式由各自的凭证流程处理。
 
 轮换与原调度、授权锁同事务。存在未决运行、制品、工作区操作或外部效果时，返回 409 `worker_rotation_pending`，等待原操作核对完成。未封存的发布制品及候选代码可分别按[发布制品核对合同](manual-worker-artifact-upload-recovery.md)与[候选代码核对合同](manual-worker-candidate-recovery.md)核对。结束传递前核对原尝试和各自的证据条件，其他未决结果继续阻止轮换。成功后旧凭证即时失效，原节点标识、发布配置、工具配置和历史运行保留。服务端作废旧工具库存观察，新进程需使用新凭证重新上报。

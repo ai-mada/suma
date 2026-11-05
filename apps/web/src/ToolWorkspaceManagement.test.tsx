@@ -25,7 +25,7 @@ async function mount(){
   if(path==='/tool-profiles')return Response.json({items:[tool],total:1});
   if(path==='/tool-profiles/existing')return Response.json(tool);
   if(path==='/tool-profiles/existing/diagnostics')return Response.json(diagnostics(tool));
-  if(path==='/release-workers')return Response.json({items:['other-runner','original-runner'].map((worker_id,i)=>({id:'w'+i,worker_id,status:'active',version:1}))});
+  if(path==='/release-workers')return Response.json({credential_management_allowed:true,items:['other-runner','original-runner'].map((worker_id,i)=>({id:'w'+i,worker_id,status:'active',version:1}))});
   if(path==='/project-execution/runners')return Response.json({items:[],as_of:'2026-10-30T08:00:20Z'});
   if(path==='/adapter-catalog')return Response.json({project_id:'p',as_of:'2026-10-30T08:00:20Z',items:[adapter]});
   if(path==='/tool-discovery')return Response.json({project_id:'p',worker_id:url.searchParams.get('worker_id'),state:'fresh',as_of:'2026-10-30T08:00:20Z',observed_at:'2026-10-30T08:00:00Z',expires_at:'2026-10-30T08:01:00Z',items:[{profile:definition,available:true,reason:''}]});
@@ -91,7 +91,7 @@ it('uses server tool filters without overwriting task status and searches only o
  expect(new URLSearchParams(window.location.search).get('status')).toBe('running');expect(writes).toEqual([]);
 });
 
-it('takes Doctor to the exact original adapter and worker, then returns from advanced setup with its public draft',async()=>{
+it('takes Doctor to the exact original adapter and worker, then returns from advanced replacement review with its public draft',async()=>{
  await mount();const originalFetch=vi.mocked(fetch).getMockImplementation()!,pairID='c'.repeat(32);
  const fixed={...definition,adapter:'qoder',protocol:'acp-stdio-v1',acp_execution:{runtime:'qoder',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:'d'.repeat(64),model:'fixed-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'existing_cli_login',permission_mode:'human_once'}},currentTool={...tool,profile:fixed},qoder={...adapter,id:'qoder-acp',product:'Qoder',adapter:'qoder',protocol:'acp-stdio-v1'};
  const pairing={id:pairID,project_id:'p',version:3,state:'approved',control_url:'https://last-control.example.test/suma',created_at:'2026-10-30T08:00:00Z',expires_at:'2026-10-30T08:10:00Z',device_name:'Other machine',credential_sha256:'e'.repeat(64),can_approve:false,worker_id:'remote-'+pairID,credential_expires_at:'2026-10-31T08:00:00Z'};
@@ -100,7 +100,7 @@ it('takes Doctor to the exact original adapter and worker, then returns from adv
   if(path==='/tool-profiles/existing')return Response.json(currentTool);
   if(path==='/tool-profiles/existing/diagnostics')return Response.json(diagnostics(currentTool));
   if(path==='/adapter-catalog')return Response.json({project_id:'p',as_of:'2026-10-30T08:00:20Z',items:[adapter,qoder]});
-  if(path==='/release-workers')return Response.json({items:[pairing.worker_id,'original-runner'].map((worker_id,i)=>({id:'w'+i,worker_id,status:'active',version:1}))});
+  if(path==='/release-workers')return Response.json({credential_management_allowed:true,items:[pairing.worker_id,'original-runner'].map((worker_id,i)=>({id:'w'+i,worker_id,status:'active',version:1}))});
   if(path==='/tool-discovery')return Response.json({project_id:'p',worker_id:url.searchParams.get('worker_id'),state:'fresh',as_of:'2026-10-30T08:00:20Z',observed_at:'2026-10-30T08:00:00Z',expires_at:'2026-10-30T08:01:00Z',items:[{profile:fixed,available:true,reason:''}]});
   if(path==='/tool-profiles/matches')return Response.json({project_id:'p',worker_id:'original-runner',profile:fixed,items:[currentTool],total:1});
   if(path==='/runner-pairings')return Response.json({project_id:'p',status:url.searchParams.get('status'),q:url.searchParams.get('q')||'',items:[],total:0,limit:Number(url.searchParams.get('limit')),as_of:'2026-10-30T08:00:20Z'});
@@ -114,16 +114,11 @@ it('takes Doctor to the exact original adapter and worker, then returns from adv
  expect(document.querySelector<HTMLSelectElement>('[data-quick-tool]')?.value).toBe('qoder-acp');
  expect(document.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('original-runner');
  await act(async()=>document.querySelector<HTMLButtonElement>('[data-quick-advanced]')!.click());await settle();
- expect(document.querySelector('[role="dialog"]')).toBeNull();
- expect(host!.querySelector<HTMLInputElement>('[name="remote-runner-worker"]')?.value).toBe('original-runner');
- expect(host!.querySelector<HTMLInputElement>('[name="remote-runner-control"]')?.value).not.toBe(pairing.control_url);
- expect(host!.querySelector<HTMLInputElement>('[name="remote-runner-pairingID"]')?.value||'').toBe('');
- expect(host!.querySelector<HTMLSelectElement>('[name="remote-runner-mode"]')?.value).toBe('identity');
- expect(host!.querySelector<HTMLInputElement>('[name="remote-runner-worker"]')?.readOnly).toBe(true);
- await change(host!.querySelector<HTMLSelectElement>('[name="remote-runner-shell"]')!,'bash');
- for(const [field,value] of Object.entries({control:'https://original-control.example.test/suma',identityPath:'/runner/original.json',commands:'/runner/commands.qoder.json',repository:'/repo/original',baseCommit:'f'.repeat(40)}))await change(host!.querySelector<HTMLInputElement>('[name="remote-runner-'+field+'"]')!,value);
- const report=host!.querySelector('[data-remote-runner-command="report"]')?.textContent;
- expect(report).toContain("--worker 'original-runner'");expect(report).not.toContain(pairing.worker_id);expect(report).not.toContain(pairing.control_url);
+ const advanced=document.querySelector('[role="dialog"]')!;
+ expect(advanced.querySelector('.tool-form-intro')?.textContent).toContain('Qoder');
+ expect(advanced.querySelector<HTMLSelectElement>('form select[required]')?.value).toBe('original-runner');
+ expect(advanced.querySelector('.tool-profile-submit .primary')?.textContent).toContain('Review replacement');
+ expect(host!.querySelector('[name="remote-runner-pairingID"]')).toBeNull();
  await act(async()=>document.querySelector<HTMLButtonElement>('[data-tools-return-quick]')!.click());await settle();
  expect(document.querySelector<HTMLSelectElement>('[data-quick-tool]')?.value).toBe('qoder-acp');expect(document.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('original-runner');
  expect(document.querySelector('[data-existing-tool-open="existing"]')).not.toBeNull();expect(writes).toEqual([]);

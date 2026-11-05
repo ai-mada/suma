@@ -9,7 +9,7 @@ import {RunnerPairingCard} from './RunnerPairingCard';
 import {RunnerPairingInbox} from './RunnerPairingInbox';
 import {readRunnerPairing,validRunnerPairingReceipt,validRunnerPairingRequest} from './runner-pairing-model';
 
-export type RunnerPairingPanelProps={project:string;disabled?:boolean;onLockChange:(locked:boolean)=>void;onPaired:(pairing:RunnerPairing)=>void};
+export type RunnerPairingPanelProps={project:string;disabled?:boolean;allowCreate?:boolean;onLockChange:(locked:boolean)=>void;onPaired:(pairing:RunnerPairing)=>void};
 type Read={caller:ReturnType<typeof useApi>;path:string;loading:boolean;value?:RunnerPairing;error?:unknown};
 const locatorID=(value:string)=>/^[a-f0-9]{32}$/.test(value);
 const refused=(value:unknown)=>value instanceof ApiError&&[401,403,404].includes(value.status);
@@ -21,7 +21,7 @@ export function RunnerPairingPanel(props:RunnerPairingPanelProps){
  if(owner.current.api!==api)owner.current={api,epoch:owner.current.epoch+1};
  return <PairingScope key={JSON.stringify([view?.userID,view?.organizationID,props.project,owner.current.epoch])} {...props} userID={view?.userID||''} organizationID={view?.organizationID||''}/>;
 }
-function PairingScope({project,disabled=false,onLockChange,onPaired,userID,organizationID}:RunnerPairingPanelProps&{userID:string;organizationID:string}){
+function PairingScope({project,disabled=false,allowCreate=true,onLockChange,onPaired,userID,organizationID}:RunnerPairingPanelProps&{userID:string;organizationID:string}){
  const api=useApi(),storage=toolSessionStorage(),scope=JSON.stringify([userID,organizationID,project]),locatorKey='suma-runner-pairing:'+scope;
  const [selected,setSelected]=useState(()=>{try{return storage?.getItem(locatorKey)||'';}catch{return 'unreadable-locator';}});
  const [revision,setRevision]=useState(0),[listRevision,setListRevision]=useState(0),[read,setRead]=useState<Read>(),[created,setCreated]=useState<RunnerPairing>(),[localError,setLocalError]=useState<unknown>(),[denied,setDenied]=useState(false);
@@ -83,7 +83,7 @@ function PairingScope({project,disabled=false,onLockChange,onPaired,userID,organ
   if(value&&alive.current&&caller.current===owner)remember(readRunnerPairing(value,project));
  }
  async function create(){
-  if(blocked||locked||action.conflict||action.persistenceBlocked||selected&&(!current?.value||stale))return;
+  if(!allowCreate||blocked||locked||action.conflict||action.persistenceBlocked||selected&&(!current?.value||stale))return;
   await run('/runner-pairings',{project_id:project});
  }
  async function command(actionName:'approve'|'reject'){
@@ -96,5 +96,5 @@ function PairingScope({project,disabled=false,onLockChange,onPaired,userID,organ
   const original=action.pending;await run(original.path,original.body,original.method);
  }
  function proceed(){const value=current?.value;if(!blocked&&!locked&&!stale&&!loading&&value?.state==='approved'&&value.worker_id&&alive.current&&intent.current.api===api)callback.current.onPaired(value);}
- return <><RunnerPairingInbox project={project} disabled={blocked||locked} accessBlocked={viewBlocked} selectedID={selected} refreshToken={listRevision} onSelect={selectExisting} onDenied={listDenied}/>{pairing&&['waiting','proposed','approved'].includes(pairing.state)&&<div className="runner-pairing-actions"><button type="button" data-runner-pairing-new disabled={blocked||locked||stale||loading||!!error} onClick={()=>void create()}>{tr('runner-pairing.create_another')}</button></div>}<WriteNotice action={{...action,error:''}} onRebase={async()=>{refresh();}}/><RunnerPairingCard pairing={pairing} loading={loading} stale={stale} disabled={action.busy||(action.pending?viewBlocked:blocked)} error={error} pending={!!action.pending} onCreate={()=>void create()} onRefresh={refresh} onApprove={()=>void command('approve')} onReject={()=>void command('reject')} onRestore={()=>void restore()} onContinue={proceed}/></>;
+ return <><RunnerPairingInbox project={project} disabled={blocked||locked} accessBlocked={viewBlocked} selectedID={selected} refreshToken={listRevision} onSelect={selectExisting} onDenied={listDenied}/>{allowCreate&&pairing&&['waiting','proposed','approved'].includes(pairing.state)&&<div className="runner-pairing-actions"><button type="button" data-runner-pairing-new disabled={blocked||locked||stale||loading||!!error} onClick={()=>void create()}>{tr('runner-pairing.create_another')}</button></div>}<WriteNotice action={{...action,error:''}} onRebase={async()=>{refresh();}}/><RunnerPairingCard pairing={pairing} loading={loading} stale={stale} disabled={action.busy||(action.pending?viewBlocked:blocked)} error={error} pending={!!action.pending} onCreate={allowCreate?()=>void create():undefined} onRefresh={refresh} onApprove={()=>void command('approve')} onReject={()=>void command('reject')} onRestore={()=>void restore()} onContinue={proceed}/></>;
 }

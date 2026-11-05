@@ -6,7 +6,7 @@ import {runnerPairingCommand} from './runner-pairing-model';
 import {ErrorNotice} from './ui';
 import './RunnerPairingCard.css';
 
-export type RunnerPairingCardProps={pairing?:RunnerPairing;loading:boolean;stale?:boolean;disabled?:boolean;error?:unknown;pending?:boolean;onCreate:()=>void;onRefresh:()=>void;onApprove:()=>void;onReject:()=>void;onRestore?:()=>void;onContinue?:()=>void};
+export type RunnerPairingCardProps={pairing?:RunnerPairing;loading:boolean;stale?:boolean;disabled?:boolean;error?:unknown;pending?:boolean;onCreate?:()=>void;onRefresh:()=>void;onApprove:()=>void;onReject:()=>void;onRestore?:()=>void;onContinue?:()=>void};
 const t=(key:string)=>tr('runner-pairing.'+key);
 const stamp=(value:string)=>formatDateTime(value,{dateStyle:'short',timeStyle:'medium',hour12:false});
 
@@ -44,7 +44,7 @@ export function RunnerPairingCard({pairing,loading,stale=false,disabled=false,er
   </>}
   <div className="runner-pairing-actions">
    {pending?onRestore&&<button type="button" className="primary" data-runner-pairing-restore disabled={disabled||loading} onClick={onRestore}>{t('restore')}</button>:<>
-    {(!pairing||terminal)&&<button type="button" className="primary" data-runner-pairing-create disabled={blocked} onClick={onCreate}>{t(pairing?'create_another':'create')}</button>}
+    {onCreate&&(!pairing||terminal)&&<button type="button" className="primary" data-runner-pairing-create disabled={blocked} onClick={onCreate}>{t(pairing?'create_another':'create')}</button>}
     {proposed&&<button type="button" className="primary" data-runner-pairing-approve disabled={!canApprove} onClick={()=>{if(canApprove){setConfirmed('');onApprove();}}}>{t('approve')}</button>}
     {pairing&&(pairing.state==='waiting'||proposed)&&<button type="button" data-runner-pairing-reject disabled={blocked} onClick={onReject}>{t('reject')}</button>}
     {pairing&&approved&&pairing.worker_id&&onContinue&&<button type="button" className="primary" data-runner-pairing-continue disabled={blocked} onClick={onContinue}>{t('continue')}</button>}

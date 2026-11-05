@@ -29946,6 +29946,27 @@
         ],
         "type": "object"
       },
+      "ReleaseWorkerList": {
+        "additionalProperties": false,
+        "properties": {
+          "credential_management_allowed": {
+            "description": "The current browser principal may register or revoke project worker credentials. Each command rechecks current authorization.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseWorker"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "credential_management_allowed"
+        ],
+        "type": "object"
+      },
       "ReleaseWorkerRegisterRequest": {
         "additionalProperties": false,
         "properties": {
@@ -105356,7 +105377,7 @@
     },
     "/release-workers": {
       "get": {
-        "description": "Complete current-project list; this route does not implement limit/cursor pagination.",
+        "description": "Complete current-project worker registry with the current browser credential management capability; no cursor pagination.",
         "operationId": "get_release-workers",
         "parameters": [
           {
@@ -105391,22 +105412,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "properties": {
-                    "items": {
-                      "items": {
-                        "$ref": "#/components/schemas/ReleaseWorker"
-                      },
-                      "type": "array"
-                    },
-                    "total": {
-                      "type": "integer"
-                    }
-                  },
-                  "required": [
-                    "items",
-                    "total"
-                  ],
-                  "type": "object"
+                  "$ref": "#/components/schemas/ReleaseWorkerList"
                 }
               }
             },

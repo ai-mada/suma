@@ -201,7 +201,7 @@ func TestCheckModeReportsDriftWithoutWriting(t *testing.T) {
 func TestReleaseRoutesWireAndAuthorityBoundaries(t *testing.T) {
 	api, types := generate()
 	paths := mapAt(api, "paths")
-	for _, route := range []struct{ path, method, model string }{{"/artifacts", "get", "ReleaseArtifact"}, {"/release-candidates", "post", "ReleaseCandidateView"}, {"/release-workers", "post", "ReleaseWorkerCreation"}, {"/release-workers/{id}", "patch", "ReleaseWorker"}, {"/environments", "get", "ReleaseEnvironmentList"}, {"/release-plans/preview", "post", "ReleasePlanPreview"}, {"/release-plans/{id}/execute", "post", "ReleaseDeployment"}, {"/deployments/{id}/rollback-preview", "post", "ReleaseRollbackPreview"}, {"/runner/artifact-uploads", "post", "ArtifactUploadState"}, {"/runner/artifacts/resolve", "post", "ArtifactBinding"}, {"/runner/release-authorizations", "post", "ReleaseAuthorization"}, {"/provider/deployment-authorizations/consume", "post", "DeploymentAuthorizationGrant"}} {
+	for _, route := range []struct{ path, method, model string }{{"/artifacts", "get", "ReleaseArtifact"}, {"/release-candidates", "post", "ReleaseCandidateView"}, {"/release-workers", "get", "ReleaseWorkerList"}, {"/release-workers", "post", "ReleaseWorkerCreation"}, {"/release-workers/{id}", "patch", "ReleaseWorker"}, {"/environments", "get", "ReleaseEnvironmentList"}, {"/release-plans/preview", "post", "ReleasePlanPreview"}, {"/release-plans/{id}/execute", "post", "ReleaseDeployment"}, {"/deployments/{id}/rollback-preview", "post", "ReleaseRollbackPreview"}, {"/runner/artifact-uploads", "post", "ArtifactUploadState"}, {"/runner/artifacts/resolve", "post", "ArtifactBinding"}, {"/runner/release-authorizations", "post", "ReleaseAuthorization"}, {"/provider/deployment-authorizations/consume", "post", "DeploymentAuthorizationGrant"}} {
 		op := mapAt(paths, route.path, route.method)
 		status := "200"
 		if _, ok := mapAt(op, "responses")["201"]; ok {
@@ -243,7 +243,11 @@ func TestReleaseRoutesWireAndAuthorityBoundaries(t *testing.T) {
 			t.Fatalf("actual wire field missing: %v", pair)
 		}
 	}
-	for _, model := range []string{"Assignment", "ReleaseExecution", "NonSecretDeploymentRequest", "ReleaseDeployment", "ReleaseWorker"} {
+	capability := mapAt(schemas, "ReleaseWorkerList", "properties", "credential_management_allowed")
+	if capability["type"] != "boolean" || capability["readOnly"] != true {
+		t.Fatalf("worker list must report the current read-only management capability: %#v", capability)
+	}
+	for _, model := range []string{"Assignment", "ReleaseExecution", "NonSecretDeploymentRequest", "ReleaseDeployment", "ReleaseWorker", "ReleaseWorkerList"} {
 		for _, key := range []string{"authorization_ticket", "token", "token_hash"} {
 			if mapAt(schemas, model, "properties")[key] != nil {
 				t.Fatalf("%s leaks %s", model, key)
@@ -295,7 +299,11 @@ func TestReleasePagingAndExactDecisionSchemas(t *testing.T) {
 	}
 	for _, path := range []string{"/release-plans", "/deployments", "/release-workers", "/release-providers"} {
 		op := mapAt(paths, path, "get")
-		if mapAt(responseSchema(op, "200"), "properties")["next_cursor"] != nil {
+		response := responseSchema(op, "200")
+		if ref, ok := response["$ref"].(string); ok {
+			response = mapAt(api, "components", "schemas", strings.TrimPrefix(ref, "#/components/schemas/"))
+		}
+		if mapAt(response, "properties")["next_cursor"] != nil {
 			t.Fatalf("%s claims unsupported pagination", path)
 		}
 	}

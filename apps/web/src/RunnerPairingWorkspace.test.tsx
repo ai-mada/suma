@@ -41,7 +41,7 @@ it('locks the original workspace while approving and continues with the exact pa
   const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1',''),method=init.method||'GET',body=init.body?JSON.parse(String(init.body)):undefined;
   if(method==='GET'){
    if(path==='/tool-profiles')return Response.json({items:[],total:0});
-   if(path==='/release-workers')return Response.json({items:['other-node',...(pair.state==='approved'?[workerID]:[])].map((worker_id,i)=>({id:'worker-'+i,project_id:project,worker_id,status:'active',version:1,expires_at:'2026-11-02T04:00:00Z'}))});
+   if(path==='/release-workers')return Response.json({credential_management_allowed:true,items:['other-node',...(pair.state==='approved'?[workerID]:[])].map((worker_id,i)=>({id:'worker-'+i,project_id:project,worker_id,status:'active',version:1,expires_at:'2026-11-02T04:00:00Z'}))});
    if(path==='/project-execution/runners')return Response.json({items:[],as_of:stamp});
    if(path==='/adapter-catalog')return Response.json({project_id:project,as_of:stamp,items:[adapter]});
    if(path==='/runner-pairings/'+pairID)return Response.json(pair);
@@ -80,7 +80,7 @@ it('continues an explicitly read approved node into its fixed preparation guide 
   const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1',''),targetProject=url.searchParams.get('project_id')||project;
   if((init.method||'GET')!=='GET'){writes.push(path);return Response.json({error:{code:'unexpected_write',message:'Preparation is explicit and read-only'}},{status:400});}
   if(path==='/tool-profiles')return Response.json({items:[],total:0});
-  if(path==='/release-workers')return Response.json({items:['other-node',...(targetProject===project?[workerID]:[])].map((worker_id,i)=>({id:'worker-'+i,project_id:targetProject,worker_id,status:'active',version:1,expires_at:'2026-11-02T04:00:00Z'}))});
+  if(path==='/release-workers')return Response.json({credential_management_allowed:true,items:['other-node',...(targetProject===project?[workerID]:[])].map((worker_id,i)=>({id:'worker-'+i,project_id:targetProject,worker_id,status:'active',version:1,expires_at:'2026-11-02T04:00:00Z'}))});
   if(path==='/project-execution/runners')return Response.json({items:[],as_of:stamp});
   if(path==='/adapter-catalog')return Response.json({project_id:targetProject,as_of:stamp,items:[adapter,qoder]});
   if(path==='/runner-pairings')return Response.json({project_id:targetProject,status:url.searchParams.get('status')||'all',q:url.searchParams.get('q')||'',items:targetProject===project?[approved]:[],total:targetProject===project?1:0,limit:Number(url.searchParams.get('limit')||20),next_cursor:'',as_of:stamp});

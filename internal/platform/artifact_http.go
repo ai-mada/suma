@@ -88,9 +88,10 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, actor Acto
 		return true
 	}
 	if parts[0] == "release-workers" {
-		if len(parts) == 1 && r.Method == "GET" {
-			out, e := s.Service.ReleaseWorkers(ctx, actor, project)
-			respondList(w, out, e)
+		if len(parts) == 1 && r.Method == http.MethodGet {
+			w.Header().Set("Cache-Control", "no-store")
+			out, err := s.Service.ReleaseWorkers(ctx, actor, project)
+			respond(w, http.StatusOK, out, err)
 			return true
 		}
 		if len(parts) == 1 && r.Method == "POST" {

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-NODE-MAINTENANCE 工具管理按当前项目权限展示凭证维护。常用配置与检测直接可达，轮换和撤销集中处理。撤权后关闭旧写入确认，撤销后保留节点历史。 [交互](../design/tool-identity-management.md#节点操作与凭证维护) · [验证](../quality/tool-node-maintenance-verification.md)
+
 T-REPOSITORY-SOURCE-INTAKE-244 项目审批人可按确切基线及提交保留 WorkBuddy 待交付仓库的 Git 包。审批回执绑定原运行、节点和尝试，Runner 严格导入已独立验证。 [合同](../../contracts/workbuddy-task-dispatch.md#批准并保留确切仓库来源) · [验证](../quality/repository-source-intake-verification.md)
 
 T-REPOSITORY-BUNDLE-EXPORT-243 受管仓库提供方可从固定入站分支按管理员基线导出精确 Git 包，已在独立仓库验证并导入同一提交。 [部署](../deployment/repository-integration.md#启用登记分支-git-包导出) · [验证](../quality/repository-bundle-export-verification.md)

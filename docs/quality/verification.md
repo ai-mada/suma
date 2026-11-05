@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOL-NODE-MAINTENANCE 核验当前凭证管理权限、管理员与只读成员视图、权限降级、准确撤销和历史定位。 [阶段验证](tool-node-maintenance-verification.md)
+
 T-REPOSITORY-SOURCE-INTAKE-244 核验批准留存、原尝试变化拒绝、回执重放、凭据隔离及真实 Git 严格导入。 [阶段验证](repository-source-intake-verification.md)
 
 T-REPOSITORY-BUNDLE-EXPORT-243 核验登记分支导出、独立仓库导入确切提交、分叉与漂移拒绝、凭据隔离及既有仓库操作回归。 [阶段验证](repository-bundle-export-verification.md)

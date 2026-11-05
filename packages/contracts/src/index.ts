@@ -5713,6 +5713,10 @@ export interface ReleaseWorkerCreation {
   manual_rotation_allowed?: boolean;
   token?: string;
 }
+export interface ReleaseWorkerList {
+  items: (ReleaseWorker)[];
+  credential_management_allowed: boolean;
+}
 export interface ReleaseWorkerRegisterRequest {
   project_id: string;
   worker_id: string;

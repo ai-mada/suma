@@ -29,6 +29,13 @@ type ReleaseWorker struct {
 	ManualRotationAllowed bool                         `json:"manual_rotation_allowed,omitempty"`
 }
 
+// ReleaseWorkerList exposes credential management for this read's current browser
+// authority. Every command still checks current authority and the exact worker.
+type ReleaseWorkerList struct {
+	Items                       []ReleaseWorker `json:"items"`
+	CredentialManagementAllowed bool            `json:"credential_management_allowed"`
+}
+
 // Human release administration requires the actual browser credential and current
 // domain admin role in this same transaction, before any receipt is recovered.
 func (s *Service) artifactAdminTx(ctx context.Context, tx *sql.Tx, actor Actor, project string) (*authorizedCommand, error) {
@@ -404,8 +411,11 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 	return n == 1, nil
 }
 
-func (s *Service) ReleaseWorkers(ctx context.Context, actor Actor, project string) ([]ReleaseWorker, error) {
-	var result0 []ReleaseWorker
+func (s *Service) ReleaseWorkers(ctx context.Context, actor Actor, project string) (ReleaseWorkerList, error) {
+	if project == "" || project == organizationScope {
+		return ReleaseWorkerList{}, invalid("执行节点列表需要项目范围")
+	}
+	var result0 ReleaseWorkerList
 	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
 		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
 		defer cancel()
@@ -415,39 +425,49 @@ func (s *Service) ReleaseWorkers(ctx context.Context, actor Actor, project strin
 	})
 	return result0, err
 }
-func (s *Service) readReleaseWorkersTx(ctx context.Context, auth *authorizedCommand, project string) ([]ReleaseWorker, error) {
+func (s *Service) readReleaseWorkersTx(ctx context.Context, auth *authorizedCommand, project string) (ReleaseWorkerList, error) {
 	if auth == nil {
-		return nil, unauthenticated()
+		return ReleaseWorkerList{}, unauthenticated()
 	}
-	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
-		return nil, e
+	if err := auth.assertTx(auth.tx, auth.target, purposeProjectRead); err != nil {
+		return ReleaseWorkerList{}, err
 	}
 	if auth.target.projectID != project {
-		return nil, forbidden()
+		return ReleaseWorkerList{}, forbidden()
 	}
 
 	tx, p := auth.tx, auth.currentPrincipal
-	rotatable, err := s.manualRunnerRotationAllowedTx(ctx, auth, project)
-	if err != nil {
-		return nil, err
+	out := ReleaseWorkerList{Items: []ReleaseWorker{}}
+	var rotatable map[string]bool
+	if auth.actor.IsBrowser() {
+		allowed, err := s.releaseAdministratorTx(ctx, tx, p, project)
+		if err != nil {
+			return ReleaseWorkerList{}, err
+		}
+		out.CredentialManagementAllowed = allowed
+		if allowed {
+			rotatable, err = s.manualRunnerRotationAllowedTx(ctx, auth, project)
+			if err != nil {
+				return ReleaseWorkerList{}, err
+			}
+		}
 	}
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT id,project_id,worker_id,version,status,profiles,deployment,created_at,expires_at FROM suma_release_workers WHERE tenant_id=? AND project_id=? ORDER BY created_at DESC,id`), p.TenantID, project)
 	if err != nil {
-		return nil, err
+		return ReleaseWorkerList{}, err
 	}
 	defer rows.Close()
-	out := []ReleaseWorker{}
 	for rows.Next() {
 		var w ReleaseWorker
 		var raw string
 		if err = rows.Scan(&w.ID, &w.ProjectID, &w.WorkerID, &w.Version, &w.Status, &raw, &w.Deployment, &w.CreatedAt, &w.ExpiresAt); err != nil {
-			return nil, err
+			return ReleaseWorkerList{}, err
 		}
 		if err = json.Unmarshal([]byte(raw), &w.Profiles); err != nil {
-			return nil, err
+			return ReleaseWorkerList{}, err
 		}
 		w.ManualRotationAllowed = rotatable[w.ID]
-		out = append(out, w)
+		out.Items = append(out.Items, w)
 	}
 	return out, rows.Err()
 }

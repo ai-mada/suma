@@ -51,15 +51,10 @@ func manualRunnerSlotMatches(tenant, project, slotOperation, issuanceOperation s
 	return issuanceOperation != "" && slotOperation == digest("registered-runner:"+tenant+":"+project+":"+issuanceOperation)
 }
 
+// manualRunnerRotationAllowedTx projects row eligibility after the caller has
+// verified current browser administrator authority in the same transaction.
 func (s *Service) manualRunnerRotationAllowedTx(ctx context.Context, auth *authorizedCommand, project string) (map[string]bool, error) {
 	p := auth.currentPrincipal
-	if auth.actor.kind != actorBrowser {
-		return nil, nil
-	}
-	allowed, err := s.releaseAdministratorTx(ctx, auth.tx, p, project)
-	if err != nil || !allowed {
-		return nil, err
-	}
 	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT w.id,w.worker_id,x.label,c.operation_id,i.operation_id
 		FROM suma_release_workers w`+manualRunnerIssuanceJoins+`
 		WHERE w.tenant_id=? AND w.project_id=? AND w.created_by=? AND w.status='active'

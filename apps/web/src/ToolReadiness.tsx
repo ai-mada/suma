@@ -14,7 +14,7 @@ export function matchesToolFilter(profile:ToolProfile, filter:ToolFilter) {
 export function ToolReadiness({items,total,uncertain,identitiesKnown,identityCount,disabled,filtered=false,onClearFilters,onWorker,onRegister,onGuide,onSelect}:{
   items?:ToolProfile[];total:number;uncertain:boolean;identitiesKnown:boolean;identityCount:number;disabled:boolean;
   filtered?:boolean;onClearFilters?:()=>void;
-  onWorker:()=>void;onRegister:()=>void;onGuide:()=>void;onSelect:(id:string)=>void;
+  onWorker?:()=>void;onRegister:()=>void;onGuide:()=>void;onSelect:(id:string)=>void;
 }) {
   useLocale();
   const ready=items?.filter(item=>matchesToolFilter(item,'available')).length??0;
@@ -23,8 +23,8 @@ export function ToolReadiness({items,total,uncertain,identitiesKnown,identityCou
   const next=uncertain||!items?'refresh':filtered&&!items.length?'filtered_empty':!items.length?identitiesKnown&&identityCount===0?'identity':'register':blocked?'attention':paused?'review':ready?'ready':'register';
   const setup=next==='register';
   const action=next==='filtered_empty'?onClearFilters:next==='identity'?onWorker:next==='review'?()=>onSelect(paused!.id):next==='attention'?()=>onSelect(blocked!.id):onRegister;
-  const title=next==='filtered_empty'?'tool-workspace.no_matches':setup?'tool-quick-connect.next':'tool-workspace.next.'+next;
-  const help=next==='filtered_empty'?'tool-workspace.no_matches_hint':setup?'tool-quick-connect.next_hint':'tool-workspace.help.'+next;
+  const title=next==='filtered_empty'?'tool-workspace.no_matches':setup?'tool-quick-connect.next':next==='identity'&&!onWorker?'tool-worker-identities.needs_node':'tool-workspace.next.'+next;
+  const help=next==='filtered_empty'?'tool-workspace.no_matches_hint':setup?'tool-quick-connect.next_hint':next==='identity'&&!onWorker?'tool-worker-identities.request_node':'tool-workspace.help.'+next;
   const label=next==='filtered_empty'?'tool-workspace.clear_filters':setup?'tool-quick-connect.title':'tool-workspace.action.'+next;
   return <section className="tool-readiness" data-tool-readiness-state={next} aria-label={t('tool-workspace.readiness')}>
     <div className="tool-readiness-main">

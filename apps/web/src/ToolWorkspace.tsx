@@ -5,6 +5,7 @@ import { Trans } from "./i18n/Trans";
 import { tr as t, UiError, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
 import { lazy, Suspense, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  ChevronDown,
   ChevronRight,
   Plus,
   RefreshCw,
@@ -73,7 +74,7 @@ import {AdapterConnections,readAdapterCatalog,type AdapterDescriptor} from './Ad
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {WorkBuddyConnections} from './WorkBuddyConnections';
 import type {DeveloperClientID} from './developer-client-connections-model';
-import type { ProjectPoolRunnerPage, RunnerPairing, ToolProfileReplacement } from "../../../packages/contracts/src";
+import type { ProjectPoolRunnerPage, ReleaseWorkerList, RunnerPairing, ToolProfileReplacement } from "../../../packages/contracts/src";
 import {
   ToolIdentity,
   currentToolIdentity,
@@ -152,6 +153,7 @@ function ScopedToolWorkspace({
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const [workerIdentityClock,setWorkerIdentityClock]=useState(()=>Date.now());
   const [workerIdentitySelection,setWorkerIdentitySelection]=useState<{caller:typeof api;generation:number;filter:ToolWorkerIdentityFilter;query:string}>(()=>({caller:api,generation:pairingGeneration,filter:'current',query:''}));
+  const [workerMaintenanceOpen,setWorkerMaintenanceOpen]=useState<{caller:typeof api;id:string}>();
   const workerIdentityPreferences=workerIdentitySelection.caller===api&&workerIdentitySelection.generation===pairingGeneration?workerIdentitySelection:{filter:'current' as ToolWorkerIdentityFilter,query:''};
   const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft;sourceTool?:ToolProfile;sourceEpoch?:number}|undefined>(undefined);
   const inspectionLookup=useRef<AbortController|undefined>(undefined);
@@ -210,7 +212,7 @@ function ScopedToolWorkspace({
   );
   const action = useToolAction(recovery, () => setDialog(undefined)),
     profiles = useManagedToolProfiles<ToolProfile>(project,filters,refresh+revision),
-    workers = useToolRead<{ items: ExecutionWorker[] }>(
+    workers = useToolRead<ReleaseWorkerList>(
       "/release-workers" + query(project),
       refresh + revision,
     ),
@@ -225,11 +227,21 @@ function ScopedToolWorkspace({
       refresh + revision,
     );
   const workerAccessLost=workers.failure instanceof ApiError&&[401,403,404].includes(workers.failure.status);
+  const workerManagement=workers.data?.credential_management_allowed;
+  const workerManagementDenied=workerAccessLost||workerManagement===false;
+  const workerManagementReady=workerManagement===true&&!workers.loading&&!workers.error;
+  const credentialDialog=dialog?.kind==='rotate-worker'||dialog?.kind==='revoke-worker'||(dialog?.kind==='worker'&&dialog.mode!=='pairing');
+  const credentialWriteRefused=credentialDialog&&(action.errorStatus===401||action.errorStatus===403);
+  const credentialDialogDenied=credentialDialog&&(workerManagementDenied||credentialWriteRefused);
   const uploadAction=useWorkerUploadRecoveryAction(project,session.user.id,session.organization.id);
   const uploadRecoveryLocked=uploadAction.busy||!!uploadAction.pending;
   const [uploadReceipt,setUploadReceipt]=useState<UploadAbandonReceipt>();
-  useEffect(()=>{if(workerAccessLost)setUploadReceipt(undefined);},[workerAccessLost]);
-  const credential=credentialState?.caller===api&&credentialState.generation===pairingGeneration&&!workerAccessLost?credentialState:undefined;
+  useEffect(()=>{
+    if(!workerManagementDenied)return;
+    setUploadReceipt(undefined);
+    setWorkerMaintenanceOpen(undefined);
+  },[workerManagementDenied]);
+  const credential=credentialState?.caller===api&&credentialState.generation===pairingGeneration&&!workerManagementDenied?credentialState:undefined;
   const visibleCredential=useRef(credential);visibleCredential.current=credential;
   function clearCredential(){
     setCredential(undefined);
@@ -237,7 +249,12 @@ function ScopedToolWorkspace({
     setCopyState(undefined);
   }
   useEffect(()=>{if(credentialState&&!credential)clearCredential();},[credentialState,credential]);
-  useEffect(()=>{if(workerAccessLost&&dialog?.kind==="rotate-worker")setDialog(undefined);},[workerAccessLost,dialog]);
+  useEffect(()=>{
+    if(!credentialDialogDenied)return;
+    setDialog(undefined);
+    if(credentialWriteRefused)void workers.read();
+    focusNavigation(()=>document.getElementById(guideID+'-worker-identities'),false);
+  },[credentialDialogDenied,credentialWriteRefused,workers.read]);
   const detailBasis=JSON.stringify([selected,detail.data?.id,detail.data?.version,detail.data?.worker_id,detail.data?.profile.profile_sha256]),latestDetailBasis=useRef(detailBasis);latestDetailBasis.current=detailBasis;
   // A value-equal A -> B -> A detail selection is a new read owner. This ref
   // carries provenance only; existing drafts and operation receipts stay put.
@@ -269,8 +286,11 @@ function ScopedToolWorkspace({
     filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
   const workerIdentityRecords=workers.data?.items??[];
   const rotationWorker=dialog?.kind==='rotate-worker'?dialog.worker:undefined;
-  const rotationWorkerCurrent=!!rotationWorker&&!workers.loading&&!workers.error&&workerIdentityRecords.some(row=>row.id===rotationWorker.id&&row.worker_id===rotationWorker.worker_id&&row.version===rotationWorker.version&&row.project_id===project&&row.status==='active'&&row.manual_rotation_allowed===true);
-  const rotationUploadReceipt=!workerAccessLost&&rotationWorker&&uploadReceipt?.worker_registry_id===rotationWorker.id?uploadReceipt:undefined;
+  const maintenanceWorker=dialog?.kind==='revoke-worker'?dialog.worker:rotationWorker;
+  const currentMaintenanceWorker=maintenanceWorker&&workerIdentityRecords.find(row=>
+    row.id===maintenanceWorker.id&&row.worker_id===maintenanceWorker.worker_id&&row.version===maintenanceWorker.version&&row.project_id===project&&row.status==='active');
+  const rotationWorkerCurrent=workerManagementReady&&currentMaintenanceWorker?.manual_rotation_allowed===true;
+  const rotationUploadReceipt=!workerManagementDenied&&rotationWorker&&uploadReceipt?.worker_registry_id===rotationWorker.id?uploadReceipt:undefined;
   const workerIdentityView=projectToolWorkerIdentities(workerIdentityRecords,workerIdentityClock,workerIdentityPreferences.filter,workerIdentityPreferences.query);
   const matchingWorkerIdentityIDs=new Set(workerIdentityView.items.map(worker=>worker.id));
   // Keep the exact context row mounted and visible when a filter would hide an
@@ -600,6 +620,11 @@ function ScopedToolWorkspace({
     setDialog(undefined);setInspectionLocked(false);
     requestAnimationFrame(()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||!row.isConnected||row.hidden)return;row.scrollIntoView?.({block:'nearest'});row.focus({preventScroll:true});});
   }
+  function openWorkerRegistration() {
+    if(writeBlocked||workerManagement!==true)return;
+    action.clearError();
+    setDialog({kind:'worker',mode:'manual'});
+  }
   function openRunnerPairing() {
     if(writeBlocked)return;
     action.clearError();
@@ -708,7 +733,11 @@ function ScopedToolWorkspace({
     const result = value as Record<string, unknown>;
     if(path==='/tool-profiles')setReceipt({key:'registered',name:String(result.name||''),scope:contextKey});
     else if(path.startsWith('/tool-profiles/')&&['enabled','paused','revoked'].includes(String(result.state)))setReceipt({key:String(result.state),name:String(result.name||''),scope:contextKey});
-    else if(path.startsWith('/release-workers/'))setReceipt({key:'worker_revoked',name:String(result.worker_id||''),scope:contextKey});
+    else if(path.startsWith('/release-workers/')){
+      setReceipt({key:'worker_revoked',name:String(result.worker_id||''),scope:contextKey});
+      setWorkerMaintenanceOpen(undefined);
+      focusNavigation(()=>document.getElementById(guideID+'-worker-identities'),false);
+    }
     if (path === "/release-workers") {
       setRevealed(false);
       setCopyState(undefined);
@@ -744,7 +773,7 @@ function ScopedToolWorkspace({
         <button type="button" className="primary" data-tools-add disabled={writeBlocked} onClick={openQuickConnect}><Plus size={16} aria-hidden="true"/>{t('tool-workspace-experience.add')}</button>
         <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" data-tools-advanced-register disabled={writeBlocked} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
       </div>
-      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={filters.state!=='active'||!!filters.query} onClearFilters={()=>{setSearch('');applyFilters({state:'active',query:''});}} onWorker={() => { if(writeBlocked)return;action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
+      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={filters.state!=='active'||!!filters.query} onClearFilters={()=>{setSearch('');applyFilters({state:'active',query:''});}} onWorker={workerManagement===true?openWorkerRegistration:undefined} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
       {returnRun && (
         <a
           onClick={(event) => {
@@ -764,9 +793,9 @@ function ScopedToolWorkspace({
           {t("development.tools.return_to_the_original_run_and_selected")}</a>
       )}
       <ToolRecoveryNotice action={action} onRestored={saved} />
-      {(!rotationWorker||workerAccessLost)&&<>
-        {(uploadAction.pending||uploadAction.conflict)&&<WorkerUploadRecoveryNotice action={uploadAction} disabled={action.busy||workerAccessLost} onRestored={setUploadReceipt}/>}
-        {uploadReceipt&&!workerAccessLost&&<WorkerUploadRecoveryReceipt receipt={uploadReceipt}/>}
+      {(!rotationWorker||credentialDialogDenied)&&<>
+        {(uploadAction.pending||uploadAction.conflict)&&<WorkerUploadRecoveryNotice action={uploadAction} disabled={action.busy||!workerManagementReady} onRestored={setUploadReceipt}/>}
+        {uploadReceipt&&!workerManagementDenied&&<WorkerUploadRecoveryReceipt receipt={uploadReceipt}/>}
       </>}
       {replacementReceipt&&<ToolProfileReplacementReceipt value={replacementReceipt} disabled={writeBlocked} onViewOriginal={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onViewReplacement={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onEnableReplacement={profile=>void reviewReplacementTarget(profile)}/>}
       {!!connectError&&<ErrorNotice error={renderDiagnostic(connectError)}/>}
@@ -977,20 +1006,14 @@ function ScopedToolWorkspace({
       <section className="panel tool-workers tool-worker-identities" aria-labelledby={guideID+'-worker-identities'}>
         <div className="tool-section-heading">
           <div>
-            <h3 id={guideID+'-worker-identities'}>{t("development.tools.execution_worker_identity")}</h3>
-            <p className="muted">
-              {t('tool-worker-identities.boundary')}</p>
+            <h3 id={guideID+'-worker-identities'} tabIndex={-1}>{t("development.tools.execution_worker_identity")}</h3>
+            <p className="muted">{t('tool-worker-identities.boundary')}</p>
+            {workerManagement===false&&<p className="tool-worker-identity-access" role="status">{t('tool-worker-identities.read_only')}</p>}
           </div>
-          <button
-            disabled={writeBlocked}
-            onClick={() => {
-              if(writeBlocked)return;
-              action.clearError();
-              setDialog({ kind: "worker" });
-            }}
-          >
-            <Plus size={14} />
-            {t("development.tools.register_execution_worker")}</button>
+          {workerManagement===true&&<button type="button" data-tool-worker-register
+            disabled={writeBlocked||!workerManagementReady} onClick={openWorkerRegistration}>
+            <Plus size={16} aria-hidden="true"/>
+            {t("development.tools.register_execution_worker")}</button>}
         </div>
         <div className="tool-worker-identity-toolbar">
           <div className="tool-worker-identity-filters" role="group" aria-label={t('tool-worker-identities.views')}>
@@ -1013,6 +1036,10 @@ function ScopedToolWorkspace({
         ) : workers.data.items.length ? (
           <div className="tool-worker-identity-rows">{workerIdentityRecords.map((worker) => {
             const identityState=classifyToolWorkerIdentity(worker,workerIdentityClock),retained=retainedWorkerIdentityIDs.has(worker.id);
+            const canMaintain=workerManagement===true&&worker.project_id===project&&worker.status==='active';
+            const maintenanceOpen=canMaintain&&workerMaintenanceOpen?.caller===api&&workerMaintenanceOpen.id===worker.id;
+            const maintenanceID=guideID+'-worker-maintenance-'+encodeURIComponent(worker.id);
+            const canRotate=worker.manual_rotation_allowed===true&&(identityState==='current'||identityState==='expired');
             return <article className={"tool-worker-row tool-worker-identity-row"+(workerRecoverySource(worker.worker_id)?" with-recovery":"")+(retained?" is-context-target":"")} key={worker.id} hidden={!matchingWorkerIdentityIDs.has(worker.id)&&!retained} tabIndex={-1} data-tool-worker={worker.worker_id} data-tool-worker-credential-state={identityState} data-tool-worker-context={retained?'':undefined} ref={element=>{if(element)workerRows.current.set(worker.worker_id,element);else workerRows.current.delete(worker.worker_id);}}>
               <div className="tool-worker-identity-facts">
                 <div className="tool-worker-identity-title"><strong>
@@ -1030,25 +1057,31 @@ function ScopedToolWorkspace({
               <div className="tool-worker-identity-actions">
               {identityState==='current'&&<button type="button" data-tool-worker-connect={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>openWorkerQuickConnect(worker)}>{t('tool-worker-identities.configure_tools')}</button>}
               {identityState==='current'&&<button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>{const now=Date.now();if(writeBlocked||workers.loading||workers.error)return;if(classifyToolWorkerIdentity(worker,now)!=='current'){setWorkerIdentityClock(now);return;}openRemoteScan(worker.worker_id);}}>{t('remote-tool-scan.open')}</button>}
-              {worker.manual_rotation_allowed===true&&worker.project_id===project&&(identityState==='current'||identityState==='expired')&&
-                <button type="button" data-tool-worker-rotate={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>{
-                  if(writeBlocked||workers.loading||workers.error)return;
-                  action.clearError();
-                  setDialog({kind:'rotate-worker',worker});
-                }}>{t('worker-rotation.open')}</button>}
-              {worker.status === "active" && (
-                <button
-                  type="button" data-tool-worker-revoke={worker.worker_id}
-                  disabled={writeBlocked||workers.loading||!!workers.error}
-                  onClick={() => {
-                    if(writeBlocked||workers.loading||workers.error)return;
-                    action.clearError();
-                    setDialog({ kind: "revoke-worker", worker });
-                  }}
-                >
-                  {t("development.tools.revoke_worker_credential")}</button>
-              )}
+              {canMaintain&&<button type="button" className="tool-worker-maintenance-toggle" data-tool-worker-maintenance={worker.worker_id}
+                aria-expanded={maintenanceOpen} aria-controls={maintenanceID} disabled={writeBlocked||!workerManagementReady}
+                onClick={()=>setWorkerMaintenanceOpen(maintenanceOpen?undefined:{caller:api,id:worker.id})}>
+                {t('tool-worker-identities.maintenance')}<ChevronDown size={16} aria-hidden="true"/>
+              </button>}
               </div>
+              {canMaintain&&<div id={maintenanceID} className="tool-worker-maintenance" hidden={!maintenanceOpen}>
+                {maintenanceOpen&&<>
+                  <p>{t('tool-worker-identities.maintenance_hint')}</p>
+                  <div className="tool-worker-maintenance-actions">
+                    {canRotate&&<button type="button" data-tool-worker-rotate={worker.worker_id}
+                      disabled={writeBlocked||!workerManagementReady} onClick={()=>{
+                        if(writeBlocked||!workerManagementReady)return;
+                        action.clearError();
+                        setDialog({kind:'rotate-worker',worker});
+                      }}>{t('worker-rotation.open')}</button>}
+                    <button type="button" className="danger-quiet" data-tool-worker-revoke={worker.worker_id}
+                      disabled={writeBlocked||!workerManagementReady} onClick={()=>{
+                        if(writeBlocked||!workerManagementReady)return;
+                        action.clearError();
+                        setDialog({kind:'revoke-worker',worker});
+                      }}>{t('development.tools.revoke_worker_credential')}</button>
+                  </div>
+                </>}
+              </div>}
               {identityState==='current'&&workerConnectionPreparation(worker.worker_id)}
             </article>;
           })}{!workerIdentityView.items.length&&!retainedWorkerIdentities.length&&<div className="tool-worker-identity-empty"><p>{t('tool-worker-identities.empty_view')}</p><button type="button" data-tool-worker-show-all disabled={writeBlocked} onClick={()=>updateWorkerIdentityView('all','')}>{t('tool-worker-identities.show_all')}</button></div>}</div>
@@ -1097,7 +1130,7 @@ function ScopedToolWorkspace({
         }}
         onRun={run=>{setTimeout(()=>requestAnimationFrame(()=>{if(ownsHandoff(handoff)&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run}));}),0);}}/></Suspense>}
       <Modal
-        open={!!dialog&&(dialog.kind!=="rotate-worker"||!workerAccessLost)}
+        open={!!dialog&&!credentialDialogDenied}
         onClose={() => {
           if (!action.busy && !action.pending && !pairingLocked && !inspectionLocked && !uploadRecoveryLocked) setDialog(undefined);
         }}
@@ -1189,17 +1222,18 @@ function ScopedToolWorkspace({
             action.clearError();
             if(replacementSource||!openToolPreparation(adapter,expectedWorkerID))setDialog({kind:'create',adapter,resumeQuick:true});
           }}
-          onWorker={()=>{action.clearError();setDialog({kind:'worker'});}}
+          onWorker={workerManagement===true?openWorkerRegistration:undefined}
         />}
         {dialog?.kind === "worker" && <>
           {publicDraft&&<button type="button" className="text-button" data-tools-return-quick disabled={writeBlocked} onClick={openQuickConnect}>{t('tool-workspace.return_connect')}</button>}
           <div className="tool-action-bar">
-            <button type="button" data-worker-mode="manual" aria-pressed={dialog.mode!=='pairing'} disabled={writeBlocked} onClick={()=>{if(!writeBlocked)setDialog({kind:'worker',mode:'manual'});}}>{t('runner-pairing.mode_manual')}</button>
+            {workerManagement===true&&<button type="button" data-worker-mode="manual" aria-pressed={dialog.mode!=='pairing'} disabled={writeBlocked||!workerManagementReady} onClick={openWorkerRegistration}>{t('runner-pairing.mode_manual')}</button>}
             <button type="button" data-worker-mode="pairing" aria-pressed={dialog.mode==='pairing'} disabled={writeBlocked} onClick={openRunnerPairing}>{t('runner-pairing.mode_remote')}</button>
           </div>
-          {dialog.mode==='pairing'?<RunnerPairingPanel project={project} disabled={pending||action.busy} onLockChange={setPairingLocked} onPaired={continueWithPairedRunner}/>:<WorkerForm
+          {dialog.mode==='pairing'?<RunnerPairingPanel project={project} allowCreate={workerManagementReady} disabled={pending||action.busy} onLockChange={setPairingLocked} onPaired={continueWithPairedRunner}/>:<WorkerForm
             project={project}
             action={action}
+            disabled={writeBlocked||!workerManagementReady}
             onSaved={(value) => saved("/release-workers", value)}
             onCancel={() => setDialog(undefined)}
           />}
@@ -1225,7 +1259,7 @@ function ScopedToolWorkspace({
             closeBlocked={uploadRecoveryLocked}
             uploadReceiptOperation={rotationUploadReceipt?.operation_id}
             recovery={<WorkerArtifactUploadRecovery worker={dialog.worker} action={uploadAction}
-              disabled={otherWriteBlocked||!rotationWorkerCurrent} restoreDisabled={action.busy||workerAccessLost}
+              disabled={otherWriteBlocked||!rotationWorkerCurrent} restoreDisabled={action.busy||!workerManagementReady}
               receipt={rotationUploadReceipt} onSaved={setUploadReceipt}/>}
             onClose={()=>setDialog(undefined)}
             onRefresh={()=>{
@@ -1235,7 +1269,7 @@ function ScopedToolWorkspace({
             onRotate={async()=>{
               const path='/release-workers/'+encodeURIComponent(dialog.worker.id)+'/rotate-credential';
               const body={project_id:project,expected_version:dialog.worker.version,acknowledge_stopped:true};
-              if(!validManualWorkerRotationCommand(path,body,'POST',project))return;
+              if(!rotationWorkerCurrent||!validManualWorkerRotationCommand(path,body,'POST',project))return;
               const value=await action.run<ManualWorkerRotationReceipt>(path,body);
               if(value)saved(path,value);
             }}
@@ -1246,6 +1280,7 @@ function ScopedToolWorkspace({
             className="tool-form"
             onSubmit={async (event) => {
               event.preventDefault();
+              if(writeBlocked||!workerManagementReady||!currentMaintenanceWorker||action.conflict)return;
               const worker = dialog.worker;
               const result = await action.run<ExecutionWorker>(
                 "/release-workers/" + encodeURIComponent(worker.id),
@@ -1261,6 +1296,7 @@ function ScopedToolWorkspace({
           >
             <p className="warning">
               <Trans i18nKey="development.tools.revoke_worker_warning" values={{worker:dialog.worker.worker_id}} components={{worker:<strong/>}}/></p>
+            {workerManagementReady&&!currentMaintenanceWorker&&<p role="status">{t('tool-worker-identities.changed')}</p>}
             <div className="dialog-actions">
               <button
                 type="button"
@@ -1270,7 +1306,7 @@ function ScopedToolWorkspace({
                 {t("development.workflow.cancel")}</button>
               <button
                 className="primary"
-                disabled={action.busy || pending || action.conflict}
+                disabled={writeBlocked||!workerManagementReady||!currentMaintenanceWorker||action.conflict}
               >
                 {t("development.tools.confirm_worker_credential_revocation")}</button>
             </div>
@@ -1598,11 +1634,13 @@ function ToolProfileForm({
 function WorkerForm({
   project,
   action,
+  disabled,
   onSaved,
   onCancel,
 }: {
   project: string;
   action: ToolAction;
+  disabled: boolean;
   onSaved: (value: unknown) => void;
   onCancel: () => void;
 }) { useLocale();
@@ -1612,6 +1650,7 @@ function WorkerForm({
       className="tool-form"
       onSubmit={async (event) => {
         event.preventDefault();
+        if(disabled||action.busy||action.pending||action.conflict)return;
         const result = await action.run("/release-workers", {
           project_id: project,
           worker_id: worker,
@@ -1654,7 +1693,7 @@ function WorkerForm({
           {t("development.workflow.cancel")}</button>
         <button
           className="primary"
-          disabled={action.busy || !!action.pending || action.conflict}
+          disabled={disabled||action.busy||!!action.pending||action.conflict}
         >
           {t("development.tools.register_and_get_this_credential")}</button>
       </div>

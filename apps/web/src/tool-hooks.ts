@@ -184,10 +184,12 @@ export function useToolAction(recovery: ToolRecovery, onDefer?: () => void) {
       }
     }
   }
+  const issue=current.error&&typeof current.error==='object'&&'source' in current.error?current.error:undefined;
   return {
     busy: current.busy,
-    error: renderDiagnostic(recovery.error) || (current.error && typeof current.error === 'object' && 'source' in current.error ? toolError(current.error.source) + ('originalRefusal' in current.error && current.error.originalRefusal ? tr('common.originalRefusal') : '') : current.error ? toolError(current.error) : ''),
+    error: renderDiagnostic(recovery.error) || (issue ? toolError(issue.source) + ('originalRefusal' in issue && issue.originalRefusal ? tr('common.originalRefusal') : '') : current.error ? toolError(current.error) : ''),
     conflict: current.conflict,
+    ...(issue?.source instanceof ApiError?{errorStatus:issue.source.status}:{}),
     pending,
     deferred: current.deferred,
     setError,

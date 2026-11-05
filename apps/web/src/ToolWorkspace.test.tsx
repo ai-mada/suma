@@ -21,7 +21,7 @@ beforeEach(async()=>{
   const path=String(input).replace('/api/v1','').split('?')[0];
   if(init.method!=='GET'){const body=JSON.parse(String(init.body));writes.push({path,body});const saved={...profile('new','paused',false),name:body.name,profile:body.profile};items.push(saved);return new Response(JSON.stringify(saved),{status:200});}
   reads.push(path);if(fail&&path==='/tool-profiles')return new Response(JSON.stringify({error:{code:'unavailable',message:'Connection unavailable'}}),{status:503});
-  const data=path==='/tool-profiles'?{items,total:items.length}:path==='/release-workers'?{items:workers}:path==='/project-execution/runners'?{items:[],as_of:'2026-10-29T05:00:00Z'}:items.find(item=>path==='/tool-profiles/'+item.id);
+  const data=path==='/tool-profiles'?{items,total:items.length}:path==='/release-workers'?{items:workers,credential_management_allowed:true}:path==='/project-execution/runners'?{items:[],as_of:'2026-10-29T05:00:00Z'}:items.find(item=>path==='/tool-profiles/'+item.id);
   return new Response(JSON.stringify(data??{}),{status:200});
  }));
 });
@@ -29,7 +29,7 @@ afterEach(async()=>{await act(async()=>root.unmount());host.remove();document.bo
 async function render(){await act(async()=>root.render(<View/>));await settle();}
 
 it('offers the first actionable setup step directly from an empty workspace',async()=>{
- await render();expect(host.textContent).toContain('下一步');await click('登记执行节点');expect(document.querySelector('[role=dialog] input[pattern]')).not.toBeNull();expect(writes).toHaveLength(0);
+ await render();expect(host.querySelector('[data-tool-readiness-state="identity"]')?.textContent).toContain('先登记一个执行节点');await click('登记执行节点');expect(document.querySelector('[role=dialog] input[pattern]')).not.toBeNull();expect(writes).toHaveLength(0);
 });
 it('clears node facts on an actor switch while preserving the old uncertain operation without replay',async()=>{
  workers=[{id:'old-node',worker_id:'old-scope-runner',status:'active',version:1}];
