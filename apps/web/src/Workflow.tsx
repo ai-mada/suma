@@ -75,6 +75,7 @@ const workflowEventKeys:Record<string,string>={
  parent_cancel:'development.workflow.event_name.parent_cancel',
  candidate_pinned:'development.workflow.event_name.candidate_pinned',
  candidate_waiting:'development.workflow.event_name.candidate_waiting',
+ cloud_delivery_observed:'development.workflow.event_name.cloud_delivery_observed',
  compensation_requested:'development.workflow.event_name.compensation_requested',
  compensation_state_changed:'development.workflow.event_name.compensation_state_changed',
  tool_progress:'development.workflow.event_name.tool_progress',

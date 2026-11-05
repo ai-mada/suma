@@ -695,6 +695,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "workbuddy_late_delivery": {
+    "stage": "T-WORKBUDDY-LATE-DELIVERY-240",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "a1acf1f0ad3959445a72d586fa5f13b31272cd42",
+    "contract": "contracts/workbuddy-task-dispatch.md",
+    "report": "docs/quality/workbuddy-late-delivery-verification.md",
+    "actual": "Authorized completed provider observation atomically refines the exact waiting original attempt. Task delivery resolves the original target. Attempts, leases, cancellation, downstream and acceptance remain separate.",
+    "verification": "Suma HTTP, SQLite, loopback WorkBuddy and rollback injection. Five late observation scenarios, existing candidate provenance regression, 18 Web tests and paired locales.",
+    "known_limitations": "Real vendor account, trusted provider Git intake, distributed database concurrency and production acceptance remain pending.",
+    "full_platform_complete": false,
+    "git_record": ".cache/workbuddy-late-delivery-240/post-git.json"
+  },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
     "status": "scoped_verified_pending_git_delivery_with_explicit_browser_gap",

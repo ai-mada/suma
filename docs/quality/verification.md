@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-LATE-DELIVERY-240 核验原云任务的迟到完成、停止与过期尝试保护、原操作重放及交付事务回滚。 [阶段验证](workbuddy-late-delivery-verification.md)
+
 T-TOOL-QUICK-CHOICES-241 核验本机快捷选择、协议区分、配置读写范围与单份已有配置复用。 [阶段验证](tool-quick-choices-verification.md)
 
 T-WORKBUDDY-CONNECTION-UX 核验首次直接选权限、官方授权焦点、原连接查询和桌面／窄屏排布。 [阶段验证](workbuddy-connection-ux-verification.md)

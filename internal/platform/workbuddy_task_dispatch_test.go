@@ -320,16 +320,24 @@ func TestWorkBuddyTaskDispatchPublishedTestPlanIsSnapshotOnly(t *testing.T) {
 
 func newWorkBuddyTaskDispatchFixture(t *testing.T) workBuddyTaskDispatchFixture {
 	t.Helper()
+	return newWorkBuddyTaskDispatchFixtureWithCreateStatus(t, "completed")
+}
+
+func newWorkBuddyTaskDispatchFixtureWithCreateStatus(t *testing.T, initialStatus string) workBuddyTaskDispatchFixture {
+	t.Helper()
 	creates, queries := &atomic.Int32{}, &atomic.Int32{}
 	f, w := workBuddyCommandFixture(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if r.URL.Path == "/openapi/v2/tasks" {
 			creates.Add(1)
 			w.WriteHeader(201)
-			fmt.Fprint(w, `{"task_id":"task-dispatch-cloud","status":"completed","name":"Cloud task"}`)
+			fmt.Fprintf(w, `{"task_id":"task-dispatch-cloud","status":%q,"name":"Cloud task"}`, initialStatus)
 			return
 		}
 		if strings.HasPrefix(r.URL.Path, "/openapi/v2/tasks/") {
+			if r.Method != http.MethodGet || r.URL.Path != "/openapi/v2/tasks/task-dispatch-cloud" {
+				t.Error("WorkBuddy fixture received a request outside its original task observation")
+			}
 			queries.Add(1)
 			fmt.Fprint(w, `{"task_id":"task-dispatch-cloud","status":"completed","name":"Cloud task"}`)
 			return

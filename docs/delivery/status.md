@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-LATE-DELIVERY-240 可从原运行刷新云任务，将可推进的原尝试更新为待交付并开放准确定位。原执行结果与验收事实保留。 [合同](../../contracts/workbuddy-task-dispatch.md#迟到的云端完成观察) · [验证](../quality/workbuddy-late-delivery-verification.md)
+
 T-TOOL-QUICK-CHOICES-241 本机已确认的入口可直接选用，同名产品按协议类型区分。多份节点配置显示读写范围，单份已有配置直接展示可用操作。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-choices-verification.md)
 
 T-WORKBUDDY-CONNECTION-UX 将首次连接简化为直接选权限、在 WorkBuddy 确认。焦点随步骤移动，授权核对和账号管理分区展示。真实 WorkBuddy 应用联调仍待配置后验收。 [交互](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-connection-ux-verification.md)

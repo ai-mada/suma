@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/workbuddy"
 	wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
@@ -46,7 +47,7 @@ func (w *WorkBuddyConnections) ObserveCloudTask(ctx context.Context, actor Actor
 	replayed := false
 	var requestHash string
 	err := func() error {
-		bounded, auth, close, e := w.s.planningAuthority(ctx, actor, project, id, purposeBrowserProjectWrite)
+		bounded, auth, close, e := w.cloudTurnBrowser(ctx, actor, project, id, false, true)
 		if e != nil {
 			return e
 		}
@@ -78,7 +79,8 @@ func (w *WorkBuddyConnections) ObserveCloudTask(ctx context.Context, actor Actor
 		return original.CloudSubmission, nil
 	}
 	task, providerErr := client.GetTask(ctx, original.Task.ID)
-	bounded, auth, close, err := w.s.planningAuthority(ctx, actor, project, id, purposeBrowserProjectWrite)
+	// Reauthorize and lock the original execution route after provider I/O.
+	bounded, auth, close, err := w.cloudTurnBrowser(ctx, actor, project, id, false, true)
 	if err != nil {
 		return wc.CloudSubmission{}, err
 	}
@@ -119,6 +121,11 @@ func (w *WorkBuddyConnections) ObserveCloudTask(ctx context.Context, actor Actor
 	}
 	if err = w.s.commandActivity(bounded, auth, "workbuddy_cloud_observed", id, "WorkBuddy cloud task observed"); err != nil {
 		return wc.CloudSubmission{}, err
+	}
+	if providerErr == nil && task.Status == "completed" {
+		if _, err = dag.RefineWorkBuddyDeliveryWaitTx(bounded, auth.tx, w.s.Dialect, auth.target.tenantID, project, row.CloudSubmission); err != nil {
+			return wc.CloudSubmission{}, err
+		}
 	}
 	if err = auth.tx.Commit(); err != nil {
 		return wc.CloudSubmission{}, err

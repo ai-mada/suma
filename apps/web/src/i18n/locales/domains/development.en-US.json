@@ -761,6 +761,7 @@
   "development.workflow.event_name.parent_cancel": "Parent requested cancellation",
   "development.workflow.event_name.candidate_pinned": "Candidate commit pinned",
   "development.workflow.event_name.candidate_waiting": "Waiting for candidate source",
+  "development.workflow.event_name.cloud_delivery_observed": "WorkBuddy completed · Waiting for delivery evidence",
   "development.workflow.event_name.compensation_requested": "Compensation requested",
   "development.workflow.event_name.compensation_state_changed": "Compensation state updated",
   "development.workflow.event_name.tool_progress": "Tool facts updated",

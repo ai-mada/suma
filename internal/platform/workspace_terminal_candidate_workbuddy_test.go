@@ -133,6 +133,15 @@ func TestWorkspaceTerminalCandidateWorkBuddyOrigin(t *testing.T) {
 
 func terminalCandidateWaitingWorkBuddy(t *testing.T, h workBuddyTaskDispatchFixture) dag.Assignment {
 	t.Helper()
+	assignment, submission := workBuddyTaskParkAtProviderWait(t, h)
+	if submission.Task == nil || submission.Task.Status != "completed" {
+		t.Fatal("fixture did not observe completed supplier work")
+	}
+	return assignment
+}
+
+func workBuddyTaskParkAtProviderWait(t *testing.T, h workBuddyTaskDispatchFixture) (dag.Assignment, wc.CloudSubmission) {
+	t.Helper()
 	ctx, f := context.Background(), h.f
 	cloud := &cloudFixture{f: f, w: h.w}
 	cloud.claimToken = f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "cloud-worker", "profiles": []any{}, "deployment": false}), 201)["token"].(string)
@@ -150,15 +159,21 @@ func terminalCandidateWaitingWorkBuddy(t *testing.T, h workBuddyTaskDispatchFixt
 	}
 	cloud.request = wc.CloudCreateRequest{ProjectID: f.project, DelegationID: plan.DelegationID, ExpectedVersion: 1, Assignment: repositoryTestRef(*claim), IdempotencyKey: newID()}
 	submission := createCloudFixture(t, cloud)
-	if submission.Task == nil || submission.Task.Status != "completed" {
-		t.Fatal("fixture did not observe completed supplier work")
+	if submission.Task == nil {
+		t.Fatal("fixture did not create the original provider task")
 	}
 	assignment, result := cloudResultFixture(t, cloud)
 	result.WorkBuddyCloudWait.SubmissionID, result.WorkBuddyCloudWait.SubmissionVersion = submission.ID, submission.Version
+	switch submission.Task.Status {
+	case "waiting_input":
+		result.WorkBuddyCloudWait.Cause = "waiting_input"
+	case "running":
+		result.WorkBuddyCloudWait.Cause = "observation_unconfirmed"
+	}
 	if err = completeCloudFixture(t, cloud, assignment, result); err != nil {
 		t.Fatal(err)
 	}
-	return assignment
+	return assignment, submission
 }
 
 func terminalCandidateStoppedWorkBuddy(t *testing.T, f *fixture, task Record) (WorkspaceTerminalSession, WorkspaceTerminalCandidatePreviewRequest) {

@@ -761,6 +761,7 @@
   "development.workflow.event_name.parent_cancel": "上级运行已请求取消",
   "development.workflow.event_name.candidate_pinned": "候选提交已固定",
   "development.workflow.event_name.candidate_waiting": "等待候选来源",
+  "development.workflow.event_name.cloud_delivery_observed": "WorkBuddy 云端已完成 · 等待交付证据",
   "development.workflow.event_name.compensation_requested": "已请求补偿",
   "development.workflow.event_name.compensation_state_changed": "补偿状态已更新",
   "development.workflow.event_name.tool_progress": "工具事实已更新",

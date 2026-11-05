@@ -128,6 +128,75 @@ func validCloudWaitReason(reason string) bool {
 	}
 }
 
+// RefineWorkBuddyDeliveryWaitTx records an already-authorized observation of
+// the original submission. The caller locks execution scope before reading
+// the submission and calls this as the last write before committing, so the
+// observation and event share the same transaction and event locks stay last.
+// A later provider status changes the reason for waiting, not the attempt's
+// result, lease, reservations, or downstream dependencies.
+func RefineWorkBuddyDeliveryWaitTx(ctx context.Context, tx *sql.Tx, dialect, tenant, project string, sub wbc.CloudSubmission) (bool, error) {
+	if tx == nil || scopeValid(tenant, project) != nil || sub.ProjectID != project || sub.Validate() != nil {
+		return false, ErrInvalid
+	}
+	if sub.State != "task_known" || sub.Task.Status != "completed" || sub.LastError != "" {
+		return false, nil
+	}
+	t := &transaction{e: &Engine{dialect: dialect}, tx: tx, ctx: ctx}
+	r, err := t.loadHot(tenant, project, sub.RunID)
+	if err != nil {
+		return false, err
+	}
+	if r.State != "running" {
+		return false, nil
+	}
+	n := r.find(sub.NodeID)
+	if r.loadErr != nil {
+		return false, r.loadErr
+	}
+	if n == nil || !WorkBuddyCloudNode(n.spec) || n.State != "waiting" || n.lease != 0 || n.wake != 0 || n.CompletedAt != "" ||
+		(n.Reason != "cloud.waiting_input" && n.Reason != "cloud.observation_unconfirmed") ||
+		n.Attempt != sub.Assignment.Attempt || n.Fence != sub.Assignment.Fence || n.WorkerID != sub.Assignment.WorkerID {
+		return false, nil
+	}
+	snapshot, err := t.cloudSnapshot(r, n)
+	if err != nil {
+		return false, err
+	}
+	if snapshot.Binding.DelegationID != sub.DelegationID || !wbc.SameAssignmentIdentity(snapshot.Assignment, sub.Assignment) {
+		return false, ErrConflict
+	}
+	var raw string
+	if err = t.row(`SELECT result FROM dag_attempts WHERE run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=? AND state='waiting' AND completed_at=''`, r.ID, n.ID, n.Attempt, n.Fence, n.WorkerID).Scan(&raw); err != nil {
+		return false, err
+	}
+	var original Result
+	if json.Unmarshal([]byte(raw), &original) != nil || original.RunID != r.ID || original.NodeID != n.ID || original.Attempt != n.Attempt || original.Fence != n.Fence || original.WorkerID != n.WorkerID ||
+		original.OperationID == "" || original.ExitCode == 0 || original.Stopped || original.WorkBuddyCloudWait == nil {
+		return false, ErrConflict
+	}
+	proof := original.WorkBuddyCloudWait
+	if proof.Validate() != nil || proof.ClaimID != snapshot.DispatchID || proof.Binding != snapshot.Binding || proof.Assignment != sub.Assignment ||
+		(proof.SubmissionID != "" && (proof.SubmissionID != sub.ID || proof.SubmissionVersion >= sub.Version)) {
+		return false, ErrConflict
+	}
+	t.now, err = t.e.clockTx(ctx, tx)
+	if err != nil {
+		return false, err
+	}
+	before := n.Reason
+	n.Reason = "cloud.delivery_required"
+	if err = t.event(r, n.ID, "cloud_delivery_observed", map[string]any{"attempt": n.Attempt, "fence": n.Fence, "previous_reason": before, "reason": n.Reason}); err != nil {
+		return false, err
+	}
+	if err = t.saveQuiet(r); err != nil {
+		return false, err
+	}
+	if err = t.flushEvents(); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // parkCloudLease never asserts the remote task stopped. Process reservations
 // and the Pool slot are releasable; external-effect holds remain active.
 func (t *transaction) parkCloudLease(r *runState, n *nodeState) error {
