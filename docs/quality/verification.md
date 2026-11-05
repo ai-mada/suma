@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
+
 T-REPOSITORY-SOURCE-POOL-247 核验项目及 Pool 的 Git 候选交接、授权版本隔离、两进程独立测试及槽位释放。 [阶段验证](repository-source-pool-verification.md)
 
 T-ORG-WORK-CALENDAR 核验组织与人员隔离、初始结构拒绝、版本竞争、原回执、周工作制／例外和双语浏览器。 [阶段验证](organization-work-calendar-verification.md)

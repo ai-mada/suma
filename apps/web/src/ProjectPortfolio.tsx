@@ -1,4 +1,4 @@
-import {ArrowRight, CalendarDays, ChevronLeft, ChevronRight, FolderKanban, Plus, RefreshCw, Search, Settings2} from 'lucide-react';
+import {ArrowRight, BarChart3, CalendarDays, ChevronLeft, ChevronRight, FolderKanban, Plus, RefreshCw, Search, Settings2} from 'lucide-react';
 import {useCallback, useEffect, useId, useRef, useState} from 'react';
 import type {ProjectPortfolioItem, ProjectPortfolioPage} from '../../../packages/contracts/src';
 import {ApiError, type ApiCaller, type Session} from './api';
@@ -14,6 +14,7 @@ type Props = {
   onSearch: (q: string) => void;
   onCreate: () => void;
   onScheduleOverlap: () => void;
+  onCapacity: () => void;
   onOpen: (id: string) => void;
   onOverview: (id: string) => void;
 };
@@ -50,7 +51,7 @@ export function ProjectDirectory(props: Props) {
   return <PortfolioScope key={JSON.stringify([user.id, organization.id])} {...props}/>;
 }
 
-function PortfolioScope({session, q, refresh, onSearch, onCreate, onScheduleOverlap, onOpen, onOverview}: Props) {
+function PortfolioScope({session, q, refresh, onSearch, onCreate, onScheduleOverlap, onCapacity, onOpen, onOverview}: Props) {
   useLocale();
   const api = useApi();
   const {user, organization} = session;
@@ -158,6 +159,9 @@ function PortfolioScope({session, q, refresh, onSearch, onCreate, onScheduleOver
         <p>{t('description')}</p>
       </div>
       <div className="project-portfolio-heading-actions">
+        <button type="button" data-portfolio-capacity onClick={onCapacity}>
+          <BarChart3 size={16} aria-hidden="true"/>{tr('project-portfolio-capacity.title')}
+        </button>
         <button type="button" data-portfolio-schedule-overlap onClick={onScheduleOverlap}>
           <CalendarDays size={16} aria-hidden="true"/>{tr('project-schedule-overlap.title')}
         </button>

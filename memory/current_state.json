@@ -695,6 +695,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "project_portfolio_capacity": {
+    "stage": "T-PORTFOLIO-CAPACITY",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "fecb97b27e52e3d25f1bde6fff102ad573b0245f",
+    "contract": "contracts/governance-planning.md#跨项目周负荷与容量",
+    "design": "docs/design/project-portfolio.md#跨项目周负荷与容量",
+    "report": "docs/quality/project-portfolio-capacity-verification.md",
+    "actual": "Read current authorized complete task schedules, derive weekly planned hours with organization calendar weights, show daily comparison and original sources. Real browser and SQLite verify current project revocation updates visible totals.",
+    "known_limitations": "2000 qualifying assignments per week; incomplete date intervals are outside the view. Organization-wide demand, external calendars, actual work logs, forecasts, other databases and production scale remain separate.",
+    "full_platform_complete": false,
+    "git_record": ".cache/portfolio-capacity/post-git.json"
+  },
   "repository_source_pool": {
     "stage": "T-REPOSITORY-SOURCE-POOL-247",
     "version": "1.0.0",

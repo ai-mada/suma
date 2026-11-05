@@ -10,6 +10,9 @@ func (s *Server) projectPortfolioHTTP(w http.ResponseWriter, r *http.Request, ac
 	if path == "project-portfolio/schedule-overlaps" {
 		return s.projectScheduleOverlapHTTP(w, r, actor, path)
 	}
+	if path == "project-portfolio/capacity" {
+		return s.projectPortfolioCapacityHTTP(w, r, actor)
+	}
 	if path != "project-portfolio" {
 		return false
 	}

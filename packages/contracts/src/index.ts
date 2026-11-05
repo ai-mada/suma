@@ -5172,6 +5172,38 @@ export interface ProjectPoolRunnerPage {
   items: (ProjectPoolRunner)[];
   as_of: string;
 }
+export interface ProjectPortfolioCapacityDay {
+  date: string;
+  available_hours: number | null;
+  allocated_hours: number;
+}
+export interface ProjectPortfolioCapacityPage {
+  week_start: string;
+  as_of: string;
+  items: (ProjectPortfolioCapacityPerson)[];
+}
+export interface ProjectPortfolioCapacityPerson {
+  user_id: string;
+  name: string;
+  calendar_version: number;
+  available_hours: number | null;
+  allocated_hours: number;
+  unestimated_tasks: number;
+  unallocated_tasks: number;
+  state: string;
+  days: (ProjectPortfolioCapacityDay)[];
+  tasks: (ProjectPortfolioCapacityTask)[];
+}
+export interface ProjectPortfolioCapacityTask {
+  project_id: string;
+  project_title: string;
+  task_id: string;
+  task_title: string;
+  start_date: string;
+  due_date: string;
+  estimated_hours: number | null;
+  allocated_hours: number | null;
+}
 export interface ProjectPortfolioItem {
   project_id: string;
   title: string;

@@ -27291,6 +27291,211 @@
         ],
         "type": "object"
       },
+      "ProjectPortfolioCapacityDay": {
+        "additionalProperties": false,
+        "properties": {
+          "allocated_hours": {
+            "readOnly": true,
+            "type": "number"
+          },
+          "available_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "date": {
+            "format": "date",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "available_hours",
+          "allocated_hours"
+        ],
+        "type": "object"
+      },
+      "ProjectPortfolioCapacityPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectPortfolioCapacityPerson"
+            },
+            "maxItems": 2000,
+            "readOnly": true,
+            "type": "array"
+          },
+          "week_start": {
+            "format": "date",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "as_of",
+          "items"
+        ],
+        "type": "object"
+      },
+      "ProjectPortfolioCapacityPerson": {
+        "additionalProperties": false,
+        "properties": {
+          "allocated_hours": {
+            "readOnly": true,
+            "type": "number"
+          },
+          "available_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "calendar_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectPortfolioCapacityDay"
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "readOnly": true,
+            "type": "array"
+          },
+          "name": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "description": "Over capacity can be proven by the known allocation alone. Within visible capacity applies only to the returned assignments.",
+            "enum": [
+              "over_capacity",
+              "basis_incomplete",
+              "within_visible_capacity"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectPortfolioCapacityTask"
+            },
+            "maxItems": 2000,
+            "minItems": 1,
+            "readOnly": true,
+            "type": "array"
+          },
+          "unallocated_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "unestimated_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "user_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "calendar_version",
+          "available_hours",
+          "allocated_hours",
+          "unestimated_tasks",
+          "unallocated_tasks",
+          "state",
+          "days",
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "ProjectPortfolioCapacityTask": {
+        "additionalProperties": false,
+        "properties": {
+          "allocated_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "due_date": {
+            "format": "date",
+            "readOnly": true,
+            "type": "string"
+          },
+          "estimated_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_title": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "project_title",
+          "task_id",
+          "task_title",
+          "start_date",
+          "due_date",
+          "estimated_hours",
+          "allocated_hours"
+        ],
+        "type": "object"
+      },
       "ProjectPortfolioItem": {
         "additionalProperties": false,
         "properties": {
@@ -103279,6 +103484,166 @@
               }
             },
             "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/project-portfolio/capacity": {
+      "get": {
+        "description": "Compare estimated weekly allocations from currently readable projects against organization work calendars. Unknown availability and estimates are retained. This projection does not expose full calendars or actual work.",
+        "operationId": "get_project-portfolio_capacity",
+        "parameters": [
+          {
+            "description": "Required Monday in YYYY-MM-DD.",
+            "in": "query",
+            "name": "week",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPortfolioCapacityPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "project_capacity_scope_too_large: more than 2000 qualifying assignments; no partial capacity data.",
             "headers": {
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",

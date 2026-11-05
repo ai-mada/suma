@@ -45,6 +45,14 @@ Governance owns internal/platform/governance*.go, governance*_test.go, docs/prod
 
 扫描限制为每周 2000 条符合条件的任务。超限返回 `409 schedule_overlap_scope_too_large`，不返回部分事实。日期区间使用业务计划中的自然日。重叠表达多项目计划占用同一天，估算工时、已记录工时、资源日历与全组织实际可用容量使用各自的事实和规则。 [项目组合交互](../docs/design/project-portfolio.md#跨项目排期重叠)
 
+### 跨项目周负荷与容量
+
+`GET /api/v1/project-portfolio/capacity?week=YYYY-MM-DD` 只接受当前组织的浏览器会话和一个必填周一日期。响应 `ProjectPortfolioCapacityPage {week_start,as_of,items}`，使用 `Cache-Control: no-store`。最多读取 2000 条当前可读项目内符合条件的计划任务。超限返回 `409 project_capacity_scope_too_large`，整页无结果。与排期重叠使用同一人力绑定、当前资格和任务区间范围；一个项目内的任务也计入周负荷。缺少完整起止日的任务没有可确定的周，排除在这个周视图之外。
+
+每个真实账号返回组织工作日历版本、七日可用小时、七日已分摊估算、每项任务来源和周汇总。普通成员可在有权任务的周视图读取相应人员的推导工时；完整工作制、例外备注和成员邮箱仍沿各自授权读取。已分摊小时沿[工作日历计算规则](resource-calendars.md#估算与未知)，使用组织日历覆盖完整任务区间，包括所选周外的日期。明确零估算分摊为零。估算缺失计入 `unestimated_tasks`；正估算的完整区间有未知日或可用工时为零时，计入 `unallocated_tasks`。这两种任务的 `allocated_hours` 均为 null，不纳入已分摊小计。
+
+七天可用工时全部明确时才汇总周容量。已分摊小时已超过已知周容量时返回 `over_capacity`，即使另有待核对任务。其余有未知周容量、缺估算或无法分摊时返回 `basis_incomplete`；完整且未超出时返回 `within_visible_capacity`，结论限于当前可读项目。投影和权限在同一事务中读取。该投影独立于实际工时、在线状态和机器调度额度。 [交互](../docs/design/project-portfolio.md#跨项目周负荷与容量)
+
 ## UI (workbench agent)
 
 Own apps/web, packages/ui, docs/design/planning-governance.md only. Preserve existing navigation hierarchy and design tokens. Add development tabs iterations/planning (milestones, timeline, baseline and capacity), settings tabs organization/teams/project-access; organization switch via real GET organizations + POST auth/switch followed by session reload. Invitation acceptance page reads token only from URL fragment/manual entry, never query/log; no automatic acceptance. Root routes public acceptance and switch to cookie session. All loading/error/empty/no-permission/conflict states and uncertain write replay guard remain. UI may store a new invitation token only in component memory until dismissed. No external design uploads (previously rejected).

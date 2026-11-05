@@ -70,32 +70,8 @@ func (s *Service) projectScheduleOverlapTx(ctx context.Context, auth *authorized
 	}
 	p := auth.currentPrincipal
 
-	// Use exact role comparisons on OceanBase's case-insensitive collations.
-	orgRole, assigneeRole, callerRole := "om.role", "assignee.role", "caller.role"
-	if s.Dialect == "oceanbase" {
-		orgRole, assigneeRole, callerRole = "BINARY "+orgRole, "BINARY "+assigneeRole, "BINARY "+callerRole
-	}
-	query := `SELECT u.id,u.name,p.id,p.title,t.id,t.title,sp.start_date,sp.due_date
-		FROM suma_task_plans sp
-		JOIN suma_projects p ON p.id=sp.project_id AND p.tenant_id=sp.tenant_id
-		JOIN suma_tasks t ON t.id=sp.task_id AND t.tenant_id=sp.tenant_id AND t.project_id=sp.project_id
-		JOIN suma_human_resources hr ON hr.resource_id=t.owner_id AND hr.tenant_id=sp.tenant_id AND hr.project_id=sp.project_id
-		JOIN suma_members m ON m.id=hr.resource_id AND m.tenant_id=hr.tenant_id AND m.project_id=hr.project_id
-		JOIN suma_org_members om ON om.tenant_id=hr.tenant_id AND om.user_id=hr.user_id
-		JOIN suma_users u ON u.id=hr.user_id
-		LEFT JOIN suma_project_members assignee ON assignee.project_id=sp.project_id AND assignee.user_id=hr.user_id
-		WHERE p.tenant_id=? AND m.kind='human' AND m.status NOT IN ('archived','deleted')
-		AND (` + orgRole + ` IN ('owner','admin') OR ` + assigneeRole + ` IN ('admin','developer','reviewer','viewer'))
-		AND t.status NOT IN ('accepted','archived','deleted','canceled','cancelled')
-		AND sp.start_date<>'' AND sp.due_date<>'' AND sp.start_date<=? AND sp.due_date>=?`
-	args := []any{p.TenantID, days[6], days[0]}
-	// Authorize the caller's project scope before counting rows or comparing
-	// dates. An unreadable project cannot affect overlaps or the row limit.
-	if !orgAdmin(p) {
-		query += ` AND EXISTS(SELECT 1 FROM suma_project_members caller
-			WHERE caller.project_id=p.id AND caller.user_id=? AND ` + callerRole + ` IN ('admin','developer','reviewer','viewer'))`
-		args = append(args, p.ID)
-	}
+	scope, args := s.visibleHumanScheduleScope(p, days[0], days[6])
+	query := `SELECT u.id,u.name,p.id,p.title,t.id,t.title,sp.start_date,sp.due_date ` + scope
 	rows, err := auth.tx.QueryContext(ctx, s.q(query+" LIMIT ?"), append(args, projectScheduleOverlapRowLimit+1)...)
 	if err != nil {
 		return nil, err
@@ -179,4 +155,35 @@ func (p *ProjectScheduleOverlapPerson) retainScheduleOverlaps(days [7]string) bo
 			cmp.Compare(a.StartDate, b.StartDate), cmp.Compare(a.DueDate, b.DueDate), cmp.Compare(a.TaskID, b.TaskID))
 	})
 	return true
+}
+
+// visibleHumanScheduleScope is the shared source for the portfolio's planned human assignment reads.
+func (s *Service) visibleHumanScheduleScope(p Principal, start, end string) (string, []any) {
+	// Use exact role comparisons on OceanBase's case-insensitive collations.
+	orgRole, assigneeRole, callerRole := "om.role", "assignee.role", "caller.role"
+	if s.Dialect == "oceanbase" {
+		orgRole, assigneeRole, callerRole = "BINARY "+orgRole, "BINARY "+assigneeRole, "BINARY "+callerRole
+	}
+	query := `FROM suma_task_plans sp
+		JOIN suma_projects p ON p.id=sp.project_id AND p.tenant_id=sp.tenant_id
+		JOIN suma_tasks t ON t.id=sp.task_id AND t.tenant_id=sp.tenant_id AND t.project_id=sp.project_id
+		JOIN suma_human_resources hr ON hr.resource_id=t.owner_id AND hr.tenant_id=sp.tenant_id AND hr.project_id=sp.project_id
+		JOIN suma_members m ON m.id=hr.resource_id AND m.tenant_id=hr.tenant_id AND m.project_id=hr.project_id
+		JOIN suma_org_members om ON om.tenant_id=hr.tenant_id AND om.user_id=hr.user_id
+		JOIN suma_users u ON u.id=hr.user_id
+		LEFT JOIN suma_project_members assignee ON assignee.project_id=sp.project_id AND assignee.user_id=hr.user_id
+		WHERE p.tenant_id=? AND m.kind='human' AND m.status NOT IN ('archived','deleted')
+		AND ` + orgRole + ` IN ('owner','admin','member')
+		AND (` + orgRole + ` IN ('owner','admin') OR ` + assigneeRole + ` IN ('admin','developer','reviewer','viewer'))
+		AND t.status NOT IN ('accepted','archived','deleted','canceled','cancelled')
+		AND sp.start_date<>'' AND sp.due_date<>'' AND sp.start_date<=? AND sp.due_date>=?`
+	args := []any{p.TenantID, end, start}
+	// Authorize the caller's project scope before bounding the candidate set.
+	// An unreadable project cannot affect any projection or its limit.
+	if !orgAdmin(p) {
+		query += ` AND EXISTS(SELECT 1 FROM suma_project_members caller
+			WHERE caller.project_id=p.id AND caller.user_id=? AND ` + callerRole + ` IN ('admin','developer','reviewer','viewer'))`
+		args = append(args, p.ID)
+	}
+	return query, args
 }

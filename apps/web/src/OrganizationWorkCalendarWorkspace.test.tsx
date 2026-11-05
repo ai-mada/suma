@@ -82,7 +82,8 @@ it('saves the organization-scoped draft with its exact version and stable recove
   return Response.json(current);
  });
  await render();await click('[data-org-calendar-edit]');await change('weekday-2','3.25');await submit();
- const original=exchanges.find(req=>req.body)!;
+ const original=exchanges.find(req=>req.body);
+ if(!original?.body)throw new Error('Expected an organization calendar save request');
  expect(original.path).toBe('/organization/work-calendars/member-a');
  expect(original.body).toMatchObject({expected_version:2,schedule:{weekdays:[8,0,3.25,6,6,0,0]}});
  expect(Object.keys(original.body).sort()).toEqual(['expected_version','idempotency_key','schedule']);

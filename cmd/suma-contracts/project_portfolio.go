@@ -6,6 +6,7 @@ func projectPortfolioModels() []any {
 	return []any{
 		platform.ProjectPortfolioPage{}, platform.ProjectPortfolioItem{}, platform.ProjectPortfolioMilestone{},
 		platform.ProjectScheduleOverlapPage{}, platform.ProjectScheduleOverlapPerson{}, platform.ProjectScheduleOverlapAssignment{},
+		platform.ProjectPortfolioCapacityPage{}, platform.ProjectPortfolioCapacityPerson{}, platform.ProjectPortfolioCapacityDay{}, platform.ProjectPortfolioCapacityTask{},
 	}
 }
 
@@ -32,6 +33,7 @@ func projectPortfolioContracts(add operationAdder, api map[string]any) {
 	milestone := toolContractMap(api, "components", "schemas", "ProjectPortfolioMilestone", "properties")
 	milestone["target_date"].(map[string]any)["format"] = "date"
 	projectScheduleOverlapContract(add, api)
+	projectPortfolioCapacityContract(add, api)
 }
 
 func projectScheduleOverlapContract(add operationAdder, api map[string]any) {

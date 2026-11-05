@@ -1,0 +1,214 @@
+.portfolio-capacity {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  container-type: inline-size;
+}
+.portfolio-capacity-heading .text-button { padding-inline: 0; color: var(--accent); }
+.portfolio-capacity-heading h2 { margin: 6px 0 4px; font-size: var(--font-page-title); }
+.portfolio-capacity-heading p { max-width: 82ch; margin: 0; color: var(--muted); line-height: 1.6; }
+.portfolio-capacity-results { min-width: 0; padding: 0; }
+.portfolio-capacity-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.portfolio-capacity-week { display: flex; gap: 10px; align-items: center; }
+.portfolio-capacity-calendar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.portfolio-capacity-week > div { display: grid; gap: 2px; }
+.portfolio-capacity-week > div > span,
+.portfolio-capacity-snapshot,
+.portfolio-capacity-scope,
+.portfolio-capacity-legend { font-size: 12px; color: var(--muted); }
+.portfolio-capacity-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.portfolio-capacity-controls button { min-width: 36px; min-height: 36px; }
+.portfolio-capacity-snapshot, .portfolio-capacity-feedback { padding: 12px 20px; }
+.portfolio-capacity-snapshot { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.portfolio-capacity-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 20px 12px;
+}
+.portfolio-capacity-filters button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 46px;
+  padding: 8px 10px;
+  white-space: normal;
+  text-align: start;
+  font-size: 12px;
+}
+.portfolio-capacity-filters button strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.portfolio-capacity-filters button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 -2px var(--accent);
+}
+.portfolio-capacity-filters button[data-capacity-filter="over_capacity"] > svg,
+.portfolio-capacity-person[data-capacity-state="over_capacity"] .portfolio-capacity-badge,
+.portfolio-capacity-day-values > svg,
+.portfolio-capacity-legend > span > svg { color: var(--red); }
+.portfolio-capacity-filters button[data-capacity-filter="basis_incomplete"] > svg,
+.portfolio-capacity-person[data-capacity-state="basis_incomplete"] .portfolio-capacity-badge { color: var(--amber); }
+.portfolio-capacity-filters button[data-capacity-filter="within_visible_capacity"] > svg,
+.portfolio-capacity-person[data-capacity-state="within_visible_capacity"] .portfolio-capacity-badge { color: var(--green); }
+.portfolio-capacity-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 0 20px 12px;
+}
+.portfolio-capacity-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.portfolio-capacity-legend i { width: 14px; height: 5px; border-radius: 8px; }
+.portfolio-capacity-load-key { background: var(--accent); }
+.portfolio-capacity-limit-key { background: var(--muted); }
+.portfolio-capacity-people,
+.portfolio-capacity-days,
+.portfolio-capacity-projects ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.portfolio-capacity-person {
+  display: grid;
+  grid-template-columns: minmax(175px, 1fr) minmax(0, 3fr);
+  align-items: start;
+  gap: 12px 20px;
+  padding: 16px 20px 12px;
+  border-top: 1px solid var(--border);
+}
+.portfolio-capacity-person-overview { min-width: 0; }
+.portfolio-capacity-person-heading { display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; }
+.portfolio-capacity-person-heading h3 { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+.portfolio-capacity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  font-weight: 600;
+  font-size: 12px;
+}
+.portfolio-capacity-badge svg { flex-shrink: 0; }
+.portfolio-capacity-totals { display: flex; gap: 6px 16px; flex-wrap: wrap; margin: 10px 0 0; }
+.portfolio-capacity-totals dt { color: var(--muted); font-size: 12px; }
+.portfolio-capacity-totals dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.portfolio-capacity-diagnostics { margin: 8px 0 0; padding-inline-start: 16px; color: var(--muted); font-size: 12px; }
+.portfolio-capacity-calendar-link { padding-inline: 0; color: var(--accent); font-size: 12px; }
+.portfolio-capacity-calendar-hint { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.portfolio-capacity-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.portfolio-capacity-days li {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+.portfolio-capacity-days li[data-capacity-day-over="true"] { border-color: var(--red); }
+.portfolio-capacity-days time {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1px 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.portfolio-capacity-days time strong { color: var(--text); }
+.portfolio-capacity-bars { display: grid; align-items: center; gap: 2px; min-height: 10px; margin: 6px 0; }
+.portfolio-capacity-bars > span { height: 4px; border-radius: 6px; }
+.portfolio-capacity-day-values {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 3px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.portfolio-capacity-day-values > [data-capacity-day-allocated] { font-weight: 650; }
+.portfolio-capacity-day-values > [data-capacity-day-available] { color: var(--muted); }
+.portfolio-capacity-tasks { grid-column: 1 / -1; min-width: 0; }
+.portfolio-capacity-tasks > summary {
+  width: fit-content;
+  min-height: 36px;
+  align-content: center;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+.portfolio-capacity-projects {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-bottom: 4px;
+}
+.portfolio-capacity-projects section { min-width: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
+.portfolio-capacity-projects h4 { margin: 0 0 4px; overflow-wrap: anywhere; }
+.portfolio-capacity-projects li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 16px;
+  padding-block: 6px;
+}
+.portfolio-capacity-projects li + li { border-top: 1px solid var(--border); }
+.portfolio-capacity-projects li > div { display: grid; min-width: 0; }
+.portfolio-capacity-projects li span, .portfolio-capacity-projects li strong { font-size: 12px; }
+.portfolio-capacity-projects li span { color: var(--muted); }
+.portfolio-capacity-projects a {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 30px;
+  gap: 4px;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+.portfolio-capacity-projects a svg { flex-shrink: 0; }
+.portfolio-capacity-scope { margin: 8px 20px 14px; line-height: 1.6; }
+.portfolio-capacity-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@container (max-width: 820px) {
+  .portfolio-capacity-person { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 590px) {
+  .portfolio-capacity-toolbar, .portfolio-capacity-snapshot, .portfolio-capacity-feedback,
+  .portfolio-capacity-filters, .portfolio-capacity-legend, .portfolio-capacity-person { padding-inline: 12px; }
+  .portfolio-capacity-scope { margin-inline: 12px; }
+  .portfolio-capacity-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .portfolio-capacity-days { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .portfolio-capacity-days li { padding: 6px; }
+  .portfolio-capacity-projects { grid-template-columns: minmax(0, 1fr); }
+  .portfolio-capacity-controls button, .portfolio-capacity-heading .text-button, .portfolio-capacity-calendar-link,
+  .portfolio-capacity-tasks > summary, .portfolio-capacity-projects a { min-height: 44px; }
+  .portfolio-capacity-controls button { min-width: 44px; }
+}
+@container (max-width: 325px) {
+  .portfolio-capacity-days { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

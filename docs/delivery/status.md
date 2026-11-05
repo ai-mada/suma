@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-PORTFOLIO-CAPACITY 从项目管理按周对照已分摊任务工时与组织工作日历。可筛选已超配或待核对人员，展开任务依据，跳转原任务和有权工作日历。已验证跨周分摊、当前撤权和桌面／窄屏交互。 [交互](../design/project-portfolio.md#跨项目周负荷与容量) · [验证](../quality/project-portfolio-capacity-verification.md)
+
 T-REPOSITORY-SOURCE-POOL-247 验证两个实际 Windows Pool Runner 进程分别导入候选与测试同一提交。Git 包读写核对当前授权版本，执行结束后槽位释放。 [部署](../deployment/repository-integration.md#在共享执行池交接仓库候选) · [验证](../quality/repository-source-pool-verification.md)
 
 T-ORG-WORK-CALENDAR 从组织设置维护当前成员的周工作制与日期例外，并按周读取已保存的可用工时。已验证管理员编辑、本人只读、并发保存及原回执。 [交互](../design/organization-work-calendar.md) · [验证](../quality/organization-work-calendar-verification.md)
