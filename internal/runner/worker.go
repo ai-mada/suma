@@ -54,9 +54,11 @@ func (w *Worker) Run(ctx context.Context) error {
 		return err
 	}
 	defer func() { w.maintenance = nil }()
-	initialErr := w.tickToolInventory(ctx)
-	if initialErr != nil && permanentInventoryError(initialErr) {
-		return initialErr
+	priorUnknown := w.Journal.acknowledgedUnknownResults()
+	if ctx.Err() == nil {
+		if err := w.tickToolInventory(ctx); err != nil && permanentInventoryError(err) {
+			return err
+		}
 	}
 	inventoryDone := make(chan struct{})
 	go func() {
@@ -67,11 +69,24 @@ func (w *Worker) Run(ctx context.Context) error {
 			_ = w.tickToolInventory(ctx)
 		}
 	}()
-	defer func() { cancel(); <-inventoryDone }()
+	var runErr error
 	if w.MaintenanceOnly {
 		<-ctx.Done()
-		return ctx.Err()
+	} else {
+		runErr = w.runBusiness(ctx)
 	}
+	cancel()
+	<-inventoryDone
+	if runErr != nil {
+		return runErr
+	}
+	if err := w.Journal.requireShutdownBusinessEvidence(priorUnknown); err != nil {
+		return err
+	}
+	return w.Journal.requireNoActiveToolMaintenance()
+}
+
+func (w *Worker) runBusiness(ctx context.Context) error {
 	poll := w.PollInterval
 	if poll <= 0 {
 		poll = 2 * time.Second
@@ -80,8 +95,12 @@ func (w *Worker) Run(ctx context.Context) error {
 	if beat <= 0 {
 		beat = 5 * time.Second
 	}
+run:
 	for ctx.Err() == nil {
 		for _, a := range w.Journal.pendingCloudExecutions() {
+			if ctx.Err() != nil {
+				break run
+			}
 			if a.WorkerID != w.ID {
 				return fmt.Errorf("cloud checkpoint belongs to another worker")
 			}
@@ -90,6 +109,9 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 		}
 		for _, a := range w.Journal.pendingReleases() {
+			if ctx.Err() != nil {
+				break run
+			}
 			if a.WorkerID != w.ID {
 				return fmt.Errorf("release checkpoint belongs to another worker")
 			}
@@ -112,8 +134,14 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 			continue
 		}
+		if ctx.Err() != nil {
+			break
+		}
 		_ = ReplayWorkspaceObservations(ctx, w.Client, w.Journal, nil)
 		_ = ReplayWorkspaceWrites(ctx, w.Client, w.Journal, nil)
+		if ctx.Err() != nil {
+			break
+		}
 		if !w.canClaimInventory() {
 			if !wait(ctx, poll) {
 				break
@@ -144,6 +172,9 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 			continue
 		}
+		if ctx.Err() != nil {
+			break
+		}
 		if err = w.Journal.Accept(*a); err != nil {
 			return err
 		}
@@ -154,7 +185,7 @@ func (w *Worker) Run(ctx context.Context) error {
 			return err
 		}
 	}
-	return ctx.Err()
+	return nil
 }
 
 func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Duration) error {
@@ -267,6 +298,9 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 
 func (w *Worker) resumeArtifacts(ctx context.Context, beat time.Duration) error {
 	for _, p := range w.Journal.pendingArtifacts() {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		if p.Assignment.WorkerID != w.ID {
 			return fmt.Errorf("artifact checkpoint belongs to another worker")
 		}

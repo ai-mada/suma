@@ -2,7 +2,7 @@
 const {spawn:spawnChild}=require('node:child_process'),path=require('node:path'),crypto=require('node:crypto');
 const {PROTOCOL,createManagedRunnerJournal,scopeKey,validScope,validOrigin}=require('./managed-local-runner-journal.cjs');
 const {createLocalACPController,cleanEnvironment}=require('./local-acp.cjs');
-const {acpAdapter,fields,validConfiguration}=require('./local-acp-validation.cjs');
+const {acpAdapter,fields,validConfiguration,strictJSON}=require('./local-acp-validation.cjs');
 const {createLocalCodexController,cleanCodexEnvironment}=require('./local-codex.cjs');
 const codexValidation=require('./local-codex-validation.cjs');
 const opencodeValidation=require('./local-opencode-validation.cjs');
@@ -20,6 +20,33 @@ const gitUnavailable=error=>error?.status===422&&['desktop_runner_head_unavailab
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,keys)=>plain(value)&&Object.keys(value).sort().join(',')===[...keys].sort().join(',');
 const failure=code=>({status:'failed',code});
+const SHUTDOWN_RECEIPT='suma.local_runner.shutdown',SHUTDOWN_RECEIPT_LIMIT=1024;
+// Stdout is private to this exact child. Retain only a small, single frame
+// and require it to arrive after the explicit stop request.
+function shutdownReceipt(child,workerID){
+ const pid=child.pid;
+ let requested=false,invalid=false,size=0,chunks=[];
+ function invalidate(){invalid=true;chunks=[];}
+ child.stdout.on('data',chunk=>{
+  if(invalid)return;
+  if(!requested||(size+=chunk.length)>SHUTDOWN_RECEIPT_LIMIT){invalidate();return;}
+  chunks.push(Buffer.from(chunk));
+ });
+ child.stdout.on('error',invalidate);
+ return {
+  request(){requested=true;},
+  invalidate,
+  confirmed(code,signal){
+   if(!requested||invalid||code!==0||signal||!Number.isSafeInteger(pid)||pid<=0)return false;
+   const bytes=Buffer.concat(chunks),end=bytes.length-1;
+   if(end<0||bytes.indexOf(10)!==end)return false;
+   try{
+    const value=strictJSON(bytes.subarray(0,end));
+    return exact(value,['type','worker_id','pid'])&&value.type===SHUTDOWN_RECEIPT&&value.worker_id===workerID&&value.pid===pid;
+   }catch{return false;}
+  }
+ };
+}
 function requestScope(request){return {project_id:request.project_id,user_id:request.user_id,tenant_id:request.tenant_id,adapter_id:request.adapter_id};}
 function runnerEnvironment(environment,temp){
  const names=new Set(['path','systemroot','windir','comspec','pathext','home','userprofile','homedrive','homepath','appdata','localappdata','programdata','programfiles','programfiles(x86)','programw6432','lang','lc_all']);
@@ -78,19 +105,39 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   return context;
  }
  function sameContext(record,context){const value=record.value;return value.instance_id===context.instance_id&&value.repository_path===context.repository_path&&value.repository_identity===context.repository_identity&&value.binding_sha256===context.binding_sha256&&value.base_commit===context.base_commit;}
+ function saveStopPhase(record,value){try{phase(record,value);}catch{record.value.phase='stop_unconfirmed';}}
  function softStop(record,target='stopped'){
-  if(record.value.phase==='stop_unconfirmed')return Promise.resolve();
   if(record.stopping)return record.stopping;
-  if(!record.child||record.closed){if(target!=='stopped'||!['prepared','issuance_unknown','renewal_unknown','binding_changed','origin_changed','credential_unrecoverable','authorization_required'].includes(record.value.phase))phase(record,target);return Promise.resolve();}
-  phase(record,'stopping');clearInterval(record.guard);
-  record.stopping=new Promise(resolve=>{
-   let settled=false;const finish=()=>{if(settled)return;settled=true;clearTimeout(record.killTimer);clearTimeout(record.stopTimer);record.stopping=null;resolve();};
-   record.finishStop=()=>{try{phase(record,record.hardKilled?'stop_unconfirmed':target);}catch{record.value.phase='stop_unconfirmed';}finish();};
-   record.killTimer=setTimeout(()=>{if(record.closed)return;record.hardKilled=true;try{phase(record,'stop_unconfirmed');}catch{record.value.phase='stop_unconfirmed';}try{record.child.kill('SIGKILL');}catch{}},stopGraceMS);
-   record.stopTimer=setTimeout(()=>{record.hardKilled=true;try{phase(record,'stop_unconfirmed');}catch{record.value.phase='stop_unconfirmed';}finish();},stopDeadlineMS);
-   try{record.child.stdin.end();}catch{record.hardKilled=true;}
+  if(record.value.phase==='stop_unconfirmed')return Promise.resolve();
+  const child=record.child;
+  if(!child||record.closed){if(target!=='stopped')phase(record,target);return Promise.resolve();}
+  const receipt=record.shutdownReceipt;
+  saveStopPhase(record,'stopping');
+  if(record.value.phase==='stop_unconfirmed')receipt.invalidate();
+  clearInterval(record.guard);
+  const stopping=record.stopping=new Promise(resolve=>{
+   const finish=()=>{
+    clearTimeout(record.killTimer);clearTimeout(record.stopTimer);
+    record.finishStop=null;record.stopping=null;resolve();
+   };
+   record.finishStop=(code,signal)=>{
+    saveStopPhase(record,receipt.confirmed(code,signal)?target:'stop_unconfirmed');
+    finish();
+   };
+   record.killTimer=setTimeout(()=>{
+    if(record.closed)return;
+    receipt.invalidate();saveStopPhase(record,'stop_unconfirmed');
+    try{child.kill('SIGKILL');}catch{}
+   },stopGraceMS);
+   record.stopTimer=setTimeout(()=>{
+    receipt.invalidate();saveStopPhase(record,'stop_unconfirmed');finish();
+   },stopDeadlineMS);
   });
-  return record.stopping;
+  if(child.exitCode==null&&child.signalCode==null){
+   receipt.request();
+   try{child.stdin.end('stop\n');}catch{receipt.invalidate();}
+  }
+  return stopping;
  }
  // Original receipts establish historical identity; only the current registry
  // and future expiry establish permission to launch that same worker now.
@@ -101,9 +148,11 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   if(!plain(out)||!Array.isArray(out.items)||out.items.length>512)throw Error('worker');const matches=out.items.filter(w=>w.worker_id===record.value.request.worker_id);
   return matches.length===1&&validWorkerReceipt(matches[0],record)&&matches[0].id===record.value.worker?.id?matches[0]:undefined;
  }
- async function checkWorker(record){const worker=await currentWorker(record);if(worker)record.currentWorker=worker;return !!worker&&worker.version===record.value.worker?.version&&validWorker(worker,record);}
- async function readInventory(record,captureWatermark=false){
+ function activeChild(record,child){return !disposed&&child&&record.child===child&&!record.closed&&!record.stopping&&record.value.phase!=='stop_unconfirmed';}
+ async function checkWorker(record,child){const worker=await currentWorker(record);if(child&&!activeChild(record,child))return false;if(worker)record.currentWorker=worker;return !!worker&&worker.version===record.value.worker?.version&&validWorker(worker,record);}
+ async function readInventory(record,captureWatermark=false,child){
   const scope=record.value.scope,started=now(),out=await boundedJSON(await parent.webContents.session.fetch(origin+'/api/v1/tool-discovery?'+new URLSearchParams({project_id:scope.project_id,worker_id:record.value.request.worker_id}),{...baseOptions(scope),method:'GET'}));
+  if(child&&!activeChild(record,child))return false;
   if(out?.project_id!==scope.project_id||out?.worker_id!==record.value.request.worker_id||!['fresh','stale','unreported'].includes(out.state)||!Array.isArray(out.items)||out.items.length>128)throw Error('inventory');
   if(captureWatermark){const observed=Date.parse(out.observed_at);record.inventoryWatermark=Number.isFinite(observed)?observed:-Infinity;return false;}
   if(out.state!=='fresh')return false;
@@ -121,21 +170,45 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   if(sdk){const p=matching[0].profile;if(p.executable_sha256!==sdk.node_sha256||p.tool_version!=='2.1.314'||p.user_input_protocol!=='claude-sdk-input-v1'||!claudeSDKValidation.matchesCapability(sdk,p.claude_sdk_execution))return false;}
   record.expiresAt=out.expires_at;return true;
  }
- async function observe(record){if(!record.child||record.closed||record.stopping||record.value.phase==='stop_unconfirmed')return;const fresh=await readInventory(record);await session(record.value.scope);if(record.closed||record.stopping)return;phase(record,fresh?'connected':'starting');if(!fresh)record.expiresAt=undefined;}
+ async function observe(record){
+  const child=record.child;if(!activeChild(record,child))return;
+  const fresh=await readInventory(record,false,child);
+  if(!activeChild(record,child))return;
+  await session(record.value.scope);
+  if(!activeChild(record,child))return;
+  phase(record,fresh?'connected':'starting');if(!fresh)record.expiresAt=undefined;
+ }
  async function guard(record){
-  if(disposed||record.closed||record.guardBusy||busy)return;record.guardBusy=true;
-  try{const context=await authorize(record.value.scope);if(!sameContext(record,context))await softStop(record,'binding_changed');else if(!await checkWorker(record))await softStop(record,'authorization_required');else await observe(record);}catch(error){await softStop(record,gitUnavailable(error)?'unavailable':'authorization_required');}finally{record.guardBusy=false;}
+  const child=record.child;if(!activeChild(record,child)||record.guardBusy||busy)return;record.guardBusy=true;
+  try{
+   const context=await authorize(record.value.scope);
+   if(!activeChild(record,child))return;
+   if(!sameContext(record,context)){await softStop(record,'binding_changed');return;}
+   const authorized=await checkWorker(record,child);
+   if(!activeChild(record,child))return;
+   if(authorized)await observe(record);else await softStop(record,'authorization_required');
+  }catch(error){
+   if(activeChild(record,child))await softStop(record,gitUnavailable(error)?'unavailable':'authorization_required');
+  }finally{record.guardBusy=false;}
  }
  function launch(record,locale){
   const value=record.value,stateDirectory=openJournal().stateDirectory(value.scope);record.renewalReason=undefined;phase(record,'starting');
   const env=value.opencode_configuration?cleanCodexEnvironment(environment,stateDirectory,value.opencode_configuration.api_key_env_ref):value.codex_configuration?cleanCodexEnvironment(environment,stateDirectory,value.codex_configuration.api_key_env_ref):value.acp_configuration?cleanEnvironment(environment,stateDirectory,value.acp_configuration.credential_env_ref):runnerEnvironment(environment,stateDirectory);
   if(value.claude_sdk_configuration){const ref=value.claude_sdk_configuration.credential_env_ref;env[ref]=environment[ref];}
-  const child=spawn(binary,['--language='+locale,'--desktop-managed-runner'],{cwd:value.repository_path,env,stdio:['pipe','ignore','ignore'],windowsHide:true,shell:false});
-  record.child=child;record.closed=false;record.hardKilled=false;record.spawnedAt=now();record.expiresAt=undefined;
-  child.on('error',()=>{void softStop(record,'failed').catch(()=>{});});
-  child.stdin.on('error',()=>{void softStop(record,'failed').catch(()=>{});});
-  child.once('close',(code)=>{
-   record.closed=true;clearInterval(record.guard);if(record.finishStop){const done=record.finishStop;record.finishStop=null;done();}else if(record.value.phase!=='stop_unconfirmed'){try{phase(record,code===0?'stopped':'failed');}catch{record.value.phase='failed';}}
+  const child=spawn(binary,['--language='+locale,'--desktop-managed-runner'],{cwd:value.repository_path,env,stdio:['pipe','pipe','ignore'],windowsHide:true,shell:false});
+  const receipt=shutdownReceipt(child,value.request.worker_id);
+  record.child=child;record.shutdownReceipt=receipt;record.closed=false;record.spawnedAt=now();record.expiresAt=undefined;
+  const processError=()=>{
+   receipt.invalidate();
+   if(record.child===child&&!record.closed&&child.pid)void softStop(record,'failed').catch(()=>{});
+  };
+  child.on('error',processError);
+  child.stdin.on('error',processError);
+  child.once('close',(code,signal)=>{
+   if(record.child!==child)return;
+   record.closed=true;clearInterval(record.guard);
+   if(record.finishStop)record.finishStop(code,signal);
+   else if(record.value.phase!=='stop_unconfirmed')saveStopPhase(record,child.pid?'stop_unconfirmed':'failed');
   });
   const config={protocol:'suma-desktop-managed-runner-v1',control_url:origin,project_id:value.scope.project_id,worker_id:value.request.worker_id,adapter_id:value.scope.adapter_id,repository:value.repository_path,base_commit:value.base_commit,state_directory:stateDirectory,token:value.token};
   if(value.acp_configuration)config.acp_configuration={...value.acp_configuration};
@@ -192,13 +265,13 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    if(record?.value.origin!==undefined&&record.value.origin!==origin)return connection(scope,'origin_changed',record);
    if(request.action==='stop'){if(record)await softStop(record);await session(scope);return connection(scope,record?.value.phase||'unconfigured',record);}
    let context;try{context=await authorize(scope);}catch(error){
-    if(gitUnavailable(error)){if(record)await softStop(record,'unavailable');return connection(scope,'unavailable',record);}
+    if(gitUnavailable(error)){if(record)await softStop(record,'unavailable');return connection(scope,record?.value.phase??'unavailable',record);}
     if(record)await softStop(record,'authorization_required');
     if(error.status===422&&/workspace|repository|binding/.test(error.code||''))return connection(scope,record?'binding_changed':'needs_workspace',record);
     return failure('managed_runner_access_changed');
    }
    if(!caller(event))throw Error('authority');
-   if(record&&!sameContext(record,context)){if(request.action==='renew'||record.value.pending_renew)record.renewalReason='context_changed';await softStop(record,'binding_changed');return connection(scope,'binding_changed',record);}
+   if(record&&!sameContext(record,context)){if(request.action==='renew'||record.value.pending_renew)record.renewalReason='context_changed';await softStop(record,'binding_changed');return connection(scope,record.value.phase,record);}
    if(request.action==='recover'||request.action==='recovery-status')return await recovery.inspect(record,scope,event,request.locale,request.action==='recovery-status');
    if(request.action==='renew')return await renew(record,scope,event,request.locale);
    if(record?.value.pending_renew)return connection(scope,['authorization_required','binding_changed','origin_changed','stop_unconfirmed'].includes(record.value.phase)?record.value.phase:'renewal_unknown',record);
@@ -208,6 +281,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
     else if(record?.closed&&record.value.phase==='authorization_required'&&record.value.worker&&await checkWorker(record)){await session(scope);phase(record,'prepared');}
     await session(scope);return connection(scope,record?.value.phase||'unconfigured',record);
    }
+   if(record?.value.phase==='stop_unconfirmed')return connection(scope,'stop_unconfirmed',record);
    // A failed asynchronous preparation is still an observation for the
    // current caller and binding. Reuse the same authority check as the
    // successful path before projecting even a finite, non-secret cause.
@@ -254,7 +328,6 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
     if(sdkChanged&&(!record.closed||record.value.phase!=='stopped'))return connection(scope,'binding_changed',record);
     configuration=original;
    }
-   if(record?.value.phase==='stop_unconfirmed')return connection(scope,'stop_unconfirmed',record);
    if(record?.child&&!record.closed){await observe(record);return connection(scope,record.value.phase,record);}
    // Recover the original SDK registration receipt before observing a new
    // installation or resource failure. Keep its exact body, key and identity;
@@ -299,7 +372,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    const beforeLaunch=await authorize(scope);if(!caller(event)||!sameContext(record,beforeLaunch))return connection(scope,'binding_changed',record);
    if(!await checkWorker(record)){phase(record,'authorization_required');return connection(scope,'authorization_required',record);}
    await readInventory(record,true);await session(scope);if(!caller(event))throw Error('authority');launch(record,request.locale);await observe(record);return connection(scope,record.value.phase,record);
-  }catch(error){if(gitUnavailable(error)){if(record)await softStop(record,'unavailable').catch(()=>{});return connection(scope,'unavailable',record);}if(record?.child&&!record.closed)await softStop(record,'authorization_required').catch(()=>{});return failure('managed_runner_access_changed');}
+  }catch(error){if(gitUnavailable(error)){if(record)await softStop(record,'unavailable').catch(()=>{});return connection(scope,record?.value.phase==='stop_unconfirmed'?'stop_unconfirmed':'unavailable',record);}if(record?.child&&!record.closed)await softStop(record,'authorization_required').catch(()=>{});return failure('managed_runner_access_changed');}
   finally{busy=false;resolveManage();activeManage=undefined;}
  }
  async function dispose(){

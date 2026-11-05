@@ -531,9 +531,14 @@ func (j *Journal) Ack(id string) error {
 	defer j.mu.Unlock()
 	for k, e := range j.entries {
 		if e.Result != nil && e.Result.OperationID == id {
+			previous := e
 			e.Acked = true
 			j.entries[k] = e
-			return j.save()
+			if err := j.save(); err != nil {
+				j.entries[k] = previous
+				return err
+			}
+			return nil
 		}
 	}
 	return fmt.Errorf("result absent")

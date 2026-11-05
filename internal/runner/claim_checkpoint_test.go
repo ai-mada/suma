@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -29,8 +30,8 @@ func TestActualWorkerClaimLostACKAndClosedDispatchNeverStart(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			var mu sync.Mutex
-			var operations []string
-			claims, results := 0, 0
+			var operations, resultBodies []string
+			claims := 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				switch r.URL.Path {
 				case "/api/v1/runner/tool-inspections/claim":
@@ -62,11 +63,27 @@ func TestActualWorkerClaimLostACKAndClosedDispatchNeverStart(t *testing.T) {
 					}
 					_ = json.NewEncoder(w).Encode(map[string]any{"assignment": map[string]any{"run_id": "r", "node_id": "n", "attempt": 1, "fence": 1, "worker_id": "w", "type": "command", "command": []string{"local"}, "dispatch_id": strings.Repeat("d", 32), "dispatch_state": state, "lease_until": time.Now().Add(time.Minute).UTC().Format(time.RFC3339)}})
 				case "/api/v1/runner/results":
+					body, readErr := io.ReadAll(r.Body)
+					if readErr != nil {
+						t.Errorf("read original result: %v", readErr)
+						w.WriteHeader(http.StatusBadRequest)
+						return
+					}
 					mu.Lock()
-					results++
+					resultBodies = append(resultBodies, string(body))
+					n := len(resultBodies)
 					mu.Unlock()
+					if n == 1 {
+						conn, _, e := w.(http.Hijacker).Hijack()
+						if e != nil {
+							t.Error(e)
+							return
+						}
+						cancel()
+						_ = conn.Close()
+						return
+					}
 					_, _ = w.Write([]byte(`{"acknowledged":true}`))
-					cancel()
 				case "/api/v1/runner/progress":
 					_, _ = w.Write([]byte(`{"acknowledged":true}`))
 				case "/api/v1/runner/heartbeat":
@@ -82,7 +99,25 @@ func TestActualWorkerClaimLostACKAndClosedDispatchNeverStart(t *testing.T) {
 			}
 			defer journal.Close()
 			worker := Worker{Client: &Client{BaseURL: server.URL, ProjectID: "p", Token: "fixture-registered-worker"}, Journal: journal, ID: "w", PollInterval: 10 * time.Millisecond, HeartbeatInterval: 50 * time.Millisecond, Exec: ExecConfig{AllowExec: true, Workspace: dir, Commands: map[string]CommandSpec{"local": {Executable: node, Args: []string{entry, marker}, ReadOnly: true}}}}
-			_ = worker.Run(ctx)
+			runErr := worker.Run(ctx)
+			if state == "active" && runErr == nil {
+				if err = journal.Close(); err != nil {
+					t.Fatal(err)
+				}
+				reopened, err := OpenJournal(filepath.Join(dir, "journal"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer reopened.Close()
+				if len(reopened.Pending()) != 1 {
+					t.Fatal("local stop must preserve one durable, unacknowledged result")
+				}
+				replayCtx, stopReplay := context.WithTimeout(context.Background(), time.Second)
+				defer stopReplay()
+				if err = Replay(replayCtx, worker.Client, reopened); err != nil {
+					t.Fatal(err)
+				}
+			}
 			mu.Lock()
 			defer mu.Unlock()
 			if len(operations) < 2 || operations[0] == "" || operations[0] != operations[1] {
@@ -90,11 +125,14 @@ func TestActualWorkerClaimLostACKAndClosedDispatchNeverStart(t *testing.T) {
 			}
 			raw, readErr := os.ReadFile(marker)
 			if state == "active" {
-				if readErr != nil || string(raw) != "executed\n" || results != 1 {
-					t.Fatalf("active dispatch did not execute once: %q results=%d %v", raw, results, readErr)
+				if readErr != nil || string(raw) != "executed\n" || runErr != nil {
+					t.Fatalf("active dispatch did not execute once and stop cleanly: %q (%v, %v)", raw, readErr, runErr)
 				}
-			} else if !os.IsNotExist(readErr) || results != 0 {
-				t.Fatalf("%s dispatch executed after its lease observation closed: %q results=%d", state, raw, results)
+				if len(resultBodies) != 2 || resultBodies[0] == "" || resultBodies[0] != resultBodies[1] {
+					t.Fatal("lost result acknowledgement must replay the same bytes without re-execution")
+				}
+			} else if !os.IsNotExist(readErr) || len(resultBodies) != 0 {
+				t.Fatalf("%s dispatch executed after its lease observation closed: %q results=%d", state, raw, len(resultBodies))
 			}
 		})
 	}

@@ -186,6 +186,7 @@
   </nav>
 
   <main class="main">
+<section id="runner-stop-receipt-229"><h2>本机 Runner 停止回执</h2><p>T-RUNNER-STOP-229 按原节点与进程确认本机退出。桌面先保存请求，再核验同一进程的退出和清理回执。控制面回执暂缺时，已持久化的原请求和已定案结果可以交由同一节点重连后继续处理。未确认的原执行保留待核对，业务任务以运行详情为准。</p><p><a href="../contracts/desktop-managed-runner.md#停止回执">执行合同</a> · <a href="quality/runner-stop-receipt-verification.md">阶段证据</a></p></section>
 <section id="cursor-foreground-recovery-228"><h2>Cursor 前台停止与原尝试核对</h2><p>T-CURSOR-RECOVERY-228 在前台停止后有限等待原生退出。退出未确认时保留原工作区与尝试，由 Journal 恢复同一结果回执，独立测试继续等待候选。当前尝试的操作界面要求明确结论与核对依据。</p><p><a href="../contracts/cursor-acp-execution.md">执行合同</a> · <a href="quality/cursor-foreground-recovery-verification.md">阶段证据</a></p></section>
 <section id="codex-candidate-delivery-227"><h2>Codex 开发候选、同提交独测与复核</h2><p>T-CODEX-DELIVERY-227 将固定模型、推理强度和用量提醒绑定本次派发。真实 CLI 轮次与进程树闭合后，由 Runner 封存工作树，独立节点导入同一候选，测试通过后开放有权限的任务复核。Linux 可选 PID 命名空间经过交叉编译，实机待验。</p><p><a href="integrations/codex-candidate-delivery.md">接入与部署</a> · <a href="quality/codex-candidate-delivery-verification.md">阶段证据</a></p></section>
 <section id="real-cli-onboarding-226"><h2>真实CLI检测、库存确认与暂停接入</h2><p>T-REAL-CLI-ONBOARDING-226：准确安装扫描 → 明确配置 → 原generation → 库存ACK → 暂停档案。真实Codex版本／帮助链路已验；失败按固定诊断进入准确工具与节点指南或明确重检，未知停止不重复探测。可信私有HOME保留准备配置，不读取现有账号目录。</p><p><a href="product/real-cli-onboarding.md">产品</a> · <a href="integrations/real-cli-onboarding.md">接入架构</a> · <a href="design/real-cli-onboarding.md">简洁交互</a> · <a href="quality/real-cli-onboarding-verification.md">限定证据</a>。模型、代码开发、独测验收与完整31项／P0–P7继续独立验收。</p></section>

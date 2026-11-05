@@ -14,7 +14,7 @@ T-MULTICA-DESKTOP-153，suma 1.0.0。本合同接续[工具快速接入](tool-qu
 
 phase 闭合为 `unconfigured|needs_workspace|not_installed|unavailable|prepared|issuance_unknown|starting|connected|stopping|stopped|authorization_required|binding_changed|origin_changed|credential_unrecoverable|stop_unconfirmed|failed`。安装、启动、连接、工具档案登记、启用、供应方授权及任务结果是分别成立的事实。
 
-`connect` 必须由用户明确点击；恢复仍使用同一作用域和本机原记录。`status` 不发行凭据、不启动 Worker；核对发现失权或绑定变化时沿停止路径处理。`stop` 只请求停止本机节点，不代表任务已完成、已取消或已验收。强停或清理未确认保持 `stop_unconfirmed`。
+`connect` 必须由用户明确点击；恢复仍使用同一作用域和本机原记录。`status` 不发行凭据、不启动 Worker；核对发现失权或绑定变化时沿停止路径处理。`stop` 请求停止本机节点。任务的执行、取消和验收仍以控制面运行记录为准。
 
 ## 原操作与发行
 
@@ -31,6 +31,12 @@ phase 闭合为 `unconfigured|needs_workspace|not_installed|unavailable|prepared
 必须是已明确绑定的真实 Git root、可解析的完整提交，以及 Git 忽略的 `.cache/runner/worktrees`。缺少目录时复用原生目录选择及当前绑定合同；不自动初始化仓库、提交文件或修改忽略规则。Go 重新发现固定工具，使用原 Worker、fencing、持久 journal／outbox 和原 DAG 运行。
 
 仅本次 spawn 后、超过启动前库存水位的新鲜报告，且准确匹配当前工具协议及固定 Profile，才报告 `connected`。原报告有效期仍为60秒，不因读取延长。随后151登记保持暂停，启用仍需独立确认。主进程每15秒核对当前会话、目录绑定和节点资格，发现失权或变化时停止节点。
+
+### 停止回执
+
+主进程保存 `stopping` 后，通过同一私有输入管道发送一行 `stop\n`。管道关闭、异常帧和系统信号同样触发安全收尾。只有 `stop\n` 首先触发取消，且 Go Worker 完成原工作收尾并成功关闭 Journal，子进程才写出单行 `{"type":"suma.local_runner.shutdown","worker_id":"<原节点>","pid":<原进程号>}`。回执不携带任何执行结果、路径或凭据。
+
+主进程检查回执来自本次子进程的私有输出，节点与 PID 精确匹配，实际退出码为 0 且无终止信号，再保存停止结论。已保存的原领取和已定案的原结果可以在同一 Worker 重启后继续投递，控制面回执不作为本机退出的先决条件。超时、强停、运行结果未知、缺失回执或校验失败保留 `stop_unconfirmed`。刷新只核对原连接，继续保留原状态目录。
 
 ## 存储、地址与待验边界
 

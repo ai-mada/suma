@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -281,7 +282,7 @@ func prepareDesktopManagedExecution(ctx context.Context, input DesktopManagedRun
 // RunDesktopManagedRunner uses the same Worker, durable claims, fencing,
 // inventory, process containment and result journal as a separately deployed
 // Runner. The desktop is a lifecycle owner, never a second scheduler.
-func RunDesktopManagedRunner(ctx context.Context, input DesktopManagedRunnerInput) error {
+func RunDesktopManagedRunner(ctx context.Context, input DesktopManagedRunnerInput) (runErr error) {
 	cfg, err := prepareDesktopManagedExecution(ctx, input, DiscoverInstalledTools)
 	if err != nil {
 		return err
@@ -293,7 +294,11 @@ func RunDesktopManagedRunner(ctx context.Context, input DesktopManagedRunnerInpu
 	if err != nil {
 		return fmt.Errorf("desktop Runner state is unavailable; preserve it for reconciliation")
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			runErr = errors.Join(runErr, fmt.Errorf("desktop Runner journal ownership could not be released: %w", err))
+		}
+	}()
 	worker := Worker{Client: &Client{BaseURL: input.ControlURL, Token: input.Token, ProjectID: input.ProjectID}, Journal: journal, ID: input.WorkerID, Exec: cfg}
 	return worker.Run(ctx)
 }

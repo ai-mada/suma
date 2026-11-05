@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-RUNNER-STOP-229 覆盖匹配停止回执、原领取与结果的恢复、迟到巡检和中英文停止状态。 [阶段验证](runner-stop-receipt-verification.md)
+
 T-MULTICA-ITERATION-BATCH 验证任务列表批量调整迭代的事务、授权、原操作回执及中英文代表界面。 [阶段验证](task-iteration-assignments-verification.md)
 
 T-CURSOR-RECOVERY-228 已通过受控进程和双节点类型的原结果回执恢复。 [阶段验证](cursor-foreground-recovery-verification.md)

@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ai-mada/suma/internal/buildinfo"
 	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/ai-mada/suma/internal/commandlocale"
 	"github.com/ai-mada/suma/internal/runner"
@@ -339,13 +341,17 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 			return fail(e)
 		}
 	}
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	w := runner.Worker{Client: &runner.Client{BaseURL: *base, Token: runnerToken(), ProjectID: *project}, Journal: journal, ID: *id, AllowInstalledToolDiscovery: *allowInstalled, AllowToolPreparation: *allowPreparation, MaintenanceOnly: *maintenanceOnly, Exec: runner.ExecConfig{AllowExec: *allow, Workspace: root, Repository: *repository, BaseCommit: *baseCommit, WorktreeRoot: *worktrees, Commands: specs, ModelDeployments: localModels, External: external, Secrets: []string{runnerToken()}}}
 	if *reportTools {
 		return runToolReport(ctx, app, &w)
 	}
-	if err = w.Run(ctx); err != nil && ctx.Err() == nil {
+	err = w.Run(ctx)
+	if journal != nil {
+		err = errors.Join(err, journal.Close())
+	}
+	if err != nil {
 		return fail(err)
 	}
 	return 0

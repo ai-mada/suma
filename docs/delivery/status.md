@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-RUNNER-STOP-229 将本机停止、原任务结果和控制面回执分开确认。桌面仅在收到本次子进程的匹配回执并核实正常退出后确认停止，重连沿用原节点和持久请求。 [阶段验证](../quality/runner-stop-receipt-verification.md)
+
 T-MULTICA-ITERATION-BATCH 在任务列表支持逐项预览和批量调整迭代，按当前任务、排期和目标版本原子提交，支持冲突刷新和原回执恢复。 [交互设计](../design/task-iteration-assignments.md) · [验证记录](../quality/task-iteration-assignments-verification.md)
 
 T-CURSOR-RECOVERY-228 为 Cursor 前台停止增加有界等待和原尝试核对。普通节点与共享执行池已验证丢失回执后的同请求恢复，运行界面支持明确记录当前尝试结论。 [验证记录](../quality/cursor-foreground-recovery-verification.md)

@@ -1,5 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),{EventEmitter}=require('node:events'),{PassThrough}=require('node:stream'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {shutdownLine,acknowledgeStop}=require('./fixtures/managed-runner-shutdown.cjs');
 const origin='http://127.0.0.1:4319',key=Buffer.alloc(32,8),request={action:'connect',project_id:'1'.repeat(32),user_id:'2'.repeat(32),tenant_id:'3'.repeat(32),adapter_id:'codex-jsonl',locale:'en-US'};
 const root=path.resolve(__dirname,'../../..','.cache','desktop-tests','managed153-controller'),tick=()=>new Promise(setImmediate);
 function harness(t,options={}){
@@ -17,7 +18,19 @@ function harness(t,options={}){
   if(url.includes('/tool-discovery')){const now=Math.max(Date.now(),reportedAt);return Response.json({project_id:request.project_id,worker_id:worker.worker_id,state:fresh?'fresh':'unreported',as_of:new Date(now).toISOString(),...(fresh?{observed_at:new Date(reportedAt).toISOString(),expires_at:new Date(reportedAt+60000).toISOString()}:{}),items:fresh?[{available:true,profile:{adapter:'codex',protocol:'codex-jsonl-v1',command_id:'managed-codex',profile_sha256:'a'.repeat(64),executable_sha256:'b'.repeat(64),tool_version:'1.0',read_only:false}}]:[]});}
   throw Error('unexpected endpoint');
  }}});Object.assign(parent,{webContents:contents,isDestroyed:()=>false});
- const spawn=(binary,args,opts)=>{const child=new EventEmitter();Object.assign(child,{pid:12345,stdin:new PassThrough(),stdout:new PassThrough(),stderr:new PassThrough(),exitCode:null,signalCode:null,kill:()=>{child.emit('close',null,'SIGKILL');return true;}});let line='';child.stdin.on('data',data=>line+=data);child.stdin.on('finish',()=>{if(!options.unconfirmedStop)child.emit('close',0,null);});children.push({binary,args,options:opts,child,config:()=>JSON.parse(line)});return child;};
+ const spawn=(binary,args,opts)=>{
+  const child=new EventEmitter();
+  Object.assign(child,{pid:12345+children.length,stdin:new PassThrough(),stdout:new PassThrough(),stderr:new PassThrough(),exitCode:null,signalCode:null,kill:()=>{child.emit('close',null,'SIGKILL');return true;}});
+  let input='';const config=()=>JSON.parse(input.split('\n')[0]);
+  child.stdin.on('data',data=>input+=data);
+  child.stdin.on('finish',()=>{
+   if(options.unconfirmedStop)return;
+   if(options.respondToStop){options.respondToStop(child,config().worker_id);return;}
+   if(!options.missingReceipt)acknowledgeStop(child,input);
+   child.emit('close',0,null);
+  });
+  children.push({binary,args,options:opts,child,config});return child;
+ };
  const {createManagedLocalRunnerController}=require('../src/managed-local-runner.cjs'),controller=createManagedLocalRunnerController({parent,origin,binary:process.execPath,key,userData,safeStorage,discover:async()=>({status:'observed',report:{protocol:'suma-installed-tools-v1',items:[{adapter_id:'codex-jsonl',installed:true,launch_supported:true,reason_code:'workspace_required'}]}}),spawn,stopGraceMS:20,stopDeadlineMS:60,checkIntervalMS:100000,...options}),controllers=[controller];t.after(async()=>{for(const item of controllers)await item.dispose();const relative=path.relative(caseRoot,path.resolve(userData));assert.ok(relative.startsWith('case-')&&!relative.includes(path.sep));fs.rmSync(userData,{recursive:true,force:true});});
  return {controller,parent,contents,event:{sender:contents,senderFrame:frame},calls,children,bodies,context,userData,safeStorage,controllers,setIdentity:value=>identity=value,setFresh:value=>{fresh=value;if(value)reportedAt=Math.max(Date.now(),reportedAt+1);},setMissing:value=>missing=value,dropNext:()=>drop=true,revoke:()=>active=false};
 }
@@ -48,8 +61,89 @@ test('expired lost registration receipt recovers its original worker and require
  assert.equal((await h.controller.manage(h.event,request)).connection.phase,'authorization_required');assert.equal(h.bodies.length,2);assert.equal(h.children.length,0);
 });
 test('changed current actor never receives old connection facts or starts a worker',async t=>{const h=harness(t);h.setIdentity('a'.repeat(32));const out=await h.controller.manage(h.event,request);assert.equal(out.status,'failed');assert.equal(h.bodies.length,0);assert.equal(h.children.length,0);});
-test('stop waits for stdin EOF close and reconnect preserves the original worker',async t=>{const h=harness(t);const first=await h.controller.manage(h.event,request);const stopped=await h.controller.manage(h.event,{...request,action:'stop'});assert.equal(stopped.connection.phase,'stopped');await h.controller.manage(h.event,request);assert.equal(h.children.length,2);assert.equal(h.children[1].config().worker_id,first.connection.worker_id);assert.equal(h.children[1].config().token,h.children[0].config().token);assert.deepEqual(h.bodies[1],h.bodies[0]);});
+test('stop waits for the original child receipt and reconnect preserves the original worker',async t=>{const h=harness(t);const first=await h.controller.manage(h.event,request);const stopped=await h.controller.manage(h.event,{...request,action:'stop'});assert.equal(stopped.connection.phase,'stopped');await h.controller.manage(h.event,request);assert.equal(h.children.length,2);assert.equal(h.children[1].config().worker_id,first.connection.worker_id);assert.equal(h.children[1].config().token,h.children[0].config().token);assert.deepEqual(h.bodies[1],h.bodies[0]);});
 test('hard termination remains stop_unconfirmed and cannot start a replacement',async t=>{const h=harness(t,{unconfirmedStop:true});await h.controller.manage(h.event,request);const out=await h.controller.manage(h.event,{...request,action:'stop'});assert.equal(out.connection.phase,'stop_unconfirmed');assert.equal((await h.controller.manage(h.event,request)).connection.phase,'stop_unconfirmed');assert.equal(h.children.length,1);});
+test('a clean exit without a shutdown receipt remains unconfirmed',async t=>{
+ const h=harness(t,{missingReceipt:true});
+ await h.controller.manage(h.event,request);
+ const stop=await h.controller.manage(h.event,{...request,action:'stop'});
+ assert.equal(stop.connection.phase,'stop_unconfirmed');
+ assert.equal((await h.controller.manage(h.event,{...request,action:'status'})).connection.phase,'stop_unconfirmed');
+ assert.equal((await h.controller.manage(h.event,request)).connection.phase,'stop_unconfirmed');
+ assert.equal(h.children.length,1);
+});
+test('a valid receipt confirms stop only after the original child closes',async t=>{
+ let receiptArrived;
+ const receipt=new Promise(resolve=>receiptArrived=resolve);
+ const h=harness(t,{stopGraceMS:1000,stopDeadlineMS:1500,respondToStop(child,id){
+  child.stdout.write(shutdownLine(child,id));receiptArrived(child);
+ }});
+ await h.controller.manage(h.event,request);
+ let settled=false;
+ const stop=h.controller.manage(h.event,{...request,action:'stop'}).then(out=>{settled=true;return out;});
+ const child=await receipt;
+ await tick();assert.equal(settled,false);
+ child.emit('close',0,null);
+ assert.equal((await stop).connection.phase,'stopped');
+});
+test('stop proceeds when journal persistence fails but never reports confirmation',async t=>{
+ for(const failedPhase of ['stopping','stopped'])await t.test(failedPhase,async t=>{
+  const h=harness(t);
+  await h.controller.manage(h.event,request);
+  const encrypt=h.safeStorage.encryptString;
+  h.safeStorage.encryptString=raw=>{
+   if(JSON.parse(raw).phase===failedPhase)throw Error('journal unavailable');
+   return encrypt(raw);
+  };
+  assert.equal((await h.controller.manage(h.event,{...request,action:'stop'})).connection.phase,'stop_unconfirmed');
+  assert.equal(h.children[0].child.stdin.writableFinished,true);
+  await h.controller.dispose();
+  const {createManagedLocalRunnerController}=require('../src/managed-local-runner.cjs');
+  const next=createManagedLocalRunnerController({parent:h.parent,origin,binary:process.execPath,key,userData:h.userData,safeStorage:h.safeStorage,discover:async()=>{throw Error('must not scan');}});
+  h.controllers.push(next);
+  assert.equal((await next.manage(h.event,{...request,action:'status'})).connection.phase,'stop_unconfirmed');
+ });
+});
+test('stop rejects an invalid receipt or abnormal exit from the original child',async t=>{
+ const cases=[
+  ['wrong worker',(child,id)=>shutdownLine(child,id,{worker_id:'desktop-'+'d'.repeat(32)})],
+  ['wrong PID',(child,id)=>shutdownLine(child,id,{pid:child.pid+1})],
+  ['duplicate frame',(child,id)=>shutdownLine(child,id).repeat(2)],
+  ['duplicate key',(child,id)=>shutdownLine(child,id).replace('"pid":','"pid":1,"pid":')],
+  ['truncated frame',(child,id)=>shutdownLine(child,id).slice(0,-1)],
+  ['oversized frame',(child,id)=>' '.repeat(1024)+shutdownLine(child,id)],
+  ['nonzero exit',shutdownLine,1,null],
+  ['signal exit',shutdownLine,null,'SIGTERM'],
+ ];
+ for(const [name,output,code=0,signal=null] of cases)await t.test(name,async t=>{
+  const h=harness(t,{respondToStop(child,id){
+   child.stdout.write(output(child,id));child.emit('close',code,signal);
+  }});
+  await h.controller.manage(h.event,request);
+  assert.equal((await h.controller.manage(h.event,{...request,action:'stop'})).connection.phase,'stop_unconfirmed');
+ });
+});
+test('a premature receipt does not confirm stop or disappear after a binding change',async t=>{
+ const h=harness(t,{missingReceipt:true});
+ await h.controller.manage(h.event,request);
+ const {child,config}=h.children[0];
+ child.stdout.write(shutdownLine(child,config().worker_id));
+ h.context.binding_sha256='f'.repeat(64);
+ assert.equal((await h.controller.manage(h.event,{...request,action:'status'})).connection.phase,'stop_unconfirmed');
+ assert.equal((await h.controller.manage(h.event,request)).connection.phase,'stop_unconfirmed');
+ assert.equal(h.children.length,1);
+});
+test('a child exit before a stop request remains unconfirmed after controller restart',async t=>{
+ const h=harness(t);
+ await h.controller.manage(h.event,request);
+ h.children[0].child.emit('close',0,null);
+ await h.controller.dispose();
+ const {createManagedLocalRunnerController}=require('../src/managed-local-runner.cjs');
+ const next=createManagedLocalRunnerController({parent:h.parent,origin,binary:process.execPath,key,userData:h.userData,safeStorage:h.safeStorage,discover:async()=>{throw Error('must not scan');}});
+ h.controllers.push(next);
+ assert.equal((await next.manage(h.event,{...request,action:'status'})).connection.phase,'stop_unconfirmed');
+ assert.equal((await next.manage(h.event,request)).connection.phase,'stop_unconfirmed');
+});
 test('changed binding stops the existing worker without altering the original operation',async t=>{const h=harness(t);await h.controller.manage(h.event,request);h.context.binding_sha256='f'.repeat(64);assert.equal((await h.controller.manage(h.event,{...request,action:'status'})).connection.phase,'binding_changed');assert.equal(h.bodies.length,1);assert.equal(h.children.length,1);});
 test('revoked original worker never silently issues a replacement credential',async t=>{const h=harness(t);await h.controller.manage(h.event,request);await h.controller.manage(h.event,{...request,action:'stop'});h.revoke();const out=await h.controller.manage(h.event,request);assert.equal(out.connection.phase,'authorization_required');assert.equal(h.children.length,1);assert.deepEqual(h.bodies.at(-1),h.bodies[0]);});
 test('background Session revocation stops and confirmed restored access only prepares the original connection',async t=>{
@@ -57,6 +151,29 @@ test('background Session revocation stops and confirmed restored access only pre
  for(let i=0;i<30&&!h.children[0].child.stdin.writableEnded;i++)await new Promise(resolve=>setTimeout(resolve,5));
  assert.equal(h.children[0].child.stdin.writableEnded,true);h.setIdentity(request.user_id);const restored=await h.controller.manage(h.event,{...request,action:'status'});assert.equal(restored.connection.phase,'prepared');assert.equal(restored.connection.worker_id,h.bodies[0].worker_id);assert.equal(h.bodies.length,1);assert.equal(h.children.length,1);
  await h.controller.manage(h.event,request);assert.equal(h.children.length,2);assert.deepEqual(h.bodies[1],h.bodies[0]);assert.equal(h.children[1].config().token,h.children[0].config().token);
+});
+test('a late background authorization result cannot stop the reconnected child',async t=>{
+ const h=harness(t,{checkIntervalMS:10});
+ await h.controller.manage(h.event,request);
+ const original=h.contents.session.fetch;
+ let release,afterOldAuthorization,oldAuthorizationReleased=false;
+ const oldAuthorizationFinished=new Promise(resolve=>afterOldAuthorization=resolve);
+ h.contents.session.fetch=(url,options)=>{
+  if(url.includes('/desktop-runners/context')&&!release)return new Promise(resolve=>{
+   release=()=>{oldAuthorizationReleased=true;resolve(Response.json({...h.context,binding_sha256:'f'.repeat(64)}));};
+  });
+  if(oldAuthorizationReleased&&url.includes('/auth/session'))afterOldAuthorization();
+  return original(url,options);
+ };
+ for(let i=0;i<30&&!release;i++)await new Promise(resolve=>setTimeout(resolve,5));
+ assert.equal(typeof release,'function');
+ try{
+  assert.equal((await h.controller.manage(h.event,{...request,action:'stop'})).connection.phase,'stopped');
+  assert.equal((await h.controller.manage(h.event,request)).connection.phase,'starting');
+  assert.equal(h.children.length,2);
+ }finally{release();}
+ await oldAuthorizationFinished;await tick();
+ assert.equal(h.children[1].child.stdin.writableEnded,false);
 });
 test('restart never presents persisted connected as a current running observation',async t=>{
  const h=harness(t);await h.controller.manage(h.event,request);h.setFresh(true);assert.equal((await h.controller.manage(h.event,{...request,action:'status'})).connection.phase,'connected');
@@ -77,16 +194,33 @@ test('registration authorization denial remains an original authorization proble
  const h=harness(t),original=h.contents.session.fetch;h.contents.session.fetch=(url,opts)=>url.includes('/desktop-runners/register')?Promise.resolve(Response.json({error:{code:'forbidden'}},{status:403})):original(url,opts);
  assert.equal((await h.controller.manage(h.event,request)).connection.phase,'authorization_required');assert.equal(h.children.length,0);
 });
-test('actual Node subprocess receives private configuration and exits on stdin EOF',async t=>{
+test('actual Node subprocess receives private configuration and acknowledges the stop frame',async t=>{
  const {spawn}=require('node:child_process');let h,child,marker;
- h=harness(t,{spawn:(_binary,_args,opts)=>{
-  marker=path.join(h.userData,'child-receipt.json');const script="const fs=require('node:fs'),crypto=require('node:crypto');let raw='',configured=false;process.stdin.on('data',chunk=>{raw+=chunk;if(!configured&&raw.includes('\\n')){configured=true;const c=JSON.parse(raw.slice(0,raw.indexOf('\\n')));fs.writeFileSync(process.argv[1],JSON.stringify({protocol:c.protocol,sha:crypto.createHash('sha256').update(c.token).digest('hex'),env_leak:!!process.env.SUMA_RUNNER_TOKEN}));raw='';}});process.stdin.on('end',()=>{fs.writeFileSync(process.argv[1]+'.stopped','EOF');});";
+ h=harness(t,{stopGraceMS:1000,stopDeadlineMS:1500,spawn:(_binary,_args,opts)=>{
+  marker=path.join(h.userData,'child-receipt.json');
+  const script=`
+const fs=require('node:fs'),crypto=require('node:crypto');
+let raw='',configuration;
+process.stdin.on('data',chunk=>{
+ raw+=chunk;
+ if(configuration||!raw.includes('\\n'))return;
+ const firstLine=raw.indexOf('\\n');
+ configuration=JSON.parse(raw.slice(0,firstLine));
+ raw=raw.slice(firstLine+1);
+ fs.writeFileSync(process.argv[1],JSON.stringify({protocol:configuration.protocol,sha:crypto.createHash('sha256').update(configuration.token).digest('hex'),env_leak:!!process.env.SUMA_RUNNER_TOKEN}));
+});
+process.stdin.on('end',()=>{
+ if(raw!=='stop\\n'||!configuration){process.exitCode=2;return;}
+ fs.writeFileSync(process.argv[1]+'.stopped',raw);
+ const line=JSON.stringify({type:'suma.local_runner.shutdown',worker_id:configuration.worker_id,pid:process.pid})+'\\n';
+ process.stdout.write(line.slice(0,17),()=>process.stdout.write(line.slice(17)));
+});`;
   child=spawn(process.execPath,['-e',script,marker],opts);return child;
  }});
  const out=await h.controller.manage(h.event,request);assert.equal(out.connection.phase,'starting');
  for(let i=0;i<100&&!fs.existsSync(marker);i++)await new Promise(resolve=>setTimeout(resolve,10));
  const receipt=JSON.parse(fs.readFileSync(marker,'utf8'));assert.equal(receipt.protocol,'suma-desktop-managed-runner-v1');assert.equal(receipt.sha,h.bodies[0].credential_sha256);assert.equal(receipt.env_leak,false);
- const stopped=await h.controller.manage(h.event,{...request,action:'stop'});assert.equal(stopped.connection.phase,'stopped');assert.equal(child.exitCode,0);assert.equal(fs.readFileSync(marker+'.stopped','utf8'),'EOF');
+ const stopped=await h.controller.manage(h.event,{...request,action:'stop'});assert.equal(stopped.connection.phase,'stopped');assert.equal(child.exitCode,0);assert.equal(fs.readFileSync(marker+'.stopped','utf8'),'stop\n');
 });
 test('reconnect waits for a report newer than its pre-spawn inventory watermark',async t=>{
  const h=harness(t);await h.controller.manage(h.event,request);h.setFresh(true);assert.equal((await h.controller.manage(h.event,{...request,action:'status'})).connection.phase,'connected');await h.controller.manage(h.event,{...request,action:'stop'});
@@ -98,7 +232,7 @@ function qoderHarness(t,fixtureRoot,adapterID='qoder-acp'){
  let inputProtocol=cursor?'cursor-acp-input-v1':undefined;
  const discovery={status:'observed',report:{protocol:'suma-installed-tools-v1',items:[{adapter_id:adapterID,product:cursor?'Cursor':'Qoder',installed:true,launch_supported:false,reason_code:'acp_configuration_required',executable:process.execPath,executable_sha256:'a'.repeat(64),version}]}};
  const capability={runtime,protocol_version:1,sdk_version:'0.13.5',configuration_sha256:'b'.repeat(64),model:'one',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:cursor?'explicit_api_key_env':'existing_cli_login',permission_mode:'human_once'};
- const spawn=(binary,args,options)=>{const child=new EventEmitter();Object.assign(child,{stdin:new PassThrough(),stdout:new PassThrough(),stderr:new PassThrough(),kill:()=>{child.emit('close',null,'SIGKILL');return true;}});let input='';child.stdin.on('data',part=>input+=part);child.stdin.on('finish',()=>{if(args.includes('--describe-acp-models-stdin'))child.stdout.emit('data',Buffer.from(JSON.stringify({protocol:'suma-acp-model-discovery-v1',runtime,state:'ready',executable_sha256:'a'.repeat(64),tool_version:version,catalogue:{source:'acp_session_config',protocol_version:1,config_id:'model',current_value:'one',models:[{id:'one',name:'One',configuration_sha256:'b'.repeat(64)}]},evidence:{session_created:true,session_cancel_requested:false,session_cancel_written:false,prompt_requests:0,configuration_writes:0,permission_requests:0,unexpected_activity:0,host_process_stopped:true,host_process_tree_stopped:true,host_process_exit_code:0,host_stopped_after_rpc:false}})));child.emit('close',0);});calls.push({binary,args,options,child,input:()=>JSON.parse(input)});return child;};
+ const spawn=(binary,args,options)=>{const child=new EventEmitter();Object.assign(child,{pid:12345+calls.length,stdin:new PassThrough(),stdout:new PassThrough(),stderr:new PassThrough(),kill:()=>{child.emit('close',null,'SIGKILL');return true;}});let input='';child.stdin.on('data',part=>input+=part);child.stdin.on('finish',()=>{if(args.includes('--describe-acp-models-stdin'))child.stdout.emit('data',Buffer.from(JSON.stringify({protocol:'suma-acp-model-discovery-v1',runtime,state:'ready',executable_sha256:'a'.repeat(64),tool_version:version,catalogue:{source:'acp_session_config',protocol_version:1,config_id:'model',current_value:'one',models:[{id:'one',name:'One',configuration_sha256:'b'.repeat(64)}]},evidence:{session_created:true,session_cancel_requested:false,session_cancel_written:false,prompt_requests:0,configuration_writes:0,permission_requests:0,unexpected_activity:0,host_process_stopped:true,host_process_tree_stopped:true,host_process_exit_code:0,host_stopped_after_rpc:false}})));else acknowledgeStop(child,input);child.emit('close',0);});calls.push({binary,args,options,child,input:()=>JSON.parse(input.split('\n')[0])});return child;};
  const h=harness(t,{discover:async()=>structuredClone(discovery),spawn,environment,...(fixtureRoot?{fixtureRoot}:{})});
  if(cursor){discovery.report.items[0].executable=path.join(h.userData,process.platform==='win32'?'node.exe':'node');fs.writeFileSync(discovery.report.items[0].executable,'synthetic-node-bytes');fs.writeFileSync(path.join(h.userData,'index.js'),'// Synthetic package entry; never executed.');}
  const old=h.contents.session.fetch;h.contents.session.fetch=async(url,options)=>{const response=await old(url,options);if(!url.includes('/tool-discovery'))return response;const report=await response.json();report.items=report.items.map(item=>({...item,profile:{...item.profile,adapter:runtime,protocol:'acp-stdio-v1',executable_sha256:'a'.repeat(64),tool_version:version,acp_execution:{...capability},...(inputProtocol!==undefined?{user_input_protocol:inputProtocol}:{})}}));return Response.json(report);};

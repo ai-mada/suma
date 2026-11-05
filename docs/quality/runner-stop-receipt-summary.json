@@ -1,0 +1,75 @@
+{
+  "stage": "T-RUNNER-STOP-229",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "base": "6306b4d4b31f108bb23b8ed54c37fa19fd65afda",
+  "full_platform_complete": false,
+  "windows_control": {
+    "scope": "Actual Windows suma-control CLI and Go Worker with synthetic probe-only CodeBuddy and localhost scheduler",
+    "binary_sha256": "c581898cb4d5cfab65c5788e5f66c1c1cf1e879d46fd091acf3174e63778cd8f",
+    "cases": [
+      {
+        "name": "explicit idle stop",
+        "code": 0,
+        "receipt": true,
+        "original_claim_preserved": false
+      },
+      {
+        "name": "parent EOF with same state directory",
+        "code": 0,
+        "receipt": false,
+        "original_claim_preserved": false
+      },
+      {
+        "name": "stop with unacknowledged original claim",
+        "code": 0,
+        "receipt": true,
+        "original_claim_preserved": true
+      },
+      {
+        "name": "restart resumes same unacknowledged claim",
+        "code": 0,
+        "receipt": true,
+        "original_claim_preserved": false
+      }
+    ]
+  },
+  "focused": {
+    "worker_go": 7,
+    "command_go": 4,
+    "identical_result_replay": "passed",
+    "desktop_suites": 5,
+    "desktop_top_level": 45,
+    "desktop_including_subtests": 55,
+    "stale_guard_regression": "red_then_green",
+    "web_component": 9,
+    "paired_locale_keys": 10073,
+    "production_hardcoded_messages": 0,
+    "linux_amd64_runner": "cross_build_passed"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "f230f9f55bdfc4de68015473b07de329a5079f87",
+    "source_copied": false
+  },
+  "pending": [
+    "operator_reconciliation_of_missing_stop_proof",
+    "pool_worker_shutdown_protocol",
+    "full_electron_exit_and_relaunch",
+    "linux_runtime",
+    "macos_runtime",
+    "vendor_execution",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "worker": ".cache/runner-stop-229/go/worker-local-final-20261105T102302032Z.command.json",
+    "command": ".cache/runner-stop-229/go/command-final-20261105T102304678Z.command.json",
+    "build": ".cache/runner-stop-229/go/build-control-final-20261105T102311586Z.command.json",
+    "linux": ".cache/runner-stop-229/go/linux-build-20261105T102501427Z.command.json",
+    "process": ".cache/runner-stop-229/process-L4uWdG/receipt.json",
+    "desktop": ".cache/runner-stop-229/desktop-final.log",
+    "desktopRed": ".cache/runner-stop-229/desktop-guard-red.log",
+    "web": ".cache/runner-stop-229/desktop-web.log",
+    "i18n": ".cache/runner-stop-229/desktop-i18n.log"
+  }
+}
