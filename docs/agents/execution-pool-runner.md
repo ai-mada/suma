@@ -32,6 +32,8 @@ T-COMMAND-COMPOSITION-215补充[已有命令配置组合](../product/command-com
 
 停止未确认时命令以非零状态退出。`slot_shutdown_unconfirmed` 携带具体槽位号，`inventory_shutdown_unconfirmed` 提供对应租户／项目，`pool_shutdown_unconfirmed` 或 `pool_shutdown_identity_lock` 提示核对原状态或身份锁。按槽位读取原日志，例如 `suma-runner --inspect-state --state .cache/runner/pool/slots/0 --language zh-CN`。检查结果提供原运行、节点、尝试和 fence。保留原状态目录，根据原运行及现场证据核对。 [日志检查的范围](runner-journal-inspection.md) · [阶段验证](../quality/pool-shutdown-verification.md)
 
+涉及多个槽位时，先运行 `suma-runner --inspect-pool-state --state .cache/runner --language zh-CN`，将示例目录换成执行器启动时的原 `--state`。摘要标出各槽位的未知结果、待回执计数与领取记录阶段，再进入对应槽位核对。 [资源池诊断合同](../../contracts/runner-journal-inspection.md#资源池总览)
+
 ## 身份与范围
 
 T-POOL-RUNNER-PAIRING-208已补充[安全机器配对](../../contracts/pool-runner-pairing.md)：原Pool节点页创建待办，机器把token保存到独立系统凭据库，管理员核对完整指纹后批准；浏览器不复制或保存token。`--pair-pool-runner ID --control URL --pool POOL`仅准备身份并退出；后续显式启动使用`--pool-identity FILE --pool-config FILE --control URL`，先核准公开范围再读取系统秘密。准确过程和实际Windows系统库证据见[专项报告](../quality/pool-runner-pairing-verification.md)；它不代表节点在线、跨平台安装或业务执行。

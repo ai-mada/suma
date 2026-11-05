@@ -8,7 +8,13 @@ Delivery task: T-DELIVERY-112. Product version: 1.0.0. This local command shows 
 suma-runner --inspect-state --state .cache/runner --language en-US
 ```
 
-For a pool runner, select one actual slot:
+For a pool runner, start with the local slot overview. Pass the same `--state` directory as the runner. Environment-token mode defaults to `.cache/runner`. A paired runner without an explicit `--state` uses `<identity-file>.journal`.
+
+```text
+suma-runner --inspect-pool-state --state .cache/runner --language en-US
+```
+
+Look for slots with unknown results, pending deliveries or unfinished local claim records. The overview reports only slot numbers, counts and local checkpoint states. Select the relevant slot for the original execution details:
 
 ```text
 suma-runner --inspect-state --state .cache/runner/pool/slots/0 --language en-US

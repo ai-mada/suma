@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-POOL-INSPECTION-232 已验证原 Windows 控制台停止记录的槽位总览、单槽位定位和部分证据处理。 [阶段验证](pool-state-inspection-verification.md)
+
 T-POOL-SHUTDOWN-231 已通过 Windows 双槽位实际进程和隔离控制台信号验证。 [阶段验证](pool-shutdown-verification.md)
 
 T-MULTICA-BOARD-SELECTION 验证跨泳道选中、同一查询的布局切换、正式排期写入和 390px 滚动操作。 [阶段验证](task-board-selection-verification.md)

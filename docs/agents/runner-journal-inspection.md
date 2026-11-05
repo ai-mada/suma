@@ -8,7 +8,13 @@
 suma-runner --inspect-state --state .cache/runner --language zh-CN
 ```
 
-资源池需要选择具体槽位，例如：
+共享资源池可先按原启动目录查看所有本地槽位。环境令牌模式默认目录为 `.cache/runner`。配对身份模式默认使用 `<身份文件>.journal`，显式配置 `--state` 时沿用实际目录。
+
+```text
+suma-runner --inspect-pool-state --state .cache/runner --language zh-CN
+```
+
+先看有未知结果、待回执或领取记录未完成的槽位。总览只提供槽位、数量和本机检查点阶段。再按实际编号查看原尝试，例如：
 
 ```text
 suma-runner --inspect-state --state .cache/runner/pool/slots/0 --language zh-CN

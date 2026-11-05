@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/ai-mada/suma/internal/localization"
 )
@@ -79,6 +80,18 @@ func (c *Command) FlagProvided(name string) bool {
 		}
 	})
 	return provided
+}
+
+// OnlyProvidedFlags checks an explicit mode allowlist, including flags set to
+// false or an empty string. Call it after Parse and before accessing resources.
+func (c *Command) OnlyProvidedFlags(allowed ...string) bool {
+	ok := true
+	c.flags.Visit(func(f *flag.Flag) {
+		if !slices.Contains(allowed, f.Name) {
+			ok = false
+		}
+	})
+	return ok
 }
 
 // Parse resolves language before emitting diagnostics. The standard parser owns

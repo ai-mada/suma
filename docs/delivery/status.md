@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-POOL-INSPECTION-232 新增本机共享执行池总览，按槽位查看日志计数、未知结果和原领取阶段，并沿单槽位命令定位原尝试。 [诊断指南](../agents/runner-journal-inspection.md) · [阶段验证](../quality/pool-state-inspection-verification.md)
+
 T-POOL-SHUTDOWN-231 将共享池退出结果绑定到原槽位、库存管理和状态锁收尾。遇到原执行未知时保留原派发并输出槽位诊断。 [值班手册](../agents/execution-pool-runner.md#停止与核对) · [阶段验证](../quality/pool-shutdown-verification.md)
 
 T-MULTICA-BOARD-SELECTION 将列表和看板的多选与批量操作统一，支持在跨泳道选择后分配负责人、调整迭代或安排团队。已验证触屏滚动和正式事务。 [交互设计](../design/task-board-selection.md) · [验证记录](../quality/task-board-selection-verification.md)

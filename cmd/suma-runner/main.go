@@ -40,6 +40,7 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	preflight := app.String("merge-preflight", "", "已审核的本地 JSON 请求；只验证证据和提交，不执行合并", "reviewed local JSON request; validate evidence and heads without merging")
 	state := app.String("state", ".cache/runner", "执行器持久状态目录", "durable runner state directory")
 	inspectState := app.Bool("inspect-state", false, "只读查看指定本地执行日志的安全摘要；不读取凭据或启动执行器", "read-only safe summary of the selected local execution journal; no credentials or worker startup")
+	inspectPoolState := app.Bool("inspect-pool-state", false, "只读汇总原资源池状态目录的槽位日志和领取记录", "summarize slot journals and claims in the original Pool state directory without writes")
 	commands := app.String("commands", "", "本地 JSON 命令允许列表", "local JSON command allowlist")
 	modelDeployments := app.String("model-deployments", "", "管理员本地模型部署 JSON 允许列表；凭证只使用环境变量引用", "administrator local model deployment JSON allowlist; credentials use environment references")
 	externalConfig := app.String("external-config", "", "管理员 JSON 配置：外部工作流插件端点和凭证环境变量名", "administrator JSON map of external workflow plugin endpoints and token environment names")
@@ -70,6 +71,13 @@ func runWithRunnerSecretsInput(args []string, out, stderr io.Writer, lookup func
 	deviceName := app.String("device-name", "", "配对时自报的机器名称；默认本机名称", "self-reported pairing device name; defaults to the local hostname")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if app.FlagProvided("inspect-pool-state") {
+		if !*inspectPoolState || *state == "" || !app.OnlyProvidedFlags("inspect-pool-state", "state", "language") {
+			fmt.Fprintln(stderr, app.Text("资源池本地诊断仅接受 --inspect-pool-state、--state 和 --language", "Pool state inspection only accepts --inspect-pool-state, --state and --language"))
+			return 2
+		}
+		return runPoolStateInspection(app, *state)
 	}
 	if *allowPreparation && !*allowInstalled || app.FlagProvided("allow-tool-preparation") && toolModeHasAnyFlag(app, "compose-commands", "prepare-tools", "prepare-acp-stdin", "prepare-sdk-stdin", "prepare-codex-stdin", "prepare-opencode-stdin", "prepare-pool-config", "check-pool-connection", "pair-pool-runner", "pool", "pair-runner", "device-name", "describe-tools", "discover-installed-tools", "describe-acp-models-stdin", "inspect-state", "report-tools", "merge-preflight") {
 		return app.Failure("工具准备需要明确允许已安装检测，且只能用于持续维护节点", "tool preparation requires explicit installed discovery and a continuous maintenance worker")

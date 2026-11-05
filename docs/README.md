@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+共享执行池本机槽位总览与原尝试定位见 T-POOL-INSPECTION-232。 [诊断指南](agents/runner-journal-inspection.md) · [阶段验证](quality/pool-state-inspection-verification.md)
+
 共享执行池停止、槽位诊断与原日志核对见 T-POOL-SHUTDOWN-231。 [值班手册](agents/execution-pool-runner.md#停止与核对) · [阶段验证](quality/pool-shutdown-verification.md)
 
 桌面中断后核对原停止证据见 T-DESKTOP-STOP-RECOVERY-230。 [执行合同](../contracts/desktop-managed-runner.md#停止回执) · [阶段验证](quality/desktop-stop-recovery-verification.md)

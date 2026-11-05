@@ -16,6 +16,18 @@ suma-runner --inspect-state --state EXACT_LOCAL_STATE_DIR --language zh-CN
 
 资源池按实际槽位指定目录，例如 `.cache/runner/pool/slots/0`。该入口不递归扫描父目录，不读取 `pool-config`，不把槽位摘要当作整机状态。
 
+### 资源池总览
+
+```text
+suma-runner --inspect-pool-state --state EXACT_RUNNER_STATE_DIR --language zh-CN
+```
+
+该模式使用启动时相同的 `--state`，从其 `pool` 子目录读取原机器绑定和规范编号的槽位。仅接受这三个选项，显式 `false`、空目录和其他模式的组合均返回用法错误。输出 `schema_version:1`、`component:local_pool_runner_state`、`status`、`complete` 和按数值排序的 `slots`。每槽只列 `slot_id`、`journal_status`、可用日志的 `journal_counts` 和 `claim_state`。结果不含身份、执行条目、凭据、路径或原始载荷。
+
+`claim_state` 中，`request_recorded` 仅证明原领取已保存，`response_recorded` 仅证明已记录响应，`complete` 只表示本机领取检查点完成。其余状态区分缺失、不可安全读取、超出上限和内容无效。各文件分别观察，`complete` 表示本次读取覆盖范围。当前进程、租约、服务器确认和业务完成由对应权威另行核对。需要原运行、节点、尝试和 fence 时，按编号单独查看原槽位。
+
+每次最多检查 128 个槽位，读取预算合计 64 MiB，单个日志和领取记录分别以 16 MiB 和 2 MiB 为限。有效根目录下的维护模式允许没有槽位。槽位日志损坏或存在不可安全读取的入口时保留可用行，并标记不完整。退出码 `0` 表示摘要读取完整，`1` 表示缺失、失败或不完整，`2` 表示参数冲突。
+
 ## 唯一输出范围
 
 标准输出是 JSON：

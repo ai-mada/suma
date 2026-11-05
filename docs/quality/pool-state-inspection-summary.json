@@ -1,0 +1,63 @@
+{
+  "stage": "T-POOL-INSPECTION-232",
+  "base": "1c3c97c132de94eaf49053ee5af4a7f8817e0730",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "native": {
+    "scope": "Actual built Windows CLI reading original real console-stop state and one isolated malformed copy",
+    "cases": [
+      {
+        "case": "original unknown result",
+        "exit": 0,
+        "bilingual_same_json": true,
+        "unknown_results": 1,
+        "original_slot_lookup": {
+          "attempt": 3,
+          "fence": 7
+        },
+        "no_state_writes": true
+      },
+      {
+        "case": "original local claim",
+        "exit": 0,
+        "claim_state": "complete",
+        "no_state_writes": true
+      },
+      {
+        "case": "partial local evidence",
+        "exit": 1,
+        "complete": false,
+        "claim_state": "invalid",
+        "available_journal_counts_preserved": true,
+        "junction_refused": true,
+        "no_state_writes": true
+      }
+    ],
+    "binary_sha256": "0f23363804f4f9e73e9d4165c39fc6c19148eca89202ea8eddecdff5713becd5"
+  },
+  "focused": {
+    "runner": 3,
+    "cli": 5,
+    "symlink_subcase": "skipped_on_windows_permission; actual_cli_junction_rejection_passed",
+    "linux_amd64_cli": "cross_build_passed"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "f230f9f55bdfc4de68015473b07de329a5079f87",
+    "source_copied": false
+  },
+  "pending": [
+    "linux_macos_runtime",
+    "physical_multi_host_operations",
+    "live_vendor_execution",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "runner": ".cache/pool-inspection-232/go/runner-focused-20261105T110619417Z.command.json",
+    "cli": ".cache/pool-inspection-232/go/cli-focused-20261105T110726550Z.command.json",
+    "windows_build": ".cache/pool-inspection-232/go/cli-build-20261105T110726625Z.command.json",
+    "linux_build": ".cache/pool-inspection-232/go/linux-build-20261105T110727179Z.command.json",
+    "native": ".cache/pool-inspection-232/native-G5XRIs/receipt.json"
+  }
+}
