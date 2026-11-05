@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOL-QUICK-DESKTOP-251 核验实际 Windows 桌面检测、Runner 配置选择、暂停 v1、独立启用 v2 和窄屏首屏确认。 [阶段验证](tool-quick-desktop-verification.md)
+
 T-WORKBUDDY-DIRECT-AUTH 核验一次操作打开官方授权、浏览器拦截恢复、原记录定位及桌面窗口交接。 [阶段验证](workbuddy-direct-auth-verification.md)
 
 T-CLI-RUN-WATCH 核验真实事件续传、完整输出边界、凭证撤销、队列分页和节点阻塞。 [阶段验证](cli-run-watch-verification.md)

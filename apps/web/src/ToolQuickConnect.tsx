@@ -39,7 +39,7 @@ import './ToolQuickConnect.css';
 
 const t=(key:string,params?:Record<string,unknown>)=>tr('tool-quick-connect.'+key,params);
 export type ToolConnectDraft={adapterID:string;workerID:string;commandID:string;name:string;nameEdited:boolean;observationPin?:ToolConnectObservationPin};
-export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;draft?:ToolConnectDraft;onDraftChange?:(draft:ToolConnectDraft)=>void;replacementSource?:ToolProfile;replacementDisabled?:boolean;onReplace?:(draft:ToolProfileReplacementDraft)=>Promise<void>|void;preferredWorkerID?:string;pairedRunner?:RunnerPairing;onPrepareRunner?:(pairing:RunnerPairing,adapter:AdapterDescriptor)=>void;onRemoteDiscoveryGuide?:(adapter:AdapterDescriptor,workerID:string)=>void;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile)=>void;onOpen?:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor,expectedWorkerID?:string)=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void;onWorker?:()=>void};
+export type ToolQuickConnectProps={project:string;adapter?:AdapterDescriptor;draft?:ToolConnectDraft;onDraftChange?:(draft:ToolConnectDraft)=>void;replacementSource?:ToolProfile;replacementDisabled?:boolean;onReplace?:(draft:ToolProfileReplacementDraft)=>Promise<void>|void;preferredWorkerID?:string;pairedRunner?:RunnerPairing;onPrepareRunner?:(pairing:RunnerPairing,adapter:AdapterDescriptor)=>void;onRemoteDiscoveryGuide?:(adapter:AdapterDescriptor,workerID:string)=>void;workers:IdentityRead;sharedWorkers:SharedIdentityRead;action:ToolAction;onRegistered:(profile:ToolProfile)=>void;onEnable:(profile:ToolProfile,justSaved?:true)=>void;onOpen?:(profile:ToolProfile)=>void;onAdvanced:(adapter?:AdapterDescriptor,expectedWorkerID?:string)=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void;onWorker?:()=>void};
 export function ToolQuickConnect(props:ToolQuickConnectProps){
  const view=useApiView(),scope=JSON.stringify([props.project,view?.userID,view?.organizationID,props.preferredWorkerID,props.replacementSource?.id,props.replacementSource?.version]);
  return <QuickConnectScope {...props} key={scope}/>;
@@ -95,7 +95,8 @@ type MatchSnapshot={caller:ReturnType<typeof useApi>;key:string;data?:ToolProfil
 type QuickToolDraft=Readonly<{chosenWorker:string;chosenCommand:string;name:string;nameEdited:boolean;observationPin?:ToolConnectObservationPin}>;
 function QuickToolConfiguration({project,adapter,replacementSource,replacementDisabled,onReplace,preferredWorkerID,pairedRunner,onPrepareRunner,onRemoteDiscoveryGuide,workers,sharedWorkers,action,onRegistered,onEnable,onOpen,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onConfigurationDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onConfigurationDraftChange:(draft:QuickToolDraft)=>void}){
  const acpAdapterID=adapter.id==='qoder-acp'||adapter.id==='cursor-cli'?adapter.id:undefined;
- useLocale();const api=useApi(),[chosenWorker,setChosenWorker]=useState(preferredWorkerID||initialDraft?.chosenWorker||''),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<InventorySnapshot>(),[expired,setExpired]=useState(false),[chosenCommand,setChosenCommand]=useState(preferredWorkerID&&preferredWorkerID!==initialDraft?.chosenWorker?'':initialDraft?.chosenCommand||''),[name,setName]=useState(initialDraft?.name||''),[nameEdited,setNameEdited]=useState(initialDraft?.nameEdited||false),[registered,setRegistered]=useState<ToolProfile>();
+ useLocale();const api=useApi(),[chosenWorker,setChosenWorker]=useState(preferredWorkerID||initialDraft?.chosenWorker||''),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<InventorySnapshot>(),[expired,setExpired]=useState(false),[chosenCommand,setChosenCommand]=useState(preferredWorkerID&&preferredWorkerID!==initialDraft?.chosenWorker?'':initialDraft?.chosenCommand||''),[name,setName]=useState(initialDraft?.name||''),[nameEdited,setNameEdited]=useState(initialDraft?.nameEdited||false);
+ const [registration,setRegistration]=useState<{caller:typeof api;profile:ToolProfile;review:boolean}>();
  const [observationPin,setObservationPin]=useState(()=>{const pin=preferredWorkerID&&preferredWorkerID!==initialDraft?.chosenWorker?undefined:initialDraft?.observationPin;return validToolConnectObservationPin(pin)?Object.freeze({...pin}):pin;});
  const [preparationSnapshot,setPreparationSnapshot]=useState<{caller:typeof api;key:string;valid:boolean;error?:unknown}>();
  const [remoteScanOpen,setRemoteScanOpen]=useState(false),[remoteScanBlocked,setRemoteScanBlocked]=useState(false),[localOperationBlocked,setLocalOperationBlocked]=useState(false),[nativeRegistrationReady,setNativeRegistrationReady]=useState(true),[nativeConnection,setNativeConnection]=useState<{caller:typeof api;connection:DesktopCodexConnectedProof|DesktopOpenCodeConnectedProof|DesktopClaudeSDKConnectedProof}>(),currentCaller=useRef(api);currentCaller.current=api;
@@ -160,7 +161,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
   if(!chosenWorker&&worker)setChosenWorker(worker);if(!chosenCommand&&selected)setChosenCommand(selected.profile.command_id);
   onConfigurationDraftChange({chosenWorker:worker||chosenWorker,chosenCommand:selected?.profile.command_id||chosenCommand,name,nameEdited,...(observationPin!==undefined?{observationPin}:{})});
  },[chosenWorker,worker,chosenCommand,selected?.profile.command_id,name,nameEdited,observationPin,onConfigurationDraftChange]);
- const receipt=registered&&active&&registered.worker_id===worker?registered:undefined;
+ const receipt=registration?.caller===api&&active&&registration.profile.worker_id===worker?registration.profile:undefined;
  const matchRequest:ToolProfileMatchRequest|undefined=usable&&selected?{project_id:project,worker_id:worker,profile:selected.profile}:undefined;
  function chooseConfiguration(commandID:string){
   if(!alive.current||currentCaller.current!==api||writeBlocked||localOperationBlocked||remoteScanBlocked||!current?.view||expired||performance.now()>=current.deadline)return;
@@ -211,10 +212,15 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
  function readMatches(){if(blocked)return;action.clearError();setMatchRevision(value=>value+1);}
  useEffect(()=>{
   if(!receipt||reportedReceipt.current===receipt.id)return;
-  reportedReceipt.current=receipt.id;onRegistered(receipt);
- },[receipt,onRegistered]);
- async function register(){
+  reportedReceipt.current=receipt.id;
+  onRegistered(receipt);
+  if(registration?.review&&!blocked)onEnable(receipt,true);
+ },[receipt,registration,blocked,onRegistered,onEnable]);
+ const showSaveReview=selected?.available===true;
+ const saveDisabled=blocked||action.conflict||!canCreate||!usable||!suggestedName.trim();
+ async function register(review:boolean){
   if(blocked||action.conflict||!canCreate||!usable||!suggestedName.trim()||!selected||!current||performance.now()>=current.deadline){if(current&&performance.now()>=current.deadline)setExpired(true);return;}
+  if(review&&!showSaveReview)return;
   const body={project_id:project,worker_id:worker,name:suggestedName.trim(),profile:selected.profile};
   // A deliberate registration fixes the original operation's public target.
   // Later automatic local status cannot move its pending write or receipt.
@@ -223,7 +229,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
   const result=await action.run<ToolProfile>('/tool-profiles',body);
   // A transient node read must not erase an already matched original receipt.
   // The scoped component owns it; current authorization still guards display.
-  if(result&&alive.current&&validQuickConnectReceipt(result,body))setRegistered(result);
+  if(result&&alive.current&&currentCaller.current===api&&validQuickConnectReceipt(result,body))setRegistration({caller:api,profile:result,review});
  }
  const savedHeading=useRef<HTMLElement>(null),remoteScanID=useId();
  useLayoutEffect(()=>{if(receipt)savedHeading.current?.focus();},[receipt?.id]);
@@ -261,11 +267,18 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
      {lookupBusy&&<p role="status" className="tool-quick-muted">{tr('tool-profile-reuse.loading')}</p>}
      {matches?.error&&<div><p className="tool-quick-warning">{tr('tool-profile-reuse.query_failed')}</p><ErrorNotice error={toolError(matches.error)}/>{matchesRefresh}</div>}
      {replacementSource?unchangedSource?<div className="tool-quick-muted" data-quick-replacement-unchanged><p>{tr('tool-profile-replacement.source_unchanged')}</p>{onOpen&&<button type="button" className="text-button" data-existing-tool-open={replacementSource.id} disabled={blocked} onClick={()=>{if(!blocked)onOpen(replacementSource);}}>{tr('tool-profile-replacement.view_source')}</button>}</div>:replacementCandidates.length>0&&<Field label={tr('tool-profile-replacement.choose_existing')}><select data-quick-replacement-existing value={selectedExisting} disabled={blocked} onChange={event=>{if(!blocked)setExistingChoice({key:matchKey,id:event.target.value});}}><option value="">{tr('tool-profile-replacement.choose_existing_placeholder')}</option>{replacementCandidates.map(item=><option key={item.id} value={item.id}>{item.name} · {tr('tool-profile-reuse.state.'+item.state)} · {item.version}</option>)}</select></Field>:matches?.data&&!!matches.data.items.length&&<ExistingToolProfiles items={matches.data.items} selectedID={selectedExisting} disabled={blocked} onSelect={id=>setExistingChoice({key:matchKey,id})} onEnable={onEnable} onOpen={onOpen}/>}
-     {replacementSource?!unchangedSource&&(prepared?<ToolProfileReplacementConfirm draft={prepared.draft} disabled={!replacementEligible} onPauseOriginalChange={value=>{if(!replacementGate.current.eligible||!prepared)return;setReplacementPlan({...prepared,draft:{...prepared.draft,pauseOriginal:value}});}} onConfirm={()=>void confirmReplacement()} onBack={()=>{if(!blocked)setReplacementPlan(undefined);}}/>:<button type="button" className="primary tool-quick-submit" data-quick-replacement-prepare disabled={!replacementEligible} onClick={prepareReplacement}>{tr('tool-profile-replacement.prepare')}</button>):!reusable.length&&<form className="tool-quick-save-form" onSubmit={event=>{event.preventDefault();void register();}}>
+     {replacementSource?!unchangedSource&&(prepared?<ToolProfileReplacementConfirm draft={prepared.draft} disabled={!replacementEligible} onPauseOriginalChange={value=>{if(!replacementGate.current.eligible||!prepared)return;setReplacementPlan({...prepared,draft:{...prepared.draft,pauseOriginal:value}});}} onConfirm={()=>void confirmReplacement()} onBack={()=>{if(!blocked)setReplacementPlan(undefined);}}/>:<button type="button" className="primary tool-quick-submit" data-quick-replacement-prepare disabled={!replacementEligible} onClick={prepareReplacement}>{tr('tool-profile-replacement.prepare')}</button>):!reusable.length&&<form className="tool-quick-save-form" onSubmit={event=>{
+      event.preventDefault();
+      const submitter=(event.nativeEvent as SubmitEvent).submitter;
+      void register(submitter?.hasAttribute('data-quick-save-review')===true);
+     }}>
       {nameField}
       <div className="tool-quick-save-actions">
-       {selected&&<p className="tool-quick-muted">{t('register_hint')}</p>}
-       <button data-quick-register type="submit" className="primary tool-quick-submit" disabled={blocked||action.conflict||!canCreate||!usable||!suggestedName.trim()}>{preparedID&&!action.busy?tr('managed-tool-preparation.save_paused'):t(action.busy?'registering':'register')}</button>
+       {selected&&<p className="tool-quick-muted">{t(showSaveReview?'review_hint':'register_hint')}</p>}
+       <div className="tool-quick-save-buttons">
+        <button data-quick-register type="submit" className={showSaveReview?'':'primary'} disabled={saveDisabled}>{preparedID&&!action.busy?tr('managed-tool-preparation.save_paused'):t(action.busy?'registering':'register')}</button>
+        {showSaveReview&&<button data-quick-save-review type="submit" className="primary" disabled={saveDisabled}>{t('save_review')}<ArrowRight size={15} aria-hidden="true"/></button>}
+       </div>
       </div>
      </form>}
     </>}

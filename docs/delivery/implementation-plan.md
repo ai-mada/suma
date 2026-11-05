@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-QUICK-DESKTOP-251 [添加工具](../design/tool-quick-connect.md)提供保存后直达启用确认与首屏审阅，并在实际 Windows 桌面核对 Codex 检测、双配置选择、暂停保存和独立启用。 [限定验证](../quality/tool-quick-desktop-verification.md)
+
 T-TOOL-QUICK-CHOICES-241 [添加工具](../design/tool-quick-connect.md)在首屏提供本机确认入口，多配置在选用前展示读写范围，单份已有配置直接复用原操作。 [限定验证](../quality/tool-quick-choices-verification.md)
 
 T-TOOL-QUICK-REVIEW-240 [添加工具](../design/tool-quick-connect.md)在选中工具后优先显示核对与保存，按需展开检测信息。恢复已有工具的高级替换入口及原草稿。 [限定验证](../quality/tool-quick-review-verification.md)

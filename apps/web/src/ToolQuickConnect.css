@@ -51,7 +51,18 @@
 }
 
 .tool-quick-save-actions {justify-content:space-between}
-.tool-quick-save-actions button {margin-inline-start:auto;min-height:44px}
+.tool-quick-save-buttons {
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex:1 0 100%;
+  flex-wrap:wrap;
+}
+
+.tool-quick-save-buttons button {min-height:44px}
+@media(max-width:600px) {
+  .tool-quick-save-buttons button {flex:1 1 120px}
+}
 .tool-quick-node-actions:empty {display:none}
 .tool-quick-node-actions button {justify-content:flex-start;white-space:normal;text-align:start}
 
@@ -76,3 +87,21 @@
 .tool-quick-diagnostics-content code {white-space:normal}
 .tool-quick-node-scan {min-width:0}
 .tool-quick-saved strong:focus-visible {outline:2px solid var(--accent);outline-offset:3px}
+
+.tool-quick-review-facts {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px 12px;
+  margin:0;
+  padding:12px;
+  background:var(--surface-soft);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:13px;
+  overflow-wrap:anywhere;
+}
+
+.tool-quick-review-facts dt {margin-bottom:3px;color:var(--muted);font-size:12px}
+.tool-quick-review-facts dd {margin:0}
+.tool-quick-review-details {border-top:1px solid var(--border);color:var(--muted)}
+.tool-quick-review-details > summary {cursor:pointer;padding:12px 0;min-height:44px}

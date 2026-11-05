@@ -10,6 +10,8 @@
 
 登记沿原 `POST /api/v1/tool-profiles`，保留原稳定操作标识及准确项目、节点、名称、固定Profile；响应必须匹配原请求且为暂停配置。启用另走原 `/tool-profiles/{id}/commands`，使用当前版本及独立确认。注册、启用、当前可派发、模型认证与任务成功分别成立。
 
+T-TOOL-QUICK-DESKTOP-251 为当前可用配置提供「保存并核对启用」。仅在本次保存直接返回同作用域、同配置的暂停回执后，进入原启用确认。只保存和名称框回车仍停在暂停结果。未知写入沿原操作恢复，核对动作独立确认后才发起启用请求。
+
 ## 桌面安装观察
 
 preload只开放 `discoverInstalledTools({project_id,user_id,tenant_id,adapter_id,locale})`。项目、人员与组织标识均为32位小写hex；adapter_id只允许 `codex-jsonl`、`codebuddy-cli`、`dsh-multica`，locale为zh-CN／en-US。主进程核验准确父窗口、主frame和本机服务origin；探测前后分别读取真实会话、准确项目及真实会话。普通GET的Expected头不充当凭据或身份选择权。

@@ -102,6 +102,7 @@ type Dialog =
       kind: "decision";
       action: "enable" | "pause" | "revoke";
       profile: ToolProfile;
+      justSaved?:true;
     }
   | { kind: "revoke-worker" | "rotate-worker"; worker: ExecutionWorker };
 function canLeave() {
@@ -1157,7 +1158,7 @@ function ScopedToolWorkspace({
                     }[dialog.action]
                   : t("development.tools.execution_tools")
         }
-        description={t(dialog?.kind==='inspection'?'tool-doctor.inspect_hint':dialog?.kind==='rotate-worker'?'worker-rotation.subtitle':"development.tools.use_the_current_project_s_actual_identity")}
+        description={t(dialog?.kind==='decision'&&dialog.justSaved?'tool-quick-connect.enable_review_description':dialog?.kind==='inspection'?'tool-doctor.inspect_hint':dialog?.kind==='rotate-worker'?'worker-rotation.subtitle':"development.tools.use_the_current_project_s_actual_identity")}
       >
         {action.pending ? (
           <ToolRecoveryNotice action={action} onRestored={saved} />
@@ -1216,7 +1217,7 @@ function ScopedToolWorkspace({
           onRegistered={value=>{setReceipt({key:'registered',name:value.name,scope:contextKey});void profiles.read();onSelect(value.id);}}
           onOpen={profile=>{if(action.busy||action.pending)return;setReceipt(undefined);setDialog(undefined);onSelect(profile.id);}}
           onViewExisting={adapter=>{if(writeBlocked)return;setSearch(adapter.adapter||adapter.product);applyFilters({state:'active',query:adapter.adapter||adapter.product});setDialog(undefined);requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('[data-tools-query]')?.focus());}}
-          onEnable={profile=>{action.clearError();setDialog({kind:'decision',action:'enable',profile});}}
+          onEnable={(profile,justSaved)=>{action.clearError();setDialog({kind:'decision',action:'enable',profile,justSaved});}}
           onAdvanced={(adapter,expectedWorkerID)=>{
             if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
             action.clearError();
@@ -1243,6 +1244,7 @@ function ScopedToolWorkspace({
             project={project}
             value={dialog.profile}
             decision={dialog.action}
+            justSaved={dialog.justSaved}
             action={action}
             onSaved={(value) =>
               saved("/tool-profiles/" + value.id + "/commands", value)
@@ -1704,6 +1706,7 @@ function ProfileDecisionForm({
   project,
   value,
   decision,
+  justSaved,
   action,
   onSaved,
   onCancel,
@@ -1711,6 +1714,7 @@ function ProfileDecisionForm({
   project: string;
   value: ToolProfile;
   decision: "enable" | "pause" | "revoke";
+  justSaved?:true;
   action: ToolAction;
   onSaved: (value: ToolProfile) => void;
   onCancel: () => void;
@@ -1718,11 +1722,15 @@ function ProfileDecisionForm({
   const [current, setCurrent] = useState(value),
     [confirmed, setConfirmed] = useState(false),
     [error, setError] = useState<unknown>("");
+  const savedNotice=useRef<HTMLParagraphElement>(null);
+  const compactReview=justSaved&&current.state==='paused';
+  useLayoutEffect(()=>{if(justSaved)savedNotice.current?.focus();},[justSaved]);
   return (
     <form
       className="tool-form"
       onSubmit={async (event) => {
         event.preventDefault();
+        if(!confirmed||action.busy||action.pending||action.conflict)return;
         const result = await action.run<ToolProfile>(
           "/tool-profiles/" + encodeURIComponent(current.id) + "/commands",
           {
@@ -1734,11 +1742,17 @@ function ProfileDecisionForm({
         if (result) onSaved(result);
       }}
     >
-      <ToolProfileFacts profile={current} />
+      {justSaved&&<p ref={savedNotice} tabIndex={-1} data-quick-paused-for-review>{t('tool-quick-connect.saved_for_review',{name:value.name})}</p>}
+      {compactReview?<dl className="tool-quick-review-facts">
+        <div><dt>{t('tool-quick-connect.node')}</dt><dd>{current.worker_id}</dd></div>
+        <div><dt>{t('tool-workspace.command')}</dt><dd>{current.profile.command_id}</dd></div>
+        <div><dt>{t('development.facts.fixed_version')}</dt><dd>{current.profile.tool_version}</dd></div>
+        <div><dt>{t('development.facts.execution_permission')}</dt><dd>{t(current.profile.read_only?'tool-quick-connect.access_read_only':'tool-quick-connect.access_write')}</dd></div>
+      </dl>:<ToolProfileFacts profile={current} />}
       {decision==='enable'&&current.profile.adapter==='qoder'&&current.profile.protocol==='acp-stdio-v1'&&<p className="muted">{t('acp-runtime.setup_policy')}</p>}
       {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
       <p className={decision === "enable" ? "muted" : "warning"}>
-        {decision === "enable"
+        {compactReview?t('tool-quick-connect.enable_review_hint'):decision === "enable"
           ? t("development.tools.enabling_still_requires_matching_current_identity_live")
           : decision === "pause"
             ? t("development.tools.pausing_blocks_subsequent_dispatch_only_operations_already")
@@ -1797,6 +1811,10 @@ function ProfileDecisionForm({
               : t('tool-workspace.remove')}
         </button>
       </div>
+      {compactReview&&<details className="tool-quick-review-details">
+        <summary>{t('tool-quick-connect.diagnostics')}</summary>
+        <ToolProfileFacts profile={current}/>
+      </details>}
     </form>
   );
 }

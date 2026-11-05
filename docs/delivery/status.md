@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-QUICK-DESKTOP-251 添加工具可从准确暂停回执直达启用审阅，窄屏优先展示节点、版本、权限和确认操作。Windows 桌面已用真实 Codex CLI 跑通检测、选择、保存与启用。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-desktop-verification.md)
+
 T-WORKBUDDY-DIRECT-AUTH 支持首次与重新授权直接打开 WorkBuddy。浏览器拦截时可打开原链接，超时或断开后定位原连接。真实供应方账号联调待部署配置后验收。 [交互](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-direct-auth-verification.md)
 
 T-CLI-RUN-WATCH 支持从终端跟随持久运行事件，从原序号续传，并查询当前项目队列及精确节点准入。真实联调验证连接轮换、事件去重和撤权退出。 [终端操作](../operations/task-dispatch-options.md#终端运行跟踪) · [验证](../quality/cli-run-watch-verification.md)

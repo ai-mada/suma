@@ -54,6 +54,24 @@ it('Qoder uses actual ACP inventory for paused registration without claiming loc
  await click('[data-quick-register]');expect(props.action.run).toHaveBeenCalledExactlyOnceWith('/tool-profiles',{project_id:'p',worker_id:'one',name:'qoder-team',profile:fixed});expect(props.onEnable).not.toHaveBeenCalled();
  expect(host.querySelector('[data-quick-register]')).toBeNull();await click('[data-quick-enable]');expect(props.onEnable).toHaveBeenCalledOnce();
 });
+it('saves paused and opens enable review once for the exact receipt when requested',async()=>{
+ await render();await change('[data-quick-tool]','codex-jsonl');
+ await click('[data-quick-save-review]');
+ expect(props.action.run).toHaveBeenCalledExactlyOnceWith('/tool-profiles',{project_id:'p',worker_id:'one',name:'codex-team',profile});
+ const receipt=vi.mocked(props.onRegistered).mock.calls[0][0];
+ expect(receipt.state).toBe('paused');
+ expect(props.onEnable).toHaveBeenCalledExactlyOnceWith(receipt,true);
+ expect(vi.mocked(props.onRegistered).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(props.onEnable).mock.invocationCallOrder[0]);
+ await render();expect(props.onEnable).toHaveBeenCalledOnce();
+});
+it('does not open enable review from an unconfirmed or mismatched save response',async()=>{
+ vi.mocked(props.action.run).mockResolvedValueOnce({id:'wrong',project_id:'p',worker_id:'other',name:'codex-team',profile,state:'paused',version:1});
+ await render();await change('[data-quick-tool]','codex-jsonl');
+ await click('[data-quick-save-review]');
+ expect(props.onRegistered).not.toHaveBeenCalled();
+ expect(props.onEnable).not.toHaveBeenCalled();
+ expect(host.querySelector('[data-quick-enable]')).toBeNull();
+});
 it('requires a node choice when several are authorized and never fans out reads',async()=>{
  props.workers=identity(['one','two']);await render();await change('[data-quick-tool]','codex-jsonl');expect(paths).toHaveLength(1);
  await change('[data-quick-worker]','two');expect(paths).toHaveLength(3);expect(paths[1]).toContain('worker_id=two');expect(paths[2]).toBe('/tool-profiles/matches');
