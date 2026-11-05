@@ -57,28 +57,9 @@ func (s *Service) projectTaskAssignmentNotificationTx(ctx context.Context, auth 
 	if nextTask.OwnerID == "" || nextTask.OwnerID == oldOwner {
 		return nil
 	}
-	member, err := scanRecord(auth.tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_members WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, nextTask.ProjectID, nextTask.OwnerID))
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil
-	}
-	if err != nil {
+	user, err := s.notificationHumanOwnerTx(ctx, auth.tx, auth.target.tenantID, nextTask.ProjectID, nextTask.OwnerID)
+	if err != nil || user == "" {
 		return err
-	}
-	user, _ := member.Data["user_id"].(string)
-	if member.Kind != "human" || member.Status != "active" || !handoffID(user, false) {
-		return nil
-	}
-	var canonical, organizationRole string
-	var projectRole sql.NullString
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT h.resource_id,om.role,pm.role FROM suma_human_resources h JOIN suma_users u ON u.id=h.user_id JOIN suma_org_members om ON om.tenant_id=h.tenant_id AND om.user_id=h.user_id LEFT JOIN suma_project_members pm ON pm.project_id=h.project_id AND pm.user_id=h.user_id WHERE h.tenant_id=? AND h.project_id=? AND h.user_id=?`), auth.target.tenantID, nextTask.ProjectID, user).Scan(&canonical, &organizationRole, &projectRole)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	if canonical != member.ID || !validOrgRole(organizationRole) || organizationRole != "owner" && organizationRole != "admin" && (!projectRole.Valid || !validProjectRole(projectRole.String)) {
-		return nil
 	}
 	eventKey := digest(stringify(struct {
 		Task     string
@@ -87,6 +68,49 @@ func (s *Service) projectTaskAssignmentNotificationTx(ctx context.Context, auth 
 	}{nextTask.ID, nextTask.Version, nextTask.OwnerID}))
 	_, err = s.insertNotificationInboxTx(ctx, auth, nextTask.ProjectID, notificationInboxSource{Kind: "task_assigned", TaskID: nextTask.ID, TaskVersion: nextTask.Version, ResourceID: nextTask.OwnerID, EventKey: eventKey, RecipientUserID: user})
 	return err
+}
+
+func (s *Service) notificationHumanOwnerTx(ctx context.Context, tx *sql.Tx, tenant, project, owner string) (string, error) {
+	if owner == "" {
+		return "", nil
+	}
+	member, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_members WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, owner))
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	user, _ := member.Data["user_id"].(string)
+	if member.Kind != "human" || member.Status != "active" || !handoffID(user, false) {
+		return "", nil
+	}
+	var canonical, organizationRole string
+	var projectRole sql.NullString
+	err = tx.QueryRowContext(ctx, s.q(`SELECT h.resource_id,om.role,pm.role FROM suma_human_resources h JOIN suma_users u ON u.id=h.user_id JOIN suma_org_members om ON om.tenant_id=h.tenant_id AND om.user_id=h.user_id LEFT JOIN suma_project_members pm ON pm.project_id=h.project_id AND pm.user_id=h.user_id WHERE h.tenant_id=? AND h.project_id=? AND h.user_id=?`), tenant, project, user).Scan(&canonical, &organizationRole, &projectRole)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	if canonical != member.ID || !notificationRecipientCanRead(organizationRole, projectRole) {
+		return "", nil
+	}
+	return user, nil
+}
+
+func notificationRecipientCanRead(organizationRole string, projectRole sql.NullString) bool {
+	return organizationRole == "owner" || organizationRole == "admin" || organizationRole == "member" && projectRole.Valid && validProjectRole(projectRole.String)
+}
+
+func validNotificationInboxKind(kind string) bool {
+	switch kind {
+	case "task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", taskRunFailedInboxKind:
+		return true
+	default:
+		return false
+	}
 }
 
 // Source callers validate their persisted business event before reaching this
@@ -114,7 +138,7 @@ func (s *Service) insertNotificationInboxSourceTx(ctx context.Context, tx *sql.T
 	if tx == nil || tenant == "" || project == "" || at == "" {
 		return "", forbidden()
 	}
-	if (source.Kind != "task_assigned" && source.Kind != "task_mentioned" && source.Kind != "task_review_requested" && source.Kind != "task_handoff_requested" && source.Kind != "task_followed") || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
+	if !validNotificationInboxKind(source.Kind) || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
 		return "", conflict(notificationInboxSourceChanged)
 	}
 	var existing string

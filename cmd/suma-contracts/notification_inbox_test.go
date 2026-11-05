@@ -34,7 +34,16 @@ func TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned(t *testing
 	if mapAt(api, "components", "schemas", "NotificationInboxItem", "properties", "sequence")["type"] != "string" {
 		t.Fatal("sequence must preserve BIGINT precision")
 	}
-	for _, key := range []string{"title", "current_task", "body", "task_status"} {
+	item := mapAt(api, "components", "schemas", "NotificationInboxItem", "properties")
+	kinds, _ := mapAt(item, "kind")["enum"].([]string)
+	runKind := false
+	for _, kind := range kinds {
+		runKind = runKind || kind == "task_run_failed"
+	}
+	if !runKind || mapAt(item, "run_id")["readOnly"] != true {
+		t.Fatal("run failures must carry a read-only source locator")
+	}
+	for _, key := range []string{"title", "current_task", "body", "task_status", "run_id"} {
 		if mapAt(api, "components", "schemas", "NotificationInboxCommandReceipt", "properties")[key] != nil {
 			t.Fatal("replay must not retain task content", key)
 		}

@@ -32,6 +32,7 @@ type NotificationInboxItem struct {
 	MessageID         string                 `json:"message_id,omitempty"`
 	ReviewRequestID   string                 `json:"review_request_id,omitempty"`
 	HandoffID         string                 `json:"handoff_id,omitempty"`
+	RunID             string                 `json:"run_id,omitempty"`
 }
 
 type NotificationInboxPage struct {

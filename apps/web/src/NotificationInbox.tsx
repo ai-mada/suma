@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Archive,ArchiveRestore,ArrowUpRight,Bell,Check,Mail,RefreshCw} from 'lucide-react';
+import {Archive,ArchiveRestore,ArrowUpRight,Bell,Check,CircleAlert,Mail,RefreshCw} from 'lucide-react';
 import type {NotificationInboxCommandReceipt,NotificationInboxItem} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi} from './api-context';
@@ -26,6 +26,7 @@ export type NotificationInboxProps={
  onMessage?:(taskID:string,messageID:string,projectID?:string)=>void;
  onReviewRequest?:(taskID:string,requestID:string,projectID?:string)=>void;
  onHandoff?:(taskID:string,handoffID:string,projectID?:string)=>void;
+ onRun?:(taskID:string,runID:string,projectID?:string)=>void;
 };
 const t=(key:string,values?:Record<string,unknown>)=>tr('notification-inbox.'+key,values);
 const mt=(key:string,values?:Record<string,unknown>)=>tr('task-conversation-mentions.'+key,values);
@@ -42,7 +43,7 @@ const scopeKey=({scopeMode,userID,organizationID,project}:NotificationInboxProps
  * changes cannot discard or retarget an unacknowledged personal command. */
 export function NotificationInbox(props:NotificationInboxProps){const scope=scopeKey(props);return <InboxScope key={scope} {...props} scope={scope}/>;}
 
-function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMode='project',onScopeMode,onFilter,onTask,onMessage,onReviewRequest,onHandoff,invalid=false}:NotificationInboxProps&{scope:string}){
+function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMode='project',onScopeMode,onFilter,onTask,onMessage,onReviewRequest,onHandoff,onRun,invalid=false}:NotificationInboxProps&{scope:string}){
  useLocale();
  const api=useApi(),organization=scopeMode==='organization',projectScope=organization?undefined:project,key=JSON.stringify([filter,refresh,invalid]);
  const action=useWriteAction({scope,storage:toolSessionStorage(),allowLeaveWithPending:organization,validateRequest:request=>validNotificationInboxRecovery(request,projectScope),validateResponse:validNotificationInboxReceipt});
@@ -139,7 +140,8 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
  async function retry(){action.setError('');denied.current=false;setDenial(undefined);await latestRead.current();}
  function openSource(item:NotificationInboxItem,itemProject:string){
   const origin:[]|[string]=organization?[itemProject]:[];
-  if(messageSource(item)){if(item.message_id)onMessage?.(item.task_id,item.message_id,...origin);}
+  if(item.kind==='task_run_failed'){if(item.run_id)onRun?.(item.task_id,item.run_id,...origin);}
+  else if(messageSource(item)){if(item.message_id)onMessage?.(item.task_id,item.message_id,...origin);}
   else if(item.kind==='task_handoff_requested'&&item.handoff_id)onHandoff?.(item.task_id,item.handoff_id,...origin);
   else if(item.kind==='task_review_requested'&&item.review_request_id)onReviewRequest?.(item.task_id,item.review_request_id,...origin);
   else onTask(item.task_id,...origin);
@@ -171,14 +173,23 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
   {visible.loading&&!page&&<Loading/>}
   {page&&<>
    <div className="notification-inbox-scope"><p aria-live="polite">{t('showing',{loaded:formatNumber(page.items.length),total:formatNumber(page.total)})}</p><small>{t('as_of',{at:observed(page.as_of)})}</small></div>
-   {!page.items.length?<Empty title={mt('inbox_empty_'+filter)} description={t('empty_hint')}/>:<ul className="notification-inbox-list" aria-label={mt('inbox_list')} aria-busy={visible.loading}>{inboxRows(page).map(({notification:item,project_id:itemProject,project_title:projectTitle})=><li key={item.id} className={'notification-inbox-row'+(!item.read?' is-unread':'')} data-notification-id={item.id}>
-    <div className="notification-inbox-main"><div className="notification-inbox-event"><span>{item.kind==='task_followed'?st('inbox_label'):item.kind==='task_handoff_requested'?t('handoff_requested'):item.kind==='task_review_requested'?rt('notification'):item.kind==='task_mentioned'?mt('mentioned'):t('assigned')}</span><span className="notification-inbox-state">{t(item.read?'read':'unread')}</span>{item.archived&&<span className="notification-inbox-state">{t('archived')}</span>}</div>
+   {!page.items.length?<Empty title={mt('inbox_empty_'+filter)} description={t('empty_hint')}/>:<ul className="notification-inbox-list" aria-label={mt('inbox_list')} aria-busy={visible.loading}>{inboxRows(page).map(({notification:item,project_id:itemProject,project_title:projectTitle})=>{
+    const runFailed=item.kind==='task_run_failed',name=item.current_task?.title||item.task_id;
+    const sourceDisabled=navigationLocked||messageSource(item)&&!onMessage||item.kind==='task_review_requested'&&!onReviewRequest||item.kind==='task_handoff_requested'&&!onHandoff||runFailed&&!onRun;
+    const sourceLabel=runFailed?t('open_run_named',{name}):item.kind==='task_followed'?st('inbox_open_message',{title:name}):item.kind==='task_handoff_requested'?t('open_handoff',{name}):item.kind==='task_review_requested'?rt('open_notification',{name}):item.kind==='task_mentioned'?mt('open_discussion',{name}):t('open_task',{name});
+    const eventLabel=runFailed?t('run_failed'):item.kind==='task_followed'?st('inbox_label'):item.kind==='task_handoff_requested'?t('handoff_requested'):item.kind==='task_review_requested'?rt('notification'):item.kind==='task_mentioned'?mt('mentioned'):t('assigned');
+    const at=observed(item.created_at);
+    return <li key={item.id} className={'notification-inbox-row'+(!item.read?' is-unread':'')} data-notification-id={item.id}>
+    <div className="notification-inbox-main"><div className="notification-inbox-event">
+     <span className={runFailed?'notification-inbox-run-failed':undefined}>{runFailed&&<CircleAlert size={15} aria-hidden="true"/>}{eventLabel}</span>
+     <span className="notification-inbox-state">{t(item.read?'read':'unread')}</span>{item.archived&&<span className="notification-inbox-state">{t('archived')}</span>}
+    </div>
      {organization&&<span className="notification-inbox-project">{t('source_project',{name:projectTitle||itemProject})}</span>}
-     {item.source_available&&item.current_task?<><button type="button" className="notification-inbox-source" disabled={navigationLocked||messageSource(item)&&!onMessage||item.kind==='task_review_requested'&&!onReviewRequest||item.kind==='task_handoff_requested'&&!onHandoff} onClick={()=>openSource(item,itemProject)} aria-label={item.kind==='task_followed'?st('inbox_open_message',{title:item.current_task.title||item.task_id}):item.kind==='task_handoff_requested'?t('open_handoff',{name:item.current_task.title||item.task_id}):item.kind==='task_review_requested'?rt('open_notification',{name:item.current_task.title||item.task_id}):item.kind==='task_mentioned'?mt('open_discussion',{name:item.current_task.title||item.task_id}):t('open_task',{name:item.current_task.title||item.task_id})}>{item.current_task.title||item.task_id}<ArrowUpRight size={15} aria-hidden="true"/></button><div className="notification-inbox-source-facts"><span>{t('current_task_status')} <Badge state={item.current_task.status}/></span>{item.kind==='task_assigned'&&!item.assignment_current&&<span>{t('assignment_changed')}</span>}</div></>:<strong className="notification-inbox-unavailable">{t('source_unavailable')}</strong>}
-     <time dateTime={item.created_at}>{item.kind==='task_followed'?st('inbox_created_at',{at:observed(item.created_at)}):item.kind==='task_handoff_requested'?t('handoff_requested_at',{at:observed(item.created_at)}):item.kind==='task_review_requested'?rt('requested_at',{at:observed(item.created_at)}):item.kind==='task_mentioned'?mt('mentioned_at',{at:observed(item.created_at)}):t('assigned_at',{at:observed(item.created_at)})}</time>
+     {item.source_available&&item.current_task?<><button type="button" className={'notification-inbox-source'+(runFailed?' is-run-source':'')} disabled={sourceDisabled} onClick={()=>openSource(item,itemProject)} aria-label={sourceLabel}>{name}{runFailed?<span className="notification-inbox-run-action">{t('open_run')}<ArrowUpRight size={15} aria-hidden="true"/></span>:<ArrowUpRight size={15} aria-hidden="true"/>}</button><div className="notification-inbox-source-facts"><span>{t('current_task_status')} <Badge state={item.current_task.status}/></span>{item.kind==='task_assigned'&&!item.assignment_current&&<span>{t('assignment_changed')}</span>}</div></>:<strong className="notification-inbox-unavailable">{t('source_unavailable')}</strong>}
+     <time dateTime={item.created_at}>{runFailed?t('run_failed_at',{at}):item.kind==='task_followed'?st('inbox_created_at',{at}):item.kind==='task_handoff_requested'?t('handoff_requested_at',{at}):item.kind==='task_review_requested'?rt('requested_at',{at}):item.kind==='task_mentioned'?mt('mentioned_at',{at}):t('assigned_at',{at})}</time>
     </div>
     <div className="notification-inbox-actions"><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.read?'unread':'read',itemProject)} data-notification-action={item.read?'unread':'read'} aria-label={t(item.read?'unread_named':'read_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.read?<Mail size={15} aria-hidden="true"/>:<Check size={15} aria-hidden="true"/>}{t('action.'+(item.read?'unread':'read'))}</button><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.archived?'restore':'archive',itemProject)} data-notification-action={item.archived?'restore':'archive'} aria-label={t(item.archived?'restore_named':'archive_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.archived?<ArchiveRestore size={15} aria-hidden="true"/>:<Archive size={15} aria-hidden="true"/>}{t('action.'+(item.archived?'restore':'archive'))}</button></div>
-   </li>)}</ul>}
+   </li>;})}</ul>}
    {page.next_cursor&&<div className="notification-inbox-more"><button type="button" disabled={visible.loading||navigationLocked} onClick={()=>void read(true)} data-notification-more>{visible.loading?t('loading_more'):t('more')}</button></div>}
    <p className="notification-inbox-note">{organization?t('organization_scope_hint'):mt('inbox_scope')}</p>
   </>}

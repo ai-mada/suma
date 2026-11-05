@@ -26,6 +26,19 @@ it('opens only an intact handoff source and rejects cross-kind or unavailable ha
  expect(validNotificationInboxItem(row({...handoff,source_available:false,current_task:undefined}))).toBe(false);
 });
 
+it('accepts a failed run only with its exact locator and keeps unavailable sources private',()=>{
+ const failed={kind:'task_run_failed',assignment_current:false,run_id:'run-original'};
+ expect(validNotificationInboxItem(row(failed))).toBe(true);
+ for(const patch of [{run_id:undefined},{run_id:null},{run_id:'../other'},{kind:['task_run_failed'],run_id:undefined},{assignment_current:true},{message_id:'message-a'},{handoff_id:'handoff-a'},{review_request_id:'review-a'}]){
+  expect(validNotificationInboxItem(row({...failed,...patch}))).toBe(false);
+ }
+ expect(validNotificationInboxItem(row({run_id:'run-original'}))).toBe(false);
+ const unavailable={...failed,source_available:false,run_id:undefined};
+ expect(validNotificationInboxItem(row(unavailable))).toBe(false);
+ expect(validNotificationInboxItem(row({...unavailable,current_task:undefined}))).toBe(true);
+ expect(validNotificationInboxItem(row({...unavailable,current_task:undefined,run_id:'run-original'}))).toBe(false);
+});
+
 it('opens only an intact review-request source and rejects cross-kind source aliases',()=>{
  expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false,review_request_id:'request-a'}))).toBe(true);
  expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false}))).toBe(false);

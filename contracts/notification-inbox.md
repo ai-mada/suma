@@ -22,7 +22,7 @@
 
 `NotificationInboxPage`：project_id、user_id、limit、items、total、counts、next_cursor、as_of。counts为inbox／unread／archived三项完整当前范围计数，total是所选filter的匹配量。items是当前有界页，不是完整项目列表。
 
-`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned／task_mentioned／task_review_requested／task_handoff_requested、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current、可选current_task、message_id或review_request_id。只有对应完整来源才返回其定位ID；消息提及见[精准提及合同](task-conversation-mentions.md)，明确验收责任及原Review决定见[验收请求合同](task-review-requests.md)。取消／已决定的请求保留个人事件，打开来源不等于已读或验收。
+`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned／task_mentioned／task_review_requested／task_handoff_requested／task_followed／task_run_failed、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current、可选current_task、message_id或review_request_id。只有对应完整来源才返回其定位ID；消息提及见[精准提及合同](task-conversation-mentions.md)，明确验收责任及原Review决定见[验收请求合同](task-review-requests.md)。取消／已决定的请求保留个人事件，打开来源不等于已读或验收。
 
 `NotificationInboxTask`只包含id、version、title、status；source_available=false时不得返回current_task。assignment_current仅在当前来源可用且当前负责人仍为原资源时为true，不据此宣称执行或验收完成。
 
@@ -53,3 +53,9 @@ T-INBOX-138原阶段只实现任务分配来源；T-MENTIONS-140增加明确人�
 `NotificationOrganizationInboxPage` 返回 `organization_id,user_id,limit,items,total,counts,next_cursor,as_of,scope_revision`。每行是 `{project_id,project_title,notification}`，内层使用现有 `NotificationInboxItem` 与同一来源核对。计数覆盖当前账号在本组织有读取权的所有项目；无权项目既不参与计数，也不返回项目名称、任务或其他来源。跨项目排序使用不可变的事件时间降序和通知 ID 平序键，项目内序号仍保持原含义。
 
 游标绑定账号、组织、过滤、页大小和可读项目集合。项目资格变化后旧游标返回 409，前端清除已加载的旧范围，重新读取第一页；跨页是活读取。组织列表不开放批量或跨项目写接口。已读、未读、归档与恢复携带该行项目 ID，继续使用原项目命令的当前授权、版本和回执。打开来源只导航。
+
+## 任务执行失败通知
+
+`task_run_failed` 由正式 `run_failed` 事件投影。原运行必须有同组织、同项目、同任务的正式绑定版本。第一次写入原失败问题及回执时，同一事务写入个人通知。接收人按投影当时的访问资格计算，包括当前明确关注者和当前规范活跃人员负责人；同一个账号即使同时符合两种关系也只收一条。重放原问题操作不再计算接收人，历史已投影的失败不回填。发布部署失败沿其原问题流程。
+
+通知记录原事件时间、绑定版本和原运行标识。项目与组织读取都须核对持久失败事实、正式任务绑定与原通知来源。通过时才返回 `run_id` 和当前可读任务。此事件的通用来源字段是不可导航的摘要。来源不完整时隐藏运行和任务定位。任务后来重新执行，原通知仍定位到原失败运行。点击只读取运行，个人已读／归档、任务业务状态、运行状态及人工验收彼此独立。

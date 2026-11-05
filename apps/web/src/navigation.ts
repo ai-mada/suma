@@ -143,7 +143,7 @@ export function sourceHref(project:string,source:unknown):string|undefined {
 /** Notification filters belong to one current human and reading scope. */
 export function resetInboxScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,inbox_scope:undefined,inbox_filter:undefined,inbox_invalid:undefined};}
 
-export type NotificationSourceLocation={kind:'task'}|{kind:'message'|'review'|'handoff';id:string};
+export type NotificationSourceLocation={kind:'task'}|{kind:'message'|'review'|'handoff'|'run';id:string};
 
 /** A current authorized inbox row can target another project. Keep the
  * project and exact task/source locator in one guarded route transition. */
@@ -155,9 +155,12 @@ export function locateNotificationSource(project:string,task:string,source:Notif
   case 'message':return locateWorkbenchTask(task,canLeave,scoped,source.id);
   case 'review':return locateTaskReviewRequest(task,source.id,canLeave,scoped);
   case 'handoff':return locateTaskHandoff(task,source.id,canLeave,scoped);
-  case 'task':
+  case 'run':
+  case 'task':{
    if(!canLeave())return false;
-   scoped(route=>({...route,view:'development',sub:'tasks',record:task,run:'',node:'',attempt:'',panel:'',q:'',status:'all',layout:'list'}));
+   const run=source.kind==='run'?source.id:'';
+   scoped(route=>({...route,view:'development',sub:run?'runs':'tasks',record:run?'':task,run,node:'',attempt:'',panel:'',q:'',status:'all',layout:'list'}));
    return true;
+  }
  }
 }

@@ -68,6 +68,38 @@ it('opens a mention at its exact original discussion without marking read or cha
 });
 async function click(selector:string){const target=host.querySelector<HTMLButtonElement>(selector);expect(target,selector).not.toBeNull();await act(async()=>target!.click());await settle();}
 
+it('keeps a failed run separate from the current task status and opens only the intact original run',async()=>{
+ const failure={kind:'task_run_failed',assignment_current:false,run_id:'run-original'};
+ records=[item(failure)];transport();await render();
+ expect(host.querySelector<HTMLButtonElement>('.notification-inbox-source')?.disabled).toBe(true);
+ const onRun=vi.fn();await render({onRun});
+ expect(host.textContent).toContain('Task execution failed');
+ expect(host.textContent).toContain('Current task status');
+ expect(host.querySelector('.notification-inbox-source')?.getAttribute('aria-label')).toBe('Open original run for Private assigned task');
+ expect(host.querySelector('.notification-inbox-run-action')?.textContent).toBe('Open original run');
+ await click('.notification-inbox-source');
+ expect(onRun).toHaveBeenCalledExactlyOnceWith('task-a','run-original');
+ expect(props.onTask).not.toHaveBeenCalled();
+ expect(writes).toHaveLength(0);
+ expect(records[0].read).toBe(false);
+ records=[item({...failure,source_available:false,run_id:undefined,current_task:undefined})];
+ await render({refresh:1});
+ expect(host.textContent).toContain('Task source unavailable');
+ expect(host.textContent).not.toContain('Private assigned task');
+ expect(host.querySelector('.notification-inbox-source')).toBeNull();
+});
+
+it('opens the original failed run in its own project from the organization inbox',async()=>{
+ const onRun=vi.fn();
+ transport(()=>Response.json(orgPage([orgRow('project-b','Other project',item({kind:'task_run_failed',assignment_current:false,run_id:'run-original'}))])));
+ await render({scopeMode:'organization',onRun});
+ expect(host.textContent).toContain('Other project');
+ await click('.notification-inbox-source');
+ expect(onRun).toHaveBeenCalledExactlyOnceWith('task-a','run-original','project-b');
+ expect(props.onTask).not.toHaveBeenCalled();
+ expect(writes).toHaveLength(0);
+});
+
 it('shows real complete counts and current source facts, and opening the task never marks it read',async()=>{
  records=[item(),item({id:'notice-b',sequence:'9007199254740992',read:true,read_at:'2026-10-29T02:30:00Z'}),item({id:'notice-c',sequence:'9007199254740991',archived:true,archived_at:'2026-10-29T02:40:00Z'})];transport();await render();expect(host.querySelector('[data-notification-filter=inbox] .notification-inbox-count')?.textContent).toBe('2');expect(host.querySelector('[data-notification-filter=unread] .notification-inbox-count')?.textContent).toBe('1');expect(host.querySelector('[data-notification-filter=archived] .notification-inbox-count')?.textContent).toBe('1');expect(host.querySelectorAll('[data-notification-id]')).toHaveLength(2);expect(host.textContent).toContain('Current task status');expect(reads[0].headers.get('X-Suma-Expected-User')).toBe('user-a');expect(reads[0].headers.get('X-Suma-Expected-Organization')).toBe('org-a');expect(reads[0].path).not.toContain('user_id');await click('.notification-inbox-source');expect(props.onTask).toHaveBeenCalledWith('task-a');expect(writes).toHaveLength(0);expect(reads).toHaveLength(1);
 });

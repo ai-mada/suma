@@ -18,6 +18,8 @@ T-WORKBUDDY-LOCAL-CANDIDATE-239 通过真实 Windows 终端、同提交独立测
 
 T-TOOL-QUICK-START-239 核验添加工具的自动选入、准确协议、首屏操作、手动改选和暂停登记。 [阶段验证](tool-quick-start-verification.md)
 
+T-MULTICA-RUN-FAILURE-INBOX 验证正式失败通知、原问题重放、跨项目原运行定位及损坏来源清理。 [阶段验证](run-failure-inbox-verification.md)
+
 T-MULTICA-ORGANIZATION-INBOX 验证组织计数、原项目动作、跨项目深链、撤权分页和窄屏交互。 [阶段验证](organization-inbox-verification.md)
 
 T-MULTICA-SHARED-VIEW-RECOVERY 验证真实保存响应丢失、同标签页重载、原请求核对、较新修订保留和写入去重。 [阶段验证](shared-view-recovery-verification.md)

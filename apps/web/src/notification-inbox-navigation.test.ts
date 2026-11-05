@@ -31,6 +31,13 @@ describe('current notification reading route',()=>{
   route=start;
   expect(locateNotificationSource('beta','task-b',{kind:'review',id:'review-b'},()=>true,update)).toBe(true);
   expect(route).toMatchObject({project:'beta',sub:'tasks',record:'task-b',panel:'task-review:review-b'});
+  route=start;
+  expect(locateNotificationSource('beta','task-b',{kind:'run',id:'run-b'},()=>false,update)).toBe(false);
+  expect(locateNotificationSource('beta','task-b',{kind:'run',id:'../run-b'},()=>true,update)).toBe(false);
+  expect(route).toBe(start);
+  expect(locateNotificationSource('beta','task-b',{kind:'run',id:'run-b'},()=>true,update)).toBe(true);
+  expect(route).toMatchObject({project:'beta',sub:'runs',run:'run-b',record:'',panel:'',node:'',attempt:''});
+  expect(route.inbox_scope).toBeUndefined();
  });
  it('clears the private filter on a project fallback and keeps an accessible same-scope saved route',()=>{
   const current=parseWorkbenchRoute('?project=old&view=development&sub=inbox&inbox_filter=unread&inbox_invalid=1');
