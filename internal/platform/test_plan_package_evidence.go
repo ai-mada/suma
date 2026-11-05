@@ -237,18 +237,6 @@ func (s *Service) testPlanPackageProofCurrentTx(ctx context.Context, tx *sql.Tx,
 	if node.State != "succeeded" || node.Worker != fixed.WorkerID || node.Spec.Config["tool_profile_id"] != fixed.ToolProfileID || node.Spec.Config["tool_profile_sha256"] != fixed.ToolProfileSHA256 || node.Spec.Config["artifact_from"] != fixed.SourceNodeID {
 		return nil, nil
 	}
-	if fixed.PoolRoute != nil {
-		route, err := dag.ReadRunExecutionRouteTx(ctx, tx, s.Dialect, tenant, project, run)
-		if errors.Is(err, dag.ErrNotFound) {
-			return nil, nil
-		}
-		if err != nil {
-			return nil, err
-		}
-		if route != *fixed.PoolRoute {
-			return nil, nil
-		}
-	}
 	var id string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_artifact_proofs WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=? AND kind='package_test'`), tenant, project, run, fixed.NodeID, node.Attempt, node.Fence, node.Worker).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -268,8 +256,33 @@ func (s *Service) testPlanPackageProofCurrentTx(ctx context.Context, tx *sql.Tx,
 	if proof.ProfileSHA256 != fixed.ReleaseProfileSHA256 || len(node.Spec.Command) != 1 || proof.ProfileID != node.Spec.Command[0] {
 		return nil, nil
 	}
+	input, err := s.testPlanPackageInputCurrentTx(ctx, tx, tenant, project, run, fixed, node)
+	if err != nil || input == nil {
+		return nil, err
+	}
+	if input.ArtifactID != proof.ArtifactID || input.ManifestSHA256 != proof.ManifestSHA256 || input.SourceCommit != proof.SourceCommit {
+		return nil, nil
+	}
+	return &proof, nil
+}
+
+// Both a verified package proof and a failed test must refer to the exact
+// sealed input resolved by that attempt and its still-current build ancestor.
+func (s *Service) testPlanPackageInputCurrentTx(ctx context.Context, tx *sql.Tx, tenant, project, run string, fixed testPlanPackageBinding, node testPlanNodeFact) (*rc.ArtifactBinding, error) {
+	if fixed.PoolRoute != nil {
+		route, err := dag.ReadRunExecutionRouteTx(ctx, tx, s.Dialect, tenant, project, run)
+		if errors.Is(err, dag.ErrNotFound) {
+			return nil, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if route != *fixed.PoolRoute {
+			return nil, nil
+		}
+	}
 	var raw string
-	err = tx.QueryRowContext(ctx, s.q(`SELECT binding FROM suma_artifact_bindings WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=? AND source_node_id=?`), tenant, project, run, fixed.NodeID, node.Attempt, node.Fence, node.Worker, fixed.SourceNodeID).Scan(&raw)
+	err := tx.QueryRowContext(ctx, s.q(`SELECT binding FROM suma_artifact_bindings WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=? AND source_node_id=?`), tenant, project, run, fixed.NodeID, node.Attempt, node.Fence, node.Worker, fixed.SourceNodeID).Scan(&raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -277,9 +290,10 @@ func (s *Service) testPlanPackageProofCurrentTx(ctx context.Context, tx *sql.Tx,
 		return nil, err
 	}
 	var input rc.ArtifactBinding
-	if json.Unmarshal([]byte(raw), &input) != nil || input.BuildNodeID != fixed.SourceNodeID || input.BuildRunID != run || input.ArtifactID != proof.ArtifactID || input.ManifestSHA256 != proof.ManifestSHA256 || input.SourceCommit != proof.SourceCommit {
+	if json.Unmarshal([]byte(raw), &input) != nil || input.BuildNodeID != fixed.SourceNodeID || input.BuildRunID != run {
 		return nil, nil
 	}
+	var id string
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_artifact_proofs WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=? AND kind='build'`), tenant, project, run, fixed.SourceNodeID, input.BuildAttempt, input.BuildFence, fixed.SourceWorkerID).Scan(&id); errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
@@ -293,10 +307,10 @@ func (s *Service) testPlanPackageProofCurrentTx(ctx context.Context, tx *sql.Tx,
 		}
 		return nil, err
 	}
-	if build.ProfileSHA256 != fixed.SourceReleaseProfileSHA256 || build.ArtifactID != proof.ArtifactID || build.ManifestSHA256 != proof.ManifestSHA256 || build.SourceCommit != proof.SourceCommit {
+	if build.ProfileSHA256 != fixed.SourceReleaseProfileSHA256 || build.ArtifactID != input.ArtifactID || build.ManifestSHA256 != input.ManifestSHA256 || build.SourceCommit != input.SourceCommit {
 		return nil, nil
 	}
-	if fixed.PoolRoute != nil && (build.ApplicationBuild == nil || build.Assignment.WorkerID == proof.Assignment.WorkerID) {
+	if fixed.PoolRoute != nil && (build.ApplicationBuild == nil || build.Assignment.WorkerID == node.Worker) {
 		return nil, nil
 	}
 	var specRaw, resultRaw string
@@ -313,5 +327,5 @@ func (s *Service) testPlanPackageProofCurrentTx(ctx context.Context, tx *sql.Tx,
 	if fixed.PoolRoute != nil && (result.ToolEvidence.Profile.ArtifactKind != "build" || result.ToolEvidence.Profile.ArtifactProfileSHA256 != fixed.SourceReleaseProfileSHA256) {
 		return nil, nil
 	}
-	return &proof, nil
+	return &input, nil
 }

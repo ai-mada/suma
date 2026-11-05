@@ -12,6 +12,8 @@ import './TestPlansWorkspace.css';
 
 export type TestPlansWorkspaceProps={session:Session;project:string;refresh:number;planID?:string;runID?:string;tab?:'cases'|'results';onSelectPlan:(id:string)=>void;onSelectExecution:(run:string)=>void;onTab:(tab:'cases'|'results')=>void;onOpenTask:(id:string)=>void;onOpenRun:(run:string,node?:string,attempt?:number)=>void;onOpenIssue:(id:string)=>void;onChanged:()=>void|Promise<void>};
 type Draft={id:string;version:number;taskID:string;taskVersion:number;requirementVersion:number;title:string;description:string;cases:QualityTestCase[];canonical:string};
+type DefectDraft={planID:string;version:number;runID:string;reason:string}&({kind:'case';key:string}|{kind:'package';nodeID:string;attempt:number;fence:number});
+type PackageGate=TestPlanExecution['package_evidence'][number];
 const t=(key:string,values?:Record<string,unknown>)=>tr('test-plans.'+key,values);
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const content=(value:Pick<Draft,'title'|'description'|'cases'>)=>JSON.stringify({title:value.title,description:value.description,cases:value.cases});
@@ -24,14 +26,15 @@ function TestPlanOwner(props:TestPlansWorkspaceProps){const [retry,setRetry]=use
 
 function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
  useLocale();const {session,project,refresh,planID:requestedPlan='',runID='',tab='cases',retryRead}=props,api=useApi(),callbacks=useRef(props);callbacks.current=props;
- const [accessError,setAccessError]=useState<unknown>(),[draft,setDraft]=useState<Draft>(),[taskID,setTaskID]=useState(''),[basisAck,setBasisAck]=useState(false),[reason,setReason]=useState(''),[notice,setNotice]=useState(''),[caseFilter,setCaseFilter]=useState(''),[activeCase,setActiveCase]=useState(-1),[defect,setDefect]=useState<{key:string;reason:string}>();
+ const [accessError,setAccessError]=useState<unknown>(),[draft,setDraft]=useState<Draft>(),[taskID,setTaskID]=useState(''),[basisAck,setBasisAck]=useState(false),[reason,setReason]=useState(''),[notice,setNotice]=useState(''),[caseFilter,setCaseFilter]=useState(''),[activeCase,setActiveCase]=useState(-1),[defect,setDefect]=useState<DefectDraft>();
  const bodyID=useId(),alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const validRecovery=useCallback((request:Parameters<typeof testPlanRecovery>[0])=>testPlanRecovery(request,project),[project]);
- const validResponse=useCallback((value:unknown,request:Parameters<typeof testPlanRecovery>[0])=>request.path.endsWith('/defects')?object(value)&&planID(value.id)&&value.project_id===project&&Number.isSafeInteger(value.version)&&Number(value.version)>0:validTestPlan(value,project),[project]);
+ const validResponse=useCallback((value:unknown,request:Parameters<typeof testPlanRecovery>[0])=>request.path.endsWith('/defects')||request.path.endsWith('/package-defects')?object(value)&&planID(value.id)&&value.project_id===project&&Number.isSafeInteger(value.version)&&Number(value.version)>0:validTestPlan(value,project),[project]);
  const action=useWriteAction({scope:JSON.stringify([session.user.id,session.organization.id,project,'test-plans']),storage:sessionStorage,validateRequest:validRecovery,validateResponse:validResponse});
  const pending=action.pending,originalPlan=pending?.path.match(/^\/test-plans\/([A-Za-z0-9_-]+)(?:\/|$)/)?.[1],selectedID=originalPlan||requestedPlan;
  const failed=useCallback((error:unknown)=>{if(error instanceof ApiError&&[401,403].includes(error.status))setAccessError(error);},[]);
  useEffect(()=>{if(action.errorStatus===401||action.errorStatus===403)setAccessError(new UiError('test-plans.access_changed'));},[action.errorStatus]);
+ useEffect(()=>{if(accessError)setDefect(undefined);},[accessError]);
  const validPlan=useCallback((value:unknown):value is TestPlanView=>validTestPlan(value,project),[project]);
  const validPlans=useCallback((value:unknown):value is {items:TestPlanView[];total:number;next_cursor:string}=>validPlanPage(value,validPlan),[validPlan]);
  const validRecord=useCallback((value:unknown):value is RecordItem=>object(value)&&planID(value.id)&&Number.isSafeInteger(value.version)&&Number(value.version)>0&&value.project_id===project,[project]);
@@ -67,11 +70,20 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
  const executions=useTestPlanPage(api,tab==='results'&&current&&!accessError?testPlanPath(current.id)+'/executions'+query(project)+'&limit=20':undefined,refresh,validateExecutions,failed);
  const validateSelectedExecution=useCallback((value:unknown):value is TestPlanExecution=>validateExecution(value)&&value.run_id===runID,[validateExecution,runID]);
  const execution=useTestPlanRead(api,tab==='results'&&current&&runID&&!accessError?testPlanPath(current.id)+'/executions/'+encodeURIComponent(runID)+query(project):undefined,refresh,validateSelectedExecution,failed);
+ const currentDefectBasis=!!current?.basis_current&&!!execution.value?.basis_current;
+ const canCaseDefect=canWrite&&currentDefectBasis;
+ const packageDefect=defect?.kind==='package';
+ const defectOpen=!!defect&&!accessError;
+ const defectCurrent=!!defect&&currentDefectBasis&&defect.planID===current?.id&&defect.version===current.version&&defect.runID===execution.value?.run_id&&(
+  defect.kind==='package'
+   ? execution.value.package_evidence.some(gate=>gate.node_id===defect.nodeID&&gate.can_create_issue&&gate.attempt===defect.attempt&&gate.fence===defect.fence)
+   : canCaseDefect&&execution.value.cases.some(item=>item.case_key===defect.key&&['failed','error'].includes(item.status)&&!item.issue_id)
+ );
  function edit(change:Partial<Pick<Draft,'title'|'description'|'cases'>>){if(locked)return;setDraft(before=>before?{...before,...change}:before);setNotice('');}
  async function changed(){try{await callbacks.current.onChanged();}catch{if(alive.current)action.setError(new UiError('test-plans.refresh_failed'));}}
- async function completed(value:TestPlanView|RecordItem|undefined){
+ async function completed(value:TestPlanView|RecordItem|undefined,packageIssue=false){
   if(!value||!alive.current)return;
-  if(!validTestPlan(value,project)){setDefect(undefined);setNotice('defect_saved');await execution.read();await changed();return;}
+  if(!validTestPlan(value,project)){setDefect(undefined);setNotice(packageIssue?'package_defect_saved':'defect_saved');await execution.read();await changed();return;}
   if(validTestPlan(value,project)){
    const confirmedPlan=selectedID,requestedAtConfirmation=callbacks.current.planID||'';
    setDraft(fromPlan(value));setBasisAck(false);setReason('');setNotice('saved');
@@ -86,11 +98,29 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
  async function save(){if(!canSave||!visibleDraft||!task.value)return;const body={project_id:project,...(current?{expected_version:visibleDraft.version}:{task_id:actualTaskID}),expected_task_version:task.value.version,expected_requirement_version:requirementVersion||0,title:visibleDraft.title,description:visibleDraft.description,cases:visibleDraft.cases};await completed(await action.run<TestPlanView>(testPlanPath(current?.id),body,current?'PUT':'POST'));}
  async function command(name:'publish'|'retire'){if(!current||locked||dirty||versionChanged||!sourceLoaded||readError||!current.allowed_actions.includes(name)||!planText(reason,2000))return;await completed(await action.run<TestPlanView>(testPlanPath(current.id)+'/commands',{project_id:project,expected_version:current.version,action:name,reason}));}
  async function rebase(){if(!selectedID){const page=await plans.read();const existing=page?.items.find(item=>item.task_id===actualTaskID);if(!existing)throw new UiError('test-plans.existing_plan_hint');setDraft(before=>before?{...fromPlan(existing),title:before.title,description:before.description,cases:before.cases}:fromPlan(existing));callbacks.current.onSelectPlan(existing.id);return;}const latest=await detail.read();if(!latest)throw new UiError('test-plans.refresh_failed');setDraft(before=>before?{...before,version:latest.version,canonical:content(latest.latest!)}:fromPlan(latest));setBasisAck(false);await task.read();if(requirementID)await requirement.read();}
- async function registerDefect(){if(!current||!execution.value||!defect||!planText(defect.reason,2000)||locked)return;const value=await action.run<RecordItem>(testPlanPath(current.id)+'/executions/'+encodeURIComponent(execution.value.run_id)+'/defects',{project_id:project,expected_version:current.version,case_key:defect.key,reason:defect.reason});if(value){setDefect(undefined);setNotice('defect_saved');await execution.read();await changed();}}
+ function openDefect(item:TestCaseResult|PackageGate){
+  if(locked||!current||!execution.value||!currentDefectBasis)return;
+  const basis={planID:current.id,version:current.version,runID:execution.value.run_id,reason:''};
+  if('case_key' in item){if(!canCaseDefect||!['failed','error'].includes(item.status)||item.issue_id)return;setDefect({...basis,kind:'case',key:item.case_key});}
+  else {if(!item.can_create_issue||!item.attempt||!item.fence||item.issue_id)return;setDefect({...basis,kind:'package',nodeID:item.node_id,attempt:item.attempt,fence:item.fence});}
+  action.clearConflict();setNotice('');
+ }
+ async function registerDefect(){
+  if(!defect||!defectCurrent||!planText(defect.reason,2000)||locked||action.conflict)return;
+  const body={project_id:project,expected_version:defect.version,reason:defect.reason};
+  const path=testPlanPath(defect.planID)+'/executions/'+encodeURIComponent(defect.runID);
+  const target=defect.kind==='package'?{path:path+'/package-defects',body:{...body,node_id:defect.nodeID,expected_attempt:defect.attempt,expected_fence:defect.fence}}:{path:path+'/defects',body:{...body,case_key:defect.key}};
+  await completed(await action.run<RecordItem>(target.path,target.body),defect.kind==='package');
+ }
+ async function recheckDefect(){
+  // Refresh the selected execution while its plan still owns the route.
+  const nextExecution=await execution.read(),nextPlan=await detail.read();
+  if(!nextPlan||!nextExecution)throw new UiError('test-plans.refresh_failed');
+ }
+ const restore=pending&&<div className="tp-callout" role="status"><strong>{t('original_operation')}</strong><p>{t('restore_hint')}</p><button type="button" data-test-plan-restore disabled={action.busy} onClick={()=>void action.run<TestPlanView|RecordItem>(pending.path,pending.body,pending.method).then(value=>completed(value,pending.path.endsWith('/package-defects')))}>{t('restore')}</button></div>;
  return <section className="test-plans-workspace" aria-label={t('title')}>
   <div className="tp-intro"><div><h2>{t('title')}</h2><p>{t('intro')}</p></div>{canCreate&&<button type="button" disabled={locked} onClick={()=>{if(canLeave()){setDraft(freshDraft());setTaskID('');callbacks.current.onSelectPlan('');}}}><Plus size={15}/>{t('new_plan')}</button>}</div>
-  <WriteNotice action={action} onRebase={rebase}/>
-  {pending&&<div className="tp-callout" role="status"><strong>{t('original_operation')}</strong><p>{t('restore_hint')}</p><button type="button" data-test-plan-restore disabled={action.busy} onClick={()=>void action.run<TestPlanView|RecordItem>(pending.path,pending.body,pending.method).then(completed)}>{t('restore')}</button></div>}
+  {!defectOpen&&<><WriteNotice action={action} onRebase={rebase}/>{restore}</>}
   {notice&&<p className="tp-success" role="status">{t(notice)}</p>}
   {accessError?<div className="tp-access"><ErrorNotice error={accessError}/><button type="button" data-test-plan-retry onClick={retryRead}>{t('retry_access')}</button></div>:<div className="tp-layout">
    <aside className="tp-list" aria-label={t('plans')}><div className="tp-list-heading"><h3>{t('plans')}</h3><button className="icon-button" type="button" disabled={plans.loading||locked} aria-label={t('refresh')} onClick={()=>void plans.read()}><RefreshCw size={15}/></button></div>{plans.loading&&<Loading/>}{Boolean(plans.error)&&<ErrorNotice error={plans.error} onRetry={()=>void plans.read()}/>}{plans.value&&<><p className="tp-muted">{t('loaded',{loaded:formatNumber(plans.value.items.length),total:formatNumber(plans.value.total)})}</p><div className="tp-plan-options">{plans.value.items.map(item=><button type="button" key={item.id} aria-pressed={selectedID===item.id} disabled={locked} onClick={()=>{if(canLeave())callbacks.current.onSelectPlan(item.id);}}><strong>{item.latest?.title||item.id}</strong><small>{item.latest?.source.task.title||item.task_id}</small><Status kind="state" value={item.state}/></button>)}</div>{!plans.value.items.length&&<p className="tp-muted">{t('no_plans')}</p>}{plans.value.next_cursor&&<button type="button" disabled={plans.loading||locked} onClick={()=>void plans.read(true)}>{t('more')}</button>}</>}</aside>
@@ -112,14 +142,20 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
       {execution.value.package_evidence.length>0&&<section className="tp-reports" aria-labelledby={bodyID+'-package-checks'}>
        <h3 id={bodyID+'-package-checks'}>{t('package_checks')}</h3>
        <p className="tp-muted">{t('package_checks_help')}</p>
-       {execution.value.package_evidence.map(evidence=><PackageEvidence key={evidence.node_id} evidence={evidence} project={project} locked={locked} onRun={()=>{if(canLeave())callbacks.current.onOpenRun(runID,evidence.node_id,evidence.attempt);}}/>)}
+        {execution.value.package_evidence.map(evidence=><PackageEvidence key={evidence.node_id} evidence={evidence} project={project} locked={locked} canDefect={currentDefectBasis&&evidence.can_create_issue} onRun={()=>{if(canLeave())callbacks.current.onOpenRun(runID,evidence.node_id,evidence.attempt);}} onIssue={id=>{if(canLeave())callbacks.current.onOpenIssue(id);}} onDefect={()=>openDefect(evidence)}/>)}
       </section>}
-      <Field label={t('filter_cases')}><input value={caseFilter} onChange={event=>setCaseFilter(event.target.value)}/></Field><div className="tp-result-cases">{execution.value.cases.filter(item=>!caseFilter||(item.title+' '+item.case_key).toLocaleLowerCase().includes(caseFilter.toLocaleLowerCase())).map(item=><ResultCase key={item.case_key} item={item} locked={locked} canDefect={canWrite&&!!execution.value?.basis_current&&current.basis_current} onRun={(node,attempt)=>{if(canLeave())callbacks.current.onOpenRun(runID,node,attempt);}} onIssue={id=>{if(canLeave())callbacks.current.onOpenIssue(id);}} onDefect={()=>setDefect({key:item.case_key,reason:''})}/>)}</div>
+       <Field label={t('filter_cases')}><input value={caseFilter} onChange={event=>setCaseFilter(event.target.value)}/></Field><div className="tp-result-cases">{execution.value.cases.filter(item=>!caseFilter||(item.title+' '+item.case_key).toLocaleLowerCase().includes(caseFilter.toLocaleLowerCase())).map(item=><ResultCase key={item.case_key} item={item} locked={locked} canDefect={canCaseDefect} onRun={(node,attempt)=>{if(canLeave())callbacks.current.onOpenRun(runID,node,attempt);}} onIssue={id=>{if(canLeave())callbacks.current.onOpenIssue(id);}} onDefect={()=>openDefect(item)}/>)}</div>
       <section className="tp-reports"><h3>{t('reports')}</h3>{execution.value.reports.length?execution.value.reports.map(report=><Report key={report.id} project={project} planID={current.id} runID={runID} report={report} failed={failed}/>):<p className="tp-warning">{t('no_reports')}</p>}</section>
      </>}</section>}
    </div>
   </div>}
-  <Modal open={!!defect} onClose={()=>{if(!locked)setDefect(undefined);}} title={t('register_defect')} description={t('defect_hint')}><WriteFields action={action}><Field label={t('defect_reason')}><textarea name="test_plan_defect_reason" value={defect?.reason||''} maxLength={2000} rows={3} onChange={event=>setDefect(before=>before?{...before,reason:event.target.value}:before)}/></Field></WriteFields><button className="primary" type="button" data-test-plan-defect disabled={locked||!planText(defect?.reason,2000)} onClick={()=>void registerDefect()}>{t('register_defect')}</button></Modal>
+   <Modal open={defectOpen} onClose={()=>{if(!locked){setDefect(undefined);action.clearConflict();}}} title={t(packageDefect?'package_register_defect':'register_defect')} description={t(packageDefect?'package_defect_hint':'defect_hint')}>
+    <WriteNotice action={action} onRebase={recheckDefect}/>{restore}
+    {defect?.kind==='package'&&<p className="tp-muted">{t('package_defect_target',{node:defect.nodeID,attempt:formatNumber(defect.attempt)})}</p>}
+    {!defectCurrent&&!locked&&!execution.loading&&!detail.loading&&<p className="tp-warning" role="status">{t('defect_target_changed')}</p>}
+    <WriteFields action={action}><Field label={t('defect_reason')}><textarea name="test_plan_defect_reason" value={defect?.reason||''} maxLength={2000} rows={3} onChange={event=>setDefect(before=>before?{...before,reason:event.target.value}:before)}/></Field></WriteFields>
+    {!pending&&<button className="primary" type="button" data-test-plan-defect disabled={locked||!defectCurrent||action.conflict||!planText(defect?.reason,2000)} onClick={()=>void registerDefect()}>{t('register_defect')}</button>}
+   </Modal>
  </section>;
 }
 
@@ -129,8 +165,9 @@ function CaseEditor({value,index,criteria,criteriaLoaded,disabled,open,onToggle,
 function ResultCase({item,locked,canDefect,onRun,onIssue,onDefect}:{item:TestCaseResult;locked:boolean;canDefect:boolean;onRun:(node:string,attempt:number)=>void;onIssue:(id:string)=>void;onDefect:()=>void}){
  return <article className="tp-result-case" data-test-case-result={item.case_key}><div><strong>{item.title}</strong><Status kind="case" value={item.status}/></div><small className="tp-muted"><code>{item.case_key}</code>{item.covers.length>0&&<> · {t('covers_indices',{indices:item.covers.map(index=>formatNumber(index)).join(', ')})}</>}</small>{item.evidence.length?<details><summary>{t('case_evidence',{count:formatNumber(item.evidence.length)})}</summary><ul>{item.evidence.map((evidence,index)=><li key={evidence.report_id+'-'+index}><Status kind="case" value={evidence.status}/><button type="button" disabled={locked} onClick={()=>onRun(evidence.node_id,evidence.attempt)}>{evidence.node_id} · {t('attempt',{attempt:formatNumber(evidence.attempt)})}<ArrowRight size={12}/></button><code>{evidence.source_commit||t('not_recorded')}</code><small>{t('duration',{duration:formatNumber(evidence.duration_ms)})}</small>{evidence.message&&<pre>{evidence.message}</pre>}</li>)}</ul></details>:<p className="tp-muted">{t('case_no_evidence')}</p>}{item.issue_id?<button type="button" disabled={locked} onClick={()=>onIssue(item.issue_id)}>{t('open_issue')}<ArrowRight size={12}/></button>:['failed','error'].includes(item.status)&&canDefect&&<button type="button" disabled={locked} onClick={onDefect}>{t('register_defect')}</button>}</article>;
 }
-function PackageEvidence({evidence,project,locked,onRun}:{evidence:TestPlanExecution['package_evidence'][number];project:string;locked:boolean;onRun:()=>void}){
+function PackageEvidence({evidence,project,locked,canDefect,onRun,onIssue,onDefect}:{evidence:PackageGate;project:string;locked:boolean;canDefect:boolean;onRun:()=>void;onIssue:(id:string)=>void;onDefect:()=>void}){
  const verified=evidence.state==='verified';
+ const issueID=evidence.issue_id;
  const artifact=verified&&evidence.artifact_id?'?'+new URLSearchParams({project,view:'operations',sub:'artifacts',record:evidence.artifact_id}):'';
  return <article className="tp-report tp-package" data-test-package-evidence={evidence.node_id}>
   <div><ShieldCheck aria-hidden="true" size={16}/><strong>{evidence.node_id}</strong><Status kind="package" value={evidence.state}/></div>
@@ -143,6 +180,7 @@ function PackageEvidence({evidence,project,locked,onRun}:{evidence:TestPlanExecu
   <div className="tp-actions tp-package-actions">
    <button type="button" disabled={locked} onClick={onRun}>{evidence.attempt?t('package_open_attempt',{attempt:formatNumber(evidence.attempt)}):t('package_open_node')}<ArrowRight aria-hidden="true" size={13}/></button>
    {artifact&&!locked&&<a href={artifact} onClick={event=>{if(!canLeave())event.preventDefault();}}>{t('package_open_artifact')}<ArrowRight aria-hidden="true" size={13}/></a>}
+   {issueID?<button type="button" data-test-package-open-issue disabled={locked} onClick={()=>onIssue(issueID)}>{t('open_issue')}<ArrowRight aria-hidden="true" size={13}/></button>:canDefect&&<button type="button" data-test-package-defect disabled={locked} onClick={onDefect}>{t('register_defect')}</button>}
   </div>
  </article>;
 }

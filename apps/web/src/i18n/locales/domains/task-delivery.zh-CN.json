@@ -100,5 +100,6 @@
  "task-delivery.source.execution_failure":"执行失败",
  "task-delivery.source.review_rejected":"验收退回",
  "task-delivery.open_requirement":"打开回流需求",
- "task-delivery.source.test_case":"失败用例"
+ "task-delivery.source.test_case":"失败用例",
+ "task-delivery.source.package_test":"包测试失败"
 }

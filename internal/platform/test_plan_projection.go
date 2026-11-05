@@ -82,6 +82,36 @@ func testPlanPackageEvidenceState(state string) string {
 	}
 }
 
+func (s *Service) testPlanExecutionBasisTx(ctx context.Context, tx *sql.Tx, tenant, project string, current testPlanAggregate, fixed testPlanRunSnapshot, run string) (string, error) {
+	valid, err := s.testPlanSourceCurrentTx(ctx, tx, tenant, project, fixed.Revision.Source)
+	if err != nil {
+		return "", err
+	}
+	basisState := ""
+	if !valid {
+		basisState = "source_changed"
+	} else if current.State == "retired" || current.Published == 0 {
+		basisState = "retired"
+	} else if current.ID != fixed.PlanID || current.Published != fixed.Revision.Revision || current.Governance != fixed.GovernanceRevision {
+		basisState = "run_changed"
+	}
+	var currentRun string
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT run_id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, fixed.TaskID).Scan(&currentRun); err != nil {
+		return "", err
+	}
+	if basisState == "" && currentRun != run {
+		basisState = "run_changed"
+	}
+	compensated, err := s.evidenceCompensatedTx(ctx, tx, run, false)
+	if err != nil {
+		return "", err
+	}
+	if compensated && basisState == "" {
+		basisState = "run_changed"
+	}
+	return basisState, nil
+}
+
 // Ordinary summaries do not return XML. Persisted report projections exclude
 // it, while the current workspace-proof helper still decodes the private
 // attempt result. GetTestPlanReport explicitly exposes an authorized original.
@@ -103,31 +133,9 @@ func (s *Service) testPlanExecutionTx(ctx context.Context, tx *sql.Tx, tenant, p
 	}
 	out.Revision = fixed.Revision.Revision
 	out.PlanSHA256 = fixed.Revision.SHA256
-	valid, err := s.testPlanSourceCurrentTx(ctx, tx, tenant, project, fixed.Revision.Source)
+	basisState, err := s.testPlanExecutionBasisTx(ctx, tx, tenant, project, current, fixed, run)
 	if err != nil {
 		return out, err
-	}
-	basisState := ""
-	if !valid {
-		basisState = "source_changed"
-	} else if current.State == "retired" || current.Published == 0 {
-		basisState = "retired"
-	} else if current.ID != fixed.PlanID || current.Published != fixed.Revision.Revision || current.Governance != fixed.GovernanceRevision {
-		basisState = "run_changed"
-	}
-	var currentRun string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT run_id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, fixed.TaskID).Scan(&currentRun); err != nil {
-		return out, err
-	}
-	if basisState == "" && currentRun != run {
-		basisState = "run_changed"
-	}
-	compensated, err := s.evidenceCompensatedTx(ctx, tx, run, false)
-	if err != nil {
-		return out, err
-	}
-	if compensated && basisState == "" {
-		basisState = "run_changed"
 	}
 	out.BasisCurrent = basisState == ""
 	nodes, err := s.testPlanNodesTx(ctx, tx, tenant, project, run)
@@ -154,10 +162,18 @@ func (s *Service) testPlanExecutionTx(ctx context.Context, tx *sql.Tx, tenant, p
 		}
 	}
 	allKnownReports := true
+	var packageIssues map[testPlanPackageAttempt]string
+	if len(fixed.PackageTests) > 0 {
+		packageIssues, err = s.testPlanPackageIssuesTx(ctx, tx, tenant, project, current.ID, run)
+		if err != nil {
+			return out, err
+		}
+	}
 	for _, binding := range fixed.PackageTests {
 		node := nodes[binding.NodeID]
 		item := TestPlanPackageEvidence{NodeID: binding.NodeID, SourceNodeID: binding.SourceNodeID,
-			State: testPlanPackageEvidenceState(node.State), Attempt: node.Attempt, WorkerID: node.Worker}
+			State: testPlanPackageEvidenceState(node.State), Attempt: node.Attempt, Fence: node.Fence, WorkerID: node.Worker,
+			IssueID: packageIssues[testPlanPackageAttempt{NodeID: node.ID, Attempt: node.Attempt, Fence: node.Fence}]}
 		if node.State == "succeeded" && out.BasisCurrent {
 			proof, e := s.testPlanPackageProofCurrentTx(ctx, tx, tenant, project, run, binding, node)
 			if e != nil {
@@ -168,6 +184,13 @@ func (s *Service) testPlanExecutionTx(ctx context.Context, tx *sql.Tx, tenant, p
 				item.ArtifactID, item.ManifestSHA256, item.SourceCommit = proof.ArtifactID, proof.ManifestSHA256, proof.SourceCommit
 				item.SourceWorkerID = binding.SourceWorkerID
 			}
+		}
+		if node.State == "failed" && out.BasisCurrent && item.IssueID == "" {
+			failure, e := s.testPlanPackageFailureCurrentTx(ctx, tx, tenant, project, run, binding, node)
+			if e != nil {
+				return out, e
+			}
+			item.CanCreateIssue = failure != nil
 		}
 		if item.State != "verified" && item.State != "skipped" {
 			allKnownReports = false
@@ -320,7 +343,12 @@ func (s *Service) GetTestPlanExecution(ctx context.Context, actor Actor, project
 	if !found || fixed.TaskID != current.TaskID {
 		return out, missing()
 	}
-	return s.testPlanExecutionTx(ctx, auth.tx, auth.target.tenantID, project, current, fixed, run)
+	out, err = s.testPlanExecutionTx(ctx, auth.tx, auth.target.tenantID, project, current, fixed, run)
+	if err != nil {
+		return out, err
+	}
+	err = s.testPlanPackageIssuePermissionsTx(ctx, auth, project, out.PackageEvidence)
+	return out, err
 }
 func (s *Service) ListTestPlanExecutions(ctx context.Context, actor Actor, project, id string, limit int, before string) (out TestPlanExecutionList, err error) {
 	out.Items = []TestPlanExecution{}
@@ -395,7 +423,35 @@ func (s *Service) ListTestPlanExecutions(ctx context.Context, actor Actor, proje
 		}
 		out.Items = append(out.Items, execution)
 	}
+	for _, execution := range out.Items {
+		if err = s.testPlanPackageIssuePermissionsTx(ctx, auth, project, execution.PackageEvidence); err != nil {
+			return out, err
+		}
+	}
 	return out, nil
+}
+
+// Failed evidence is visible with project read permission. Exposing an
+// actionable command additionally requires current project write permission.
+func (s *Service) testPlanPackageIssuePermissionsTx(ctx context.Context, auth *authorizedCommand, project string, items []TestPlanPackageEvidence) error {
+	for _, item := range items {
+		if !item.CanCreateIssue {
+			continue
+		}
+		_, err := s.currentProjectMembershipLockedTx(ctx, auth.tx, auth.target.tenantID, auth.currentPrincipal.ID, project, true, false)
+		if err == nil {
+			return nil
+		}
+		var api *APIError
+		if !errors.As(err, &api) || api.Status != 403 {
+			return err
+		}
+		for i := range items {
+			items[i].CanCreateIssue = false
+		}
+		break
+	}
+	return nil
 }
 func (s *Service) GetTestPlanReport(ctx context.Context, actor Actor, project, id, reportID string) (out TestPlanReport, err error) {
 	if !testPlanActor(actor) {

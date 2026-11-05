@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "package_test_issue": {
+    "stage": "T-PACKAGE-TEST-ISSUE-253",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "8d7b01431d7d090e455cce82cdf26c040184d3fe",
+    "report": "docs/quality/package-test-issue-verification.md",
+    "actual": "Quality workbench and project API can create one issue per confirmed failed package attempt. Current project write and frozen source authority precede a protected issue write. Current task delivery exposes the issue and its feedback requirement.",
+    "verification": "Three focused Go integration tests passed, including real Pool package failure after reading sealed bytes. 22 targeted web checks, TypeScript, catalogs, generated contracts, and zh-CN 390/en-US 1280 Chromium fixture passed. Two pre-existing localization suite failures were reproduced on 8d7b014.",
+    "known_limitations": "Backend runtime used same-host Windows fixtures and distinct Pool identities. Unknown completion used an authenticated fixture callback and browser used controlled API fixtures. Physical multihost, OceanBase, production, and package-specific repair closure remain open.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q253/post-git.json"
+  },
   "pool_mixed_quality": {
     "stage": "T-POOL-MIXED-QUALITY-252",
     "version": "1.0.0",

@@ -65,8 +65,11 @@ function caseResult(value:unknown):value is TestCaseResult{
 const dagNodeID=(value:unknown):value is string=>text(value)&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value);
 const sourceCommit=(value:unknown):value is string=>text(value)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
 function packageEvidence(value:unknown,basisCurrent:boolean):value is TestPlanExecution['package_evidence'][number]{
- if(!object(value)||!dagNodeID(value.node_id)||!dagNodeID(value.source_node_id)||value.node_id===value.source_node_id||!oneOf(value.state,packageEvidenceStates))return false;
+ if(!object(value)||!dagNodeID(value.node_id)||!dagNodeID(value.source_node_id)||value.node_id===value.source_node_id||!oneOf(value.state,packageEvidenceStates)||typeof value.can_create_issue!=='boolean')return false;
  if(value.attempt!==undefined&&!positive(value.attempt))return false;
+ if(value.fence!==undefined&&(!positive(value.fence)||!positive(value.attempt)))return false;
+ if(value.issue_id!==undefined&&(!planID(value.issue_id)||value.can_create_issue))return false;
+ if(value.can_create_issue&&(!basisCurrent||value.state!=='failed'||!positive(value.attempt)||!positive(value.fence)))return false;
  if(![value.worker_id,value.source_worker_id].every(worker=>worker===undefined||planText(worker,200)))return false;
  if(value.state==='verified')return basisCurrent&&positive(value.attempt)&&planID(value.artifact_id)&&planHash(value.manifest_sha256)&&sourceCommit(value.source_commit);
  return [value.artifact_id,value.manifest_sha256,value.source_commit,value.source_worker_id].every(fact=>fact===undefined);
@@ -93,5 +96,6 @@ export function testPlanRecovery(request:WriteRecoveryRequest,project:string){
  if(request.method==='PUT'&&new RegExp('^'+base+'/'+identifier+'$').test(path))return knownKeys(body,['project_id','expected_version','expected_task_version','expected_requirement_version','title','description','cases','idempotency_key'])&&positive(body.expected_version)&&positive(body.expected_task_version)&&integer(body.expected_requirement_version)&&text(body.title)&&text(body.description)&&Array.isArray(body.cases)&&body.cases.every(validQualityCase);
  if(request.method==='POST'&&new RegExp('^'+base+'/'+identifier+'/commands$').test(path))return knownKeys(body,['project_id','expected_version','action','reason','idempotency_key'])&&positive(body.expected_version)&&oneOf(body.action,['publish','retire'])&&planText(body.reason,2000);
  if(request.method==='POST'&&new RegExp('^'+base+'/'+identifier+'/executions/'+identifier+'/defects$').test(path))return knownKeys(body,['project_id','expected_version','case_key','reason','idempotency_key'])&&positive(body.expected_version)&&planID(body.case_key)&&planText(body.reason,2000);
+ if(request.method==='POST'&&new RegExp('^'+base+'/'+identifier+'/executions/'+identifier+'/package-defects$').test(path))return knownKeys(body,['project_id','expected_version','node_id','expected_attempt','expected_fence','reason','idempotency_key'])&&positive(body.expected_version)&&dagNodeID(body.node_id)&&positive(body.expected_attempt)&&positive(body.expected_fence)&&planText(body.reason,2000);
  return false;
 }

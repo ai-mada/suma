@@ -11,13 +11,15 @@ import (
 )
 
 const (
-	testPlanInvalid    = "Invalid test plan request"
-	testPlanVersion    = "The test plan or selected task has changed; reload before deciding"
-	testPlanSource     = "The test plan source has changed; review and save a current draft"
-	testPlanIncomplete = "Complete the test cases and task acceptance coverage before publication"
-	testPlanGate       = "The current test plan does not have complete passing evidence for this run"
-	testPlanBinding    = "Published test plans require fixed report-capable test nodes without dynamic or child workflows"
-	testPlanDefect     = "Only a current known failed or error test case can create a defect"
+	testPlanInvalid               = "Invalid test plan request"
+	testPlanVersion               = "The test plan or selected task has changed; reload before deciding"
+	testPlanSource                = "The test plan source has changed; review and save a current draft"
+	testPlanIncomplete            = "Complete the test cases and task acceptance coverage before publication"
+	testPlanGate                  = "The current test plan does not have complete passing evidence for this run"
+	testPlanBinding               = "Published test plans require fixed report-capable test nodes without dynamic or child workflows"
+	testPlanDefect                = "Only a current known failed or error test case can create a defect"
+	testPlanPackageDefect         = "Only a confirmed failure of the current sealed package test can create an issue"
+	testPlanPackageAttemptChanged = "The package test attempt has changed; reload before creating an issue"
 )
 
 type testPlanAggregate struct {
@@ -43,6 +45,7 @@ func (s *Service) InitializeTestPlans(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_test_plan_runs(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,task_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,snapshot TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,run_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_test_plan_reports(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,created_at VARCHAR(40) NOT NULL,projection TEXT NOT NULL,payload TEXT NOT NULL,UNIQUE(tenant_id,project_id,run_id,node_id,attempt,fence))`,
 		`CREATE TABLE IF NOT EXISTS suma_test_plan_defects(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,case_key VARCHAR(64) NOT NULL,issue_id VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,plan_id,run_id,case_key))`,
+		`CREATE TABLE IF NOT EXISTS suma_test_plan_package_defects(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,issue_id VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,evidence TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,plan_id,run_id,node_id,attempt,fence))`,
 	} {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(ddl)); err != nil {
 			return err

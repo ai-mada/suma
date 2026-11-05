@@ -63,8 +63,9 @@ Runner 为当前 attempt 在源码目录旁创建全新的 `test-report/report.x
 | GET `/test-plans/{id}/executions/{run}?project_id` | `TestPlanExecution`，200 |
 | GET `/test-plans/{id}/reports/{report}?project_id` | `TestPlanReport` JSON，含原 `xml` 和派生 `cases`，200 |
 | POST `/test-plans/{id}/executions/{run}/defects` | `TestPlanDefectRequest` → 问题 `Record`，201 |
+| POST `/test-plans/{id}/executions/{run}/package-defects` | `TestPlanPackageDefectRequest` → 问题 `Record`，201 |
 
-两个列表默认 20、最多 100 条，以当前作用域 keyset 游标分页；没有 `task_id` 查询筛选。计划列表游标为 plan ID，执行列表游标为 run ID。写入带 `idempotency_key`（8–128 字节）及适用的预期版本；发布／停用／创建问题带 1–2000 字节 reason。请求超时先恢复原身份、原作用域、原正文和原 key 的操作；同 key 不同正文冲突，不通过换 key 绕过版本与权限。原操作回执保留当时结果，响应中的可用动作和依据当前性仍重新授权／计算，不能把历史成功当作当前许可。
+两个列表默认 20、最多 100 条，以当前作用域 keyset 游标分页。计划列表可用 `task_id` 精确筛选，计划列表游标为 plan ID，执行列表游标为 run ID。写入带 `idempotency_key`（8–128 字节）及适用的预期版本；发布／停用／创建问题带 1–2000 字节 reason。请求超时先恢复原身份、原作用域、原正文和原 key 的操作；同 key 不同正文冲突，不通过换 key 绕过版本与权限。原操作回执保留当时结果，响应中的可用动作和依据当前性仍重新授权／计算。
 
 ## 逐例门禁与问题回流
 
@@ -73,6 +74,10 @@ Runner 为当前 attempt 在源码目录旁创建全新的 `test-report/report.x
 执行状态为 `pending/passed/failed/incomplete/unknown/source_changed/retired/run_changed`。正式人工 Review 沿现有入口重核所有质量依据；API 没有人工填写用例 passed 的操作，测试通过也不等于人已批准交付。
 
 创建问题要求当前失败／错误用例、有效当前证据、当前版本、明确 reason 和操作确认。受保护的 `(plan,run,case_key)` 关系保证重复操作返回同一问题，不依赖可编辑 `issues.data`。任务交付将此类问题与原 IssueIntake 问题合并呈现，并沿原问题→需求入口回流。此阶段没有完整缺陷关闭／重开工作流，也未交付全功能手工测试、应用测试或发布测试管理；这些仍属原平台范围。
+
+包测试问题使用独立命令。请求必须携带 `project_id`、`expected_version`、`node_id`、`expected_attempt`、`expected_fence`、`reason` 与 `idempotency_key`。服务端重核当前项目写权限、计划与任务依据、准确测试尝试、封存制品来源和确定的进程失败。只有证据完整的当前失败可转成问题。失联、未执行、过期或仅有基础设施故障的尝试继续通过运行诊断处理。
+
+受保护的 `(plan,run,node,attempt,fence)` 关系单独去重，并保存原制品证据。问题进入原任务交付的问题列表。包测试摘要返回当前尝试的 `fence`、有权创建时的 `can_create_issue` 及已关联的 `issue_id`。原失败记录、修复和后续人工验收分别保存。
 
 执行摘要不返回原 XML，原件按需在报告接口读取；内部当前 attempt 证明查询仍会选择完整私有 `dag_attempts.result` JSON 后提取工作树证明，不能理解为数据库完全不读取 XML。报告只证明受信任 Runner 所报告的执行事实，不证明测试实现正确、被攻陷 Runner 可信、供应链安全或人工／生产验收已完成。
 

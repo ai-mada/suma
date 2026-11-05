@@ -158,11 +158,14 @@ type TestPlanPackageEvidence struct {
 	SourceNodeID   string `json:"source_node_id"`
 	State          string `json:"state"`
 	Attempt        int    `json:"attempt,omitempty"`
+	Fence          int64  `json:"fence,omitempty"`
 	WorkerID       string `json:"worker_id,omitempty"`
 	SourceWorkerID string `json:"source_worker_id,omitempty"`
 	ArtifactID     string `json:"artifact_id,omitempty"`
 	ManifestSHA256 string `json:"manifest_sha256,omitempty"`
 	SourceCommit   string `json:"source_commit,omitempty"`
+	IssueID        string `json:"issue_id,omitempty"`
+	CanCreateIssue bool   `json:"can_create_issue"`
 }
 
 type TestPlanExecution struct {
@@ -197,6 +200,19 @@ type TestPlanDefectRequest struct {
 	ProjectID       string `json:"project_id"`
 	ExpectedVersion int    `json:"expected_version"`
 	CaseKey         string `json:"case_key"`
+	Reason          string `json:"reason"`
+	IdempotencyKey  string `json:"idempotency_key"`
+}
+
+// TestPlanPackageDefectRequest selects the observed failed package attempt.
+// The current plan, attempt fence and sealed package lineage are checked again
+// within the same transaction that creates or recovers the issue.
+type TestPlanPackageDefectRequest struct {
+	ProjectID       string `json:"project_id"`
+	ExpectedVersion int    `json:"expected_version"`
+	NodeID          string `json:"node_id"`
+	ExpectedAttempt int    `json:"expected_attempt"`
+	ExpectedFence   int64  `json:"expected_fence"`
 	Reason          string `json:"reason"`
 	IdempotencyKey  string `json:"idempotency_key"`
 }

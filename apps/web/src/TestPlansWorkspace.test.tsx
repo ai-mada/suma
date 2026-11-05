@@ -13,12 +13,12 @@ const revision={revision:1,state:'draft',title:'Existing plan',description:'Draf
 const plan={id:'plan-a',project_id:project,task_id:task.id,version:1,state:'draft',latest_revision:1,published_revision:0,has_draft:true,basis_current:true,eligibility:'none',latest:revision,allowed_actions:['save','publish'],created_at:revision.created_at,updated_at:revision.created_at};
 const execution={plan_id:'plan-a',task_id:'task-a',revision:1,plan_sha256:sha,run_id:'run-a',run_state:'succeeded',created_at:revision.created_at,state:'incomplete',basis_current:true,source_commits:[],total:1,passed:0,failed:0,errors:0,skipped:0,not_run:1,cases:[{case_key:'authorize',title:'Authorization case',status:'not_run',covers:[1],evidence:[],issue_id:''}],reports:[],package_evidence:[]};
 const session:Session={user:{id:'user-a',name:'Owner',email:'owner@example.test',role:'owner'},organization:{id:'org-a',name:'Org'},projects:[{id:project,version:1,title:'Project',role:'admin'}]};
-let root:Root|undefined,host:HTMLDivElement,writes:{path:string;body:Record<string,unknown>}[],reads:string[],reply:(path:string,init?:RequestInit)=>Promise<Response>,changed:ReturnType<typeof vi.fn>,select:ReturnType<typeof vi.fn>,openRun:ReturnType<typeof vi.fn>;
+let root:Root|undefined,host:HTMLDivElement,writes:{path:string;body:Record<string,unknown>}[],reads:string[],reply:(path:string,init?:RequestInit)=>Promise<Response>,changed:ReturnType<typeof vi.fn>,select:ReturnType<typeof vi.fn>,openRun:ReturnType<typeof vi.fn>,openIssue:ReturnType<typeof vi.fn>;
 function defaults(path:string){if(path.startsWith('/tasks?'))return Response.json({items:[task],total:1,next_cursor:''});if(path.startsWith('/tasks/task-a?'))return Response.json(task);if(path.includes('/executions/run-a?'))return Response.json(execution);if(path.includes('/executions?'))return Response.json({items:[execution],total:1,next_cursor:''});if(path.startsWith('/test-plans?'))return Response.json({items:[plan],total:1,next_cursor:''});return Response.json(plan);}
-beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();writes=[];reads=[];changed=vi.fn();select=vi.fn();openRun=vi.fn();host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);reply=async path=>defaults(path);vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(init?.body)writes.push({path,body:JSON.parse(String(init.body))});else reads.push(path);return reply(path,init);}));});
+beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();writes=[];reads=[];changed=vi.fn();select=vi.fn();openRun=vi.fn();openIssue=vi.fn();host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);reply=async path=>defaults(path);vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(init?.body)writes.push({path,body:JSON.parse(String(init.body))});else reads.push(path);return reply(path,init);}));});
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function settle(){for(let i=0;i<4;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
-async function render(planID='',tab:'cases'|'results'='cases',runID='',actor=session){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={actor}><TestPlansWorkspace session={actor} project={project} refresh={0} planID={planID} runID={runID} tab={tab} onSelectPlan={select} onSelectExecution={()=>{}} onTab={()=>{}} onOpenTask={()=>{}} onOpenRun={openRun} onOpenIssue={()=>{}} onChanged={changed}/></ApiViewProvider>);});await settle();}
+async function render(planID='',tab:'cases'|'results'='cases',runID='',actor=session,refresh=0){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={actor}><TestPlansWorkspace session={actor} project={project} refresh={refresh} planID={planID} runID={runID} tab={tab} onSelectPlan={select} onSelectExecution={()=>{}} onTab={()=>{}} onOpenTask={()=>{}} onOpenRun={openRun} onOpenIssue={openIssue} onChanged={changed}/></ApiViewProvider>);});await settle();}
 async function change(selector:string,value:string){const element=(host.querySelector<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>(selector)||document.querySelector<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('[role=dialog] '+selector))!;expect(element,selector).not.toBeNull();const prototype=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(prototype,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});await settle();}
 async function click(selector:string){const element=(host.querySelector<HTMLElement>(selector)||document.querySelector<HTMLElement>('[role=dialog] '+selector))!;expect(element,selector).not.toBeNull();await act(async()=>element.click());await settle();}
 
@@ -94,8 +94,8 @@ it('shows separate package proofs and exact artifact and attempt links without e
  const commit='b'.repeat(40);
  const report={id:'report-a',run_id:'run-a',node_id:'test',attempt:1,fence:1,worker_id:'junit-worker',source_commit:commit,sha256:sha,protocol:'suma-junit-report-v1',eligibility:'current',process_exit_code:0,outcome_unknown:false,reported_at:revision.created_at,total:1,passed:1,failed:0,errors:0,skipped:0,unmapped:0};
  const mixed={...execution,source_commits:[commit],passed:1,not_run:0,cases:[{...execution.cases[0],status:'passed',evidence:[{report_id:report.id,node_id:report.node_id,attempt:report.attempt,fence:report.fence,worker_id:report.worker_id,source_commit:commit,status:'passed',message:'',duration_ms:8}]}],reports:[report],package_evidence:[
-  {node_id:'package-static',source_node_id:'build-static',state:'verified',attempt:2,worker_id:'test-worker',source_worker_id:'build-worker',artifact_id:'artifact-a',manifest_sha256:sha,source_commit:commit},
-  {node_id:'package-unverified',source_node_id:'build-static',state:'unverified',attempt:1}
+  {node_id:'package-static',source_node_id:'build-static',state:'verified',attempt:2,worker_id:'test-worker',source_worker_id:'build-worker',artifact_id:'artifact-a',manifest_sha256:sha,source_commit:commit,can_create_issue:false},
+  {node_id:'package-unverified',source_node_id:'build-static',state:'unverified',attempt:1,can_create_issue:false}
  ]};
  reply=async path=>path.includes('/executions/run-a?')?Response.json(mixed):path.includes('/executions?')?Response.json({items:[mixed],total:1,next_cursor:''}):defaults(path);
  await render('plan-a','results','run-a');
@@ -114,6 +114,57 @@ it('shows separate package proofs and exact artifact and attempt links without e
  expect(openRun).toHaveBeenCalledExactlyOnceWith('run-a','package-static',2);
  expect(writes).toHaveLength(0);
  expect(reads.some(path=>path.includes('/reports/')||path.includes('/artifacts'))).toBe(false);
+});
+
+const failedPackage={node_id:'package-static',source_node_id:'build-static',state:'failed',attempt:2,fence:5,can_create_issue:true};
+it('replays a lost package-issue receipt from the same dialog and opens the exact linked issue',async()=>{
+ let lost=true,registered=false;
+ const gates=()=>({...execution,state:'failed',run_state:'failed',package_evidence:[
+  {...failedPackage,can_create_issue:!registered,issue_id:registered?'issue-package':undefined},
+  {...failedPackage,node_id:'unknown-package',state:'unknown',can_create_issue:false},
+  {...failedPackage,node_id:'read-only-package',can_create_issue:false}
+ ]});
+ reply=async(path,init)=>{
+  if(init?.body){if(lost)throw new TypeError('lost receipt');registered=true;return Response.json({id:'issue-package',project_id:project,version:1});}
+  if(path.includes('/executions/run-a?'))return Response.json(gates());
+  if(path.includes('/executions?'))return Response.json({items:[gates()],total:1,next_cursor:''});
+  return defaults(path);
+ };
+ await render('plan-a','results','run-a');
+ expect(host.querySelectorAll('[data-test-package-defect]')).toHaveLength(1);
+ await click('[data-test-package-defect]');
+ expect(document.querySelector('[role=dialog]')?.textContent).toContain('package-static · Attempt 2');
+ expect(writes).toHaveLength(0);
+ await change('[name=test_plan_defect_reason]','The package failed its installed startup check.');
+ await click('[data-test-plan-defect]');
+ expect(writes).toHaveLength(1);
+ const original=writes[0];
+ expect(original.path).toBe('/test-plans/plan-a/executions/run-a/package-defects');
+ expect(original.body).toMatchObject({project_id:project,expected_version:1,node_id:'package-static',expected_attempt:2,expected_fence:5,reason:'The package failed its installed startup check.'});
+ expect(original.body).not.toHaveProperty('case_key');
+ expect(document.querySelector('[role=dialog] [data-test-plan-restore]')).not.toBeNull();
+ lost=false;
+ await click('[data-test-plan-restore]');
+ expect(writes).toEqual([original,original]);
+ expect(document.querySelector('[role=dialog]')).toBeNull();
+ expect(host.querySelector('[data-test-package-defect]')).toBeNull();
+ await click('[data-test-package-open-issue]');
+ expect(openIssue).toHaveBeenCalledExactlyOnceWith('issue-package');
+});
+
+it('keeps a package issue draft from retargeting when the selected attempt is refreshed',async()=>{
+ let newAttempt=false;
+ reply=async path=>path.includes('/executions/run-a?')?Response.json({...execution,state:'failed',run_state:'failed',package_evidence:[{...failedPackage,...(newAttempt?{attempt:3,fence:6}:{})}]}):defaults(path);
+ await render('plan-a','results','run-a');
+ await click('[data-test-package-defect]');
+ await change('[name=test_plan_defect_reason]','Observed in attempt two.');
+ newAttempt=true;
+ await render('plan-a','results','run-a',session,1);
+ const dialog=document.querySelector('[role=dialog]');
+ expect(dialog?.textContent).toContain('This failure changed.');
+ expect(dialog?.querySelector<HTMLTextAreaElement>('textarea')?.value).toBe('Observed in attempt two.');
+ expect(dialog?.querySelector<HTMLButtonElement>('[data-test-plan-defect]')?.disabled).toBe(true);
+ expect(writes).toHaveLength(0);
 });
 
 it('clears protected plan facts on denial and waits for an explicit retry',async()=>{

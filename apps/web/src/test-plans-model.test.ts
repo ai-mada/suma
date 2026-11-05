@@ -33,8 +33,8 @@ describe('test plans domain boundaries',()=>{
  });
  it('checks the package proof independently of a passing JUnit case',()=>{
   const commit='b'.repeat(40),report={id:'report-a',run_id:'run-a',node_id:'test',attempt:1,fence:1,worker_id:'worker-a',source_commit:commit,sha256:sha,protocol:'suma-junit-report-v1',eligibility:'current',process_exit_code:0,outcome_unknown:false,reported_at:revision.created_at,total:1,passed:1,failed:0,errors:0,skipped:0,unmapped:0};
-  const verified={node_id:'package-test',source_node_id:'build',state:'verified',attempt:2,worker_id:'worker-b',source_worker_id:'worker-a',artifact_id:'artifact-a',manifest_sha256:sha,source_commit:commit};
-  const unverified={node_id:verified.node_id,source_node_id:'build',state:'unverified',attempt:2};
+  const verified={node_id:'package-test',source_node_id:'build',state:'verified',attempt:2,worker_id:'worker-b',source_worker_id:'worker-a',artifact_id:'artifact-a',manifest_sha256:sha,source_commit:commit,can_create_issue:false};
+  const unverified={node_id:verified.node_id,source_node_id:'build',state:'unverified',attempt:2,can_create_issue:false};
   const value={plan_id:'plan-a',task_id:'task-a',revision:1,plan_sha256:sha,run_id:'run-a',run_state:'succeeded',created_at:revision.created_at,state:'passed',basis_current:true,source_commits:[commit],total:1,passed:1,failed:0,errors:0,skipped:0,not_run:0,cases:[{case_key:'authorize',title:'Authorization',status:'passed',covers:[1],evidence:[{report_id:report.id,node_id:'test',attempt:1,fence:1,worker_id:'worker-a',source_commit:commit,status:'passed',message:'',duration_ms:8}],issue_id:''}],reports:[report]};
   const valid=(overrides:Record<string,unknown>)=>validTestPlanExecution({...value,package_evidence:[verified],...overrides},'plan-a','task-a');
   expect(valid({})).toBe(true);
@@ -46,6 +46,12 @@ describe('test plans domain boundaries',()=>{
   expect(valid({package_evidence:[verified,verified]})).toBe(false);
   expect(valid({package_evidence:undefined})).toBe(false);
   expect(valid({package_evidence:null})).toBe(false);
+  const failed={...unverified,state:'failed',fence:9,can_create_issue:true};
+  expect(valid({state:'failed',package_evidence:[failed]})).toBe(true);
+  expect(valid({state:'failed',package_evidence:[{...failed,fence:undefined}]})).toBe(false);
+  expect(valid({state:'failed',package_evidence:[{...failed,state:'unknown'}]})).toBe(false);
+  expect(valid({state:'failed',basis_current:false,package_evidence:[failed]})).toBe(false);
+  expect(valid({state:'failed',package_evidence:[{...failed,issue_id:'already-filed'}]})).toBe(false);
  });
  it('restores only an original plan or defect command in its exact project scope',()=>{
   const request={path:'/test-plans/plan-a/commands',method:'POST',idempotency_key:'original-operation',body:{project_id:'project-a',expected_version:1,action:'publish',reason:'Reviewed',idempotency_key:'original-operation'}};
@@ -53,5 +59,9 @@ describe('test plans domain boundaries',()=>{
   expect(testPlanRecovery({...request,body:{...request.body,project_id:'foreign'}},'project-a')).toBe(false);
   expect(testPlanRecovery({...request,path:'/runner/results'},'project-a')).toBe(false);
   expect(testPlanRecovery({...request,body:{...request.body,passed:true}},'project-a')).toBe(false);
+  const packageRequest={path:'/test-plans/plan-a/executions/run-a/package-defects',method:'POST',idempotency_key:'original-operation',body:{project_id:'project-a',expected_version:1,node_id:'package.test',expected_attempt:2,expected_fence:9,reason:'Installed package failed',idempotency_key:'original-operation'}};
+  expect(testPlanRecovery(packageRequest,'project-a')).toBe(true);
+  expect(testPlanRecovery({...packageRequest,body:{...packageRequest.body,expected_fence:0}},'project-a')).toBe(false);
+  expect(testPlanRecovery({...packageRequest,body:{...packageRequest.body,case_key:'authorize'}},'project-a')).toBe(false);
  });
 });

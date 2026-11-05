@@ -107,6 +107,13 @@ func (s *Server) testPlansHTTP(w http.ResponseWriter, r *http.Request, actor Act
 		}
 		out, err := s.Service.CreateTestPlanDefect(r.Context(), actor, project, parts[1], parts[3], request)
 		respond(w, 201, out, err)
+	case len(parts) == 5 && parts[2] == "executions" && parts[4] == "package-defects" && r.Method == http.MethodPost:
+		var request TestPlanPackageDefectRequest
+		if !decode(&request, "project_id", "expected_version", "node_id", "expected_attempt", "expected_fence", "reason", "idempotency_key") {
+			return true
+		}
+		out, err := s.Service.CreateTestPlanPackageDefect(r.Context(), actor, project, parts[1], parts[3], request)
+		respond(w, 201, out, err)
 	case len(parts) == 4 && parts[2] == "reports" && r.Method == http.MethodGet:
 		out, err := s.Service.GetTestPlanReport(r.Context(), actor, project, parts[1], parts[3])
 		respond(w, 200, out, err)

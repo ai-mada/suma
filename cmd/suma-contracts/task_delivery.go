@@ -69,6 +69,7 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	for _, name := range []string{"TaskDeliveryExpertPlans", "TaskDeliveryIssues"} {
 		toolContractMap(schemas, name, "properties", "scope")["const"] = "current_run"
 	}
+	toolContractMap(schemas, "TaskDeliveryIssue", "properties", "source")["enum"] = []string{"execution_failure", "review_rejected", "test_case", "package_test"}
 	for _, name := range []string{"waiting", "running", "succeeded", "failed", "skipped", "reconciling", "other"} {
 		toolContractMap(schemas, "TaskDeliveryNodeSummary", "properties", name)["minimum"] = 0
 	}

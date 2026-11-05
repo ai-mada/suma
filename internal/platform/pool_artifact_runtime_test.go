@@ -82,17 +82,22 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 	}
 	criteria := []string{"Check the exact registered library source and its independently tested sealed package"}
 	requirement := issueRepairRuntimeDecode[Record](t, f.call("POST", "/requirements", f.body(map[string]any{"title": "Release the verified Pool library", "acceptance_criteria": criteria}), 201))
-	task := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(map[string]any{"title": "Pool application artifact", "requirement_id": requirement.ID, "acceptance_criteria": criteria}), 201))
-	plan := issueRepairRuntimeDecode[TestPlanView](t, f.call("POST", "/test-plans", TestPlanCreateRequest{
-		ProjectID: f.project, TaskID: task.ID, ExpectedTaskVersion: task.Version, ExpectedRequirementVersion: requirement.Version,
-		Title: "Pool library delivery checks", Description: "Source assertions and sealed-package evidence are independent gates.",
-		Cases: []QualityTestCase{{Key: "registered-source", Title: "Verify the registered library source", Description: "Use the build's exact source commit",
-			Preconditions: "The registered library build has finished", Steps: []string{"Check package identity and shared arithmetic"}, ExpectedResult: "Both source assertions pass",
-			Priority: "high", Covers: []int{1}, Selector: tr.TestCaseSelector{ClassName: "pool.release", Name: "registered-source"}}}, IdempotencyKey: newID(),
-	}, 201))
-	plan = issueRepairRuntimeDecode[TestPlanView](t, f.call("POST", "/test-plans/"+plan.ID+"/commands", TestPlanCommandRequest{
-		ProjectID: f.project, ExpectedVersion: plan.Version, Action: "publish", Reason: "Fixture owner publishes the source test and requires independent package proof.", IdempotencyKey: newID(),
-	}, 200))
+	createPublishedPlan := func(t *testing.T, title string) (Record, TestPlanView) {
+		t.Helper()
+		task := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(map[string]any{"title": title, "requirement_id": requirement.ID, "acceptance_criteria": criteria}), 201))
+		plan := issueRepairRuntimeDecode[TestPlanView](t, f.call("POST", "/test-plans", TestPlanCreateRequest{
+			ProjectID: f.project, TaskID: task.ID, ExpectedTaskVersion: task.Version, ExpectedRequirementVersion: requirement.Version,
+			Title: "Pool library delivery checks", Description: "Source assertions and sealed-package evidence are independent gates.",
+			Cases: []QualityTestCase{{Key: "registered-source", Title: "Verify the registered library source", Description: "Use the build's exact source commit",
+				Preconditions: "The registered library build has finished", Steps: []string{"Check package identity and shared arithmetic"}, ExpectedResult: "Both source assertions pass",
+				Priority: "high", Covers: []int{1}, Selector: tr.TestCaseSelector{ClassName: "pool.release", Name: "registered-source"}}}, IdempotencyKey: newID(),
+		}, 201))
+		plan = issueRepairRuntimeDecode[TestPlanView](t, f.call("POST", "/test-plans/"+plan.ID+"/commands", TestPlanCommandRequest{
+			ProjectID: f.project, ExpectedVersion: plan.Version, Action: "publish", Reason: "Fixture owner publishes the source test and requires independent package proof.", IdempotencyKey: newID(),
+		}, 200))
+		return task, plan
+	}
+	task, plan := createPublishedPlan(t, "Pool application artifact")
 	wf := dag.Workflow{Name: "Pool scoped application release artifact", Nodes: []dag.Node{
 		{ID: "build", Type: "command", Command: []string{buildID}, Config: map[string]any{"tool_profile_id": producer.ID, "tool_profile_sha256": producer.Profile.ProfileSHA256, rc.ApplicationBuildConfigKey: basis}},
 		{ID: "package", Type: "test", Command: []string{testID}, DependsOn: []string{"build"}, Config: map[string]any{"artifact_from": "build", "candidate_from": "build", "tool_profile_id": independent.ID, "tool_profile_sha256": independent.Profile.ProfileSHA256}},
@@ -118,18 +123,19 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		t.Fatal("rejected source-task rebind changed the original acceptance or left a new run")
 	}
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": published["id"], "workflow_version": published["version"], "task_id": task.ID, "expected_version": task.Version}), 201)
-	qualityExecution := func() TestPlanExecution {
+	runID := run["id"].(string)
+	qualityExecution := func(t *testing.T, planID, runID string) TestPlanExecution {
 		t.Helper()
-		return issueRepairRuntimeDecode[TestPlanExecution](t, f.call("GET", "/test-plans/"+plan.ID+"/executions/"+run["id"].(string)+"?project_id="+f.project, nil, 200))
+		return issueRepairRuntimeDecode[TestPlanExecution](t, f.call("GET", "/test-plans/"+planID+"/executions/"+runID+"?project_id="+f.project, nil, 200))
 	}
 	requestAssignment := func(client *runner.Client, profile ToolProfile, capability string) (*runner.Assignment, error) {
 		return client.ClaimPool(ctx, runner.PoolClaimRequest{PoolID: pool.ID, RunnerID: client.Pool.RunnerID, WorkerID: profile.WorkerID, SlotID: "0", OperationID: newID(),
 			Scopes: []runner.PoolCapabilityScope{{TenantID: f.user.TenantID, ProjectID: f.project, Capabilities: []string{capability}}}})
 	}
-	claim := func(client *runner.Client, profile ToolProfile, capability string) (*runner.Client, *runner.Assignment) {
+	claim := func(t *testing.T, runID string, client *runner.Client, profile ToolProfile, capability string) (*runner.Client, *runner.Assignment) {
 		t.Helper()
 		a, err := requestAssignment(client, profile, capability)
-		if err != nil || a == nil || a.RunID != run["id"] || a.PoolGrantID != grant.ID || a.PoolGrantVersion != grant.Version {
+		if err != nil || a == nil || a.RunID != runID || a.PoolGrantID != grant.ID || a.PoolGrantVersion != grant.Version {
 			t.Fatalf("Pool did not grant the exact artifact attempt: %+v %v", a, err)
 		}
 		scoped := *client
@@ -160,7 +166,7 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		}
 		return raw
 	}
-	bc, ba := claim(producerClient, producer, "command:"+buildID)
+	bc, ba := claim(t, runID, producerClient, producer, "command:"+buildID)
 	build.Artifacts = bc
 	built := runner.Execute(ctx, *ba, build)
 	if built.ExitCode != 0 || built.Error != "" || built.ArtifactEvidence == nil || built.ArtifactEvidence.ApplicationBuild == nil || *built.ArtifactEvidence.ApplicationBuild != basis {
@@ -175,7 +181,7 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 	if err = bc.Complete(ctx, built); err != nil {
 		t.Fatal("complete exact scoped build", err)
 	}
-	jc, ja := claim(sourceClient, source, "command:"+junitID)
+	jc, ja := claim(t, runID, sourceClient, source, "command:"+junitID)
 	junit.Artifacts = jc
 	reported := runner.Execute(ctx, *ja, junit)
 	if reported.ExitCode != 0 || reported.Error != "" || reported.TestReport == nil || reported.ArtifactEvidence != nil || reported.WorkspaceEvidence["head_commit"] != basis.SourceCommit {
@@ -187,7 +193,7 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 	if err = jc.Complete(ctx, reported); err != nil {
 		t.Fatal("complete independent source test", err)
 	}
-	pending := qualityExecution()
+	pending := qualityExecution(t, plan.ID, runID)
 	if pending.State != "pending" || pending.Passed != 1 || len(pending.Reports) != 1 || pending.Reports[0].NodeID != "junit" || pending.Reports[0].WorkerID != source.WorkerID || pending.Reports[0].SourceCommit != basis.SourceCommit ||
 		len(pending.PackageEvidence) != 1 || pending.PackageEvidence[0].NodeID != "package" || pending.PackageEvidence[0].SourceNodeID != "build" ||
 		pending.PackageEvidence[0].State != "pending" || pending.PackageEvidence[0].ArtifactID != "" || pending.PackageEvidence[0].ManifestSHA256 != "" || pending.PackageEvidence[0].SourceCommit != "" {
@@ -213,7 +219,7 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		t.Fatalf("profile version drift should leave the original package node unclaimed: %+v %v", a, err)
 	}
 	setPackageProfileVersion(independent.Version+1, independent.Version)
-	tc, ta := claim(independentClient, independent, "command:"+testID)
+	tc, ta := claim(t, runID, independentClient, independent, "command:"+testID)
 	tester.Artifacts = tc
 	original := poolArtifactTestRef(*ta)
 	resolve := rc.ArtifactResolveRequest{ProjectID: f.project, Assignment: artifactCoreAssignment(original), OperationID: newID(), SourceNodeID: "build"}
@@ -276,7 +282,7 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 	if err != nil || current.State != "succeeded" {
 		t.Fatal("Pool release run did not finish", current.State, err)
 	}
-	quality := qualityExecution()
+	quality := qualityExecution(t, plan.ID, runID)
 	if quality.State != "passed" || !quality.BasisCurrent || quality.Total != 1 || quality.Passed != 1 || len(quality.Reports) != 1 || quality.Reports[0].NodeID != "junit" ||
 		len(quality.PackageEvidence) != 1 || quality.PackageEvidence[0].NodeID != "package" || quality.PackageEvidence[0].SourceNodeID != "build" || quality.PackageEvidence[0].State != "verified" ||
 		quality.PackageEvidence[0].Attempt != ta.Attempt || quality.PackageEvidence[0].WorkerID != independent.WorkerID || quality.PackageEvidence[0].SourceWorkerID != producer.WorkerID ||
@@ -305,4 +311,136 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		t.Fatal("scoped Pool result did not reach current candidate proof", err, candidate.Blockers)
 	}
 	t.Logf("pool_artifact=%s manifest_sha256=%s candidate=%s commit=%s scope=%s tree=%s build=%s test=%s", artifact.ID, artifact.ManifestSHA256, candidate.Candidate.ID, basis.SourceCommit, basis.ScopeRoot, basis.ScopeTreeOID, buildProof.Assignment.WorkerID, testProof.Assignment.WorkerID)
+
+	t.Run("package_failure_issue_intake", func(t *testing.T) {
+		originalTest := f.t
+		f.t = t
+		defer func() { f.t = originalTest }()
+		const failureID = "test-package-failure253"
+		failing := runner.ExecConfig{AllowExec: true, Workspace: separate, Repository: separate, BaseCommit: basis.SourceCommit, Commands: map[string]runner.CommandSpec{
+			failureID: {Adapter: "command", Protocol: "text-v1", Executable: node, Args: []string{"-e", "const fs=require('node:fs'),p=require('node:path');if(fs.readFileSync(p.join(process.env.SUMA_ARTIFACT_DIR,'index.html'),'utf8')!==process.argv[1])process.exit(5);console.log('sealed bytes read; package assertion failed');process.exitCode=7;", output}, ArtifactInput: true, TestEvidence: true},
+		}}
+		failureProfile, failureClient := repositoryDispatchPoolTool(t, ctx, f, pool.ID, h.control.URL, "Failing package Pool Runner", &failing)
+		packageNode := dag.Node{ID: "package-failed", Type: "test", Command: []string{failureID}, DependsOn: []string{"build"}, Config: map[string]any{
+			"artifact_from": "build", "candidate_from": "build", "tool_profile_id": failureProfile.ID, "tool_profile_sha256": failureProfile.Profile.ProfileSHA256,
+		}}
+		unknownNode := packageNode
+		unknownNode.ID, unknownNode.DependsOn = "package-unknown", []string{"build", "junit"}
+		failureWorkflow := f.call("POST", "/workflows", f.body(map[string]any{"name": "Pool package failure and unknown outcome",
+			"nodes": []dag.Node{wf.Nodes[0], packageNode, wf.Nodes[2], unknownNode}}), 201)
+		failureTask, failurePlan := createPublishedPlan(t, "Pool package failure follow-up")
+		failureRun := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": failureWorkflow["id"], "workflow_version": failureWorkflow["version"], "task_id": failureTask.ID, "expected_version": failureTask.Version}), 201)
+		runID := failureRun["id"].(string)
+		defectsPath := "/test-plans/" + failurePlan.ID + "/executions/" + runID + "/package-defects"
+
+		bc, ba := claim(t, runID, producerClient, producer, "command:"+buildID)
+		build.Artifacts = bc
+		built := runner.Execute(ctx, *ba, build)
+		built.OperationID = newID()
+		if built.ExitCode != 0 || built.ArtifactEvidence == nil {
+			t.Fatalf("failure fixture did not seal its build: %d %s", built.ExitCode, built.Error)
+		}
+		if err := bc.Complete(ctx, built); err != nil {
+			t.Fatal("complete failure fixture build", err)
+		}
+
+		tc, ta := claim(t, runID, failureClient, failureProfile, "command:"+failureID)
+		if ta.NodeID != packageNode.ID {
+			t.Fatalf("expected failed package to be claimed before the unknown sibling, got %s", ta.NodeID)
+		}
+		req := TestPlanPackageDefectRequest{ProjectID: f.project, ExpectedVersion: failurePlan.Version, NodeID: ta.NodeID, ExpectedAttempt: ta.Attempt, ExpectedFence: ta.Fence,
+			Reason: "Verified package assertion failure on the original sealed artifact", IdempotencyKey: newID()}
+		f.call("POST", defectsPath, req, 400)
+		failing.Artifacts = tc
+		failed := runner.Execute(ctx, *ta, failing)
+		failed.OperationID = newID()
+		if failed.ExitCode != 7 || failed.Stopped || failed.OutcomeUnknown || failed.ArtifactEvidence != nil || failed.TestReport != nil ||
+			failed.ToolEvidence == nil || failed.ToolEvidence.Terminal != "failed" || !strings.Contains(failed.Output, "sealed bytes read") {
+			t.Fatalf("real sealed package failure was lost: exit=%d error=%s output=%q", failed.ExitCode, failed.Error, failed.Output)
+		}
+		if err := tc.Complete(ctx, failed); err != nil {
+			t.Fatal("complete exact failed package", err)
+		}
+
+		jc, ja := claim(t, runID, sourceClient, source, "command:"+junitID)
+		junit.Artifacts = jc
+		reported := runner.Execute(ctx, *ja, junit)
+		reported.OperationID = newID()
+		if reported.ExitCode != 0 || reported.TestReport == nil {
+			t.Fatalf("failed package erased independent source report: %d %s", reported.ExitCode, reported.Error)
+		}
+		if err := jc.Complete(ctx, reported); err != nil {
+			t.Fatal("complete failure fixture source test", err)
+		}
+
+		uc, ua := claim(t, runID, failureClient, failureProfile, "command:"+failureID)
+		if ua.NodeID != unknownNode.ID {
+			t.Fatalf("expected unknown sibling, got %s", ua.NodeID)
+		}
+		// A valid assigned Runner can report a lost result. Even with its exact
+		// attempt identity the unknown outcome must never be recorded as a defect.
+		if err := uc.Complete(ctx, runner.Result{Assignment: *ua, ExitCode: -1, OutcomeUnknown: true, OperationID: newID()}); err != nil {
+			t.Fatal("complete unknown outcome fixture", err)
+		}
+		unknownReq := req
+		unknownReq.NodeID, unknownReq.ExpectedAttempt, unknownReq.ExpectedFence, unknownReq.IdempotencyKey = ua.NodeID, ua.Attempt, ua.Fence, newID()
+		f.call("POST", defectsPath, unknownReq, 400)
+		wrongFence := req
+		wrongFence.ExpectedFence, wrongFence.IdempotencyKey = req.ExpectedFence+1, newID()
+		f.call("POST", defectsPath, wrongFence, 409)
+		staleAttempt := req
+		staleAttempt.ExpectedAttempt, staleAttempt.IdempotencyKey = req.ExpectedAttempt+1, newID()
+		f.call("POST", defectsPath, staleAttempt, 409)
+
+		execution := qualityExecution(t, failurePlan.ID, runID)
+		if !execution.BasisCurrent || execution.Passed != 1 || len(execution.PackageEvidence) != 2 ||
+			execution.PackageEvidence[0].NodeID != ta.NodeID || execution.PackageEvidence[0].State != "failed" || execution.PackageEvidence[0].Fence != ta.Fence ||
+			!execution.PackageEvidence[0].CanCreateIssue || execution.PackageEvidence[1].State != "unknown" || execution.PackageEvidence[1].CanCreateIssue {
+			t.Fatal("confirmed package failure and unknown outcome were not kept separate", execution)
+		}
+		taskBefore := f.call("GET", "/tasks/"+failureTask.ID+"?project_id="+f.project, nil, 200)
+		f.call("POST", "/tasks/"+failureTask.ID+"/review", f.body(map[string]any{"expected_version": taskBefore["version"], "run_id": runID, "decision": "accepted", "reason": "A passing source test cannot replace a failed package gate"}), 400)
+		issue := issueRepairRuntimeDecode[Record](t, f.call("POST", defectsPath, req, 201))
+		if issue.Status != "open" || issue.Data["origin"] != "test_plan_package" || issue.Data["run_id"] != runID ||
+			issue.Data["node_id"] != ta.NodeID || number(issue.Data, "attempt") != ta.Attempt || int64(number(issue.Data, "fence")) != ta.Fence ||
+			issue.Data["artifact_id"] != built.ArtifactEvidence.ArtifactID || issue.Data["manifest_sha256"] != built.ArtifactEvidence.ManifestSHA256 ||
+			issue.Data["source_commit"] != basis.SourceCommit || issue.Data["build_worker_id"] != producer.WorkerID {
+			t.Fatal("open issue lost the original failed attempt or artifact lineage", issue)
+		}
+		if replay := f.call("POST", defectsPath, req, 201); replay["id"] != issue.ID {
+			t.Fatal("original package issue receipt was not recovered", replay["id"])
+		}
+		fresh := req
+		fresh.IdempotencyKey = newID()
+		if repeated := f.call("POST", defectsPath, fresh, 201); repeated["id"] != issue.ID {
+			t.Fatal("fresh key duplicated the protected package issue", repeated["id"])
+		}
+		if evidence := qualityExecution(t, failurePlan.ID, runID).PackageEvidence[0]; evidence.IssueID != issue.ID || evidence.CanCreateIssue {
+			t.Fatal("quality evidence lost the protected package issue", evidence)
+		}
+		delivery, err := f.s.GetTaskDelivery(ctx, f.actor, f.project, failureTask.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		linked := false
+		for _, ref := range delivery.Issues.Items {
+			linked = linked || ref.IssueID == issue.ID && ref.Source == "package_test"
+		}
+		if !linked {
+			t.Fatal("task delivery lost the protected package issue", delivery.Issues)
+		}
+		intakePath := "/issues/" + issue.ID + "/intake"
+		intakeBody := f.body(map[string]any{"expected_version": issue.Version, "title": "Repair the failed sealed-package assertion"})
+		intake := f.call("POST", intakePath, intakeBody, 201)
+		if repeated := f.call("POST", intakePath, intakeBody, 201); repeated["id"] != intake["id"] {
+			t.Fatal("package issue intake duplicated its follow-up requirement", repeated["id"])
+		}
+
+		retired := issueRepairRuntimeDecode[TestPlanView](t, f.call("POST", "/test-plans/"+failurePlan.ID+"/commands", TestPlanCommandRequest{
+			ProjectID: f.project, ExpectedVersion: failurePlan.Version, Action: "retire", Reason: "Verify stale evidence cannot authorize a new defect", IdempotencyKey: newID(),
+		}, 200))
+		fresh.ExpectedVersion, fresh.IdempotencyKey = retired.Version, newID()
+		f.call("POST", defectsPath, fresh, 409)
+		t.Logf("package_failure_run=%s attempt=%d fence=%d artifact=%s issue=%s requirement=%s", runID, ta.Attempt, ta.Fence, built.ArtifactEvidence.ArtifactID, issue.ID, intake["id"])
+	})
 }

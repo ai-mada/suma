@@ -249,7 +249,7 @@ func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, p
 	if out.Issues, err = s.taskDeliveryIssuesTx(ctx, auth, task, workflow); err != nil {
 		return out, err
 	}
-	if err = s.appendTaskDeliveryCaseDefectsTx(ctx, auth, task, &out.Issues); err != nil {
+	if err = s.appendTaskDeliveryQualityDefectsTx(ctx, auth, task, &out.Issues); err != nil {
 		return out, err
 	}
 	if err = auth.assertTx(auth.tx, auth.target, auth.purpose); err != nil {

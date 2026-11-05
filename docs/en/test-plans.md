@@ -69,6 +69,8 @@ Ordinary execution responses contain report references and case projections, wit
 
 For a current failed/error case, explicitly confirm issue creation with a reason and current plan version. The protected `(plan,run,case_key)` relationship deduplicates repeated creation; editable issue metadata cannot forge that origin. Task delivery joins these issues with the existing IssueIntake and follows the existing issue-to-requirement path. Creating or closing an issue does not change the failed original. Full defect close/reopen management remains pending.
 
+For a confirmed package check failure, create an issue from the package row and enter a reason. The issue retains the exact attempt and the original sealed artifact. Repeating the confirmation for that attempt returns the existing issue. Open it from the package row or task delivery. For a disconnected runner, an unknown outcome or missing current evidence, open the attempt for diagnosis.
+
 ## API and recovery reference
 
 Routes share `/api/v1`. GET requires `project_id`; writes carry the same project in their body. Current browser/project API access is checked for every read, write and receipt recovery; publish/retire remain browser-approval-only.
@@ -82,8 +84,9 @@ Routes share `/api/v1`. GET requires `project_id`; writes carry the same project
 | GET `/test-plans/{id}/executions/{run}` | Case evidence projection, 200 |
 | GET `/test-plans/{id}/reports/{report}` | JSON with original XML, 200 |
 | POST `/test-plans/{id}/executions/{run}/defects` | Explicit associated issue, 201 |
+| POST `/test-plans/{id}/executions/{run}/package-defects` | Issue linked to the exact failed package attempt, 201 |
 
-There is no POST executions route. Pages default to 20 and allow at most 100 items, using a current-scope `before` cursor; there is no task_id query filter. Save the original account, project, method/path, complete body, expected version and operation key when a response is lost. Recover that operation before trying a new write. The same key with changed content conflicts. Historical receipt content is preserved while allowed actions and basis eligibility are derived from current authority and state.
+Pages default to 20 and allow at most 100 items, using a current-scope `before` cursor. Filter plans by exact `task_id` when needed. Save the original account, project, method/path, complete body, expected version and operation key when a response is lost. Recover that operation before trying a new write. The same key with changed content conflicts. Historical receipt content is preserved while allowed actions and basis eligibility are derived from current authority and state.
 
 Task model context includes only plan title, revision, digests and case count. Full cases and XML are not automatically injected into each model request; fetch the needed authorized scope explicitly. Reports establish facts asserted by a trusted Runner, not test quality, the honesty of a compromised Runner, supply-chain integrity, production readiness or human acceptance. Directed checks and actual HTTP/CLI/browser fixtures are recorded separately; this guide does not predeclare them passed.
 

@@ -10,3 +10,8 @@ it('does not allow a successful run to claim formal acceptance, and distinguishe
  expect(validTaskDelivery({...delivery(),formal_acceptance:true},'project-a','task-a')).toBe(false);expect(validTaskDelivery({...delivery(),task_status:'accepted',formal_acceptance:true},'project-a','task-a')).toBe(true);
  expect(validTaskDelivery({...delivery(),task_status:'draft',run_basis_state:'not_dispatched',run:null},'project-a','task-a')).toBe(true);expect(validTaskDelivery({...delivery(),run_basis_state:'current',run:null},'project-a','task-a')).toBe(false);
 });
+
+it('keeps a package defect and its feedback requirement readable in task delivery',()=>{
+ const item={issue_id:'package-issue',title:'Sealed package check failed',issue_version:1,issue_status:'open',source:'package_test',source_review_id:'',requirement_id:'repair',requirement_version:1};
+ expect(validTaskDelivery({...delivery(),issues:{scope:'current_run',total:1,limit:20,complete:true,items:[item]}},'project-a','task-a')).toBe(true);
+});

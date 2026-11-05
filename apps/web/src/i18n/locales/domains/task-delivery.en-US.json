@@ -100,5 +100,6 @@
  "task-delivery.source.execution_failure":"Execution failure",
  "task-delivery.source.review_rejected":"Acceptance rejected",
  "task-delivery.open_requirement":"Open feedback requirement",
- "task-delivery.source.test_case":"Failed test case"
+ "task-delivery.source.test_case":"Failed test case",
+ "task-delivery.source.package_test":"Failed package check"
 }

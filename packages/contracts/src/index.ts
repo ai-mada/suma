@@ -8122,16 +8122,28 @@ export interface TestPlanList {
   total: number;
   next_cursor: string;
 }
+export interface TestPlanPackageDefectRequest {
+  project_id: string;
+  expected_version: number;
+  node_id: string;
+  expected_attempt: number;
+  expected_fence: number;
+  reason: string;
+  idempotency_key: string;
+}
 export interface TestPlanPackageEvidence {
   node_id: string;
   source_node_id: string;
   state: string;
   attempt?: number;
+  fence?: number;
   worker_id?: string;
   source_worker_id?: string;
   artifact_id?: string;
   manifest_sha256?: string;
   source_commit?: string;
+  issue_id?: string;
+  can_create_issue: boolean;
 }
 export interface TestPlanReport {
   id: string;
