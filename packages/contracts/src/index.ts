@@ -1927,6 +1927,8 @@ export interface CloudTurnEntry {
   text: string;
   tool_call_id?: string;
   tool_state?: string;
+  artifact_type?: string;
+  artifact_event?: string;
 }
 export interface CloudTurnPage {
   turn: CloudTurn;

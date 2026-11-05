@@ -19,6 +19,7 @@ const CloudTurnMaxEntries = 1000
 const CloudTurnMaxTextBytes = 1 << 20
 const CloudTurnMaxEntryBytes = 32 << 10
 const CloudTurnMaxPermissions = 32
+const CloudTurnArtifactPreviewMaxBytes = 8 << 10
 
 type CloudTurnSource struct {
 	Collaboration    CloudCollaborationSource `json:"collaboration"`
@@ -60,11 +61,13 @@ type CloudTurnView struct {
 	AllowedActions []string        `json:"allowed_actions"`
 }
 type CloudTurnEntry struct {
-	Sequence   int    `json:"sequence"`
-	Kind       string `json:"kind"`
-	Text       string `json:"text"`
-	ToolCallID string `json:"tool_call_id,omitempty"`
-	ToolState  string `json:"tool_state,omitempty"`
+	Sequence      int    `json:"sequence"`
+	Kind          string `json:"kind"`
+	Text          string `json:"text"`
+	ToolCallID    string `json:"tool_call_id,omitempty"`
+	ToolState     string `json:"tool_state,omitempty"`
+	ArtifactType  string `json:"artifact_type,omitempty"`
+	ArtifactEvent string `json:"artifact_event,omitempty"`
 }
 type CloudTurnPermissionOption struct {
 	ID   string `json:"id"`
@@ -258,8 +261,41 @@ func (t CloudTurnView) Validate() error {
 	}
 	return nil
 }
+
+// CloudTurnArtifactPreviewValid keeps optional provider text inside the same
+// display character boundary as a conversation, with a smaller byte limit.
+func CloudTurnArtifactPreviewValid(text string) bool {
+	return cloudTurnText(text, CloudTurnArtifactPreviewMaxBytes)
+}
+
 func (e CloudTurnEntry) Validate() error {
 	if e.Sequence < 1 || e.Sequence > CloudTurnMaxEntries || !cloudTurnText(e.Text, CloudTurnMaxEntryBytes) || e.ToolCallID != "" && !cloudTurnProviderToken(e.ToolCallID, 128) {
+		return ErrInvalid
+	}
+	if e.Kind == "artifact" {
+		if e.ToolCallID != "" || e.ToolState != "" {
+			return ErrInvalid
+		}
+		switch e.ArtifactType {
+		case "plan", "tasks", "media", "overview":
+		default:
+			return ErrInvalid
+		}
+		switch e.ArtifactEvent {
+		case "created", "updated", "deleted":
+		default:
+			return ErrInvalid
+		}
+		if e.ArtifactEvent == "deleted" || (e.ArtifactType != "plan" && e.ArtifactType != "overview") {
+			if e.Text != "" {
+				return ErrInvalid
+			}
+		} else if !CloudTurnArtifactPreviewValid(e.Text) {
+			return ErrInvalid
+		}
+		return nil
+	}
+	if e.ArtifactType != "" || e.ArtifactEvent != "" {
 		return ErrInvalid
 	}
 	switch e.Kind {

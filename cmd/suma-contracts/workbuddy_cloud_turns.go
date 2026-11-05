@@ -121,7 +121,7 @@ func workBuddyCloudTurnContracts(add operationAdder, api map[string]any) {
 				}
 			case "kind":
 				if name == "CloudTurnEntry" {
-					field["enum"] = []string{"assistant_text", "tool_state", "plan_summary", "notice", "unsupported"}
+					field["enum"] = []string{"assistant_text", "tool_state", "plan_summary", "notice", "unsupported", "artifact"}
 				}
 				if name == "CloudTurnCommand" {
 					field["enum"] = []string{"permission", "cancel", "reconcile"}
@@ -129,6 +129,10 @@ func workBuddyCloudTurnContracts(add operationAdder, api map[string]any) {
 				if name == "CloudTurnPermissionOption" {
 					field["enum"] = []string{"allow_once", "reject_once", "allow_always", "reject_always"}
 				}
+			case "artifact_type":
+				field["enum"] = []string{"plan", "tasks", "media", "overview"}
+			case "artifact_event":
+				field["enum"] = []string{"created", "updated", "deleted"}
 			case "allowed_actions":
 				field["uniqueItems"], field["maxItems"], field["items"] = true, 3, map[string]any{"type": "string", "enum": []string{"prompt", "cancel", "reconcile"}}
 			case "usage_state":
@@ -140,4 +144,29 @@ func workBuddyCloudTurnContracts(add operationAdder, api map[string]any) {
 			}
 		}
 	}
+
+	entry := toolContractMap(schemas, "CloudTurnEntry")
+	entry["allOf"] = []any{map[string]any{
+		"if": map[string]any{"properties": map[string]any{"kind": map[string]any{"const": "artifact"}}},
+		"then": map[string]any{
+			"required": []string{"artifact_type", "artifact_event"},
+			"not": map[string]any{"anyOf": []any{
+				map[string]any{"required": []string{"tool_call_id"}},
+				map[string]any{"required": []string{"tool_state"}},
+			}},
+			"properties": map[string]any{"text": map[string]any{
+				"maxLength":        wc.CloudTurnArtifactPreviewMaxBytes,
+				"x-max-utf8-bytes": wc.CloudTurnArtifactPreviewMaxBytes,
+			}},
+			"if": map[string]any{"anyOf": []any{
+				map[string]any{"properties": map[string]any{"artifact_type": map[string]any{"enum": []string{"tasks", "media"}}}},
+				map[string]any{"properties": map[string]any{"artifact_event": map[string]any{"const": "deleted"}}},
+			}},
+			"then": map[string]any{"properties": map[string]any{"text": map[string]any{"const": ""}}},
+		},
+		"else": map[string]any{"not": map[string]any{"anyOf": []any{
+			map[string]any{"required": []string{"artifact_type"}},
+			map[string]any{"required": []string{"artifact_event"}},
+		}}},
+	}}
 }

@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-ARTIFACT-TIMELINE 已在原云回合显示产物类型、变更动作和有限预览。 [合同](../../contracts/workbuddy-cloud-turns.md) · [验证](workbuddy-artifact-timeline-verification.md)
+
 T-CODEX-DELIVERY-227 已通过真实 Windows CLI、本地回环模型夹具、原 Worker 和同提交独立测试的隔离旅程。定向回归、界面和 Linux 交叉编译按各自范围记录。 [阶段验证](codex-candidate-delivery-verification.md)
 
 T-TOOL-IDENTITY-MANAGEMENT：[节点与账号管理设计](../design/tool-identity-management.md)／[验证记录](tool-identity-management-verification.md)。节点凭证筛选、按节点配置、撤销历史，以及 WorkBuddy 权限差异与断开历史已通过代表验证。

@@ -266,10 +266,43 @@ type cloudTurnProjectedUpdate struct {
 	ToolStart, Incomplete bool
 }
 
+// Artifact identity and download metadata remain private to the session codec.
+// Only the current plan or overview text can become a bounded plain-text preview.
+func cloudTurnArtifactPreview(notice *workbuddyacp.ArtifactNotice, secrets []string) string {
+	if notice.Event == "deleted" || notice.Type != "plan" && notice.Type != "overview" {
+		return ""
+	}
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(notice.Body, &fields) != nil {
+		return ""
+	}
+	var text string
+	if json.Unmarshal(fields["text"], &text) != nil || text == "" || !wc.CloudTurnArtifactPreviewValid(text) {
+		return ""
+	}
+	private := append(append([]string{}, secrets...), notice.URI)
+	var downloadURL string
+	if json.Unmarshal(fields["url"], &downloadURL) == nil && downloadURL != "" && len(downloadURL) <= wc.CloudTurnArtifactPreviewMaxBytes {
+		private = append(private, downloadURL)
+	}
+	safe, _ := cloudTurnSafeText(text, private)
+	if !wc.CloudTurnArtifactPreviewValid(safe) {
+		return ""
+	}
+	return safe
+}
+
 func cloudTurnProjectUpdate(packet workbuddyacp.Packet, filter *cloudTurnTextFilter, ledger *cloudTurnToolLedger, secrets []string) (cloudTurnProjectedUpdate, error) {
 	var out cloudTurnProjectedUpdate
 	if packet.Kind == "artifact" {
-		out.Entries = []wc.CloudTurnEntry{{Kind: "unsupported", Text: "artifact_observation_omitted"}}
+		if notice := packet.Artifact; notice != nil {
+			out.Entries = []wc.CloudTurnEntry{{
+				Kind:          "artifact",
+				ArtifactType:  notice.Type,
+				ArtifactEvent: notice.Event,
+				Text:          cloudTurnArtifactPreview(notice, secrets),
+			}}
+		}
 		return out, nil
 	}
 	if packet.Kind != "session_update" && packet.Kind != "unsupported" {

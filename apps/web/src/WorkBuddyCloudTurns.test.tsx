@@ -69,6 +69,34 @@ it('only reads stored data on expansion and sends one explicit scoped prompt bef
  expect(requests.some(request=>request.path===pagePath())).toBe(true);expect(requests.every(request=>request.path.startsWith('/workbuddy-cloud-'))).toBe(true);
 });
 
+it('renders stored artifact changes in sequence with literal previews and no new operation',async()=>{
+ const preview='<a href="https://example.invalid/artifact">Read</a>\n<script>ignored()</script>';
+ turn=makeTurn();
+ head=1;
+ entries=[
+  {sequence:1,kind:'assistant_text',text:'Continuing the original task'},
+  {sequence:2,kind:'artifact',artifact_type:'plan',artifact_event:'updated',text:preview},
+  {sequence:3,kind:'artifact',artifact_type:'media',artifact_event:'deleted',text:''},
+ ];
+ await render();
+ await open();
+ const rows=host.querySelectorAll('.cloud-turns-entries>li');
+ expect(rows).toHaveLength(3);
+ expect(rows[0].textContent).toContain(entries[0].text);
+ expect(rows[1].querySelector('small')?.textContent).toBe('2');
+ expect(rows[1].textContent).toContain('Plan · Updated');
+ expect(rows[1].querySelector('p')?.textContent).toBe(preview);
+ expect(rows[1].querySelector('a,script,iframe,img')).toBeNull();
+ expect(rows[2].textContent).toContain('Media · Removed');
+ expect(rows[2].textContent).toContain('No text preview available.');
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});
+ expect(rows[1].textContent).toContain('计划 · 已更新');
+ expect(rows[2].textContent).toContain('媒体 · 已移除');
+ expect(requests.some(request=>request.path===pagePath())).toBe(true);
+ expect(requests.every(request=>request.method==='GET'&&[viewPath(),pagePath()].includes(request.path))).toBe(true);
+ expect(state()).toBe('running');
+});
+
 it('offers only the real one-time permission choices and keeps redacted approvals and always choices unavailable',async()=>{
  const original=permission('permission-a'),specific={id:'allow-specific',name:'Allow only the reviewed file change',kind:'allow_once'};original.options.splice(1,0,specific);
  turn=makeTurn({state:'waiting_permission'});head=1;permissions=[original,permission('permission-b',false)];await render();await open();

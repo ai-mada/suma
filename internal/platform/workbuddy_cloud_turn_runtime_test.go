@@ -203,6 +203,7 @@ func TestCloudTurnRuntimePermissionUnblocksPromptHTTPAndRedactsSplitSecret(t *te
 			f.events <- cloudTurnHTTPUpdate(`{"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"回复 private-tic"}}`)
 			f.events <- cloudTurnHTTPUpdate(`{"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"ket-169 完成"}}`)
 			f.events <- cloudTurnHTTPUpdate(`{"sessionUpdate":"tool_call_update","toolCallId":"tool169","status":"completed"}`)
+			f.events <- `{"jsonrpc":"2.0","method":"_codebuddy.ai/artifact","params":{"sessionId":"task169","event":"created","artifact":{"type":"plan","uri":"agent:///artifacts/private-plan.md","text":"核对计划 private-ticket-169"}}}`
 			f.events <- cloudTurnHTTPReply(wire, `{"stopReason":"end_turn","usage":{"inputTokens":3,"outputTokens":4,"totalTokens":7}}`)
 			time.Sleep(10 * time.Millisecond)
 			w.WriteHeader(202)
@@ -221,8 +222,18 @@ func TestCloudTurnRuntimePermissionUnblocksPromptHTTPAndRedactsSplitSecret(t *te
 		t.Fatalf("permission/Prompt ACK did not complete accurately: state=%s code=%s ack=%s", f.finished.State, f.finished.ErrorCode, f.acks["reply169"])
 	}
 	var text strings.Builder
+	var artifacts int
 	for _, e := range f.entries {
 		text.WriteString(e.Text)
+		if e.Kind == "artifact" {
+			artifacts++
+			if e.ArtifactType != "plan" || e.ArtifactEvent != "created" || e.Text != "核对计划 "+cloudTurnHidden {
+				t.Fatal("incorrect plan artifact projection")
+			}
+		}
+	}
+	if artifacts != 1 {
+		t.Fatalf("expected one projected artifact entry, got %d", artifacts)
 	}
 	if strings.Contains(text.String(), "private-ticket-169") || !strings.Contains(text.String(), "回复") || !strings.Contains(text.String(), cloudTurnHidden) {
 		t.Fatal("streamed reply leaked secret or lost display text")

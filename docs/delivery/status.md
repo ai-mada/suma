@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-ARTIFACT-TIMELINE 已在原云回合显示产物类型、变更动作和有限预览。 [合同](../../contracts/workbuddy-cloud-turns.md) · [验证](../quality/workbuddy-artifact-timeline-verification.md)
+
 T-CODEX-DELIVERY-227 已贯通 Windows 真实 Codex 的固定模型与用量提醒、持久进度、候选封存、同提交独测和隔离复核。Linux 可选 PID 命名空间已通过交叉编译，实机待验。 [接入指南](../integrations/codex-candidate-delivery.md) · [验证记录](../quality/codex-candidate-delivery-verification.md)
 
 T-TOOL-IDENTITY-MANAGEMENT：[节点与账号管理设计](../design/tool-identity-management.md)／[验证记录](../quality/tool-identity-management-verification.md)。节点凭证筛选、按节点配置、撤销历史，以及 WorkBuddy 权限差异与断开历史已通过代表验证。

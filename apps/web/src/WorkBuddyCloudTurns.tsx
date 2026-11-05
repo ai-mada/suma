@@ -151,7 +151,15 @@ function TurnsController({source,revision,disabled=false,runVersion,onChanged,sc
     {page&&<>
      <p className="cloud-turns-hint">{t('loaded',{value:formatNumber(page.items.length)})} · {t('coverage_hint')}</p>
      {!page.items.length&&!snapshot.loading&&<p>{t('empty')}</p>}
-     <ol className="cloud-turns-entries">{page.items.map(entry=><li key={entry.sequence}><div><span>{t('entry.'+entry.kind)}</span><small>{formatNumber(entry.sequence)}</small></div><p>{entry.text||t('unsupported')}</p>{entry.tool_call_id&&<details><summary>{t('source_reference')}</summary><code>{entry.tool_call_id}</code>{entry.tool_state&&<p>{entry.tool_state}</p>}</details>}</li>)}</ol>
+     <ol className="cloud-turns-entries">{page.items.map(entry=>{
+      const artifact=entry.kind==='artifact';
+      const label=artifact?t('artifact_change',{type:t('artifact_type.'+entry.artifact_type),event:t('artifact_event.'+entry.artifact_event)}):t('entry.'+entry.kind);
+      return <li key={entry.sequence} className={artifact?'cloud-turns-artifact':undefined}>
+       <div><span>{label}</span><small>{formatNumber(entry.sequence)}</small></div>
+       <p className={artifact&&!entry.text?'cloud-turns-artifact-hint':undefined}>{entry.text||t(artifact?'artifact_no_preview':'unsupported')}</p>
+       {entry.tool_call_id&&<details><summary>{t('source_reference')}</summary><code>{entry.tool_call_id}</code>{entry.tool_state&&<p>{entry.tool_state}</p>}</details>}
+      </li>;
+     })}</ol>
      {page.has_more&&<button type="button" data-cloud-turns-more disabled={snapshot.loading||action.busy} onClick={()=>void load(true)}>{t('more')}</button>}
      {!!page.permissions.length&&<section className="cloud-turns-permissions" aria-label={t('permission_title')}><h4><ShieldCheck size={16} aria-hidden="true"/>{t('permission_title')}</h4>{page.permissions.map(permission=><article key={permission.id}>
       <div className="cloud-turns-permission-heading"><strong>{permission.title}</strong><span>{t('permission.'+permission.state)}</span></div><pre>{permission.details}</pre>{!permission.approve_allowed&&<p>{t('details_unavailable')}</p>}

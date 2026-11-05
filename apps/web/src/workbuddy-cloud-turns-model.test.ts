@@ -45,6 +45,33 @@ describe('cloud turn model',()=>{
   expect(readCloudTurnPage({...page(),items:[],next_after:50,has_more:false},scope,'turn1',50)).toBeTruthy();
   expect(readCloudTurnPage({...page(),items:[],next_after:0,has_more:true},scope,'turn1')).toBeUndefined();
  });
+ it('admits only closed artifact change metadata and bounded previews',()=>{
+  const artifact={sequence:1,kind:'artifact',artifact_type:'plan',artifact_event:'updated',text:'é'.repeat(4096)};
+  const read=(entry:unknown)=>readCloudTurnPage({...page(),items:[entry]},scope,'turn1');
+  expect(read(artifact)?.items).toEqual([artifact]);
+  expect(read({...artifact,artifact_type:'overview',artifact_event:'created',text:'Summary'})).toBeDefined();
+  expect(read({...artifact,artifact_type:'media',artifact_event:'deleted',text:''})).toBeDefined();
+  expect(read({...artifact,artifact_type:'tasks',text:''})).toBeDefined();
+  const {artifact_type,artifact_event,...base}=artifact;
+  for(const entry of [
+   {...base,artifact_type},
+   {...base,artifact_event},
+   {...artifact,artifact_type:null},
+   {...artifact,artifact_event:null},
+   {...artifact,artifact_type:'commit'},
+   {...artifact,artifact_event:'downloaded'},
+   {...artifact,tool_call_id:'tool-1'},
+   {...artifact,tool_state:'completed'},
+   {...artifact,artifact_type:'tasks'},
+   {...artifact,artifact_type:'media'},
+   {...artifact,artifact_event:'deleted'},
+   {...artifact,text:artifact.text+'é'},
+   {...artifact,text:'bad\u0000text'},
+   {...artifact,kind:'assistant_text'},
+   {...artifact,url:'https://example.invalid/artifact'},
+  ])expect(read(entry)).toBeUndefined();
+ });
+
  it('allows only exact prompt, permission, cancel and reconcile request shapes',()=>{
   expect(cloudTurnPromptPath('s1')).toBe(req().path);expect(validCloudTurnRecovery(req(),scope)).toBe(true);
   for(const kind of ['cancel','reconcile'] as const){const command={path:cloudTurnControlPath('turn1',kind),method:'POST',idempotency_key:'original-operation',body:{project_id:'p1',expected_version:1,idempotency_key:'original-operation'}};expect(validCloudTurnRecovery(command,scope)).toBe(true);}

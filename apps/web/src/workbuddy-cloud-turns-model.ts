@@ -70,7 +70,18 @@ export function readCloudTurnPage(raw:unknown,scope:CloudTurnsScope,turnID:strin
  let totalBytes=0;
  for(let i=0;i<raw.items.length;i++){
   const entry=raw.items[i];
-  if(!object(entry)||!fields(entry,['sequence','kind','text'],['tool_call_id','tool_state'])||entry.sequence!==after+i+1||typeof entry.kind!=='string'||!['assistant_text','tool_state','plan_summary','notice','unsupported'].includes(entry.kind)||!text(entry.text)||Object.hasOwn(entry,'tool_call_id')&&!labelID(entry.tool_call_id)||Object.hasOwn(entry,'tool_state')&&!text(entry.tool_state,128))return;
+  if(!object(entry)||entry.sequence!==after+i+1)return;
+  if(entry.kind==='artifact'){
+   if(!fields(entry,['sequence','kind','text','artifact_type','artifact_event'])||!text(entry.text,8192))return;
+   if(typeof entry.artifact_type!=='string'||!['plan','tasks','media','overview'].includes(entry.artifact_type)||
+      typeof entry.artifact_event!=='string'||!['created','updated','deleted'].includes(entry.artifact_event))return;
+   const canPreview=(entry.artifact_type==='plan'||entry.artifact_type==='overview')&&entry.artifact_event!=='deleted';
+   if(!canPreview&&entry.text!=='')return;
+  }else{
+   if(!fields(entry,['sequence','kind','text'],['tool_call_id','tool_state'])||!text(entry.text))return;
+   if(typeof entry.kind!=='string'||!['assistant_text','tool_state','plan_summary','notice','unsupported'].includes(entry.kind))return;
+   if(Object.hasOwn(entry,'tool_call_id')&&!labelID(entry.tool_call_id)||Object.hasOwn(entry,'tool_state')&&!text(entry.tool_state,128))return;
+  }
   totalBytes+=bytes(entry.text);
  }
  if(totalBytes>1048576||!raw.permissions.every(p=>permission(p,turnID))||new Set(raw.permissions.map(p=>p.id)).size!==raw.permissions.length||!raw.commands.every(c=>command(c,turnID))||new Set(raw.commands.map(c=>c.id)).size!==raw.commands.length)return;
