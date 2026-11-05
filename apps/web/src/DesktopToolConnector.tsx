@@ -120,14 +120,17 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  const canStop=!!connection?.worker_id&&(phase==='connected'||phase==='starting');
  const diagnosticReason=current?.code??current?.refusal??connection?.preparation_reason;
  const preparationReason=diagnosticReason===connection?.preparation_reason?connection?.preparation_reason:undefined;
+ const stopUnconfirmed=phase==='stop_unconfirmed';
+ const statusMessage=busy==='status'?(stopUnconfirmed?'checking_stop_receipt':'checking'):
+  busy==='connect'?'connecting':busy==='renew'?'renewing':busy==='recover'?'recovering':busy==='recovery-status'?'reading_recovery':busy==='stop'?'stopping':phase??'checking';
  const content=<>
   <p className="desktop-tool-description">{t('help')}</p>
-  {(!preparationReason||busy||current?.code||current?.refusal||current?.uncertain||renewalPending||recoveryUnsettled||recoveryRequestPending)&&<p role="status" className={current?.failed||phase==='stop_unconfirmed'||renewalPending?'desktop-tool-warning':'desktop-tool-state'}>{t(busy?busy==='status'?'checking':busy==='connect'?'connecting':busy==='renew'?'renewing':busy==='recover'?'recovering':busy==='recovery-status'?'reading_recovery':'stopping':phase??'checking')}</p>}
-  {current?.uncertain&&!current.refusal&&!renewalPending&&!recoveryRequestPending&&<p className="desktop-tool-warning">{t('unknown')}</p>}
+  {(!preparationReason||busy||current?.code||current?.refusal||current?.uncertain||renewalPending||recoveryUnsettled||recoveryRequestPending)&&<p role="status" className={current?.failed||stopUnconfirmed||renewalPending?'desktop-tool-warning':'desktop-tool-state'}>{t(statusMessage)}</p>}
+  {current?.uncertain&&!current.refusal&&!stopUnconfirmed&&!renewalPending&&!recoveryRequestPending&&<p className="desktop-tool-warning">{t('unknown')}</p>}
   {connection?.repository_name&&<p className="desktop-tool-repository">{connection.repository_name}</p>}
   <div className="desktop-tool-actions">
    {canConnect&&<button data-local-tool-connect type="button" className={secondary?'':'primary'} disabled={blocked} onClick={()=>void run('connect')}><Monitor size={15} aria-hidden="true"/>{t(resume?'resume':'connect')}</button>}
-   <button data-local-tool-status type="button" disabled={blocked} onClick={()=>void run('status')}><RefreshCw size={14} aria-hidden="true"/>{t(!renewalPending&&(current?.uncertain||phase==='issuance_unknown'||phase==='stop_unconfirmed')?'check_original':'refresh')}</button>
+   <button data-local-tool-status type="button" disabled={blocked} onClick={()=>void run('status')}><RefreshCw size={14} aria-hidden="true"/>{t(!renewalPending&&(current?.uncertain||phase==='issuance_unknown'||stopUnconfirmed)?'check_original':'refresh')}</button>
    {canStop&&<button data-local-tool-stop type="button" disabled={blocked} onClick={()=>void run('stop')}><Square size={13} aria-hidden="true"/>{t('stop')}</button>}
   </div>
   {(connection?.worker_id||renewalPending)&&<DesktopCredentialStatus credentialExpiresAt={connection?.credential_expires_at} credentialVersion={connection?.credential_version} inventoryExpiresAt={connection?.expires_at} renewalReason={connection?.renewal_reason} renewalUnknown={renewalPending} renewing={busy==='renew'} disabled={blocked} onRenew={canRenew?()=>void run('renew'):undefined}/>}

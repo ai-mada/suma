@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-DESKTOP-STOP-RECOVERY-230 已验证 Windows 原 Go Worker 在桌面控制进程中断后的停止核对，并完成双语组件和窄屏交互检查。 [阶段验证](desktop-stop-recovery-verification.md)
+
 T-RUNNER-STOP-229 覆盖匹配停止回执、原领取与结果的恢复、迟到巡检和中英文停止状态。 [阶段验证](runner-stop-receipt-verification.md)
 
 T-MULTICA-ITERATION-BATCH 验证任务列表批量调整迭代的事务、授权、原操作回执及中英文代表界面。 [阶段验证](task-iteration-assignments-verification.md)

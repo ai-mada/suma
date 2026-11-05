@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -16,22 +17,58 @@ import (
 )
 
 func TestDesktopManagedRunnerStopReceiptRequiresRequestAndCleanExit(t *testing.T) {
-	configuration := runner.DesktopManagedRunnerInput{Protocol: runner.DesktopManagedRunnerProtocol, ControlURL: "http://127.0.0.1:4319", ProjectID: strings.Repeat("1", 32), WorkerID: "desktop-" + strings.Repeat("2", 32), AdapterID: "codex-jsonl", Repository: t.TempDir(), BaseCommit: strings.Repeat("a", 40), StateDirectory: t.TempDir(), Token: strings.Repeat("b", 64)}
+	operation := strings.Repeat("c", 32)
+	frame := "stop " + operation + "\n"
+	const prior = `{"type":"suma.local_runner.shutdown","worker_id":"desktop-22222222222222222222222222222222","pid":1,"operation_id":"dddddddddddddddddddddddddddddddd"}`
 	for _, tc := range []struct {
-		name, frame string
-		workerErr   error
-		wantReceipt bool
-		maxStartup  bool
+		name, frame    string
+		workerErr      error
+		wantProof      bool
+		maxStartup     bool
+		prior          string
+		markerConflict bool
+		outputFailure  bool
+		wantFailure    bool
 	}{
-		{name: "confirmed", frame: "stop\n", wantReceipt: true},
-		{name: "confirmed after maximal startup frame", frame: "stop\n", wantReceipt: true, maxStartup: true},
+		{name: "confirmed", frame: frame, wantProof: true},
+		{name: "confirmed after maximal startup frame", frame: frame, wantProof: true, maxStartup: true},
+		{name: "replaces older generation", frame: frame, wantProof: true, prior: prior},
+		{name: "replaces malformed marker", frame: frame, wantProof: true, prior: `{"type":"suma.local_runner.shutdown",`},
+		{name: "lost stdout retains proof", frame: frame, wantProof: true, outputFailure: true, wantFailure: true},
 		{name: "parent loss"},
-		{name: "invalid frame", frame: "quit\n"},
-		{name: "unresolved cleanup", frame: "stop\n", workerErr: errors.New(configuration.Token)},
+		{name: "no operation", frame: "stop\n"},
+		{name: "invalid operation", frame: "stop " + strings.ToUpper(operation) + "\n"},
+		{name: "unresolved cleanup", frame: frame, workerErr: errors.New(strings.Repeat("b", 64)), wantFailure: true},
+		{name: "marker collision", frame: frame, markerConflict: true, wantFailure: true},
+		{name: "refuses same operation", frame: frame, prior: strings.ReplaceAll(prior, strings.Repeat("d", 32), operation), wantFailure: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			directory := t.TempDir()
+			stateDirectory := filepath.Join(directory, "runtime")
+			if err := os.Mkdir(stateDirectory, 0700); err != nil {
+				t.Fatal(err)
+			}
+			marker := filepath.Join(directory, "managed-shutdown.json")
+			if tc.prior != "" {
+				if err := os.WriteFile(marker, []byte(tc.prior), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if tc.markerConflict {
+				if err := os.Mkdir(marker, 0700); err != nil {
+					t.Fatal(err)
+				}
+			}
+			configuration := runner.DesktopManagedRunnerInput{Protocol: runner.DesktopManagedRunnerProtocol, ControlURL: "http://127.0.0.1:4319", ProjectID: strings.Repeat("1", 32), WorkerID: "desktop-" + strings.Repeat("2", 32), AdapterID: "codex-jsonl", Repository: directory, BaseCommit: strings.Repeat("a", 40), StateDirectory: stateDirectory, Token: strings.Repeat("b", 64)}
 			var out, stderr bytes.Buffer
-			app := commandlocale.New("suma-control", "control", "control", &out, &stderr, func(string) (string, bool) { return "", false })
+			var stdout io.Writer = &out
+			if tc.outputFailure {
+				reader, writer := io.Pipe()
+				_ = reader.Close()
+				defer writer.Close()
+				stdout = writer
+			}
+			app := commandlocale.New("suma-control", "control", "control", stdout, &stderr, func(string) (string, bool) { return "", false })
 			input, writer := io.Pipe()
 			defer input.Close()
 			defer writer.Close()
@@ -71,18 +108,33 @@ func TestDesktopManagedRunnerStopReceiptRequiresRequestAndCleanExit(t *testing.T
 			}
 			select {
 			case code := <-done:
-				if (code != 0) != (tc.workerErr != nil) {
+				if (code != 0) != tc.wantFailure {
 					t.Fatalf("unexpected exit %d", code)
 				}
 			case <-time.After(2 * time.Second):
 				t.Fatal("parent action did not cancel execution")
 			}
-			if tc.wantReceipt {
-				var receipt desktopRunnerShutdownReceipt
-				if err := json.Unmarshal(out.Bytes(), &receipt); err != nil || strings.Count(out.String(), "\n") != 1 || receipt != (desktopRunnerShutdownReceipt{Type: "suma.local_runner.shutdown", WorkerID: configuration.WorkerID, PID: os.Getpid()}) {
-					t.Fatalf("invalid stop receipt %q", out.String())
+			proof, proofErr := os.ReadFile(marker)
+			if tc.wantProof {
+				want := map[string]any{"type": "suma.local_runner.shutdown", "worker_id": configuration.WorkerID, "pid": os.Getpid(), "operation_id": operation}
+				wantJSON, _ := json.Marshal(want)
+				var got map[string]json.RawMessage
+				if proofErr != nil || json.Unmarshal(proof, &got) != nil || bytes.Count(proof, []byte("\n")) != 1 {
+					t.Fatalf("invalid persisted stop proof: %v", proofErr)
 				}
-			} else if out.Len() != 0 {
+				gotJSON, _ := json.Marshal(got)
+				if !bytes.Equal(wantJSON, gotJSON) {
+					t.Fatal("persisted stop proof differs from the requested process generation")
+				}
+				if !tc.outputFailure && !bytes.Equal(proof, out.Bytes()) {
+					t.Fatal("persisted stop proof and receipt bytes differ")
+				}
+			} else if tc.prior != "" && string(proof) != tc.prior {
+				t.Fatal("existing stop proof changed after conflict")
+			} else if !tc.markerConflict && tc.prior == "" && !os.IsNotExist(proofErr) {
+				t.Fatalf("unexpected persisted stop proof: %v", proofErr)
+			}
+			if (!tc.wantProof || tc.outputFailure) && out.Len() != 0 {
 				t.Fatal("unexpected stop receipt")
 			}
 			if strings.Contains(out.String()+stderr.String(), configuration.Token) {

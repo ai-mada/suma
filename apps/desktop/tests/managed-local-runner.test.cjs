@@ -20,12 +20,12 @@ function harness(t,options={}){
  }}});Object.assign(parent,{webContents:contents,isDestroyed:()=>false});
  const spawn=(binary,args,opts)=>{
   const child=new EventEmitter();
-  Object.assign(child,{pid:12345+children.length,stdin:new PassThrough(),stdout:new PassThrough(),stderr:new PassThrough(),exitCode:null,signalCode:null,kill:()=>{child.emit('close',null,'SIGKILL');return true;}});
+  Object.assign(child,{pid:options.childPID??12345+children.length,stdin:new PassThrough(),stdout:new PassThrough(),stderr:new PassThrough(),exitCode:null,signalCode:null,kill:()=>{child.emit('close',null,'SIGKILL');return true;}});
   let input='';const config=()=>JSON.parse(input.split('\n')[0]);
   child.stdin.on('data',data=>input+=data);
   child.stdin.on('finish',()=>{
    if(options.unconfirmedStop)return;
-   if(options.respondToStop){options.respondToStop(child,config().worker_id);return;}
+   if(options.respondToStop){options.respondToStop(child,config().worker_id,input.split('\n')[1]?.slice(5),config());return;}
    if(!options.missingReceipt)acknowledgeStop(child,input);
    child.emit('close',0,null);
   });
@@ -72,11 +72,64 @@ test('a clean exit without a shutdown receipt remains unconfirmed',async t=>{
  assert.equal((await h.controller.manage(h.event,request)).connection.phase,'stop_unconfirmed');
  assert.equal(h.children.length,1);
 });
+test('a reopened controller confirms a missing stdout receipt using original private evidence',async t=>{
+ const {spawn}=require('node:child_process');let original;
+ const h=harness(t,{stopGraceMS:1000,stopDeadlineMS:1500,spawn:(_binary,_args,options)=>{
+  const script=`
+const fs=require('node:fs'),path=require('node:path');
+let raw='';process.stdin.setEncoding('utf8').on('data',chunk=>raw+=chunk);
+process.stdin.on('end',()=>{
+ const [config,request]=raw.split('\\n'),operation=/^stop ([a-f0-9]{32})$/.exec(request);
+ if(!operation){process.exitCode=2;return;}
+ const {worker_id,state_directory}=JSON.parse(config);
+ const proof={type:'suma.local_runner.shutdown',worker_id,pid:process.pid,operation_id:operation[1]};
+ fs.writeFileSync(path.join(path.dirname(state_directory),'managed-shutdown.json'),JSON.stringify(proof)+'\\n',{mode:0o600});
+});`;
+  original=spawn(process.execPath,['-e',script],options);return original;
+ }});
+ const connected=await h.controller.manage(h.event,request);
+ assert.equal(connected.connection.phase,'starting');
+ assert.equal((await h.controller.manage(h.event,{...request,action:'stop'})).connection.phase,'stop_unconfirmed');
+ await h.controller.dispose();
+ const {createManagedLocalRunnerController}=require('../src/managed-local-runner.cjs');
+ const next=createManagedLocalRunnerController({parent:h.parent,origin,binary:process.execPath,key,userData:h.userData,safeStorage:h.safeStorage,discover:async()=>{throw Error('must not scan');},spawn:()=>{throw Error('must not spawn');}});
+ h.controllers.push(next);
+ const status={...request,action:'status'},binding=h.context.binding_sha256;
+ h.context.binding_sha256='f'.repeat(64);
+ assert.equal((await next.manage(h.event,status)).connection.phase,'stop_unconfirmed');
+ h.context.binding_sha256=binding;
+ const recovered=await next.manage(h.event,status);
+ assert.equal(recovered.connection.phase,'stopped');
+ assert.equal(recovered.connection.worker_id,connected.connection.worker_id);
+ assert.equal(original.exitCode,0);
+ assert.deepEqual(await next.manage(h.event,status),recovered);
+ assert.equal(h.bodies.length,1);
+});
+test('private evidence cannot recover a live, stale, linked, forced or automatic stop',async t=>{
+ for(const scenario of ['live','stale','linked','forced','automatic'])await t.test(scenario,async t=>{
+  const h=harness(t,{childPID:scenario==='live'?process.pid:12345,respondToStop(child,id,operation,config){
+   const proof=path.join(path.dirname(config.state_directory),'managed-shutdown.json');
+   const bytes=shutdownLine(child,id,scenario==='stale'?'f'.repeat(32):operation);
+   if(scenario==='linked'){
+    const other=proof+'.copy';fs.writeFileSync(other,bytes,{mode:0o600});fs.linkSync(other,proof);
+   }else fs.writeFileSync(proof,bytes,{mode:0o600});
+   if(scenario!=='forced')child.emit('close',0,null);
+  }});
+  await h.controller.manage(h.event,request);
+  const status={...request,action:'status'},binding=h.context.binding_sha256;
+  if(scenario==='automatic')h.context.binding_sha256='f'.repeat(64);
+  assert.equal((await h.controller.manage(h.event,scenario==='automatic'?status:{...request,action:'stop'})).connection.phase,'stop_unconfirmed');
+  h.context.binding_sha256=binding;
+  assert.equal((await h.controller.manage(h.event,status)).connection.phase,'stop_unconfirmed');
+  assert.equal((await h.controller.manage(h.event,request)).connection.phase,'stop_unconfirmed');
+  assert.equal(h.bodies.length,1);assert.equal(h.children.length,1);
+ });
+});
 test('a valid receipt confirms stop only after the original child closes',async t=>{
  let receiptArrived;
  const receipt=new Promise(resolve=>receiptArrived=resolve);
- const h=harness(t,{stopGraceMS:1000,stopDeadlineMS:1500,respondToStop(child,id){
-  child.stdout.write(shutdownLine(child,id));receiptArrived(child);
+ const h=harness(t,{stopGraceMS:1000,stopDeadlineMS:1500,respondToStop(child,id,operation){
+  child.stdout.write(shutdownLine(child,id,operation));receiptArrived(child);
  }});
  await h.controller.manage(h.event,request);
  let settled=false;
@@ -106,18 +159,19 @@ test('stop proceeds when journal persistence fails but never reports confirmatio
 });
 test('stop rejects an invalid receipt or abnormal exit from the original child',async t=>{
  const cases=[
-  ['wrong worker',(child,id)=>shutdownLine(child,id,{worker_id:'desktop-'+'d'.repeat(32)})],
-  ['wrong PID',(child,id)=>shutdownLine(child,id,{pid:child.pid+1})],
-  ['duplicate frame',(child,id)=>shutdownLine(child,id).repeat(2)],
-  ['duplicate key',(child,id)=>shutdownLine(child,id).replace('"pid":','"pid":1,"pid":')],
-  ['truncated frame',(child,id)=>shutdownLine(child,id).slice(0,-1)],
-  ['oversized frame',(child,id)=>' '.repeat(1024)+shutdownLine(child,id)],
+  ['wrong worker',(child,id,operation)=>shutdownLine(child,id,operation,{worker_id:'desktop-'+'d'.repeat(32)})],
+  ['wrong PID',(child,id,operation)=>shutdownLine(child,id,operation,{pid:child.pid+1})],
+  ['wrong operation',(child,id,operation)=>shutdownLine(child,id,operation,{operation_id:'f'.repeat(32)})],
+  ['duplicate frame',(...args)=>shutdownLine(...args).repeat(2)],
+  ['duplicate key',(...args)=>shutdownLine(...args).replace('"pid":','"pid":1,"pid":')],
+  ['truncated frame',(...args)=>shutdownLine(...args).slice(0,-1)],
+  ['oversized frame',(...args)=>' '.repeat(1024)+shutdownLine(...args)],
   ['nonzero exit',shutdownLine,1,null],
   ['signal exit',shutdownLine,null,'SIGTERM'],
  ];
  for(const [name,output,code=0,signal=null] of cases)await t.test(name,async t=>{
-  const h=harness(t,{respondToStop(child,id){
-   child.stdout.write(output(child,id));child.emit('close',code,signal);
+  const h=harness(t,{respondToStop(child,id,operation){
+   child.stdout.write(output(child,id,operation));child.emit('close',code,signal);
   }});
   await h.controller.manage(h.event,request);
   assert.equal((await h.controller.manage(h.event,{...request,action:'stop'})).connection.phase,'stop_unconfirmed');
@@ -127,7 +181,7 @@ test('a premature receipt does not confirm stop or disappear after a binding cha
  const h=harness(t,{missingReceipt:true});
  await h.controller.manage(h.event,request);
  const {child,config}=h.children[0];
- child.stdout.write(shutdownLine(child,config().worker_id));
+ child.stdout.write(shutdownLine(child,config().worker_id,'f'.repeat(32)));
  h.context.binding_sha256='f'.repeat(64);
  assert.equal((await h.controller.manage(h.event,{...request,action:'status'})).connection.phase,'stop_unconfirmed');
  assert.equal((await h.controller.manage(h.event,request)).connection.phase,'stop_unconfirmed');
@@ -210,9 +264,10 @@ process.stdin.on('data',chunk=>{
  fs.writeFileSync(process.argv[1],JSON.stringify({protocol:configuration.protocol,sha:crypto.createHash('sha256').update(configuration.token).digest('hex'),env_leak:!!process.env.SUMA_RUNNER_TOKEN}));
 });
 process.stdin.on('end',()=>{
- if(raw!=='stop\\n'||!configuration){process.exitCode=2;return;}
+ const operation=/^stop ([a-f0-9]{32})\\n$/.exec(raw);
+ if(!operation||!configuration){process.exitCode=2;return;}
  fs.writeFileSync(process.argv[1]+'.stopped',raw);
- const line=JSON.stringify({type:'suma.local_runner.shutdown',worker_id:configuration.worker_id,pid:process.pid})+'\\n';
+ const line=JSON.stringify({type:'suma.local_runner.shutdown',worker_id:configuration.worker_id,pid:process.pid,operation_id:operation[1]})+'\\n';
  process.stdout.write(line.slice(0,17),()=>process.stdout.write(line.slice(17)));
 });`;
   child=spawn(process.execPath,['-e',script,marker],opts);return child;
@@ -220,7 +275,7 @@ process.stdin.on('end',()=>{
  const out=await h.controller.manage(h.event,request);assert.equal(out.connection.phase,'starting');
  for(let i=0;i<100&&!fs.existsSync(marker);i++)await new Promise(resolve=>setTimeout(resolve,10));
  const receipt=JSON.parse(fs.readFileSync(marker,'utf8'));assert.equal(receipt.protocol,'suma-desktop-managed-runner-v1');assert.equal(receipt.sha,h.bodies[0].credential_sha256);assert.equal(receipt.env_leak,false);
- const stopped=await h.controller.manage(h.event,{...request,action:'stop'});assert.equal(stopped.connection.phase,'stopped');assert.equal(child.exitCode,0);assert.equal(fs.readFileSync(marker+'.stopped','utf8'),'stop\n');
+ const stopped=await h.controller.manage(h.event,{...request,action:'stop'});assert.equal(stopped.connection.phase,'stopped');assert.equal(child.exitCode,0);assert.match(fs.readFileSync(marker+'.stopped','utf8'),/^stop [a-f0-9]{32}\n$/);
 });
 test('reconnect waits for a report newer than its pre-spawn inventory watermark',async t=>{
  const h=harness(t);await h.controller.manage(h.event,request);h.setFresh(true);assert.equal((await h.controller.manage(h.event,{...request,action:'status'})).connection.phase,'connected');await h.controller.manage(h.event,{...request,action:'stop'});

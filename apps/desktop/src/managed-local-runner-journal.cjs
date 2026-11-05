@@ -10,6 +10,7 @@ const {validateRecoveryState}=require('./managed-local-runner-recovery.cjs');
 const PROTOCOL='suma-desktop-managed-runner-journal-v1',MAX_BYTES=262144;
 const ID=/^[a-f0-9]{32}$/,HASH=/^[a-f0-9]{64}$/,ADAPTERS=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli','qoder-acp','cursor-cli','codex-app-server','opencode-sdk','claude-code-sdk']);
 const PHASES=new Set(['unconfigured','needs_workspace','not_installed','unavailable','prepared','issuance_unknown','renewal_unknown','starting','connected','stopping','stopped','authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','failed']);
+const STOP_TARGETS=new Set(['stopped','authorization_required','binding_changed','unavailable','failed']);
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,keys)=>plain(value)&&Object.keys(value).sort().join(',')===[...keys].sort().join(',');
 function validScope(value){return exact(value,['project_id','user_id','tenant_id','adapter_id'])&&['project_id','user_id','tenant_id'].every(k=>typeof value[k]==='string'&&ID.test(value[k]))&&ADAPTERS.has(value.adapter_id);}
@@ -18,7 +19,11 @@ function validOrigin(value){try{const url=new URL(value);return url.origin===val
 function safeText(value,max){return typeof value==='string'&&value.length>0&&Buffer.byteLength(value)<=max&&!/\p{Cc}/u.test(value);}
 function validateRecord(value,scope){
  const required=['protocol','scope','origin','instance_id','repository_path','repository_identity','binding_sha256','base_commit','token','phase','request'];
- if(!plain(value)||Object.keys(value).some(k=>!required.includes(k)&&!['worker','acp_configuration','acp_selection','codex_configuration','codex_selection','opencode_configuration','claude_sdk_configuration','pending_renew','last_renewal','pending_recovery','last_recovery'].includes(k))||required.some(k=>!Object.hasOwn(value,k))||value.protocol!==PROTOCOL||!validScope(value.scope)||scopeKey(scope)!==scopeKey(value.scope)||!validOrigin(value.origin)||!HASH.test(value.instance_id)||!HASH.test(value.binding_sha256)||!HASH.test(value.token)||!(/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/).test(value.base_commit)||!path.isAbsolute(value.repository_path)||!safeText(value.repository_path,4096)||!safeText(value.repository_identity,1024)||!PHASES.has(value.phase))throw Error('Invalid managed runner journal');
+ if(!plain(value)||Object.keys(value).some(k=>!required.includes(k)&&!['worker','acp_configuration','acp_selection','codex_configuration','codex_selection','opencode_configuration','claude_sdk_configuration','pending_renew','last_renewal','pending_recovery','last_recovery','pending_stop'].includes(k))||required.some(k=>!Object.hasOwn(value,k))||value.protocol!==PROTOCOL||!validScope(value.scope)||scopeKey(scope)!==scopeKey(value.scope)||!validOrigin(value.origin)||!HASH.test(value.instance_id)||!HASH.test(value.binding_sha256)||!HASH.test(value.token)||!(/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/).test(value.base_commit)||!path.isAbsolute(value.repository_path)||!safeText(value.repository_path,4096)||!safeText(value.repository_identity,1024)||!PHASES.has(value.phase))throw Error('Invalid managed runner journal');
+ if(Object.hasOwn(value,'pending_stop')){
+  const stop=value.pending_stop;
+  if(!['stopping','stop_unconfirmed'].includes(value.phase)||!exact(stop,['operation_id','pid','target','recoverable'])||typeof stop.operation_id!=='string'||!ID.test(stop.operation_id)||!Number.isInteger(stop.pid)||stop.pid<=1||stop.pid>0x7fffffff||!STOP_TARGETS.has(stop.target)||typeof stop.recoverable!=='boolean'||stop.recoverable&&stop.target!=='stopped')throw Error('Invalid managed runner stop intent');
+ }
  if(acpAdapter(value.scope.adapter_id)?(!validConfiguration(value.acp_configuration,value.scope.adapter_id)||!fields(value.acp_selection,['installation_id','probe_id','model_id'])||!ID.test(value.acp_selection.installation_id)||!ID.test(value.acp_selection.probe_id)||value.acp_selection.model_id!==value.acp_configuration.model):(Object.hasOwn(value,'acp_configuration')||Object.hasOwn(value,'acp_selection')))throw Error('Invalid managed ACP configuration');
  if(value.scope.adapter_id==='codex-app-server'?(!codex.validConfiguration(value.codex_configuration)||!fields(value.codex_selection,['installation_id','probe_id'])||!ID.test(value.codex_selection.installation_id)||!ID.test(value.codex_selection.probe_id)):(Object.hasOwn(value,'codex_configuration')||Object.hasOwn(value,'codex_selection')))throw Error('Invalid managed Codex configuration');
  if(value.scope.adapter_id==='opencode-sdk'?!opencode.validConfiguration(value.opencode_configuration):Object.hasOwn(value,'opencode_configuration'))throw Error('Invalid managed OpenCode configuration');
@@ -33,7 +38,14 @@ function validateRecord(value,scope){
 function checkedRead(file,max){
  const before=fs.lstatSync(file);if(!before.isFile()||before.isSymbolicLink()||before.nlink!==1||before.size>max||before.size===0||process.platform!=='win32'&&(before.mode&0o077)!==0)throw Error('Invalid private journal file');
  const fd=fs.openSync(file,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW||0));
- try{const opened=fs.fstatSync(fd);if(opened.dev!==before.dev||opened.ino!==before.ino||!opened.isFile())throw Error('Private journal changed');const raw=fs.readFileSync(fd);const after=fs.lstatSync(file),finished=fs.fstatSync(fd);if(raw.length!==before.size||after.isSymbolicLink()||after.dev!==opened.dev||after.ino!==opened.ino||finished.size!==opened.size||finished.mtimeMs!==opened.mtimeMs||after.mtimeMs!==opened.mtimeMs)throw Error('Private journal changed');return raw;}finally{fs.closeSync(fd);}
+ try{
+  const opened=fs.fstatSync(fd);if(opened.dev!==before.dev||opened.ino!==before.ino||opened.size!==before.size||!opened.isFile())throw Error('Private journal changed');
+  const raw=Buffer.alloc(before.size+1);let count=0;
+  while(count<raw.length){const n=fs.readSync(fd,raw,count,raw.length-count,count);if(n===0)break;count+=n;}
+  const after=fs.lstatSync(file),finished=fs.fstatSync(fd);
+  if(count!==before.size||after.isSymbolicLink()||after.dev!==opened.dev||after.ino!==opened.ino||after.nlink!==1||finished.size!==opened.size||finished.mtimeMs!==opened.mtimeMs||after.mtimeMs!==opened.mtimeMs)throw Error('Private journal changed');
+  return raw.subarray(0,count);
+ }finally{fs.closeSync(fd);}
 }
 function syncDirectory(directory){let fd;try{fd=fs.openSync(directory,'r');fs.fsyncSync(fd);}catch(error){if(process.platform!=='win32'||!['EPERM','EACCES','EINVAL','EISDIR','EBADF'].includes(error.code))throw error;}finally{if(fd!==undefined)fs.closeSync(fd);}}
 function createManagedRunnerJournal({userData,safeStorage,platform=process.platform}){
@@ -62,6 +74,13 @@ function createManagedRunnerJournal({userData,safeStorage,platform=process.platf
   try{fd=fs.openSync(temporary,'wx',0o600);fs.writeFileSync(fd,encrypted);fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(temporary,file);syncDirectory(directory);}finally{if(fd!==undefined)fs.closeSync(fd);try{fs.unlinkSync(temporary);}catch(error){if(error.code!=='ENOENT')throw error;}}
  }
  function stateDirectory(scope){assertOpen();return ensurePrivateDirectory(path.join(ensurePrivateDirectory(path.join(directory,scopeKey(scope))),'runtime'));}
+ function readStopProof(scope){
+  assertOpen();const scoped=path.join(directory,scopeKey(scope)),before=fs.lstatSync(scoped);
+  if(!before.isDirectory()||before.isSymbolicLink()||path.relative(scoped,fs.realpathSync(scoped))||process.platform!=='win32'&&(before.mode&0o077)!==0)throw Error('Invalid managed runner proof directory');
+  const raw=checkedRead(path.join(scoped,'managed-shutdown.json'),1024),after=fs.lstatSync(scoped);
+  if(!after.isDirectory()||after.isSymbolicLink()||before.dev!==after.dev||before.ino!==after.ino||path.relative(scoped,fs.realpathSync(scoped)))throw Error('Managed runner proof directory changed');
+  return raw;
+ }
  function validateACP(value){
   const required=['operation_id','id','scope','context','installation','source_sha256','created_at','expires_at','phase','request'];
   if(!fields(value,required,['discovery'])||!ID.test(value.operation_id)||!ID.test(value.id)||!validScope(value.scope)||!acpAdapter(value.scope.adapter_id)||!HASH.test(value.source_sha256)||!['reading','ready','failed','unknown','stop_unconfirmed'].includes(value.phase)||!Number.isFinite(Date.parse(value.created_at))||!Number.isFinite(Date.parse(value.expires_at))||Date.parse(value.expires_at)-Date.parse(value.created_at)!==60000)throw Error('Invalid ACP observation journal');
@@ -99,6 +118,6 @@ function createManagedRunnerJournal({userData,safeStorage,platform=process.platf
  }
  function findCodex(probeID){assertOpen();if(!ID.test(probeID))throw Error('Invalid Codex probe identity');const names=fs.readdirSync(directory).filter(name=>/^codex-[a-f0-9]{32}\.bin$/.test(name));if(names.length>128)throw Error('Codex journal exceeds limit');for(const name of names){const id=name.slice(6,-4),value=readCodex(id);if(value?.id===probeID)return id;}}
  function close(){if(closed)return;assertOpen();fs.unlinkSync(lock);syncDirectory(directory);closed=true;}
- return {directory,read,write,stateDirectory,readACP,writeACP,findACP,readCodex,writeCodex,findCodex,close};
+ return {directory,read,write,stateDirectory,readStopProof,readACP,writeACP,findACP,readCodex,writeCodex,findCodex,close};
 }
 module.exports={PROTOCOL,createManagedRunnerJournal,scopeKey,validScope,validOrigin};

@@ -21,30 +21,30 @@ const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,keys)=>plain(value)&&Object.keys(value).sort().join(',')===[...keys].sort().join(',');
 const failure=code=>({status:'failed',code});
 const SHUTDOWN_RECEIPT='suma.local_runner.shutdown',SHUTDOWN_RECEIPT_LIMIT=1024;
+function matchingShutdownReceipt(bytes,workerID,intent){
+ const end=bytes.length-1;
+ if(end<0||bytes.indexOf(10)!==end)return false;
+ try{
+  const value=strictJSON(bytes.subarray(0,end));
+  return exact(value,['type','worker_id','pid','operation_id'])&&value.type===SHUTDOWN_RECEIPT&&value.worker_id===workerID&&value.pid===intent.pid&&value.operation_id===intent.operation_id;
+ }catch{return false;}
+}
 // Stdout is private to this exact child. Retain only a small, single frame
 // and require it to arrive after the explicit stop request.
 function shutdownReceipt(child,workerID){
- const pid=child.pid;
- let requested=false,invalid=false,size=0,chunks=[];
+ let intent,invalid=false,size=0,chunks=[];
  function invalidate(){invalid=true;chunks=[];}
  child.stdout.on('data',chunk=>{
   if(invalid)return;
-  if(!requested||(size+=chunk.length)>SHUTDOWN_RECEIPT_LIMIT){invalidate();return;}
+  if(!intent||(size+=chunk.length)>SHUTDOWN_RECEIPT_LIMIT){invalidate();return;}
   chunks.push(Buffer.from(chunk));
  });
  child.stdout.on('error',invalidate);
  return {
-  request(){requested=true;},
+  request(value){intent=value;},
   invalidate,
-  confirmed(code,signal){
-   if(!requested||invalid||code!==0||signal||!Number.isSafeInteger(pid)||pid<=0)return false;
-   const bytes=Buffer.concat(chunks),end=bytes.length-1;
-   if(end<0||bytes.indexOf(10)!==end)return false;
-   try{
-    const value=strictJSON(bytes.subarray(0,end));
-    return exact(value,['type','worker_id','pid'])&&value.type===SHUTDOWN_RECEIPT&&value.worker_id===workerID&&value.pid===pid;
-   }catch{return false;}
-  }
+  confirmed(code,signal){return intent&&!invalid&&code===0&&!signal&&matchingShutdownReceipt(Buffer.concat(chunks),workerID,intent);},
+  receiptMissing(code,signal){return intent&&!invalid&&size===0&&code===0&&!signal;}
  };
 }
 function requestScope(request){return {project_id:request.project_id,user_id:request.user_id,tenant_id:request.tenant_id,adapter_id:request.adapter_id};}
@@ -105,15 +105,33 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   return context;
  }
  function sameContext(record,context){const value=record.value;return value.instance_id===context.instance_id&&value.repository_path===context.repository_path&&value.repository_identity===context.repository_identity&&value.binding_sha256===context.binding_sha256&&value.base_commit===context.base_commit;}
- function saveStopPhase(record,value){try{phase(record,value);}catch{record.value.phase='stop_unconfirmed';}}
- function softStop(record,target='stopped'){
+ function saveStopPhase(record,value,pendingStop){
+  const next={...record.value,phase:value};
+  if(pendingStop)next.pending_stop=pendingStop;else delete next.pending_stop;
+  try{openJournal().write(next);record.value=next;return true;}
+  catch{record.value.phase='stop_unconfirmed';return false;}
+ }
+ function reconcileStop(record){
+  const intent=record.value.pending_stop;
+  if(record.value.phase!=='stop_unconfirmed'||!record.closed||record.stopping||!intent?.recoverable)return;
+  try{
+   const proof=openJournal().readStopProof(record.value.scope);
+   if(!matchingShutdownReceipt(proof,record.value.request.worker_id,intent))return;
+   // A live or ambiguously observable PID might still own the original work.
+   // Signal 0 only probes existence and never stops or modifies a process.
+   try{process.kill(intent.pid,0);return;}catch(error){if(error.code!=='ESRCH')return;}
+   saveStopPhase(record,'stopped');
+  }catch{/* Missing or unreadable private proof leaves the original stop unresolved. */}
+ }
+ function softStop(record,target='stopped',recoverable=false){
   if(record.stopping)return record.stopping;
   if(record.value.phase==='stop_unconfirmed')return Promise.resolve();
   const child=record.child;
   if(!child||record.closed){if(target!=='stopped')phase(record,target);return Promise.resolve();}
   const receipt=record.shutdownReceipt;
-  saveStopPhase(record,'stopping');
-  if(record.value.phase==='stop_unconfirmed')receipt.invalidate();
+  const intent={operation_id:crypto.randomBytes(16).toString('hex'),pid:child.pid,target,recoverable};
+  const persisted=saveStopPhase(record,'stopping',intent);
+  if(!persisted)receipt.invalidate();
   clearInterval(record.guard);
   const stopping=record.stopping=new Promise(resolve=>{
    const finish=()=>{
@@ -121,12 +139,16 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
     record.finishStop=null;record.stopping=null;resolve();
    };
    record.finishStop=(code,signal)=>{
-    saveStopPhase(record,receipt.confirmed(code,signal)?target:'stop_unconfirmed');
+    if(receipt.confirmed(code,signal))saveStopPhase(record,target);
+    else saveStopPhase(record,'stop_unconfirmed',receipt.receiptMissing(code,signal)?record.value.pending_stop:undefined);
     finish();
    };
    record.killTimer=setTimeout(()=>{
     if(record.closed)return;
-    receipt.invalidate();saveStopPhase(record,'stop_unconfirmed');
+    receipt.invalidate();
+    // Retire the recoverable intent before force: if the journal is unavailable,
+    // do not introduce a termination that could later look like a clean exit.
+    if(!saveStopPhase(record,'stop_unconfirmed')&&persisted&&recoverable)return;
     try{child.kill('SIGKILL');}catch{}
    },stopGraceMS);
    record.stopTimer=setTimeout(()=>{
@@ -134,8 +156,8 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    },stopDeadlineMS);
   });
   if(child.exitCode==null&&child.signalCode==null){
-   receipt.request();
-   try{child.stdin.end('stop\n');}catch{receipt.invalidate();}
+   if(persisted)receipt.request(intent);
+   try{child.stdin.end(persisted?'stop '+intent.operation_id+'\n':undefined);}catch{receipt.invalidate();}
   }
   return stopping;
  }
@@ -263,7 +285,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    await session(scope);if(!caller(event))throw Error('authority');
    try{record=getRecord(scope);}catch{return connection(scope,'credential_unrecoverable');}
    if(record?.value.origin!==undefined&&record.value.origin!==origin)return connection(scope,'origin_changed',record);
-   if(request.action==='stop'){if(record)await softStop(record);await session(scope);return connection(scope,record?.value.phase||'unconfigured',record);}
+   if(request.action==='stop'){if(record)await softStop(record,'stopped',true);await session(scope);return connection(scope,record?.value.phase||'unconfigured',record);}
    let context;try{context=await authorize(scope);}catch(error){
     if(gitUnavailable(error)){if(record)await softStop(record,'unavailable');return connection(scope,record?.value.phase??'unavailable',record);}
     if(record)await softStop(record,'authorization_required');
@@ -272,6 +294,10 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    }
    if(!caller(event))throw Error('authority');
    if(record&&!sameContext(record,context)){if(request.action==='renew'||record.value.pending_renew)record.renewalReason='context_changed';await softStop(record,'binding_changed');return connection(scope,record.value.phase,record);}
+   if(request.action==='status'&&record?.value.phase==='stop_unconfirmed'){
+    await session(scope);if(!caller(event))throw Error('authority');
+    reconcileStop(record);return connection(scope,record.value.phase,record);
+   }
    if(request.action==='recover'||request.action==='recovery-status')return await recovery.inspect(record,scope,event,request.locale,request.action==='recovery-status');
    if(request.action==='renew')return await renew(record,scope,event,request.locale);
    if(record?.value.pending_renew)return connection(scope,['authorization_required','binding_changed','origin_changed','stop_unconfirmed'].includes(record.value.phase)?record.value.phase:'renewal_unknown',record);

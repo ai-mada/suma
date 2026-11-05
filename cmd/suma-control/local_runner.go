@@ -3,24 +3,19 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/json"
-	"errors"
 	"io"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/ai-mada/suma/internal/commandlocale"
 	"github.com/ai-mada/suma/internal/runner"
 )
 
-var errDesktopRunnerStopRequested = errors.New("desktop requested Runner stop")
+type desktopRunnerStopRequest string
 
-type desktopRunnerShutdownReceipt struct {
-	Type     string `json:"type"`
-	WorkerID string `json:"worker_id"`
-	PID      int    `json:"pid"`
-}
+func (desktopRunnerStopRequest) Error() string { return "desktop requested Runner stop" }
 
 func runDesktopManagedRunner(app *commandlocale.Command, input io.Reader) int {
 	return runDesktopManagedRunnerWith(app, input, runner.RunDesktopManagedRunner)
@@ -44,18 +39,28 @@ func runDesktopManagedRunnerWith(app *commandlocale.Command, input io.Reader, ru
 	// cancels work, but only an explicit request can receive a stop receipt.
 	go func() {
 		frame, err := reader.ReadSlice('\n')
-		if err == nil && string(frame) == "stop\n" {
-			cancel(errDesktopRunnerStopRequested)
-			return
+		if err == nil {
+			operationID, stop := strings.CutPrefix(string(frame[:len(frame)-1]), "stop ")
+			if stop && validDesktopStopOperationID(operationID) {
+				cancel(desktopRunnerStopRequest(operationID))
+				return
+			}
 		}
 		cancel(nil)
 	}()
 	if err = run(ctx, configuration); err != nil {
 		return app.Failure("本机执行节点未完成启动或已中断，请保留原连接并核对", "The local Runner did not start or was interrupted; preserve and reconcile its original connection")
 	}
-	if context.Cause(ctx) == errDesktopRunnerStopRequested {
-		receipt := desktopRunnerShutdownReceipt{Type: "suma.local_runner.shutdown", WorkerID: configuration.WorkerID, PID: os.Getpid()}
-		if err := json.NewEncoder(app.Out).Encode(receipt); err != nil {
+	if request, ok := context.Cause(ctx).(desktopRunnerStopRequest); ok {
+		receipt := desktopRunnerShutdownReceipt{
+			Type: desktopRunnerShutdownType, WorkerID: configuration.WorkerID,
+			PID: os.Getpid(), OperationID: string(request),
+		}
+		proof, err := persistDesktopRunnerShutdown(configuration.StateDirectory, receipt)
+		if err != nil {
+			return app.Failure("无法保存停止证据，请核对原连接", "Could not persist the stop evidence; check the original connection")
+		}
+		if n, err := app.Out.Write(proof); err != nil || n != len(proof) {
 			return app.Failure("无法写入停止回执，请核对原连接", "Could not write the stop receipt; check the original connection")
 		}
 	}

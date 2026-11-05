@@ -1,0 +1,67 @@
+{
+  "stage": "T-DESKTOP-STOP-RECOVERY-230",
+  "base": "eec46189a24b09bb6b8c75d8906ed26b27cd2e36",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "actual": {
+    "scope": "Real Windows Go managed Worker and two Node processes running the production Desktop controller; synthetic browser session, control endpoints and CodeBuddy probe",
+    "original_desktop_exited_before_close": true,
+    "original_worker_absent": true,
+    "matching_operation_pid_worker": true,
+    "old_phase": "stopping",
+    "restored_phase": "stopped",
+    "new_spawns": 0,
+    "registrations": 1,
+    "binary_sha256": "8e9ac4544305981c4733abea1bfd6804c2985068f6fbf0d83aeb58791403afbf"
+  },
+  "focused": {
+    "go": 3,
+    "go_subcases": 11,
+    "desktop_files": 5,
+    "desktop_top_level": 47,
+    "desktop_including_subtests": 63,
+    "web": 9,
+    "paired_locale_keys": 10079,
+    "linux_amd64_control": "cross_build_passed"
+  },
+  "browser": {
+    "scope": "Production DesktopToolConnector and CSS with synthetic native status only",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "native_actions": [
+      "status",
+      "status"
+    ],
+    "browser_errors": 0,
+    "screenshot_sha256": "f13d3268acc1b1745bd7a355ad3ec4ed857885a750e6a16aa9d8c437eaf1b7c6"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "f230f9f55bdfc4de68015473b07de329a5079f87",
+    "source_copied": false
+  },
+  "pending": [
+    "operator_reconciliation_without_positive_proof",
+    "pool_worker_shutdown",
+    "full_electron_restart",
+    "power_loss",
+    "linux_runtime",
+    "macos_runtime",
+    "vendor_execution",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "go": ".cache/desktop-stop-recovery-230/go/proof-final-20261105T104105034Z.command.json",
+    "windows_build": ".cache/desktop-stop-recovery-230/go/build-control-final-20261105T104114340Z.command.json",
+    "linux_build": ".cache/desktop-stop-recovery-230/go/linux-build-final-20261105T104114376Z.command.json",
+    "actual": ".cache/desktop-stop-recovery-230/restart-9rUicH/receipt.json",
+    "desktop": ".cache/desktop-stop-recovery-230/desktop-green.log",
+    "desktop_red": ".cache/desktop-stop-recovery-230/desktop-red.log",
+    "web": ".cache/desktop-stop-recovery-230/web/final.log",
+    "i18n": ".cache/desktop-stop-recovery-230/web/i18n.log",
+    "browser": ".cache/desktop-stop-recovery-230/web/visual-result.json"
+  }
+}

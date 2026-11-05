@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+桌面中断后核对原停止证据见 T-DESKTOP-STOP-RECOVERY-230。 [执行合同](../contracts/desktop-managed-runner.md#停止回执) · [阶段验证](quality/desktop-stop-recovery-verification.md)
+
 桌面与 Worker 的停止回执、同节点重连和原结果恢复见 T-RUNNER-STOP-229。 [执行合同](../contracts/desktop-managed-runner.md#停止回执) · [阶段验证](quality/runner-stop-receipt-verification.md)
 
 Cursor 前台停止、原尝试核对和回执恢复见 T-CURSOR-RECOVERY-228。 [执行合同](../contracts/cursor-acp-execution.md) · [验证](quality/cursor-foreground-recovery-verification.md)

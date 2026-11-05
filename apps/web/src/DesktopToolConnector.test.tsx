@@ -37,7 +37,10 @@ it('keeps stopping separate from confirmed stop and retains a management entry i
  await click('stop');expect(host.textContent).toContain('Waiting for the local node to confirm shutdown');
  await act(async()=>finish(connection('stop_unconfirmed',{worker_id:worker})));expect(host.textContent).toContain('Stop is unconfirmed');expect(button('connect')).toBeNull();expect(button('status')).not.toBeNull();
  manage.mockRejectedValueOnce(new Error('unavailable'));await click('status');expect(button('connect')).toBeNull();expect(host.textContent).toContain('Stop is unconfirmed');
- manage.mockImplementation(async()=>connection('stopped',{worker_id:worker}));await click('status');expect(host.textContent).toContain('Local node shutdown confirmed');expect(button('connect')).not.toBeNull();
+ manage.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));await click('status');
+ expect(host.querySelector('[role="status"]')?.textContent).toContain('Checking the original stop receipt');expect(button('status')?.disabled).toBe(true);expect(button('connect')).toBeNull();
+ await act(async()=>finish(connection('stopped',{worker_id:worker})));expect(host.textContent).toContain('Local node shutdown confirmed');expect(button('connect')?.disabled).toBe(false);
+ expect(manage.mock.calls.map(call=>call[0].action)).toEqual(['status','stop','status','status']);expect(onConnected).toHaveBeenCalledExactlyOnceWith(worker);
  await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('已确认本机节点停止。任务结果请在对应运行中查看。');
 });
 it('loads the existing project-folder picker only when the native connection needs a workspace',async()=>{

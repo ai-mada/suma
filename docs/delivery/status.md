@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-DESKTOP-STOP-RECOVERY-230 允许桌面重开后核对原停止操作。匹配同一节点、操作与退出证据后恢复手动连接入口，继续保留原任务记录。 [阶段验证](../quality/desktop-stop-recovery-verification.md)
+
 T-RUNNER-STOP-229 将本机停止、原任务结果和控制面回执分开确认。桌面仅在收到本次子进程的匹配回执并核实正常退出后确认停止，重连沿用原节点和持久请求。 [阶段验证](../quality/runner-stop-receipt-verification.md)
 
 T-MULTICA-ITERATION-BATCH 在任务列表支持逐项预览和批量调整迭代，按当前任务、排期和目标版本原子提交，支持冲突刷新和原回执恢复。 [交互设计](../design/task-iteration-assignments.md) · [验证记录](../quality/task-iteration-assignments-verification.md)
