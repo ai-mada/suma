@@ -7143,6 +7143,19 @@ export interface TaskDeliveryNodeSummary {
   complete: boolean;
   items: (TaskDeliveryNode)[];
 }
+export interface TaskDeliveryRepositorySource {
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  target_id: string;
+  target_version: number;
+  ref: string;
+  head_commit: string;
+  object_format: string;
+  observed_at: string;
+}
 export interface TaskDeliveryRun {
   run_id: string;
   version: number;

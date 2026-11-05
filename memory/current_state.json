@@ -695,6 +695,20 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "workbuddy_repository_source": {
+    "stage": "T-WORKBUDDY-REPOSITORY-SOURCE-242",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "747c150c95c37723df3d7e3c472fd861724ba198",
+    "contract": "contracts/workbuddy-task-dispatch.md",
+    "report": "docs/quality/workbuddy-repository-source-verification.md",
+    "actual": "Select a current registered project repository on the original pending WorkBuddy task and read a fresh exact branch head with reauthorization after provider I/O.",
+    "verification": "Actual isolated bare Git with loopback provider and SQLite HTTP integration; stale fence during I/O; 10 Web tests and 390px bilingual Chrome with synthetic responses.",
+    "known_limitations": "No provider authorship or candidate import is attested. Actual WorkBuddy and distributed database qualification remain pending.",
+    "next": "Freeze an approved baseline and exact repository commit, then admit verifiable objects to the existing candidate sealing and independent test path.",
+    "full_platform_complete": false,
+    "git_record": ".cache/workbuddy-repository-source-242/post-git.json"
+  },
   "workbuddy_late_delivery": {
     "stage": "T-WORKBUDDY-LATE-DELIVERY-240",
     "version": "1.0.0",

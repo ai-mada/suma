@@ -5,6 +5,7 @@ import {tr,useLocale,formatNumber} from './i18n';
 import {Badge,ErrorNotice,Loading} from './ui';
 import {useTaskDeliveryRead} from './task-delivery-hooks';
 import {FailureDiagnosisLauncher} from './FailureDiagnosisLauncher';
+import {TaskDeliveryRepositorySource} from './TaskDeliveryRepositorySource';
 import type {TaskDeliveryRunTarget} from './TaskDependenciesWorkspace';
 import {taskDeliveryHref} from './task-delivery-navigation-model';
 import {executionHref} from './scheduling-model';
@@ -38,6 +39,9 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,navigationDis
        {t('workbuddy.open_attempt')}
       </DeliveryReference>
      </div>}
+     {workbuddy&&!locked&&value.run_basis_state==='current'&&<TaskDeliveryRepositorySource
+      key={JSON.stringify([taskVersion,run?.version,workbuddy.run_id,workbuddy.node_id,workbuddy.attempt])}
+      project={project} taskId={taskId} taskVersion={taskVersion} attempt={workbuddy}/>}
     </section>
     <section className="task-delivery-section"><h4>{t('tests')}</h4>{value.test_plan_id&&<a data-task-delivery-test-plan aria-disabled={locked||undefined} tabIndex={locked?-1:undefined} href={'?'+new URLSearchParams({project,view:'quality',sub:'tests',record:value.test_plan_id,...(run?{run:run.run_id,panel:'test-results'}:{})})} onClick={event=>{if(locked||!canLeave())event.preventDefault();}}>{tr('test-report-setup.open_plan')}</a>}<p className="task-delivery-muted">{t('test_boundary')}</p>{run?<><p>{t('test_counts',{total:formatNumber(run.tests.total),passed:formatNumber(run.tests.succeeded),failed:formatNumber(run.tests.failed),pending:formatNumber(run.tests.waiting+run.tests.running+run.tests.reconciling+run.tests.other)})}</p>{!!run.tests.items.length&&<ul className="task-delivery-list">{run.tests.items.map(node=><li key={node.id}><button type="button" data-task-delivery-test={node.id} disabled={locked||!onOpenRun} onClick={()=>onOpenRun?.({run:run.run_id,node:node.id,...(node.attempt>0?{attempt:String(node.attempt)}:{})})}>{node.name||node.id}</button><Badge state={node.state}/><small>{node.attempt>0?t('attempt',{attempt:formatNumber(node.attempt)}):tr('development.workflow.not_yet_executed')}</small></li>)}</ul>}{!run.tests.complete&&<p className="task-delivery-muted">{scope(run.tests.total,run.tests.items.length)} <button type="button" disabled={locked||!onOpenRun} onClick={()=>onOpenRun?.({run:run.run_id})}>{t('open_all_nodes')}</button></p>}{!run.tests.total&&<p className="task-delivery-muted">{t('no_tests')}</p>}</>:<p className="task-delivery-muted">{t('no_run')}</p>}</section>
     <section className="task-delivery-section"><h4>{t('acceptance')}</h4><strong className={value.formal_acceptance?'task-delivery-accepted':'task-delivery-muted'}>{t(value.formal_acceptance?'accepted':'not_accepted')}</strong><p className="task-delivery-muted">{t('acceptance_boundary')}</p><DeliveryReference kind="review" id={taskId} href={reviewHref} locked={locked} canLeave={canLeave} onNavigate={onOpenReview}>{t('open_review')}</DeliveryReference>{value.formal_acceptance&&value.task_version===taskVersion&&<button type="button" data-task-delivery-extract disabled={locked||!onExtractAcceptedDelivery} onClick={()=>{if(canLeave())onExtractAcceptedDelivery?.(taskId);}}>{tr('delivery-knowledge.extract_action')}</button>}</section>

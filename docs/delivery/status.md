@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-REPOSITORY-SOURCE-242 在待交付尝试上按需核对项目已登记仓库的实时分支提交。读取前后检查任务、原执行和目标版本，候选与验收各自保留依据。 [合同](../../contracts/workbuddy-task-dispatch.md#核对已登记仓库的分支提交) · [验证](../quality/workbuddy-repository-source-verification.md)
+
 T-WORKBUDDY-MANAGE-UX 按连接状态突出刷新、替换链接或只读核对，按需展开账号管理。重新授权可直接沿用明确列出的权限，刷新提示与实际连接状态一致。 [交互](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-manage-ux-verification.md)
 
 T-WORKBUDDY-LATE-DELIVERY-240 可从原运行刷新云任务，将可推进的原尝试更新为待交付并开放准确定位。原执行结果与验收事实保留。 [合同](../../contracts/workbuddy-task-dispatch.md#迟到的云端完成观察) · [验证](../quality/workbuddy-late-delivery-verification.md)

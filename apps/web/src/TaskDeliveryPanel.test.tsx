@@ -102,6 +102,43 @@ it('opens the exact WorkBuddy delivery attempt only with current, authorized fac
  expect(vi.mocked(fetch).mock.calls.every(([,options])=>options?.method==='GET')).toBe(true);
 });
 
+it('checks the current registered repository only on demand and hides stale, denied or late source facts',async()=>{
+ const value=delivery(),trace={run_id:'run-a',node_id:'develop',attempt:2};
+ const nodes={...summary(),waiting:1,succeeded:0,items:[{id:trace.node_id,name:'Develop',type:'external_workflow',state:'waiting',attempt:trace.attempt}]};
+ const tests={...summary(),total:0,succeeded:0,items:[]};
+ const target={id:'target-a',project_id:'project-a',version:7,name:'Code delivery',ref:'refs/heads/delivery',status:'active',active_operation_id:'',blockers:[]};
+ const observed={...trace,task_id:'task-a',task_version:3,target_id:target.id,target_version:target.version,ref:target.ref,head_commit:'b'.repeat(40),object_format:'sha1',observed_at:'2026-11-05T12:00:00Z'};
+ let reply='success',release!:(response:Response)=>void;
+ transport(async path=>{
+  if(path.startsWith('/repository-integration-targets?'))return Response.json({items:[target,{...target,id:'target-b',status:'paused',name:'Paused target'}],total:2});
+  if(!path.includes('/repository-source?'))return Response.json({...value,run:{...value.run,state:'running',nodes,tests,workbuddy_delivery:trace}});
+  if(reply==='late')return new Promise<Response>(resolve=>{release=resolve;});
+  if(reply==='denied')return Response.json({error:{code:'forbidden',message:'No access'}},{status:403});
+  return Response.json(reply==='stale'?{...observed,attempt:1}:observed);
+ });
+ const result='[data-repository-source-result]',action='[data-repository-source-check]';
+ await render();await click('[data-task-delivery-toggle]');expect(reads).toHaveLength(1);
+ await click('[data-repository-source-toggle]');
+ expect(reads.at(-1)?.path).toBe('/repository-integration-targets?project_id=project-a');
+ expect(reads).toHaveLength(2);
+ const select=host.querySelector<HTMLSelectElement>('[data-repository-source-target]')!;
+ expect(select.value).toBe(target.id);expect(select.options.length).toBe(2);
+ await click(action);
+ expect(reads.at(-1)?.path).toBe('/tasks/task-a/delivery/repository-source?project_id=project-a&task_version=3&run_id=run-a&target_id=target-a&target_version=7');
+ expect(host.querySelector(result)?.textContent).toContain(observed.head_commit);
+ expect(host.querySelector(result)?.textContent).toContain('WorkBuddy authorship');
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});
+ expect(host.querySelector(result)?.textContent).toContain('候选导入、测试和验收需分别提供证据');
+ reply='stale';await click(action);expect(host.querySelector(result)).toBeNull();expect(host.textContent).toContain('与本次交付尝试或目标不符');
+ reply='denied';await click(action);expect(host.querySelector(result)).toBeNull();expect(host.querySelector(action)).toBeNull();expect(host.textContent).toContain('当前权限无法核对来源');
+ await click('[data-repository-source-reload]');
+ reply='late';await click(action);const signal=reads.at(-1)?.signal;
+ await render('task-a',{taskVersion:4});expect(signal?.aborted).toBe(true);
+ await act(async()=>release(Response.json(observed)));await settle();
+ expect(host.querySelector('[data-repository-source-toggle]')).toBeNull();expect(host.querySelector(result)).toBeNull();expect(writes).toBe(0);
+ expect(vi.mocked(fetch).mock.calls.every(([,options])=>options?.method==='GET')).toBe(true);
+});
+
 it('extracts accepted delivery only from a current formal acceptance and honors navigation and callback locks',async()=>{
  const value={...delivery(),task_status:'accepted'},extract=vi.fn();transport(async()=>Response.json(value));
  await render('task-a',{onExtractAcceptedDelivery:extract});await click('[data-task-delivery-toggle]');expect(host.querySelector('[data-task-delivery-extract]')).toBeNull();

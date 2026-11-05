@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-REPOSITORY-SOURCE-242 验证已登记仓库的实时 HEAD、当前权限、查询期间执行漂移与双语窄屏操作。 [阶段验证](workbuddy-repository-source-verification.md)
+
 T-WORKBUDDY-MANAGE-UX 核验连接卡片操作优先级、未知结果的精确只读核对和显式权限沿用。 [阶段验证](workbuddy-manage-ux-verification.md)
 
 T-WORKBUDDY-LATE-DELIVERY-240 核验原云任务的迟到完成、停止与过期尝试保护、原操作重放及交付事务回滚。 [阶段验证](workbuddy-late-delivery-verification.md)
