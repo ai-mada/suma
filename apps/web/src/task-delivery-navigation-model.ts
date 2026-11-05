@@ -16,13 +16,14 @@ export function parseTaskAcceptancePanel(panel:string):TaskAcceptanceLocator|und
   const taskVersion=Number(parts[1]);
   return String(taskVersion)===parts[1]&&version(taskVersion)&&identifier(parts[2])?{taskVersion,runID:parts[2]}:undefined;
 }
-export function taskDeliveryHref(project:string,target:{kind:'issue'|'requirement'|'team'|'review';id:string;taskVersion?:number;runID?:string}):string|undefined{
+export function taskDeliveryHref(project:string,target:{kind:'issue'|'requirement'|'team'|'review'|'repository';id:string;taskVersion?:number;runID?:string}):string|undefined{
   if(!identifier(project)||!identifier(target.id))return undefined;
   const fields:Record<string,string>={project};
   switch(target.kind){
     case 'issue':Object.assign(fields,{view:'quality',sub:'issues',record:target.id,layout:'list'});break;
     case 'requirement':Object.assign(fields,{view:'requirements',sub:'',record:target.id,layout:'list'});break;
     case 'team':Object.assign(fields,{view:'development',sub:'runs',layout:'team',panel:'expert-team:'+target.id});break;
+    case 'repository':Object.assign(fields,{view:'development',sub:'tasks',record:target.id,layout:'list',panel:'repository-integration'});break;
     case 'review':{
       const panel=taskAcceptancePanel(target.taskVersion||0,target.runID||'');if(!panel)return undefined;
       Object.assign(fields,{view:'development',sub:'tasks',record:target.id,layout:'list',panel});break;

@@ -25,6 +25,30 @@ it('reads one task only when opened, separates execution/tests/acceptance and dr
  await render('task-a',{navigationDisabled:true});const locked=host.querySelector<HTMLAnchorElement>('[data-task-delivery-test-plan]')!;expect(locked.getAttribute('aria-disabled')).toBe('true');expect(locked.tabIndex).toBe(-1);const lockedClick=new MouseEvent('click',{bubbles:true,cancelable:true});await act(async()=>{locked.dispatchEvent(lockedClick);});expect(lockedClick.defaultPrevented).toBe(true);
 });
 
+it('opens repository integration only from current accepted delivery and makes no write',async()=>{
+ const openRepository=vi.fn(),selector='[data-task-delivery-repository]';
+ let facts=delivery();
+ transport(async()=>Response.json(facts));
+ await render('task-a',{onOpenRepository:openRepository});
+ await click('[data-task-delivery-toggle]');
+ expect(host.querySelector(selector)).toBeNull();
+ facts={...facts,task_status:'accepted',formal_acceptance:true};
+ await click('[data-task-delivery-refresh]');
+ const link=host.querySelector<HTMLAnchorElement>(selector)!;
+ expect(link.textContent).toBe('Open repository integration');
+ const target=new URL(link.href);
+ expect(target.searchParams.get('record')).toBe('task-a');
+ expect(target.searchParams.get('panel')).toBe('repository-integration');
+ await click(selector);
+ expect(openRepository).toHaveBeenCalledOnce();
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});
+ expect(host.querySelector(selector)?.textContent).toBe('查看仓库集成');
+ facts={...facts,task_version:4,run_basis_state:'changed'};
+ await click('[data-task-delivery-refresh]');
+ expect(host.querySelector(selector)).toBeNull();
+ expect(writes).toBe(0);
+});
+
 it('T214 preserves exact native delivery links without callbacks and disables mismatched or locked review navigation',async()=>{
  let current=delivery(),noRun=false;transport(async()=>Response.json(noRun?{...current,run:null,run_basis_state:'not_dispatched'}:current));
  await render();await click('[data-task-delivery-toggle]');

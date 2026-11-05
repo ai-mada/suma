@@ -2,6 +2,8 @@
 
 T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
 
+T-REPOSITORY-SOURCE-INTEGRATION-248 核验真实 Git 分支从基线推进到独立测试的同一提交，覆盖提前执行、计划版本漂移、错用回执与原结果重传。 [阶段验证](repository-source-integration-verification.md)
+
 T-REPOSITORY-SOURCE-POOL-247 核验项目及 Pool 的 Git 候选交接、授权版本隔离、两进程独立测试及槽位释放。 [阶段验证](repository-source-pool-verification.md)
 
 T-ORG-WORK-CALENDAR 核验组织与人员隔离、初始结构拒绝、版本竞争、原回执、周工作制／例外和双语浏览器。 [阶段验证](organization-work-calendar-verification.md)

@@ -484,4 +484,7 @@ func testTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T, po
 	} else if ctx.Err() != nil {
 		t.Fatal(ctx.Err())
 	}
+	if pooled {
+		assertActualRepositoryDeliveryIntegration(t, ctx, f, control.URL, git, producerRepo, accepted, intake, pool, grant)
+	}
 }

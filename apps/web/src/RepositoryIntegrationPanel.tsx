@@ -13,16 +13,18 @@ import {repositoryApplied,repositoryCursor,repositoryID,repositoryInteger,reposi
 import {useRepositoryPage,useRepositoryRead,type RepositoryPage} from './repository-integration-hooks';
 import './RepositoryIntegrationPanel.css';
 
-type Props={project:string;taskID:string;session:Session;refresh:number;planID?:string;onPlan:(id:string)=>void;onRefresh:()=>void;open?:boolean;onOpenChange?:(open:boolean)=>void};
+type Props={project:string;taskID:string;session:Session;refresh:number;planID?:string;onPlan:(id:string)=>void;onRefresh:()=>void;open?:boolean;focusOnOpen?:boolean;onOpenChange?:(open:boolean)=>void};
 type TargetDraft={id:string;version:number;name:string;status:string};
 const t=(key:string,values?:Record<string,unknown>)=>tr('repository-integration.'+key,values);
 const time=(value:string)=>formatDateTime(value,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 const runLink=(project:string,run:string)=>'?'+new URLSearchParams({project,view:'development',sub:'runs',run});
 
 export function RepositoryIntegrationPanel(props:Props){return <IntegrationScope key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project,props.taskID])} {...props}/>;}
-function IntegrationScope({project,taskID,session,refresh,planID,onPlan,onRefresh,open:controlledOpen,onOpenChange}:Props){
+function IntegrationScope({project,taskID,session,refresh,planID,onPlan,onRefresh,open:controlledOpen,focusOnOpen,onOpenChange}:Props){
  useLocale();const api=useApi(),bodyID=useId(),[localOpen,setLocalOpen]=useState(false),[located,setLocated]=useState(repositoryID(planID)?planID:''),[tick,setTick]=useState(0),[forbidden,setForbidden]=useState<unknown>(),alive=useRef(true),callbacks=useRef({onPlan,onRefresh});callbacks.current={onPlan,onRefresh};
  const open=controlledOpen??localOpen,setOpen=(value:boolean|((previous:boolean)=>boolean))=>{const next=typeof value==='function'?value(open):value;setLocalOpen(next);onOpenChange?.(next);};
+ const toggleRef=useRef<HTMLButtonElement>(null);
+ useEffect(()=>{if(focusOnOpen&&open)toggleRef.current?.focus();},[focusOnOpen,open]);
  const action=useWriteAction({scope:JSON.stringify(['repository-integration',session.user.id,session.organization.id,project,taskID]),storage:toolSessionStorage(),validateRequest:request=>repositoryRecovery(request,project,taskID)}),pending=action.pending?.body;
  const [sourceID,setSourceID]=useState(typeof pending?.source_node_id==='string'?pending.source_node_id:''),[targetID,setTargetID]=useState(typeof pending?.target_id==='string'?pending.target_id:''),[reason,setReason]=useState(typeof pending?.reason==='string'?pending.reason:''),[ack,setAck]=useState(false),[targetName,setTargetName]=useState(''),[providerID,setProviderID]=useState(''),[alias,setAlias]=useState(''),[targetDraft,setTargetDraft]=useState<TargetDraft>(),[connection,setConnection]=useState<RunConnectionState>();
  const locked=action.busy||!!action.pending||action.persistenceBlocked;
@@ -61,7 +63,7 @@ function IntegrationScope({project,taskID,session,refresh,planID,onPlan,onRefres
  async function restore(){const request=action.pending;if(!request||action.busy)return;if(recoveryPlanID&&(!currentRead||plan?.id!==recoveryPlanID))return;await confirmed(await action.run(request.path,request.body,request.method),request.path.startsWith('/repository-integration-targets'));}
  function selectPlan(id:string){if(locked)return;setAck(false);setLocated(id);callbacks.current.onPlan(id);}
  const retry=()=>{setForbidden(undefined);setOpen(true);setTick(value=>value+1);};
- return <section className="repository-integration-panel"><button data-repository-toggle type="button" className="repository-toggle" aria-expanded={open} aria-controls={bodyID} onClick={()=>setOpen(value=>!value)}><span><GitPullRequest size={15}/>{t('title')}</span><ChevronDown size={16}/></button>
+ return <section className="repository-integration-panel"><button ref={toggleRef} data-repository-toggle type="button" className="repository-toggle" aria-expanded={open} aria-controls={bodyID} onClick={()=>setOpen(value=>!value)}><span><GitPullRequest size={15}/>{t('title')}</span><ChevronDown size={16}/></button>
   {forbidden?<ErrorNotice error={toolError(forbidden)} onRetry={retry}/>:open&&<div id={bodyID} className="repository-body">
    <p className="repository-muted">{t('intro')}</p><div className="repository-actions"><button data-repository-refresh type="button" disabled={action.busy} onClick={()=>{setAck(false);setTick(value=>value+1);}}>{t('refresh')}</button></div>
    <WriteNotice action={action} onRebase={rebase}/>

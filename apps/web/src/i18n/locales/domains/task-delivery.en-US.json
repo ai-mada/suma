@@ -90,6 +90,7 @@
  "task-delivery.accepted":"Current delivery accepted",
  "task-delivery.not_accepted":"Not accepted",
  "task-delivery.acceptance_boundary":"Execution success and test results do not replace human acceptance. Current evidence and permissions are rechecked when an acceptance decision is submitted.",
+ "task-delivery.open_repository":"Open repository integration",
  "task-delivery.open_review":"Open task and acceptance",
  "task-delivery.team_plans":"Team plans",
  "task-delivery.current_run_scope":"Only references from this task's currently bound execution are shown.",

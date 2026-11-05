@@ -708,6 +708,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "repository_source_integration": {
+    "stage": "T-REPOSITORY-SOURCE-INTEGRATION-248",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "14dba81e5517eb60801408289ea771daff705325",
+    "report": "docs/quality/repository-source-integration-verification.md",
+    "actual": "Current formal task acceptance links to the existing managed repository panel with keyboard focus. The same Pool-tested candidate enters exact Git preview, explicit approval, apply and receipt reconciliation.",
+    "verification": "Real Git on Windows with SQLite, two CLI processes, independent JUnit, isolated fast-forward, rejected premature/stale execute and foreign receipt, idempotent original result. 18 Web checks, typecheck and paired locales.",
+    "known_limitations": "WorkBuddy vendor service is represented by a loopback fixture. Target is a local bare Git repository. Cross-host, live vendor authorization, production and application-scoped build evidence remain separate.",
+    "full_platform_complete": false,
+    "git_record": ".cache/repository-source-integration-248/post-git.json"
+  },
   "repository_source_pool": {
     "stage": "T-REPOSITORY-SOURCE-POOL-247",
     "version": "1.0.0",

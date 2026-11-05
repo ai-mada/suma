@@ -90,6 +90,7 @@
  "task-delivery.accepted":"当前交付已验收",
  "task-delivery.not_accepted":"尚未验收通过",
  "task-delivery.acceptance_boundary":"执行成功和测试结果不能替代人工验收。提交验收决定时，平台会重新核对当前证据与权限。",
+ "task-delivery.open_repository":"查看仓库集成",
  "task-delivery.open_review":"打开任务与验收",
  "task-delivery.team_plans":"团队计划",
  "task-delivery.current_run_scope":"仅展示当前任务所关联执行的正式引用。",
