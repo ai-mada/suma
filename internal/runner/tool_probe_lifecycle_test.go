@@ -27,6 +27,11 @@ func TestToolProbeLifecycleHelper195(t *testing.T) {
 }
 
 func TestProbeLifecyclePersistsEveryExitAndTimeoutWithoutInventedStop(t *testing.T) {
+	canStart := runtime.GOOS == "windows" || runtime.GOOS == "linux" && os.Getenv("SUMA_RUNNER_LINUX_PID_NAMESPACE") == "1"
+	wantCount := 0
+	if canStart {
+		wantCount = 1
+	}
 	for _, mode := range []string{"normal", "nonzero", "cancel"} {
 		t.Run(mode, func(t *testing.T) {
 			j, err := OpenJournal(t.TempDir())
@@ -53,7 +58,7 @@ func TestProbeLifecyclePersistsEveryExitAndTimeoutWithoutInventedStop(t *testing
 			ctx, cancel := context.WithCancel(collector.context(context.Background()))
 			defer cancel()
 			started := filepath.Join(t.TempDir(), "started")
-			if mode == "cancel" {
+			if mode == "cancel" && canStart {
 				go func() {
 					deadline := time.Now().Add(2 * time.Second)
 					for time.Now().Before(deadline) {
@@ -68,8 +73,19 @@ func TestProbeLifecyclePersistsEveryExitAndTimeoutWithoutInventedStop(t *testing
 			}
 			exe, _ := os.Executable()
 			_, probeErr := probeCommand(ctx, exe, []string{"-test.run=^TestToolProbeLifecycleHelper195$"}, CommandSpec{Env: map[string]string{"SUMA_PROBE195_MODE": mode, "SUMA_PROBE195_STARTED": started}}, nil)
-			if (probeErr == nil) != (mode == "normal") {
+			if (probeErr == nil) != (mode == "normal" && canStart) {
 				t.Fatal("wrong native outcome", probeErr)
+			}
+			if !canStart {
+				if d := probeDiagnostic(probeErr); d == nil || d.Stage != "source" || d.Code != "configuration_invalid" || d.NextAction != "guide" {
+					t.Fatal("unqualified platform omitted the host configuration diagnostic", probeErr)
+				}
+				if _, err = os.Stat(started); !os.IsNotExist(err) {
+					t.Fatal("unqualified platform launched the probe", err)
+				}
+				if entries, err := os.ReadDir(collector.directory); err != nil || len(entries) != 2 || collector.hasUnverifiedNativeExit() {
+					t.Fatal("unqualified platform changed the original probe state", entries, err)
+				}
 			}
 			if err = collector.closeReturned(); err != nil {
 				t.Fatal(err)
@@ -78,12 +94,7 @@ func TestProbeLifecyclePersistsEveryExitAndTimeoutWithoutInventedStop(t *testing
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !receipt.ProbeReturned || receipt.NativeProcessCount != 1 || receipt.StoppedProcessCount != func() int {
-				if runtime.GOOS == "windows" {
-					return 1
-				}
-				return 0
-			}() || receipt.AllNativeTreesStopped != (runtime.GOOS == "windows") || len(sha) != 64 {
+			if !receipt.ProbeReturned || receipt.NativeProcessCount != wantCount || receipt.StoppedProcessCount != wantCount || len(receipt.Processes) != wantCount || !receipt.AllNativeTreesStopped || len(sha) != 64 {
 				t.Fatal("actual process stop facts were lost or invented", receipt)
 			}
 			// Reopening reads the same immutable original receipt, never starts

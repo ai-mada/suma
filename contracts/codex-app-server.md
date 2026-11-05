@@ -37,3 +37,9 @@ Windows当前CLI会将cwd隐含写根与additional roots分别投影；存在run
 [PRD](../docs/product/codex-model-execution.md)、[交互](../docs/design/codex-model-execution.md)、[限定验证](../docs/quality/codex-app-server-verification.md)。
 
 取消在等待initialize／目录／thread ACK时先记录停止意图；迟到ACK和持久化进度失败不允许提交后续首次RPC。已提交RPC仍需按原回执及进程停止核对，不能把发出取消等价为未执行。
+
+## 开发候选
+
+拥有原候选传输能力的 `agent` 节点，在当前 Codex 绑定、完成回执和权威进程树停止均确认后，可由 Runner 封存实际工作区改动。该路径要求原基线的独立工作树和受保护的 Git 读取，沿现有父封存检查点保存候选。如果工作区已经有提交，继续沿原 clean HEAD 传输规则核验。候选绑定原执行身份，后续独立测试导入该提交。任务验收依据当前测试及复核权限。
+
+缓存写入计数是可选事实。缺失时保留此前的有效小计，明确的无效值或下降仍进入核对。运行详情从原工作流版本读取固定配置，CLI 回执与当前尝试及绑定一致后才展示关联确认。 [候选交付与节点设置](../docs/integrations/codex-candidate-delivery.md)

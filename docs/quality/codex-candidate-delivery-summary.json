@@ -1,0 +1,102 @@
+{
+  "stage": "T-CODEX-DELIVERY-227",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "base": "c0d9a38571d21943607b3addc646ef0a04beee94",
+  "full_platform_complete": false,
+  "focused": {
+    "go_distinct": 14,
+    "go_test_names": [
+      "TestCodexAppServerFinalFrameAndUsageIntegrity",
+      "TestCodexAppServerSelectedConfigurationAndSnapshotProcess",
+      "TestCodexAppServerUsageAllowsUnreportedCacheWrite",
+      "TestCodexCandidateSealsOnlyAfterOriginalTreeStop",
+      "TestNativeWorkspaceCancellationCannotReportUnsealedSuccess",
+      "TestNativeWorkspaceSealUnknownAfterReferenceEffectRetainsCandidate",
+      "TestProbeLifecyclePersistsEveryExitAndTimeoutWithoutInventedStop",
+      "TestProgressLostAckReplaysThroughRealDurableScheduler",
+      "TestReadOnlyProbePrivateHomeAndAuthoritativeStdout",
+      "TestStructuredProcessCancellationRetainsActualStopFact",
+      "TestTerminalCandidateInventoryRejectsLaterDriftAndProtectedEdits",
+      "TestTrustedProbeHomePreservesPreparedFeaturesUnderCollector",
+      "TestTypedProbeDiagnosticKeepsCauseAndProjectsOnlyClosedFacts",
+      "TestWaitForNativeCompletion"
+    ],
+    "web": 33,
+    "web_files": 7,
+    "web_typecheck_diagnostics": 0,
+    "locale_pairs": 10019,
+    "production_hardcodes": 0,
+    "commands": [
+      ".cache/t227-runner/go/appserver-usage-green-20261105T091729438Z.command.json",
+      ".cache/codex-delivery-227/go/runner-focused-20261105T092616619Z.command.json",
+      ".cache/codex-delivery-227/go/recovery-focused-20261105T093015562Z.command.json",
+      ".cache/codex-delivery-227/go/final-probe-20261105T093526835Z.command.json",
+      ".cache/codex-delivery-227/go/final-safety-20261105T094748195Z.command.json"
+    ],
+    "build_scope_overlay": ".cache/codex-delivery-227/scope-overlay.json"
+  },
+  "actual": {
+    "passed": true,
+    "attempts": 1,
+    "duration_seconds": 24.93,
+    "tool_version": "codex-cli 0.166.0-alpha.6",
+    "executable_sha256": "925c7d0665ffa49b0dcf748e034a805a04da984164ac92301432073b47789b99",
+    "model": "gpt-5.5",
+    "effort": "medium",
+    "notice_tokens": 1,
+    "budget_mode": "observe_only",
+    "reported_tokens": 88,
+    "usage_state": "partial",
+    "owned_responses": 2,
+    "commercial_model_calls": 0,
+    "persisted_progress": 7,
+    "live_progress_before_first_response": true,
+    "candidate_commit": "af0a3bec70121020502c05014e5f7dc1908037ac",
+    "independent_commit": "af0a3bec70121020502c05014e5f7dc1908037ac",
+    "review_before_test_rejected": true,
+    "fixture_review": "accepted",
+    "customer_signoff": false,
+    "receipt": ".cache/codex-delivery-227/actual/20261105T092847.228759900Z/receipt.local.json",
+    "receipt_sha256": "672d8b9dbf7b4be4c4c9dd7453b0e662db1b149ccf16ff15d610564e9a8dbe8b",
+    "review_entry": "production Service.Review with an isolated reviewer actor",
+    "earlier_than_final_safety_checks": true
+  },
+  "linux": {
+    "opt_in": "SUMA_RUNNER_LINUX_PID_NAMESPACE=1",
+    "backend": "linux_pid_namespace",
+    "amd64_crosscompile": true,
+    "crosscompile_sha256": "544635dbff94593235357f3f52c0709d58cddfabc4f6b162c7563c11291f0d68",
+    "actual_run": false,
+    "macos_qualified": false
+  },
+  "visual": {
+    "fixture": true,
+    "builds": 1,
+    "inputs": 374,
+    "groups_passed": 3,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "viewport_widths": [
+      1366,
+      390
+    ],
+    "renderer_page_errors": 0,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "port_closed": true,
+    "wrapper_exit": 1,
+    "remaining_warning": "Electron fixture bootstrap CSP warning",
+    "receipt": ".cache/codex-delivery-227/ui/visual/20261105T093356286Z/result.json",
+    "receipt_sha256": "4d3f2a351a146eac48c9e344c0906722e63c9a635ddbf4c79fae9239ef04c4aa"
+  },
+  "remaining": [
+    "Commercial model and provider billing qualification",
+    "Linux eligible host runtime, macOS tree containment and physical multi-host qualification",
+    "Original 31 requirements and phases P0-P7"
+  ]
+}

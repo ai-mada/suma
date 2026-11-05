@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CODEX-DELIVERY-227 已通过真实 Windows CLI、本地回环模型夹具、原 Worker 和同提交独立测试的隔离旅程。定向回归、界面和 Linux 交叉编译按各自范围记录。 [阶段验证](codex-candidate-delivery-verification.md)
+
 T-TOOL-IDENTITY-MANAGEMENT：[节点与账号管理设计](../design/tool-identity-management.md)／[验证记录](tool-identity-management-verification.md)。节点凭证筛选、按节点配置、撤销历史，以及 WorkBuddy 权限差异与断开历史已通过代表验证。
 
 T-REAL-CLI-ONBOARDING-226：[产品](../product/real-cli-onboarding.md)／[架构与接入](../integrations/real-cli-onboarding.md)／[交互](../design/real-cli-onboarding.md)／[限定验证](real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。

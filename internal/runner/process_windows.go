@@ -32,7 +32,7 @@ type threadEntry struct {
 	Flags                  uint32
 }
 
-func startProcess(c *exec.Cmd) (*processController, error) {
+func startNativeProcess(c *exec.Cmd, _ bool) (*processController, error) {
 	job, _, e := kernel.NewProc("CreateJobObjectW").Call(0, 0)
 	if job == 0 {
 		return nil, e
@@ -90,6 +90,9 @@ func startProcess(c *exec.Cmd) (*processController, error) {
 	}
 	return fail(fmt.Errorf("suspended process initial thread not found"))
 }
+
+func (p *processController) containment() string { return windowsJobContainment }
+
 func (p *processController) Stop() error {
 	r, _, e := kernel.NewProc("TerminateJobObject").Call(uintptr(p.job), 1)
 	if r == 0 {

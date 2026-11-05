@@ -16,6 +16,8 @@
   "codex-execution.catalog_digest": "Model catalog digest",
   "codex-execution.invalid_options": "Model options do not match the current project or tool. Refresh them.",
   "codex-execution.frozen": "Fixed Codex configuration",
+  "codex-execution.reported": "Codex CLI receipt",
+  "codex-execution.receipt_mismatch": "The CLI receipt differs from the fixed configuration.",
   "codex-execution.notice_value": "Attempt notice threshold: {{count}} tokens",
   "codex-execution.requested": "Requested settings",
   "codex-execution.acknowledged": "CLI acknowledged: {{model}} · {{effort}}",

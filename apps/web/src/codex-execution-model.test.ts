@@ -1,7 +1,7 @@
 import {it,expect} from 'vitest';
 import {ApiError,type ApiCaller} from './api';
 import {ToolWriteRecovery} from './tool-write';
-import {validCodexCatalog,validCodexSelection,validCodexDispatchReceipt} from './codex-execution-model';
+import {frozenCodexForNode,validCodexCatalog,validCodexSelection,validCodexDispatchReceipt} from './codex-execution-model';
 import {parseToolManifest} from './tool-model';
 const catalog={protocol:'codex-app-server-v1',configuration_sha256:'a'.repeat(64),catalog_sha256:'b'.repeat(64),models:[{model:'model-a',reasoning_efforts:['high','low'],default_reasoning_effort:'low'}]};
 const selection={catalog_sha256:catalog.catalog_sha256,model:'model-a',reasoning_effort:'high',token_notice_limit:40};
@@ -22,13 +22,29 @@ it('keeps the exact notice and original key after a bad 200 until the matching p
 
 it('keeps Start intent for invalid or unrelated runs until the reserved run is confirmed',async()=>{
  const {validateTaskDispatchResponse}=await import('./task-dispatch-response');
- const original={id:'plan-a',project_id:'project-a',run_id:'reserved-run',workflow:{id:'derived-flow',version:1}};
+ const original={id:'plan-a',project_id:'project-a',run_id:'reserved-run',state:'started',workflow:{id:'published-flow',version:2}};
  let response:unknown=null,readFails=false;const calls:unknown[][]=[];
  const send:ApiCaller=async(...args)=>{if(args[0].startsWith('/task-dispatch-plans/plan-a?')){if(readFails)throw new ApiError(403,'forbidden','not currently readable');return original as never;}calls.push(args);return response as never;};
  const validate=(value:unknown,request:import('./tool-write').ToolPendingRequest)=>validateTaskDispatchResponse(value,request,send,'project-a');
  const store=storage(),body={project_id:'project-a',expected_version:1};const first=new ToolWriteRecovery('start',store,send,validate);
  await expect(first.run('/task-dispatch-plans/plan-a/start',body)).rejects.toThrow();expect(first.pending).toBeDefined();
- response={id:'unrelated-run',project_id:'project-a',workflow_id:'derived-flow',workflow_version:1};await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();
- response={id:'reserved-run',project_id:'project-a',workflow_id:'derived-flow',workflow_version:1};readFails=true;await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();readFails=false;
+ response={id:'unrelated-run',project_id:'project-a',workflow_id:'managed-reserved-run',workflow_version:1};await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();
+ response={id:'reserved-run',project_id:'project-a',workflow_id:'managed-reserved-run',workflow_version:1};readFails=true;await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();readFails=false;
  const recovered=new ToolWriteRecovery('start',store,send,validate);await recovered.restore();expect(recovered.pending).toBeUndefined();expect(calls.every(call=>JSON.stringify(call)===JSON.stringify(calls[0]))).toBe(true);
+});
+
+it('reads the frozen Codex selection only for the original run node and profile',()=>{
+ const config={tool_profile_id:'codex-tool',tool_profile_sha256:'d'.repeat(64),codex_execution:binding};
+ const spec={id:'develop',type:'agent',command:['codex-code'],config};
+ const node={id:spec.id,type:spec.type,command:spec.command,tool_profile_id:config.tool_profile_id,
+  tool_profile_sha256:config.tool_profile_sha256,attempt:1,fence:2,worker_id:'worker-a'};
+ const definition={id:'managed-run-a',version:1,nodes:[spec]};
+ const run={workflow_id:definition.id,workflow_version:definition.version,nodes:[node]};
+ expect(frozenCodexForNode(definition,run,node)).toEqual(binding);
+ expect(frozenCodexForNode({...definition,version:2},run,node)).toBeUndefined();
+ expect(frozenCodexForNode({...definition,nodes:[spec,spec]},run,node)).toBeUndefined();
+ for(const change of [{attempt:2},{fence:3},{worker_id:'worker-b'},{type:'test'},
+  {command:['other-command']},{tool_profile_id:'other-profile'},{tool_profile_sha256:'e'.repeat(64)}]){
+  expect(frozenCodexForNode(definition,run,{...node,...change})).toBeUndefined();
+ }
 });

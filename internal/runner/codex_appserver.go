@@ -647,13 +647,16 @@ func (d *codexAppServer) notification(method string, p map[string]any) {
 func (d *codexAppServer) usage(snapshot map[string]any) {
 	total := objectAt(snapshot, "total")
 	m := map[string]any{}
-	for from, to := range map[string]string{"inputTokens": "input_tokens", "cachedInputTokens": "cached_input_tokens", "cacheWriteInputTokens": "cache_write_input_tokens", "outputTokens": "output_tokens", "reasoningOutputTokens": "reasoning_output_tokens"} {
+	for from, to := range map[string]string{"inputTokens": "input_tokens", "cachedInputTokens": "cached_input_tokens", "outputTokens": "output_tokens", "reasoningOutputTokens": "reasoning_output_tokens"} {
 		value, ok := total[from].(json.Number)
 		if !ok {
 			d.fail("usage snapshot counter missing")
 			return
 		}
 		m[to] = value
+	}
+	if value, present := total["cacheWriteInputTokens"]; present {
+		m["cache_write_input_tokens"] = value
 	}
 	u, usageErr := parseUsage(m)
 	n, ok := total["totalTokens"].(json.Number)
@@ -667,8 +670,14 @@ func (d *codexAppServer) usage(snapshot map[string]any) {
 		return
 	}
 	if d.stream.usage != nil {
+		// Codex can omit cache-write usage. Keep its last reported subtotal
+		// so an omitted counter neither fabricates zero nor hides a later decrease.
+		if u.CacheWriteInputTokens == nil {
+			u.CacheWriteInputTokens = d.stream.usage.CacheWriteInputTokens
+		}
+		current := usageCounts(u)
 		for i, previous := range usageCounts(d.stream.usage) {
-			if previous != nil && *usageCounts(u)[i] < *previous {
+			if previous != nil && *current[i] < *previous {
 				d.fail("usage snapshot decreased")
 				return
 			}

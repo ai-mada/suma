@@ -38,6 +38,26 @@ export function sameCodexBinding(left: unknown, right: CodexBinding): boolean {
  return codexBindingPresent(left) && Object.entries(right).every(([key,value])=>left[key as keyof CodexBinding]===value) && Object.keys(left).length===Object.keys(right).length;
 }
 
+/** The run exposes the frozen tool identity, while its exact workflow
+ * revision holds the model selection even before the first attempt. */
+export function frozenCodexForNode(definition:unknown,run:unknown,node:unknown):CodexBinding|undefined {
+ if(!object(definition)||!object(run)||!object(node)||!identifier(definition.id)||definition.id!==run.workflow_id||
+  typeof definition.version!=='number'||!Number.isSafeInteger(definition.version)||definition.version<=0||definition.version!==run.workflow_version||
+  !Array.isArray(definition.nodes)||!Array.isArray(run.nodes)||typeof node.id!=='string'||!node.id)return;
+ const declared=definition.nodes.filter(item=>object(item)&&item.id===node.id);
+ const actual=run.nodes.filter(item=>object(item)&&item.id===node.id);
+ const spec=declared[0],current=actual[0];
+ if(declared.length!==1||actual.length!==1||!object(spec)||!object(current)||spec.type!=='agent'||current.type!=='agent'||node.type!=='agent'||!object(spec.config))return;
+ const config=spec.config,command=spec.command;
+ if(!identifier(config.tool_profile_id)||!hash(config.tool_profile_sha256)||!Array.isArray(command)||command.length!==1||!identifier(command[0])||!codexBindingPresent(config.codex_execution))return;
+ if(node.attempt!==current.attempt||node.fence!==current.fence||node.worker_id!==current.worker_id)return;
+ for(const candidate of [node,current]){
+  if(candidate.tool_profile_id!==config.tool_profile_id||candidate.tool_profile_sha256!==config.tool_profile_sha256||
+   !Array.isArray(candidate.command)||candidate.command.length!==1||candidate.command[0]!==command[0])return;
+ }
+ return config.codex_execution;
+}
+
 /** Recovery acknowledges only the original public model choice and task/tool
  * scope. An unrelated or malformed HTTP 200 keeps the durable operation key. */
 export function validCodexDispatchReceipt(value: unknown, body: Record<string,unknown>): boolean {

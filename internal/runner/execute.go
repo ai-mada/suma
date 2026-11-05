@@ -970,6 +970,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail(fmt.Sprintf("process start: %v", err))
 	}
 	defer controller.Close()
+	nativeWaitAbandoned := false
+	joinInput := func(done <-chan struct{}) {
+		if nativeWaitAbandoned {
+			_, _ = waitForNativeCompletion(done, processCancellationWait)
+			return
+		}
+		<-done
+	}
 	if dshStdin != nil {
 		stdinDone := make(chan struct{})
 		go func() {
@@ -980,7 +988,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		defer func() {
 			_ = dshStdin.Close()
 			_ = dshPipe.Close()
-			<-stdinDone
+			joinInput(stdinDone)
 		}()
 	}
 	if codexDriver != nil {
@@ -990,7 +998,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			_, _ = codexDriver.CopyInput(codexPipe)
 			_ = codexPipe.Close()
 		}()
-		defer func() { _ = codexDriver.Close(); _ = codexPipe.Close(); <-stdinDone }()
+		defer func() { _ = codexDriver.Close(); _ = codexPipe.Close(); joinInput(stdinDone) }()
 	}
 	if claudeSDKDriver != nil {
 		claudeSDKInputDone = make(chan struct{})
@@ -999,13 +1007,13 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			_, _ = claudeSDKDriver.CopyInput(claudeSDKPipe)
 			_ = claudeSDKPipe.Close()
 		}()
-		defer func() { _ = claudeSDKDriver.Close(); _ = claudeSDKPipe.Close(); <-claudeSDKInputDone }()
+		defer func() { _ = claudeSDKDriver.Close(); _ = claudeSDKPipe.Close(); joinInput(claudeSDKInputDone) }()
 	}
 	var cursorInputClosed <-chan struct{}
 	if acpDriver != nil {
 		stdinDone := make(chan struct{})
 		go func() { defer close(stdinDone); _, _ = acpDriver.CopyInput(acpPipe); _ = acpPipe.Close() }()
-		defer func() { _ = acpDriver.Close(); _ = acpPipe.Close(); <-stdinDone }()
+		defer func() { _ = acpDriver.Close(); _ = acpPipe.Close(); joinInput(stdinDone) }()
 		if spec.ACP.Runtime == "cursor" {
 			cursorInputClosed = stdinDone
 		}
@@ -1075,7 +1083,13 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		stopErr := controller.Stop()
 		if !waited {
-			<-done
+			_, waited = waitForNativeCompletion(done, processCancellationWait)
+		}
+		if !waited {
+			nativeWaitAbandoned = true
+			r.OutcomeUnknown = true
+			r.Error = "cancelled native process wait requires reconciliation"
+			return r
 		}
 		r.Stopped = stopErr == nil
 		r.OutcomeUnknown = stopErr != nil
@@ -1313,8 +1327,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		var captureErr error
 		workspace.nativeEvidence = nativeEvidence
 		captureCtx := context.Background()
-		if native != nil || a.CodeBaseline != nil || a.DevelopmentContinuation != nil {
+		if native != nil || a.CodeBaseline != nil || a.DevelopmentContinuation != nil || codexBinding != nil {
 			captureCtx = context.WithValue(captureCtx, nativeGitScope{}, true)
+		}
+		if a.Type == "agent" && codexBinding != nil && cfg.Artifacts != nil {
+			sealCodexDevelopment(ctx, workspace, *codexBinding, processContainmentVerified && authoritativeProcessContainment(controller.containment()), &r)
 		}
 		sealTerminalCandidate(ctx, a, workspace, &r)
 		r.WorkspaceEvidence, captureErr = workspace.capture(captureCtx, r)

@@ -17,21 +17,21 @@ func TestTerminalCandidateInventoryRejectsLaterDriftAndProtectedEdits(t *testing
 	if err := os.WriteFile(filepath.Join(w.Source, "file.txt"), []byte("terminal change\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	first, files, err := terminalCandidateInventory(context.Background(), w)
+	first, files, err := stoppedWorkspaceInventory(context.Background(), w)
 	if err != nil || len(first.Files) != 1 || string(files["file.txt"].data) != "terminal change\n" {
 		t.Fatalf("actual terminal inventory: %+v %v", first, err)
 	}
 	if err := os.WriteFile(filepath.Join(w.Source, "file.txt"), []byte("later change\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	second, _, err := terminalCandidateInventory(context.Background(), w)
+	second, _, err := stoppedWorkspaceInventory(context.Background(), w)
 	if err != nil || first.SHA256 == second.SHA256 {
 		t.Fatalf("later mutation did not change fixed digest: %+v %v", second, err)
 	}
 	if err := os.WriteFile(filepath.Join(w.Source, ".env.secret"), []byte("secret=value\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	_, safe, err := terminalCandidateInventory(context.Background(), w)
+	_, safe, err := stoppedWorkspaceInventory(context.Background(), w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestTerminalCandidateInventoryRejectsLaterDriftAndProtectedEdits(t *testing
 	}
 	gitTest(t, w.Source, "add", "file.txt")
 	gitTest(t, w.Source, "commit", "-m", "unsupported shell commit")
-	if _, _, err = terminalCandidateInventory(context.Background(), w); err == nil {
+	if _, _, err = stoppedWorkspaceInventory(context.Background(), w); err == nil {
 		t.Fatal("shell-created commit was accepted as the pinned base")
 	}
 }
@@ -50,7 +50,7 @@ func TestTerminalCandidateSealOnlyAcceptsCapturedFiles(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(w.Source, "file.txt"), []byte("candidate\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	inventory, _, err := terminalCandidateInventory(context.Background(), w)
+	inventory, _, err := stoppedWorkspaceInventory(context.Background(), w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func TestTerminalCandidateChangedImportManifestCannotAuthorizeCheckEdits(t *test
 	if err := os.WriteFile(filepath.Join(w.Source, "file.txt"), []byte("captured terminal code\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	inventory, _, err := terminalCandidateInventory(context.Background(), w)
+	inventory, _, err := stoppedWorkspaceInventory(context.Background(), w)
 	if err != nil {
 		t.Fatal(err)
 	}

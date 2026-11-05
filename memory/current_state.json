@@ -681,19 +681,19 @@
     "evidence": "36 scoped files, 13 focused checks and 3 representative groups, normal dev push verified."
   },
   "current_work": {
-    "stage": "T-REAL-CLI-ONBOARDING-226",
+    "stage": "T-CODEX-DELIVERY-227",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/real-cli-onboarding.md",
-    "report": "docs/quality/real-cli-onboarding-verification.md",
-    "summary": "docs/quality/real-cli-onboarding-summary.json",
-    "previous_commit": "f716279e627295fcf8d742f29bd71a21e74d7454",
-    "verification": "18 distinct:8Go/9Web/1Desktop;14new4directOld all pass. Initial/final full Web TSC0;9971paired/0hardcodes;1014schemas458paths. Final typed tree-stop propagation, exact diagnostics/HTTP/readers, private scope/stdout, history-stable unknown protection and original recovery separation.",
-    "actual": "Two successful real installed Windows Codex0.166.0-alpha.5.1 metadata journeys before/after final stop propagation: final26Go input hashes match; each1scan/preparation/generation/bound inventory/paused and4WindowsJob stop receipts,0copies/enable/business/model requests.2isolated builds/native sessions,3representative groups/4Root-viewed images; final370UI inputs match, original3source differences explicitly retained.",
-    "next": "Prioritize real authenticated model/budget and code/candidate/independent-test/acceptance; remaining tool SDK/AppServer preparations, physical multi-host, cross-OS/databases/installers/scale/production and all original31/P0-P7. Preserve separate vendor and fixture evidence.",
+    "contract": "contracts/codex-app-server.md",
+    "report": "docs/quality/codex-candidate-delivery-verification.md",
+    "summary": "docs/quality/codex-candidate-delivery-summary.json",
+    "previous_commit": "c0d9a38571d21943607b3addc646ef0a04beee94",
+    "verification": "14 distinct focused Go checks, 33 Web checks, final typecheck and i18n. Linux amd64 cross-compile only. Three representative visual states passed; wrapper retains a fixture CSP warning.",
+    "actual": "One installed Windows Codex 0.166.0-alpha.6 journey via controlled loopback Responses. Model/effort/observe-only notice frozen, seven progress events, parent-sealed exact Git candidate, independent Worker/JUnit, isolated authorized review. Two fixture responses, zero commercial calls.",
+    "known_limitations": "Linux opt-in namespace is cross-compiled but needs an eligible host. macOS tree containment and commercial provider qualification remain pending.",
+    "next": "Qualify Linux runtime and commercial provider using explicitly provisioned access, extend original recovery/deployment and remaining 31 requirements across P0-P7.",
     "full_platform_complete": false,
-    "git_record": ".cache/real-cli-onboarding-226/post-git.json",
-    "known_limitations": "Unix full-tree containment is not available: typed stop_unverified now also reaches standalone callers. Continuous probes and formal onboarding remain blocked until dedicated containment/reconciliation. No Unix actual run; original full31/P0-P7 remains active."
+    "git_record": ".cache/codex-delivery-227/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2776,18 +2776,12 @@
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   },
   "active_implementation": {
-    "stage": "T-REAL-CLI-ONBOARDING-226",
+    "stage": "T-CODEX-DELIVERY-227",
     "version": "1.0.0",
-    "status": "scoped_verified_pending_stage_git_delivery",
-    "resume_requested": true,
-    "base": "f716279e627295fcf8d742f29bd71a21e74d7454",
-    "contract": "contracts/real-cli-onboarding.md",
-    "implementation": "Original real Codex metadata-to-paused chain, typed installation failure diagnostics and one-click explicit recheck, trusted private probe scopes and stdout-only versions.",
-    "full_platform_complete": false,
-    "source_complete": true,
-    "focused_verified": true,
-    "real_codex_metadata_verified": true,
-    "known_unix_onboarding_gap": true
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "base": "c0d9a38571d21943607b3addc646ef0a04beee94",
+    "contract": "contracts/codex-app-server.md",
+    "full_platform_complete": false
   },
   "real_cli_onboarding": {
     "stage": "T-REAL-CLI-ONBOARDING-226",
@@ -2805,5 +2799,21 @@
     "date": "2026-11-03",
     "original_request_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
     "known_limitations": "Unix full-tree containment is not available: typed stop_unverified now also reaches standalone callers. Continuous probes and formal onboarding remain blocked until dedicated containment/reconciliation. No Unix actual run; original full31/P0-P7 remains active."
+  },
+  "codex_candidate_delivery": {
+    "stage": "T-CODEX-DELIVERY-227",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/codex-app-server.md",
+    "report": "docs/quality/codex-candidate-delivery-verification.md",
+    "summary": "docs/quality/codex-candidate-delivery-summary.json",
+    "previous_commit": "c0d9a38571d21943607b3addc646ef0a04beee94",
+    "verification": "14 distinct focused Go checks, 33 Web checks, final typecheck and i18n. Linux amd64 cross-compile only. Three representative visual states passed; wrapper retains a fixture CSP warning.",
+    "actual": "One installed Windows Codex 0.166.0-alpha.6 journey via controlled loopback Responses. Model/effort/observe-only notice frozen, seven progress events, parent-sealed exact Git candidate, independent Worker/JUnit, isolated authorized review. Two fixture responses, zero commercial calls.",
+    "known_limitations": "Linux opt-in namespace is cross-compiled but needs an eligible host. macOS tree containment and commercial provider qualification remain pending.",
+    "next": "Qualify Linux runtime and commercial provider using explicitly provisioned access, extend original recovery/deployment and remaining 31 requirements across P0-P7.",
+    "full_platform_complete": false,
+    "git_record": ".cache/codex-delivery-227/post-git.json",
+    "date": "2026-11-05"
   }
 }

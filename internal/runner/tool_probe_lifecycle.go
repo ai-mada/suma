@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -389,7 +388,7 @@ func readToolProbeReceiptAt(dir string, source toolProbeSource) (toolProbeReceip
 		if stop.NativeStarted {
 			native++
 		}
-		if stop.NativeStarted && stop.ParentStopped && stop.TreeStopped && stop.Containment == "windows_job" && stop.ResultCode == "stopped" {
+		if stop.NativeStarted && stop.ParentStopped && stop.TreeStopped && authoritativeProcessContainment(stop.Containment) && stop.ResultCode == "stopped" {
 			stopped++
 		} else {
 			all = false
@@ -418,6 +417,9 @@ type probeProcessController struct {
 }
 
 func startProbeProcess(ctx context.Context, cmd *exec.Cmd) (*probeProcessController, error) {
+	if !nativeProbeContainmentConfigured() {
+		return nil, newProbeFailure("source", "configuration_invalid", nil)
+	}
 	p := &probeProcessController{cmd: cmd, collector: toolProbeCollectorFrom(ctx)}
 	var err error
 	p.privateScope, p.closeScope, err = prepareProbeScope(ctx, cmd)
@@ -439,23 +441,17 @@ func startProbeProcess(ctx context.Context, cmd *exec.Cmd) (*probeProcessControl
 		p.closeScope()
 		return nil, err
 	}
-	native, err := startProcess(cmd)
+	native, err := startNativeProcess(cmd, true)
 	if err != nil {
 		p.privateScope.end(false)
 		p.closeScope()
 		if p.collector != nil {
-			_ = p.collector.record(toolProbeStop{Source: p.collector.source, ID: p.id, Containment: probeContainment(), ResultCode: "start_unverified", ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)})
+			_ = p.collector.record(toolProbeStop{Source: p.collector.source, ID: p.id, Containment: "unavailable", ResultCode: "start_unverified", ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)})
 		}
 		return nil, newProbeFailure(probeStage(cmd.Args[1:]), "launch_failed", err)
 	}
 	p.native = native
 	return p, nil
-}
-func probeContainment() string {
-	if runtime.GOOS == "windows" {
-		return "windows_job"
-	}
-	return "unix_process_group"
 }
 func (p *probeProcessController) Wait() error {
 	err := p.cmd.Wait()
@@ -491,7 +487,7 @@ func (p *probeProcessController) Stop() error {
 // the stronger tree-stop contract. Keep that fact consistent for standalone
 // probes as well as collectors; retaining a directory alone is not failure.
 func requireProbeTreeStop(waitReturned bool, nativeErr error, containment string) error {
-	if waitReturned && nativeErr == nil && containment == "windows_job" {
+	if waitReturned && nativeErr == nil && authoritativeProcessContainment(containment) {
 		return nil
 	}
 	return &toolProbeFailure{stage: "protocol", code: "stop_unverified", cause: nativeErr}
@@ -502,22 +498,23 @@ func (p *probeProcessController) Finish() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	err = errors.Join(p.stopErr, err)
-	err = requireProbeTreeStop(p.waitReturned, err, probeContainment())
+	containment := p.native.containment()
+	err = requireProbeTreeStop(p.waitReturned, err, containment)
 	if p.finished {
 		return err
 	}
 	p.finished = true
 	if p.collector != nil {
 		code := "stopped"
-		if err != nil || !p.waitReturned {
+		if err != nil {
 			code = "stop_unverified"
 		}
-		stop := toolProbeStop{Source: p.collector.source, ID: p.id, NativeStarted: true, ParentStopped: p.waitReturned, TreeStopped: p.waitReturned && err == nil && runtime.GOOS == "windows", Containment: probeContainment(), ExitCode: p.exitCode, ResultCode: code, ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)}
+		stop := toolProbeStop{Source: p.collector.source, ID: p.id, NativeStarted: true, ParentStopped: p.waitReturned, TreeStopped: err == nil, Containment: containment, ExitCode: p.exitCode, ResultCode: code, ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)}
 		if writeErr := p.collector.record(stop); writeErr != nil {
 			err = errors.Join(err, writeErr)
 		}
 	}
-	p.privateScope.end(p.waitReturned && err == nil && runtime.GOOS == "windows")
+	p.privateScope.end(err == nil)
 	return err
 }
 func (p *probeProcessController) Close() {
@@ -526,7 +523,7 @@ func (p *probeProcessController) Close() {
 	p.finished = true
 	p.mu.Unlock()
 	if unfinished && p.collector != nil {
-		_ = p.collector.record(toolProbeStop{Source: p.collector.source, ID: p.id, NativeStarted: true, Containment: probeContainment(), ResultCode: "stop_unverified", ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)})
+		_ = p.collector.record(toolProbeStop{Source: p.collector.source, ID: p.id, NativeStarted: true, Containment: p.native.containment(), ResultCode: "stop_unverified", ObservedAt: time.Now().UTC().Format(time.RFC3339Nano)})
 	}
 	if unfinished {
 		p.privateScope.end(false)

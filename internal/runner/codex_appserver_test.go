@@ -328,3 +328,51 @@ func TestCodexAppServerFinalFrameAndUsageIntegrity(t *testing.T) {
 		t.Fatal("inconsistent total replaced known usage")
 	}
 }
+
+func TestCodexAppServerUsageAllowsUnreportedCacheWrite(t *testing.T) {
+	profile := tc.Profile{CommandID: "codex041", Adapter: "codex", Protocol: cc.Protocol, ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}
+	for _, tt := range []struct {
+		name       string
+		cacheWrite []string
+		reported   bool
+		wantError  string
+	}{
+		{name: "omitted from both snapshots", cacheWrite: []string{"", ""}},
+		{name: "preserve a reported subtotal", cacheWrite: []string{`,"cacheWriteInputTokens":2`, ""}, reported: true},
+		{name: "reject a decrease after omission", cacheWrite: []string{`,"cacheWriteInputTokens":2`, "", `,"cacheWriteInputTokens":1`}, wantError: "usage snapshot decreased"},
+		{name: "reject present null", cacheWrite: []string{`,"cacheWriteInputTokens":null`}, wantError: "invalid usage snapshot"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var events []tc.Event
+			stream := newToolStream(profile, nil, func(e tc.Event) error { events = append(events, e); return nil })
+			limit := int64(30)
+			binding := &cc.Binding{BindingSHA256: strings.Repeat("c", 64), Model: "owned-model-041", ReasoningEffort: "high", TokenNoticeLimit: &limit}
+			d := newCodexAppServer(profile, CommandSpec{}, "", "", "fixture", binding, stream)
+			d.thread, d.turn, d.turnStarted, d.turnAcknowledged = "thread-041", "turn-041", true, true
+			d.evidence.ThreadID, d.evidence.TurnID, d.evidence.ConfigurationAcknowledged = d.thread, d.turn, true
+			stream.session = d.thread
+			for _, field := range tt.cacheWrite {
+				_, _ = d.Write([]byte(`{"method":"thread/tokenUsage/updated","params":{"threadId":"thread-041","turnId":"turn-041","tokenUsage":{"total":{"totalTokens":40,"inputTokens":23,"outputTokens":17,"cachedInputTokens":0,"reasoningOutputTokens":2` + field + `},"last":{"totalTokens":1}}}}` + "\n"))
+			}
+			_, _ = d.Write([]byte(`{"method":"turn/completed","params":{"threadId":"thread-041","turn":{"id":"turn-041","status":"completed"}}}` + "\n"))
+			d.Finish()
+			evidence, err := stream.finish()
+			if tt.wantError != "" {
+				if err == nil || !strings.Contains(err.Error(), tt.wantError) || evidence.Terminal != "unknown" {
+					t.Fatalf("invalid cache-write usage accepted: %+v %v", evidence, err)
+				}
+				return
+			}
+			if err != nil || evidence.Terminal != "completed" || evidence.UsageState != tc.UsagePartial || evidence.Usage == nil || *evidence.Usage.InputTokens != 23 || *evidence.Usage.OutputTokens != 17 || !evidence.CodexExecution.TokenNoticeExceeded {
+				t.Fatalf("valid metering did not survive through completion: %+v %v", evidence, err)
+			}
+			cacheWrite := evidence.Usage.CacheWriteInputTokens
+			if !tt.reported && cacheWrite != nil || tt.reported && (cacheWrite == nil || *cacheWrite != 2) {
+				t.Fatalf("cache-write subtotal did not preserve reported presence: %+v", evidence.Usage)
+			}
+			if len(events) != 4 || events[0].Kind != "usage" || events[1].Kind != "activity_updated" || events[2].Kind != "usage" || events[3].Kind != "turn_completed" {
+				t.Fatalf("metering progress did not retain its single notice: %+v", events)
+			}
+		})
+	}
+}

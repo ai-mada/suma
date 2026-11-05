@@ -272,7 +272,8 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 	if err := developmentContinuationSpec(a, spec); err != nil {
 		return nil, err
 	}
-	if a.DevelopmentContinuation != nil {
+	codexCandidate := a.Type == "agent" && spec.CodexAppServer != nil && cfg.Artifacts != nil
+	if a.DevelopmentContinuation != nil || codexCandidate {
 		ctx = context.WithValue(ctx, nativeGitScope{}, true)
 	}
 	if a.CandidateConflictRepair != nil {
@@ -291,7 +292,7 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 	if err != nil {
 		return nil, err
 	}
-	if spec.NativeWorkspace != nil || spec.CandidateComposition || a.CodeBaseline != nil || a.DevelopmentContinuation != nil {
+	if spec.NativeWorkspace != nil || spec.CandidateComposition || a.CodeBaseline != nil || a.DevelopmentContinuation != nil || codexCandidate {
 		if err = nativeBaseAttributes(ctx, repo, base); err != nil {
 			return nil, err
 		}

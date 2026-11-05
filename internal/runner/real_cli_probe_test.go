@@ -161,8 +161,13 @@ func TestTypedProbeDiagnosticKeepsCauseAndProjectsOnlyClosedFacts(t *testing.T) 
 		t.Fatal("raw text was classified as a permission fact")
 	}
 	unixStop := probeDiagnostic(requireProbeTreeStop(true, nil, "unix_process_group"))
-	if requireProbeTreeStop(true, nil, "windows_job") != nil || unixStop == nil || unixStop.Code != "stop_unverified" || unixStop.NextAction != "none" {
+	if unixStop == nil || unixStop.Code != "stop_unverified" || unixStop.NextAction != "none" {
 		t.Fatal("parent/group absence became complete tree-stop evidence", unixStop)
+	}
+	for _, containment := range []string{"windows_job", "linux_pid_namespace"} {
+		if requireProbeTreeStop(true, nil, containment) != nil || requireProbeTreeStop(false, nil, containment) == nil {
+			t.Fatal("expected both original wait and authoritative tree stop", containment)
+		}
 	}
 	failedStop := requireProbeTreeStop(true, private, "windows_job")
 	d = probeDiagnostic(failedStop)

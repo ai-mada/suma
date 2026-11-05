@@ -39,16 +39,16 @@ func terminalCandidateInventoryDigest(value terminalCandidateInventoryRecord) st
 	return digest(raw)
 }
 
-// Inventory uses the same rooted reads, protected path policy and bounds as the
-// native parent seal. It never invokes the shell's Git hooks or external filters.
-func terminalCandidateInventory(ctx context.Context, w *attemptWorkspace) (terminalCandidateInventoryRecord, map[string]nativeSealFile, error) {
+// stoppedWorkspaceInventory uses the parent seal's rooted reads and protected
+// paths. The caller must first prove that its original writer has stopped.
+func stoppedWorkspaceInventory(ctx context.Context, w *attemptWorkspace) (terminalCandidateInventoryRecord, map[string]nativeSealFile, error) {
 	out := terminalCandidateInventoryRecord{SchemaVersion: 1, AttemptKey: w.AttemptKey, BaseCommit: w.BaseCommit, AdminBaseCommit: w.AdminBaseCommit, CodeBaseline: cloneTerminalCodeBaseline(w.Assignment.CodeBaseline), Files: []NativeWorkspaceFileEffect{}, Inventory: []terminalCandidateFile{}}
 	if _, err := nativeSealIdentity(ctx, w); err != nil {
 		return out, nil, err
 	}
 	head, err := nativeSealText(ctx, w, "", "rev-parse", "HEAD")
 	if err != nil || head != w.BaseCommit || !terminalWorkspaceBasis(w.Assignment, w.BaseCommit, w.AdminBaseCommit) {
-		return out, nil, fmt.Errorf("Stopped terminal HEAD differs from its original administrator base")
+		return out, nil, fmt.Errorf("Stopped workspace HEAD differs from its approved base")
 	}
 	base, _, err := nativeSealTree(ctx, w)
 	if err != nil {
@@ -71,7 +71,7 @@ func terminalCandidateInventory(ctx context.Context, w *attemptWorkspace) (termi
 		}
 		if _, e = nativeWorkspacePath(name); e != nil {
 			if !exists || nativeSealBlob(file.data, len(w.BaseCommit)) != old.object {
-				return out, nil, fmt.Errorf("Stopped terminal changed a protected tracked file")
+				return out, nil, fmt.Errorf("Stopped workspace changed a protected tracked file")
 			}
 			continue
 		}
@@ -98,7 +98,7 @@ func terminalCandidateInventory(ctx context.Context, w *attemptWorkspace) (termi
 		if exists {
 			total += len(file.data)
 			if len(file.data) > 1<<20 || total > nativeSealMaxBytes || len(files) > nativeSealMaxFiles {
-				return out, nil, fmt.Errorf("Stopped terminal source exceeds its file or byte limit")
+				return out, nil, fmt.Errorf("Stopped workspace exceeds its file or byte limit")
 			}
 			mode := uint32(file.mode.Perm())
 			if runtime.GOOS == "windows" {
@@ -106,7 +106,7 @@ func terminalCandidateInventory(ctx context.Context, w *attemptWorkspace) (termi
 			}
 			out.Inventory = append(out.Inventory, terminalCandidateFile{Path: name, SHA256: digest(file.data), Mode: mode})
 			if tracked && runtime.GOOS != "windows" && (file.mode.Perm()&0111 != 0) != (old.mode == "100755") {
-				return out, nil, fmt.Errorf("Stopped terminal changed executable modes")
+				return out, nil, fmt.Errorf("Stopped workspace changed executable modes")
 			}
 		}
 		if tracked && exists && nativeSealBlob(file.data, len(w.BaseCommit)) == old.object {
@@ -160,11 +160,11 @@ func captureTerminalCandidateSource(ctx context.Context, a Assignment, cfg ExecC
 	if err := terminalCandidateStopped(w, sessionID); err != nil {
 		return "", err
 	}
-	inventory, _, err := terminalCandidateInventory(ctx, w)
+	inventory, _, err := stoppedWorkspaceInventory(ctx, w)
 	if err != nil {
 		return "", err
 	}
-	second, _, err := terminalCandidateInventory(ctx, w)
+	second, _, err := stoppedWorkspaceInventory(ctx, w)
 	if err != nil || inventory.SHA256 != second.SHA256 {
 		return "", fmt.Errorf("Original terminal source changed during stopped capture")
 	}
@@ -266,7 +266,7 @@ func applyTerminalCandidateSource(ctx context.Context, a Assignment, cfg ExecCon
 	if err != nil || json.Unmarshal(stored, &fixed) != nil || fixed.SHA256 != source.SnapshotSHA256 || terminalCandidateInventoryDigest(fixed) != source.SnapshotSHA256 || fixed.BaseCommit != source.BaseCommit || fixed.AdminBaseCommit != source.AdminBaseCommit || !sameTerminalCodeBaseline(fixed.CodeBaseline, source.CodeBaseline) {
 		return fmt.Errorf("Stopped terminal snapshot receipt is unavailable")
 	}
-	inventory, files, err := terminalCandidateInventory(ctx, &original)
+	inventory, files, err := stoppedWorkspaceInventory(ctx, &original)
 	if err != nil || inventory.SHA256 != source.SnapshotSHA256 || len(inventory.Files) == 0 {
 		return fmt.Errorf("Stopped terminal source changed or contains no permitted code changes")
 	}
@@ -289,7 +289,7 @@ func applyTerminalCandidateSource(ctx context.Context, a Assignment, cfg ExecCon
 			return err
 		}
 	}
-	after, _, err := terminalCandidateInventory(ctx, &original)
+	after, _, err := stoppedWorkspaceInventory(ctx, &original)
 	if err != nil || after.SHA256 != inventory.SHA256 {
 		return fmt.Errorf("Original terminal source changed while copying")
 	}

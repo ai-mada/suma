@@ -250,7 +250,10 @@ func runPinnedNativeCheck(ctx context.Context, cfg ExecConfig, workspace *attemp
 		}
 	case <-ctx.Done():
 		stopErr := controller.Stop()
-		<-done
+		if _, waited := waitForNativeCompletion(done, processCancellationWait); !waited {
+			result.OutcomeUnknown = true
+			return result, nil
+		}
 		result.Stopped = stopErr == nil
 		result.OutcomeUnknown = stopErr != nil
 	}

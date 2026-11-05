@@ -271,6 +271,83 @@ function graphSelection(ids: string[]) {
   });
 }
 describe("real WorkflowView graph selection and actual App routes", () => {
+  it("carries the frozen Codex notice into run progress and checks the CLI receipt against it", async () => {
+    const binding = {
+      protocol: 'codex-app-server-v1', configuration_sha256: 'a'.repeat(64),
+      catalog_sha256: 'b'.repeat(64), binding_sha256: 'c'.repeat(64), model: 'reviewed-model',
+      reasoning_effort: 'high', token_notice_limit: 1200, budget_mode: 'observe_only',
+      identity_evidence: 'configuration_ack_only',
+    };
+    const profileSHA = 'd'.repeat(64);
+    const agent = {
+      ...definition.nodes[0], type: 'agent', command: ['codex-code'],
+      config: {tool_profile_id: 'codex-tool', tool_profile_sha256: profileSHA, codex_execution: binding},
+    };
+    const tester = {...definition.nodes[1], type: 'test'};
+    const frozen = {...definition, nodes: [agent, tester]};
+    const newer = {...frozen, version: 2, nodes: [{...agent, config: {...agent.config,
+      codex_execution: {...binding, model: 'unrelated-latest-model'},
+    }}, tester]};
+    const original = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input, options) => {
+      const url = new URL(String(input), 'http://local');
+      const path = url.pathname.replace('/api/v1', '');
+      if (path === '/workflows') return response({items: [newer], total: 1});
+      if (path === '/workflows/workflow') return response(url.searchParams.get('version') === '1' ? frozen : newer);
+      if (path === '/runs/run/nodes/api/tool-permissions') return response({items: []});
+      if (path === '/runs/run/nodes/api/tool-inputs') return response({protocol: 'codex-user-input-v1', items: []});
+      if (path === '/runs/run') {
+        const receiptModel = version === 3 ? 'unrelated-receipt-model' : binding.model;
+        const toolEvidence = version < 2 ? undefined : {
+          profile: {adapter: 'codex', protocol: binding.protocol, profile_sha256: profileSHA,
+            command_id: agent.command[0], tool_version: 'codex fixture', read_only: false, executable_sha256: 'e'.repeat(64)},
+          terminal: 'completed', event_count: 2, usage_state: 'unreported',
+          codex_execution: {binding_sha256: binding.binding_sha256, thread_id: 'thread-a', turn_id: 'turn-a',
+            requested_model: receiptModel, requested_reasoning_effort: 'high', acknowledged_model: receiptModel,
+            acknowledged_reasoning_effort: 'high', acknowledged_provider: 'fixture', configuration_acknowledged: true,
+            interrupt_requested: false, interrupt_acknowledged: false, token_notice_exceeded: true},
+        };
+        return response({...run(), nodes: [{...node('api'), type: 'agent', command: agent.command,
+          tool_profile_id: agent.config.tool_profile_id, tool_profile_sha256: profileSHA,
+          ...(version > 1 ? {state: 'succeeded', attempt: 1, fence: 1, worker_id: 'worker'} : {}),
+          tool_evidence: toolEvidence}, {...node('ui'), type: 'test'}]});
+      }
+      return original(input, options);
+    });
+
+    history.replaceState(null, '', '/?project=project&view=development&sub=runs&run=run&node=api');
+    await act(async () => {root = createRoot(container); root.render(<App/>);});
+    await advance(250);
+    const facts = () => container.querySelector('.tool-execution-facts .model-execution')?.textContent;
+    expect(facts()).toBeDefined();
+    expect(facts()).toContain('已固定的 Codex 配置');
+    expect(facts()).toContain('reviewed-model');
+    expect(facts()).toContain('1,200');
+    expect(facts()).not.toContain('CLI 已确认');
+    expect(facts()).not.toContain('unrelated-latest-model');
+
+    await act(async () => setLocale('en-US', {persist: false}));
+    version = 2;
+    await act(async () => event(2));
+    await advance(250);
+    expect(facts()).toContain('Fixed Codex configuration');
+    expect(facts()).toContain('CLI acknowledged');
+    expect(facts()).toContain('exceeded');
+
+    version = 3;
+    await act(async () => event(3));
+    await advance(250);
+    expect(facts()).toContain('reviewed-model');
+    expect(facts()).toContain('CLI receipt differs from the fixed configuration');
+    expect(facts()).not.toContain('unrelated-receipt-model');
+    expect(facts()).not.toContain('exceeded');
+
+    await act(async () => graphSelection(['ui']));
+    await advance(250);
+    expect(facts()).toBeUndefined();
+    expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).includes('/model-execution/options'))).toBe(false);
+    expect(vi.mocked(fetch).mock.calls.every(([,options]) => !options?.method || options.method === 'GET')).toBe(true);
+  });
   it("keeps saved attempt tools scoped through actual App links, Back, reload and close while current attempt remains separate", async () => {
     includeAttempts = true;
     const original=vi.mocked(fetch).getMockImplementation()!;

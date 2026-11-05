@@ -478,7 +478,11 @@ func (n *nativeWorkspace) runCheckLocked(ctx context.Context, args map[string]an
 	cancelled := checkCtx.Err() != nil
 	stop()
 	cancel()
-	_, after, snapshotErr := n.snapshotLocked()
+	after := before
+	var snapshotErr error
+	if !result.OutcomeUnknown {
+		_, after, snapshotErr = n.snapshotLocked()
+	}
 	result.OperationID = id
 	result.CheckID = checkID
 	result.Generation = n.ledger.Generation

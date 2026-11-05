@@ -45,12 +45,24 @@ export function CodexModelExecutionSelector({catalog,disabled,loading=false,erro
   </>}
  </section>;
 }
-export function CodexExecutionFacts({binding,evidence,skills}:{binding?:CodexBinding|null;evidence?:CodexEvidence|null;skills?:ExecutionSkillBundle|null}) {
- useLocale();if(!codexBindingPresent(binding)&&!evidence)return null;
- return <section className="model-execution" aria-label={t('frozen')}><h3>{t('frozen')}</h3>
+export function CodexExecutionFacts({binding:fixed,evidence:receipt,skills}:{binding?:CodexBinding|null;evidence?:CodexEvidence|null;skills?:ExecutionSkillBundle|null}) {
+ useLocale();
+ const binding=codexBindingPresent(fixed)?fixed:undefined;
+ if(!binding&&!receipt)return null;
+ const mismatch=binding&&receipt&&(
+  receipt.binding_sha256!==binding.binding_sha256||
+  receipt.requested_model!==binding.model||receipt.requested_reasoning_effort!==binding.reasoning_effort||
+  receipt.token_notice_exceeded&&binding.token_notice_limit===undefined||
+  receipt.configuration_acknowledged&&(receipt.acknowledged_model!==binding.model||
+   (receipt.acknowledged_reasoning_effort??'')!==binding.reasoning_effort)
+ );
+ const evidence=mismatch?undefined:receipt;
+ const title=t(binding?'frozen':'reported');
+ return <section className="model-execution" aria-label={title}><h3>{title}</h3>
   {binding&&<><strong>{binding.model}</strong><p>{t('effort')}: {binding.reasoning_effort?codexEffortLabel(binding.reasoning_effort):t('default_effort')}</p>{binding.token_notice_limit!=null&&<p>{t('notice_value',{count:formatNumber(binding.token_notice_limit)})}</p>}</>}
+  {mismatch&&<p className="warning" role="status">{t('receipt_mismatch')}</p>}
   {evidence&&<><p>{t('requested')}: {evidence.requested_model} · {evidence.requested_reasoning_effort?codexEffortLabel(evidence.requested_reasoning_effort):t('default_effort')}</p><p>{evidence.configuration_acknowledged?t('acknowledged',{model:evidence.acknowledged_model,effort:evidence.acknowledged_reasoning_effort?codexEffortLabel(evidence.acknowledged_reasoning_effort):t('default_effort')}):t('not_acknowledged')}</p>{evidence.token_notice_exceeded&&<p role="status" className="warning">{t('notice_exceeded')}</p>}{!!evidence.rerouted_models?.length&&<p>{t('rerouted')}: {evidence.rerouted_models.join(', ')}</p>}</>}
   <p className="muted">{t('boundary')}</p><details><summary>{t('basis')}</summary>{binding&&<code>{binding.binding_sha256}</code>}{evidence&&<p>{t('thread')}: {evidence.thread_id||'—'} · {t('turn')}: {evidence.turn_id||'—'}</p>}</details>
-  {evidence&&<CodexNativeSkillFacts mode="attempt" bundle={skills} evidence={evidence.skills}/>}
+  {receipt&&<CodexNativeSkillFacts mode="attempt" bundle={skills} evidence={evidence?.skills}/>}
  </section>;
 }

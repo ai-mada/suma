@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CODEX-DELIVERY-227 已贯通 Windows 真实 Codex 的固定模型与用量提醒、持久进度、候选封存、同提交独测和隔离复核。Linux 可选 PID 命名空间已通过交叉编译，实机待验。 [接入指南](../integrations/codex-candidate-delivery.md) · [验证记录](../quality/codex-candidate-delivery-verification.md)
+
 T-TOOL-IDENTITY-MANAGEMENT：[节点与账号管理设计](../design/tool-identity-management.md)／[验证记录](../quality/tool-identity-management-verification.md)。节点凭证筛选、按节点配置、撤销历史，以及 WorkBuddy 权限差异与断开历史已通过代表验证。
 
 T-REAL-CLI-ONBOARDING-226：[产品](../product/real-cli-onboarding.md)／[架构与接入](../integrations/real-cli-onboarding.md)／[交互](../design/real-cli-onboarding.md)／[限定验证](../quality/real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。

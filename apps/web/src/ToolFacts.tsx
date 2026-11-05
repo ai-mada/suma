@@ -17,7 +17,7 @@ import type {WorkspaceEvidence} from './api';
 import type {AttemptToolScope} from './attempt-tool-history';
 import {WorkspaceOperations} from './WorkspaceOperations';
 import {workspaceOperationsForAttempt} from './workspace-operations-model';
-import type { ModelBinding, OpenCodeExecutionCapability, TaskDispatchTestBinding } from "../../../packages/contracts/src";
+import type { CodexBinding, ModelBinding, OpenCodeExecutionCapability, TaskDispatchTestBinding } from "../../../packages/contracts/src";
 import {
   taskPlanStarted,
   toolEventNames,
@@ -334,6 +334,7 @@ export function ToolExecutionFacts({
   events = [],
   fixedOpenCode,
   modelBinding,
+  codexBinding,
   executionSkills,
   project,
   tests,
@@ -344,6 +345,7 @@ export function ToolExecutionFacts({
   events?: ToolEvent[];
   fixedOpenCode?:OpenCodeExecutionCapability;
   modelBinding?:ModelBinding;
+  codexBinding?:CodexBinding;
   executionSkills?:ExecutionSkillBundle;
   project?:string;
   tests?:OpenCodeRunTest[];
@@ -352,7 +354,7 @@ export function ToolExecutionFacts({
   const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode}),octop=evidence?.profile.adapter==='octop'&&evidence.profile.protocol==='octop-harness-acp-v1',acp=evidence?.profile.adapter==='qoder'&&evidence.profile.protocol==='acp-stdio-v1';
   const host=workspaceOperations?workspaceOperationsForAttempt(workspaceOperations.events,workspaceOperations.scope,workspaceOperations.profileSHA):undefined;
   const hostFacts=workspaceOperations&&host?<WorkspaceOperations scope={workspaceOperations.scope} projection={host} workspaceEvidence={workspaceOperations.evidence} context="current" unconfirmed={workspaceOperations.unconfirmed}/>:null;
-  if (!evidence && !events.length&&!openCode&&!modelBinding&&!executionSkills) return hostFacts;
+  if (!evidence && !events.length&&!openCode&&!modelBinding&&!codexBinding&&!executionSkills) return hostFacts;
   const recent = toolEventRows(events).slice(-40),
     last = events.at(-1),
     session =
@@ -410,7 +412,7 @@ export function ToolExecutionFacts({
         <p className="muted">
           {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}
-      <ExecutionModelFacts binding={modelBinding} executionSkills={executionSkills} evidence={evidence} state={state} openCodeRun={openCode} tests={tests} project={project}/>
+      <ExecutionModelFacts binding={modelBinding} codex={codexBinding} executionSkills={executionSkills} evidence={evidence} state={state} openCodeRun={openCode} tests={tests} project={project}/>
       <UsageFacts
         usage={usage ?? undefined}
         usageState={usageState}

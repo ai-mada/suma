@@ -16,6 +16,8 @@
   "codex-execution.catalog_digest": "模型目录摘要",
   "codex-execution.invalid_options": "模型选项与当前项目或工具不一致，请刷新。",
   "codex-execution.frozen": "已固定的 Codex 配置",
+  "codex-execution.reported": "Codex CLI 回执",
+  "codex-execution.receipt_mismatch": "CLI 回执与固定配置不符。",
   "codex-execution.notice_value": "本次提醒阈值：{{count}} Token",
   "codex-execution.requested": "请求配置",
   "codex-execution.acknowledged": "CLI 已确认：{{model}} · {{effort}}",
