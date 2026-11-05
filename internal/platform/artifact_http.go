@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	rc "github.com/ai-mada/suma/internal/releasecontract"
+	"github.com/ai-mada/suma/internal/strictjson"
 )
 
 func artifactBytes(w http.ResponseWriter, b []byte) {
@@ -94,6 +95,18 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, actor Acto
 		if len(parts) == 1 && r.Method == "POST" {
 			out, e := s.Service.RegisterReleaseWorker(ctx, actor, project, m)
 			respond(w, 201, out, e)
+			return true
+		}
+		if len(parts) == 3 && parts[2] == "rotate-credential" && r.Method == http.MethodPost && manualRunnerRotationAPIPath(r.URL.Path) {
+			w.Header().Set("Cache-Control", "no-store")
+			var request ReleaseWorkerRotationRequest
+			body, err := json.Marshal(m)
+			if r.URL.RawQuery != "" || err != nil || strictjson.Decode(body, &request, manualRunnerRotationBodyLimit) != nil {
+				writeError(w, invalid("执行节点凭证轮换请求无效"))
+				return true
+			}
+			out, err := s.Service.RotateReleaseWorkerCredential(ctx, actor, project, parts[1], request)
+			respond(w, 200, out, err)
 			return true
 		}
 		if len(parts) == 2 && r.Method == "PATCH" {

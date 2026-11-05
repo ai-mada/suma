@@ -5624,6 +5624,7 @@ export interface ReleaseWorker {
   deployment: boolean;
   created_at: string;
   expires_at: string;
+  manual_rotation_allowed?: boolean;
 }
 export interface ReleaseWorkerCreation {
   id: string;
@@ -5635,6 +5636,7 @@ export interface ReleaseWorkerCreation {
   deployment: boolean;
   created_at: string;
   expires_at: string;
+  manual_rotation_allowed?: boolean;
   token?: string;
 }
 export interface ReleaseWorkerRegisterRequest {
@@ -5649,6 +5651,17 @@ export interface ReleaseWorkerRevokeRequest {
   expected_version: number;
   idempotency_key: string;
   status: string;
+}
+export interface ReleaseWorkerRotationRequest {
+  project_id: string;
+  expected_version: number;
+  acknowledge_stopped: boolean;
+  idempotency_key: string;
+}
+export interface ReleaseWorkerRotationResult {
+  operation_id: string;
+  worker: ReleaseWorker;
+  token?: string;
 }
 export interface Rendered {
   message_key: string;

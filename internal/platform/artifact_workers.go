@@ -17,15 +17,16 @@ type ReleaseProfileRegistration struct {
 	SHA256 string `json:"sha256"`
 }
 type ReleaseWorker struct {
-	ID         string                       `json:"id"`
-	ProjectID  string                       `json:"project_id"`
-	WorkerID   string                       `json:"worker_id"`
-	Version    int                          `json:"version"`
-	Status     string                       `json:"status"`
-	Profiles   []ReleaseProfileRegistration `json:"profiles"`
-	Deployment bool                         `json:"deployment"`
-	CreatedAt  string                       `json:"created_at"`
-	ExpiresAt  string                       `json:"expires_at"`
+	ID                    string                       `json:"id"`
+	ProjectID             string                       `json:"project_id"`
+	WorkerID              string                       `json:"worker_id"`
+	Version               int                          `json:"version"`
+	Status                string                       `json:"status"`
+	Profiles              []ReleaseProfileRegistration `json:"profiles"`
+	Deployment            bool                         `json:"deployment"`
+	CreatedAt             string                       `json:"created_at"`
+	ExpiresAt             string                       `json:"expires_at"`
+	ManualRotationAllowed bool                         `json:"manual_rotation_allowed,omitempty"`
 }
 
 // Human release administration requires the actual browser credential and current
@@ -38,14 +39,26 @@ func (s *Service) artifactAdminSubjectTx(ctx context.Context, tx *sql.Tx, actor 
 	if err != nil {
 		return nil, err
 	}
-	p := auth.currentPrincipal
-	if !orgAdmin(p) {
-		var role string
-		if err = tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`)), project, p.ID).Scan(&role); err != nil || role != "admin" {
-			return nil, forbidden()
-		}
+	allowed, err := s.releaseAdministratorTx(ctx, tx, auth.currentPrincipal, project)
+	if err != nil {
+		return nil, err
+	}
+	if !allowed {
+		return nil, forbidden()
 	}
 	return auth, nil
+}
+
+func (s *Service) releaseAdministratorTx(ctx context.Context, tx *sql.Tx, p Principal, project string) (bool, error) {
+	if orgAdmin(p) {
+		return true, nil
+	}
+	var role string
+	err := tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`)), project, p.ID).Scan(&role)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	return role == "admin", err
 }
 
 func (s *Service) RegisterReleaseWorker(ctx context.Context, actor Actor, project string, m map[string]any) (map[string]any, error) {
@@ -414,8 +427,10 @@ func (s *Service) readReleaseWorkersTx(ctx context.Context, auth *authorizedComm
 	}
 
 	tx, p := auth.tx, auth.currentPrincipal
-	var err error
-
+	rotatable, err := s.manualRunnerRotationAllowedTx(ctx, auth, project)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT id,project_id,worker_id,version,status,profiles,deployment,created_at,expires_at FROM suma_release_workers WHERE tenant_id=? AND project_id=? ORDER BY created_at DESC,id`), p.TenantID, project)
 	if err != nil {
 		return nil, err
@@ -431,8 +446,8 @@ func (s *Service) readReleaseWorkersTx(ctx context.Context, auth *authorizedComm
 		if err = json.Unmarshal([]byte(raw), &w.Profiles); err != nil {
 			return nil, err
 		}
+		w.ManualRotationAllowed = rotatable[w.ID]
 		out = append(out, w)
 	}
 	return out, rows.Err()
-
 }

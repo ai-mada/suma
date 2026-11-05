@@ -1,0 +1,20 @@
+{
+  "worker-rotation.open": "Rotate credential",
+  "worker-rotation.title": "Rotate node credential",
+  "worker-rotation.subtitle": "Review the original node and confirm it has stopped before issuing a replacement.",
+  "worker-rotation.stop_instructions": "Stop the Runner process on its machine and keep its working files and execution records.",
+  "worker-rotation.boundary": "The previous credential becomes invalid immediately when rotation completes. The server checks for unresolved execution before issuing a replacement.",
+  "worker-rotation.acknowledge": "I have stopped the original Runner process.",
+  "worker-rotation.submit": "Rotate and get credential",
+  "worker-rotation.conflict_remedy": "Resolve any unfinished execution or result checks, then refresh the node and review rotation again.",
+  "worker-rotation.refresh": "Refresh node",
+  "worker-rotation.result_title": "Replacement node credential",
+  "worker-rotation.install": "Save this one-time credential as SUMA_RUNNER_TOKEN in the controlled Runner configuration, then restart the same node. A new inventory report establishes its current availability.",
+  "worker-rotation.metadata_only": "The rotation receipt was recovered. The one-time credential was not recovered. If you do not have it, refresh this node and explicitly start another rotation.",
+  "worker-rotation.copy": "Copy credential",
+  "worker-rotation.copy_copied": "Credential copied.",
+  "worker-rotation.copy_failed": "Clipboard unavailable. Reveal the credential and copy it manually.",
+  "worker-rotation.invalid_request": "The rotation request does not match the current project, node, or confirmed version.",
+  "worker-rotation.invalid_response": "The rotation receipt could not be verified. Recover the original operation before issuing another credential.",
+  "worker-rotation.rotated": "Credential rotated for {{name}}."
+}

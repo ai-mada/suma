@@ -1,0 +1,20 @@
+{
+  "worker-rotation.open": "轮换凭证",
+  "worker-rotation.title": "轮换节点凭证",
+  "worker-rotation.subtitle": "核对原节点，确认进程已停止后再签发新凭证。",
+  "worker-rotation.stop_instructions": "请在节点所在设备停止 Runner 进程，并保留工作文件和执行记录。",
+  "worker-rotation.boundary": "轮换完成后，旧凭证立即失效。服务端确认没有未决执行后才签发新凭证。",
+  "worker-rotation.acknowledge": "我已停止原 Runner 进程。",
+  "worker-rotation.submit": "轮换并获取凭证",
+  "worker-rotation.conflict_remedy": "请先处理未完成的执行或待核对的结果，再刷新节点并重新确认轮换。",
+  "worker-rotation.refresh": "刷新节点",
+  "worker-rotation.result_title": "节点新凭证",
+  "worker-rotation.install": "请在受控 Runner 配置中将此一次性凭证设为 SUMA_RUNNER_TOKEN，然后重启同一节点。节点可用性以重新上报的库存为准。",
+  "worker-rotation.metadata_only": "已核对轮换回执，一次性凭证无法取回。如果未保存，请刷新此节点并明确发起一次新轮换。",
+  "worker-rotation.copy": "复制凭证",
+  "worker-rotation.copy_copied": "凭证已复制。",
+  "worker-rotation.copy_failed": "无法使用剪贴板。可显示凭证后手动复制。",
+  "worker-rotation.invalid_request": "轮换请求与当前项目、节点或已确认版本不匹配。",
+  "worker-rotation.invalid_response": "无法核对轮换回执。请先核对原操作，再签发其他凭证。",
+  "worker-rotation.rotated": "已轮换 {{name}} 的凭证。"
+}

@@ -80,6 +80,7 @@ export type ExecutionWorker = {
   deployment: boolean;
   created_at: string;
   expires_at: string;
+  manual_rotation_allowed?: boolean;
 };
 export type ToolRunBinding = {
   profile_id: string;

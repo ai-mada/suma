@@ -16,10 +16,12 @@ import {
   Search,
   CircleHelp,
   CheckCircle2,
+  Copy,
 } from "lucide-react";
 import { ApiError, api, query, type Session, type RecordItem } from "./api";
 import { Empty, ErrorNotice, Field, Loading, Modal } from "./ui";
 import { ToolWriteRecovery } from "./tool-write";
+import {manualWorkerRotationID,validManualWorkerRotationCommand,validManualWorkerRotationReceipt,type ManualWorkerRotationReceipt} from "./manual-worker-rotation-model";
 import {
   toolSessionStorage,
   useToolAction,
@@ -98,7 +100,7 @@ type Dialog =
       action: "enable" | "pause" | "revoke";
       profile: ToolProfile;
     }
-  | { kind: "revoke-worker"; worker: ExecutionWorker };
+  | { kind: "revoke-worker" | "rotate-worker"; worker: ExecutionWorker };
 function canLeave() {
   return window.dispatchEvent(new Event("suma:navigate", { cancelable: true }));
 }
@@ -122,10 +124,14 @@ function ScopedToolWorkspace({
     [search, setSearch] = useState(filters.query),
     [searchError,setSearchError]=useState(false),
     [dialogState,setDialogState]=useState<{caller:typeof api;generation:number;value:Dialog}>(),
-    [credential, setCredential] = useState<{
+    [credentialState, setCredential] = useState<{
+      caller:typeof api;
+      generation:number;
       worker_id: string;
       token?: string;
+      rotation?: boolean;
     }>(),
+    [copyState,setCopyState]=useState<"copied"|"failed">(),
     [revealed, setRevealed] = useState(false),
     [live, setLive] = useState(true),
     [filter, setFilter] = useState<ToolFilter>('all'),
@@ -193,7 +199,11 @@ function ScopedToolWorkspace({
           ":" +
           project +
           ":profiles", toolSessionStorage(), api,
-        (value, request) => isToolProfileReplacementPath(request.path)?validToolProfileReplacementReceipt(value,request,session.user.id):request.path !== '/tool-profiles' || validQuickConnectReceipt(value, request.body)),
+        (value, request) => {
+          if(manualWorkerRotationID(request.path))return validManualWorkerRotationReceipt(value,request,project);
+          if(isToolProfileReplacementPath(request.path))return validToolProfileReplacementReceipt(value,request,session.user.id);
+          return request.path !== '/tool-profiles' || validQuickConnectReceipt(value, request.body);
+        }, project),
     [session.organization.id, session.user.id, project, api],
   );
   const action = useToolAction(recovery, () => setDialog(undefined)),
@@ -212,6 +222,16 @@ function ScopedToolWorkspace({
         : "",
       refresh + revision,
     );
+  const workerAccessLost=workers.failure instanceof ApiError&&[401,403,404].includes(workers.failure.status);
+  const credential=credentialState?.caller===api&&credentialState.generation===pairingGeneration&&!workerAccessLost?credentialState:undefined;
+  const visibleCredential=useRef(credential);visibleCredential.current=credential;
+  function clearCredential(){
+    setCredential(undefined);
+    setRevealed(false);
+    setCopyState(undefined);
+  }
+  useEffect(()=>{if(credentialState&&!credential)clearCredential();},[credentialState,credential]);
+  useEffect(()=>{if(workerAccessLost&&dialog?.kind==="rotate-worker")setDialog(undefined);},[workerAccessLost,dialog]);
   const detailBasis=JSON.stringify([selected,detail.data?.id,detail.data?.version,detail.data?.worker_id,detail.data?.profile.profile_sha256]),latestDetailBasis=useRef(detailBasis);latestDetailBasis.current=detailBasis;
   // A value-equal A -> B -> A detail selection is a new read owner. This ref
   // carries provenance only; existing drafts and operation receipts stay put.
@@ -248,9 +268,9 @@ function ScopedToolWorkspace({
   const workerIdentityTargets=new Set([
     publicDraft?.workerID,connection?.expectedWorkerID,
     current?.id===selected?current.worker_id:undefined,
-    dialog?.kind==='remote-scan'?dialog.workerID:dialog?.kind==='revoke-worker'?dialog.worker.worker_id:dialog?.kind==='inspection'?dialog.profile.worker_id:undefined,
+    dialog?.kind==='remote-scan'?dialog.workerID:(dialog?.kind==='revoke-worker'||dialog?.kind==='rotate-worker')?dialog.worker.worker_id:dialog?.kind==='inspection'?dialog.profile.worker_id:undefined,
     typeof action.pending?.body.worker_id==='string'?action.pending.body.worker_id:undefined,
-    workerIdentityRecords.find(worker=>action.pending?.path==='/release-workers/'+encodeURIComponent(worker.id))?.worker_id,
+    workerIdentityRecords.find(worker=>action.pending?.path==='/release-workers/'+encodeURIComponent(worker.id)||worker.id===manualWorkerRotationID(action.pending?.path||''))?.worker_id,
   ].filter((value):value is string=>typeof value==='string'&&!!value));
   const retainedWorkerIdentities=workerIdentityRecords.filter(worker=>!matchingWorkerIdentityIDs.has(worker.id)&&workerIdentityTargets.has(worker.worker_id));
   const retainedWorkerIdentityIDs=new Set(retainedWorkerIdentities.map(worker=>worker.id));
@@ -656,6 +676,20 @@ function ScopedToolWorkspace({
     finally{if(replacementLookup.current===controller)replacementLookup.current=undefined;if(activeWorkspace.current&&pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setConnecting(false);}
   }
   function saved(path: string, value: unknown) {
+    if(!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
+    if(manualWorkerRotationID(path)){
+      const result=value as ManualWorkerRotationReceipt; // ToolWriteRecovery has correlated the complete receipt.
+      setDialog(undefined);
+      setRevision(before=>before+1);
+      if(workerIdentityPreferences.filter==='attention'){
+        setWorkerIdentitySelection({caller:api,generation:pairingGeneration,filter:'current',query:workerIdentityPreferences.query});
+      }
+      setReceipt({key:'worker_rotated',name:result.worker.worker_id,scope:contextKey});
+      setRevealed(false);
+      setCopyState(undefined);
+      setCredential({caller:api,generation:pairingGeneration,worker_id:result.worker.worker_id,token:result.token,rotation:true});
+      return;
+    }
     if(isToolProfileReplacementPath(path)){replaced(readToolProfileReplacement(value,{project,originalID:toolProfileReplacementOriginalID(path)}));return;}
     setDialog(undefined);
     setRevision((before) => before + 1);
@@ -666,7 +700,10 @@ function ScopedToolWorkspace({
     else if(path.startsWith('/release-workers/'))setReceipt({key:'worker_revoked',name:String(result.worker_id||''),scope:contextKey});
     if (path === "/release-workers") {
       setRevealed(false);
+      setCopyState(undefined);
       setCredential({
+        caller:api,
+        generation:pairingGeneration,
         worker_id: String(result.worker_id || ""),
         token: typeof result.token === "string" ? result.token : undefined,
       });
@@ -718,7 +755,7 @@ function ScopedToolWorkspace({
       <ToolRecoveryNotice action={action} onRestored={saved} />
       {replacementReceipt&&<ToolProfileReplacementReceipt value={replacementReceipt} disabled={writeBlocked} onViewOriginal={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onViewReplacement={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onEnableReplacement={profile=>void reviewReplacementTarget(profile)}/>}
       {!!connectError&&<ErrorNotice error={renderDiagnostic(connectError)}/>}
-      {receipt?.scope===contextKey&&<div className="tool-save-receipt" data-tool-receipt role="status"><CheckCircle2 size={18} aria-hidden="true"/><p>{t('tool-workspace.receipt.'+receipt.key,{name:receipt.name})}</p><button className="icon-button" aria-label={t('tool-workspace.dismiss_receipt')} onClick={()=>setReceipt(undefined)}><X size={16}/></button></div>}
+      {receipt?.scope===contextKey&&<div className="tool-save-receipt" data-tool-receipt role="status"><CheckCircle2 size={18} aria-hidden="true"/><p>{t(receipt.key==='worker_rotated'?'worker-rotation.rotated':'tool-workspace.receipt.'+receipt.key,{name:receipt.name})}</p><button className="icon-button" aria-label={t('tool-workspace.dismiss_receipt')} onClick={()=>setReceipt(undefined)}><X size={16}/></button></div>}
       <div className="tool-refresh-bar">
         <small>{live ? t("development.tools.auto_refresh") : t("development.tools.auto_refresh_paused")}</small>
         <div className="inline">
@@ -978,6 +1015,12 @@ function ScopedToolWorkspace({
               <div className="tool-worker-identity-actions">
               {identityState==='current'&&<button type="button" data-tool-worker-connect={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>openWorkerQuickConnect(worker)}>{t('tool-worker-identities.configure_tools')}</button>}
               {identityState==='current'&&<button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>{const now=Date.now();if(writeBlocked||workers.loading||workers.error)return;if(classifyToolWorkerIdentity(worker,now)!=='current'){setWorkerIdentityClock(now);return;}openRemoteScan(worker.worker_id);}}>{t('remote-tool-scan.open')}</button>}
+              {worker.manual_rotation_allowed===true&&worker.project_id===project&&(identityState==='current'||identityState==='expired')&&
+                <button type="button" data-tool-worker-rotate={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>{
+                  if(writeBlocked||workers.loading||workers.error)return;
+                  action.clearError();
+                  setDialog({kind:'rotate-worker',worker});
+                }}>{t('worker-rotation.open')}</button>}
               {worker.status === "active" && (
                 <button
                   type="button" data-tool-worker-revoke={worker.worker_id}
@@ -1039,7 +1082,7 @@ function ScopedToolWorkspace({
         }}
         onRun={run=>{setTimeout(()=>requestAnimationFrame(()=>{if(ownsHandoff(handoff)&&canLeave())window.location.assign('?'+new URLSearchParams({project,view:'development',sub:'runs',run}));}),0);}}/></Suspense>}
       <Modal
-        open={!!dialog}
+        open={!!dialog&&(dialog.kind!=="rotate-worker"||!workerAccessLost)}
         onClose={() => {
           if (!action.busy && !action.pending && !pairingLocked && !inspectionLocked) setDialog(undefined);
         }}
@@ -1054,6 +1097,8 @@ function ScopedToolWorkspace({
             ? t("development.tools.register_fixed_tool_configuration")
             : dialog?.kind === "worker"
               ? t(dialog.mode==='pairing'?'runner-pairing.title':"development.tools.register_execution_worker_identity")
+              : dialog?.kind === "rotate-worker"
+                ? t("worker-rotation.title")
               : dialog?.kind === "revoke-worker"
                 ? t("development.tools.revoke_execution_worker_credential")
                 : dialog?.kind === "decision"
@@ -1064,7 +1109,7 @@ function ScopedToolWorkspace({
                     }[dialog.action]
                   : t("development.tools.execution_tools")
         }
-        description={t(dialog?.kind==='inspection'?'tool-doctor.inspect_hint':"development.tools.use_the_current_project_s_actual_identity")}
+        description={t(dialog?.kind==='inspection'?'tool-doctor.inspect_hint':dialog?.kind==='rotate-worker'?'worker-rotation.subtitle':"development.tools.use_the_current_project_s_actual_identity")}
       >
         {action.pending ? (
           <ToolRecoveryNotice action={action} onRestored={saved} />
@@ -1152,6 +1197,26 @@ function ScopedToolWorkspace({
             onCancel={() => setDialog(undefined)}
           />
         )}
+        {dialog?.kind === "rotate-worker" && !pending && (
+          <WorkerRotationForm
+            key={dialog.worker.id+':'+dialog.worker.version}
+            worker={dialog.worker}
+            action={action}
+            disabled={writeBlocked||workers.loading||!!workers.error||!workerIdentityRecords.some(row=>row.id===dialog.worker.id&&row.worker_id===dialog.worker.worker_id&&row.version===dialog.worker.version&&row.project_id===project&&row.status==='active'&&row.manual_rotation_allowed===true)}
+            onClose={()=>setDialog(undefined)}
+            onRefresh={()=>{
+              setDialog(undefined);
+              void workers.read();
+            }}
+            onRotate={async()=>{
+              const path='/release-workers/'+encodeURIComponent(dialog.worker.id)+'/rotate-credential';
+              const body={project_id:project,expected_version:dialog.worker.version,acknowledge_stopped:true};
+              if(!validManualWorkerRotationCommand(path,body,'POST',project))return;
+              const value=await action.run<ManualWorkerRotationReceipt>(path,body);
+              if(value)saved(path,value);
+            }}
+          />
+        )}
         {dialog?.kind === "revoke-worker" && (
           <form
             className="tool-form"
@@ -1190,20 +1255,17 @@ function ScopedToolWorkspace({
       </Modal>
       <Modal
         open={!!credential}
-        onClose={() => {
-          setCredential(undefined);
-          setRevealed(false);
-        }}
-        title={t("development.tools.execution_worker_credential_for_this_registration")}
+        onClose={clearCredential}
+        title={t(credential?.rotation?"worker-rotation.result_title":"development.tools.execution_worker_credential_for_this_registration")}
         description={t("development.tools.the_original_value_remains_only_in_this")}
       >
         {credential && (
-          <div className="tool-token">
+          <div className="tool-token" data-worker-rotation-credential={credential.rotation?'':undefined}>
             <strong>{credential.worker_id}</strong>
             {credential.token ? (
               <>
                 <p className="warning">
-                  {t("development.tools.save_this_credential_in_the_controlled_runner")}</p>
+                  {t(credential.rotation?"worker-rotation.install":"development.tools.save_this_credential_in_the_controlled_runner")}</p>
                 <Field label={t("development.tools.one_time_runner_credential")}>
                   <input
                     type={revealed ? "text" : "password"}
@@ -1219,23 +1281,59 @@ function ScopedToolWorkspace({
                     onChange={(event) => setRevealed(event.target.checked)}
                   />
                   {t("development.tools.show_the_original_value_in_this_dialog")}</label>
+                {credential.rotation&&<>
+                  <button type="button" data-worker-rotation-copy onClick={async()=>{
+                    if(visibleCredential.current!==credential||!credential.token)return;
+                    try{
+                      await navigator.clipboard.writeText(credential.token);
+                      if(visibleCredential.current===credential)setCopyState('copied');
+                    }catch{
+                      if(visibleCredential.current===credential)setCopyState('failed');
+                    }
+                  }}><Copy size={15} aria-hidden="true"/>{t('worker-rotation.copy')}</button>
+                  {copyState&&<small role="status">{t('worker-rotation.copy_'+copyState)}</small>}
+                </>}
               </>
             ) : (
               <p className="warning">
-                {t("development.tools.the_original_registration_receipt_was_recovered_but")}</p>
+                {t(credential.rotation?"worker-rotation.metadata_only":"development.tools.the_original_registration_receipt_was_recovered_but")}</p>
             )}
-            <button
-              onClick={() => {
-                setCredential(undefined);
-                setRevealed(false);
-              }}
-            >
+            <button type="button" data-worker-rotation-close={credential.rotation?'':undefined} onClick={clearCredential}>
               {t("development.tools.close_and_clear_the_original_value")}</button>
           </div>
         )}
       </Modal>
     </div>
   );
+}
+function WorkerRotationForm({worker,action,disabled,onClose,onRefresh,onRotate}:{
+  worker:ExecutionWorker;
+  action:ToolAction;
+  disabled:boolean;
+  onClose:()=>void;
+  onRefresh:()=>void;
+  onRotate:()=>Promise<void>;
+}){
+  const [stopped,setStopped]=useState(false);
+  return <form className="tool-form" data-worker-rotation-form onSubmit={event=>{
+    event.preventDefault();
+    if(stopped&&!disabled&&!action.conflict)void onRotate();
+  }}>
+    <strong>{worker.worker_id}</strong>
+    <p>{t('worker-rotation.stop_instructions')}</p>
+    <p className="warning">{t('worker-rotation.boundary')}</p>
+    <label className="check">
+      <input type="checkbox" data-worker-rotation-stopped checked={stopped} disabled={disabled||action.conflict} onChange={event=>setStopped(event.target.checked)}/>
+      {t('worker-rotation.acknowledge')}
+    </label>
+    {action.conflict&&<p role="status">{t('worker-rotation.conflict_remedy')}</p>}
+    <div className="dialog-actions">
+      <button type="button" disabled={action.busy} onClick={onClose}>{t('development.workflow.cancel')}</button>
+      {action.conflict?
+        <button type="button" className="primary" data-worker-rotation-refresh onClick={onRefresh}>{t('worker-rotation.refresh')}</button>:
+        <button type="submit" className="primary" data-worker-rotation-submit disabled={disabled||!stopped}>{t('worker-rotation.submit')}</button>}
+    </div>
+  </form>;
 }
 function ToolProfileForm({
   project,

@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MANUAL-RUNNER-ROTATION 验证手动节点原凭证失效、一次性签发、原回执恢复及代表界面。 [阶段验证](manual-runner-rotation-verification.md)
+
 T-POOL-INSPECTION-232 已验证原 Windows 控制台停止记录的槽位总览、单槽位定位和部分证据处理。 [阶段验证](pool-state-inspection-verification.md)
 
 T-POOL-SHUTDOWN-231 已通过 Windows 双槽位实际进程和隔离控制台信号验证。 [阶段验证](pool-shutdown-verification.md)

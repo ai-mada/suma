@@ -1,3 +1,4 @@
+import {manualWorkerRotationID,validManualWorkerRotationCommand,validManualWorkerRotationOperation} from './manual-worker-rotation-model';
 import {validCodexSelection} from './codex-execution-model';
 import {isToolProfileReplacementPath,toolProfileReplacementOriginalID,validToolProfileReplacementBody,validToolProfileReplacementRequest} from './tool-profile-replacement-model';
 import { tr as t, UiError, renderDiagnostic } from "./i18n";
@@ -10,11 +11,12 @@ export type ToolPendingRequest = {
 };
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 const allowedPath =
-  /^\/(?:tool-profiles(?:\/[A-Za-z0-9_.-]+\/(?:commands|replacements))?|release-workers(?:\/[A-Za-z0-9_.-]+)?|task-dispatch-plans(?:\/[A-Za-z0-9_.-]+\/start)?)$/;
+  /^\/(?:tool-profiles(?:\/[A-Za-z0-9_.-]+\/(?:commands|replacements))?|release-workers(?:\/[A-Za-z0-9_.-]+(?:\/rotate-credential)?)?|task-dispatch-plans(?:\/[A-Za-z0-9_.-]+\/start)?)$/;
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
-function validate(path: string, body: unknown, method:string='POST') {
+function validate(path: string, body: unknown, method:string='POST', project?:string) {
   if (!allowedPath.test(path))
     throw new UiError("development.errors.operation_scope");
+  if(path.endsWith('/rotate-credential')&&!validManualWorkerRotationCommand(path,body,method,project))throw new UiError('worker-rotation.invalid_request');
   if(path.endsWith('/replacements')&&(!isToolProfileReplacementPath(path)||method!=='POST'||!validToolProfileReplacementBody(body,toolProfileReplacementOriginalID(path)!)))throw new UiError('tool-profile-replacement.invalid_request');
   if (path === '/task-dispatch-plans' && body && typeof body === 'object' && Object.hasOwn(body,'codex_execution_selection') && !validCodexSelection((body as Record<string,unknown>).codex_execution_selection)) throw new UiError("development.errors.request_invalid");
   if(path.startsWith('/task-dispatch-plans')&&body&&typeof body==='object'&&['octop_execution','octop_execution_selection','octop','fixed_octop'].some(key=>Object.hasOwn(body,key)))throw new UiError('development.errors.request_invalid');
@@ -55,6 +57,7 @@ export class ToolWriteRecovery {
     private storage: StorageLike | undefined,
     private send: typeof api = api,
     private validateResponse?: (value: unknown, request: ToolPendingRequest) => boolean | Promise<boolean>,
+    private project?: string,
   ) {
     this.key = "suma-tool-recovery-v1:" + scope;
     try {
@@ -62,7 +65,8 @@ export class ToolWriteRecovery {
       const raw = storage.getItem(this.key);
       if (raw !== null) {
         const value = JSON.parse(raw) as ToolPendingRequest;
-        validate(value.path, value.body,value.method);
+        validate(value.path, value.body,value.method,this.project);
+        if(manualWorkerRotationID(value.path)&&!validManualWorkerRotationOperation(value.idempotency_key))throw Error("invalid rotation");
         if(isToolProfileReplacementPath(value.path)&&!validToolProfileReplacementRequest(value))throw Error('invalid replacement');
         if (!value.idempotency_key || !["POST", "PATCH"].includes(value.method)) throw Error("invalid");
         this.value = value;
@@ -88,7 +92,7 @@ export class ToolWriteRecovery {
     try {
       if (!this.value) {
         if (this.readStored() !== null) throw ownershipError('unconfirmed');
-        validate(path, body,method);
+        validate(path, body,method,this.project);
         const request: ToolPendingRequest = { path, body: copy(body), method, idempotency_key: operation() };
         const raw = JSON.stringify(request);
         this.assertOwner(ownsRequest);
@@ -111,9 +115,13 @@ export class ToolWriteRecovery {
         result = await this.send<T>(request.path, { ...request.body, idempotency_key: request.idempotency_key }, request.method);
       } catch (error) {
         this.assertRequest(request, raw, ownsRequest);
-        // Only a fresh transport refusal proves this send did not commit.
-        // Validator and journal errors never enter this branch.
-        if (!restoring && error instanceof ApiError && error.status >= 400 && error.status < 500) this.clear(request, raw, ownsRequest);
+        // Rotation checks the current authority and exact receipt before returning
+        // these conflicts. A restored request with either conflict has no receipt.
+        if (error instanceof ApiError && ((!restoring && error.status >= 400 && error.status < 500) ||
+          (manualWorkerRotationID(request.path) && error.status === 409 &&
+            (error.code === "version_conflict" || error.code === "worker_rotation_pending")))) {
+          this.clear(request, raw, ownsRequest);
+        }
         throw error;
       }
       this.assertRequest(request, raw, ownsRequest);
@@ -121,7 +129,7 @@ export class ToolWriteRecovery {
         let accepted = false;
         try { accepted = await this.validateResponse(result, copy(request)); } catch { /* The effect is still uncertain. */ }
         this.assertRequest(request, raw, ownsRequest);
-        if (!accepted) throw new UiError("codex-execution.invalid_response");
+        if (!accepted) throw new UiError(manualWorkerRotationID(request.path)?"worker-rotation.invalid_response":"codex-execution.invalid_response");
       }
       this.clear(request, raw, ownsRequest);
       return result;

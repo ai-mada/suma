@@ -85,7 +85,7 @@ type ReleaseRollbackPreview struct {
 }
 
 func releaseModels() []any {
-	return []any{platform.ReleaseWorker{}, platform.ReleaseCandidateView{}, platform.ReleaseArtifact{}, platform.ReleaseEnvironment{}, platform.ReleasePlan{}, platform.ReleasePlanInput{}, platform.ReleasePlanPreview{}, platform.ReleaseDeployment{}, ProjectVersionedOperation{}, ReleaseWorkerRegisterRequest{}, ReleaseWorkerCreation{}, ReleaseWorkerRevokeRequest{}, ReleaseCandidateCreateRequest{}, ReleaseProviderOption{}, ReleaseEnvironmentList{}, ReleaseEnvironmentCreateRequest{}, ReleaseEnvironmentUpdateRequest{}, ReleasePlanExecuteRequest{}, ReleasePlanDecisionRequest{}, ReleaseRollbackPreviewRequest{}, ReleaseRollbackPreview{}, rc.ArtifactUploadRequest{}, rc.ArtifactUploadState{}, rc.ArtifactSealRequest{}, rc.ArtifactSealReceipt{}, rc.ArtifactResolveRequest{}, rc.ArtifactBinding{}, rc.ReleaseAuthorizationRequest{}, rc.ReleaseAuthorization{}, rc.DeploymentRequest{}, rc.NonSecretDeploymentRequest{}, rc.ConsumeDeploymentAuthorization{}, rc.InspectDeploymentAuthorization{}, rc.DeploymentAuthorizationGrant{}, rc.BeginDeploymentEffect{}, rc.DeploymentEffectGrant{}}
+	return []any{platform.ReleaseWorker{}, platform.ReleaseWorkerRotationRequest{}, platform.ReleaseWorkerRotationResult{}, platform.ReleaseCandidateView{}, platform.ReleaseArtifact{}, platform.ReleaseEnvironment{}, platform.ReleasePlan{}, platform.ReleasePlanInput{}, platform.ReleasePlanPreview{}, platform.ReleaseDeployment{}, ProjectVersionedOperation{}, ReleaseWorkerRegisterRequest{}, ReleaseWorkerCreation{}, ReleaseWorkerRevokeRequest{}, ReleaseCandidateCreateRequest{}, ReleaseProviderOption{}, ReleaseEnvironmentList{}, ReleaseEnvironmentCreateRequest{}, ReleaseEnvironmentUpdateRequest{}, ReleasePlanExecuteRequest{}, ReleasePlanDecisionRequest{}, ReleaseRollbackPreviewRequest{}, ReleaseRollbackPreview{}, rc.ArtifactUploadRequest{}, rc.ArtifactUploadState{}, rc.ArtifactSealRequest{}, rc.ArtifactSealReceipt{}, rc.ArtifactResolveRequest{}, rc.ArtifactBinding{}, rc.ReleaseAuthorizationRequest{}, rc.ReleaseAuthorization{}, rc.DeploymentRequest{}, rc.NonSecretDeploymentRequest{}, rc.ConsumeDeploymentAuthorization{}, rc.InspectDeploymentAuthorization{}, rc.DeploymentAuthorizationGrant{}, rc.BeginDeploymentEffect{}, rc.DeploymentEffectGrant{}}
 }
 
 func releaseContracts(add operationAdder) {
@@ -135,6 +135,10 @@ func releaseContracts(add operationAdder) {
 	browserOnly(op)
 	request(op, "ReleaseWorkerRevokeRequest")
 	op["description"] = "Revokes a registered worker with expected_version and stable idempotency_key; no credential is returned."
+	op = single("/release-workers/{id}/rotate-credential", "post", "ReleaseWorkerRotationResult", true, "200")
+	browserOnly(op)
+	request(op, "ReleaseWorkerRotationRequest")
+	op["description"] = "The current project administrator who owns the manually registered worker may rotate the same node after explicitly acknowledging a stop and passing authoritative drain checks. A fresh credential is shown once. Identical replay under current authority returns only the original receipt metadata. The new node must report current tools before use."
 	pagedList("/artifacts", "ReleaseArtifact")
 	single("/artifacts/{id}", "get", "ReleaseArtifact", false, "200")
 	op = single("/artifacts/{id}/blobs/{sha256}", "get", "", false, "200")
@@ -244,12 +248,18 @@ func enhanceReleaseSchemas(schemas map[string]any) {
 			value[key] = item
 		}
 	}
-	for _, model := range []string{"ReleaseWorkerRegisterRequest", "ReleaseWorkerRevokeRequest", "ReleaseCandidateCreateRequest", "ReleaseCandidateTaskInput", "ReleaseEnvironmentCreateRequest", "ReleaseEnvironmentUpdateRequest", "ReleasePlanInput", "ReleasePlanExecuteRequest", "ReleasePlanDecisionRequest", "ReleaseRollbackPreviewRequest", "ProjectVersionedOperation", "ArtifactUploadRequest", "ArtifactSealRequest", "ArtifactResolveRequest", "ReleaseAuthorizationRequest", "ConsumeDeploymentAuthorization", "InspectDeploymentAuthorization", "BeginDeploymentEffect", "DeploymentObservation"} {
+	for _, model := range []string{"ReleaseWorkerRegisterRequest", "ReleaseWorkerRevokeRequest", "ReleaseWorkerRotationRequest", "ReleaseWorkerRotationResult", "ReleaseCandidateCreateRequest", "ReleaseCandidateTaskInput", "ReleaseEnvironmentCreateRequest", "ReleaseEnvironmentUpdateRequest", "ReleasePlanInput", "ReleasePlanExecuteRequest", "ReleasePlanDecisionRequest", "ReleaseRollbackPreviewRequest", "ProjectVersionedOperation", "ArtifactUploadRequest", "ArtifactSealRequest", "ArtifactResolveRequest", "ReleaseAuthorizationRequest", "ConsumeDeploymentAuthorization", "InspectDeploymentAuthorization", "BeginDeploymentEffect", "DeploymentObservation"} {
 		schemas[model].(map[string]any)["additionalProperties"] = false
 	}
 	field("ReleaseWorkerCreation", "token", map[string]any{"readOnly": true, "description": "Once-only plaintext credential; absent from registry and same-key replay. Memory only, no browser session/local storage."})
 	field("ReleaseWorkerRevokeRequest", "status", map[string]any{"const": "revoked"})
-	field("ReleaseWorkerRegisterRequest", "profiles", map[string]any{"maxItems": 32, "description": "Unique administrator-owned profile IDs and real configuration digests. At least one profile or deployment=true is required."})
+	field("ReleaseWorker", "manual_rotation_allowed", map[string]any{"readOnly": true, "description": "The current browser administrator owns a manually registered eligible credential. This is not proof of stop, online state, or completed drain."})
+	field("ReleaseWorkerRotationRequest", "acknowledge_stopped", map[string]any{"const": true, "description": "The operator has stopped the original worker. Server-side drain verification still applies."})
+	field("ReleaseWorkerRotationRequest", "expected_version", map[string]any{"minimum": 1, "maximum": 2147483646})
+	field("ReleaseWorkerRotationRequest", "project_id", map[string]any{"minLength": 1, "maxLength": 64})
+	field("ReleaseWorkerRotationRequest", "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128})
+	field("ReleaseWorkerRotationResult", "token", map[string]any{"readOnly": true, "pattern": "^[a-f0-9]{64}$", "description": "Once-only plaintext replacement credential. Absent from original operation replay. Keep it in memory only."})
+	field("ReleaseWorkerRegisterRequest", "profiles", map[string]any{"maxItems": 32, "description": "Unique administrator-owned profile IDs and real configuration digests. An empty list supports a general execution node without release capability."})
 	field("ReleaseProfileRegistration", "kind", map[string]any{"enum": []string{"build", "package_test"}})
 	field("ReleaseCandidateCreateRequest", "tasks", map[string]any{"minItems": 1, "maxItems": 100, "description": "Unique current accepted tasks actually delivered by the same run as both selected proofs; versions and real review basis are validated atomically."})
 	field("ReleaseCandidateTaskInput", "expected_version", map[string]any{"minimum": 1})

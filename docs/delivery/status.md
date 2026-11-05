@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MANUAL-RUNNER-ROTATION 支持工具管理中的手动登记节点凭证轮换，核对当前授权、原版本及未决执行后沿原节点签发新凭证。 [合同](../../contracts/manual-runner-rotation.md) · [验证记录](../quality/manual-runner-rotation-verification.md)
+
 T-POOL-INSPECTION-232 新增本机共享执行池总览，按槽位查看日志计数、未知结果和原领取阶段，并沿单槽位命令定位原尝试。 [诊断指南](../agents/runner-journal-inspection.md) · [阶段验证](../quality/pool-state-inspection-verification.md)
 
 T-POOL-SHUTDOWN-231 将共享池退出结果绑定到原槽位、库存管理和状态锁收尾。遇到原执行未知时保留原派发并输出槽位诊断。 [值班手册](../agents/execution-pool-runner.md#停止与核对) · [阶段验证](../quality/pool-shutdown-verification.md)
