@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-CONNECTION-UX 核验首次直接选权限、官方授权焦点、原连接查询和桌面／窄屏排布。 [阶段验证](workbuddy-connection-ux-verification.md)
+
 T-TOOL-QUICK-REVIEW-240 核验首屏配置、过期重读、回车保存、暂停回执及原工具替换上下文。 [阶段验证](tool-quick-review-verification.md)
 
 T-WORKBUDDY-ACCOUNT-RECOVERY 核验原连接链接替换、单次兑换、授权返回核对和部署配置。 [阶段验证](workbuddy-account-recovery-verification.md)

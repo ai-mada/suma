@@ -1,15 +1,16 @@
-.panel.workbuddy-connections{padding:0;font-size:14px;min-width:0}
-.workbuddy-connections button,.workbuddy-connections a,.workbuddy-connections summary{min-height:44px}
+.panel.workbuddy-connections{--control-height:44px;padding:0;font-size:14px;min-width:0}
+.panel.workbuddy-connections :is(button,a,summary){min-height:44px}
 .workbuddy-connections code{font-size:inherit}
 .workbuddy-connections .empty p,.workbuddy-connections .error,.workbuddy-connections .warning,.workbuddy-connections .loading{font-size:12px;line-height:1.7}
 .workbuddy-disclosure{width:100%;border:0;background:transparent;text-align:left;padding:18px;display:flex;align-items:center;gap:12px;white-space:normal;color:var(--text)}
+.workbuddy-disclosure[aria-expanded=true]{background:var(--surface-soft)}
 .workbuddy-disclosure>svg{flex:none;transition:transform .16s}
 .workbuddy-disclosure[aria-expanded=true]>svg{transform:rotate(90deg)}
 .workbuddy-disclosure>span:first-of-type{display:grid;gap:5px;flex:1;min-width:0}
-.workbuddy-disclosure strong{font-size:14px}
+.workbuddy-disclosure strong{font-size:16px}
 .workbuddy-disclosure small,.workbuddy-disclosure-action,.workbuddy-authorization small,.workbuddy-fact-label,.workbuddy-technical{font-size:12px;color:var(--muted);line-height:1.6}
 .workbuddy-disclosure-action{flex:none}
-.workbuddy-manager{padding:0 18px 18px;display:grid;gap:16px}
+.workbuddy-manager{padding:14px 18px 18px;display:grid;gap:16px}
 .workbuddy-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .workbuddy-boundary{display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:12px;line-height:1.6;margin:0;max-width:720px}
 .workbuddy-boundary svg{flex:none;margin-top:2px}
@@ -34,10 +35,11 @@
 .workbuddy-history-content>p{margin:0;font-size:12px;line-height:1.7;color:var(--muted)}
 .workbuddy-connection-reason{margin:0;padding:10px 12px;border-left:3px solid var(--amber);background:var(--surface-soft);border-radius:4px;color:var(--text);font-size:13px;line-height:1.7;overflow-wrap:anywhere}
 .workbuddy-card header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.workbuddy-card h4,.workbuddy-form h4,.workbuddy-authorization h4{font-size:14px;line-height:1.5;margin:0;overflow-wrap:anywhere}
-.workbuddy-state{font-size:12px;padding:4px 9px;border-radius:100px;background:var(--surface-soft);color:var(--muted);text-align:center;line-height:1.5;flex:none;max-width:50%}
-.workbuddy-state-connected{color:var(--green)}
-.workbuddy-state-authorization_unknown,.workbuddy-state-refresh_unknown,.workbuddy-state-reauthorization_required{color:var(--amber)}
+.workbuddy-card h4{font-size:16px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.workbuddy-state{font-size:12px;padding:4px 9px;border-radius:100px;background:var(--surface-soft);color:var(--text);text-align:center;line-height:1.5;flex:none;max-width:50%;overflow-wrap:anywhere}
+.workbuddy-state::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin-inline-end:5px;vertical-align:2px}
+.workbuddy-state-connected::before{background:var(--green)}
+.workbuddy-state-authorization_unknown::before,.workbuddy-state-refresh_unknown::before,.workbuddy-state-reauthorization_required::before{background:var(--amber)}
 .workbuddy-facts{display:grid;gap:10px;margin:0}
 .workbuddy-facts>div,.workbuddy-technical>div{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px}
 .workbuddy-facts dt{font-size:12px;color:var(--muted);line-height:1.7}
@@ -50,9 +52,11 @@
 .workbuddy-technical code,.workbuddy-form code{overflow-wrap:anywhere;white-space:normal}
 .workbuddy-form,.workbuddy-authorization,.workbuddy-recovery{padding:16px;border:1px solid var(--border);border-radius:var(--radius,10px);display:grid;gap:12px;min-width:0}
 .workbuddy-desktop-guide,.workbuddy-config{padding:16px;border:1px solid var(--border);border-radius:8px;display:grid;gap:8px;min-width:0;background:var(--surface-soft)}
-.workbuddy-desktop-guide h4,.workbuddy-config h4{font-size:14px;line-height:1.5;margin:0;color:var(--text)}
+.workbuddy-desktop-guide h4{font-size:14px;line-height:1.5;margin:0;color:var(--text)}
 .workbuddy-config p{margin:0}
 .workbuddy-config summary{cursor:pointer;width:fit-content;line-height:44px;color:var(--text)}
+.workbuddy-config details{margin-inline-start:48px}
+.workbuddy-config details p{max-width:66ch;margin-bottom:4px}
 .workbuddy-config code{overflow-wrap:anywhere}
 .workbuddy-desktop-guide p,.workbuddy-desktop-guide label{font-size:12px;line-height:1.7}
 .workbuddy-desktop-guide label{display:grid;gap:7px;color:var(--muted)}
@@ -60,9 +64,27 @@
 .workbuddy-desktop-guide button{justify-self:start;white-space:normal}
 .workbuddy-form p,.workbuddy-authorization p,.workbuddy-recovery p{margin:0;line-height:1.7}
 .workbuddy-form fieldset{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
-.workbuddy-form legend{font-size:12px;color:var(--muted);margin-bottom:6px}
+.workbuddy-form legend{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px}
 .workbuddy-check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;line-height:1.6}
 .workbuddy-check input{width:18px;height:18px;flex:none;margin:0}
+.workbuddy-flow-heading{display:flex;align-items:flex-start;gap:12px;min-width:0}
+.workbuddy-flow-heading h3{font-size:16px;line-height:1.4;color:var(--text);margin:0;overflow-wrap:anywhere}
+.workbuddy-flow-heading p{font-size:13px;color:var(--muted);margin:4px 0 0;line-height:1.55}
+.workbuddy-step{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--text);font-weight:700}
+.workbuddy-form,.workbuddy-authorization{background:var(--surface-soft);gap:16px}
+.workbuddy-form-account{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:13px}
+.workbuddy-form-account span{color:var(--muted)}
+.workbuddy-scope-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:8px}
+.workbuddy-scope-option{align-items:flex-start;padding:12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface)}
+.workbuddy-scope-option:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.workbuddy-scope-option input{accent-color:var(--accent);margin-top:3px}
+.workbuddy-scope-option span{display:grid;gap:2px;min-width:0}
+.workbuddy-scope-option strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.workbuddy-scope-option small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.workbuddy-add{display:inline-flex;align-items:center;gap:7px;justify-self:start;text-align:left;white-space:normal}
+.workbuddy-authorization{border-color:var(--border-strong)}
+.workbuddy-flow-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:2px 12px}
+.workbuddy-flow-footer button{border:0;background:transparent;text-decoration:underline;text-underline-offset:3px;color:var(--text);padding-inline:4px}
 .workbuddy-current-scopes,.workbuddy-scope-review{display:grid;gap:10px;min-width:0;padding:12px;border:1px solid var(--border);border-radius:8px}
 .workbuddy-current-scopes{background:var(--surface-soft)}
 .workbuddy-current-scopes h5,.workbuddy-scope-review h5,.workbuddy-scope-review h6{margin:0;font-size:14px;line-height:1.6;font-weight:600}
@@ -75,12 +97,13 @@
 .workbuddy-scope-unavailable{display:grid;gap:6px;padding-top:10px;border-top:1px solid var(--border);color:var(--amber)}
 .workbuddy-official-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:6px;width:fit-content;max-width:100%;white-space:normal;line-height:1.6;background:var(--accent);color:white;text-decoration:none}
 :root[data-theme=dark] .workbuddy-official-link{color:#16141f}
-.workbuddy-authorization>button{justify-self:start}
 .workbuddy-authorization .workbuddy-official-link{font:inherit}
 .workbuddy-pagination{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
 .workbuddy-pagination>span,.workbuddy-config,.workbuddy-notice{font-size:12px;line-height:1.7;color:var(--muted);margin:0}
+.workbuddy-notice[data-success=true]{display:flex;align-items:flex-start;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);color:var(--text)}
+.workbuddy-notice[data-success=true] svg{flex:none;color:var(--green)}
 .workbuddy-local-warning,.workbuddy-recovery{color:var(--amber)}
 .workbuddy-connections :focus-visible{outline:2px solid var(--accent,#5274cf);outline-offset:3px}
-@media(max-width:600px){.workbuddy-disclosure{padding:14px;align-items:flex-start;gap:8px}.workbuddy-disclosure-action{max-width:92px;text-align:right}.workbuddy-manager{padding:0 14px 14px}.workbuddy-toolbar{align-items:flex-start;flex-direction:column}.workbuddy-toolbar button{width:100%}.workbuddy-card{padding:14px}.workbuddy-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.workbuddy-actions button{width:100%}.workbuddy-facts>div,.workbuddy-technical>div{grid-template-columns:76px minmax(0,1fr);gap:10px}.workbuddy-official-link{width:100%}.workbuddy-card header{gap:8px}}
+@media(max-width:600px){.workbuddy-disclosure{padding:14px;align-items:flex-start;gap:8px}.workbuddy-disclosure-action{max-width:92px;text-align:right}.workbuddy-manager{padding:12px 14px 14px}.workbuddy-toolbar{align-items:flex-start;flex-direction:column}.workbuddy-toolbar button{align-self:flex-end}.workbuddy-card{padding:14px}.workbuddy-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.workbuddy-actions button{width:100%}.workbuddy-flow-actions{grid-template-columns:1fr}.workbuddy-config details{margin-inline-start:0}.workbuddy-facts>div,.workbuddy-technical>div{grid-template-columns:76px minmax(0,1fr);gap:10px}.workbuddy-official-link{width:100%}.workbuddy-card header{gap:8px}}
 @media(prefers-reduced-motion:reduce){.workbuddy-disclosure>svg,.workbuddy-history-toggle>svg{transition:none}}
 @media(max-width:600px){.workbuddy-scope-diff{grid-template-columns:1fr}.workbuddy-scope-diff>section+section{border-left:0;padding-left:0;padding-top:10px;border-top:1px solid var(--border)}.workbuddy-current-scopes>button{justify-self:stretch;width:100%}}

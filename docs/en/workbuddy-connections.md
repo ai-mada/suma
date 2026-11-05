@@ -6,24 +6,24 @@ T-WORKBUDDY-CONNECTIONS-147, initial suma product 1.0.0. This page describes the
 
 A connection belongs to one tenant, project and current owner. Current project readers can inspect their own safe connection facts. Starting or completing authorization, refreshing and disconnecting require current project write authority. Reading an original authorization attempt also requires that write authority and the initiating browser session because it may return a private authorization link. Administrators cannot use these reads to obtain another owner's private grants. An external WorkBuddy account ID does not create a suma identity or grant project access.
 
-Configured, authorized and dispatchable are separate facts. This stage manages account authorization and does not enable WorkBuddy cloud task dispatch. WorkBuddy cloud and CodeBuddy CLI remain separate integrations. A connected state does not prove model health, a stopped remote task or production readiness.
+Configured, authorized and dispatchable are separate facts. Check cloud task eligibility on the corresponding task or run. WorkBuddy cloud and CodeBuddy CLI have separate integrations.
 
 ## Authorize explicitly
 
 1. Expand WorkBuddy account authorization in the current project's tool settings. It starts collapsed; opening it loads only the current owner's bounded connection page.
-2. Choose to connect or reauthorize, then explicitly select a nonempty subset of the operator-enabled permissions: read tasks and create tasks. Nothing is preselected.
-3. Prepare the authorization link. The original authorization Start only creates the fixed attempt; it neither grants access nor starts a cloud task.
-4. In a normal browser, explicitly open the official WorkBuddy page in a new tab. Desktop users explicitly open an isolated authorization child in the same session. Review the account and scopes, then accept or deny. The link has a visible expiry; it is not opened or renewed automatically, and the original session is not transferred to an external browser.
+2. On first connection, choose permissions directly from the panel. With existing records, choose to add an account or reauthorize one. Each permission has a description and starts unchecked.
+3. Select **Continue authorization**. Suma prepares the attempt and moves focus to the official authorization action.
+4. Open the official WorkBuddy page and confirm the account and permissions. The browser opens a new tab. The desktop opens an isolated window in the same session. You can return to the list to inspect the pending connection.
 5. The provider returns to an isolated callback document. The server checks the original browser credential, bound nonce and current project authority, then returns to the safe project connection panel. Querying the exact original connection ID reads the result without completing an unknown operation.
 
-Changing account, organization or browser session cannot consume the old authorization. After expiry, read current facts before explicitly starting a new authorization. Denial cancels the original pending attempt without a token exchange. Granted scopes may be narrower than requested; they must not expand silently. Reauthorization cannot attach another external account to the old connection.
+Authorization stays bound to the initiating account, organization and browser session. When a link expires, you can request a replacement from the original pending connection. A denial cancels the pending attempt before token exchange. Review the actual granted permissions on the connection. Reauthorization stays bound to the original external account.
 
 ## States, reads and recovery
 
 | State or action | Meaning |
 | --- | --- |
 | Waiting for authorization | The original attempt awaits official confirmation; use its still-valid link or read current facts |
-| Connected | A provider grant was saved; cloud dispatch remains unavailable |
+| Connected | The provider grant was saved. Check dispatch eligibility on the relevant task or run |
 | Refreshing | One explicit refresh was prepared; wait for its original result |
 | Authorization or refresh unknown | The provider may have acted; inspect the original connection or recover the original operation |
 | Reauthorization required | Current eligibility is insufficient; explicitly select scopes and authorize again when allowed |
