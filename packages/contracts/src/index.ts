@@ -7330,6 +7330,29 @@ export interface TaskHandoffTeam {
   team_version: number;
   membership_version: number;
 }
+export interface TaskIterationAssignmentReceipt {
+  task_id: string;
+  plan_version: number;
+  changed: boolean;
+}
+export interface TaskIterationAssignmentRequest {
+  project_id: string;
+  iteration_id: string;
+  expected_iteration_version: number;
+  tasks: (TaskIterationAssignmentSelection)[];
+  idempotency_key: string;
+}
+export interface TaskIterationAssignmentResult {
+  project_id: string;
+  operation_id: string;
+  iteration_id: string;
+  changes: (TaskIterationAssignmentReceipt)[];
+}
+export interface TaskIterationAssignmentSelection {
+  task_id: string;
+  expected_task_version: number;
+  expected_plan_version: number;
+}
 export interface TaskOwnerChangePreview {
   project_id: string;
   owner: TaskOwnerTarget;

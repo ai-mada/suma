@@ -1,6 +1,7 @@
 package platform
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -32,6 +33,30 @@ func (s *Server) planning(w http.ResponseWriter, r *http.Request, actor Actor, p
 			return true
 		}
 		writeError(w, missing())
+		return true
+	}
+	if path == "planning/iteration-assignments" {
+		w.Header().Set("Cache-Control", "no-store")
+		if r.Method != http.MethodPost || r.URL.Path != taskIterationAssignmentAPIPath {
+			writeError(w, missing())
+			return true
+		}
+		if r.URL.RawQuery != "" {
+			writeError(w, invalid(taskIterationAssignmentInvalid))
+			return true
+		}
+		raw, err := json.Marshal(m)
+		if err != nil {
+			writeError(w, invalid(taskIterationAssignmentInvalid))
+			return true
+		}
+		req, err := decodeTaskIterationAssignment(raw)
+		if err != nil {
+			writeError(w, err)
+			return true
+		}
+		out, err := s.Service.AssignTaskIterations(ctx, actor, project, req)
+		respond(w, http.StatusOK, out, err)
 		return true
 	}
 	if path == "planning/schedule" && r.Method == "POST" {

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-ITERATION-BATCH 在任务列表支持逐项预览和批量调整迭代，按当前任务、排期和目标版本原子提交，支持冲突刷新和原回执恢复。 [交互设计](../design/task-iteration-assignments.md) · [验证记录](../quality/task-iteration-assignments-verification.md)
+
 T-CURSOR-RECOVERY-228 为 Cursor 前台停止增加有界等待和原尝试核对。普通节点与共享执行池已验证丢失回执后的同请求恢复，运行界面支持明确记录当前尝试结论。 [验证记录](../quality/cursor-foreground-recovery-verification.md)
 
 T-WORKBUDDY-ARTIFACT-TIMELINE 已在原云回合显示产物类型、变更动作和有限预览。 [合同](../../contracts/workbuddy-cloud-turns.md) · [验证](../quality/workbuddy-artifact-timeline-verification.md)

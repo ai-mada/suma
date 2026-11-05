@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MULTICA-ITERATION-BATCH 验证任务列表批量调整迭代的事务、授权、原操作回执及中英文代表界面。 [阶段验证](task-iteration-assignments-verification.md)
+
 T-CURSOR-RECOVERY-228 已通过受控进程和双节点类型的原结果回执恢复。 [阶段验证](cursor-foreground-recovery-verification.md)
 
 T-WORKBUDDY-ARTIFACT-TIMELINE 已在原云回合显示产物类型、变更动作和有限预览。 [合同](../../contracts/workbuddy-cloud-turns.md) · [验证](workbuddy-artifact-timeline-verification.md)

@@ -70,3 +70,32 @@ func TestTaskIterationContractProjectsCurrentPlanVersionsOnlyOnRowPage(t *testin
 		t.Fatal("aggregate groups must not claim to project task rows")
 	}
 }
+
+// The batch uses the task workspace's independently versioned plan reference.
+func TestTaskIterationAssignmentPublicContract(t *testing.T) {
+	api, _ := generate()
+	op := mapAt(api, "paths", "/planning/iteration-assignments", "post")
+	for _, raw := range op["parameters"].([]any) {
+		if raw.(map[string]any)["in"] == "query" {
+			t.Fatal("the exact request body owns project scope")
+		}
+	}
+	body := mapAt(op, "requestBody", "content", "application/json", "schema")
+	if body["$ref"] != "#/components/schemas/TaskIterationAssignmentRequest" {
+		t.Fatal("iteration assignment requires its closed command")
+	}
+	response := mapAt(op, "responses", "200", "content", "application/json", "schema")
+	if response["$ref"] != "#/components/schemas/TaskIterationAssignmentResult" {
+		t.Fatal("iteration assignment must return a typed operation result")
+	}
+	schemas := mapAt(api, "components", "schemas")
+	request := mapAt(schemas, "TaskIterationAssignmentRequest")
+	rows := mapAt(request, "properties", "tasks")
+	if request["additionalProperties"] != false || len(request["required"].([]string)) != 5 || rows["minItems"] != 1 || rows["maxItems"] != 16 {
+		t.Fatal("request must contain a bounded explicit selection")
+	}
+	selection := mapAt(schemas, "TaskIterationAssignmentSelection", "properties")
+	if mapAt(selection, "expected_task_version")["minimum"] != 1 || mapAt(selection, "expected_plan_version")["minimum"] != 0 {
+		t.Fatal("task and planning versions need independent integer bounds")
+	}
+}
