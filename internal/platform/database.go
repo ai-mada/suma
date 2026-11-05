@@ -110,6 +110,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateWorkspaceInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateOrganizationWorkCalendarInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateResourceCalendarInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -214,6 +217,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeProjections(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeOrganizationWorkCalendars(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializePlanning(ctx); err != nil {

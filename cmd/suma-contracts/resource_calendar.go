@@ -13,7 +13,7 @@ func resourceCalendarContracts(add operationAdder, api map[string]any) {
 		}
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"ResourceCalendar", "ResourceCalendarSaveRequest", "ResourceCalendarSchedule", "ResourceCalendarException", "ResourceCalendarDay"} {
+	for _, name := range []string{"ResourceCalendar", "ResourceCalendarSaveRequest", "ResourceCalendarSchedule", "ResourceCalendarException", "ResourceCalendarDay", "OrganizationWorkCalendar", "OrganizationWorkCalendarSaveRequest"} {
 		toolContractMap(schemas, name)["additionalProperties"] = false
 	}
 	weekdays := toolContractMap(schemas, "ResourceCalendarSchedule", "properties", "weekdays")
@@ -29,9 +29,10 @@ func resourceCalendarContracts(add operationAdder, api map[string]any) {
 	}
 	toolContractMap(schemas, "ResourceCalendarDay", "properties", "source")["enum"] = []string{"base", "exception", "unknown"}
 	toolContractMap(schemas, "ResourceCalendarSaveRequest", "properties", "expected_version")["minimum"] = 0
+	organizationWorkCalendarContracts(add, schemas)
 	toolContractMap(schemas, "CapacityEntry", "properties", "days")["minItems"] = 7
 	toolContractMap(schemas, "CapacityEntry", "properties", "days")["maxItems"] = 7
-	for _, name := range []string{"ResourceCalendar", "ResourceCalendarDay", "CapacityEntry"} {
+	for _, name := range []string{"ResourceCalendar", "ResourceCalendarDay", "CapacityEntry", "OrganizationWorkCalendar"} {
 		for _, property := range toolContractMap(schemas, name, "properties") {
 			property.(map[string]any)["readOnly"] = true
 		}

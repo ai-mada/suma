@@ -1,0 +1,38 @@
+.organization-work-calendar{display:grid;gap:16px;min-width:0;container-type:inline-size}
+.org-calendar-heading h2{margin:0 0 4px}
+.org-calendar-heading p,.org-calendar-note,.org-calendar-section-heading p{margin:0;color:var(--muted);line-height:1.65}
+.org-calendar-panel{min-width:0;padding:0}
+.org-calendar-toolbar,.org-calendar-week,.org-calendar-controls,.org-calendar-week-label,.org-calendar-person,.org-calendar-section-heading,.org-calendar-summary{display:flex;align-items:center}
+.org-calendar-toolbar{flex-wrap:wrap;justify-content:space-between;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.org-calendar-toolbar .field{min-width:0;width:min(100%,320px)}
+.org-calendar-toolbar select{min-width:0;width:100%;text-overflow:ellipsis}
+.org-calendar-week{gap:12px;flex-wrap:wrap;min-width:0}
+.org-calendar-controls{gap:6px;flex-wrap:wrap}
+.org-calendar-controls button{min-height:36px;min-width:36px}
+.org-calendar-week-label,.org-calendar-person{gap:9px;min-width:0}
+.org-calendar-week-label svg,.org-calendar-person svg{flex-shrink:0;color:var(--accent)}
+.org-calendar-week-label>div,.org-calendar-person>div{display:grid;gap:3px;min-width:0}
+.org-calendar-week-label span,.org-calendar-person span,.org-calendar-summary span,.org-calendar-summary small,.org-calendar-summary p{color:var(--muted);font-size:12px}
+.org-calendar-person strong,.org-calendar-week-label strong{overflow-wrap:anywhere}
+.org-calendar-body{display:grid;gap:14px;padding:18px 20px;min-width:0}
+.org-calendar-section-heading,.org-calendar-summary{justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+.org-calendar-section-heading h3{margin:0 0 3px}
+.org-calendar-summary{border-block:1px solid var(--border);padding-block:10px}
+.org-calendar-summary>div{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap}
+.org-calendar-summary p{margin:0}
+.org-calendar-summary strong{color:var(--accent);font-size:18px}
+.org-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;list-style:none;padding:0;margin:0}
+.org-calendar-days li{display:grid;align-content:start;gap:4px;min-width:0;padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--surface);overflow-wrap:anywhere}
+.org-calendar-days li[data-exception=true]{border-color:var(--accent);border-style:dashed}
+.org-calendar-days li[data-availability=off] strong{color:var(--muted)}
+.org-calendar-days li[data-availability=unknown] strong{color:var(--amber)}
+.org-calendar-days time{display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 5px;color:var(--muted);font-size:12px}
+.org-calendar-days small,.org-calendar-note{font-size:12px;color:var(--muted)}
+@container (max-width:540px){
+ .org-calendar-toolbar,.org-calendar-body{padding-inline:14px}
+ .org-calendar-days{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+ .org-calendar-days li{padding:7px}
+ .org-calendar-days time{font-size:11px}
+ .org-calendar-controls button,.org-calendar-toolbar select,.org-calendar-section-heading button{min-height:44px}
+ .org-calendar-controls button{min-width:44px}
+}

@@ -287,6 +287,9 @@ func (s *Service) UpdateOrganizationMember(ctx context.Context, actor Actor, use
 // governance is dispatched before normal project authorization. The outer HTTP
 // handler rejects all scoped credentials before reaching these methods.
 func (s *Server) governance(w http.ResponseWriter, r *http.Request, actor Actor, path string, m map[string]any) bool {
+	if s.organizationWorkCalendarHTTP(w, r, actor, path) {
+		return true
+	}
 	parts := strings.Split(path, "/")
 	ctx := r.Context()
 	switch parts[0] {

@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-ORG-WORK-CALENDAR 核验组织与人员隔离、初始结构拒绝、版本竞争、原回执、周工作制／例外和双语浏览器。 [阶段验证](organization-work-calendar-verification.md)
+
 T-PORTFOLIO-SCHEDULE-OVERLAP 核验真实人力绑定、日期交集、查询上限、当前授权、原任务导航及代表性窄屏。 [阶段验证](project-schedule-overlap-verification.md)
 
 T-REPOSITORY-SOURCE-WORKBENCH-246 核验中英文工作台、键盘确认、权限与过期处理、原操作恢复及提供方不可用时的已留存交付。 [阶段验证](repository-source-workbench-verification.md)

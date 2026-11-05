@@ -268,7 +268,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [x] 项目全量任务指标、已加载范围提示与真实日期时间线；资源每周容量、未知值与未估算范围提示。
 - [x] 当前资源工作日历：七日工作制、日期例外、明确未知／0、当前权限和独立版本／回执；完整任务区间按可用小时权重分摊，见[合同](../../contracts/resource-calendars.md)与[限定验证](../quality/resource-calendars-verification.md)。
 - [x] 人员明确工时登记、当前任务版本、更正／作废不可变历史与组织跨项目每日上限；[限定验证](../quality/worklogs-verification.md)。登记不是机器测量、工资或审批。
-- [ ] 完整人员日历治理、外部工作制／节假日同步与请假审批、工时审批／自动计时与组织报表；跨项目组织计划容量、连续真实进度历史和预测分析。
+- [ ] 完整人员日历治理、外部工作制／节假日同步与请假审批、工时审批／自动计时与组织报表；跨项目组织计划容量、连续真实进度历史和预测分析。T-ORG-WORK-CALENDAR 提供[组织人员工作日历](../design/organization-work-calendar.md)，独立记录人员周工作制和日期例外，为跨项目容量提供可用工时依据。
 - [ ] 完整项目风险登记、评估、关联及闭环；跨项目portfolio全量统计与组合规划。T-ORG-PROJECT-PORTFOLIO 已提供[组织项目组合](../design/project-portfolio.md)，按当前授权项目展示验收、阻塞、活动风险与最早未完成里程碑。T-PORTFOLIO-SCHEDULE-OVERLAP 已展示[跨项目排期重叠](../design/project-portfolio.md#跨项目排期重叠)及原任务依据。组织总容量、工时超配、组合规划与规模验证继续交付。T-PROJECT-121已推进[正式同项目风险](../product/project-risks.md)的建议采用／责任／评估／关联／固定复核／关闭重开及实际代码处置；复杂来源等价证明、完整跨项目组合和预测继续待验收，原站内模型建议不当作正式关闭。
 - [ ] AI需求采集/评审/拆解采用闭环、完整PRD/UED/架构设计产品编辑、可运行原型。
 

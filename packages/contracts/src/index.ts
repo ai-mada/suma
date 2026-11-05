@@ -4189,6 +4189,19 @@ export interface OrganizationSummary {
   name: string;
   role: string;
 }
+export interface OrganizationWorkCalendar {
+  organization_id: string;
+  user_id: string;
+  version: number;
+  schedule: ResourceCalendarSchedule;
+  updated_at: string;
+  can_edit: boolean;
+}
+export interface OrganizationWorkCalendarSaveRequest {
+  expected_version: number;
+  idempotency_key: string;
+  schedule: ResourceCalendarSchedule;
+}
 export interface OverviewAttentionItem {
   id: string;
   title: string;

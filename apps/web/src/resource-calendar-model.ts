@@ -1,4 +1,4 @@
-import type {ResourceCalendar,ResourceCalendarSchedule} from '../../../packages/contracts/src';
+import type {OrganizationWorkCalendar,ResourceCalendar,ResourceCalendarSchedule} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
 
 export type CalendarDraft={weekdays:string[];exceptions:{date:string;hours:string;note:string}[]};
@@ -19,6 +19,61 @@ export function calendarDraftError(draft:CalendarDraft){
 }
 export function calendarSchedule(draft:CalendarDraft):ResourceCalendarSchedule{const value=(text:string)=>text.trim()===''?null:Number(text);return {weekdays:draft.weekdays.map(value),exceptions:draft.exceptions.map(item=>({date:item.date,available_hours:value(item.hours),note:item.note})).sort((a,b)=>a.date.localeCompare(b.date))};}
 export function calendarPath(member:string){return '/resource-calendars/'+encodeURIComponent(member);}
-export function validCalendar(value:unknown,project:string,member:string):value is ResourceCalendar{return object(value)&&value.project_id===project&&value.member_id===member&&typeof value.version==='number'&&Number.isSafeInteger(value.version)&&value.version>=0&&typeof value.can_edit==='boolean'&&typeof value.updated_at==='string'&&validCalendarSchedule(value.schedule)&&(value.version!==0||value.schedule.weekdays.every(day=>day===null)&&value.schedule.exceptions.length===0);}
-export function validCalendarRequest(request:WriteRecoveryRequest,project:string,member:string){const body=request.body;return request.path===calendarPath(member)&&request.method==='PUT'&&Object.keys(body).sort().join(',')==='expected_version,idempotency_key,project_id,schedule'&&body.project_id===project&&typeof body.expected_version==='number'&&Number.isSafeInteger(body.expected_version)&&body.expected_version>=0&&body.idempotency_key===request.idempotency_key&&validCalendarSchedule(body.schedule);}
-export function validCalendarReceipt(value:unknown,request:WriteRecoveryRequest,project:string,member:string){return validCalendarRequest(request,project,member)&&validCalendar(value,project,member)&&value.version===(request.body.expected_version as number)+1&&JSON.stringify(calendarSchedule(calendarDraft(value.schedule)))===JSON.stringify(calendarSchedule(calendarDraft(request.body.schedule as ResourceCalendarSchedule)));}
+
+type CalendarData = Pick<ResourceCalendar,'version'|'schedule'|'updated_at'|'can_edit'>;
+export type CalendarTarget = {kind:'project'|'organization';scopeID:string;member:string};
+export function targetCalendarPath(target:CalendarTarget){
+ return target.kind==='project'?calendarPath(target.member):'/organization/work-calendars/'+encodeURIComponent(target.member);
+}
+export function calendarRequestScope(target:CalendarTarget){
+ return target.kind==='project'?{project_id:target.scopeID}:{};
+}
+function validCalendarData(value:unknown):value is Record<string,unknown> & CalendarData{
+ return object(value)&&typeof value.version==='number'&&Number.isSafeInteger(value.version)&&value.version>=0&&
+  typeof value.can_edit==='boolean'&&typeof value.updated_at==='string'&&validCalendarSchedule(value.schedule)&&
+  (value.version!==0||value.schedule.weekdays.every(day=>day===null)&&value.schedule.exceptions.length===0);
+}
+export function validCalendar(value:unknown,project:string,member:string):value is ResourceCalendar{
+ return validCalendarData(value)&&value.project_id===project&&value.member_id===member;
+}
+export function validOrganizationCalendar(value:unknown,organization:string,user:string):value is OrganizationWorkCalendar{
+ return validCalendarData(value)&&value.organization_id===organization&&value.user_id===user;
+}
+export function validTargetCalendar(value:unknown,target:CalendarTarget):value is CalendarData{
+ return target.kind==='project'?validCalendar(value,target.scopeID,target.member):validOrganizationCalendar(value,target.scopeID,target.member);
+}
+export function validTargetCalendarRequest(request:WriteRecoveryRequest,target:CalendarTarget){
+ const body=request.body;
+ const fields=target.kind==='project'?'expected_version,idempotency_key,project_id,schedule':'expected_version,idempotency_key,schedule';
+ return request.path===targetCalendarPath(target)&&request.method==='PUT'&&Object.keys(body).sort().join(',')===fields&&
+  (target.kind==='organization'||body.project_id===target.scopeID)&&typeof body.expected_version==='number'&&
+  Number.isSafeInteger(body.expected_version)&&body.expected_version>=0&&body.idempotency_key===request.idempotency_key&&
+  validCalendarSchedule(body.schedule);
+}
+export function validTargetCalendarReceipt(value:unknown,request:WriteRecoveryRequest,target:CalendarTarget){
+ return validTargetCalendarRequest(request,target)&&validTargetCalendar(value,target)&&
+  value.version===(request.body.expected_version as number)+1&&
+  JSON.stringify(calendarSchedule(calendarDraft(value.schedule)))===JSON.stringify(calendarSchedule(calendarDraft(request.body.schedule as ResourceCalendarSchedule)));
+}
+export function validCalendarRequest(request:WriteRecoveryRequest,project:string,member:string){
+ return validTargetCalendarRequest(request,{kind:'project',scopeID:project,member});
+}
+export function validCalendarReceipt(value:unknown,request:WriteRecoveryRequest,project:string,member:string){
+ return validTargetCalendarReceipt(value,request,{kind:'project',scopeID:project,member});
+}
+
+export function shiftCalendarDate(value:string,offset:number){
+ if(!date(value))return '';
+ const next=new Date(value+'T00:00:00Z');
+ next.setUTCDate(next.getUTCDate()+offset);
+ const shifted=next.toISOString().slice(0,10);
+ return date(shifted)?shifted:'';
+}
+
+export function organizationCalendarWeek(schedule:ResourceCalendarSchedule,dates:string[]){
+ const exceptions=new Map(schedule.exceptions.map(exception=>[exception.date,exception]));
+ return dates.map((date,index)=>{
+  const exception=exceptions.get(date);
+  return {date,hours:exception?exception.available_hours:schedule.weekdays[index],exception:!!exception};
+ });
+}

@@ -22,3 +22,9 @@
 `CapacityEntry`使用`calendar_version`和七项`days`；另列`unestimated_tasks`（本周完整区间缺估算）、`unscheduled_tasks`（该资源全项目缺少完整起止）及`distribution_unknown_tasks/hours`（本周相交但无法分摊的完整估算）。后两者不可跨周相加；界面不能据不完整范围显示确定剩余容量。
 
 完整日历版本／内容进入正式智能排期来源摘要，包括所选周之外的例外。依据变化必须新预览，不自动采用建议或执行任务。已捕获计划基线、实际验收和执行配额沿原领域保存，不被修改日历重写。
+
+## 组织人员工作日历
+
+`GET /api/v1/organization/work-calendars/{user_id}` 返回 `OrganizationWorkCalendar {organization_id,user_id,version,schedule,updated_at,can_edit}`。当前组织 owner/admin 可读取当前成员；普通成员只可读取本人。目标及调用者资格均在当前事务内校验。响应禁止缓存；不接受查询参数或项目凭据。
+
+同一路径 PUT 接收 `OrganizationWorkCalendarSaveRequest {expected_version,idempotency_key,schedule}`。仅当前组织 owner/admin 可写。日历使用相同的七日工作制、0／null 与日期例外验证。版本 0 表示未配置。当前成员身份、CAS、活动记录及回执在一个授权事务内完成；成功原操作重放仍重新核验当前权限。目标通过路径指定，组织通过当前会话取得。组织人员日历与项目资源日历分别保存，不复制已有日历，不覆盖正式任务、工时或机器调度额度。 [交互](../docs/design/organization-work-calendar.md)
