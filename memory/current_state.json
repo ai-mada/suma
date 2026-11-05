@@ -695,6 +695,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "cli_run_watch": {
+    "stage": "T-CLI-RUN-WATCH",
+    "version": "1.0.0",
+    "classification": "progress",
+    "contract": "contracts/automation-events.md#终端跟随",
+    "design": "docs/operations/task-dispatch-options.md#终端运行跟踪",
+    "report": "docs/quality/cli-run-watch-verification.md",
+    "actual": "A compiled CLI follows durable project-scoped run events, resumes with the last fully emitted sequence, stops on authorization loss, and reads paged ready nodes and exact admission snapshots.",
+    "known_limitations": "Windows and SQLite evidence covers event transport and read-only scheduling. Worker execution, multi-host and production acceptance require separate evidence.",
+    "full_platform_complete": false,
+    "git_record": ".cache/cli-run-watch/post-git.json"
+  },
   "cli_task_dispatch": {
     "stage": "T-CLI-TASK-DISPATCH",
     "version": "1.0.0",

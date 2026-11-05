@@ -69,7 +69,7 @@ func (c *client) setOriginalView(user, organization string) error {
 	return nil
 }
 
-func (c *client) request(ctx context.Context, method, path string, body map[string]any, scoped bool) (json.RawMessage, error) {
+func (c *client) buildRequest(ctx context.Context, method, path string, body map[string]any, scoped bool) (*http.Request, error) {
 	u, err := url.Parse(path)
 	if err != nil || u.IsAbs() || u.Host != "" || !strings.HasPrefix(u.Path, "/") || strings.Contains(u.Path, "..") || strings.ContainsAny(u.Path, "\\\r\n") || u.Fragment != "" {
 		return nil, usage("API path must be a relative /api/v1 resource path")
@@ -105,8 +105,6 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 		}
 		reader = bytes.NewReader(raw)
 	}
-	ctx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, method, c.base+u.String(), reader)
 	if err != nil {
 		return nil, usage("invalid request")
@@ -133,34 +131,27 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 			req.Header.Set("X-Suma-Expected-Organization", c.expectedOrganization)
 		}
 	}
-	resp, err := c.http.Do(req)
+	return req, nil
+}
+
+func (c *client) request(ctx context.Context, method, path string, body map[string]any, scoped bool) (json.RawMessage, error) {
+	req, err := c.buildRequest(ctx, method, path, body, scoped)
 	if err != nil {
-		message := "control request failed"
-		if ctx.Err() != nil {
-			message = "control request cancelled or timed out"
-		}
-		if !requestIsReadOnly(method, path) {
-			message += "; outcome may be unknown: retry only with the same operation key and payload"
-		}
-		return nil, &failure{Code: "transport", Message: message}
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+	resp, err := c.http.Do(req.WithContext(ctx))
+	if err != nil {
+		return nil, controlTransportFailure(ctx, !requestIsReadOnly(method, path))
 	}
 	defer resp.Body.Close()
-	raw, err := io.ReadAll(io.LimitReader(resp.Body, 16*1024*1024+1))
-	if err != nil || len(raw) > 16*1024*1024 {
-		return nil, &failure{Code: "response", Message: "unable to read bounded response", Status: resp.StatusCode}
+	raw, err := readControlResponseBody(resp)
+	if err != nil {
+		return nil, err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		f := &failure{Code: "http_error", Message: http.StatusText(resp.StatusCode), Status: resp.StatusCode, remote: true}
-		var envelope struct {
-			Error failure `json:"error"`
-		}
-		decoder := json.NewDecoder(bytes.NewReader(raw))
-		decoder.UseNumber()
-		if json.Valid(raw) && decoder.Decode(&envelope) == nil && envelope.Error.Code != "" {
-			*f = envelope.Error
-			f.Status, f.remote = resp.StatusCode, true
-		}
-		return nil, f
+		return nil, controlHTTPFailure(resp.StatusCode, raw)
 	}
 	if len(bytes.TrimSpace(raw)) == 0 {
 		raw = []byte(`{}`)
@@ -169,6 +160,39 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 		return nil, &failure{Code: "response", Message: "control response was not valid JSON", Status: resp.StatusCode}
 	}
 	return raw, nil
+}
+
+func controlTransportFailure(ctx context.Context, outcomeUncertain bool) *failure {
+	message := "control request failed"
+	if ctx.Err() != nil {
+		message = "control request cancelled or timed out"
+	}
+	if outcomeUncertain {
+		message += "; outcome may be unknown: retry only with the same operation key and payload"
+	}
+	return &failure{Code: "transport", Message: message}
+}
+
+func readControlResponseBody(resp *http.Response) ([]byte, error) {
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, 16*1024*1024+1))
+	if err != nil || len(raw) > 16*1024*1024 {
+		return nil, &failure{Code: "response", Message: "unable to read bounded response", Status: resp.StatusCode}
+	}
+	return raw, nil
+}
+
+func controlHTTPFailure(status int, raw []byte) *failure {
+	f := &failure{Code: "http_error", Message: http.StatusText(status), Status: status, remote: true}
+	var envelope struct {
+		Error failure `json:"error"`
+	}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	if json.Valid(raw) && decoder.Decode(&envelope) == nil && envelope.Error.Code != "" {
+		*f = envelope.Error
+		f.Status, f.remote = status, true
+	}
+	return f
 }
 
 func readObject(file string, in io.Reader) (map[string]any, error) {

@@ -26,6 +26,8 @@ T-TEAM-WORKSTATION-RECOVERY-218：[共享节点恢复与 AI SOP](../product/team
 
 T-TOOL-RECOVERY-NAVIGATION-217：[工具恢复交接与AI SOP](../product/tool-recovery-navigation.md)／[交互](../design/tool-recovery-navigation.md)／[限定验证](../quality/tool-recovery-navigation-verification.md)。常用操作前置，Doctor→准确普通节点→原连接准备／上报／Quick贯通；来源ABA、截止、共享边界与原未知保护保持。5项定向、类型0／9774对词条、4组代表合成界面通过；1次构建，失败与宿主退出分开记录。真实远程修复及完整31／P0–P7继续。
 
+T-CLI-RUN-WATCH 补齐终端派发后的持久事件跟随、按序号恢复、就绪队列及精确节点准入，复用当前项目权限和正式调度来源。见[终端操作](../operations/task-dispatch-options.md#终端运行跟踪)和[验证](../quality/cli-run-watch-verification.md)。
+
 T-CLI-TASK-DISPATCH 将现有任务派发串为终端流程，支持当前工具选项、独立测试绑定核对、明确预览、审阅和显式启动。终端复用项目授权与原回执。见[终端操作](../operations/task-dispatch-options.md#终端任务派发)和[验证](../quality/cli-task-dispatch-verification.md)。
 
 T-TEST-DISPATCH-PREFLIGHT 将另一执行节点的测试工具核对提前到选择时，沿原服务端绑定规则检查流程、当前路由和档案版本。正式预览与启动保留独立复核。见[交互](../design/test-dispatch-bindings.md#工作台与推荐)与[验证](../quality/test-dispatch-preflight-verification.md)。

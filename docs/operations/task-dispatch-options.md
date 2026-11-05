@@ -53,6 +53,24 @@ suma --project PROJECT tasks dispatch-start PLAN --expected-version PLAN_VERSION
 
 启动回执中的运行 ID 可用于 `suma --project PROJECT run show RUN` 或 `run events RUN`。后续由调度器领取，任务验收沿原质量流程。 [独立测试合同](../../contracts/test-dispatch-bindings.md#选择时检查)
 
+## 终端运行跟踪
+
+启动后使用回执中的运行 ID。先跟随持久事件，再用队列和精确节点读取核对当前调度条件。
+
+```text
+suma --project PROJECT run watch RUN
+suma --project PROJECT run watch RUN --after SEQUENCE --max-events 20
+suma --project PROJECT run queue --limit 50
+suma --project PROJECT run queue --cursor NEXT_CURSOR
+suma --project PROJECT run scheduling RUN --node NODE
+```
+
+- `run watch` 每行输出一条事件 JSON。断线从最后成功输出的序号重连。脚本重启时可传同一运行最后完整一行的 `sequence`。其他运行使用各自游标。
+- `--max-events` 取 1–100000，到达条数后结束。省略时持续跟随，按 Ctrl+C 退出。单连接受全局 `--timeout` 约束，读取权限变化或收到无效协议时会明确退出。
+- 队列展示当前已就绪节点及服务端分页结果。找到运行和节点后，`run scheduling` 返回当前阻塞、所需资源和执行路由依据。历史事件、当前准入、实际结果与人工验收分别读取。
+
+[持久事件合同](../../contracts/automation-events.md#持久运行事件) · [调度工作台](../design/scheduling-workspace.md)
+
 ## IDE 保存回执恢复
 
 1. 保存请求固定当前项目、路径、原文件hash、提交内容、操作标识和原API调用者。请求结果未确定时保留它们；后续编辑只是新的草稿。

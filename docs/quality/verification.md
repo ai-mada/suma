@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CLI-RUN-WATCH 核验真实事件续传、完整输出边界、凭证撤销、队列分页和节点阻塞。 [阶段验证](cli-run-watch-verification.md)
+
 T-CLI-TASK-DISPATCH 核验项目 API 凭证、当前角色、独立测试工具、终端分步派发和原运行回执。 [阶段验证](cli-task-dispatch-verification.md)
 
 T-TEST-DISPATCH-PREFLIGHT 核验独立测试工具的准确绑定、路由隔离、版本及撤权、零计划写入和派发弹窗复核。 [阶段验证](test-dispatch-preflight-verification.md)

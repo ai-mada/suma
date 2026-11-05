@@ -1,0 +1,217 @@
+package cli
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+	"unicode"
+	"unicode/utf8"
+)
+
+const (
+	maxRunWatchCursor      = 9007199254740991
+	maxRunWatchEvents      = 100000
+	maxRunWatchFailures    = 5
+	runWatchUsage          = "run watch requires RUN, with optional --after 0..9007199254740991 and --max-events 1..100000"
+	runSchedulingUsage     = "run scheduling requires RUN and --node NODE"
+	runQueueUsage          = "run queue accepts --limit 1..100 and an original --cursor"
+	runWatchRetryExhausted = "live run event retries exhausted; resume from the last printed cursor"
+	runWatchOutputFailed   = "unable to write a complete live run event"
+)
+
+var errRunWatchComplete = errors.New("run watch output limit reached")
+
+func runObservationCommand(ctx context.Context, c *client, action string, args []string, out io.Writer) error {
+	if len(args) == 1 && args[0] == "--help" {
+		_, err := io.WriteString(out, c.text(runObservationHelpZH, runObservationHelpEN))
+		return err
+	}
+	switch action {
+	case "watch":
+		return runWatchCommand(ctx, c, args, out)
+	case "scheduling":
+		if len(args) == 0 || !compositionCLIIdentifier(args[0], 100) {
+			return usage(runSchedulingUsage)
+		}
+		fs := commandFlags("run scheduling")
+		node := fs.String("node", "", "exact workflow node ID")
+		if fs.Parse(args[1:]) != nil || fs.NArg() != 0 || !compositionCLIIdentifier(*node, 150) {
+			return usage(runSchedulingUsage)
+		}
+		path := "/api/v1/runs/" + url.PathEscape(args[0]) + "/nodes/" + url.PathEscape(*node) + "/scheduling"
+		return contextRead(ctx, c, path, out)
+	case "queue":
+		fs := commandFlags("run queue")
+		limit := fs.String("limit", "50", "page size 1..100")
+		cursor := fs.String("cursor", "", "original queue continuation")
+		if fs.Parse(args) != nil || fs.NArg() != 0 {
+			return usage(runQueueUsage)
+		}
+		// The scheduler allows up to 2048 decoded bytes in a base64url cursor.
+		if _, ok := runWatchDecimal(*limit, 1, 100); !ok ||
+			len(*cursor) > 2731 || !utf8.ValidString(*cursor) || strings.ContainsFunc(*cursor, unicode.IsControl) {
+			return usage(runQueueUsage)
+		}
+		q := url.Values{"limit": {*limit}}
+		if *cursor != "" {
+			q.Set("cursor", *cursor)
+		}
+		return contextRead(ctx, c, "/api/v1/scheduling/queue?"+q.Encode(), out)
+	default:
+		return usage("unknown run command")
+	}
+}
+
+func runWatchCommand(ctx context.Context, c *client, args []string, out io.Writer) error {
+	if len(args) == 0 || !compositionCLIIdentifier(args[0], 100) {
+		return usage(runWatchUsage)
+	}
+	fs := commandFlags("run watch")
+	cursor := fs.String("after", "0", "last persisted sequence from the same run")
+	var limit int64
+	fs.Func("max-events", "stop after this many new events, 1..100000", func(raw string) error {
+		value, ok := runWatchDecimal(raw, 1, maxRunWatchEvents)
+		if !ok {
+			return strconv.ErrSyntax
+		}
+		limit = value
+		return nil
+	})
+	if fs.Parse(args[1:]) != nil || fs.NArg() != 0 {
+		return usage(runWatchUsage)
+	}
+	after, ok := runWatchDecimal(*cursor, 0, maxRunWatchCursor)
+	if !ok {
+		return usage(runWatchUsage)
+	}
+	return followRunEvents(ctx, c, args[0], after, limit, out)
+}
+
+func runWatchDecimal(value string, minimum, maximum int64) (int64, bool) {
+	n, err := strconv.ParseInt(value, 10, 64)
+	return n, err == nil && n >= minimum && n <= maximum && strconv.FormatInt(n, 10) == value
+}
+
+func followRunEvents(ctx context.Context, c *client, run string, after, limit int64, out io.Writer) error {
+	var count int64
+	failures := 0
+	resumeDetails := func() map[string]any { return map[string]any{"run_id": run, "after": after} }
+	for ctx.Err() == nil {
+		activity, err := c.readRunEventStream(ctx, run, after, func(raw json.RawMessage, sequence int64) error {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			if sequence <= after {
+				return nil
+			}
+			if err := writeRunWatchEvent(out, raw, c.token); err != nil {
+				return &failure{Code: "run_watch_output", Message: runWatchOutputFailed, Details: resumeDetails()}
+			}
+			// The cursor describes delivered stdout, not just network progress.
+			after = sequence
+			if limit > 0 {
+				count++
+				if count == limit {
+					return errRunWatchComplete
+				}
+			}
+			return nil
+		})
+		if errors.Is(err, errRunWatchComplete) {
+			return nil
+		}
+		if ctx.Err() != nil {
+			break
+		}
+		status, retryable := runWatchRetryable(err)
+		if !retryable {
+			return err
+		}
+		if activity {
+			failures = 0
+		}
+		if err != nil || !activity {
+			failures++
+		}
+		if failures >= maxRunWatchFailures {
+			return &failure{Code: "run_watch_retry_exhausted", Message: runWatchRetryExhausted, Status: status, Details: resumeDetails()}
+		}
+		delay := min(250*time.Millisecond<<max(0, failures-1), 3*time.Second)
+		if status == http.StatusTooManyRequests {
+			delay = 3 * time.Second
+		}
+		timer := time.NewTimer(delay)
+		select {
+		case <-ctx.Done():
+		case <-timer.C:
+		}
+		timer.Stop()
+	}
+	if errors.Is(ctx.Err(), context.Canceled) {
+		return nil
+	}
+	return &failure{Code: "transport", Message: "control request cancelled or timed out", Details: resumeDetails()}
+}
+
+func runWatchRetryable(err error) (int, bool) {
+	if err == nil {
+		return 0, true // The server normally rotates complete streams.
+	}
+	var f *failure
+	if !errors.As(err, &f) || f.Code == "run_watch_protocol" {
+		return 0, false
+	}
+	if f.Status == 0 {
+		return 0, f.Code == "transport"
+	}
+	return f.Status, f.Status == http.StatusRequestTimeout || f.Status == http.StatusTooManyRequests || f.Status >= 500 && f.Status <= 599
+}
+
+func writeRunWatchEvent(out io.Writer, raw json.RawMessage, token string) error {
+	var payload any = raw
+	if token != "" {
+		decoder := json.NewDecoder(bytes.NewReader(raw))
+		decoder.UseNumber()
+		if err := decoder.Decode(&payload); err != nil {
+			return err
+		}
+		payload = redact(payload, token)
+	}
+	line, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	line = append(line, '\n')
+	n, err := out.Write(line)
+	if err == nil && n != len(line) {
+		return io.ErrShortWrite
+	}
+	return err
+}
+
+const runObservationHelpEN = `Follow and inspect a run in the current --project.
+
+  run watch RUN [--after SEQUENCE] [--max-events 1..100000]
+  run scheduling RUN --node NODE
+  run queue [--limit 1..100] [--cursor CURSOR]
+
+Watch writes one complete JSON event per line. Stop with Ctrl+C or an explicit
+event limit. Resume from the last printed sequence of the same run.
+`
+
+const runObservationHelpZH = `跟踪和查看当前 --project 的运行。
+
+  run watch RUN [--after SEQUENCE] [--max-events 1..100000]
+  run scheduling RUN --node NODE
+  run queue [--limit 1..100] [--cursor CURSOR]
+
+watch 每行输出一条完整 JSON 事件。按 Ctrl+C 或设置事件数量上限结束。
+续传使用同一运行最后一条已输出事件的序号。
+`

@@ -167,6 +167,16 @@ var cliMessages = map[string]cliMessage{
 	"handoff create requires --task, positive --version, --to-resource, --note, and --operation (8..128 characters)": {"cli.handoff.create_options", "发起交接需要 --task、正整数 --version、--to-resource、--note 及 8–128 字符的 --operation"},
 	"handoff decision requires ID, positive --version, --reason, and --operation (8..128 characters)":                {"cli.handoff.decision_options", "交接决定需要 ID、正整数 --version、--reason 及 8–128 字符的 --operation"},
 	"handoff accept requires explicit --acknowledge-invalidation":                                                    {"cli.handoff.acknowledgement", "接收交接须显式提供 --acknowledge-invalidation，确认旧执行与验收依据失效"},
+
+	runWatchUsage:          {"cli.run.watch_usage", "run watch 需要运行 ID，--after 为 0–9007199254740991，--max-events 为 1–100000"},
+	runSchedulingUsage:     {"cli.run.scheduling_usage", "run scheduling 需要运行 ID 和 --node 节点 ID"},
+	runQueueUsage:          {"cli.run.queue_usage", "run queue 可指定 1–100 的 --limit 和原 --cursor"},
+	runWatchRetryExhausted: {"cli.run.watch_retry_exhausted", "实时事件重连次数已达上限，可从最后一条已输出事件续传"},
+	runWatchOutputFailed:   {"cli.run.watch_output_failed", "无法完整写出运行事件"},
+	"live run event response must be a UTF-8 event stream": {"cli.run.watch_content_type", "实时运行事件响应须为 UTF-8 事件流"},
+	"invalid live run event frame":                         {"cli.run.watch_frame_invalid", "实时运行事件帧无效"},
+	"live run event frame exceeds 16 MiB":                  {"cli.run.watch_frame_limit", "实时运行事件帧超过 16 MiB"},
+	"live run event stream reported an error":              {"cli.run.watch_stream_error", "实时运行事件流报告错误"},
 }
 
 func localizeFailure(locale localization.Locale, f *failure) *failure {
@@ -296,6 +306,9 @@ const helpZH = `suma — 速码控制面客户端
   task-status --help          预览或提交任务计划状态批量变更
   run show ID
   run events ID [--after SEQUENCE]
+  run watch RUN [--after SEQUENCE] [--max-events 1..100000]
+  run scheduling RUN --node NODE
+  run queue [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks dispatch-test-option --help   核对准确的独立测试工具
   tasks dispatch-plan PLAN
