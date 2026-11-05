@@ -27,6 +27,56 @@ import (
 )
 
 func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
+	testTaskDeliveryRepositoryDispatchActualIndependentQuality(t, false)
+}
+
+func repositoryDispatchPoolTool(t *testing.T, ctx context.Context, f *fixture, poolID, controlURL, name string, cfg *runner.ExecConfig) (ToolProfile, *runner.Client) {
+	t.Helper()
+	credential, err := f.s.RegisterExecutionPoolRunner(ctx, f.actor, poolID, ExecutionPoolRunnerCreateRequest{
+		Name: name, MaxSlots: 2, TTLSeconds: 3600, IdempotencyKey: newID(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	machine := credential.Runner
+	client := &runner.Client{BaseURL: controlURL, Token: credential.Token, ProjectID: f.project,
+		Pool: &runner.PoolContext{PoolID: poolID, RunnerID: machine.ID}}
+	inventoryClient := *client
+	inventoryClient.Pool = &runner.PoolContext{PoolID: poolID, RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project}
+	inventory, err := runner.DescribeTools(ctx, *cfg)
+	if err != nil || len(inventory) != 1 || !inventory[0].Available {
+		t.Fatalf("actual Pool command inventory unavailable: %+v %v", inventory, err)
+	}
+	scope, err := runner.InventoryScopeSHA256(controlURL, f.project, machine.WorkerID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = inventoryClient.ToolInventory(ctx, runner.InventoryReport{
+		WorkerID: machine.WorkerID, ScopeSHA256: scope, Items: inventory, OperationID: newID(),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	profile, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{
+		ProjectID: f.project, WorkerID: machine.WorkerID, Name: name, Profile: inventory[0].Profile, IdempotencyKey: newID(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile, err = f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{
+		ProjectID: f.project, ExpectedVersion: profile.Version, Action: "enable", IdempotencyKey: newID(),
+	})
+	if err != nil || !profile.Available {
+		t.Fatalf("approved Pool tool profile unavailable: %+v %v", profile, err)
+	}
+	cfg.ToolInventory = inventory
+	return profile, client
+}
+
+func TestTaskDeliveryRepositoryDispatchPoolActualIndependentQuality(t *testing.T) {
+	testTaskDeliveryRepositoryDispatchActualIndependentQuality(t, true)
+}
+
+func testTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T, pooled bool) {
 	git, err := exec.LookPath("git")
 	if err != nil {
 		t.Skip("Git is required for the repository delivery journey")
@@ -79,8 +129,6 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 	independentCfg := runner.ExecConfig{AllowExec: true, Workspace: independentRepo, Repository: independentRepo, BaseCommit: base, Commands: map[string]runner.CommandSpec{
 		independentCommand: {Adapter: "command", Protocol: "text-v1", Executable: node, Args: []string{"-e", junit, "{{test_report_path}}"}, TestEvidence: true, TestReport: true},
 	}}
-	producerProfile, producerToken := issueRepairRuntimeTool(t, f, "repository-source-worker245", &producerCfg)
-	testProfile, testToken := issueRepairRuntimeTool(t, f, "repository-test-worker245", &independentCfg)
 	quality := issueRepairRuntimePlan(t, f, cloud.task, QualityTestCase{
 		Key: "repository-adds", Title: "Verify the exact delivery commit", Description: "Use a different Runner and the sealed candidate",
 		Preconditions: "Start from the administrator baseline", Steps: []string{"Evaluate sum(2,3)"}, ExpectedResult: "5",
@@ -95,6 +143,48 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 	task, err = f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
 	if err != nil || task.RunID != origin.RunID {
 		t.Fatal("original WorkBuddy task binding is missing", err)
+	}
+	control := httptest.NewServer(f.handler)
+	defer control.Close()
+	var producerProfile, testProfile ToolProfile
+	var producer, independent *runner.Client
+	var pool ExecutionPool
+	var grant ExecutionPoolGrant
+	if pooled {
+		// Leave the original WorkBuddy attempt on its frozen project route.
+		// Only the new candidate and its independent test use the approved Pool.
+		pool, grant = dispatchAuthorizedPool(t, f)
+		dispatchSetRoute(t, f, 0, &grant)
+		producerProfile, producer = repositoryDispatchPoolTool(t, ctx, f, pool.ID, control.URL, "Repository source Pool Runner", &producerCfg)
+		testProfile, independent = repositoryDispatchPoolTool(t, ctx, f, pool.ID, control.URL, "Independent JUnit Pool Runner", &independentCfg)
+	} else {
+		var producerToken, testToken string
+		producerProfile, producerToken = issueRepairRuntimeTool(t, f, "repository-source-worker245", &producerCfg)
+		testProfile, testToken = issueRepairRuntimeTool(t, f, "repository-test-worker245", &independentCfg)
+		producer = &runner.Client{BaseURL: control.URL, Token: producerToken, ProjectID: f.project}
+		independent = &runner.Client{BaseURL: control.URL, Token: testToken, ProjectID: f.project}
+	}
+	claim := func(client *runner.Client, profile ToolProfile, command, slot string) (*runner.Assignment, error) {
+		if !pooled {
+			return client.Claim(ctx, profile.WorkerID, []string{"command:" + command})
+		}
+		return client.ClaimPool(ctx, runner.PoolClaimRequest{
+			PoolID: pool.ID, RunnerID: client.Pool.RunnerID, WorkerID: profile.WorkerID, SlotID: slot, OperationID: newID(),
+			Scopes: []runner.PoolCapabilityScope{{TenantID: f.user.TenantID, ProjectID: f.project, Capabilities: []string{"command:" + command}}},
+		})
+	}
+	forAssignment := func(client *runner.Client, a *runner.Assignment) *runner.Client {
+		if !pooled {
+			return client
+		}
+		if a.PoolID != pool.ID || a.PoolGrantID != grant.ID || a.PoolGrantVersion != grant.Version || a.PoolRunnerID != client.Pool.RunnerID || a.PoolSlotID == "" || a.TenantID != f.user.TenantID || a.ProjectID != f.project {
+			t.Fatalf("unexpected frozen Pool assignment authority: %+v", a)
+		}
+		scoped := *client
+		poolContext := *client.Pool
+		poolContext.Assignment = a
+		scoped.Pool = &poolContext
+		return &scoped
 	}
 
 	const providerID, alias = "repository-delivery-provider245", "incoming"
@@ -145,14 +235,10 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 	if intake.HeadCommit != head || intake.BaseCommit != base {
 		t.Fatal("approval did not retain the exact delivery source", intake)
 	}
-	control := httptest.NewServer(f.handler)
-	defer control.Close()
-	producer := &runner.Client{BaseURL: control.URL, Token: producerToken, ProjectID: f.project}
-	independent := &runner.Client{BaseURL: control.URL, Token: testToken, ProjectID: f.project}
-	producerCfg.Artifacts = producer
-	independentCfg.Artifacts = independent
-	terminalCandidateRefreshRuntimeTools(t, ctx, f, producerProfile.WorkerID, producerToken, &producerCfg)
-	terminalCandidateRefreshRuntimeTools(t, ctx, f, testProfile.WorkerID, testToken, &independentCfg)
+	if !pooled {
+		terminalCandidateRefreshRuntimeTools(t, ctx, f, producerProfile.WorkerID, producer.Token, &producerCfg)
+		terminalCandidateRefreshRuntimeTools(t, ctx, f, testProfile.WorkerID, independent.Token, &independentCfg)
+	}
 	optionsPath := "/tasks/" + task.ID + "/delivery/repository-source/options?" + url.Values{
 		"project_id": {f.project}, "task_version": {strconv.Itoa(task.Version)}, "run_id": {origin.RunID},
 		"target_id": {target.ID}, "target_version": {strconv.Itoa(target.Version)},
@@ -212,122 +298,163 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 		t.Fatal("dispatch did not reuse the retained approval or replayed as another run")
 	}
 
-	// The independent worker cannot obtain a testing assignment before the
-	// producer's real completion has durably sealed the exact delivery.
-	if early, claimErr := independent.Claim(ctx, testProfile.WorkerID, []string{"command:" + independentCommand}); claimErr != nil || early != nil {
-		t.Fatal("independent testing became available before candidate sealing", claimErr)
-	}
-	assignment, err := producer.Claim(ctx, producerProfile.WorkerID, []string{"command:" + producerCommand})
-	if err != nil || assignment == nil || assignment.RunID != run.ID || assignment.NodeID != "repository-source" {
-		t.Fatal("protected repository producer assignment missing", err)
-	}
-	pinned, err := ri.DecodeRepositorySourceExecution(assignment.Config[ri.RepositorySourceExecutionKey])
-	if err != nil || pinned == nil || pinned.IntakeID != intake.ID || pinned.PlanID != plan.ID || pinned.BaseCommit != base || pinned.HeadCommit != head || pinned.BundleSHA256 != intake.BundleSHA256 || pinned.SizeBytes != intake.SizeBytes {
-		t.Fatal("Runner lease did not bind the exact approved intake", pinned, err)
-	}
-	ref := cc.AssignmentRef{RunID: assignment.RunID, NodeID: assignment.NodeID, Attempt: assignment.Attempt, Fence: assignment.Fence, WorkerID: assignment.WorkerID}
-	bundleURL := "/api/v1/runner/repository-source-intakes/" + intake.ID + "/bundle?project_id=" + f.project
-	assertBundleDenied := func(token string, supplied cc.AssignmentRef, status int) {
-		t.Helper()
-		header, err := json.Marshal(supplied)
+	if pooled && os.Getenv(repositoryPoolRunnerExecutableEnv) != "" {
+		runRepositoryPoolProcesses(t, ctx, f, run.ID, intake, producer, producerCfg, independent, independentCfg)
+	} else {
+		// The independent worker cannot obtain a testing assignment before the
+		// producer's real completion has durably sealed the exact delivery.
+		if early, claimErr := claim(independent, testProfile, independentCommand, "1"); claimErr != nil || early != nil {
+			t.Fatal("independent testing became available before candidate sealing", claimErr)
+		}
+		assignment, err := claim(producer, producerProfile, producerCommand, "0")
+		if err != nil || assignment == nil || assignment.RunID != run.ID || assignment.NodeID != "repository-source" {
+			t.Fatal("protected repository producer assignment missing", err)
+		}
+		pinned, err := ri.DecodeRepositorySourceExecution(assignment.Config[ri.RepositorySourceExecutionKey])
+		if err != nil || pinned == nil || pinned.IntakeID != intake.ID || pinned.PlanID != plan.ID || pinned.BaseCommit != base || pinned.HeadCommit != head || pinned.BundleSHA256 != intake.BundleSHA256 || pinned.SizeBytes != intake.SizeBytes {
+			t.Fatal("Runner lease did not bind the exact approved intake", pinned, err)
+		}
+		producerCfg.Artifacts = forAssignment(producer, assignment)
+		ref := cc.AssignmentRef{RunID: assignment.RunID, NodeID: assignment.NodeID, Attempt: assignment.Attempt, Fence: assignment.Fence, WorkerID: assignment.WorkerID}
+		namespace := "runner"
+		if pooled {
+			namespace = "pool-runner"
+			ref.TenantID, ref.ProjectID = assignment.TenantID, assignment.ProjectID
+			ref.PoolID, ref.PoolRunnerID, ref.PoolSlotID = assignment.PoolID, assignment.PoolRunnerID, assignment.PoolSlotID
+			ref.PoolGrantID, ref.PoolGrantVersion = assignment.PoolGrantID, assignment.PoolGrantVersion
+			ref.PoolCredentialID, ref.PoolCredentialVersion = assignment.PoolCredentialID, assignment.PoolCredentialVersion
+			ref.DispatchID, ref.DispatchState, ref.LeaseUntil = assignment.DispatchID, assignment.DispatchState, assignment.LeaseUntil
+		}
+		bundleURL := "/api/v1/" + namespace + "/repository-source-intakes/" + intake.ID + "/bundle?project_id=" + f.project
+		assertBundleDenied := func(token string, supplied cc.AssignmentRef, status int) {
+			t.Helper()
+			header, err := json.Marshal(supplied)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest(http.MethodGet, bundleURL, nil)
+			req.Header.Set("Authorization", "Bearer "+token)
+			req.Header.Set("X-Suma-Assignment", base64.RawURLEncoding.EncodeToString(header))
+			w := httptest.NewRecorder()
+			f.handler.ServeHTTP(w, req)
+			denied := w.Code == status || status == 0 && (w.Code == http.StatusForbidden || w.Code == http.StatusConflict)
+			if !denied || !strings.HasPrefix(w.Header().Get("Content-Type"), "application/json") || w.Header().Get("Content-Disposition") != "" || bytes.Contains(w.Body.Bytes(), []byte("PACK")) {
+				t.Fatalf("unexpected bundle denial: status=%d, want %d, content-type=%q, response bytes=%d", w.Code, status, w.Header().Get("Content-Type"), w.Body.Len())
+			}
+		}
+		assertBundleDenied(independent.Token, ref, http.StatusForbidden)
+		stale := ref
+		stale.Fence++
+		if pooled {
+			assertBundleDenied(producer.Token, stale, 0)
+			wrongSlot := ref
+			wrongSlot.PoolSlotID = "1"
+			assertBundleDenied(producer.Token, wrongSlot, 0)
+			wrongGrant := ref
+			wrongGrant.PoolGrantID = newID()
+			assertBundleDenied(producer.Token, wrongGrant, 0)
+			wrongGrantVersion := ref
+			wrongGrantVersion.PoolGrantVersion++
+			assertBundleDenied(producer.Token, wrongGrantVersion, 0)
+			// Simulate current-grant drift while preserving the original signed
+			// assignment. A still-approved grant row cannot revive the old version.
+			if _, err = f.s.DB.ExecContext(ctx, `UPDATE suma_execution_pool_grants SET version=version+1 WHERE id=?`, ref.PoolGrantID); err != nil {
+				t.Fatal(err)
+			}
+			assertBundleDenied(producer.Token, ref, 0)
+			if _, err = f.s.DB.ExecContext(ctx, `UPDATE suma_execution_pool_grants SET version=? WHERE id=?`, ref.PoolGrantVersion, ref.PoolGrantID); err != nil {
+				t.Fatal(err)
+			}
+		} else {
+			assertBundleDenied(producer.Token, stale, http.StatusConflict)
+		}
+
+		beforeTransfers := domainACount(t, f.s, "suma_candidate_transfers")
+		forged, err := json.Marshal(cc.StartRequest{
+			ProjectID: f.project, TenantID: ref.TenantID, RunnerID: ref.PoolRunnerID, Assignment: ref, OperationID: newID(), BaseCommit: base, BundleBaseCommit: base, HeadCommit: head,
+			BundleSHA256: digest("wrong repository intake bytes"), SizeBytes: intake.SizeBytes, EvidenceSHA256: digest("forged evidence"),
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		req := httptest.NewRequest(http.MethodGet, bundleURL, nil)
-		req.Header.Set("Authorization", "Bearer "+token)
-		req.Header.Set("X-Suma-Assignment", base64.RawURLEncoding.EncodeToString(header))
-		w := httptest.NewRecorder()
-		f.handler.ServeHTTP(w, req)
-		if w.Code != status || !strings.HasPrefix(w.Header().Get("Content-Type"), "application/json") || w.Header().Get("Content-Disposition") != "" || bytes.Contains(w.Body.Bytes(), []byte("PACK")) {
-			t.Fatalf("unexpected bundle denial: status=%d, want %d, content-type=%q, response bytes=%d", w.Code, status, w.Header().Get("Content-Type"), w.Body.Len())
+		startTransfer := httptest.NewRequest(http.MethodPost, "/api/v1/"+namespace+"/candidate-transfers", bytes.NewReader(forged))
+		startTransfer.Header.Set("Authorization", "Bearer "+producer.Token)
+		startTransfer.Header.Set("Content-Type", "application/json")
+		transfer := httptest.NewRecorder()
+		f.handler.ServeHTTP(transfer, startTransfer)
+		if transfer.Code != http.StatusConflict || domainACount(t, f.s, "suma_candidate_transfers") != beforeTransfers {
+			t.Fatalf("wrong bundle digest created a transfer: status=%d", transfer.Code)
 		}
-	}
-	assertBundleDenied(testToken, ref, http.StatusForbidden)
-	stale := ref
-	stale.Fence++
-	assertBundleDenied(producerToken, stale, http.StatusConflict)
-
-	beforeTransfers := domainACount(t, f.s, "suma_candidate_transfers")
-	forged, err := json.Marshal(cc.StartRequest{
-		ProjectID: f.project, Assignment: ref, OperationID: newID(), BaseCommit: base, BundleBaseCommit: base, HeadCommit: head,
-		BundleSHA256: digest("wrong repository intake bytes"), SizeBytes: intake.SizeBytes, EvidenceSHA256: digest("forged evidence"),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	startTransfer := httptest.NewRequest(http.MethodPost, "/api/v1/runner/candidate-transfers", bytes.NewReader(forged))
-	startTransfer.Header.Set("Authorization", "Bearer "+producerToken)
-	startTransfer.Header.Set("Content-Type", "application/json")
-	transfer := httptest.NewRecorder()
-	f.handler.ServeHTTP(transfer, startTransfer)
-	if transfer.Code != http.StatusConflict || domainACount(t, f.s, "suma_candidate_transfers") != beforeTransfers {
-		t.Fatalf("wrong bundle digest created a transfer: status=%d", transfer.Code)
-	}
-	produced := runner.Execute(ctx, *assignment, producerCfg)
-	if produced.ExitCode != 0 || produced.Error != "" || produced.OutcomeUnknown || produced.WorkspaceEvidence["head_commit"] != head || produced.WorkspaceEvidence["candidate_bundle"] == nil {
-		t.Fatalf("real repository producer failed to seal the approved head: %+v", produced)
-	}
-	sealed, ok := produced.WorkspaceEvidence["candidate_bundle"].(cc.Binding)
-	if !ok || !sealed.ValidSealed() || sealed.BaseCommit != base || sealed.HeadCommit != head || sealed.BundleSHA256 != intake.BundleSHA256 || sealed.SizeBytes != intake.SizeBytes {
-		t.Fatal("candidate seal did not preserve the approved bundle bytes", sealed)
-	}
-	if produced.OperationID == "" {
-		produced.OperationID = newID()
-	}
-	beforeCompletion, err := f.e.GetRun(ctx, f.user.TenantID, f.project, run.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	withoutSeal := produced
-	withoutSeal.WorkspaceEvidence = maps.Clone(produced.WorkspaceEvidence)
-	delete(withoutSeal.WorkspaceEvidence, "candidate_bundle")
-	if err = producer.Complete(ctx, withoutSeal); err == nil || !strings.Contains(err.Error(), "HTTP 409") {
-		t.Fatal("completion without the sealed transfer was not rejected as a conflict", err)
-	}
-	stillRunning, err := f.e.GetRun(ctx, f.user.TenantID, f.project, run.ID)
-	if err != nil || stillRunning.State != "running" || stillRunning.Version != beforeCompletion.Version {
-		t.Fatal("rejected completion changed the run state", err)
-	}
-	for _, node := range stillRunning.Nodes {
-		if node.ID == assignment.NodeID && node.State != "running" || node.ID == "repository-test" && node.State == "ready" {
-			t.Fatal("rejected completion advanced the producer or test", node.ID, node.State)
+		produced := runner.Execute(ctx, *assignment, producerCfg)
+		if produced.ExitCode != 0 || produced.Error != "" || produced.OutcomeUnknown || produced.WorkspaceEvidence["head_commit"] != head || produced.WorkspaceEvidence["candidate_bundle"] == nil {
+			t.Fatalf("real repository producer failed to seal the approved head: %+v", produced)
 		}
-	}
-	// Retry with the original operation ID and genuine sealed-transfer proof.
-	if err = producer.Complete(ctx, produced); err != nil {
-		t.Fatal(err)
-	}
-	current, err := f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	f.call("POST", "/tasks/"+task.ID+"/review", f.body(map[string]any{
-		"expected_version": current.Version, "run_id": run.ID, "decision": "accepted", "reason": "Fixture rejects Review before independent tests",
-	}), 400)
+		sealed, ok := produced.WorkspaceEvidence["candidate_bundle"].(cc.Binding)
+		if !ok || !sealed.ValidSealed() || sealed.BaseCommit != base || sealed.HeadCommit != head || sealed.BundleSHA256 != intake.BundleSHA256 || sealed.SizeBytes != intake.SizeBytes {
+			t.Fatal("candidate seal did not preserve the approved bundle bytes", sealed)
+		}
+		if produced.OperationID == "" {
+			produced.OperationID = newID()
+		}
+		beforeCompletion, err := f.e.GetRun(ctx, f.user.TenantID, f.project, run.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		withoutSeal := produced
+		withoutSeal.WorkspaceEvidence = maps.Clone(produced.WorkspaceEvidence)
+		delete(withoutSeal.WorkspaceEvidence, "candidate_bundle")
+		if err = producerCfg.Artifacts.Complete(ctx, withoutSeal); err == nil || !strings.Contains(err.Error(), "HTTP 409") {
+			t.Fatal("completion without the sealed transfer was not rejected as a conflict", err)
+		}
+		stillRunning, err := f.e.GetRun(ctx, f.user.TenantID, f.project, run.ID)
+		if err != nil || stillRunning.State != "running" || stillRunning.Version != beforeCompletion.Version {
+			t.Fatal("rejected completion changed the run state", err)
+		}
+		for _, node := range stillRunning.Nodes {
+			if node.ID == assignment.NodeID && node.State != "running" || node.ID == "repository-test" && node.State == "ready" {
+				t.Fatal("rejected completion advanced the producer or test", node.ID, node.State)
+			}
+		}
+		// Retry with the original operation ID and genuine sealed-transfer proof.
+		if err = producerCfg.Artifacts.Complete(ctx, produced); err != nil {
+			t.Fatal(err)
+		}
+		current, err := f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		f.call("POST", "/tasks/"+task.ID+"/review", f.body(map[string]any{
+			"expected_version": current.Version, "run_id": run.ID, "decision": "accepted", "reason": "Fixture rejects Review before independent tests",
+		}), 400)
 
-	check, err := independent.Claim(ctx, testProfile.WorkerID, []string{"command:" + independentCommand})
-	if err != nil || check == nil || check.RunID != run.ID || check.NodeID != "repository-test" || check.CandidateCommit != head || check.WorkerID == assignment.WorkerID {
-		t.Fatal("independent Runner did not claim the approved commit", err)
-	}
-	tested := runner.Execute(ctx, *check, independentCfg)
-	if tested.ExitCode != 0 || tested.Error != "" || tested.TestReport == nil || tested.WorkspaceEvidence["head_commit"] != head {
-		t.Fatalf("independent Runner did not test the exact imported head: %+v", tested)
-	}
-	imported, ok := tested.WorkspaceEvidence["candidate_import"].(cc.ImportReceipt)
-	if !ok || !imported.Imported || imported.TargetWorkerID != check.WorkerID || imported.Binding.TransferID != sealed.TransferID || imported.Binding.BundleSHA256 != intake.BundleSHA256 {
-		t.Fatal("independent Runner did not import the sealed source bundle", imported)
-	}
-	if tested.OperationID == "" {
-		tested.OperationID = newID()
-	}
-	if err = independent.Complete(ctx, tested); err != nil {
-		t.Fatal(err)
+		check, err := claim(independent, testProfile, independentCommand, "1")
+		if err != nil || check == nil || check.RunID != run.ID || check.NodeID != "repository-test" || check.CandidateCommit != head || check.WorkerID == assignment.WorkerID {
+			t.Fatal("independent Runner did not claim the approved commit", err)
+		}
+		independentCfg.Artifacts = forAssignment(independent, check)
+		if pooled && (assignment.PoolSlotID != "0" || check.PoolSlotID != "1" || check.PoolRunnerID == assignment.PoolRunnerID || check.PoolCredentialID == assignment.PoolCredentialID || check.DispatchID == assignment.DispatchID) {
+			t.Fatal("producer and independent test did not use distinct live Pool identities, slots and dispatches")
+		}
+		tested := runner.Execute(ctx, *check, independentCfg)
+		if tested.ExitCode != 0 || tested.Error != "" || tested.TestReport == nil || tested.WorkspaceEvidence["head_commit"] != head {
+			t.Fatalf("independent Runner did not test the exact imported head: %+v", tested)
+		}
+		imported, ok := tested.WorkspaceEvidence["candidate_import"].(cc.ImportReceipt)
+		if !ok || !imported.Imported || imported.TargetWorkerID != check.WorkerID || imported.Binding.TransferID != sealed.TransferID || imported.Binding.BundleSHA256 != intake.BundleSHA256 {
+			t.Fatal("independent Runner did not import the sealed source bundle", imported)
+		}
+		if tested.OperationID == "" {
+			tested.OperationID = newID()
+		}
+		if err = independentCfg.Artifacts.Complete(ctx, tested); err != nil {
+			t.Fatal(err)
+		}
 	}
 	qualityRun := issueRepairRuntimeDecode[TestPlanExecution](t, f.call("GET", "/test-plans/"+quality.ID+"/executions/"+run.ID+"?project_id="+f.project, nil, 200))
 	if qualityRun.Passed != 1 {
 		t.Fatal("published plan did not receive independent JUnit", qualityRun)
 	}
-	current, err = f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
+	current, err := f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
 	if err != nil {
 		t.Fatal(err)
 	}

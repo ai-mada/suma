@@ -87,7 +87,7 @@ func (s *Service) candidateAuthorityTx(ctx context.Context, tx *sql.Tx, subject 
 		if e != nil {
 			return nil, e
 		}
-		if scope.GrantID != a.PoolGrantID {
+		if scope.GrantID != a.PoolGrantID || scope.GrantVersion != a.PoolGrantVersion {
 			return nil, forbidden()
 		}
 	} else {

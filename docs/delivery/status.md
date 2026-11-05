@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-REPOSITORY-SOURCE-POOL-247 验证两个实际 Windows Pool Runner 进程分别导入候选与测试同一提交。Git 包读写核对当前授权版本，执行结束后槽位释放。 [部署](../deployment/repository-integration.md#在共享执行池交接仓库候选) · [验证](../quality/repository-source-pool-verification.md)
+
 T-ORG-WORK-CALENDAR 从组织设置维护当前成员的周工作制与日期例外，并按周读取已保存的可用工时。已验证管理员编辑、本人只读、并发保存及原回执。 [交互](../design/organization-work-calendar.md) · [验证](../quality/organization-work-calendar-verification.md)
 
 T-PORTFOLIO-SCHEDULE-OVERLAP 从项目组合按周核对同一成员在多个可读项目的排期重叠，展开确切日期和原任务。已验证周切换、任务返回与当前撤权隔离。 [交互](../design/project-portfolio.md#跨项目排期重叠) · [验证](../quality/project-schedule-overlap-verification.md)

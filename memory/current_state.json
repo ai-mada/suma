@@ -695,6 +695,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "repository_source_pool": {
+    "stage": "T-REPOSITORY-SOURCE-POOL-247",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "9407e6d8eb12139687ffc9af777e48b76ec8f1be",
+    "report": "docs/quality/repository-source-pool-verification.md",
+    "actual": "Pool source bundle and candidate transfers verify the current approved grant ID and version. Two actual Windows runner processes complete fixed Git handoff and independent JUnit through one approved Pool.",
+    "verification": "Both direct and Pool real Git HTTP tests; wrong runner/slot/grant/version/fence refused; two CLI PIDs, separate dispatches, exact sealed bytes and zero active slots.",
+    "known_limitations": "Same Windows host with loopback fixture and idle termination. Physical cross-host, Linux, TLS, real WorkBuddy and production acceptance remain pending.",
+    "full_platform_complete": false,
+    "git_record": ".cache/repository-pool-247/post-git.json"
+  },
   "repository_source_workbench": {
     "stage": "T-REPOSITORY-SOURCE-WORKBENCH-246",
     "version": "1.0.0",
