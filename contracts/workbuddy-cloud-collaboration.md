@@ -26,7 +26,9 @@ T-WORKBUDDY-CLOUD-COLLAB-164；产品1.0.0；2026-10-31。状态：原会话显�
 
 - `CloudHistoryLoadRequest`：`project_id,expected_submission_version,expected_version,idempotency_key`。expected_version为协作head版本，首次明确0；必须存在且为非负整数。其余写版本沿现上限。
 - `CloudHistoryLoad`：`id,version,operation_id,head_version_at_start,source,state,coverage,started_at,deadline_at,overdue,finished_at?,entry_count,unsupported_count,text_bytes,error_code?`。operation_id固定原请求idempotency_key，head_version_at_start固定原expected_version（包括首次0），两者不随采集改变；load.version不是head版本。前端同时核对它们、固定source身份和原expected_submission_version，不能只凭HTTP成功消费回执。state仅`loading,loaded,interrupted,limited,rejected`；coverage仅`unverified`。deadline_at为平台UTC截止，overdue仅按本次DB时间派生，只有loading可为true，不改变正式state／version；终态为false，浏览器时钟不裁决过期。错误仅闭合安全码，不含原始协议错误。finished_at为平台采集结束，不是消息发生或远端任务结束。
-- `CloudHistoryEntry`：`sequence,kind,text?`。kind仅`user_text,assistant_text,tool_summary,plan_summary,unsupported`；sequence从1递增，只在该load内稳定。text仅对应受支持的字面文本。`unsupported`不携原始packet、URI或正文。
+- `CloudHistoryEntry`：`sequence,kind,text?,artifact_type?,artifact_event?`。`sequence` 从 1 递增，仅在本次读取内稳定。`user_text`、`assistant_text`、`tool_summary`、`plan_summary` 可含字面文本。`artifact` 只含已识别的 `plan/tasks/media/overview` 和 `created/updated/deleted`，沿原授权会话的实际回放记录。`unsupported` 只含序号和类型。
+
+产物事件只持久化闭合的类型和动作。它不计入文本字节，不进入任务讨论分享，也不保存 URI、文件、名称、下载地址或原始通知。历史覆盖仍是 `unverified`，读取回放不会新增外部调用。原有候选、独立测试和人工验收门禁继续核验各自证据。
 - `CloudCollaborationView`：`source,version,latest_load?,last_loaded?,allowed_actions`。allowed_actions只允许`load_history`，按本次当前资格给出；空数组不等于没有存档读权。latest_load表示最近尝试，last_loaded保留最近确认加载；失败不抹掉原观察。
 - `CloudHistoryPage`：`load,items,total,next_after,has_more`。items始终为数组；after是本地序号，limit默认50、范围1–100，未知query拒绝。total／has_more只描述本地已存条目，不证明供应方历史覆盖。
 

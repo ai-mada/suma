@@ -33,6 +33,26 @@ it('only reads stored projections until an explicit load sends current source an
  expect(host.querySelector('.cloud-collaboration-entries')?.textContent).toContain(text[0].text);expect(host.querySelector('.cloud-collaboration-entries script')).toBeNull();expect(host.querySelector('.cloud-collaboration-entries a')).toBeNull();expect(host.querySelector<HTMLDetailsElement>('.cloud-collaboration-source')?.open).toBe(false);expect(calls.some(call=>call.path.includes('workbuddy-connections'))).toBe(false);
 });
 
+it('replays a saved artifact as metadata while keeping only the text entry shareable',async()=>{
+ const items:CloudHistoryEntry[]=[{sequence:1,kind:'artifact',artifact_type:'plan',artifact_event:'created'},
+  {sequence:2,kind:'assistant_text',text:'Original session reply'}];
+ const loaded=makeLoad('artifact-load',items);saved(loaded,items);
+ view={source:{...source},version:2,latest_load:loaded,last_loaded:loaded,allowed_actions:[]};
+ const onShareSelection=vi.fn();transport();
+ await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><WorkBuddyCloudCollaboration source={source} onShareSelection={onShareSelection}/></ApiViewProvider>);});await settle();
+
+ const artifact=host.querySelector('.cloud-collaboration-entries li[value="1"]');
+ expect(artifact).not.toBeNull();
+ expect(artifact?.textContent).toContain('Plan · Added');
+ expect(artifact?.textContent).toContain('Only the artifact type and change were saved.');
+ expect(artifact?.querySelector('a, button, input, pre')).toBeNull();
+ expect(host.querySelectorAll('[data-history-share-select]')).toHaveLength(1);
+ expect(host.querySelector('[data-history-share-select="2"]')).not.toBeNull();
+ expect(host.textContent).toContain('Coverage is unverified');
+ expect(onShareSelection.mock.calls.every(([value])=>value===undefined)).toBe(true);
+ expect(calls.filter(call=>call.body)).toHaveLength(0);
+});
+
 it('retains an older confirmed observation beside a limited attempt and pages only the local archive',async()=>{
  const oldSource={...source},oldItems:CloudHistoryEntry[]=Array.from({length:51},(_,n)=>({sequence:n+1,kind:'assistant_text',text:'saved entry '+(n+1)})),old=makeLoad('old-loaded',oldItems,{source:oldSource});saved(old,oldItems);
  source={...source,submission_version:3};const prefix:CloudHistoryEntry[]=[{sequence:1,kind:'user_text',text:'latest partial prefix'}],latest=makeLoad('new-limited',prefix,{source:{...source},head_version_at_start:2,state:'limited',error_code:'workbuddy_cloud_history_limited',started_at:'2026-10-31T00:01:00Z',deadline_at:'2026-10-31T00:01:30Z',finished_at:'2026-10-31T00:01:05Z'});saved(latest,prefix);view={source:{...source},version:4,latest_load:latest,last_loaded:old,allowed_actions:[]};transport();

@@ -8270,14 +8270,104 @@
       },
       "CloudHistoryEntry": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "text"
+              ]
+            },
+            "properties": {
+              "kind": {
+                "const": "artifact"
+              }
+            },
+            "required": [
+              "artifact_type",
+              "artifact_event"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "artifact_type"
+                  ]
+                },
+                {
+                  "required": [
+                    "artifact_event"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "kind": {
+                "enum": [
+                  "user_text",
+                  "assistant_text",
+                  "tool_summary",
+                  "plan_summary"
+                ]
+              }
+            }
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "artifact_type"
+                  ]
+                },
+                {
+                  "required": [
+                    "artifact_event"
+                  ]
+                },
+                {
+                  "required": [
+                    "text"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "kind": {
+                "const": "unsupported"
+              }
+            }
+          }
+        ],
         "properties": {
+          "artifact_event": {
+            "enum": [
+              "created",
+              "updated",
+              "deleted"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "artifact_type": {
+            "enum": [
+              "plan",
+              "tasks",
+              "media",
+              "overview"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
           "kind": {
             "enum": [
               "user_text",
               "assistant_text",
               "tool_summary",
               "plan_summary",
-              "unsupported"
+              "unsupported",
+              "artifact"
             ],
             "readOnly": true,
             "type": "string"

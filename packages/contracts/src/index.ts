@@ -1750,6 +1750,8 @@ export interface CloudHistoryEntry {
   sequence: number;
   kind: string;
   text?: string;
+  artifact_type?: string;
+  artifact_event?: string;
 }
 export interface CloudHistoryLoad {
   id: string;

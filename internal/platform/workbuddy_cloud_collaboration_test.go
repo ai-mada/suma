@@ -130,8 +130,10 @@ func cloudHistoryRequest(h *cloudFixture, s wc.CloudSubmission) wc.CloudHistoryL
 	return wc.CloudHistoryLoadRequest{ProjectID: h.f.project, ExpectedSubmissionVersion: s.Version, ExpectedVersion: 0, IdempotencyKey: newID()}
 }
 
+const cloudHistoryArtifactNotice = `{"jsonrpc":"2.0","method":"_codebuddy.ai/artifact","params":{"sessionId":"cloud-task","event":"created","artifact":{"type":"plan","uri":"https://private.example/secret","text":"private artifact body","url":"https://private-download.example/file","name":"private filename"}}}`
+
 func TestWorkBuddyCloudCollaborationPersistsSafeHistoryAndReplaysWithoutAttach(t *testing.T) {
-	h, sub, posts := cloudHistoryFixture(t, []string{cloudHistoryText("user_message_chunk", "same"), cloudHistoryText("agent_message_chunk", "same"), cloudHistoryText("agent_thought_chunk", "private thought"), `{"jsonrpc":"2.0","method":"_codebuddy.ai/artifact","params":{"sessionId":"cloud-task","event":"created","artifact":{"type":"plan","uri":"https://private.example/secret"}}}`}, nil)
+	h, sub, posts := cloudHistoryFixture(t, []string{cloudHistoryText("user_message_chunk", "same"), cloudHistoryText("agent_message_chunk", "same"), cloudHistoryText("agent_thought_chunk", "private thought"), cloudHistoryArtifactNotice}, nil)
 	ctx := context.Background()
 	req := cloudHistoryRequest(h, sub)
 	initial, err := h.w.CloudCollaboration(ctx, h.f.actor, h.f.project, sub.ID)
@@ -139,7 +141,7 @@ func TestWorkBuddyCloudCollaborationPersistsSafeHistoryAndReplaysWithoutAttach(t
 		t.Fatal("initial archive", err)
 	}
 	load, err := h.w.LoadCloudHistory(ctx, h.f.actor, h.f.project, sub.ID, req)
-	if err != nil || load.State != "loaded" || load.Coverage != "unverified" || load.EntryCount != 4 || load.UnsupportedCount != 2 {
+	if err != nil || load.State != "loaded" || load.Coverage != "unverified" || load.EntryCount != 4 || load.UnsupportedCount != 1 || load.TextBytes != 8 {
 		t.Fatalf("load: %+v %v", load, err)
 	}
 	replay, err := h.w.LoadCloudHistory(ctx, h.f.actor, h.f.project, sub.ID, req)
@@ -159,9 +161,19 @@ func TestWorkBuddyCloudCollaborationPersistsSafeHistoryAndReplaysWithoutAttach(t
 	if err != nil || len(page.Items) != 3 || page.Items[0].Text != "same" {
 		t.Fatal("duplicate arrival omitted", err)
 	}
+	var artifact map[string]any
+	if err = json.Unmarshal([]byte(stringify(page.Items[2])), &artifact); err != nil || len(artifact) != 4 || artifact["sequence"] != float64(4) || artifact["kind"] != "artifact" || artifact["artifact_type"] != "plan" || artifact["artifact_event"] != "created" {
+		t.Fatal("archive did not project closed artifact metadata", err)
+	}
+	var storedKind, storedText string
+	if err = h.f.s.DB.QueryRow(`SELECT kind,text FROM suma_workbuddy_cloud_history_entries WHERE load_id=? AND sequence=4`, load.ID).Scan(&storedKind, &storedText); err != nil || storedKind != "artifact" || storedText != "plan:created" {
+		t.Fatal("stored artifact metadata was not closed", err)
+	}
 	encoded := stringify(page)
-	if strings.Contains(encoded, "private thought") || strings.Contains(encoded, "private.example") || strings.Contains(encoded, "fixture-history-ticket") {
-		t.Fatal("private protocol content persisted")
+	for _, value := range []string{"private thought", "private.example", "private artifact body", "private-download.example", "private filename", "fixture-history-ticket"} {
+		if strings.Contains(encoded, value) {
+			t.Fatal("private protocol content persisted")
+		}
 	}
 	var raw string
 	if err = h.f.s.DB.QueryRow(`SELECT payload FROM suma_workbuddy_cloud_history_loads WHERE id=?`, load.ID).Scan(&raw); err != nil {

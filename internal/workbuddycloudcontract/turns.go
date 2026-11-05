@@ -268,22 +268,21 @@ func CloudTurnArtifactPreviewValid(text string) bool {
 	return cloudTurnText(text, CloudTurnArtifactPreviewMaxBytes)
 }
 
+func validCloudArtifactChange(kind, event string) bool {
+	switch kind {
+	case "plan", "tasks", "media", "overview":
+		return event == "created" || event == "updated" || event == "deleted"
+	default:
+		return false
+	}
+}
+
 func (e CloudTurnEntry) Validate() error {
 	if e.Sequence < 1 || e.Sequence > CloudTurnMaxEntries || !cloudTurnText(e.Text, CloudTurnMaxEntryBytes) || e.ToolCallID != "" && !cloudTurnProviderToken(e.ToolCallID, 128) {
 		return ErrInvalid
 	}
 	if e.Kind == "artifact" {
-		if e.ToolCallID != "" || e.ToolState != "" {
-			return ErrInvalid
-		}
-		switch e.ArtifactType {
-		case "plan", "tasks", "media", "overview":
-		default:
-			return ErrInvalid
-		}
-		switch e.ArtifactEvent {
-		case "created", "updated", "deleted":
-		default:
+		if e.ToolCallID != "" || e.ToolState != "" || !validCloudArtifactChange(e.ArtifactType, e.ArtifactEvent) {
 			return ErrInvalid
 		}
 		if e.ArtifactEvent == "deleted" || (e.ArtifactType != "plan" && e.ArtifactType != "overview") {

@@ -10,7 +10,7 @@ import (
 
 func historySharingFixture(t *testing.T) (*cloudFixture, wc.CloudHistoryLoad, wc.CloudHistorySharePreviewRequest) {
 	t.Helper()
-	h, sub, _ := cloudHistoryFixture(t, []string{cloudHistoryText("user_message_chunk", "  shared user  "), cloudHistoryText("agent_message_chunk", "shared answer"), cloudHistoryText("agent_thought_chunk", "never share thought")}, nil)
+	h, sub, _ := cloudHistoryFixture(t, []string{cloudHistoryText("user_message_chunk", "  shared user  "), cloudHistoryText("agent_message_chunk", "shared answer"), cloudHistoryText("agent_thought_chunk", "never share thought"), cloudHistoryArtifactNotice}, nil)
 	load, err := h.w.LoadCloudHistory(context.Background(), h.f.actor, h.f.project, sub.ID, cloudHistoryRequest(h, sub))
 	if err != nil {
 		t.Fatal(err)
@@ -80,7 +80,7 @@ func TestWorkBuddyCloudHistorySharingPreviewIsLocalAndShareIsImmutableHumanCopy(
 func TestWorkBuddyCloudHistorySharingSourceSelectionAndTaskVersionAreRechecked(t *testing.T) {
 	h, load, req := historySharingFixture(t)
 	ctx := context.Background()
-	for _, selection := range [][]int{{3}, {2, 1}, {1, 1}, {500}} {
+	for _, selection := range [][]int{{3}, {4}, {1, 4}, {2, 1}, {1, 1}, {500}} {
 		bad := req
 		bad.Sequences = selection
 		if _, err := h.w.PreviewCloudHistoryShare(ctx, h.f.actor, h.f.project, load.ID, bad); err == nil {
@@ -90,6 +90,11 @@ func TestWorkBuddyCloudHistorySharingSourceSelectionAndTaskVersionAreRechecked(t
 	preview, err := h.w.PreviewCloudHistoryShare(ctx, h.f.actor, h.f.project, load.ID, req)
 	if err != nil {
 		t.Fatal(err)
+	}
+	bad := req
+	bad.Sequences = []int{1, 4}
+	if _, err = h.w.ShareCloudHistory(ctx, h.f.actor, h.f.project, load.ID, historySharingRequest(bad, preview.PreviewSHA256)); err == nil {
+		t.Fatal("artifact notice copied to the task conversation")
 	}
 	share := historySharingRequest(req, preview.PreviewSHA256)
 	if _, err = h.f.s.DB.Exec(`UPDATE suma_workbuddy_cloud_history_entries SET text='changed selected text' WHERE load_id=? AND sequence=1`, load.ID); err != nil {

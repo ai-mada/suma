@@ -43,6 +43,7 @@
  "workbuddy-cloud-collaboration.kind_tool_summary":"工具摘要",
  "workbuddy-cloud-collaboration.kind_plan_summary":"计划摘要",
  "workbuddy-cloud-collaboration.kind_unsupported":"未支持的记录",
+ "workbuddy-cloud-collaboration.artifact_metadata":"仅保存了产物类型和变更动作。",
  "workbuddy-cloud-collaboration.unsupported":"此类记录尚不支持展示。",
  "workbuddy-cloud-collaboration.empty_text":"未提供可展示文本",
  "workbuddy-cloud-collaboration.entry_text":"会话记录正文",

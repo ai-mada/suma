@@ -187,3 +187,27 @@ func TestCloudHistoryViewBindsStableSourceAndPageUsesLocalSequence(t *testing.T)
 		t.Fatal("null items accepted")
 	}
 }
+
+func TestCloudHistoryArtifactContainsOnlyClosedMetadata(t *testing.T) {
+	const payload = `{"sequence":1,"kind":"artifact","artifact_type":"media","artifact_event":"deleted"}`
+	var entry CloudHistoryEntry
+	if err := json.Unmarshal([]byte(payload), &entry); err != nil || entry.Validate() != nil {
+		t.Fatal("replayed artifact metadata rejected")
+	}
+	got, err := json.Marshal(entry)
+	if err != nil || string(got) != payload {
+		t.Fatal("artifact metadata did not round-trip without text or download authority", string(got))
+	}
+	for _, rejected := range []string{
+		strings.Replace(payload, `"media"`, `"git_bundle"`, 1),
+		strings.Replace(payload, `"deleted"`, `"sealed"`, 1),
+		strings.Replace(payload, `,"artifact_event":"deleted"`, "", 1),
+		strings.Replace(payload, `"artifact"`, `"assistant_text"`, 1),
+		strings.TrimSuffix(payload, "}") + `,"text":"private artifact contents"}`,
+	} {
+		var other CloudHistoryEntry
+		if json.Unmarshal([]byte(rejected), &other) == nil && other.Validate() == nil {
+			t.Fatal("unapproved artifact metadata or text accepted")
+		}
+	}
+}

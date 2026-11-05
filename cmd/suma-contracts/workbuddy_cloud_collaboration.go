@@ -110,8 +110,16 @@ func workBuddyCloudCollaborationContracts(add operationAdder, api map[string]any
 	field("CloudHistoryLoad", "state", map[string]any{"enum": []string{"loading", "loaded", "interrupted", "limited", "rejected"}})
 	field("CloudHistoryLoad", "overdue", map[string]any{"description": "Derived from database time for loading only; does not change the durable state/version. Terminal loads always return false."})
 	field("CloudHistoryLoad", "error_code", map[string]any{"enum": []string{"workbuddy_cloud_history_unavailable", "workbuddy_cloud_history_interrupted", "workbuddy_cloud_history_limited", "workbuddy_cloud_history_rejected"}})
-	field("CloudHistoryEntry", "kind", map[string]any{"enum": []string{"user_text", "assistant_text", "tool_summary", "plan_summary", "unsupported"}})
+	historyTextKinds := []string{"user_text", "assistant_text", "tool_summary", "plan_summary"}
+	field("CloudHistoryEntry", "kind", map[string]any{"enum": append(append([]string{}, historyTextKinds...), "unsupported", "artifact")})
 	field("CloudHistoryEntry", "text", map[string]any{"minLength": 1, "maxLength": wc.CloudHistoryMaxEntryBytes, "x-max-utf8-bytes": wc.CloudHistoryMaxEntryBytes})
+	field("CloudHistoryEntry", "artifact_type", map[string]any{"enum": []string{"plan", "tasks", "media", "overview"}})
+	field("CloudHistoryEntry", "artifact_event", map[string]any{"enum": []string{"created", "updated", "deleted"}})
+	toolContractMap(schemas, "CloudHistoryEntry")["oneOf"] = []any{
+		map[string]any{"properties": map[string]any{"kind": map[string]any{"const": "artifact"}}, "required": []string{"artifact_type", "artifact_event"}, "not": map[string]any{"required": []string{"text"}}},
+		map[string]any{"properties": map[string]any{"kind": map[string]any{"enum": historyTextKinds}}, "not": map[string]any{"anyOf": []any{map[string]any{"required": []string{"artifact_type"}}, map[string]any{"required": []string{"artifact_event"}}}}},
+		map[string]any{"properties": map[string]any{"kind": map[string]any{"const": "unsupported"}}, "not": map[string]any{"anyOf": []any{map[string]any{"required": []string{"artifact_type"}}, map[string]any{"required": []string{"artifact_event"}}, map[string]any{"required": []string{"text"}}}}},
+	}
 	field("CloudCollaborationView", "allowed_actions", map[string]any{"maxItems": 1, "uniqueItems": true, "items": map[string]any{"type": "string", "enum": []string{"load_history"}}})
 	field("CloudHistoryPage", "items", map[string]any{"maxItems": 100})
 	// These state-dependent response rules prevent a syntactically successful

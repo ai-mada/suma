@@ -77,7 +77,13 @@ export function readCloudCollaboration(value:unknown,source:CloudCollaborationSo
  return validView(value,source)?value:undefined;
 }
 function validEntry(value:unknown):value is CloudHistoryEntry{
- if(!object(value)||!fields(value,['sequence','kind'],['text'])||!integer(value.sequence,1,maxEntries)||typeof value.kind!=='string')return false;
+ if(!object(value)||!integer(value.sequence,1,maxEntries)||typeof value.kind!=='string')return false;
+ if(value.kind==='artifact'){
+  return fields(value,['sequence','kind','artifact_type','artifact_event'])&&
+   typeof value.artifact_type==='string'&&['plan','tasks','media','overview'].includes(value.artifact_type)&&
+   typeof value.artifact_event==='string'&&['created','updated','deleted'].includes(value.artifact_event);
+ }
+ if(!fields(value,['sequence','kind'],['text']))return false;
  if(value.kind==='unsupported')return !Object.hasOwn(value,'text');
  if(!['user_text','assistant_text','tool_summary','plan_summary'].includes(value.kind))return false;
  return !Object.hasOwn(value,'text')||typeof value.text==='string'&&wellFormed(value.text)&&bytes(value.text)<=maxEntryBytes&&!/[\p{Cc}]/u.test(value.text.replace(/[\r\n\t]/g,''));

@@ -140,9 +140,11 @@ func (l CloudHistoryLoad) Validate() error {
 }
 
 type CloudHistoryEntry struct {
-	Sequence int    `json:"sequence"`
-	Kind     string `json:"kind"`
-	Text     string `json:"text,omitempty"`
+	Sequence      int    `json:"sequence"`
+	Kind          string `json:"kind"`
+	Text          string `json:"text,omitempty"`
+	ArtifactType  string `json:"artifact_type,omitempty"`
+	ArtifactEvent string `json:"artifact_event,omitempty"`
 }
 
 func (CloudHistoryEntry) Format(s fmt.State, verb rune) {
@@ -151,6 +153,17 @@ func (CloudHistoryEntry) Format(s fmt.State, verb rune) {
 
 func (e CloudHistoryEntry) Validate() error {
 	if e.Sequence < 1 || e.Sequence > CloudHistoryMaxEntries || !utf8.ValidString(e.Text) || len(e.Text) > CloudHistoryMaxEntryBytes {
+		return ErrInvalid
+	}
+	// The historical observation records just the type and change. It does not
+	// retain the provider body or grant download and code-candidate authority.
+	if e.Kind == "artifact" {
+		if e.Text != "" || !validCloudArtifactChange(e.ArtifactType, e.ArtifactEvent) {
+			return ErrInvalid
+		}
+		return nil
+	}
+	if e.ArtifactType != "" || e.ArtifactEvent != "" {
 		return ErrInvalid
 	}
 	for _, r := range e.Text {

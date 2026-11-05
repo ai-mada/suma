@@ -1,0 +1,68 @@
+{
+  "stage": "T-WORKBUDDY-HISTORY-ARTIFACTS-237",
+  "base": "a47e01deb73f22b7aee411f052f13cbe3766fd7a",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "focused": {
+    "go_passed": 31,
+    "go_opt_in_skipped": 2,
+    "web_passed": 41,
+    "typescript": "web_workspace_passed",
+    "paired_locale_keys": 10279,
+    "generated_models": 1039,
+    "generated_api_paths": 467,
+    "generated_contract_check": "passed"
+  },
+  "browser": {
+    "scope": "Actual Chrome, production WorkBuddyCloudCollaboration, controlled loopback archive HTTP",
+    "version": "156.0.8078.80",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "api_reads": 6,
+    "mutations": 0,
+    "errors": 0,
+    "scenarios": [
+      {
+        "locale": "en-US",
+        "entries": 51,
+        "shareable_entries": 49,
+        "artifact_actions": 0,
+        "coverage": "unverified",
+        "keyboard_paging": true,
+        "screenshot_sha256": "b0d7819b47a35155c783c85587c395d1d3de37e1915c59e87664b9de7a42faf9"
+      },
+      {
+        "locale": "zh-CN",
+        "entries": 51,
+        "shareable_entries": 49,
+        "artifact_actions": 0,
+        "coverage": "unverified",
+        "keyboard_paging": true,
+        "screenshot_sha256": "3a2870a59ba94f8e9e991cf30d319870b8abfd8df3ce0f8ca01798914d8cbebf"
+      }
+    ]
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "source_copied": false,
+    "provider_documentation": "https://open.workbuddy.cn/docs/openapi"
+  },
+  "pending": [
+    "actual_workbuddy_vendor_replay_coverage",
+    "authorized_sandbox_artifact_list",
+    "trusted_git_cloud_candidate",
+    "independent_same_commit_test",
+    "physical_multi_host",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "contract_test": ".cache/workbuddy-history-artifacts-237/contract-go.log",
+    "type": ".cache/workbuddy-history-artifacts-237/type.json",
+    "browser": ".cache/workbuddy-history-artifacts-237/web/visual-result.json",
+    "first_browser": ".cache/workbuddy-history-artifacts-237/web/visual-result-first.json"
+  }
+}

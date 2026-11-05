@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-HISTORY-ARTIFACTS-237 核验原会话通知、产物元数据持久读取、分享隔离及中英文历史界面。 [阶段验证](workbuddy-history-artifacts-verification.md)
+
 T-MULTICA-TASK-PLANNING-STATUS 验证真实运行阻塞、正式验收保护、看板归组和跨刷新恢复原回执。 [阶段验证](task-planning-status-changes-verification.md)
 
 T-TASK-DISPATCH-ENVELOPE-236 验证预览错配、只读重试、原运行回执及固定知识修订。 [阶段验证](task-dispatch-envelope-verification.md)

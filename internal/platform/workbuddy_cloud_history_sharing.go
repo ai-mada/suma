@@ -67,7 +67,7 @@ func (w *WorkBuddyConnections) cloudHistorySharePreviewTx(ctx context.Context, a
 			rows.Close()
 			return wc.CloudHistorySharePreview{}, historyShareChanged()
 		}
-		if entry.Validate() != nil || entry.Kind == "unsupported" || strings.TrimSpace(entry.Text) == "" {
+		if entry.Kind == "artifact" || entry.Kind == "unsupported" || entry.Validate() != nil || strings.TrimSpace(entry.Text) == "" {
 			rows.Close()
 			return wc.CloudHistorySharePreview{}, historyShareInvalid()
 		}

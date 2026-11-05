@@ -147,6 +147,10 @@ func (w *WorkBuddyConnections) CloudHistory(ctx context.Context, actor Actor, pr
 		if err = rows.Scan(&entry.Sequence, &entry.Kind, &entry.Text); err != nil {
 			return wc.CloudHistoryPage{}, err
 		}
+		if entry.Kind == "artifact" {
+			entry.ArtifactType, entry.ArtifactEvent, _ = strings.Cut(entry.Text, ":")
+			entry.Text = ""
+		}
 		if entry.Validate() != nil || entry.Sequence > out.Total {
 			return wc.CloudHistoryPage{}, cloudConflict()
 		}
@@ -406,7 +410,12 @@ func (w *WorkBuddyConnections) cloudHistoryAppend(ctx context.Context, actor Act
 	if entry.Validate() != nil {
 		return errCloudHistoryLimit
 	}
-	if _, err = a.tx.ExecContext(ctx, w.s.q(`INSERT INTO suma_workbuddy_cloud_history_entries(tenant_id,project_id,load_id,sequence,kind,text)VALUES(?,?,?,?,?,?)`), a.target.tenantID, project, id, entry.Sequence, entry.Kind, entry.Text); err != nil {
+	storedText := entry.Text
+	if entry.Kind == "artifact" {
+		// The existing text column stores the two validated enum values for this kind.
+		storedText = entry.ArtifactType + ":" + entry.ArtifactEvent
+	}
+	if _, err = a.tx.ExecContext(ctx, w.s.q(`INSERT INTO suma_workbuddy_cloud_history_entries(tenant_id,project_id,load_id,sequence,kind,text)VALUES(?,?,?,?,?,?)`), a.target.tenantID, project, id, entry.Sequence, entry.Kind, storedText); err != nil {
 		return err
 	}
 	before := row.load.Version
@@ -458,6 +467,9 @@ func (w *WorkBuddyConnections) cloudHistoryFinish(ctx context.Context, actor Act
 // The projection reads only closed display fields after the protocol decoder.
 // It never stores raw packets, thought text, tool content/arguments, or URIs.
 func cloudHistoryProject(packet workbuddyacp.Packet) wc.CloudHistoryEntry {
+	if packet.Kind == "artifact" && packet.Artifact != nil {
+		return wc.CloudHistoryEntry{Kind: "artifact", ArtifactType: packet.Artifact.Type, ArtifactEvent: packet.Artifact.Event}
+	}
 	entry := wc.CloudHistoryEntry{Kind: "unsupported"}
 	if packet.Kind != "session_update" || packet.Update == nil {
 		return entry

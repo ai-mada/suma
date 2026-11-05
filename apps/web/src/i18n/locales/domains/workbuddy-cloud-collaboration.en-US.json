@@ -43,6 +43,7 @@
  "workbuddy-cloud-collaboration.kind_tool_summary":"Tool summary",
  "workbuddy-cloud-collaboration.kind_plan_summary":"Plan summary",
  "workbuddy-cloud-collaboration.kind_unsupported":"Unsupported entry",
+ "workbuddy-cloud-collaboration.artifact_metadata":"Only the artifact type and change were saved.",
  "workbuddy-cloud-collaboration.unsupported":"This entry type is not supported for display.",
  "workbuddy-cloud-collaboration.empty_text":"No displayable text was provided",
  "workbuddy-cloud-collaboration.entry_text":"Session entry text",
