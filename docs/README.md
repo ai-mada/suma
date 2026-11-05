@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+Cursor 前台停止、原尝试核对和回执恢复见 T-CURSOR-RECOVERY-228。 [执行合同](../contracts/cursor-acp-execution.md) · [验证](quality/cursor-foreground-recovery-verification.md)
+
 T-CODEX-DELIVERY-227 的操作与部署条件见 [Codex 开发候选与独立验收](integrations/codex-candidate-delivery.md)。 [阶段验证](quality/codex-candidate-delivery-verification.md)
 
 T-REAL-CLI-ONBOARDING-226：[产品](product/real-cli-onboarding.md)／[架构与接入](integrations/real-cli-onboarding.md)／[交互](design/real-cli-onboarding.md)／[限定验证](quality/real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。

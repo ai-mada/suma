@@ -29,3 +29,9 @@ Windows官方包采用打包Node与index.js，不能把cursor.cmd编辑器或任
 Root拥有acp／toolcontract共享、目录、生成合同、文档及Git；平台复用现ACP闭合并做必要验证；Runtime拥有本机包核验、固定配置、SDK执行与本机Go桥；Web拥有原ACP接入消费者及薄桌面JS。先锁实际版本／协议再实施宿主，不凭文档编造ready。只新增／直接受影响检查，不重复188或全套；真实CLI握手、模型账户、受控协议、HTTP／SQLite和GUI分别留证。
 
 来源：[官方ACP](https://cursor.com/docs/cli/acp)、[参数](https://cursor.com/docs/cli/reference/parameters)、[配置](https://cursor.com/docs/cli/reference/configuration)、[权限](https://cursor.com/docs/cli/reference/permissions)、[第三方hooks](https://cursor.com/docs/reference/third-party-hooks)。Multica以本地已锁定源码作行为参考，不复用其yolo参数或不严格的帧／模型回退。
+
+## 前台停止核对
+
+前台 stdin 关闭后，Runner 先等待原命令自行退出。若须停止，沿原进程控制器发出请求，随后对原 `Wait` 追加两秒上限。超时结果维持同一 `run/node/attempt/fence` 并交由原 Journal 写入结果。原进程结果缺失时，保留未确认停止和未确认副作用两项事实，保留工作区供核对。已成功读取的 RPC 回执仍需同原工具来源及已验证停止配合，才能形成成功候选。
+
+当前节点进入待核对后，操作界面展示原 Worker 和尝试。操作者核实进程树和任务影响，显式选择结论并提供依据。历史尝试只用于查看本次交互的原记录。已知 Prompt 开始时，界面只提供与该事实相符的结果选项。回执丢失使用原运行版本、操作标识和请求体恢复。 [阶段验证](../docs/quality/cursor-foreground-recovery-verification.md)

@@ -676,24 +676,24 @@
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-QODER-TOOL-PREPARATION-221",
-    "commit": "87a9bc3ea85e5a55f2d02a6e1e07388574e874e3",
-    "evidence": "36 scoped files, 13 focused checks and 3 representative groups, normal dev push verified."
+    "stage": "T-CODEX-DELIVERY-227",
+    "commit": "acbba7fb541cba4605105ed185d17bde4f1687d2",
+    "evidence": "Installed Windows Codex candidate and independent JUnit verified, normal dev push confirmed."
   },
   "current_work": {
-    "stage": "T-CODEX-DELIVERY-227",
+    "stage": "T-CURSOR-RECOVERY-228",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/codex-app-server.md",
-    "report": "docs/quality/codex-candidate-delivery-verification.md",
-    "summary": "docs/quality/codex-candidate-delivery-summary.json",
-    "previous_commit": "c0d9a38571d21943607b3addc646ef0a04beee94",
-    "verification": "14 distinct focused Go checks, 33 Web checks, final typecheck and i18n. Linux amd64 cross-compile only. Three representative visual states passed; wrapper retains a fixture CSP warning.",
-    "actual": "One installed Windows Codex 0.166.0-alpha.6 journey via controlled loopback Responses. Model/effort/observe-only notice frozen, seven progress events, parent-sealed exact Git candidate, independent Worker/JUnit, isolated authorized review. Two fixture responses, zero commercial calls.",
-    "known_limitations": "Linux opt-in namespace is cross-compiled but needs an eligible host. macOS tree containment and commercial provider qualification remain pending.",
-    "next": "Qualify Linux runtime and commercial provider using explicitly provisioned access, extend original recovery/deployment and remaining 31 requirements across P0-P7.",
+    "contract": "contracts/cursor-acp-execution.md",
+    "report": "docs/quality/cursor-foreground-recovery-verification.md",
+    "summary": "docs/quality/cursor-foreground-recovery-summary.json",
+    "previous_commit": "fd9ce459ada398ed1c05a0d0fffa8463d632fe7e",
+    "verification": "5 distinct Go checks, 5 focused Web checks, typecheck and paired locales. Chrome 390×844 read-only production component check. Linux amd64 cross-build.",
+    "actual": "Controlled Windows native processes. Real HTTP/SQLite and Runner Journal replayed the same unknown result for a normal Worker and a shared pool; original attempt remains in reconciliation and independent test stays blocked.",
+    "known_limitations": "Cursor vendor execution, Linux and macOS runtime, physical multi-machine and full platform acceptance remain pending.",
+    "next": "Unify Desktop and Worker shutdown evidence, then qualify real Qoder/Cursor and Unix execution against the original full platform goals.",
     "full_platform_complete": false,
-    "git_record": ".cache/codex-delivery-227/post-git.json"
+    "git_record": ".cache/cursor-recovery-228/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2776,11 +2776,11 @@
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   },
   "active_implementation": {
-    "stage": "T-CODEX-DELIVERY-227",
+    "stage": "T-CURSOR-RECOVERY-228",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "base": "c0d9a38571d21943607b3addc646ef0a04beee94",
-    "contract": "contracts/codex-app-server.md",
+    "base": "fd9ce459ada398ed1c05a0d0fffa8463d632fe7e",
+    "contract": "contracts/cursor-acp-execution.md",
     "full_platform_complete": false
   },
   "real_cli_onboarding": {
@@ -2815,5 +2815,20 @@
     "full_platform_complete": false,
     "git_record": ".cache/codex-delivery-227/post-git.json",
     "date": "2026-11-05"
+  },
+  "cursor_foreground_recovery": {
+    "stage": "T-CURSOR-RECOVERY-228",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/cursor-acp-execution.md",
+    "report": "docs/quality/cursor-foreground-recovery-verification.md",
+    "summary": "docs/quality/cursor-foreground-recovery-summary.json",
+    "previous_commit": "fd9ce459ada398ed1c05a0d0fffa8463d632fe7e",
+    "verification": "5 distinct Go checks, 5 focused Web checks, typecheck and paired locales. Chrome 390×844 read-only production component check. Linux amd64 cross-build.",
+    "actual": "Controlled Windows native processes. Real HTTP/SQLite and Runner Journal replayed the same unknown result for a normal Worker and a shared pool; original attempt remains in reconciliation and independent test stays blocked.",
+    "known_limitations": "Cursor vendor execution, Linux and macOS runtime, physical multi-machine and full platform acceptance remain pending.",
+    "next": "Unify Desktop and Worker shutdown evidence, then qualify real Qoder/Cursor and Unix execution against the original full platform goals.",
+    "full_platform_complete": false,
+    "git_record": ".cache/cursor-recovery-228/post-git.json"
   }
 }

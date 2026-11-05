@@ -6,10 +6,11 @@ import (
 )
 
 type acpHostCompletion struct {
-	waitErr     error
-	stopErr     error
-	afterRPC    bool
-	interrupted bool
+	waitErr      error
+	waitObserved bool
+	stopErr      error
+	afterRPC     bool
+	interrupted  bool
 }
 
 // Called only for Cursor after its sole stdin writer drained the SDK stack.
@@ -19,27 +20,30 @@ func stopCursorHostAfterRPC(ctx context.Context, controller interface{ Stop() er
 	grace := time.NewTimer(2 * time.Second)
 	defer grace.Stop()
 	var r acpHostCompletion
-	waitStopped := func() error {
+	waitStopped := func() {
 		if probe, ok := controller.(*probeProcessController); ok {
-			return waitStoppedProbeProcess(probe, done)
+			r.waitErr = waitStoppedProbeProcess(probe, done)
+			r.waitObserved, _ = probe.waitFact()
+			return
 		}
-		return <-done
+		r.waitErr, r.waitObserved = waitForNativeCompletion(done, processCancellationWait)
 	}
 	select {
 	case r.waitErr = <-done:
+		r.waitObserved = true
 		r.interrupted = ctx.Err() != nil
 		return r
 	case <-grace.C:
 		eligible := ctx.Err() == nil && safe()
 		r.stopErr = controller.Stop()
-		r.waitErr = waitStopped()
+		waitStopped()
 		r.interrupted = ctx.Err() != nil
-		r.afterRPC = eligible && r.stopErr == nil && !r.interrupted && safe()
+		r.afterRPC = r.waitObserved && eligible && r.stopErr == nil && !r.interrupted && safe()
 		return r
 	case <-ctx.Done():
 		r.interrupted = true
 		r.stopErr = controller.Stop()
-		r.waitErr = waitStopped()
+		waitStopped()
 		return r
 	}
 }

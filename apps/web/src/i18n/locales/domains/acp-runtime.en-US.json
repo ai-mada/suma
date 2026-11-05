@@ -69,5 +69,13 @@
   "acp-runtime.facts.stop.max_tokens": "Output limit reached",
   "acp-runtime.facts.stop.max_turn_requests": "Turn request limit reached",
   "acp-runtime.facts.stop.refusal": "Agent declined",
-  "acp-runtime.facts.stop.cancelled": "Turn cancelled"
+  "acp-runtime.facts.stop.cancelled": "Turn cancelled",
+  "acp-runtime.recovery.unconfirmed": "Cursor process tree stop is unconfirmed. Check the original worker and any effects of this attempt before recording its result.",
+  "acp-runtime.recovery.history": "You are viewing a historical attempt. Select the current attempt to record its verified result.",
+  "acp-runtime.recovery.record": "Record original result",
+  "acp-runtime.recovery.attempt": "Attempt {{attempt}} on worker {{worker}}",
+  "acp-runtime.recovery.evidence": "Record how you verified that the process tree stopped and what this attempt did.",
+  "acp-runtime.recovery.not_started": "Choose Confirmed not started only if you have evidence. That outcome can put the task back in the queue.",
+  "acp-runtime.recovery.changed": "The run changed while you were reviewing it. Return to the run and check the latest attempt before recording a result.",
+  "acp-runtime.recovery.choose_outcome": "Choose the verified result"
 }

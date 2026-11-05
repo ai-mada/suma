@@ -1,0 +1,64 @@
+{
+  "stage": "T-CURSOR-RECOVERY-228",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "base": "fd9ce459ada398ed1c05a0d0fffa8463d632fe7e",
+  "full_platform_complete": false,
+  "go": {
+    "platform": "Windows",
+    "distinct_checks": 5,
+    "runner": [
+      "TestCursorPostRPCStopPreservesNativeExitAndRejectsUnsafeStacks",
+      "TestCursorPostRPCStopReturnsWhenNativeWaitStaysUnobserved",
+      "TestCursorUnsupportedRequestClosesForegroundWithoutFakeSuccess",
+      "TestACPProcessCancelKeepsUnknownAndGenuineHostStop"
+    ],
+    "control_plane": "TestCursorUnknownForegroundResultReplaysOriginalClaim",
+    "control_plane_subcases": [
+      "ordinary_worker",
+      "shared_pool"
+    ],
+    "control_plane_first_failure": "Corrected test to assert the node rather than aggregate run status.",
+    "red_green": "Both withheld native Wait variants failed before the fix and passed after it."
+  },
+  "web": {
+    "focused_checks": 5,
+    "files": 3,
+    "typescript": "passed",
+    "paired_locale_keys": 10036,
+    "production_hardcoded_messages": 0,
+    "browser": {
+      "scope": "Production WorkflowView and shared modal/CSS with synthetic local read responses",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "writes": 0,
+      "errors": 0,
+      "result": "passed",
+      "screenshot_sha256": "5fa1e59c43b6c6dd198ef21d02e70b6501ad3f278b0d29b80c5c1d98fd9f0773"
+    }
+  },
+  "linux_amd64": "cross_build_passed",
+  "external_cursor_provider_used": false,
+  "upstream": {
+    "project": "multica-ai/multica",
+    "reference": "f230f9f55bdfc4de68015473b07de329a5079f87",
+    "source_copied": false
+  },
+  "pending": [
+    "desktop_worker_shutdown_receipt",
+    "real_cursor_provider",
+    "linux_runtime",
+    "macos_runtime",
+    "physical_multi_machine",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "runner": ".cache/cursor-recovery-228/focused.json",
+    "runnerRed": ".cache/cursor-recovery-228/red.json",
+    "platform": ".cache/cursor-recovery-228/go/control-final-20261105T095851645Z.command.json",
+    "linux": ".cache/cursor-recovery-228/go/linux-build-20261105T100317433Z.command.json",
+    "browser": ".cache/cursor-recovery-228/ui/visual-result.json"
+  }
+}

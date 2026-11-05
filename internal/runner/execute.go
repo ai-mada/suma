@@ -1034,9 +1034,16 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		completion := stopCursorHostAfterRPC(ctx, controller, done, func() bool {
 			return acpDriver.CanStopAfterRPC() && completeACPOutput(out) && currentACPCommand(ctx, cfg, spec, executable, profile.ProfileSHA256)
 		})
+		if !completion.waitObserved {
+			// Wait may still be updating ProcessState and forwarding native output.
+			nativeWaitAbandoned = true
+			r.OutcomeUnknown = true
+			r.Error = "Cursor foreground wait requires reconciliation"
+			return r
+		}
 		err, acpStoppedAfterRPC = completion.waitErr, completion.afterRPC
 		processContainmentVerified = completion.stopErr == nil
-		if acpStoppedAfterRPC || err == nil && !completion.interrupted {
+		if acpStoppedAfterRPC || err == nil && processContainmentVerified && !completion.interrupted {
 			// Business success denotes the completed RPC, not a native exit 0.
 			r.ExitCode = 0
 		} else {

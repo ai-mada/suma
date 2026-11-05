@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -206,6 +207,48 @@ func TestCursorPostRPCStopPreservesNativeExitAndRejectsUnsafeStacks(t *testing.T
 			*copy.HostProcessExitCode = 0
 			if *proof.HostProcessExitCode == 0 {
 				t.Fatal("host exit evidence alias escaped clone")
+			}
+		})
+	}
+}
+
+type cursorStopFunc func() error
+
+func (stop cursorStopFunc) Stop() error { return stop() }
+
+func TestCursorPostRPCStopReturnsWhenNativeWaitStaysUnobserved(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		stopErr error
+	}{
+		{name: "stop_failed", stopErr: errors.New("owned stop failure")},
+		{name: "stop_succeeded"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			done := make(chan error)
+			defer close(done)
+			stopping := make(chan struct{})
+			controller := cursorStopFunc(func() error {
+				close(stopping)
+				return tc.stopErr
+			})
+			completed := make(chan acpHostCompletion, 1)
+			go func() {
+				completed <- stopCursorHostAfterRPC(context.Background(), controller, done, func() bool { return true })
+			}()
+			select {
+			case <-stopping:
+			case <-time.After(5 * time.Second):
+				t.Fatal("Cursor host stop was not attempted after stdin drained")
+			}
+			select {
+			case completion := <-completed:
+				if completion.waitObserved || completion.stopErr != tc.stopErr || completion.afterRPC {
+					t.Fatalf("unobserved Wait fabricated post-RPC stop: %+v", completion)
+				}
+			case <-time.After(4 * time.Second):
+				t.Fatal("Cursor foreground remained blocked on an unobserved native Wait")
 			}
 		})
 	}

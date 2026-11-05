@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CURSOR-RECOVERY-228 已通过受控进程和双节点类型的原结果回执恢复。 [阶段验证](cursor-foreground-recovery-verification.md)
+
 T-WORKBUDDY-ARTIFACT-TIMELINE 已在原云回合显示产物类型、变更动作和有限预览。 [合同](../../contracts/workbuddy-cloud-turns.md) · [验证](workbuddy-artifact-timeline-verification.md)
 
 T-CODEX-DELIVERY-227 已通过真实 Windows CLI、本地回环模型夹具、原 Worker 和同提交独立测试的隔离旅程。定向回归、界面和 Linux 交叉编译按各自范围记录。 [阶段验证](codex-candidate-delivery-verification.md)

@@ -69,5 +69,13 @@
   "acp-runtime.facts.stop.max_tokens": "达到输出限制",
   "acp-runtime.facts.stop.max_turn_requests": "达到回合请求限制",
   "acp-runtime.facts.stop.refusal": "工具拒绝执行",
-  "acp-runtime.facts.stop.cancelled": "回合已取消"
+  "acp-runtime.facts.stop.cancelled": "回合已取消",
+  "acp-runtime.recovery.unconfirmed": "Cursor 进程树停止尚未确认。记录结果前，请核查原执行节点和本次尝试产生的影响。",
+  "acp-runtime.recovery.history": "正在查看历史尝试。请切换到当前尝试，再记录已核实的结果。",
+  "acp-runtime.recovery.record": "记录原尝试结果",
+  "acp-runtime.recovery.attempt": "第 {{attempt}} 次尝试，执行节点 {{worker}}",
+  "acp-runtime.recovery.evidence": "请记录如何确认进程树已停止，以及本次尝试产生的实际影响。",
+  "acp-runtime.recovery.not_started": "只有证据表明确实没有开始执行时，才选择“确认未开始执行”。此结果可能使任务重新排队。",
+  "acp-runtime.recovery.changed": "核对期间运行已更新。请返回运行，检查最新尝试后再记录结果。",
+  "acp-runtime.recovery.choose_outcome": "请选择已核实的结果"
 }
