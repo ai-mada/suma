@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+从 Windows 桌面工作台在 Cursor 中打开原目录见 T-CURSOR-EDITOR-234。 [桌面合同](../contracts/desktop-workspace.md#windows-原工作区在-cursor-中打开) · [验证](quality/cursor-editor-launch-verification.md)
+
 从共享执行池节点打开本机诊断见 T-POOL-DIAGNOSTIC-GUIDE-233。 [交互](design/execution-pools.md#节点本机诊断) · [验证](quality/pool-diagnostic-guide-verification.md)
 
 共享执行池本机槽位总览与原尝试定位见 T-POOL-INSPECTION-232。 [诊断指南](agents/runner-journal-inspection.md) · [阶段验证](quality/pool-state-inspection-verification.md)

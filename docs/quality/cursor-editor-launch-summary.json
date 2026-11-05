@@ -1,0 +1,65 @@
+{
+  "stage": "T-CURSOR-EDITOR-234",
+  "base": "63a62c076c79680e2fbcb7a68aba9304b8ab4334",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "native": {
+    "scope": "Production native Cursor selection, exact launch arguments and real editor with a fixture-only profile and separate Windows desktop",
+    "version": "3.27.22",
+    "exact_production_args": true,
+    "editor_file": "Cursor.exe",
+    "registered_install": true,
+    "native_request": true,
+    "window": {
+      "window_title": "verified-cursor-workspace - Cursor",
+      "isolated_desktop": true,
+      "fixture_profile": true,
+      "matched_original_directory": true
+    },
+    "passed": true,
+    "production_arguments": [
+      "--classic",
+      "--new-window",
+      "<authorized workspace>"
+    ],
+    "setup": "Verified in an isolated Windows desktop with a temporary profile. Two earlier hidden desktop runs encountered renderer startup issues."
+  },
+  "focused": {
+    "native_tests": 5,
+    "controller_tests": 51,
+    "web_tests": 3,
+    "paired_locale_keys": 10184,
+    "scoped_typescript": "passed",
+    "full_worktree_typescript": "separate candidate upload UI changes reported errors"
+  },
+  "browser": {
+    "scope": "Actual Chrome component with a synthetic narrow native bridge",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "exact_single_intent": true,
+    "errors": 0,
+    "screenshot_sha256": "031361210d60fc9395c483d256fc2be670a62e03e561f0498eaa7ba9a43841fd"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "source_copied": false
+  },
+  "pending": [
+    "installed_suma_default_profile_window",
+    "non_windows_runtime",
+    "live_cursor_agent_execution",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "native": ".cache/cursor-editor-234/actual-6GFlaa/receipt.json",
+    "native_tests": ".cache/cursor-editor-234/host-final.log",
+    "controller_tests": ".cache/cursor-editor-234/managed-final.log",
+    "chrome": ".cache/cursor-editor-234/web/visual-result.json",
+    "scoped_types": ".cache/cursor-editor-234/type-scoped.json",
+    "full_types": ".cache/cursor-editor-234/type.json"
+  }
+}

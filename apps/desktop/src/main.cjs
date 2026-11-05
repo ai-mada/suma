@@ -13,12 +13,13 @@ const {CHANNEL:MANAGED_RUNNER_CHANNEL,createManagedLocalRunnerController}=requir
 const {CHANNEL:LOCAL_ACP_CHANNEL}=require('./local-acp.cjs');
 const {createWindowDepartureController}=require('./window-departure.cjs');
 const OAUTH_CHANNEL='suma:open-workbuddy-authorization';
+const CURSOR_EDITOR_CHANNEL='suma:open-cursor-editor';
 let oauthController;
 function disposeOAuth(){ipcMain.removeHandler(OAUTH_CHANNEL);oauthController?.dispose();oauthController=undefined;}
 let installedToolController;let installedToolStop=Promise.resolve();
 function disposeInstalledTools(){ipcMain.removeHandler(TOOL_DISCOVERY_CHANNEL);if(installedToolController)installedToolStop=installedToolController.dispose();installedToolController=undefined;return installedToolStop;}
 let managedRunnerController;let managedRunnerStop=Promise.resolve();
-function disposeManagedRunner(){ipcMain.removeHandler(MANAGED_RUNNER_CHANNEL);ipcMain.removeHandler(LOCAL_ACP_CHANNEL);if(managedRunnerController)managedRunnerStop=managedRunnerController.dispose();managedRunnerController=undefined;return managedRunnerStop;}
+function disposeManagedRunner(){ipcMain.removeHandler(MANAGED_RUNNER_CHANNEL);ipcMain.removeHandler(LOCAL_ACP_CHANNEL);ipcMain.removeHandler(CURSOR_EDITOR_CHANNEL);if(managedRunnerController)managedRunnerStop=managedRunnerController.dispose();managedRunnerController=undefined;return managedRunnerStop;}
 let service;let window;let departureController;let shutdownTask;let shuttingDown=false;let quitRequested=false;let locale='zh-CN';let origin='';let overrides;let configurationError;
 try{overrides=developmentOverrides(__dirname,process.env,app.isPackaged);if(overrides)app.setPath('userData',ensurePrivateDirectory(overrides.userData))}catch{configurationError='desktop_configuration_invalid'}
 async function stopService(){await terminateService(service,5000,locale)}
@@ -66,6 +67,7 @@ async function start(){
  managedRunnerController=createManagedLocalRunnerController({parent:window,origin,binary,key,userData:app.getPath('userData'),safeStorage,discover:(event,request)=>installedToolController.discover(event,request)});
  ipcMain.handle(MANAGED_RUNNER_CHANNEL,(event,request)=>managedRunnerController.manage(event,request));
  ipcMain.handle(LOCAL_ACP_CHANNEL,(event,request)=>managedRunnerController.inspectACP(event,request));
+ ipcMain.handle(CURSOR_EDITOR_CHANNEL,(event,request)=>managedRunnerController.openEditor(event,request));
  window.once('ready-to-show',()=>window.show());window.once('closed',()=>{departureController?.dispose();departureController=undefined;disposeOAuth();disposeInstalledTools();disposeManagedRunner();window=undefined});await window.loadURL(origin);
 }
 if(!configurationError&&!app.requestSingleInstanceLock()){app.quit()}else{

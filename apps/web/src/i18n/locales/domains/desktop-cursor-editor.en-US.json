@@ -1,0 +1,12 @@
+{
+  "desktop-cursor-editor.open": "Open in Cursor",
+  "desktop-cursor-editor.requesting": "Requesting Cursor launch…",
+  "desktop-cursor-editor.requested": "Cursor launch requested. Check the Cursor window to continue.",
+  "desktop-cursor-editor.request_unconfirmed": "Could not confirm the launch request. Check Cursor before retrying.",
+  "desktop-cursor-editor.desktop_unavailable": "The desktop connection is unavailable. Reopen the Suma desktop app.",
+  "desktop-cursor-editor.editor_unavailable": "Cursor was not found in the supported Windows installation locations.",
+  "desktop-cursor-editor.editor_launch_failed": "Windows could not start Cursor. Check the Cursor installation.",
+  "desktop-cursor-editor.workspace_unavailable": "The bound Git folder could not be verified. Check the project folder in Suma.",
+  "desktop-cursor-editor.access_changed": "Project access changed. Refresh the project before trying again.",
+  "desktop-cursor-editor.busy": "A Cursor launch request is already in progress."
+}

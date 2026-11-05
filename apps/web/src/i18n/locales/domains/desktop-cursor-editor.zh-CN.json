@@ -1,0 +1,12 @@
+{
+  "desktop-cursor-editor.open": "在 Cursor 中打开",
+  "desktop-cursor-editor.requesting": "正在请求启动 Cursor…",
+  "desktop-cursor-editor.requested": "已请求启动 Cursor，请在 Cursor 窗口中继续。",
+  "desktop-cursor-editor.request_unconfirmed": "启动请求未能确认，请先查看 Cursor 再重试。",
+  "desktop-cursor-editor.desktop_unavailable": "桌面连接暂不可用，请重新打开速码桌面端。",
+  "desktop-cursor-editor.editor_unavailable": "在支持的 Windows 安装位置未找到 Cursor。",
+  "desktop-cursor-editor.editor_launch_failed": "Windows 无法启动 Cursor，请检查 Cursor 安装。",
+  "desktop-cursor-editor.workspace_unavailable": "无法核验绑定的 Git 目录，请在速码中检查项目目录。",
+  "desktop-cursor-editor.access_changed": "项目访问权限已变化，请刷新项目后重试。",
+  "desktop-cursor-editor.busy": "已有一个 Cursor 启动请求正在处理。"
+}

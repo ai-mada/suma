@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CURSOR-EDITOR-234 核验了本机 Cursor 安装、私有工作区授权及双语启动反馈。 [阶段验证](cursor-editor-launch-verification.md)
+
 T-ARTIFACT-UPLOAD-RECOVERY 验证原尝试终态、原上传回执、已收文件保留和原节点凭证轮换。 [阶段验证](artifact-upload-recovery-verification.md)
 
 T-POOL-DIAGNOSTIC-GUIDE-233 已验证真实 Windows CLI 摘要在 390 像素资源池节点弹窗内预览，并按槽位生成原日志命令。 [阶段验证](pool-diagnostic-guide-verification.md)

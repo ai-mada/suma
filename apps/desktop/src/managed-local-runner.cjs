@@ -12,6 +12,7 @@ const {resolveClaudeSDKAssets}=require('./local-claude-sdk-assets.cjs');
 const {ToolPreparationError,preparationReason,preparationCheck}=require('./local-tool-preparation-error.cjs');
 const {fileHash,binaryTarget}=require('./local-opencode-assets.cjs');
 const {RENEW_FIELDS,digest,validRenewReceipt,createRenewalReadinessChecker}=require('./managed-local-runner-renewal.cjs');
+const {createLocalCursorEditor}=require('./local-cursor-editor.cjs');
 const {SCOPE_FIELDS,planSHA,projection:recoveryProjection,createResultRecoveryController}=require('./managed-local-runner-recovery.cjs');
 const CHANNEL='suma:manage-local-runner';
 const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1'],'qoder-acp':['qoder','acp-stdio-v1'],'cursor-cli':['cursor','acp-stdio-v1'],'codex-app-server':['codex','codex-app-server-v1'],'opencode-sdk':['opencode','opencode-sdk-v1'],'claude-code-sdk':['claude','claude-sdk-v1']});
@@ -61,7 +62,7 @@ async function boundedJSON(response){
  if(!response.ok||![200,201].includes(response.status)){const error=Error('request_failed');error.status=response.status;error.code=typeof value?.error?.code==='string'?value.error.code:'';throw error;}
  return value;
 }
-function createManagedLocalRunnerController({parent,origin,binary,key,userData,safeStorage,discover,spawn=spawnChild,environment=process.env,stopGraceMS=12000,stopDeadlineMS=16000,checkIntervalMS=15000,now=Date.now,opencodeAssets=resolveOpenCodeAssets,claudeSDKAssets=resolveClaudeSDKAssets}){
+function createManagedLocalRunnerController({parent,origin,binary,key,userData,safeStorage,discover,spawn=spawnChild,environment=process.env,stopGraceMS=12000,stopDeadlineMS=16000,checkIntervalMS=15000,now=Date.now,opencodeAssets=resolveOpenCodeAssets,claudeSDKAssets=resolveClaudeSDKAssets,cursorEditor=createLocalCursorEditor({environment})}){
  if(!validOrigin(origin)||!path.isAbsolute(binary)||!path.isAbsolute(userData)||!Buffer.isBuffer(key)||key.length!==32||typeof discover!=='function')throw Error('Invalid managed local runner configuration');
  const privateKey=Buffer.from(key),instanceID=crypto.createHmac('sha256',privateKey).update('suma-desktop-instance-v1').digest('hex'),records=new Map();
  let disposed=false,journal,busy=false,disposing,activeManage,journalFinalized=false;
@@ -105,6 +106,33 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   return context;
  }
  function sameContext(record,context){const value=record.value;return value.instance_id===context.instance_id&&value.repository_path===context.repository_path&&value.repository_identity===context.repository_identity&&value.binding_sha256===context.binding_sha256&&value.base_commit===context.base_commit;}
+ let editorBusy=false;
+ async function openEditor(event,request){
+  if(!caller(event)||!fields(request,['project_id','user_id','tenant_id','locale','expected_binding_sha256'])||
+     !['project_id','user_id','tenant_id'].every(name=>typeof request[name]==='string'&&ID.test(request[name]))||
+     !['zh-CN','en-US'].includes(request.locale)||typeof request.expected_binding_sha256!=='string'||!HASH.test(request.expected_binding_sha256))return failure('access_changed');
+  if(editorBusy)return failure('busy');
+  const scope=Object.freeze({project_id:request.project_id,user_id:request.user_id,tenant_id:request.tenant_id});
+  const expectedBinding=request.expected_binding_sha256;
+  editorBusy=true;
+  try{
+   const original=await authorize(scope);
+   if(!caller(event))return failure('access_changed');
+   if(original.binding_sha256!==expectedBinding)return failure('workspace_unavailable');
+   // Detection may take time. Recheck the same project, actor and binding
+   // immediately before launching the fixed editor with the private path.
+   const outcome=await cursorEditor(original.repository_path,async()=>{
+    if(!caller(event))return false;
+    const current=await authorize(scope);
+    return caller(event)&&sameContext({value:original},current);
+   });
+   if(!caller(event))return failure('access_changed');
+   if(outcome?.status==='requested')return {status:'requested'};
+   if(outcome?.code==='editor_path_invalid')return failure('workspace_unavailable');
+   return failure(['desktop_unavailable','editor_unavailable','editor_launch_failed','access_changed'].includes(outcome?.code)?outcome.code:'editor_launch_failed');
+  }catch(error){return failure(gitUnavailable(error)||error?.status===422?'workspace_unavailable':'access_changed');}
+  finally{editorBusy=false;}
+ }
  function saveStopPhase(record,value,pendingStop){
   const next={...record.value,phase:value};
   if(pendingStop)next.pending_stop=pendingStop;else delete next.pending_stop;
@@ -421,6 +449,6 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  const codex=createLocalCodexController({binary,probeDirectory:path.join(userData,'.cache','codex-probes'),credentialKey:privateKey,environment,spawn,caller,session,authorize,discover,journal:openJournal,now,busy:()=>busy||acp.isBusy()});
  const readiness=createRenewalReadinessChecker({binary,spawn,environment});
  const recovery=createResultRecoveryController({binary,key:privateKey,spawn,environment,journal:openJournal,authorize,session,caller,sameContext,connection,lookup:(body,scope)=>signed('recovery-receipts',body,scope),readiness,now});
- return {manage,inspectACP:acp.inspect,dispose};
+ return {manage,inspectACP:acp.inspect,openEditor,dispose};
 }
 module.exports={CHANNEL,createManagedLocalRunnerController};

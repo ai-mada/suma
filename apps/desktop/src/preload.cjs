@@ -10,4 +10,6 @@ contextBridge.exposeInMainWorld('sumaDesktop',Object.freeze({platform:process.pl
  try{return await ipcRenderer.invoke('suma:manage-local-runner',request)}catch{return {status:'failed',code:'desktop_unavailable'}}
 },inspectLocalACP:async request=>{
  try{return await ipcRenderer.invoke('suma:inspect-local-acp',request)}catch{return {status:'failed',code:'desktop_unavailable'}}
+},openCursorEditor:async request=>{
+ try{return await ipcRenderer.invoke('suma:open-cursor-editor',request)}catch{return {status:'failed',code:'desktop_unavailable'}}
 }}));

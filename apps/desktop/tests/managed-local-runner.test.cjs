@@ -36,6 +36,36 @@ function harness(t,options={}){
 }
 test('managed IPC rejects wrong frames and arbitrary launcher fields before I/O',async t=>{const h=harness(t);for(const [event,body]of [[{...h.event,senderFrame:{}},request],[h.event,{...request,token:'secret'}],[h.event,{...request,adapter_id:'shell'}]])assert.equal((await h.controller.manage(event,body)).status,'failed');assert.equal(h.calls.length,0);assert.equal(h.children.length,0);});
 test('status never issues credentials or starts a worker',async t=>{const h=harness(t),out=await h.controller.manage(h.event,{...request,action:'status'});assert.equal(out.connection.phase,'unconfigured');assert.equal(h.bodies.length,0);assert.equal(h.children.length,0);});
+test('Cursor editor uses the exact original private binding and strips helper details',async t=>{
+ let launchPath,launches=0;
+ const h=harness(t,{cursorEditor:async(directory,authorize)=>{
+  if(!await authorize())return {status:'failed',code:'access_changed'};
+  launches++;launchPath=directory;return {status:'requested',path:directory};
+ }});
+ const input={project_id:request.project_id,user_id:request.user_id,tenant_id:request.tenant_id,locale:request.locale,expected_binding_sha256:h.context.binding_sha256};
+ assert.deepEqual(await h.controller.openEditor({...h.event,senderFrame:{}},input),{status:'failed',code:'access_changed'});
+ assert.deepEqual(await h.controller.openEditor(h.event,{...input,repository_path:'renderer-value'}),{status:'failed',code:'access_changed'});
+ assert.equal(h.calls.length,0);
+ assert.deepEqual(await h.controller.openEditor(h.event,{...input,expected_binding_sha256:'0'.repeat(64)}),{status:'failed',code:'workspace_unavailable'});
+ assert.equal(launches,0);
+ assert.deepEqual(await h.controller.openEditor(h.event,input),{status:'requested'});
+ assert.equal(launches,1);
+ assert.equal(launchPath,h.context.repository_path);
+ assert.equal(h.bodies.length,0);
+ assert.equal(h.children.length,0);
+});
+test('Cursor editor rejects a rebinding during native discovery',async t=>{
+ let launches=0;
+ const h=harness(t,{cursorEditor:async(_directory,authorize)=>{
+  h.context.binding_sha256='9'.repeat(64);
+  if(!await authorize())return {status:'failed',code:'access_changed'};
+  launches++;return {status:'requested'};
+ }});
+ const input={project_id:request.project_id,user_id:request.user_id,tenant_id:request.tenant_id,locale:request.locale,expected_binding_sha256:h.context.binding_sha256};
+ assert.deepEqual(await h.controller.openEditor(h.event,input),{status:'failed',code:'access_changed'});
+ assert.equal(launches,0);
+ assert.equal(h.calls.filter(({url})=>url.endsWith('/desktop-runners/context')).length,2);
+});
 test('missing explicit project binding yields needs_workspace without issuance',async t=>{const h=harness(t);h.setMissing(true);assert.equal((await h.controller.manage(h.event,request)).connection.phase,'needs_workspace');assert.equal(h.bodies.length,0);assert.equal(h.children.length,0);});
 test('Git prerequisite failures remain unavailable without issuing or spawning a worker',async t=>{
  const h=harness(t),original=h.contents.session.fetch;let code;
