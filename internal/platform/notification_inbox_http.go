@@ -24,28 +24,36 @@ func (s *Server) notificationInboxHTTP(w http.ResponseWriter, r *http.Request, a
 		bad()
 		return true
 	}
-	if r.Method == http.MethodGet && len(parts) == 1 {
+	organization := len(parts) == 2 && parts[1] == "organization"
+	if organization && (scope != "" || actor.kind != actorBrowser) {
+		writeError(w, forbidden())
+		return true
+	}
+	if r.Method == http.MethodGet && (len(parts) == 1 || organization) {
 		values, err := url.ParseQuery(r.URL.RawQuery)
 		if err != nil || len(r.URL.RawQuery) > 8192 {
 			bad()
 			return true
 		}
 		for key, entries := range values {
-			if len(entries) != 1 || (key != "project_id" && key != "filter" && key != "limit" && key != "cursor") || entries[0] == "" {
+			known := key == "filter" || key == "limit" || key == "cursor" || !organization && key == "project_id"
+			if len(entries) != 1 || !known || entries[0] == "" {
 				bad()
 				return true
 			}
 		}
 		project, filter, cursor := values.Get("project_id"), values.Get("filter"), values.Get("cursor")
+		if !organization {
+			if !handoffID(project, false) {
+				bad()
+				return true
+			}
+			if scope == "api" && project != boundProject {
+				writeError(w, forbidden())
+				return true
+			}
+		}
 		limit := 20
-		if !handoffID(project, false) {
-			bad()
-			return true
-		}
-		if scope == "api" && project != boundProject {
-			writeError(w, forbidden())
-			return true
-		}
 		if values.Has("limit") {
 			raw := values.Get("limit")
 			limit, err = strconv.Atoi(raw)
@@ -54,8 +62,13 @@ func (s *Server) notificationInboxHTTP(w http.ResponseWriter, r *http.Request, a
 				return true
 			}
 		}
-		out, err := s.Service.NotificationInbox(r.Context(), actor, project, filter, limit, cursor)
-		respond(w, http.StatusOK, out, err)
+		if organization {
+			out, err := s.Service.NotificationOrganizationInbox(r.Context(), actor, filter, limit, cursor)
+			respond(w, http.StatusOK, out, err)
+		} else {
+			out, err := s.Service.NotificationInbox(r.Context(), actor, project, filter, limit, cursor)
+			respond(w, http.StatusOK, out, err)
+		}
 		return true
 	}
 	if r.Method == http.MethodPost && len(parts) == 3 && parts[2] == "commands" && handoffID(parts[1], false) {
@@ -88,7 +101,7 @@ func (s *Server) notificationInboxHTTP(w http.ResponseWriter, r *http.Request, a
 		respond(w, http.StatusOK, out, err)
 		return true
 	}
-	if len(parts) == 1 || len(parts) == 3 && parts[2] == "commands" {
+	if organization || len(parts) == 1 || len(parts) == 3 && parts[2] == "commands" {
 		allow := http.MethodGet
 		if len(parts) == 3 {
 			allow = http.MethodPost

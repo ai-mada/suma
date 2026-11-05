@@ -5,11 +5,17 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {NotificationInbox,type NotificationInboxProps} from './NotificationInbox';
 import {ApiViewProvider} from './api-context';
 import {setLocale} from './i18n';
-import {notificationInboxScope} from './notification-inbox-model';
+import {notificationInboxScope,notificationOrganizationInboxScope} from './notification-inbox-model';
 import type {Session} from './api';
 
 const item=(patch:Record<string,unknown>={})=>({id:'notice-a',version:1,sequence:'9007199254740993',kind:'task_assigned',task_id:'task-a',source_task_version:2,source_resource_id:'human-a',created_at:'2026-10-29T02:00:00Z',read:false,archived:false,read_at:'',archived_at:'',source_available:true,assignment_current:true,current_task:{id:'task-a',version:4,title:'Private assigned task',status:'draft'},...patch});
 const page=(patch:Record<string,unknown>={})=>({project_id:'project-a',user_id:'user-a',limit:20,items:[item()],total:1,counts:{inbox:1,unread:1,archived:0},next_cursor:'',as_of:'2026-10-29T03:00:00Z',...patch});
+const orgRow=(project_id:string,project_title:string,notification=item())=>({project_id,project_title,notification});
+const orgPage=(items:ReturnType<typeof orgRow>[],patch:Record<string,unknown>={})=>({
+ organization_id:'org-a',user_id:'user-a',limit:20,items,total:items.length,
+ counts:{inbox:items.length,unread:items.filter(row=>!row.notification.read).length,archived:0},
+ next_cursor:'',as_of:'2026-10-29T03:00:00Z',scope_revision:'a'.repeat(64),...patch,
+});
 let host:HTMLDivElement,root:Root,props:NotificationInboxProps,records:ReturnType<typeof item>[],reads:{path:string;signal?:AbortSignal|null;headers:Headers}[],writes:{path:string;body:Record<string,any>;headers:Headers}[];
 beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);await setLocale('en-US',{persist:false});sessionStorage.clear();host=document.createElement('div');document.body.append(host);root=createRoot(host);reads=[];writes=[];records=[item()];props={project:'project-a',userID:'user-a',organizationID:'org-a',filter:'inbox',refresh:0,onFilter:vi.fn(),onTask:vi.fn()};});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();vi.restoreAllMocks();await setLocale('zh-CN',{persist:false});});
@@ -145,4 +151,91 @@ it('clears inbox private rows and retires an in-flight page when current prefere
  await act(async()=>finishPage(Response.json(page({items:[item({id:'notice-b',sequence:'9007199254740992',current_task:{id:'task-b',version:1,title:'Late private task',status:'draft'}})],total:2,counts:{inbox:2,unread:2,archived:0},next_cursor:''}))));await settle();
  expect(host.querySelector('[data-notification-id]')).toBeNull();expect(host.textContent).not.toContain('Late private task');
  expect(calls.every(call=>call.method==='GET')).toBe(true);
+});
+
+it('opens the exact organization source in its project and sends explicit lifecycle updates only to that project',async()=>{
+ const onHandoff=vi.fn(),onScopeMode=vi.fn();
+ records=[item({kind:'task_handoff_requested',assignment_current:false,handoff_id:'handoff-b'})];
+ transport((path,init)=>!init?.body&&path.startsWith('/notification-inbox/organization')
+  ?Response.json(orgPage([orgRow('project-b','Second project',records[0])])):undefined);
+ await render({scopeMode:'organization',onScopeMode,onHandoff});
+ expect(reads[0].path).toBe('/notification-inbox/organization?filter=inbox&limit=20');
+ expect(reads[0].headers.get('X-Suma-Expected-Organization')).toBe('org-a');
+ expect(host.querySelector('.notification-inbox-project')?.textContent).toBe('Project: Second project');
+ expect(host.querySelector('[data-notification-preferences-toggle]')).toBeNull();
+ const scope=host.querySelector<HTMLSelectElement>('[data-notification-scope-mode]')!;
+ expect(scope.value).toBe('organization');
+ await act(async()=>{scope.value='project';scope.dispatchEvent(new Event('change',{bubbles:true}));});
+ expect(onScopeMode).toHaveBeenCalledWith('project');
+ await click('.notification-inbox-source');
+ expect(onHandoff).toHaveBeenCalledExactlyOnceWith('task-a','handoff-b','project-b');
+ expect(writes).toHaveLength(0);
+ await click('[data-notification-action=read]');
+ expect(writes[0].path).toBe('/notification-inbox/notice-a/commands');
+ expect(writes[0].body).toMatchObject({project_id:'project-b',expected_version:1,action:'read'});
+ expect(writes[0].headers.get('X-Suma-Expected-User')).toBe('user-a');
+ expect(writes[0].headers.get('X-Suma-Expected-Organization')).toBe('org-a');
+ expect(host.querySelector('[data-notification-action=unread]')).not.toBeNull();
+});
+
+it('clears organization rows and totals after a visible-project cursor conflict and refreshes without the old cursor',async()=>{
+ const revoked=orgRow('project-b','Private project label');
+ const current=orgRow('project-a','Current project',item({id:'notice-current',current_task:{id:'task-a',version:1,title:'Current visible source',status:'todo'}}));
+ let accessChanged=false;
+ transport(path=>{
+  if(new URLSearchParams(path.split('?')[1]).has('cursor')){
+   accessChanged=true;return Response.json({error:{code:'version_conflict',message:'Current project scope changed'}},{status:409});
+  }
+  return Response.json(accessChanged?orgPage([current],{scope_revision:'b'.repeat(64)}):orgPage([revoked],{total:2,counts:{inbox:2,unread:2,archived:0},next_cursor:'first-access'}));
+ });
+ await render({scopeMode:'organization'});
+ expect(host.textContent).toContain('Private project label');
+ await click('[data-notification-more]');
+ expect(host.querySelector('[data-notification-id]')).toBeNull();
+ expect(host.textContent).not.toContain('Private project label');
+ expect(host.querySelector('[data-notification-filter=inbox] .notification-inbox-count')?.textContent).toBe('—');
+ expect(host.textContent).toContain('Your project access changed');
+ await click('[data-notification-refresh]');
+ expect(reads.at(-1)?.path).not.toContain('cursor=');
+ expect(host.textContent).toContain('Current visible source');
+ expect(host.textContent).not.toContain('Private assigned task');
+});
+
+it('retains an unknown organization command after the source is revoked while reopening current rows and allowing navigation',async()=>{
+ const revoked=orgRow('project-b','Private project label');
+ const current=orgRow('project-a','Current project',item({id:'notice-current',current_task:{id:'task-a',version:1,title:'Current visible source',status:'todo'}}));
+ let revokedAccess=false;
+ transport((_path,init)=>{
+  if(init?.body){
+   if(!revokedAccess)throw new TypeError('Receipt lost');
+   return Response.json({error:{code:'forbidden',message:'Source project revoked'}},{status:403});
+  }
+  return Response.json(revokedAccess?orgPage([current],{scope_revision:'b'.repeat(64)}):orgPage([revoked]));
+ });
+ await render({scopeMode:'organization',onScopeMode:vi.fn()});
+ await click('[data-notification-action=archive]');
+ const key='suma-write-recovery-v1:'+notificationOrganizationInboxScope('user-a','org-a');
+ expect(sessionStorage.getItem(key)).toContain(writes[0].body.idempotency_key);
+ expect(sessionStorage.getItem('suma-write-recovery-v1:'+notificationInboxScope('user-a','org-a','project-b'))).toBeNull();
+ revokedAccess=true;
+ await click('[data-notification-recover]');
+ expect(writes[1].body).toEqual(writes[0].body);
+ expect(host.textContent).toContain('Current visible source');
+ expect(host.textContent).not.toContain('Private project label');
+ expect(host.textContent).toContain('The source project refused this update');
+ expect(host.querySelector<HTMLSelectElement>('[data-notification-scope-mode]')?.disabled).toBe(false);
+ expect(host.querySelector<HTMLButtonElement>('[data-notification-action=archive]')?.disabled).toBe(true);
+ expect(window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))).toBe(true);
+ expect(sessionStorage.getItem(key)).toContain(writes[0].body.idempotency_key);
+});
+
+it('reads an empty organization inbox without a selected project and coalesces foreground rechecks',async()=>{
+ transport(()=>Response.json(orgPage([])));
+ await render({scopeMode:'organization',project:''});
+ expect(host.querySelector('[data-notification-filter=inbox] .notification-inbox-count')?.textContent).toBe('0');
+ expect(reads).toHaveLength(1);
+ await act(async()=>{window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('online'));});
+ await settle();
+ expect(reads).toHaveLength(2);
+ expect(reads.every(read=>read.path==='/notification-inbox/organization?filter=inbox&limit=20')).toBe(true);
 });

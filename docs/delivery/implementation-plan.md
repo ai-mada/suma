@@ -122,6 +122,8 @@ T-MULTICA-136优先推进Multica式个人协作和统一命令导航，生产读
 
   T-INBOX-138已完成任务分配来源的规范人员投影与私有生命周期，见[限定验收](../quality/notification-inbox-verification.md)。复合待办保持未关闭：其他正式接收路由、偏好和通道outbox仍须交付。
 
+  T-MULTICA-ORGANIZATION-INBOX 增加组织内当前可读项目的个人收件汇总、准确来源跳转和权限变化后的分页恢复。个人命令仍在原项目核对。 [合同](../../contracts/notification-inbox.md#组织内跨项目收件箱) · [阶段验证](../quality/organization-inbox-verification.md)
+
 T-WORKLOG-135补齐原P3人员明确登记、更正／作废历史、跨项目账号日期整数上限和中英工作台／CLI；[合同](../../contracts/worklogs.md)、[架构](../architecture/worklogs.md)与[证据](../quality/worklogs-verification.md)限定实现范围。HR／审批、自动计时、组织计划容量及全平台生产验收继续原范围，58／34／92总账不变。
 
 更新：2026-10-30。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。

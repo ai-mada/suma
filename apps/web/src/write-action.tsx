@@ -24,6 +24,8 @@ export type WriteActionOptions = {
     storage?: StorageLike;
     validateRequest?: (request: WriteRecoveryRequest) => boolean;
     validateResponse?: (value: unknown, request: WriteRecoveryRequest) => boolean | Promise<boolean>;
+    /** Allow leaving after a send settles when the view can recover its scoped durable request. */
+    allowLeaveWithPending?: boolean;
     /** Route-specific conflicts that prove the exact restored request did not commit. */
     definitiveRefusalOnRestore?: (error: ApiError, request: WriteRecoveryRequest) => boolean;
 };
@@ -100,7 +102,7 @@ export function useWriteAction(options: WriteActionOptions = {}) {
         holder.current = loadRecovery(options, api, instance.current);
     const [busy, setBusy] = useState(false), [failure, setError] = useState<unknown>(''), [conflict, setConflict] = useState(false), [, render] = useState(0);
     const state = holder.current, unknown = !!state.pending?.uncertain;
-    useLeaveGuard(busy || !!state.pending, setError);
+    useLeaveGuard(busy || (!!state.pending && !(options.allowLeaveWithPending && state.key && state.storage)), setError);
     function clearStored(current: RecoveryState) { if (current.key) {
         if (!current.storage)
             throw recoveryError('storage_unavailable');

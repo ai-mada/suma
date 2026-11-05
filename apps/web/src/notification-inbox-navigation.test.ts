@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {locateTaskHandoff,parseWorkbenchRoute,resetInboxScope,taskHandoffID} from './navigation';
+import {locateNotificationSource,locateTaskHandoff,parseWorkbenchRoute,resetInboxScope,taskHandoffID} from './navigation';
 import {switchedRoute} from './governance-model';
 import {palettePages} from './command-palette-model';
 import type {Session} from './api';
@@ -9,6 +9,28 @@ describe('current notification reading route',()=>{
   for(const filter of ['inbox','unread','archived']){const route=parseWorkbenchRoute('?project=p&view=development&sub=inbox&inbox_filter='+filter);expect(route.inbox_filter).toBe(filter);expect(route.inbox_invalid).toBeUndefined();}
   for(const fields of ['inbox_filter=all','inbox_filter=','inbox_filter=unread&inbox_filter=inbox','inbox_invalid=1'])expect(parseWorkbenchRoute('?project=p&view=development&sub=inbox&'+fields).inbox_invalid).toBe('1');
   const outside=parseWorkbenchRoute('?project=p&view=development&sub=tasks&inbox_filter=unread');expect(outside.inbox_filter).toBeUndefined();
+ });
+ it('opens only an explicit organization scope and rejects duplicate or unknown scope',()=>{
+  const prefix='?project=p&view=development&sub=inbox&';
+  expect(parseWorkbenchRoute(prefix+'inbox_scope=organization&inbox_filter=archived')).toMatchObject({inbox_scope:'organization',inbox_filter:'archived'});
+  expect(parseWorkbenchRoute(prefix+'inbox_scope=project').inbox_scope).toBeUndefined();
+  for(const query of ['inbox_scope=','inbox_scope=tenant','inbox_scope=organization&inbox_scope=project'])expect(parseWorkbenchRoute(prefix+query).inbox_invalid).toBe('1');
+  expect(parseWorkbenchRoute('?view=development&sub=tasks&inbox_scope=organization').inbox_scope).toBeUndefined();
+ });
+ it('moves to the exact project and source together without overriding a leave guard',()=>{
+  const start=parseWorkbenchRoute('?project=alpha&view=development&sub=inbox&inbox_scope=organization&inbox_filter=unread');
+  let route=start;
+  const update=(change:(value:typeof route)=>typeof route)=>{route=change(route);};
+  expect(locateNotificationSource('beta','task-b',{kind:'message',id:'message-b'},()=>false,update)).toBe(false);
+  expect(locateNotificationSource('../beta','task-b',{kind:'task'},()=>true,update)).toBe(false);
+  expect(route).toBe(start);
+  expect(locateNotificationSource('beta','task-b',{kind:'message',id:'message-b'},()=>true,update)).toBe(true);
+  expect(route).toMatchObject({project:'beta',sub:'ide',panel:'workbench-task:task-b',conversation_message:'message-b',run:'',attempt:''});
+  expect(route.inbox_scope).toBeUndefined();
+  expect(route.inbox_filter).toBeUndefined();
+  route=start;
+  expect(locateNotificationSource('beta','task-b',{kind:'review',id:'review-b'},()=>true,update)).toBe(true);
+  expect(route).toMatchObject({project:'beta',sub:'tasks',record:'task-b',panel:'task-review:review-b'});
  });
  it('clears the private filter on a project fallback and keeps an accessible same-scope saved route',()=>{
   const current=parseWorkbenchRoute('?project=old&view=development&sub=inbox&inbox_filter=unread&inbox_invalid=1');

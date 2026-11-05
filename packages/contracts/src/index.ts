@@ -4083,6 +4083,22 @@ export interface NotificationInboxTask {
   title: string;
   status: string;
 }
+export interface NotificationOrganizationInboxItem {
+  project_id: string;
+  project_title: string;
+  notification: NotificationInboxItem;
+}
+export interface NotificationOrganizationInboxPage {
+  organization_id: string;
+  user_id: string;
+  limit: number;
+  items: (NotificationOrganizationInboxItem)[];
+  total: number;
+  counts: NotificationInboxCounts;
+  next_cursor: string;
+  as_of: string;
+  scope_revision: string;
+}
 export interface OctopExecutionCapability {
   harness_version: string;
   acp_sdk_version: string;

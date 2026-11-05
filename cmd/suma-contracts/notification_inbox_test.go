@@ -40,3 +40,37 @@ func TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned(t *testing
 		}
 	}
 }
+
+func TestNotificationOrganizationInboxContractUsesCurrentBrowserScope(t *testing.T) {
+	api, _ := generate()
+	path := mapAt(api, "paths", "/notification-inbox/organization")
+	op := mapAt(path, "get")
+	if len(path) != 1 || op["x-read-only"] != true || op["requestBody"] != nil {
+		t.Fatal("organization inbox must expose only a read")
+	}
+	security := op["security"].([]any)
+	if len(security) != 1 || security[0].(map[string]any)["cookieAuth"] == nil {
+		t.Fatal("organization inbox must use the current browser session")
+	}
+	queries := map[string]bool{}
+	for _, value := range op["parameters"].([]any) {
+		param := value.(map[string]any)
+		if param["in"] != "query" {
+			continue
+		}
+		name, _ := param["name"].(string)
+		if queries[name] || name != "filter" && name != "limit" && name != "cursor" {
+			t.Fatal("current organization and recipient are server owned", param)
+		}
+		queries[name] = true
+	}
+	if len(queries) != 3 {
+		t.Fatalf("unexpected organization query parameters: %+v", queries)
+	}
+	page := mapAt(api, "components", "schemas", "NotificationOrganizationInboxPage", "properties")
+	item := mapAt(api, "components", "schemas", "NotificationOrganizationInboxItem", "properties")
+	if page["organization_id"] == nil || page["scope_revision"] == nil || page["project_id"] != nil ||
+		item["project_id"] == nil || item["notification"] == nil {
+		t.Fatal("scope and authorized source coordinates must remain distinct")
+	}
+}

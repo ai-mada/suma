@@ -1,6 +1,6 @@
 import {expect,it} from 'vitest';
-import {appendNotificationInboxPage,notificationInboxCommandPath,notificationInboxPath,notificationInboxReceiptIsStale,validNotificationInboxItem,validNotificationInboxPage,validNotificationInboxReceipt,validNotificationInboxRecovery,validNotificationInboxSequence} from './notification-inbox-model';
-import type {NotificationInboxCommandReceipt,NotificationInboxPage} from '../../../packages/contracts/src';
+import {appendNotificationInboxPage,appendNotificationOrganizationInboxPage,notificationInboxCommandPath,notificationInboxPath,notificationInboxReceiptIsStale,validNotificationInboxItem,validNotificationInboxPage,validNotificationInboxReceipt,validNotificationInboxRecovery,validNotificationInboxSequence,validNotificationOrganizationInboxPage} from './notification-inbox-model';
+import type {NotificationInboxCommandReceipt,NotificationInboxPage,NotificationOrganizationInboxPage} from '../../../packages/contracts/src';
 
 const row=(patch:Record<string,unknown>={})=>({id:'notice-a',version:1,sequence:'9007199254740993',kind:'task_assigned',task_id:'task-a',source_task_version:2,source_resource_id:'human-a',created_at:'2026-10-29T02:00:00Z',read:false,archived:false,read_at:'',archived_at:'',source_available:true,assignment_current:true,current_task:{id:'task-a',version:4,title:'Current source title',status:'draft'},...patch});
 const page=(patch:Record<string,unknown>={})=>({project_id:'project-a',user_id:'user-a',limit:20,items:[row()],total:1,counts:{inbox:1,unread:1,archived:0},next_cursor:'',as_of:'2026-10-29T03:00:00Z',...patch});
@@ -77,4 +77,22 @@ it('acknowledges only the original lifecycle receipt and never regresses a newer
  expect(validNotificationInboxReceipt(receipt(),request())).toBe(true);expect(validNotificationInboxReceipt(receipt({version:1}),request())).toBe(true);
  for(const patch of [{idempotency_key:'other-operation'},{notification_id:'other-notice'},{action:'archive'},{read:false,read_at:''},{version:4},{current_task:{title:'Forbidden source snapshot'}}])expect(validNotificationInboxReceipt(receipt(patch),request())).toBe(false);
  expect(notificationInboxReceiptIsStale(receipt() as NotificationInboxCommandReceipt,page({items:[row({version:5})]}) as NotificationInboxPage)).toBe(true);expect(notificationInboxReceiptIsStale(receipt() as NotificationInboxCommandReceipt,page() as NotificationInboxPage)).toBe(false);
+});
+
+it('validates the organization scope, UTC nanosecond ordering and cursor continuation across different projects',()=>{
+ const before=row({id:'notice-z',created_at:'2026-10-29T02:00:00.000000002Z'});
+ const tie=row({id:'notice-a',created_at:'2026-10-29T02:00:00.000000002Z'});
+ const lower=row({id:'notice-y',created_at:'2026-10-29T02:00:00.000000001Z'});
+ const whole=row({id:'notice-x',created_at:'2026-10-29T02:00:00Z'});
+ const notices=[before,tie,lower,whole].map((notification,index)=>({project_id:index%2?'project-a':'project-b',project_title:'Current project',notification}));
+ const value={organization_id:'org-a',user_id:'user-a',limit:20,items:notices,total:4,counts:{inbox:4,unread:4,archived:0},next_cursor:'',as_of:'2026-10-29T03:00:00Z',scope_revision:'a'.repeat(64)};
+ expect(validNotificationOrganizationInboxPage(value,'org-a','user-a','inbox')).toBe(true);
+ expect(validNotificationOrganizationInboxPage({...value,items:[notices[1],notices[0],...notices.slice(2)]},'org-a','user-a','inbox')).toBe(false);
+ expect(validNotificationOrganizationInboxPage({...value,items:[...notices.slice(0,2),notices[3],notices[2]]},'org-a','user-a','inbox')).toBe(false);
+ expect(validNotificationOrganizationInboxPage({...value,organization_id:'other-org'},'org-a','user-a','inbox')).toBe(false);
+ expect(validNotificationOrganizationInboxPage({...value,scope_revision:'unexpected'},'org-a','user-a','inbox')).toBe(false);
+ const first={...value,items:notices.slice(0,2),next_cursor:'next'} as NotificationOrganizationInboxPage;
+ const next={...value,items:notices.slice(2)} as NotificationOrganizationInboxPage;
+ expect(appendNotificationOrganizationInboxPage(first,next)?.items).toEqual(notices);
+ expect(appendNotificationOrganizationInboxPage(first,{...next,scope_revision:'b'.repeat(64)})).toBeUndefined();
 });

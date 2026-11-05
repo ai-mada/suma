@@ -21854,6 +21854,90 @@
         ],
         "type": "object"
       },
+      "NotificationOrganizationInboxItem": {
+        "additionalProperties": false,
+        "properties": {
+          "notification": {
+            "$ref": "#/components/schemas/NotificationInboxItem",
+            "readOnly": true
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "project_title",
+          "notification"
+        ],
+        "type": "object"
+      },
+      "NotificationOrganizationInboxPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/NotificationInboxCounts",
+            "readOnly": true
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOrganizationInboxItem"
+            },
+            "maxItems": 50,
+            "readOnly": true,
+            "type": "array"
+          },
+          "limit": {
+            "maximum": 50,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "organization_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "scope_revision": {
+            "description": "Opaque equality marker for the current readable project set. Do not append pages from different markers.",
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "user_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization_id",
+          "user_id",
+          "limit",
+          "items",
+          "total",
+          "counts",
+          "next_cursor",
+          "as_of",
+          "scope_revision"
+        ],
+        "type": "object"
+      },
       "OctopExecutionCapability": {
         "additionalProperties": false,
         "properties": {
@@ -84519,6 +84603,191 @@
         "x-disallowed-token-scopes": [
           "runner",
           "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/notification-inbox/organization": {
+      "get": {
+        "description": "Current browser recipient across readable projects of the active organization. Counts and hydrated sources are restricted to current authority. A change to the visible project set invalidates earlier continuation cursors.",
+        "operationId": "get_notification-inbox_organization",
+        "parameters": [
+          {
+            "description": "Inbox, unread or archived in the current organization.",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "default": "inbox",
+              "enum": [
+                "inbox",
+                "unread",
+                "archived"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Bounded page size; counts cover all currently readable projects.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque keyset cursor bound to current identity, organization, visible projects, filter and limit.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 4096,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationOrganizationInboxPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
         ],
         "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"

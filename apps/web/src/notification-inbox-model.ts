@@ -1,9 +1,14 @@
-import type {NotificationInboxCommandReceipt,NotificationInboxItem,NotificationInboxPage} from '../../../packages/contracts/src';
+import type {
+ NotificationInboxCommandReceipt,NotificationInboxItem,NotificationInboxPage,
+ NotificationOrganizationInboxItem,NotificationOrganizationInboxPage,
+} from '../../../packages/contracts/src';
 
 export const notificationInboxFilters=['inbox','unread','archived'] as const;
 export type NotificationInboxFilter=typeof notificationInboxFilters[number];
 export const notificationInboxActions=['read','unread','archive','restore'] as const;
 export type NotificationInboxAction=typeof notificationInboxActions[number];
+export type NotificationInboxScopeMode='project'|'organization';
+export type InboxReadPage=NotificationInboxPage|NotificationOrganizationInboxPage;
 export const notificationInboxLimit=20;
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const id=(value:unknown):value is string=>typeof value==='string'&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
@@ -17,10 +22,16 @@ const operationKey=(value:unknown):value is string=>typeof value==='string'&&!!v
 export function validNotificationInboxFilter(value:unknown):value is NotificationInboxFilter{return typeof value==='string'&&(notificationInboxFilters as readonly string[]).includes(value);}
 export function validNotificationInboxSequence(value:unknown):value is string{return typeof value==='string'&&/^[1-9]\d{0,18}$/.test(value)&&BigInt(value)<=9223372036854775807n;}
 export function notificationInboxScope(userID:string,organizationID:string,project:string){return 'notification-inbox:'+JSON.stringify([userID,organizationID,project]);}
+export function notificationOrganizationInboxScope(userID:string,organizationID:string){return 'notification-inbox:organization:'+JSON.stringify([userID,organizationID]);}
 export function notificationInboxPath(project:string,filter:NotificationInboxFilter,cursor=''){
  const params=new URLSearchParams({project_id:project,filter,limit:String(notificationInboxLimit)});
  if(cursor)params.set('cursor',cursor);
  return '/notification-inbox?'+params.toString();
+}
+export function notificationOrganizationInboxPath(filter:NotificationInboxFilter,cursor=''){
+ const params=new URLSearchParams({filter,limit:String(notificationInboxLimit)});
+ if(cursor)params.set('cursor',cursor);
+ return '/notification-inbox/organization?'+params.toString();
 }
 export function notificationInboxCommandPath(notificationID:string){return '/notification-inbox/'+encodeURIComponent(notificationID)+'/commands';}
 
@@ -38,12 +49,34 @@ export function validNotificationInboxItem(value:unknown):value is NotificationI
  return object(task)&&task.id===value.task_id&&version(task.version)&&typeof task.title==='string'&&typeof task.status==='string';
 }
 export function validNotificationInboxPage(value:unknown,project:string,userID:string,filter:NotificationInboxFilter):value is NotificationInboxPage{
- if(!object(value)||value.project_id!==project||value.user_id!==userID||value.limit!==notificationInboxLimit||!Array.isArray(value.items)||value.items.length>notificationInboxLimit||!count(value.total)||value.total<value.items.length||!object(value.counts)||!exact(value.counts,['inbox','unread','archived'])||!count(value.counts.inbox)||!count(value.counts.unread)||!count(value.counts.archived)||value.counts.unread>value.counts.inbox||value.total!==value.counts[filter]||typeof value.next_cursor!=='string'||value.next_cursor.length>4096||!!value.next_cursor&&!value.items.length||!instant(value.as_of))return false;
+ if(!validPageFacts(value,userID,filter)||value.project_id!==project)return false;
  const ids=new Set<string>();let previous:bigint|undefined;
  for(const row of value.items){
-  if(!validNotificationInboxItem(row)||ids.has(row.id)||filter==='archived'&&!row.archived||filter!=='archived'&&row.archived||filter==='unread'&&row.read)return false;
+  if(!validNotificationInboxItem(row)||ids.has(row.id)||!inFilter(row,filter))return false;
   const sequence=BigInt(row.sequence);if(previous!==undefined&&sequence>=previous)return false;
   previous=sequence;ids.add(row.id);
+ }
+ return true;
+}
+function validPageFacts(value:unknown,userID:string,filter:NotificationInboxFilter):value is Record<string,unknown>&{items:unknown[]}{
+ return object(value)&&value.user_id===userID&&value.limit===notificationInboxLimit&&Array.isArray(value.items)&&value.items.length<=notificationInboxLimit&&count(value.total)&&value.total>=value.items.length&&object(value.counts)&&exact(value.counts,['inbox','unread','archived'])&&count(value.counts.inbox)&&count(value.counts.unread)&&count(value.counts.archived)&&value.counts.unread<=value.counts.inbox&&value.total===value.counts[filter]&&typeof value.next_cursor==='string'&&value.next_cursor.length<=4096&&(!value.next_cursor||!!value.items.length)&&instant(value.as_of);
+}
+function inFilter(row:NotificationInboxItem,filter:NotificationInboxFilter){return row.archived===(filter==='archived')&&(filter!=='unread'||!row.read);}
+function orderedInstant(value:string){
+ // Normalize optional RFC3339Nano fractions before comparing. Date.parse
+ // alone would collapse two events from the same millisecond.
+ return value.slice(0,19)+value.slice(20,-1).padEnd(9,'0');
+}
+function organizationOrderKey(row:NotificationInboxItem){return orderedInstant(row.created_at)+' '+row.id;}
+export function validNotificationOrganizationInboxPage(value:unknown,organizationID:string,userID:string,filter:NotificationInboxFilter):value is NotificationOrganizationInboxPage{
+ if(!validPageFacts(value,userID,filter)||!exact(value,['organization_id','user_id','limit','items','total','counts','next_cursor','as_of','scope_revision'])||value.organization_id!==organizationID||typeof value.scope_revision!=='string'||!/^[a-f0-9]{64}$/.test(value.scope_revision))return false;
+ const ids=new Set<string>();
+ let previous:string|undefined;
+ for(const row of value.items){
+  if(!object(row)||!exact(row,['project_id','project_title','notification'])||!id(row.project_id)||typeof row.project_title!=='string'||!validNotificationInboxItem(row.notification)||ids.has(row.notification.id)||!inFilter(row.notification,filter))return false;
+  const current=organizationOrderKey(row.notification);
+  if(previous!==undefined&&current>=previous)return false;
+  previous=current;ids.add(row.notification.id);
  }
  return true;
 }
@@ -54,12 +87,23 @@ export function appendNotificationInboxPage(previous:NotificationInboxPage,next:
  const ids=new Set(previous.items.map(row=>row.id));if(next.items.some(row=>ids.has(row.id)))return;
  const items=[...previous.items,...next.items];return items.length<=next.total?{...next,items}:undefined;
 }
+export function appendNotificationOrganizationInboxPage(previous:NotificationOrganizationInboxPage,next:NotificationOrganizationInboxPage):NotificationOrganizationInboxPage|undefined{
+ if(previous.organization_id!==next.organization_id||previous.user_id!==next.user_id||previous.scope_revision!==next.scope_revision)return;
+ const last=previous.items.at(-1),first=next.items[0];
+ if(last&&first&&organizationOrderKey(first.notification)>=organizationOrderKey(last.notification))return;
+ const ids=new Set(previous.items.map(row=>row.notification.id));
+ if(next.items.some(row=>ids.has(row.notification.id)))return;
+ const items=[...previous.items,...next.items];return items.length<=next.total?{...next,items}:undefined;
+}
+export function inboxRows(page:InboxReadPage):NotificationOrganizationInboxItem[]{
+ return 'organization_id' in page?page.items:page.items.map(notification=>({notification,project_id:page.project_id,project_title:''}));
+}
 
 type RecoveryRequest={path:string;method:string;idempotency_key:string;body:Record<string,unknown>};
 function requestID(request:RecoveryRequest){const match=request.path.match(/^\/notification-inbox\/([^/]+)\/commands$/);return match&&id(match[1])?match[1]:undefined;}
-export function validNotificationInboxRecovery(request:RecoveryRequest,project:string){
+export function validNotificationInboxRecovery(request:RecoveryRequest,project?:string){
  const body=request.body;
- return request.method==='POST'&&!!requestID(request)&&object(body)&&exact(body,['project_id','expected_version','action','idempotency_key'])&&body.project_id===project&&version(body.expected_version)&&body.expected_version<2147483647&&typeof body.action==='string'&&(notificationInboxActions as readonly string[]).includes(body.action)&&operationKey(request.idempotency_key)&&body.idempotency_key===request.idempotency_key;
+ return request.method==='POST'&&!!requestID(request)&&object(body)&&exact(body,['project_id','expected_version','action','idempotency_key'])&&id(body.project_id)&&(project===undefined||body.project_id===project)&&version(body.expected_version)&&body.expected_version<2147483647&&typeof body.action==='string'&&(notificationInboxActions as readonly string[]).includes(body.action)&&operationKey(request.idempotency_key)&&body.idempotency_key===request.idempotency_key;
 }
 export function validNotificationInboxReceipt(value:unknown,request:RecoveryRequest):value is NotificationInboxCommandReceipt{
  if(!object(value)||!exact(value,['idempotency_key','notification_id','version','action','read','archived','read_at','archived_at','updated_at'])||value.idempotency_key!==request.idempotency_key||value.notification_id!==requestID(request)||value.action!==request.body.action||!version(value.version)||typeof request.body.expected_version!=='number'||value.version<request.body.expected_version||value.version>request.body.expected_version+1||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||!instant(value.updated_at))return false;
@@ -67,4 +111,4 @@ export function validNotificationInboxReceipt(value:unknown,request:RecoveryRequ
 }
 /** An original receipt acknowledges that original command, not a newer row.
  * Never replace a later server read or rehydrate a title from a receipt. */
-export function notificationInboxReceiptIsStale(receipt:NotificationInboxCommandReceipt,page:NotificationInboxPage|undefined){return !!page?.items.some(row=>row.id===receipt.notification_id&&row.version>receipt.version);}
+export function notificationInboxReceiptIsStale(receipt:NotificationInboxCommandReceipt,page:InboxReadPage|undefined){return !!page&&inboxRows(page).some(({notification})=>notification.id===receipt.notification_id&&notification.version>receipt.version);}

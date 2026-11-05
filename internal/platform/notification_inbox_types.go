@@ -63,3 +63,23 @@ type NotificationInboxCommandReceipt struct {
 	ArchivedAt     string `json:"archived_at"`
 	UpdatedAt      string `json:"updated_at"`
 }
+
+// NotificationOrganizationInboxItem associates the same private notification
+// projection with the current project needed to open its exact source.
+type NotificationOrganizationInboxItem struct {
+	ProjectID    string                `json:"project_id"`
+	ProjectTitle string                `json:"project_title"`
+	Notification NotificationInboxItem `json:"notification"`
+}
+
+type NotificationOrganizationInboxPage struct {
+	OrganizationID string                              `json:"organization_id"`
+	UserID         string                              `json:"user_id"`
+	Limit          int                                 `json:"limit"`
+	Items          []NotificationOrganizationInboxItem `json:"items"`
+	Total          int                                 `json:"total"`
+	Counts         NotificationInboxCounts             `json:"counts"`
+	NextCursor     string                              `json:"next_cursor"`
+	AsOf           string                              `json:"as_of"`
+	ScopeRevision  string                              `json:"scope_revision"`
+}

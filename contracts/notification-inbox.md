@@ -44,4 +44,12 @@ read／unread只变已读状态，archive／restore只变归档状态；恢复�
 
 身份／组织／项目变化同步清理私有列表与目标；401／403／404范围拒绝清除整个范围。旧身份响应不能覆盖当前页面。读失败可重试；命令结果未知时保留原操作标识和预期版本供明确恢复，阻止导航丢弃未核对命令。中英同一词条、主题和键盘焦点；390px行内操作自然换行，不要求拖拽。
 
-T-INBOX-138原阶段只实现任务分配来源；T-MENTIONS-140增加明确人员提及，T-REVIEW-142增加明确验收责任请求，验证结果分别记录。运行审批、告警、消息通道、邮件／IM可靠投递、偏好降噪与跨项目聚合属于完整后续计划；不把当前读投影称为全部通知或智能预警已完成。
+T-INBOX-138原阶段只实现任务分配来源；T-MENTIONS-140增加明确人员提及，T-REVIEW-142增加明确验收责任请求，验证结果分别记录。运行审批、告警、消息通道、邮件／IM可靠投递和完整偏好降噪继续交付。
+
+## 组织内跨项目收件箱
+
+`GET /api/v1/notification-inbox/organization` 使用当前浏览器账号与活动组织。项目 API、Runner 和 Agent 不具有组织读取范围。查询只接受可选 `filter`、`limit` 和 `cursor`，过滤语义和页大小沿用项目接口。每次响应 `Cache-Control: no-store`。
+
+`NotificationOrganizationInboxPage` 返回 `organization_id,user_id,limit,items,total,counts,next_cursor,as_of,scope_revision`。每行是 `{project_id,project_title,notification}`，内层使用现有 `NotificationInboxItem` 与同一来源核对。计数覆盖当前账号在本组织有读取权的所有项目；无权项目既不参与计数，也不返回项目名称、任务或其他来源。跨项目排序使用不可变的事件时间降序和通知 ID 平序键，项目内序号仍保持原含义。
+
+游标绑定账号、组织、过滤、页大小和可读项目集合。项目资格变化后旧游标返回 409，前端清除已加载的旧范围，重新读取第一页；跨页是活读取。组织列表不开放批量或跨项目写接口。已读、未读、归档与恢复携带该行项目 ID，继续使用原项目命令的当前授权、版本和回执。打开来源只导航。

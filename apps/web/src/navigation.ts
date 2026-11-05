@@ -1,7 +1,7 @@
 import {mondayOf} from './planning-model';
 import {parseAttempt} from './scheduling-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
-export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
+export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_scope?:'organization';inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 /** Formal task sources retain a locator only in one unambiguous task scope.
@@ -18,9 +18,10 @@ export function parseWorkbenchRoute(search:string):WorkbenchRoute{
  const conversationMessage=p.get('conversation_message');
  const messageFields=view==='development'&&p.get('sub')==='ide'&&workbenchTaskID(p.get('panel')||'')&&p.getAll('conversation_message').length===1&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(conversationMessage||'')?{conversation_message:conversationMessage!}:{};
  const inboxScope=view==='development'&&(p.get('sub')||defaultSub[view])==='inbox';
+ const inboxMode=p.get('inbox_scope');
  const inboxValue=p.get('inbox_filter'),inboxValid=inboxValue==='inbox'||inboxValue==='unread'||inboxValue==='archived';
- const inboxInvalid=inboxScope&&(p.get('inbox_invalid')==='1'||p.getAll('inbox_filter').length>1||p.getAll('inbox_invalid').length>1||p.has('inbox_filter')&&!inboxValid);
- const inboxFields=inboxScope?{inbox_filter:inboxValid?inboxValue as 'inbox'|'unread'|'archived':undefined,...(inboxInvalid?{inbox_invalid:'1'}:{})}:{};
+ const inboxInvalid=inboxScope&&(p.get('inbox_invalid')==='1'||p.getAll('inbox_filter').length>1||p.getAll('inbox_invalid').length>1||p.getAll('inbox_scope').length>1||p.has('inbox_scope')&&inboxMode!=='project'&&inboxMode!=='organization'||p.has('inbox_filter')&&!inboxValid);
+ const inboxFields=inboxScope?{inbox_scope:inboxMode==='organization'?'organization' as const:undefined,inbox_filter:inboxValid?inboxValue as 'inbox'|'unread'|'archived':undefined,...(inboxInvalid?{inbox_invalid:'1'}:{})}:{};
 
  const taskScope=view==='development'&&(p.get('sub')||defaultSub[view])==='tasks';
  // Task filters are one literal contract, independent of layout or grouping.
@@ -76,7 +77,7 @@ export function deliveryKnowledgeTaskID(panel:string):string|undefined{
 }
 export function locateDeliveryKnowledge(taskID:string,canNavigate:()=>boolean,setRoute:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
  if(!deliveryKnowledgeTaskID('delivery-knowledge:'+taskID)||!canNavigate())return false;
- setRoute(route=>({...resetTaskCollectionScope(route),view:'knowledge',sub:'project-knowledge',panel:'delivery-knowledge:'+taskID,record:'',run:'',node:'',attempt:'',q:'',status:'all',layout:'list',inbox_filter:undefined,inbox_invalid:undefined,knowledge_kind:undefined,catalog_domain:undefined,catalog_scenario:undefined,catalog_state:undefined,catalog_source:undefined}));
+ setRoute(route=>({...resetTaskCollectionScope(route),view:'knowledge',sub:'project-knowledge',panel:'delivery-knowledge:'+taskID,record:'',run:'',node:'',attempt:'',q:'',status:'all',layout:'list',inbox_scope:undefined,inbox_filter:undefined,inbox_invalid:undefined,knowledge_kind:undefined,catalog_domain:undefined,catalog_scenario:undefined,catalog_state:undefined,catalog_source:undefined}));
  return true;
 }
 
@@ -86,11 +87,11 @@ export function taskReviewRequestID(panel:string):string{const id=panel.startsWi
 export function taskHandoffID(panel:string):string{const id=panel.startsWith('task-handoff:')?panel.slice('task-handoff:'.length):'';return /^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(id)?id:'';}
 export function locateTaskHandoff(task:string,id:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
  if(!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(task)||!taskHandoffID('task-handoff:'+id)||!canLeave())return false;
- update(route=>({...resetTaskCollectionScope(route),view:'development',sub:'tasks',record:task,panel:'task-handoff:'+id,run:'',node:'',attempt:'',q:'',status:'all',layout:'list',conversation_message:undefined,inbox_filter:undefined,inbox_invalid:undefined}));return true;
+ update(route=>({...resetTaskCollectionScope(route),view:'development',sub:'tasks',record:task,panel:'task-handoff:'+id,run:'',node:'',attempt:'',q:'',status:'all',layout:'list',conversation_message:undefined,inbox_scope:undefined,inbox_filter:undefined,inbox_invalid:undefined}));return true;
 }
 export function locateTaskReviewRequest(task:string,id:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
  if(!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(task)||!taskReviewRequestID('task-review:'+id)||!canLeave())return false;
- update(route=>({...resetTaskCollectionScope(route),view:'development',sub:'tasks',record:task,panel:'task-review:'+id,run:'',node:'',attempt:'',q:'',status:'all',layout:'list',inbox_filter:undefined,inbox_invalid:undefined}));return true;
+ update(route=>({...resetTaskCollectionScope(route),view:'development',sub:'tasks',record:task,panel:'task-review:'+id,run:'',node:'',attempt:'',q:'',status:'all',layout:'list',inbox_scope:undefined,inbox_filter:undefined,inbox_invalid:undefined}));return true;
 }
 
 /** A risk locator is one navigation operation. In particular, a rejected
@@ -139,5 +140,24 @@ export function sourceHref(project:string,source:unknown):string|undefined {
  return route?'?'+new URLSearchParams(route):undefined;
 }
 
-/** Notification filters belong to one current human/project reading scope. */
-export function resetInboxScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,inbox_filter:undefined,inbox_invalid:undefined};}
+/** Notification filters belong to one current human and reading scope. */
+export function resetInboxScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,inbox_scope:undefined,inbox_filter:undefined,inbox_invalid:undefined};}
+
+export type NotificationSourceLocation={kind:'task'}|{kind:'message'|'review'|'handoff';id:string};
+
+/** A current authorized inbox row can target another project. Keep the
+ * project and exact task/source locator in one guarded route transition. */
+export function locateNotificationSource(project:string,task:string,source:NotificationSourceLocation,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
+ const validID=(value:string)=>/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
+ if(!validID(project)||!validID(task)||source.kind!=='task'&&!validID(source.id))return false;
+ const scoped:typeof update=change=>update(route=>change({...resetInboxScope(resetTaskCollectionScope(route)),project}));
+ switch(source.kind){
+  case 'message':return locateWorkbenchTask(task,canLeave,scoped,source.id);
+  case 'review':return locateTaskReviewRequest(task,source.id,canLeave,scoped);
+  case 'handoff':return locateTaskHandoff(task,source.id,canLeave,scoped);
+  case 'task':
+   if(!canLeave())return false;
+   scoped(route=>({...route,view:'development',sub:'tasks',record:task,run:'',node:'',attempt:'',panel:'',q:'',status:'all',layout:'list'}));
+   return true;
+ }
+}
