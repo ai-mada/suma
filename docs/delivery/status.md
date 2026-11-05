@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-TASK-PLANNING-STATUS 支持列表和看板批量调整计划状态。逐项核对原运行及验收资格，符合条件时整批更新并可恢复原回执。 [合同](../../contracts/task-planning-status-changes.md) · [验证](../quality/task-planning-status-changes-verification.md)
+
 T-TASK-DISPATCH-ENVELOPE-236 核对派发预览的固定上下文、工具和知识引用。打开历史预览时按当前任务与计划读取，异常读取隐藏启动入口。 [合同](../../contracts/task-dispatch-options.md) · [验证](../quality/task-dispatch-envelope-verification.md)
 
 T-MULTICA-TASK-PRIORITY 支持任务列表和看板批量调整优先级。逐项预览、整批核对版本并保留既有验收证据，支持刷新后恢复原回执。 [合同](../../contracts/task-priority-changes.md) · [验证](../quality/task-priority-changes-verification.md)

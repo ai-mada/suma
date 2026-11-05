@@ -365,6 +365,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		s.taskPriorityChangesHTTP(w, r, actor)
 		return
 	}
+	if r.URL.Path == taskPlanningStatusChangeAPIPath || r.URL.Path == taskPlanningStatusPreviewAPIPath {
+		s.taskPlanningStatusChangesHTTP(w, r, actor)
+		return
+	}
 	if s.desktopRunnerHTTP(w, r, actor, scope, boundProject, path) {
 		return
 	}
