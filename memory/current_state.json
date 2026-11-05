@@ -676,24 +676,24 @@
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-WORKBUDDY-HISTORY-ARTIFACTS-237",
-    "commit": "368e39a6805ffdb8c7af18e66d2b649c94839a14",
-    "evidence": "Original WorkBuddy session archive safely retains typed artifact change metadata, with Go/Web/Chrome evidence and verified remote dev."
+    "stage": "T-WORKBUDDY-DELIVERY-TRACE-238",
+    "commit": "eea945e7044b1423638c89b6ad09c02cac177af4",
+    "evidence": "Original pending cloud run/node/attempt trace via exact task delivery projection, verified and pushed."
   },
   "current_work": {
-    "stage": "T-WORKBUDDY-DELIVERY-TRACE-238",
+    "stage": "T-WORKBUDDY-LOCAL-CANDIDATE-239",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/task-delivery-chain.md",
-    "report": "docs/quality/workbuddy-delivery-trace-verification.md",
-    "summary": "docs/quality/workbuddy-delivery-trace-summary.json",
-    "previous_commit": "7178df15d1c4c6ce26ed91a0344cfa663f53acd8",
-    "verification": "Real Suma HTTP and SQLite through original cloud result with loopback vendor, seven negative cases, 17 Web checks, full Web types and actual 390px Chrome with captured HTTP response.",
-    "actual": "Current task delivery view opens exact WorkBuddy run, node and attempt awaiting code verification, independently of the 20-node preview. Server verifies original persisted assignment and current attempt/fence; reads create no events or vendor calls.",
-    "known_limitations": "Browser verified URL rather than rendering target run details. Vendor Git proof, independent verification of a cloud candidate, multi-host and production remain pending.",
-    "next": "Bind a separately authorized local candidate to the exact original cloud provenance, with a new current run and same-commit independent test. Preserve the original waiting cloud fact.",
+    "contract": "contracts/terminal-recovery-candidates.md",
+    "report": "docs/quality/workbuddy-local-candidate-verification.md",
+    "summary": "docs/quality/workbuddy-local-candidate-summary.json",
+    "previous_commit": "f13a586567412bbbea73782ba77ed0f440789d1d",
+    "verification": "Three Go integration scenarios, Windows ConPTY with isolated Git and different Worker on the exact commit, 18 Web checks, paired i18n and generated types. Chrome used captured Suma responses.",
+    "actual": "A local terminal candidate freezes the formal WorkBuddy origin and rejects drift before atomic task rebind. Real Windows candidate files are sealed and independently tested on the same Git commit. Explicit test-account review leaves the original cloud attempt waiting.",
+    "known_limitations": "WorkBuddy is loopback in the fixture. Browser verifies valid preview and exact URL, not target execution details. Vendor Git intake, cross-host and other OS remain independent.",
+    "next": "Authenticate exact vendor Git content under an approved provider or connected repository contract. Continue the original full product scope and physical multi-host qualification.",
     "full_platform_complete": false,
-    "git_record": ".cache/workbuddy-delivery-trace-238/post-git.json"
+    "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2776,11 +2776,11 @@
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   },
   "active_implementation": {
-    "stage": "T-WORKBUDDY-DELIVERY-TRACE-238",
+    "stage": "T-WORKBUDDY-LOCAL-CANDIDATE-239",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "base": "7178df15d1c4c6ce26ed91a0344cfa663f53acd8",
-    "contract": "contracts/task-delivery-chain.md",
+    "base": "f13a586567412bbbea73782ba77ed0f440789d1d",
+    "contract": "contracts/terminal-recovery-candidates.md",
     "full_platform_complete": false
   },
   "real_cli_onboarding": {
@@ -2980,5 +2980,20 @@
     "next": "Bind a separately authorized local candidate to the exact original cloud provenance, with a new current run and same-commit independent test. Preserve the original waiting cloud fact.",
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-delivery-trace-238/post-git.json"
+  },
+  "workbuddy_local_candidate": {
+    "stage": "T-WORKBUDDY-LOCAL-CANDIDATE-239",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/terminal-recovery-candidates.md",
+    "report": "docs/quality/workbuddy-local-candidate-verification.md",
+    "summary": "docs/quality/workbuddy-local-candidate-summary.json",
+    "previous_commit": "f13a586567412bbbea73782ba77ed0f440789d1d",
+    "verification": "Three Go integration scenarios, Windows ConPTY with isolated Git and different Worker on the exact commit, 18 Web checks, paired i18n and generated types. Chrome used captured Suma responses.",
+    "actual": "A local terminal candidate freezes the formal WorkBuddy origin and rejects drift before atomic task rebind. Real Windows candidate files are sealed and independently tested on the same Git commit. Explicit test-account review leaves the original cloud attempt waiting.",
+    "known_limitations": "WorkBuddy is loopback in the fixture. Browser verifies valid preview and exact URL, not target execution details. Vendor Git intake, cross-host and other OS remain independent.",
+    "next": "Authenticate exact vendor Git content under an approved provider or connected repository contract. Continue the original full product scope and physical multi-host qualification.",
+    "full_platform_complete": false,
+    "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   }
 }

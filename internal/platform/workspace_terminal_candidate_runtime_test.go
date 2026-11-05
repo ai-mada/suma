@@ -141,24 +141,38 @@ func terminalCandidateRefreshRuntimeTools(t *testing.T, ctx context.Context, f *
 // Actual Windows ConPTY edits are copied only after the original tree stopped.
 // The fixture owner exercises Review; no customer sign-off or model is claimed.
 func TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality(t *testing.T) {
-	terminalCandidateActualJourney(t, false)
+	terminalCandidateActualJourney(t, false, false)
 }
 
 func TestWorkspaceTerminalAcceptedBaselineActualFollowupDevelopment(t *testing.T) {
-	terminalCandidateActualJourney(t, true)
+	terminalCandidateActualJourney(t, true, false)
 }
 
-func terminalCandidateActualJourney(t *testing.T, continueBaseline bool) {
+func TestWorkspaceTerminalCandidateActualWorkBuddyIndependentQuality(t *testing.T) {
+	terminalCandidateActualJourney(t, false, true)
+}
+
+func terminalCandidateActualJourney(t *testing.T, continueBaseline, fromWorkBuddy bool) {
 	if runtime.GOOS != "windows" {
 		t.Skip("actual Windows ConPTY containment fixture")
 	}
 	duration := 45 * time.Second
+	if fromWorkBuddy {
+		duration = 60 * time.Second
+	}
 	if continueBaseline {
 		duration = 180 * time.Second
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
-	f := newFixture(t)
+	var f *fixture
+	var cloud workBuddyTaskDispatchFixture
+	if fromWorkBuddy {
+		cloud = newWorkBuddyTaskDispatchFixture(t)
+		f = cloud.f
+	} else {
+		f = newFixture(t)
+	}
 	f.e.AttemptAccounting = f.s
 	node, err := exec.LookPath("node")
 	if err != nil {
@@ -251,11 +265,23 @@ func terminalCandidateActualJourney(t *testing.T, continueBaseline bool) {
 	independent := &runner.Client{BaseURL: control.URL, Token: testToken, ProjectID: f.project}
 	developer.TerminalClient, developer.Artifacts = client, client
 	verifier.Artifacts = independent
-	task := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(map[string]any{"title": "Review original stopped terminal changes", "acceptance_criteria": []string{"sum(2,3) is 5"}}), 201))
+	task := cloud.task
+	if !fromWorkBuddy {
+		task = issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(map[string]any{"title": "Review original stopped terminal changes", "acceptance_criteria": []string{"sum(2,3) is 5"}}), 201))
+	}
 	quality := issueRepairRuntimePlan(t, f, task, QualityTestCase{Key: "terminal-adds", Title: "Stopped terminal candidate adds", Description: "Verify the exact sealed SHA on a different Worker", Preconditions: "Use original transferred source", Steps: []string{"Evaluate sum(2,3)"}, ExpectedResult: "5", Priority: "high", Covers: []int{1}, Selector: tr.TestCaseSelector{ClassName: "terminal130", Name: "adds"}})
 	task, err = f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
 	if err != nil {
 		t.Fatal(err)
+	}
+	var originalCloud dag.Assignment
+	if fromWorkBuddy {
+		cloud.req.ExpectedTaskVersion = task.Version
+		originalCloud = terminalCandidateWaitingWorkBuddy(t, cloud)
+		task, err = f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
+		if err != nil || task.RunID != originalCloud.RunID {
+			t.Fatal("original cloud task binding missing", err)
+		}
 	}
 	before := workspaceTerminalTaskSQL(t, f, task.ID)
 	shellProfile := profiles["terminal130"]
@@ -333,6 +359,9 @@ func terminalCandidateActualJourney(t *testing.T, continueBaseline bool) {
 	if !plan.Valid || plan.Source.SnapshotSHA256 != session.SourceSnapshotSHA256 || workspaceTerminalTaskSQL(t, f, task.ID).SHA256 != before.SHA256 {
 		t.Fatal("preview changed the task or lost stopped source", plan)
 	}
+	if fromWorkBuddy && (plan.Source.WorkBuddyOrigin == nil || plan.Source.WorkBuddyOrigin.RunID != originalCloud.RunID || plan.Source.WorkBuddyOrigin.Attempt != originalCloud.Attempt || plan.Source.WorkBuddyOrigin.Fence != originalCloud.Fence) {
+		t.Fatal("candidate preview lost the original cloud attempt")
+	}
 	start := TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: plan.Version, IdempotencyKey: newID()}
 	run := issueRepairRuntimeDecode[dag.Run](t, f.call("POST", "/workspace/terminal-candidate-plans/"+plan.ID+"/start", start, 201))
 	if again := issueRepairRuntimeDecode[dag.Run](t, f.call("POST", "/workspace/terminal-candidate-plans/"+plan.ID+"/start", start, 201)); again.ID != run.ID {
@@ -349,6 +378,9 @@ func terminalCandidateActualJourney(t *testing.T, continueBaseline bool) {
 	var proof term.TerminalCandidateEvidence
 	if json.Unmarshal([]byte(stringify(produced.WorkspaceEvidence["terminal_candidate"])), &proof) != nil || proof.Source.SnapshotSHA256 != session.SourceSnapshotSHA256 || proof.Seal.Commit == base {
 		t.Fatal("candidate provenance changed", proof)
+	}
+	if stringify(proof.Source.WorkBuddyOrigin) != stringify(plan.Source.WorkBuddyOrigin) {
+		t.Fatal("sealed local candidate lost its frozen cloud origin")
 	}
 	produced.OperationID = newID()
 	if err = client.Complete(ctx, produced); err != nil {
@@ -379,6 +411,13 @@ func terminalCandidateActualJourney(t *testing.T, continueBaseline bool) {
 	accepted, err := f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if fromWorkBuddy {
+		original, e := f.e.GetRun(ctx, f.user.TenantID, f.project, originalCloud.RunID)
+		if e != nil || original.State != "running" || len(original.Nodes) != 1 || original.Nodes[0].State != "waiting" || original.Nodes[0].Reason != "cloud.delivery_required" || original.Nodes[0].Attempt != originalCloud.Attempt || original.Nodes[0].Fence != originalCloud.Fence || cloud.creates.Load() != 1 || accepted.Status != "accepted" || accepted.RunID != run.ID {
+			t.Fatal("local acceptance changed the original cloud outcome or lost the new task binding", e)
+		}
+		return
 	}
 	startedPlan, err := f.s.GetWorkspaceTerminalCandidatePlan(ctx, f.e, f.actor, f.project, plan.ID)
 	if err != nil {

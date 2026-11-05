@@ -210,6 +210,10 @@ func (s *Service) CreateWorkspaceTerminalCandidatePlan(ctx context.Context, engi
 	}
 	plan := TaskDispatchPlan{ID: newID(), RunID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: r.Session.TaskID, TaskVersion: context.Task.Version, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, AgentNodeID: req.ProducerNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Valid: true}
 	source := term.TerminalCandidateSource{SessionID: session, SessionVersion: r.Session.Version, Original: codeInputAssignmentRef(original), BaseCommit: r.Session.BaseCommit, AdminBaseCommit: r.Session.AdminBaseCommit, CodeBaseline: r.Session.CodeBaseline, SnapshotSHA256: r.Session.SourceSnapshotSHA256, PlanID: plan.ID}
+	source.WorkBuddyOrigin, err = s.workspaceTerminalWorkBuddyOriginTx(ctx, tx, auth.target.tenantID, project, plan.TaskID, r.TaskRunID)
+	if err != nil {
+		return out, err
+	}
 	if !source.Valid() {
 		return out, conflict("The original terminal has no safe stopped source snapshot")
 	}
@@ -365,20 +369,73 @@ func (s *Service) validateWorkspaceTerminalCandidatePlanTx(ctx context.Context, 
 	if err != nil {
 		return err
 	}
-	declared := false
+	var declared *term.TerminalCandidateSource
 	for _, node := range plan.Workflow.Nodes {
-		if _, present := node.Config[term.CandidateConfigKey]; present {
-			declared = true
+		if raw, present := node.Config[term.CandidateConfigKey]; present {
+			if declared != nil || node.ID != plan.AgentNodeID || node.Type != "command" {
+				return forbidden()
+			}
+			declared, err = term.DecodeCandidateSource(raw)
+			if err != nil || declared == nil {
+				return conflict(workspaceTerminalCandidateChanged)
+			}
 		}
 	}
 	if source == nil {
-		if declared {
+		if declared != nil {
 			return forbidden()
 		}
 		return nil
 	}
-	if !declared {
-		return forbidden()
+	if declared == nil || stringify(declared) != stringify(source) {
+		return conflict(workspaceTerminalCandidateChanged)
 	}
-	return s.workspaceTerminalCandidateStoppedTx(ctx, tx, auth.target.tenantID, project, *source)
+	if err = s.workspaceTerminalCandidateStoppedTx(ctx, tx, auth.target.tenantID, project, *source); err != nil {
+		return err
+	}
+	if plan.State == "ready" {
+		return s.workspaceTerminalCandidateOriginMatchesTx(ctx, tx, auth, plan, *source)
+	}
+	return nil
+}
+
+func (s *Service) workspaceTerminalCandidateOriginMatchesTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, plan TaskDispatchPlan, source term.TerminalCandidateSource) error {
+	tenant, project := auth.target.tenantID, auth.target.projectID
+	r, err := s.workspaceTerminalTx(ctx, tx, tenant, project, source.SessionID)
+	if err != nil {
+		return err
+	}
+	if r.Session.TaskID != plan.TaskID || r.Task.Version != plan.TaskVersion {
+		return conflict(workspaceTerminalCandidateChanged)
+	}
+	origin, err := s.workspaceTerminalWorkBuddyOriginTx(ctx, tx, tenant, project, plan.TaskID, r.TaskRunID)
+	if err != nil {
+		return err
+	}
+	if origin == nil && source.WorkBuddyOrigin == nil {
+		return nil
+	}
+	if origin == nil || source.WorkBuddyOrigin == nil || *origin != *source.WorkBuddyOrigin {
+		return conflict(workspaceTerminalCandidateChanged)
+	}
+	return s.workspaceTerminalBasisTx(ctx, auth, r)
+}
+
+// Run the cloud check again after the scheduler's project lock, immediately
+// before changing the task binding. Ordinary starts have no terminal source.
+func (s *Service) validateWorkspaceTerminalCandidateBindTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, plan TaskDispatchPlan) error {
+	for _, node := range plan.Workflow.Nodes {
+		if node.ID != plan.AgentNodeID {
+			continue
+		}
+		source, err := term.DecodeCandidateSource(node.Config[term.CandidateConfigKey])
+		if err != nil {
+			return conflict(workspaceTerminalCandidateChanged)
+		}
+		if source != nil && source.WorkBuddyOrigin != nil {
+			return s.workspaceTerminalCandidateOriginMatchesTx(ctx, tx, auth, plan, *source)
+		}
+		break
+	}
+	return nil
 }

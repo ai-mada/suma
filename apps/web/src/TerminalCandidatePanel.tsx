@@ -15,6 +15,7 @@ import {terminalCandidatePreviewReceipt, terminalCandidateProducers, terminalCan
 import {TerminalCandidateHandoffPanel} from './TerminalCandidateHandoffPanel';
 import {TerminalBaselineFacts} from './TerminalBaselineFacts';
 import {validManagedRunIdentity} from './task-dispatch-response';
+import {executionHref} from './scheduling-model';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('terminal.' + key, values);
 type Props = {project: string; task: string; taskVersion?: number; session: WorkspaceTerminalSession; scope: string; active: boolean; disabled: boolean;
@@ -55,6 +56,7 @@ export function TerminalCandidatePanel({project, task, taskVersion, session, sco
   const planRead = useReplyRead('/workspace/terminal-candidate-plans/' + encodeURIComponent(selected) + query(project), open && active && !!selected && !blocked,
     (value): value is WorkspaceTerminalCandidatePlan => validTerminalCandidatePlan(value, project, task, session.id) && value.id === selected && terminalCandidateMatchesSession(value, session), refuse, refresh);
   const plan = planRead.value || (created?.id === selected ? created : undefined);
+  const workbuddy = plan?.source.workbuddy_origin;
   const flow = workflows.value?.items.find(item => item.id + '@' + item.version === flowKey), command = flow?.nodes.find(node => node.id === producer)?.command?.[0];
   const tools = profiles.value?.items.filter(tool => terminalCandidateTool(tool, session.worker_id, command)) || [];
   const profile = tools.find(tool => tool.id === profileID);
@@ -123,6 +125,17 @@ export function TerminalCandidatePanel({project, task, taskVersion, session, sco
         <strong role="status">{t(plan.state === 'started' ? 'candidate.started' : 'candidate.prepared')}</strong>
         <p className="terminal-note">{t('candidate.boundary')}</p>
         {!!plan.reason && <p className="terminal-warning">{renderDiagnostic(plan.reason)}</p>}
+        {workbuddy && <section className="terminal-baseline-facts" aria-label={t('candidate.workbuddy_origin')}>
+          <strong>{t('candidate.workbuddy_origin')}</strong>
+          <dl className="terminal-facts">
+            <dt>{t('recovery.run')}</dt><dd>{locked ? workbuddy.run_id :
+              <a href={executionHref(project, workbuddy.run_id, workbuddy.node_id, workbuddy.attempt)} onClick={follow}>{workbuddy.run_id}</a>}</dd>
+            <dt>{t('candidate.workbuddy_node')}</dt><dd>{workbuddy.node_id}</dd>
+            <dt>{t('candidate.workbuddy_attempt')}</dt><dd>{formatNumber(workbuddy.attempt)}</dd>
+          </dl>
+          <p className="terminal-note">{t('candidate.workbuddy_local')}</p>
+          {plan.state === 'ready' && plan.valid && <p className="terminal-warning">{t('candidate.workbuddy_start')}</p>}
+        </section>}
         <details><summary>{t('candidate.source')}</summary><TerminalBaselineFacts project={project} binding={plan.source.code_baseline} adminCommit={plan.source.admin_base_commit} selectedCommit={plan.source.base_commit} title={t('baseline.frozen')}/>
           <dl className="terminal-facts"><dt>{t('recovery.run')}</dt><dd>{plan.source.original.run_id}</dd><dt>{t('worker')}</dt><dd>{plan.worker_id}</dd><dt>{t('candidate.snapshot')}</dt><dd>{plan.source.snapshot_sha256}</dd></dl></details>
         <details><summary>{t('candidate.review')}</summary><p>{plan.context.task.title} · v{formatNumber(plan.task_version)}</p>

@@ -1,9 +1,12 @@
 package main
 
-import "github.com/ai-mada/suma/internal/platform"
+import (
+	"github.com/ai-mada/suma/internal/platform"
+	term "github.com/ai-mada/suma/internal/terminalcontract"
+)
 
 func interactiveDevelopmentModels() []any {
-	return []any{platform.TaskDiscussionDevelopmentCreateRequest{}, platform.TaskDiscussionDevelopmentPlan{}, platform.WorkspaceTerminalSession{}, platform.WorkspaceTerminalCreateRequest{}, platform.WorkspaceTerminalCommandRequest{}, platform.WorkspaceTerminalCommandReceipt{}, platform.WorkspaceTerminalOutputPage{}, platform.WorkspaceTerminalPage{}, platform.WorkspaceTerminalRecoveryRequest{}, platform.WorkspaceTerminalRecoveryView{}, platform.WorkspaceTerminalRecoveryReceipt{}, platform.WorkspaceTerminalCandidatePreviewRequest{}, platform.WorkspaceTerminalCandidatePlan{}, platform.WorkspaceTerminalCandidatePlanPage{}}
+	return []any{platform.TaskDiscussionDevelopmentCreateRequest{}, platform.TaskDiscussionDevelopmentPlan{}, platform.WorkspaceTerminalSession{}, platform.WorkspaceTerminalCreateRequest{}, platform.WorkspaceTerminalCommandRequest{}, platform.WorkspaceTerminalCommandReceipt{}, platform.WorkspaceTerminalOutputPage{}, platform.WorkspaceTerminalPage{}, platform.WorkspaceTerminalRecoveryRequest{}, platform.WorkspaceTerminalRecoveryView{}, platform.WorkspaceTerminalRecoveryReceipt{}, platform.WorkspaceTerminalCandidatePreviewRequest{}, platform.WorkspaceTerminalCandidatePlan{}, platform.WorkspaceTerminalCandidatePlanPage{}, term.TerminalCandidateWorkBuddyOrigin{}}
 }
 
 func interactiveDevelopmentContracts(add operationAdder, api map[string]any) {
@@ -76,6 +79,14 @@ func interactiveDevelopmentContracts(add operationAdder, api map[string]any) {
 		field(model, "base_commit", map[string]any{"description": "Exact selected development base M; equals the administrator base when no code baseline was adopted."})
 		field(model, "admin_base_commit", map[string]any{"description": "Original administrator Git prerequisite B retained for authenticated candidate bundle lineage."})
 		field(model, "code_baseline", map[string]any{"description": "Exact adopted, accepted input frozen for this session or candidate. Its head is M and bundle prerequisite is B; current authorization is checked separately."})
+	}
+	toolContractMap(schemas, "TerminalCandidateWorkBuddyOrigin")["additionalProperties"] = false
+	field("TerminalCandidateSource", "workbuddy_origin", map[string]any{"description": "Frozen cloud attempt that prompted a separately authorized local candidate. The candidate file source is the stopped local terminal."})
+	field("TerminalCandidateWorkBuddyOrigin", "run_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,100}$"})
+	field("TerminalCandidateWorkBuddyOrigin", "node_id", map[string]any{"const": "workbuddy-cloud"})
+	field("TerminalCandidateWorkBuddyOrigin", "assignment_sha256", map[string]any{"pattern": "^[0-9a-f]{64}$"})
+	for _, name := range []string{"run_version", "attempt", "fence"} {
+		field("TerminalCandidateWorkBuddyOrigin", name, map[string]any{"minimum": 1})
 	}
 	field("WorkspaceTerminalPage", "code_baseline", map[string]any{"description": "Task's adopted code baseline read in the same authority snapshot as baseline_current and can_create."})
 	field("WorkspaceTerminalPage", "baseline_current", map[string]any{"description": "Current source and task-binding qualification; an absent binding is valid only after this authorized read succeeds."})

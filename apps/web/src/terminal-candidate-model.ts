@@ -60,13 +60,19 @@ export function validTerminalCandidatePlan(value: unknown, project: string, task
   const source = value.source;
   const contextBaseline = value.context.code_baseline === null ? undefined : value.context.code_baseline;
   if (!keys(source, ['session_id', 'session_version', 'original', 'base_commit', 'admin_base_commit', 'snapshot_sha256', 'plan_id',
-    ...(Object.hasOwn(source, 'code_baseline') ? ['code_baseline'] : [])]) ||
+    ...(Object.hasOwn(source, 'code_baseline') ? ['code_baseline'] : []), ...(Object.hasOwn(source, 'workbuddy_origin') ? ['workbuddy_origin'] : [])]) ||
     source.session_id !== session || source.session_version !== value.session_version || source.plan_id !== value.id ||
     !commit(source.base_commit) || !commit(source.admin_base_commit) || !digest(source.snapshot_sha256) || !object(source.original) ||
     !validTerminalBaseline(source.code_baseline, project, task, source.base_commit, source.admin_base_commit) ||
     !validTerminalBaseline(contextBaseline, project, task, source.base_commit, source.admin_base_commit) ||
     !sameTerminalBaseline(source.code_baseline, contextBaseline)) return false;
   const original = source.original;
+  if (Object.hasOwn(source, 'workbuddy_origin')) {
+    const origin = source.workbuddy_origin;
+    if (!object(origin) || !keys(origin, ['run_id', 'run_version', 'node_id', 'attempt', 'fence', 'assignment_sha256']) ||
+      typeof origin.run_id !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(origin.run_id) || origin.run_id === original.run_id || origin.run_id === value.run_id ||
+      origin.node_id !== 'workbuddy-cloud' || !positive(origin.run_version) || !positive(origin.attempt) || !positive(origin.fence) || !digest(origin.assignment_sha256)) return false;
+  }
   return terminalID(original.run_id) && original.node_id === 'terminal' && original.attempt === 1 && positive(original.fence) && original.worker_id === value.worker_id &&
     (!original.project_id || original.project_id === project) && value.workflow.nodes.every(node => object(node) && typeof node.id === 'string' && typeof node.type === 'string') &&
     value.workflow.nodes.some(node => object(node) && node.id === value.producer_node_id && node.type === 'command' && object(node.config) && same(node.config.terminal_candidate_source, source));

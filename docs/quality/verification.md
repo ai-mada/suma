@@ -2,6 +2,8 @@
 
 T-WORKBUDDY-ACCOUNT-RECOVERY 核验原连接链接替换、单次兑换、授权返回核对和部署配置。 [阶段验证](workbuddy-account-recovery-verification.md)
 
+T-WORKBUDDY-LOCAL-CANDIDATE-239 通过真实 Windows 终端、同提交独立测试及本地验收夹具，验证原云来源保留和启动原子核对。 [阶段验证](workbuddy-local-candidate-verification.md)
+
 T-TOOL-QUICK-START-239 核验添加工具的自动选入、准确协议、首屏操作、手动改选和暂停登记。 [阶段验证](tool-quick-start-verification.md)
 
 T-MULTICA-SHARED-VIEW-LIVE 验证两个账号下的在线版本提醒、显式应用、断网重连、归档和撤权。 [阶段验证](shared-view-live-verification.md)

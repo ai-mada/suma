@@ -28,9 +28,11 @@ const flow: Workflow = {id: 'flow-a', name: 'Check then independently test', ver
 const tool: ToolProfile = {id: 'check-profile', project_id: project, worker_id: terminal.worker_id, version: 2, name: 'Fixed check profile', state: 'enabled',
   profile: {command_id: 'fixed-check', adapter: 'command', protocol: 'text-v1', read_only: false, profile_sha256: 'c'.repeat(64), executable_sha256: 'd'.repeat(64), tool_version: '1'},
   enabled_by: 'owner-a', created_at: stamp, updated_at: stamp, available: true, reason: ''};
-function planFixture(): WorkspaceTerminalCandidatePlan {
+const workbuddyOrigin = {run_id: 'workbuddy-run-a', run_version: 12, node_id: 'workbuddy-cloud', attempt: 3, fence: 5, assignment_sha256: 'b'.repeat(64)};
+function planFixture(origin?: typeof workbuddyOrigin): WorkspaceTerminalCandidatePlan {
   const source = {session_id: terminal.id, session_version: 7, original: {run_id: terminal.run_id, node_id: 'terminal', attempt: 1, fence: 8, worker_id: terminal.worker_id},
-    base_commit: 'a'.repeat(40), admin_base_commit: 'a'.repeat(40), snapshot_sha256: 'e'.repeat(64), plan_id: 'candidate-plan-a'};
+    base_commit: 'a'.repeat(40), admin_base_commit: 'a'.repeat(40), snapshot_sha256: 'e'.repeat(64), plan_id: 'candidate-plan-a',
+    ...(origin ? {workbuddy_origin: origin} : {})};
   return {id: source.plan_id, project_id: project, version: 1, state: 'ready', session_id: terminal.id, session_version: 7, task_id: task, task_version: 3,
     run_id: 'candidate-run-a', created_at: stamp, expires_at: '2099-10-29T12:00:00Z', tool_profile_id: tool.id, tool_profile_version: 2, tool_profile_sha256: tool.profile.profile_sha256,
     worker_id: terminal.worker_id, workflow_id: flow.id, workflow_version: 2, producer_node_id: 'check',
@@ -75,6 +77,18 @@ it('rejects unproven recovery, success receipts, lost unknown inputs and mismatc
   expect(compositionRecovery({...bindRequest, body: {...bindRequest.body, composition_id: 'composition-a', expected_composition_version: 1}}, project, '')).toBe(false);
 });
 
+it('requires exact frozen WorkBuddy attempt identity distinct from the terminal and candidate runs', () => {
+  const plan = planFixture(workbuddyOrigin);
+  expect(validTerminalCandidatePlan(plan, project, task, terminal.id)).toBe(true);
+  const secret = {...workbuddyOrigin, access_token: 'unexpected'};
+  for (const origin of [secret, {...workbuddyOrigin, run_id: terminal.run_id}, {...workbuddyOrigin, run_id: plan.run_id},
+    {...workbuddyOrigin, run_id: 'workbuddy.run'}, {...workbuddyOrigin, run_version: 0}, {...workbuddyOrigin, node_id: 'another-node'}, {...workbuddyOrigin, attempt: 1.5},
+    {...workbuddyOrigin, fence: 0}, {...workbuddyOrigin, assignment_sha256: 'B'.repeat(64)}]) {
+    expect(validTerminalCandidatePlan(planFixture(origin), project, task, terminal.id)).toBe(false);
+  }
+  expect(validTerminalCandidatePlan({...plan, source: {...plan.source, workbuddy_origin: {...workbuddyOrigin, fence: 7}}}, project, task, terminal.id)).toBe(false);
+});
+
 it('requires individual unknown-input review and explicit failed-only closure without changing delivery facts', async () => {
   await setLocale('en-US', {persist: false}); sessionStorage.clear(); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   const host = document.createElement('div'); document.body.append(host); const root = createRoot(host), writes: {path: string; body: Record<string, unknown>}[] = [];
@@ -100,14 +114,14 @@ it('requires individual unknown-input review and explicit failed-only closure wi
   } finally {await act(async () => root.unmount()); host.remove(); sessionStorage.clear(); vi.unstubAllGlobals(); vi.restoreAllMocks();}
 });
 
-it('previews stopped changes first and requires fresh separate consent to start the pinned check and independent test run', async () => {
+it.each([{label: 'terminal', origin: undefined}, {label: 'WorkBuddy', origin: workbuddyOrigin}])('requires separate consent for the pinned $label candidate run', async ({origin}) => {
   await setLocale('en-US', {persist: false}); sessionStorage.clear(); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   const host = document.createElement('div'); document.body.append(host); const root = createRoot(host), writes: {path: string; body: Record<string, unknown>}[] = [];
   let saved: WorkspaceTerminalCandidatePlan | undefined;
   harness.transport.mockImplementation(async (path: string, body?: Record<string, unknown>) => {
     if (body) {
       writes.push({path, body});
-      if (path.endsWith('/candidate-plans')) {saved = planFixture(); return saved;}
+      if (path.endsWith('/candidate-plans')) {saved = planFixture(origin); return saved;}
       saved = {...saved!, state: 'started', version: 2};
       return {id: saved.run_id, project_id: project, workflow_id: 'managed-' + saved.run_id, workflow_version: 1};
     }
@@ -126,19 +140,39 @@ it('previews stopped changes first and requires fresh separate consent to start 
     await enter(host.querySelector<HTMLSelectElement>('[data-terminal-candidate-profile]'), tool.id); await click(host.querySelector('input[type=checkbox]'));
     await click(host.querySelector('[data-terminal-candidate-preview]'));
     expect(writes).toHaveLength(1); expect(writes[0].body.acknowledge_stopped_changes).toBe(true);
+    expect(writes[0].body).not.toHaveProperty('workbuddy_origin');
     expect(host.textContent).toContain('Fixed preview created; not started');
+    const cloudLink = () => host.querySelector<HTMLAnchorElement>('a[href*="run=workbuddy-run-a"]');
+    if (origin) {
+      expect(cloudLink()?.textContent).toBe('workbuddy-run-a');
+      expect(Object.fromEntries(new URLSearchParams(cloudLink()?.search))).toEqual({
+        project, view: 'development', sub: 'runs', run: 'workbuddy-run-a', node: 'workbuddy-cloud', attempt: '3',
+      });
+      expect(host.textContent).toContain('workbuddy-cloud');
+      expect(host.textContent).toContain('still awaits delivery evidence');
+      const refresh = Array.from(host.querySelectorAll('button')).find(button => button.textContent === 'Refresh delivery basis')!;
+      saved = {...saved!, valid: false, reason: 'Original cloud delivery wait changed'};
+      await click(refresh);
+      expect(cloudLink()).not.toBeNull();
+      expect(host.textContent).toContain('Original cloud delivery wait changed');
+      expect(host.textContent).not.toContain('still awaits delivery evidence');
+      saved = planFixture(origin);
+      await click(refresh);
+    } else expect(cloudLink()).toBeNull();
     const start = host.querySelector<HTMLButtonElement>('[data-terminal-candidate-start]')!; expect(start.disabled).toBe(true);
     await click(host.querySelector('input[type=checkbox]')); await click(start);
     expect(writes).toHaveLength(2); expect(writes[1].path).toBe('/workspace/terminal-candidate-plans/candidate-plan-a/start');
-    expect(writes[1].body.expected_version).toBe(1); expect(writes.every(write => !write.path.includes('/review'))).toBe(true);
+    expect(writes[1].body.expected_version).toBe(1); expect(writes[1].body).not.toHaveProperty('workbuddy_origin');
+    expect(writes.every(write => !write.path.includes('/review'))).toBe(true);
     expect(host.textContent).toContain('Checks and candidate quality workflow started');
-    expect(host.querySelector('a')?.getAttribute('href')).toContain('run=candidate-run-a');
+    expect(host.querySelector('a[href*="run=candidate-run-a"]')).not.toBeNull();
     sessionStorage.clear(); saved = {...saved!, valid: false, reason: 'Current source task basis changed'};
     await act(async () => {root.render(<TerminalCandidatePanel key="fresh-readback" project={project} task={task} taskVersion={8} session={{...terminal, state: 'stopped'}} scope="candidate-scope" active disabled
       onDenied={() => {}} onLockChange={() => {}} onRefresh={() => {}}/>); await settle();});
     await click(host.querySelector('[data-terminal-candidate-toggle]'));
     expect(host.textContent).toContain('Checks and candidate quality workflow started'); expect(host.textContent).toContain('Current source task basis changed');
-    expect(host.querySelector('a')?.getAttribute('href')).toContain('run=candidate-run-a'); expect(writes).toHaveLength(2);
+    expect(host.querySelector('a[href*="run=candidate-run-a"]')).not.toBeNull(); expect(writes).toHaveLength(2);
+    if (origin) expect(new URLSearchParams(cloudLink()?.search).get('attempt')).toBe('3');
     expect(host.querySelector('[data-terminal-candidate-preview]')).toBeNull(); expect(host.querySelector('[data-terminal-handoff-toggle]')).not.toBeNull();
   } finally {await act(async () => root.unmount()); host.remove(); sessionStorage.clear(); vi.unstubAllGlobals(); vi.restoreAllMocks();}
 });

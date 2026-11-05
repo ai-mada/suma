@@ -1,0 +1,61 @@
+{
+  "stage": "T-WORKBUDDY-LOCAL-CANDIDATE-239",
+  "base": "f13a586567412bbbea73782ba77ed0f440789d1d",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "focused": {
+    "go_integration_tests": 3,
+    "actual_windows_conpty": true,
+    "workbuddy_vendor_fixture": "loopback",
+    "independently_tested_exact_local_commit": true,
+    "explicit_fixture_review": true,
+    "original_cloud_wait_preserved": true,
+    "drift_before_bind_rolls_back": true,
+    "web_tests": 18,
+    "paired_locale_keys": 10309,
+    "typescript": "web_workspace_passed",
+    "generated_contract_check": "passed"
+  },
+  "browser": {
+    "scope": "Chrome renders the production TerminalCandidatePanel with actual Suma HTTP fixture responses on loopback",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "locales": [
+      "en-US",
+      "zh-CN"
+    ],
+    "api_reads": 2,
+    "mutations": 0,
+    "errors": 0,
+    "separate_start_consent": true,
+    "exact_original_target": true,
+    "scope_limit": "valid-ready fixture; final stale-copy guard tested separately",
+    "plan_sha256": "cfc12d9d6f2eadd211f0f412792344565ccf8e9b584587ca4d4daf130e923c13",
+    "session_sha256": "eecff20951707cbd1f2584fc6665bb198370d06b1e496c8347445bfa98b1de3d",
+    "screenshot_sha256": "8dea32effba9578465b87a3dde6403b8072c1e71c271d046b98ac3157db77248"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "source_copied": false
+  },
+  "pending": [
+    "trusted_actual_vendor_git_intake",
+    "cross_physical_machine_same_commit_qualification",
+    "non_windows_terminal_qualification",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "go": ".cache/workbuddy-local-candidate-239/go-integrated.json",
+    "go_log": ".cache/workbuddy-local-candidate-239/go-integrated.log",
+    "type": ".cache/workbuddy-local-candidate-239/type.json",
+    "i18n": ".cache/workbuddy-local-candidate-239/i18n.log",
+    "generated": ".cache/workbuddy-local-candidate-239/generated-scope.json",
+    "browser": ".cache/workbuddy-local-candidate-239/web/visual-result.json",
+    "captured_preview": ".cache/workbuddy-local-candidate-239/wire.json",
+    "captured_session": ".cache/workbuddy-local-candidate-239/session.json"
+  }
+}

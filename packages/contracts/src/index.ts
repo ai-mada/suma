@@ -7787,6 +7787,15 @@ export interface TerminalCandidateSource {
   code_baseline?: CodeBaselineBinding | null;
   snapshot_sha256: string;
   plan_id: string;
+  workbuddy_origin?: TerminalCandidateWorkBuddyOrigin;
+}
+export interface TerminalCandidateWorkBuddyOrigin {
+  run_id: string;
+  run_version: number;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  assignment_sha256: string;
 }
 export interface TestCaseEvidence {
   report_id: string;

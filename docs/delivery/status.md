@@ -2,6 +2,8 @@
 
 T-WORKBUDDY-ACCOUNT-RECOVERY 支持在原连接重新生成待兑换链接，并在浏览器返回后核对同一授权代次。未启用时显示部署要求，Compose 和 Helm 可引用服务端秘密。真实 WorkBuddy 应用联调与部署验收待完成。 [交互与配置](../design/workbuddy-connections.md) · [验证](../quality/workbuddy-account-recovery-verification.md)
 
+T-WORKBUDDY-LOCAL-CANDIDATE-239 支持从等待交付的正式 WorkBuddy 尝试继续本机候选，保留原云来源，按新运行封存、独立测试和验收。 [合同](../../contracts/terminal-recovery-candidates.md#从原-workbuddy-尝试继续本机开发) · [验证](../quality/workbuddy-local-candidate-verification.md)
+
 T-TOOL-QUICK-START-239 简化添加工具。桌面端对唯一确认可启动的入口预填选择，自动接续当前项目的唯一节点和可用配置。检测结果可展开，登记仍需明确确认并保存为暂停。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-start-verification.md)
 
 T-MULTICA-SHARED-VIEW-LIVE 支持共享任务视图的在线版本核对。另一设备修改时保留当前筛选，显式应用新版本。断网、归档和撤权分别处理。 [交互设计](../design/shared-task-views.md#在线版本核对与显式应用) · [验证](../quality/shared-view-live-verification.md)

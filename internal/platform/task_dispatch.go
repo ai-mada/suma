@@ -447,6 +447,9 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		if e := s.checkTaskDispatchBoundRouteTx(ctx, tx, p, project, plan, runID); e != nil {
 			return e
 		}
+		if e := s.validateWorkspaceTerminalCandidateBindTx(ctx, tx, authority.proof, plan); e != nil {
+			return e
+		}
 		if e := s.BindRunTx(ctx, tx, authority.proof, project, plan.TaskID, runID, plan.TaskVersion); e != nil {
 			return e
 		}

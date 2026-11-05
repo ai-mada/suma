@@ -40457,6 +40457,10 @@
           },
           "snapshot_sha256": {
             "type": "string"
+          },
+          "workbuddy_origin": {
+            "$ref": "#/components/schemas/TerminalCandidateWorkBuddyOrigin",
+            "description": "Frozen cloud attempt that prompted a separately authorized local candidate. The candidate file source is the stopped local terminal."
           }
         },
         "required": [
@@ -40467,6 +40471,44 @@
           "admin_base_commit",
           "snapshot_sha256",
           "plan_id"
+        ],
+        "type": "object"
+      },
+      "TerminalCandidateWorkBuddyOrigin": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "attempt": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "fence": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "node_id": {
+            "const": "workbuddy-cloud",
+            "type": "string"
+          },
+          "run_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,100}$",
+            "type": "string"
+          },
+          "run_version": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "run_version",
+          "node_id",
+          "attempt",
+          "fence",
+          "assignment_sha256"
         ],
         "type": "object"
       },
