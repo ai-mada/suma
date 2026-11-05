@@ -171,22 +171,32 @@ func (s *Server) taskDeliveryRepositorySourceHTTP(w http.ResponseWriter, r *http
 		writeError(w, forbidden())
 		return
 	}
-	values, err := url.ParseQuery(r.URL.RawQuery)
-	const invalidQuery = "Invalid task delivery repository source query"
-	if err != nil || len(r.URL.RawQuery) > 8192 || len(values) != 5 {
-		writeError(w, invalid(invalidQuery))
+	query, err := readTaskDeliveryRepositoryQuery(r, project, task)
+	if err != nil {
+		writeError(w, err)
 		return
+	}
+	out, err := s.Service.taskDeliveryRepositorySource(r.Context(), actor, query)
+	respond(w, http.StatusOK, out, err)
+}
+
+func readTaskDeliveryRepositoryQuery(r *http.Request, project, task string) (taskDeliveryRepositoryQuery, error) {
+	const invalidQuery = "Invalid task delivery repository source query"
+	if len(r.URL.RawQuery) > 8192 {
+		return taskDeliveryRepositoryQuery{}, invalid(invalidQuery)
+	}
+	values, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil || len(values) != 5 {
+		return taskDeliveryRepositoryQuery{}, invalid(invalidQuery)
 	}
 	for _, key := range []string{"project_id", "task_version", "run_id", "target_id", "target_version"} {
 		if len(values[key]) != 1 {
-			writeError(w, invalid(invalidQuery))
-			return
+			return taskDeliveryRepositoryQuery{}, invalid(invalidQuery)
 		}
 	}
 	run, target := values.Get("run_id"), values.Get("target_id")
 	if project != values.Get("project_id") || !handoffID(project, false) || !handoffID(task, false) || !handoffID(run, false) || !handoffID(target, false) {
-		writeError(w, invalid(invalidQuery))
-		return
+		return taskDeliveryRepositoryQuery{}, invalid(invalidQuery)
 	}
 	version := func(key string) int {
 		value := values.Get(key)
@@ -198,9 +208,7 @@ func (s *Server) taskDeliveryRepositorySourceHTTP(w http.ResponseWriter, r *http
 	}
 	taskVersion, targetVersion := version("task_version"), version("target_version")
 	if taskVersion == 0 || targetVersion == 0 {
-		writeError(w, invalid(invalidQuery))
-		return
+		return taskDeliveryRepositoryQuery{}, invalid(invalidQuery)
 	}
-	out, err := s.Service.taskDeliveryRepositorySource(r.Context(), actor, taskDeliveryRepositoryQuery{project: project, task: task, run: run, target: target, taskVersion: taskVersion, targetVersion: targetVersion})
-	respond(w, http.StatusOK, out, err)
+	return taskDeliveryRepositoryQuery{project: project, task: task, run: run, target: target, taskVersion: taskVersion, targetVersion: targetVersion}, nil
 }

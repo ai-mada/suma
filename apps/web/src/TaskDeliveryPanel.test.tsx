@@ -10,9 +10,9 @@ const session:Session={user:{id:'user-a',name:'A',email:'a@example.test'},organi
 const summary=()=>({total:1,waiting:0,running:0,succeeded:1,failed:0,skipped:0,reconciling:0,other:0,limit:20,complete:true,items:[{id:'verify',name:'Independent checks',type:'test',state:'succeeded',attempt:1}]});
 function delivery(task='task-a'){return {project_id:'project-a',task_id:task,task_version:3,test_plan_id:'quality-plan-a',task_status:'awaiting_review',run_basis_state:'current',formal_acceptance:false,run:{run_id:'run-a',version:4,state:'succeeded',nodes:summary(),tests:summary()},expert_plans:{scope:'current_run',total:1,limit:20,complete:true,items:[{plan_id:'plan-a',version:2,revision:1,team_id:'team-a',team_name:'Engineering',state:'active',item_state:'awaiting_review'}]},issues:{scope:'current_run',total:1,limit:20,complete:true,items:[{issue_id:'issue-a',title:'Review finding',issue_version:1,issue_status:'open',source:'review_rejected',source_review_id:'review-a',requirement_id:'req-a',requirement_version:2}]}};}
 let root:Root|undefined,host:HTMLDivElement,reads:{path:string;signal?:AbortSignal|null}[],writes:number;
-beforeEach(async()=>{await setLocale('en-US',{persist:false});reads=[];writes=0;host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);});
+beforeEach(async()=>{sessionStorage.clear();await setLocale('en-US',{persist:false});reads=[];writes=0;host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);});
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host.remove();await setLocale('zh-CN',{persist:false});vi.restoreAllMocks();vi.unstubAllGlobals();});
-function transport(reply:(path:string)=>Promise<Response>){vi.stubGlobal('fetch',vi.fn(async(input:string,options?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(options?.body)writes++;else reads.push({path,signal:options?.signal});return reply(path);}));}
+function transport(reply:(path:string,options?:RequestInit)=>Promise<Response>){vi.stubGlobal('fetch',vi.fn(async(input:string,options?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(options?.body)writes++;else reads.push({path,signal:options?.signal});return reply(path,options);}));}
 async function settle(){for(let n=0;n<3;n++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
 async function render(task='task-a',callbacks:Record<string,any>={},s=session){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={s}><TaskDeliveryPanel session={s} project="project-a" taskId={task} taskVersion={3} refresh={0} {...callbacks}/></ApiViewProvider>);});await settle();}
 async function click(selector:string){const element=host.querySelector<HTMLElement>(selector);expect(element,selector).not.toBeNull();if(element instanceof HTMLButtonElement)expect(element.disabled).toBe(false);expect(element!.getAttribute('aria-disabled')).not.toBe('true');await act(async()=>element!.click());await settle();}
@@ -137,6 +137,85 @@ it('checks the current registered repository only on demand and hides stale, den
  await act(async()=>release(Response.json(observed)));await settle();
  expect(host.querySelector('[data-repository-source-toggle]')).toBeNull();expect(host.querySelector(result)).toBeNull();expect(writes).toBe(0);
  expect(vi.mocked(fetch).mock.calls.every(([,options])=>options?.method==='GET')).toBe(true);
+});
+
+const repositoryAction=(name:string)=>'[data-repository-source-'+name+']';
+function repositoryWorkbenchFixture(){
+ const trace={run_id:'run-a',node_id:'develop',attempt:2};
+ const nodes={...summary(),waiting:1,succeeded:0,items:[{id:trace.node_id,name:'Develop',type:'external_workflow',state:'waiting',attempt:trace.attempt}]};
+ const tests={...summary(),total:0,succeeded:0,items:[]};
+ const target={id:'target-a',project_id:'project-a',version:7,name:'Code delivery',ref:'refs/heads/delivery',status:'active',active_operation_id:'',blockers:[]};
+ const scope={...trace,project_id:'project-a',task_id:'task-a',task_version:3,target_id:target.id,target_version:target.version};
+ const head='b'.repeat(40),base='a'.repeat(40),digest='c'.repeat(64),profileSHA='d'.repeat(64),testSHA='e'.repeat(64),at='2026-11-05T12:00:00Z';
+ const intake={...scope,id:'intake-a',head_commit:head,base_commit:base,bundle_sha256:digest,size_bytes:1248,approved_at:at};
+ const producer={id:'producer-a',version:4,name:'Pinned importer',worker_id:'worker-a',command_id:'git-import'};
+ const tester={id:'tester-b',version:6,name:'Independent JUnit',worker_id:'worker-b',command_id:'junit'};
+ const testBinding={node_id:'repository-test',tool_profile_id:tester.id,tool_profile_version:tester.version,tool_profile_sha256:testSHA,worker_id:tester.worker_id,command_id:tester.command_id};
+ const runID='run-new',planID='plan-a',workflowID='managed-'+runID;
+ const plan={id:planID,project_id:'project-a',version:1,state:'ready',task_id:'task-a',task_version:3,workflow_id:workflowID,workflow_version:1,agent_node_id:'repository-source',tool_profile_id:producer.id,
+  tool_profile_version:producer.version,tool_profile_sha256:profileSHA,run_id:runID,created_at:at,expires_at:'2026-11-05T13:00:00Z',context:{task:{id:'task-a',version:3},test_plan:{case_count:1}},
+  workflow:{id:workflowID,version:1,nodes:[{id:'repository-source',type:'command',command:[producer.command_id],config:{tool_profile_id:producer.id,tool_profile_sha256:profileSHA,
+   repository_source_intake:{intake_id:intake.id,plan_id:planID,task_id:'task-a',task_version:3,head_commit:head,base_commit:base,bundle_sha256:digest,size_bytes:intake.size_bytes}}},
+   {id:'repository-test',type:'test',command:[tester.command_id],config:{tool_profile_id:tester.id,tool_profile_sha256:testSHA,candidate_from:'repository-source'}}],edges:[{from:'repository-source',to:'repository-test'}]},
+  test_bindings:[testBinding],valid:true,reason:''};
+ return {target,intake,plan,runID,source:{...trace,task_id:'task-a',task_version:3,target_id:target.id,target_version:target.version,ref:target.ref,head_commit:head,object_format:'sha1',observed_at:at},
+  delivery:{...delivery(),run:{...delivery().run,state:'running',nodes,tests,workbuddy_delivery:trace}},
+  options:{...scope,head_commit:head,base_commit:base,baseline_ref:'refs/heads/main',live_state:'ready',published_case_count:1,active_terminal:false,profiles_truncated:false,retained_intakes:[],producer_profiles:[producer],test_profiles:[{...tester,id:'same-worker',worker_id:producer.worker_id},tester]}};
+}
+
+it('reviews exact repository bytes, enforces a different test Worker, and recovers a lost start on the new bound run',async()=>{
+ const fixture=repositoryWorkbenchFixture(),openRun=vi.fn(),posts:{path:string;body:Record<string,unknown>}[]=[];
+ let launched=false,failStart=true;
+ transport(async(path,options)=>{
+  if(options?.body)posts.push({path,body:JSON.parse(String(options.body))});
+  if(path.startsWith('/repository-integration-targets?'))return Response.json({items:[fixture.target],total:1});
+  if(path.includes('/repository-source/options?'))return Response.json(fixture.options);
+  if(path.includes('/repository-source/intakes/')&&path.endsWith('/dispatch-plans'))return Response.json(fixture.plan,{status:201});
+  if(path.endsWith('/repository-source/intakes'))return Response.json(fixture.intake,{status:201});
+  if(path==='/task-dispatch-plans/plan-a/start'){
+   launched=true;
+   if(failStart){failStart=false;return Response.json({error:{code:'unavailable',message:'Lost response'}},{status:502});}
+   return Response.json({id:fixture.runID,tenant_id:'org-a',project_id:'project-a',workflow_id:'managed-'+fixture.runID,workflow_version:1},{status:201});
+  }
+  if(path.startsWith('/task-dispatch-plans/plan-a?'))return Response.json(launched?{...fixture.plan,state:'started',version:2,valid:false}:fixture.plan);
+  if(path.includes('/repository-source?'))return Response.json(fixture.source);
+  return Response.json(launched?{...delivery(),task_version:4,run:{...delivery().run,run_id:fixture.runID}}:fixture.delivery);
+ });
+ await render('task-a',{onOpenRun:openRun});await click('[data-task-delivery-toggle]');await click(repositoryAction('toggle'));
+ expect(reads.some(read=>read.path.includes('/options?'))).toBe(false);
+ await click(repositoryAction('prepare'));
+ expect(host.textContent).toContain(fixture.intake.base_commit);expect(host.textContent).toContain(fixture.intake.head_commit);
+ expect(host.querySelector<HTMLButtonElement>(repositoryAction('approve'))?.disabled).toBe(true);
+ await click(repositoryAction('approve-consent'));await click(repositoryAction('approve'));
+ expect(posts[0].body).toMatchObject({expected_head:fixture.intake.head_commit,expected_base:fixture.intake.base_commit,run_id:'run-a',target_version:7});
+ const tester=host.querySelector<HTMLSelectElement>(repositoryAction('tester'))!;expect(tester.value).toBe('tester-b');expect([...tester.options].map(option=>option.value)).toEqual(['','tester-b']);
+ await click(repositoryAction('preview'));expect(posts[1].body).toMatchObject({producer_profile_id:'producer-a',expected_producer_profile_version:4,test_profile_id:'tester-b',expected_test_profile_version:6});
+ expect(host.querySelector<HTMLButtonElement>(repositoryAction('start'))?.disabled).toBe(true);
+ await click(repositoryAction('start-consent'));await click(repositoryAction('start'));
+ expect(host.querySelector(repositoryAction('recover'))).not.toBeNull();
+ await act(async()=>root!.unmount());root=undefined;
+ await render('task-a',{taskVersion:4,onOpenRun:openRun});await click('[data-task-delivery-toggle]');
+ expect(host.querySelector(repositoryAction('toggle'))).toBeNull();
+ await click(repositoryAction('resume'));await click(repositoryAction('recover'));
+ expect(posts[3]).toEqual(posts[2]);
+ await click(repositoryAction('open-run'));expect(openRun).toHaveBeenCalledExactlyOnceWith({run:fixture.runID});
+});
+
+it('keeps retained sources usable when the provider is unavailable',async()=>{
+ const fixture=repositoryWorkbenchFixture();
+ transport(async path=>{
+  if(path.startsWith('/repository-integration-targets?'))return Response.json({items:[fixture.target],total:1});
+  if(path.includes('/repository-source/options?'))return Response.json({...fixture.options,head_commit:'',base_commit:'',baseline_ref:'',live_state:'unavailable',retained_intakes:[fixture.intake]});
+  if(path.includes('/repository-source?'))return Response.json({error:{code:'unavailable',message:'Provider unavailable'}},{status:503});
+  return Response.json(fixture.delivery);
+ });
+ await render();await click('[data-task-delivery-toggle]');await click(repositoryAction('toggle'));await click(repositoryAction('check'));
+ expect(host.querySelector(repositoryAction('result'))).toBeNull();
+ await click(repositoryAction('prepare'));
+ expect(host.querySelector(repositoryAction('approve'))).toBeNull();
+ expect(host.querySelector<HTMLSelectElement>(repositoryAction('intake'))?.value).toBe(fixture.intake.id);
+ expect(host.querySelector<HTMLButtonElement>(repositoryAction('preview'))?.disabled).toBe(false);
+ expect(writes).toBe(0);
 });
 
 it('extracts accepted delivery only from a current formal acceptance and honors navigation and callback locks',async()=>{

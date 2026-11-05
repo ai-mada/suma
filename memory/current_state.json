@@ -695,6 +695,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "repository_source_workbench": {
+    "stage": "T-REPOSITORY-SOURCE-WORKBENCH-246",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "71d0197",
+    "design": "docs/design/repository-source-workbench.md",
+    "report": "docs/quality/repository-source-workbench-verification.md",
+    "actual": "Task delivery workbench reviews the exact Git base and commit, retains explicit approval, previews distinct Worker profiles, and starts an immutable candidate plan. Current receipts remain selectable during provider metadata outage and interrupted writes recover by exact operation.",
+    "verification": "Real Git and SQLite HTTP with two local Runner identities; 12 Web tests, bilingual Chrome at 390px and 1280px on synthetic HTTP, TypeScript and locale checks.",
+    "known_limitations": "Browser fixture did not access a live project; actual WorkBuddy, cross-host Pool and production remain pending.",
+    "full_platform_complete": false,
+    "git_record": ".cache/repository-workbench-246/post-git.json"
+  },
   "repository_source_dispatch": {
     "stage": "T-REPOSITORY-SOURCE-DISPATCH-245",
     "version": "1.0.0",

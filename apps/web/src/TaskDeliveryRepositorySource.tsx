@@ -5,8 +5,12 @@ import {ApiError,query} from './api';
 import {useApi} from './api-context';
 import {formatDateTime,tr,useLocale} from './i18n';
 import {Loading} from './ui';
+import {RepositorySourceWorkbench} from './RepositorySourceWorkbench';
+import {savedWorkbenchPlan,workbenchScope,workbenchScopeKey,type RepositoryWorkbenchScope} from './repository-source-workbench-model';
+import {toolSessionStorage} from './tool-hooks';
 
-type Props={project:string;taskId:string;taskVersion:number;attempt:TaskDeliveryRunTarget};
+type SourceScope={project:string;taskId:string;taskVersion:number;attempt:TaskDeliveryRunTarget};
+type Props=Omit<SourceScope,'attempt'>&{owner:string;organization:string;attempt?:TaskDeliveryRunTarget;disabled:boolean;onLockChange:(locked:boolean)=>void;onOpenRun?:(run:string)=>void};
 type Target=Pick<RepositoryIntegrationTarget,'id'|'version'|'name'|'ref'>;
 type Failure='denied'|'changed'|'unavailable'|'invalid';
 const t=(key:string)=>tr('task-delivery.repository_source.'+key);
@@ -26,7 +30,7 @@ function registeredTargets(value:unknown,project:string):Target[]|undefined{
  return targets;
 }
 
-function validSource(value:unknown,scope:Props,target:Target):value is Source{
+function validSource(value:unknown,scope:SourceScope,target:Target):value is Source{
  if(!object(value)||Object.keys(value).length!==11||value.task_id!==scope.taskId||value.task_version!==scope.taskVersion||value.run_id!==scope.attempt.run_id||value.node_id!==scope.attempt.node_id||value.attempt!==scope.attempt.attempt||value.target_id!==target.id||value.target_version!==target.version||value.ref!==target.ref)return false;
  const format=value.object_format,head=value.head_commit,time=value.observed_at;
  return typeof head==='string'&&(format==='sha1'?/^[0-9a-f]{40}$/.test(head):format==='sha256'&&/^[0-9a-f]{64}$/.test(head))&&typeof time==='string'&&time.length<=64&&Number.isFinite(Date.parse(time));
@@ -40,18 +44,43 @@ function failure(error:unknown):Failure{
  return 'unavailable';
 }
 
-export function TaskDeliveryRepositorySource(props:Props){
+export function TaskDeliveryRepositorySource({project,taskId,taskVersion,attempt,owner,organization,disabled,onLockChange,onOpenRun}:Props){
  useLocale();
- const [open,setOpen]=useState(false),panel=useId();
+ const [open,setOpen]=useState(false),panel=useId(),storage=toolSessionStorage(),locator='suma-repository-workbench-current:'+owner;
+ const [work,setWork]=useState<{scope:RepositoryWorkbenchScope;head?:string}>();
+ const [locked,setLocked]=useState(false);
+ const button=useRef<HTMLButtonElement>(null);
+ let saved:RepositoryWorkbenchScope|undefined;
+ try{
+  const value:unknown=JSON.parse(storage?.getItem(locator)||'null');
+  if(workbenchScope(value)){
+   const key=workbenchScopeKey(owner,value);
+   if(storage?.getItem('suma-write-recovery-v1:'+key)||savedWorkbenchPlan(storage?.getItem('suma-repository-workbench-plan:'+key)))saved=value;
+  }
+ }catch{/* Reads still work when this browser cannot persist a workbench. */}
+ function select(scope:RepositoryWorkbenchScope,head?:string){
+  try{storage?.setItem(locator,JSON.stringify(scope));}catch{/* The write hook refuses untracked operations. */}
+  setWork({scope,head});
+ }
+ function prepareSource(target:Target,value?:Source){
+  if(!attempt)return;
+  select({taskVersion,runID:attempt.run_id,nodeID:attempt.node_id,attempt:attempt.attempt,targetID:target.id,targetVersion:target.version},value?.head_commit);
+ }
+ function closeWorkbench(){setWork(undefined);queueMicrotask(()=>button.current?.focus());}
+ const current=!!(attempt&&work&&taskVersion===work.scope.taskVersion&&attempt.run_id===work.scope.runID&&attempt.node_id===work.scope.nodeID&&attempt.attempt===work.scope.attempt);
+ if(!attempt&&!work&&!saved)return null;
  return <div className="task-delivery-repository">
-  <button type="button" className="task-delivery-repository-toggle" data-repository-source-toggle aria-expanded={open} aria-controls={panel} onClick={()=>setOpen(value=>!value)}>
+  {attempt&&<button type="button" className="task-delivery-repository-toggle" data-repository-source-toggle aria-expanded={open} aria-controls={panel} disabled={locked||disabled} ref={button} onClick={()=>setOpen(value=>!value)}>
    <GitBranch size={14} aria-hidden="true"/>{t('toggle')}<ChevronDown size={14} aria-hidden="true"/>
-  </button>
-  {open&&<RepositorySourceBody {...props} panel={panel}/>}
+  </button>}
+  {open&&attempt&&<RepositorySourceBody key={JSON.stringify([taskVersion,attempt])} project={project} taskId={taskId} taskVersion={taskVersion} attempt={attempt} panel={panel} locked={!!work||disabled} onPrepare={prepareSource}/>}
+  {!work&&saved&&<button type="button" className="task-delivery-repository-toggle" data-repository-source-resume disabled={disabled} onClick={()=>select(saved)}>{t('workbench.resume')}</button>}
+  {work&&<RepositorySourceWorkbench key={workbenchScopeKey(owner,work.scope)} owner={owner} organization={organization} project={project} task={taskId} scope={work.scope} checkedHead={work.head} current={current} disabled={disabled}
+   onClose={closeWorkbench} onLockChange={value=>{setLocked(value);onLockChange(value);}} onOpenRun={onOpenRun}/>}
  </div>;
 }
 
-function RepositorySourceBody({panel,...scope}:Props&{panel:string}){
+function RepositorySourceBody({panel,locked,onPrepare,...scope}:SourceScope&{panel:string;locked:boolean;onPrepare:(target:Target,observed?:Source)=>void}){
  const api=useApi(),targetField=useId(),request=useRef<AbortController|undefined>(undefined);
  const [targets,setTargets]=useState<Target[]>(),[selected,setSelected]=useState(''),[observed,setObserved]=useState<Source>();
  const [busy,setBusy]=useState(true),[error,setError]=useState<Failure>();
@@ -78,7 +107,7 @@ function RepositorySourceBody({panel,...scope}:Props&{panel:string}){
 
  const target=targets?.find(option=>option.id===selected);
  async function checkSource(){
-  if(!target||busy||error==='denied'||error==='changed')return;
+  if(!target||busy||locked||error==='denied'||error==='changed')return;
   const controller=start();
   const search=new URLSearchParams({project_id:scope.project,task_version:String(scope.taskVersion),run_id:scope.attempt.run_id,target_id:target.id,target_version:String(target.version)});
   try{
@@ -98,20 +127,20 @@ function RepositorySourceBody({panel,...scope}:Props&{panel:string}){
   <p className="task-delivery-muted">{t('intro')}</p>
   {!!targets?.length&&<div className="task-delivery-repository-controls">
    <label htmlFor={targetField}>{t('target')}</label>
-   <select id={targetField} data-repository-source-target value={selected} onChange={event=>{
+   <select id={targetField} data-repository-source-target value={selected} disabled={locked} onChange={event=>{
     request.current?.abort();setSelected(event.target.value);setObserved(undefined);setError(undefined);setBusy(false);
    }}>
     <option value="">{t('choose')}</option>
     {targets.map(option=><option key={option.id} value={option.id}>{option.name} · {option.ref}</option>)}
    </select>
-   <button type="button" data-repository-source-check disabled={!target||busy} onClick={()=>void checkSource()}>
+   <button type="button" data-repository-source-check disabled={!target||busy||locked} onClick={()=>void checkSource()}>
     <RefreshCw size={13} aria-hidden="true"/>{t('check')}
    </button>
   </div>}
   {busy&&<Loading/>}
   {!busy&&targets?.length===0&&<p className="task-delivery-muted" role="status">{t('empty')}</p>}
   {error&&<p className="task-delivery-warning" role="status">{t(error)}</p>}
-  {!busy&&(!targets?.length||error)&&<button type="button" data-repository-source-reload onClick={()=>void loadTargets()}>{t('reload')}</button>}
+  {!busy&&(!targets?.length||error)&&<button type="button" data-repository-source-reload disabled={locked} onClick={()=>void loadTargets()}>{t('reload')}</button>}
   {observed&&<div className="task-delivery-repository-result" role="status" data-repository-source-result>
    <strong>{t('observed')}</strong>
    <dl>
@@ -121,5 +150,6 @@ function RepositorySourceBody({panel,...scope}:Props&{panel:string}){
    </dl>
    <p className="task-delivery-muted">{t('boundary')}</p>
   </div>}
+  {target&&<button type="button" data-repository-source-prepare disabled={locked||busy} onClick={()=>onPrepare(target,observed)}>{t('workbench.prepare')}</button>}
  </div>;
 }

@@ -259,6 +259,10 @@ func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, p
 }
 
 func (s *Server) taskDeliveryHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, project string, parts []string) bool {
+	if len(parts) == 5 && parts[0] == "tasks" && parts[2] == "delivery" && parts[3] == "repository-source" && parts[4] == "options" {
+		s.taskDeliveryRepositorySourceOptionsHTTP(w, r, actor, project, parts[1])
+		return true
+	}
 	if len(parts) == 4 && parts[0] == "tasks" && parts[2] == "delivery" && parts[3] == "repository-source" {
 		if scope != "" && scope != "api" {
 			writeError(w, forbidden())

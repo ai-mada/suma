@@ -9,7 +9,7 @@ const taskDeliveryRepositoryIntakePath = "/tasks/{id}/delivery/repository-source
 const taskDeliveryRepositoryDispatchPath = taskDeliveryRepositoryIntakePath + "/{intake}/dispatch-plans"
 
 func taskDeliveryModels() []any {
-	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}, platform.TaskDeliveryRepositoryDispatchPreviewRequest{}}
+	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}, platform.TaskDeliveryRepositoryDispatchPreviewRequest{}, platform.TaskDeliveryRepositorySourceOptions{}, platform.TaskDeliveryRepositorySourceProfile{}}
 }
 
 // The selected-task view is separate from the complete editable dependency
@@ -40,6 +40,7 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	schemas := toolContractMap(api, "components", "schemas")
 	taskDeliveryRepositoryIntakeContract(add, schemas)
 	taskDeliveryRepositoryDispatchContracts(add, api, schemas)
+	taskDeliveryRepositoryOptionsContract(add, schemas, source)
 	for _, name := range []string{"TaskDelivery", "TaskDeliveryRun", "TaskDeliveryRunTarget", "TaskDeliveryNodeSummary", "TaskDeliveryNode", "TaskDeliveryExpertPlans", "TaskDeliveryExpertPlan", "TaskDeliveryIssues", "TaskDeliveryIssue", "TaskDeliveryRepositorySource"} {
 		model := toolContractMap(schemas, name)
 		model["additionalProperties"] = false
@@ -70,6 +71,32 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	}
 	for _, name := range []string{"waiting", "running", "succeeded", "failed", "skipped", "reconciling", "other"} {
 		toolContractMap(schemas, "TaskDeliveryNodeSummary", "properties", name)["minimum"] = 0
+	}
+}
+
+func taskDeliveryRepositoryOptionsContract(add operationAdder, schemas, source map[string]any) {
+	const model = "TaskDeliveryRepositorySourceOptions"
+	op := add("/tasks/{id}/delivery/repository-source/options", "get", model, false, false)
+	successStatus(op, "200")
+	browserOnly(op)
+	op["parameters"] = append([]any{}, source["parameters"].([]any)...)
+	op["description"] = "Read exact repository handoff choices for a current browser project approver. The live registered branch pair is optional when unavailable. Retained approvals and eligible distinct-Worker profile choices are scoped to the current task, attempt, target version and execution route. This read creates no approval, plan or run."
+	op["x-request-schema-coverage"] = "exact task ID and five required single-value query parameters; current project approval and original task/attempt basis verified server-side"
+	op["x-response-cache-control"] = "no-store"
+	toolContractMap(op, "responses")["404"] = map[string]any{"description": "Task or registered repository source unavailable in this project"}
+	for _, name := range []string{model, "TaskDeliveryRepositorySourceProfile"} {
+		toolContractMap(schemas, name)["additionalProperties"] = false
+		for _, field := range toolContractMap(schemas, name, "properties") {
+			field.(map[string]any)["readOnly"] = true
+		}
+	}
+	fields := toolContractMap(schemas, model, "properties")
+	toolContractMap(fields, "live_state")["enum"] = []string{"ready", "unchanged", "unavailable"}
+	toolContractMap(fields, "published_case_count")["minimum"] = 0
+	toolContractMap(fields, "attempt")["minimum"] = 1
+	toolContractMap(fields, "retained_intakes")["maxItems"] = 8
+	for _, name := range []string{"producer_profiles", "test_profiles"} {
+		toolContractMap(fields, name)["maxItems"] = 200
 	}
 }
 

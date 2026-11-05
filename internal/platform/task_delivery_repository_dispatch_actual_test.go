@@ -8,9 +8,11 @@ import (
 	"maps"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -116,9 +118,14 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = provider.Close() })
 	var providerRequests atomic.Int32
+	var basisOffline atomic.Bool
 	providerHandler := provider.Handler()
 	remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		providerRequests.Add(1)
+		if basisOffline.Load() && strings.HasPrefix(r.URL.Path, "/source-export-basis/") {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
 		providerHandler.ServeHTTP(w, r)
 	}))
 	defer remote.Close()
@@ -138,8 +145,6 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 	if intake.HeadCommit != head || intake.BaseCommit != base {
 		t.Fatal("approval did not retain the exact delivery source", intake)
 	}
-	providerReads := providerRequests.Load()
-
 	control := httptest.NewServer(f.handler)
 	defer control.Close()
 	producer := &runner.Client{BaseURL: control.URL, Token: producerToken, ProjectID: f.project}
@@ -148,6 +153,36 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 	independentCfg.Artifacts = independent
 	terminalCandidateRefreshRuntimeTools(t, ctx, f, producerProfile.WorkerID, producerToken, &producerCfg)
 	terminalCandidateRefreshRuntimeTools(t, ctx, f, testProfile.WorkerID, testToken, &independentCfg)
+	optionsPath := "/tasks/" + task.ID + "/delivery/repository-source/options?" + url.Values{
+		"project_id": {f.project}, "task_version": {strconv.Itoa(task.Version)}, "run_id": {origin.RunID},
+		"target_id": {target.ID}, "target_version": {strconv.Itoa(target.Version)},
+	}.Encode()
+	providerReads := providerRequests.Load()
+	f.call("GET", optionsPath+"&unexpected=1", nil, 400)
+	if providerRequests.Load() != providerReads {
+		t.Fatal("invalid workbench options request reached the provider")
+	}
+	assertOptions := func(wantLive string) {
+		t.Helper()
+		options := issueRepairRuntimeDecode[TaskDeliveryRepositorySourceOptions](t, f.call("GET", optionsPath, nil, 200))
+		if options.LiveState != wantLive || options.ActiveTerminal || options.PublishedCaseCount != 1 ||
+			options.RunID != origin.RunID || options.NodeID != origin.NodeID || options.Attempt != origin.Attempt ||
+			len(options.RetainedIntakes) != 1 || options.RetainedIntakes[0] != intake ||
+			len(options.ProducerProfiles) != 1 || options.ProducerProfiles[0].ID != producerProfile.ID ||
+			len(options.TestProfiles) != 1 || options.TestProfiles[0].ID != testProfile.ID {
+			t.Fatalf("unexpected repository handoff options: %+v", options)
+		}
+		if wantLive == "ready" && (options.HeadCommit != head || options.BaseCommit != base) ||
+			wantLive == "unavailable" && (options.HeadCommit != "" || options.BaseCommit != "") {
+			t.Fatalf("unexpected live repository evidence: %+v", options)
+		}
+	}
+	assertOptions("ready")
+	basisOffline.Store(true)
+	assertOptions("unavailable")
+	// Subsequent plan and start must use the retained source without a live
+	// provider, which was just observed to be unavailable.
+	providerReads = providerRequests.Load()
 	previewPath := intakesPath + "/" + intake.ID + "/dispatch-plans"
 	preview := f.body(map[string]any{
 		"expected_task_version": task.Version, "producer_profile_id": producerProfile.ID,
@@ -165,6 +200,7 @@ func TestTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T) {
 	const developerEmail = "repository-dispatch-developer245@example.test"
 	invite := governanceInvite(f, developerEmail, "member", []any{map[string]any{"project_id": f.project, "role": "developer"}})
 	governanceAccept(f, invite, developerEmail)
+	f.call("GET", optionsPath, nil, 403)
 	f.call("POST", startPath, start, 403)
 	f.cookie, f.view = ownerCookie, ownerView
 	runsBeforeStart := domainACount(t, f.s, "dag_runs")

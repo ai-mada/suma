@@ -125,10 +125,7 @@ func (s *Service) checkRepositorySourceDispatchBasisTx(ctx context.Context, auth
 	if err != nil {
 		return err
 	}
-	export := record.Export
-	if current.origin != record.Origin || current.provider != export.ProviderID || current.alias != export.TargetAlias ||
-		current.ref != export.TargetRef || current.configSHA != export.TargetConfigSHA256 || current.generation != export.ExpectedGeneration ||
-		current.objectFormat != "" && current.fenceOID != export.ExpectedFenceOID {
+	if !repositorySourceIntakeMatchesBasis(record, current) {
 		return conflict(repositorySourcePlanChanged)
 	}
 	var active int

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-REPOSITORY-SOURCE-WORKBENCH-246 任务工作台可核对基线、批准留存、选择不同 Worker、预览并确认启动。未知响应沿原操作恢复。 [交互](../design/repository-source-workbench.md) · [验证](../quality/repository-source-workbench-verification.md)
+
 T-ORG-PROJECT-PORTFOLIO 在项目管理汇总当前组织内有权项目的验收、阻塞、活动风险和待完成里程碑。服务端搜索、分页和跨项目权限已验证。 [交互](../design/project-portfolio.md) · [验证](../quality/project-portfolio-verification.md)
 
 T-REPOSITORY-SOURCE-DISPATCH-245 项目审批人可将留存仓库来源派发为受管候选，Runner 隔离封存原包，另一 Runner 独立测试同一提交，再沿新运行验收。 [合同](../../contracts/workbuddy-task-dispatch.md#派发已批准仓库来源的候选和独立测试) · [验证](../quality/repository-source-dispatch-verification.md)

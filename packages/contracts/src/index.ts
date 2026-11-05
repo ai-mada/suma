@@ -7236,6 +7236,33 @@ export interface TaskDeliveryRepositorySource {
   object_format: string;
   observed_at: string;
 }
+export interface TaskDeliveryRepositorySourceOptions {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  target_id: string;
+  target_version: number;
+  head_commit: string;
+  base_commit: string;
+  baseline_ref: string;
+  live_state: string;
+  published_case_count: number;
+  active_terminal: boolean;
+  profiles_truncated: boolean;
+  retained_intakes: (TaskDeliveryRepositoryIntake)[];
+  producer_profiles: (TaskDeliveryRepositorySourceProfile)[];
+  test_profiles: (TaskDeliveryRepositorySourceProfile)[];
+}
+export interface TaskDeliveryRepositorySourceProfile {
+  id: string;
+  version: number;
+  name: string;
+  worker_id: string;
+  command_id: string;
+}
 export interface TaskDeliveryRun {
   run_id: string;
   version: number;

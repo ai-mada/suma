@@ -17,3 +17,26 @@
 .task-delivery-repository-result dl>div{display:grid;gap:3px;min-width:0}
 .task-delivery-repository-result dt{color:var(--muted)}
 .task-delivery-repository-result dd{margin:0;overflow-wrap:anywhere}
+.repository-workbench{display:grid;gap:10px;min-width:0;border:1px solid var(--border);border-radius:10px;padding:12px}
+.repository-workbench-heading,.repository-workbench-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.repository-workbench-heading{justify-content:space-between}
+.repository-workbench-heading h5{margin:0;font-size:14px;font-weight:650}
+.repository-workbench button,.repository-workbench select,.repository-workbench-consent,.task-delivery-repository-body [data-repository-source-prepare]{min-height:44px;font-size:12px}
+.repository-workbench button{justify-self:start;display:inline-flex;align-items:center;gap:6px;white-space:normal;text-align:left}
+.repository-workbench-steps{display:flex;flex-wrap:wrap;gap:6px 12px;list-style:none;padding:0;margin:0;font-size:12px}
+.repository-workbench-steps li{display:inline-flex;gap:5px;align-items:center;color:var(--muted)}
+.repository-workbench-steps li[aria-current]{color:var(--accent);font-weight:650}
+.repository-workbench-steps li span{display:inline-grid;place-items:center;min-width:20px;min-height:20px;border:1px solid var(--border);border-radius:50%}
+.repository-workbench-card,.repository-workbench-callout{display:grid;gap:7px;min-width:0;border:1px solid var(--border);border-radius:7px;padding:9px;font-size:12px}
+.repository-workbench-card label{font-weight:600}
+.repository-workbench-facts{display:grid;gap:7px;margin:0}
+.repository-workbench-facts>div{display:grid;gap:3px;min-width:0}
+.repository-workbench-facts dt,.repository-workbench-facts small{color:var(--muted)}
+.repository-workbench-facts dd{margin:0;overflow-wrap:anywhere}
+.repository-workbench-facts small{display:block}
+.repository-workbench-workers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr));gap:8px}
+.repository-workbench-workers>div{min-width:0;display:grid;gap:4px}
+.repository-workbench select{width:100%;min-width:0}
+.repository-workbench-consent{display:flex;gap:8px;align-items:center}
+.repository-workbench-consent input{flex-shrink:0;width:18px;height:18px}
+.repository-workbench [data-repository-source-open-run]{gap:6px}
