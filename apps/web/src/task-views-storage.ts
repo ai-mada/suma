@@ -38,41 +38,41 @@ const shortFilter=(value:unknown):value is string=>typeof value==='string'&&Arra
 
 export function taskViewsKey(scope:TaskViewScope):string{return prefix+JSON.stringify(scope);}
 
-function validScope(scope:TaskViewScope):boolean{
+export function validTaskViewScope(scope:TaskViewScope):boolean{
  return Array.isArray(scope)&&scope.length===3&&scope.every(id=>text(id,128)&&id!==''&&id.trim()===id);
 }
-function exactObject(value:unknown,keys:readonly string[]):value is Record<string,unknown>{
+export function exactTaskViewObject(value:unknown,keys:readonly string[]):value is Record<string,unknown>{
  if(value===null||typeof value!=='object'||Array.isArray(value))return false;
  const prototype=Object.getPrototypeOf(value);
  return (prototype===Object.prototype||prototype===null)&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
 }
-function validPreferences(value:unknown):value is TaskViewPreferences{
+export function validTaskViewPreferences(value:unknown,validReference=(id:string)=>ownerIdentifier.test(id)):value is TaskViewPreferences{
  if(value===null||typeof value!=='object'||Array.isArray(value))return false;
  const prototype=Object.getPrototypeOf(value);if(prototype!==Object.prototype&&prototype!==null)return false;
  const required=['q','status','owner_id','priority','sort','layout','group_by'],optional=['columns','requirement_id','iteration_id','iteration_unset','unassigned','priority_unset','status_unset'];
  const keys=Reflect.ownKeys(value);if(!required.every(key=>Object.hasOwn(value,key))||keys.some(key=>typeof key!=='string'||!required.includes(key)&&!optional.includes(key)))return false;
  const candidate=value as Record<string,unknown>;if(!taskColumns(candidate.columns))return false;
- for(const key of ['requirement_id','iteration_id'])if(candidate[key]!==undefined&&(typeof candidate[key]!=='string'||candidate[key]!==''&&!ownerIdentifier.test(candidate[key])))return false;
+ for(const key of ['requirement_id','iteration_id'])if(candidate[key]!==undefined&&(typeof candidate[key]!=='string'||candidate[key]!==''&&!validReference(candidate[key])))return false;
  for(const key of ['unassigned','priority_unset','status_unset','iteration_unset'])if(candidate[key]!==undefined&&typeof candidate[key]!=='boolean')return false;
  if(candidate.unassigned&&candidate.owner_id!==''||candidate.priority_unset&&candidate.priority!==''||candidate.status_unset&&candidate.status!==''||candidate.iteration_unset&&!!candidate.iteration_id)return false;
  return typeof candidate.q==='string'&&Array.from(candidate.q).length<=200&&!controls.test(candidate.q)&&shortFilter(candidate.status)&&shortFilter(candidate.priority)
-  &&typeof candidate.owner_id==='string'&&(candidate.owner_id===''||ownerIdentifier.test(candidate.owner_id))
+  &&typeof candidate.owner_id==='string'&&(candidate.owner_id===''||validReference(candidate.owner_id))
   &&['updated_desc','created_desc','title_asc','priority_desc'].includes(candidate.sort as string)
   &&['list','board'].includes(candidate.layout as string)&&['status','owner','priority','iteration'].includes(candidate.group_by as string);
 }
 function validCollection(value:unknown):value is TaskViewCollection{
- if(!exactObject(value,['format','views'])||value.format!==taskViewsFormat||!Array.isArray(value.views)||value.views.length>20)return false;
+ if(!exactTaskViewObject(value,['format','views'])||value.format!==taskViewsFormat||!Array.isArray(value.views)||value.views.length>20)return false;
  const ids=new Set<string>();
  for(const item of value.views){
-  if(!exactObject(item,['id','name','preferences'])||typeof item.id!=='string'||!identifier.test(item.id)||ids.has(item.id)
-   ||!text(item.name,80)||!item.name||item.name.trim()!==item.name||!validPreferences(item.preferences))return false;
+  if(!exactTaskViewObject(item,['id','name','preferences'])||typeof item.id!=='string'||!identifier.test(item.id)||ids.has(item.id)
+   ||!text(item.name,80)||!item.name||item.name.trim()!==item.name||!validTaskViewPreferences(item.preferences))return false;
   ids.add(item.id);
  }
  return true;
 }
 
 /** JSON.parse accepts duplicate properties; reject them within each object. */
-function hasDuplicateKeys(raw:string):boolean{
+export function hasDuplicateTaskViewJSONKeys(raw:string):boolean{
  const scopes:(Set<string>|null)[]=[];
  for(const token of raw.matchAll(/"(?:\\.|[^"\\])*"|[{}\[\]]/g)){
   if(token[0]==='{'){scopes.push(new Set());continue;}
@@ -90,14 +90,14 @@ function decode(key:string,raw:string|null):TaskViewReadResult{
  try{
   if(raw.length>byteLimit||bytes(raw)>byteLimit)throw new Error('oversized');
   const collection:unknown=JSON.parse(raw);
-  if(!validCollection(collection)||hasDuplicateKeys(raw))throw new Error('invalid');
+  if(!validCollection(collection)||hasDuplicateTaskViewJSONKeys(raw))throw new Error('invalid');
   return {key,raw,collection,error:null};
  }catch{return {key,raw,collection:null,error:'corrupt'};}
 }
 export function readTaskViews(storage:TaskViewStorage|null|undefined,scope:TaskViewScope):TaskViewReadResult{
  const key=taskViewsKey(scope);
  try{
-  if(!storage||!validScope(scope))throw new Error('unavailable');
+  if(!storage||!validTaskViewScope(scope))throw new Error('unavailable');
   return decode(key,storage.getItem(key));
  }catch{return {key,raw:null,collection:null,error:'unavailable'};}
 }

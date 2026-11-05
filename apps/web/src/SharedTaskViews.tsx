@@ -5,15 +5,15 @@ import {tr,useLocale,UiError} from './i18n';
 import {ErrorNotice,Field,Modal} from './ui';
 import type {TaskViewPreferences,TaskViewScope} from './task-views-storage';
 import {taskColumns} from './task-columns-model';
+import {clearSharedTaskViewRecovery,discardInvalidSharedTaskViewRecovery,persistSharedTaskViewRecovery,purgeSharedTaskViewRecovery,readSharedTaskViewRecovery,type SharedTaskViewWrite as Write} from './shared-task-view-recovery';
 import './SharedTaskViews.css';
 
 export type SharedTaskView={id:string;project_id:string;owner_id:string;name:string;visibility:'private'|'project';version:number;state:'active'|'archived';preferences:TaskViewPreferences;created_at:string;updated_at:string;can_edit:boolean;can_delete:boolean};
 type Page={project_id:string;items:SharedTaskView[];total:number;limit:number;next_cursor?:string;as_of:string};
-type Props={scope:TaskViewScope;preferences:TaskViewPreferences;onChange:(value:TaskViewPreferences)=>boolean;denied?:boolean};
+type Props={scope:TaskViewScope;preferences:TaskViewPreferences;onChange:(value:TaskViewPreferences)=>boolean;denied?:boolean;onRecoveredWrite?:()=>void};
 type Draft={name:string;visibility:'private'|'project';preferences:TaskViewPreferences;editing?:SharedTaskView;remove?:boolean;unavailable?:boolean};
-type Write={path:string;method:string;body:Record<string,unknown>;remove:boolean;id?:string};
 const deniedError=(error:unknown)=>error instanceof ApiError&&[401,403,404].includes(error.status);
-const comparable=(p:TaskViewPreferences)=>JSON.stringify([p.q,p.status,p.owner_id,p.priority,p.requirement_id||'',!!p.unassigned,!!p.priority_unset,!!p.status_unset,p.iteration_id||'',!!p.iteration_unset,p.sort,p.layout,p.group_by,taskColumns(p.columns)]);
+const comparable=(p:TaskViewPreferences)=>JSON.stringify([p.q||'',p.status||'',p.owner_id||'',p.priority||'',p.requirement_id||'',!!p.unassigned,!!p.priority_unset,!!p.status_unset,p.iteration_id||'',!!p.iteration_unset,p.sort,p.layout,p.group_by,taskColumns(p.columns)]);
 /** Project only the saved-view contract; route object/detail state is never uploaded. */
 export function sharedViewPreferences(p:TaskViewPreferences):TaskViewPreferences{if(!taskColumns(p.columns))throw new UiError('task-columns.invalid');return {...(p.columns===undefined?{}:{columns:[...p.columns]}),q:p.q,status:p.status,owner_id:p.owner_id,priority:p.priority,sort:p.sort,layout:p.layout,group_by:p.group_by,requirement_id:p.requirement_id||undefined,iteration_id:p.iteration_id||undefined,iteration_unset:p.iteration_unset||undefined,unassigned:p.unassigned||undefined,priority_unset:p.priority_unset||undefined,status_unset:p.status_unset||undefined};}
 type AppliedView={id:string;version:number;preferences:TaskViewPreferences};
@@ -23,6 +23,17 @@ function requireView(row:SharedTaskView,project:string,id?:string){
  if(!row||typeof row.id!=='string'||!row.id||row.project_id!==project||(id!==undefined&&row.id!==id)||typeof row.name!=='string'||!Number.isSafeInteger(row.version)||row.version<1||typeof row.can_edit!=='boolean'||typeof row.can_delete!=='boolean'||!['active','archived'].includes(row.state)||!['project','private'].includes(row.visibility))throw new UiError('shared-task-views.invalid_response');
  if(!row.preferences||typeof row.preferences!=='object'||Array.isArray(row.preferences)||!taskColumns(row.preferences.columns))throw new UiError('task-columns.invalid_response');
 }
+function requireWriteReceipt(row:SharedTaskView,scope:TaskViewScope,command:Write){
+ requireView(row,scope[2],command.id);
+ const {expected_version,name,visibility}=command.body;
+ const preferences=command.body.preferences as TaskViewPreferences|undefined;
+ if(row.version!==(typeof expected_version==='number'?expected_version+1:1)||
+  (command.remove?row.state!=='archived'||row.can_edit||row.can_delete:
+   row.state!=='active'||row.name!==name||row.visibility!==visibility||
+   (!command.id&&row.owner_id!==scope[0])||!preferences||
+   JSON.stringify(row.preferences.columns)!==JSON.stringify(preferences.columns)||comparable(row.preferences)!==comparable(preferences)))
+  throw new UiError('shared-task-views.invalid_response');
+}
 function readRevision(raw:unknown,project:string){
  if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new UiError('shared-task-views.invalid_response');
  const marker=raw as Record<string,unknown>;
@@ -30,7 +41,7 @@ function readRevision(raw:unknown,project:string){
  return marker.revision;
 }
 export function SharedTaskViews(props:Props){return <ScopedSharedTaskViews key={JSON.stringify(props.scope)} {...props}/>;}
-function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
+function ScopedSharedTaskViews({scope,preferences,onChange,denied=false,onRecoveredWrite}:Props){
  useLocale();
  const project=scope[2],query='?project_id='+encodeURIComponent(project);
  const identity={'X-Suma-Expected-User':scope[0],'X-Suma-Expected-Organization':scope[1]};
@@ -39,12 +50,17 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
  const [unavailable,setUnavailable]=useState(false),[phase,setPhase]=useState<SyncPhase>('checking');
  const [loading,setLoading]=useState(false),[error,setError]=useState<unknown>(null),[blocked,setBlocked]=useState(false);
  const [draft,setDraft]=useState<Draft|null>(null),[writeError,setWriteError]=useState<unknown>(null);
- const [busy,setBusy]=useState(false),[pending,setPendingState]=useState<Write|null>(null),[conflict,setConflict]=useState(false),[notice,setNotice]=useState('');
+ const [recovery,setRecovery]=useState(()=>readSharedTaskViewRecovery(scope));
+ const {command:pending,error:storageIssue}=recovery;
+ const [busy,setBusy]=useState(false),[conflict,setConflict]=useState(false),[notice,setNotice]=useState('');
+ const [deferred,setDeferred]=useState(false),[discardInvalid,setDiscardInvalid]=useState(false);
+ const [refusedDraft,setRefusedDraft]=useState<Draft|null>(null);
  const container=useRef<HTMLDivElement>(null),live=useRef(true),accessBlocked=useRef(false);
  const read=useRef<AbortController|null>(null),write=useRef<AbortController|null>(null),writing=useRef(false);
  const lastRevision=useRef<string|undefined>(undefined);
  const selection=useRef(applied),editor=useRef(draft),pendingWrite=useRef(pending);
- const setPending=(command:Write|null)=>{pendingWrite.current=command;setPendingState(command);};
+ const setPending=(command:Write|null)=>{pendingWrite.current=command;setRecovery(state=>({...state,command}));};
+ const setStorageIssue=(issue:typeof storageIssue)=>setRecovery(state=>({...state,error:issue}));
  selection.current=applied;
  editor.current=draft;
  const active=rows.find(row=>row.id===applied?.id)??(pinned?.id===applied?.id?pinned:null);
@@ -55,16 +71,18 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
  const draftRightsLost=!!draft?.editing&&!(draft.remove?editorComparison?.can_delete:editorComparison?.can_edit);
  const clearSelection=()=>{selection.current=null;setApplied(null);setPinned(null);};
  const stopRead=()=>{read.current?.abort();read.current=null;setLoading(false);};
- const clear=()=>{
+ const clear=(removeRecovery=true)=>{
   stopRead();write.current?.abort();write.current=null;writing.current=false;lastRevision.current=undefined;
   accessBlocked.current=true;setRows([]);setCursor('');clearSelection();setDraft(null);setPending(null);
+  if(removeRecovery)purgeSharedTaskViewRecovery(scope);
+  setStorageIssue(null);setDeferred(false);setDiscardInvalid(false);setRefusedDraft(null);
   setWriteError(null);setBusy(false);setConflict(false);setUnavailable(false);setNotice('');setBlocked(true);
  };
  const retireView=(id:string)=>{
   setRows(old=>old.filter(row=>row.id!==id));
   if(selection.current?.id===id){clearSelection();setUnavailable(true);}
   setDraft(old=>{
-   if(old?.editing?.id!==id)return old;
+   if(pendingWrite.current||old?.editing?.id!==id)return old;
    return old.remove?null:{...old,editing:undefined,unavailable:true};
   });
  };
@@ -86,7 +104,7 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
   }
  };
  const load=async(kind:'auto'|'refresh'|'more'='auto')=>{
-  if(denied||read.current||writing.current||pendingWrite.current||kind==='auto'&&accessBlocked.current)return;
+  if(denied||read.current||writing.current||kind==='auto'&&accessBlocked.current)return;
   if(!isOnline()){setPhase('offline');return;}
   const controller=new AbortController();read.current=controller;
   const signal=controller.signal,current=()=>live.current&&!signal.aborted&&read.current===controller;
@@ -136,11 +154,11 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
    if(next===null&&selectionID)retireView(selectionID);
    else if(next&&selectionID)setPinned(next);
    if(editorView===null&&editingID&&editingID!==selectionID)retireView(editingID);
-   if(editorView&&editor.current?.editing&&editorView.version>editor.current.editing.version)setConflict(true);
+   if(!pendingWrite.current&&editorView&&editor.current?.editing&&editorView.version>editor.current.editing.version)setConflict(true);
    setError(null);accessBlocked.current=false;setBlocked(false);setPhase('current');
   }catch(caught){
    if(!current())return;
-   if(deniedError(caught)){clear();setError(caught);}
+   if(deniedError(caught)){clear(!(caught instanceof ApiError&&caught.code==='view_context_changed'));setError(caught);}
    else if(kind!=='auto'||lastRevision.current===undefined)setError(caught);
    setPhase(!isOnline()?'offline':'stale');
   }finally{
@@ -151,6 +169,7 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
  loadLatest.current=load;
  useEffect(()=>{
   live.current=true;
+  if(!denied&&pendingWrite.current)onRecoveredWrite?.();
   let intersecting=typeof IntersectionObserver==='undefined';
   let timer:ReturnType<typeof setInterval>|undefined;
   const check=()=>{
@@ -189,44 +208,88 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
  useEffect(()=>{if(denied)clear();},[denied]);
  const open=(editing?:SharedTaskView,remove=false)=>{
   setDraft({name:editing?.name||active?.name||'',visibility:editing?.visibility||'private',preferences:sharedViewPreferences(remove&&editing?editing.preferences:preferences),editing,remove});
-  setWriteError(null);setConflict(false);setNotice('');
+  setWriteError(null);setConflict(false);setNotice('');setRefusedDraft(null);setDeferred(false);
  };
- const perform=async(command:Write)=>{
-  if(writing.current||locked||!isOnline())return;
+ const reloadRecovery=()=>{
+  const result=readSharedTaskViewRecovery(scope);
+  setStorageIssue(result.error);setDiscardInvalid(false);
+  if(result.command){setPending(result.command);setDraft(null);}
+ };
+ const perform=async(command:Write,retrying=false)=>{
+  if(writing.current||locked||!isOnline()||(retrying?phase!=='current':!!pendingWrite.current||!!storageIssue))return;
+  if(!persistSharedTaskViewRecovery(scope,command)){
+   setStorageIssue('unavailable');return;
+  }
+  setPending(command);setStorageIssue(null);
   writing.current=true;stopRead();
   const controller=new AbortController();write.current=controller;
   const signal=controller.signal,current=()=>live.current&&!signal.aborted&&write.current===controller;
+  const acknowledge=()=>{
+   if(!clearSharedTaskViewRecovery(scope,command)){setStorageIssue('unavailable');return false;}
+   setPending(null);setDeferred(false);return true;
+  };
+  let refresh=false;
   setBusy(true);setWriteError(null);
   try{
    const row=await api<SharedTaskView>(command.path,command.body,command.method,identity,signal);
    if(!current())return;
-   requireView(row,project,command.id);
-   if(row.state!==(command.remove?'archived':'active'))throw new UiError('shared-task-views.invalid_response');
-   setPending(null);setDraft(null);setConflict(false);
-   setRows(old=>command.remove?old.filter(item=>item.id!==row.id):[row,...old.filter(item=>item.id!==row.id)]);
-   if(command.remove)clearSelection();
-   else{
-    const snapshot={id:row.id,version:row.version,preferences:sharedViewPreferences(row.preferences)};
-    selection.current=snapshot;setApplied(snapshot);setPinned(row);
+   requireWriteReceipt(row,scope,command);
+   if(!acknowledge())return;
+   setDraft(null);setConflict(false);
+   if(retrying){
+    // An original receipt proves the command, while the current directory
+    // may already contain a newer revision or a different selection.
+    refresh=true;
+   }else{
+    setRows(old=>command.remove?old.filter(item=>item.id!==row.id):[row,...old.filter(item=>item.id!==row.id)]);
+    if(command.remove)clearSelection();
+    else{
+     const snapshot={id:row.id,version:row.version,preferences:sharedViewPreferences(row.preferences)};
+     selection.current=snapshot;setApplied(snapshot);setPinned(row);
+    }
+    setUnavailable(false);
    }
-   setUnavailable(false);setNotice(tr(command.remove?'shared-task-views.deleted':'shared-task-views.saved'));
+   setNotice(tr(command.remove?'shared-task-views.deleted':'shared-task-views.saved'));
   }catch(caught){
    if(!current())return;
-   if(deniedError(caught)){clear();setError(caught);}
-   else{
-    setWriteError(caught);
-    const unknown=!(caught instanceof ApiError)||caught.status===0||caught.status>=500;
-    setPending(unknown?command:null);
-    setConflict(caught instanceof ApiError&&caught.status===409);
+   setWriteError(caught);
+   if(!(caught instanceof ApiError))return;
+   if(deniedError(caught)){
+    try{
+     const marker=await api<unknown>('/task-views/sync'+query,undefined,'GET',identity,signal);
+     if(!current())return;
+     readRevision(marker,project);
+    }catch(check){
+     if(current()&&deniedError(check)){clear(!(check instanceof ApiError&&check.code==='view_context_changed'));setError(check);}
+     return;
+    }
+    // Project read is still allowed. This refusal may follow an earlier
+    // successful write, and only rules out replay with current permissions.
+    if(!acknowledge())return;
+    setDraft(null);setConflict(false);setNotice(tr('shared-task-views.recovery_refused'));
+    refresh=true;
+    return;
+   }
+   const rejected=caught.status===400&&caught.code==='invalid_input'||
+    caught.status===409&&['version_conflict','idempotency_conflict'].includes(caught.code);
+   if(!rejected||!acknowledge())return;
+   setConflict(caught.status===409);
+   if(!editor.current){
+    if(!command.remove&&caught.status===409)setRefusedDraft({name:command.body.name as string,visibility:'private',preferences:command.body.preferences as TaskViewPreferences});
+    setNotice(tr('shared-task-views.recovery_refused'));
+    refresh=true;
    }
   }finally{
-   if(current()){write.current=null;writing.current=false;setBusy(false);}
+   if(current()){
+    write.current=null;writing.current=false;setBusy(false);
+    if(refresh)void loadLatest.current('refresh');
+   }
   }
  };
  const save=()=>{
-  if(!draft||draft.unavailable||draftRightsLost||busy||pending||conflict||offline)return;
+  if(!draft||draft.unavailable||draftRightsLost||busy||pending||storageIssue||conflict||offline)return;
   const name=draft.name.trim();
-  if(!name||Array.from(name).length>80){setWriteError(new Error(tr('shared-task-views.invalid')));return;}
+  if(!name||Array.from(name).length>80||/[\u0000-\u001f\u007f-\u009f]/.test(name)){setWriteError(new Error(tr('shared-task-views.invalid')));return;}
   const base={project_id:project,idempotency_key:operation()},id=draft.editing?.id;
   const body=draft.remove?{...base,expected_version:draft.editing!.version}:{...base,name,visibility:draft.visibility,preferences:draft.preferences,...(id?{expected_version:draft.editing!.version}:{})};
   void perform({path:'/task-views'+(id?'/'+encodeURIComponent(id):'')+(draft.remove?'/archive':''),method:id&&!draft.remove?'PATCH':'POST',body,remove:!!draft.remove,id});
@@ -247,7 +310,7 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
    setConflict(false);setNotice(tr('shared-task-views.review'));
   }catch(caught){
    if(!current())return;
-   if(deniedError(caught)){clear();setError(caught);}
+   if(deniedError(caught)){clear(!(caught instanceof ApiError&&caught.code==='view_context_changed'));setError(caught);}
    else setWriteError(caught);
   }finally{
    if(current()){write.current=null;writing.current=false;setBusy(false);}
@@ -260,6 +323,7 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
  };
  const shownRows=active&&!rows.some(row=>row.id===active.id)?[...rows,active]:rows;
  const syncState=locked?'denied':pending?'pending':phase;
+ const retry=()=>{if(pending)void perform(pending,true);};
  return <div ref={container} className="shared-task-views" aria-busy={loading}>
   <div className="shared-task-views-bar">
    <label className="shared-task-views-picker"><Cloud size={17}/><span>{tr('shared-task-views.title')}</span>
@@ -271,12 +335,26 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
      {(['private','project'] as const).map(visibility=><optgroup key={visibility} label={tr('shared-task-views.'+visibility)}>{shownRows.filter(row=>row.visibility===visibility&&row.state==='active').map(row=><option key={row.id} value={row.id}>{row.name}</option>)}</optgroup>)}
     </select>
    </label>
-   <button type="button" disabled={locked||offline||busy||!!pending||!taskColumns(preferences.columns)} onClick={()=>open()}>{tr('shared-task-views.save')}</button>
-   <button type="button" data-shared-view-refresh disabled={denied||offline||loading||busy||!!pending} aria-label={tr('shared-task-views.refresh')} onClick={()=>void load('refresh')}><RefreshCw size={16}/>{tr('shared-task-views.refresh')}</button>
+   <button type="button" disabled={locked||offline||busy||!!pending||!!storageIssue||!taskColumns(preferences.columns)} onClick={()=>open()}>{tr('shared-task-views.save')}</button>
+   <button type="button" data-shared-view-refresh disabled={denied||offline||loading||busy} aria-label={tr('shared-task-views.refresh')} onClick={()=>void load('refresh')}><RefreshCw size={16}/>{tr('shared-task-views.refresh')}</button>
   </div>
   <p className="shared-task-views-sync" data-shared-view-sync-state={syncState} role="status">
    <span className="shared-task-views-sync-dot" aria-hidden="true"/>{tr('shared-task-views.sync_'+syncState)}
   </p>
+  {!locked&&pending&&(!draft||deferred)&&<section className="shared-task-views-update shared-task-views-recovery" data-shared-view-recovery>
+   <div className="shared-task-views-update-heading"><div>
+    <strong>{tr('shared-task-views.recovery_title')}</strong>
+    <p role="status">{tr(offline?'shared-task-views.recovery_offline':'shared-task-views.recovery_hint')}</p>
+   </div><button type="button" className="primary" data-shared-view-retry disabled={busy||phase!=='current'} onClick={retry}>{tr(busy?'shared-task-views.saving':'shared-task-views.retry')}</button></div>
+   {!!writeError&&<ErrorNotice error={writeError}/>}
+  </section>}
+  {!locked&&storageIssue&&(!draft||deferred)&&<div className="shared-task-views-conflict">
+   <p role="status">{tr(storageIssue==='invalid'?'shared-task-views.recovery_invalid':'shared-task-views.recovery_storage')}</p>
+   {!pending&&<div className="inline">
+    <button type="button" onClick={reloadRecovery}>{tr('shared-task-views.recovery_check_storage')}</button>
+    {storageIssue==='invalid'&&<button type="button" onClick={()=>setDiscardInvalid(true)}>{tr('shared-task-views.recovery_discard')}</button>}
+   </div>}
+  </div>}
   {unavailable&&<p data-shared-view-unavailable role="status" className="shared-task-views-status">{tr('shared-task-views.unavailable')}</p>}
   {active&&<><div className="shared-task-views-meta"><span>{tr('shared-task-views.'+active.visibility)}</span><span>{tr('shared-task-views.version',{version:applied?.version??active.version})}</span>{!update&&<span>{time(active.updated_at)}</span>}<span>{tr('shared-task-views.owner',{owner:active.owner_id})}</span></div>
    {update&&<section className="shared-task-views-update" data-shared-view-update-notice>
@@ -289,34 +367,42 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
     </details>
    </section>}
    <div className="shared-task-views-actions">
-    {active.can_edit&&<button disabled={locked||offline||busy||!!pending||!!update||!taskColumns(preferences.columns)} onClick={()=>open(active)}>{tr('shared-task-views.edit')}</button>}
-    <button disabled={locked||offline||busy||!!pending||!taskColumns(preferences.columns)} onClick={()=>open()}>{tr('shared-task-views.copy')}</button>
-    {active.can_delete&&<button disabled={locked||offline||busy||!!pending||!!update} onClick={()=>open(active,true)}>{tr('shared-task-views.delete')}</button>}
+    {active.can_edit&&<button disabled={locked||offline||busy||!!pending||!!storageIssue||!!update||!taskColumns(preferences.columns)} onClick={()=>open(active)}>{tr('shared-task-views.edit')}</button>}
+    <button disabled={locked||offline||busy||!!pending||!!storageIssue||!taskColumns(preferences.columns)} onClick={()=>open()}>{tr('shared-task-views.copy')}</button>
+    {active.can_delete&&<button disabled={locked||offline||busy||!!pending||!!storageIssue||!!update} onClick={()=>open(active,true)}>{tr('shared-task-views.delete')}</button>}
    </div>
    {!update&&applied&&comparable(applied.preferences)!==comparable(preferences)&&<p className="shared-task-views-note">{tr('shared-task-views.changed')}</p>}
   </>}
-  {!loading&&!locked&&!error&&phase==='current'&&rows.length===0&&<p className="shared-task-views-note">{tr('shared-task-views.empty')}</p>}
+  {!loading&&!locked&&!error&&!pending&&phase==='current'&&rows.length===0&&<p className="shared-task-views-note">{tr('shared-task-views.empty')}</p>}
   {cursor&&<button disabled={locked||offline||loading||busy||!!pending} onClick={()=>void load('more')}>{tr('shared-task-views.more')}</button>}
   {locked&&<p role="alert" className="shared-task-views-status">{tr('shared-task-views.denied')}</p>}{!!error&&<ErrorNotice error={error}/>}
   {notice&&!draft&&<p role="status" className="shared-task-views-status">{notice}</p>}
-  <Modal open={!!draft} onClose={()=>{if(!busy&&!pending)setDraft(null);}} title={tr(draft?.remove?'shared-task-views.delete':draft?.editing||draft?.unavailable?'shared-task-views.edit':'shared-task-views.save')} description={tr(draft?.remove?'shared-task-views.delete_hint':'shared-task-views.scope_hint')}>
+  {!locked&&refusedDraft&&<button type="button" className="shared-task-views-draft-copy" disabled={busy||!!pending||!!storageIssue} onClick={()=>{setDraft(refusedDraft);setRefusedDraft(null);setNotice('');setConflict(false);setWriteError(null);}}>{tr('shared-task-views.recovery_copy_draft')}</button>}
+  <Modal open={!locked&&discardInvalid} onClose={()=>setDiscardInvalid(false)} title={tr('shared-task-views.recovery_discard')} description={tr('shared-task-views.recovery_discard_hint')}>
+   <div className="dialog-actions">
+    <button type="button" onClick={()=>setDiscardInvalid(false)}>{tr('shared-task-views.cancel')}</button>
+    <button type="button" className="danger" onClick={()=>{discardInvalidSharedTaskViewRecovery(scope);reloadRecovery();}}>{tr('shared-task-views.recovery_discard')}</button>
+   </div>
+  </Modal>
+  <Modal open={!locked&&!!draft&&(!pending||!deferred)} onClose={()=>{if(!busy){if(pending)setDeferred(true);else setDraft(null);}}} title={tr(draft?.remove?'shared-task-views.delete':draft?.editing||draft?.unavailable?'shared-task-views.edit':'shared-task-views.save')} description={tr(draft?.remove?'shared-task-views.delete_hint':'shared-task-views.scope_hint')}>
    {draft&&<form className="shared-task-views-form" onSubmit={event=>{event.preventDefault();save();}}>
     {!draft.remove&&<><Field label={tr('shared-task-views.name')}><input autoFocus required maxLength={160} value={draft.name} disabled={busy||!!pending} onChange={event=>setDraft({...draft,name:event.target.value})}/></Field>
     <Field label={tr('shared-task-views.visibility')}><select value={draft.visibility} disabled={busy||!!pending||!!draft.editing||!!draft.unavailable} onChange={event=>setDraft({...draft,visibility:event.target.value as Draft['visibility']})}><option value="private">{tr('shared-task-views.private')}</option><option value="project">{tr('shared-task-views.project')}</option></select></Field></>}
     {draft.remove&&<p>{draft.name}</p>}{!!writeError&&<ErrorNotice error={writeError}/>}
-    {pending&&<div className="shared-task-views-conflict" role="status"><p>{tr('shared-task-views.unknown')}</p><button type="button" disabled={busy||offline} onClick={()=>void perform(pending)}>{tr('shared-task-views.retry')}</button></div>}
-    {draft.unavailable||draftRightsLost?<div className="shared-task-views-conflict" role="status"><p>{tr(draft.unavailable?'shared-task-views.draft_unavailable':'shared-task-views.draft_readonly')}</p>{!draft.remove&&<button type="button" disabled={busy} onClick={copyDraft}>{tr('shared-task-views.copy')}</button>}</div>:
+    {storageIssue&&<div className="shared-task-views-conflict" role="status"><p>{tr('shared-task-views.recovery_storage')}</p>{!pending&&<button type="button" onClick={reloadRecovery}>{tr('shared-task-views.recovery_check_storage')}</button>}</div>}
+    {pending&&!busy&&<div className="shared-task-views-conflict"><p role="status">{tr(offline?'shared-task-views.recovery_offline':'shared-task-views.unknown')}</p><p>{tr('shared-task-views.recovery_hint')}</p><button type="button" disabled={phase!=='current'} onClick={retry}>{tr('shared-task-views.retry')}</button></div>}
+    {!pending&&(draft.unavailable||draftRightsLost?<div className="shared-task-views-conflict" role="status"><p>{tr(draft.unavailable?'shared-task-views.draft_unavailable':'shared-task-views.draft_readonly')}</p>{!draft.remove&&<button type="button" disabled={busy} onClick={copyDraft}>{tr('shared-task-views.copy')}</button>}</div>:
      conflict&&<div className="shared-task-views-conflict"><p>{tr('shared-task-views.conflict')}</p><div className="inline">
       <button type="button" disabled={busy||offline} onClick={()=>void latest()}>{tr('shared-task-views.reload')}</button>
       {!draft.remove&&<button type="button" disabled={busy} onClick={copyDraft}>{tr('shared-task-views.copy')}</button>}
-     </div></div>}
+     </div></div>)}
     {notice&&<p role="status">{notice}</p>}
     <details className="shared-task-views-comparison" open={Boolean(notice||conflict&&editorComparison)}><summary>{tr('shared-task-views.compare')}</summary>
      {editorComparison&&<div><h4>{tr('shared-task-views.server')}</h4><strong>{editorComparison.name}</strong><PreferenceSummary value={editorComparison.preferences}/></div>}
      <div><h4>{tr('shared-task-views.mine')}</h4><strong>{draft.name}</strong><PreferenceSummary value={draft.preferences}/></div>
     </details>
-    <div className="dialog-actions"><button type="button" disabled={busy||!!pending} onClick={()=>setDraft(null)}>{tr('shared-task-views.cancel')}</button>
-     <button className={draft.remove?'danger':''} disabled={busy||offline||!!pending||conflict||locked||!!draft.unavailable||draftRightsLost}>{tr(busy?'shared-task-views.saving':draft.remove?'shared-task-views.delete':notice&&draft.editing?'shared-task-views.replace':'shared-task-views.confirm')}</button>
+    <div className="dialog-actions"><button type="button" disabled={busy} onClick={()=>{if(pending)setDeferred(true);else setDraft(null);}}>{tr(pending?'shared-task-views.recovery_later':'shared-task-views.cancel')}</button>
+     <button className={draft.remove?'danger':''} disabled={busy||offline||!!pending||!!storageIssue||conflict||locked||!!draft.unavailable||draftRightsLost}>{tr(busy?'shared-task-views.saving':draft.remove?'shared-task-views.delete':notice&&draft.editing?'shared-task-views.replace':'shared-task-views.confirm')}</button>
     </div>
    </form>}
   </Modal>

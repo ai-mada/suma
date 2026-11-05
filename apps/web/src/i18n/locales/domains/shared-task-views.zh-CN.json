@@ -40,7 +40,7 @@
   "shared-task-views.sync_current": "保存的视图已同步。",
   "shared-task-views.sync_stale": "暂时无法核对变更，正在显示上次读取的视图。",
   "shared-task-views.sync_offline": "当前离线，正在显示上次读取的视图。",
-  "shared-task-views.sync_pending": "保存结果待核对，已暂停同步。",
+  "shared-task-views.sync_pending": "有一项视图变更待核对。",
   "shared-task-views.sync_denied": "访问权限已变化，已暂停同步。",
   "shared-task-views.update_available": "可应用修订 {{version}}",
   "shared-task-views.update_hint": "当前筛选仍在使用。可比较条件后再应用新版本。",
@@ -49,5 +49,16 @@
   "shared-task-views.unavailable": "此保存视图已不可用，当前筛选仍在使用。可选择其他视图或保存当前筛选。",
   "shared-task-views.draft_unavailable": "此保存视图已不可用。你可以将草稿另存为个人视图。",
   "shared-task-views.draft_readonly": "编辑权限已变化。可以将草稿另存为个人视图。",
-  "shared-task-views.invalid_response": "无法核对此项目的保存视图，请刷新后重试。"
+  "shared-task-views.invalid_response": "无法核对此项目的保存视图，请刷新后重试。",
+  "shared-task-views.recovery_title": "视图变更待核对",
+  "shared-task-views.recovery_hint": "使用原请求继续核对。如果请求此前未到达服务器，这次操作可能完成该变更。",
+  "shared-task-views.recovery_offline": "联网后可核对原请求。当前筛选仍在使用。",
+  "shared-task-views.recovery_later": "稍后核对",
+  "shared-task-views.recovery_storage": "当前标签页无法访问视图恢复记录。请先检查浏览器存储，再保存视图。",
+  "shared-task-views.recovery_invalid": "无法读取当前标签页的视图恢复记录。请先查看服务器上的视图，再提交新的变更。",
+  "shared-task-views.recovery_check_storage": "重新检查存储",
+  "shared-task-views.recovery_discard": "清除无法读取的记录",
+  "shared-task-views.recovery_discard_hint": "此操作仅清除当前标签页中无法读取的恢复记录。原请求可能已经到达服务器。",
+  "shared-task-views.recovery_refused": "暂无法确认原请求。请查看当前保存的视图，再决定是否进行新的变更。",
+  "shared-task-views.recovery_copy_draft": "打开为个人视图草稿"
 }

@@ -8,6 +8,8 @@ T-WORKBUDDY-LOCAL-CANDIDATE-239 通过真实 Windows 终端、同提交独立测
 
 T-TOOL-QUICK-START-239 核验添加工具的自动选入、准确协议、首屏操作、手动改选和暂停登记。 [阶段验证](tool-quick-start-verification.md)
 
+T-MULTICA-SHARED-VIEW-RECOVERY 验证真实保存响应丢失、同标签页重载、原请求核对、较新修订保留和写入去重。 [阶段验证](shared-view-recovery-verification.md)
+
 T-MULTICA-SHARED-VIEW-LIVE 验证两个账号下的在线版本提醒、显式应用、断网重连、归档和撤权。 [阶段验证](shared-view-live-verification.md)
 
 T-WORKBUDDY-DELIVERY-TRACE-238 验证 WorkBuddy 原派发核对、当前任务绑定、只读下钻及权限变化。 [阶段验证](workbuddy-delivery-trace-verification.md)

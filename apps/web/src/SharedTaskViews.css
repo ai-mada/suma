@@ -20,3 +20,5 @@
  .shared-task-views-comparison dl>div{grid-template-columns:minmax(0,1fr);gap:3px}
  .shared-task-views-comparison dd{padding-bottom:3px}
 }
+.shared-task-views-recovery{border-inline-start:3px solid var(--amber,var(--accent))}
+.shared-task-views-draft-copy{margin-top:8px}

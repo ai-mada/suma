@@ -40,7 +40,7 @@
   "shared-task-views.sync_current": "Saved views are up to date.",
   "shared-task-views.sync_stale": "Couldn’t check for changes. Showing the last loaded views.",
   "shared-task-views.sync_offline": "Offline. Showing the last loaded views.",
-  "shared-task-views.sync_pending": "Sync paused while the save result is unconfirmed.",
+  "shared-task-views.sync_pending": "A saved-view change is awaiting confirmation.",
   "shared-task-views.sync_denied": "Sync paused because access changed.",
   "shared-task-views.update_available": "Revision {{version}} is available",
   "shared-task-views.update_hint": "Your current filters are still active. Review the differences before applying.",
@@ -49,5 +49,16 @@
   "shared-task-views.unavailable": "This saved view is no longer available. Your current filters are still active. Choose another view or save these filters.",
   "shared-task-views.draft_unavailable": "The saved view is no longer available. You can save this draft as a personal copy.",
   "shared-task-views.draft_readonly": "Editing access changed. You can still save your draft as a personal copy.",
-  "shared-task-views.invalid_response": "The saved views could not be verified for this project. Refresh to check again."
+  "shared-task-views.invalid_response": "The saved views could not be verified for this project. Refresh to check again.",
+  "shared-task-views.recovery_title": "Saved-view change awaiting confirmation",
+  "shared-task-views.recovery_hint": "Retry with the original request. If the server never received it, this can complete the change.",
+  "shared-task-views.recovery_offline": "Reconnect to check the original request. Your current filters are still active.",
+  "shared-task-views.recovery_later": "Check later",
+  "shared-task-views.recovery_storage": "This tab couldn’t access its saved-view recovery record. Check browser storage before saving again.",
+  "shared-task-views.recovery_invalid": "This tab’s saved-view recovery record could not be read. Check the server’s views before creating another change.",
+  "shared-task-views.recovery_check_storage": "Check storage again",
+  "shared-task-views.recovery_discard": "Clear unreadable record",
+  "shared-task-views.recovery_discard_hint": "This clears only the unreadable record in this tab. A previous request may already have reached the server.",
+  "shared-task-views.recovery_refused": "The original request could not be confirmed. Review the current saved views before making another change.",
+  "shared-task-views.recovery_copy_draft": "Open as a personal draft"
 }
