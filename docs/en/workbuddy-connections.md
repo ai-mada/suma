@@ -12,9 +12,8 @@ Configured, authorized and dispatchable are separate facts. Check cloud task eli
 
 1. Expand WorkBuddy account authorization in the current project's tool settings. It starts collapsed; opening it loads only the current owner's bounded connection page.
 2. On first connection, choose permissions directly from the panel. With existing records, choose to add an account or reauthorize one. Each permission has a description and starts unchecked.
-3. Select **Continue authorization**. Suma prepares the attempt and moves focus to the official authorization action.
-4. Open the official WorkBuddy page and confirm the account and permissions. The browser opens a new tab. The desktop opens an isolated window in the same session. You can return to the list to inspect the pending connection.
-5. The provider returns to an isolated callback document. The server checks the original browser credential, bound nonce and current project authority, then returns to the safe project connection panel. Querying the exact original connection ID reads the result without completing an unknown operation.
+3. Select **Open WorkBuddy to authorize**, or use **Reuse these permissions and open WorkBuddy** when reconnecting. Suma prepares the attempt and opens the official confirmation page. If opening is blocked, use the original link provided by Suma.
+4. Confirm the account and permissions in WorkBuddy. The isolated callback checks the initiating session and current project authority. Suma checks the exact connection on return and locates the original record if the link expired or the connection is now disconnected.
 
 Authorization stays bound to the initiating account, organization and browser session. When a link expires, you can request a replacement from the original pending connection. A denial cancels the pending attempt before token exchange. Review the actual granted permissions on the connection. Reauthorization stays bound to the original external account.
 
@@ -31,7 +30,7 @@ Authorization stays bound to the initiating account, organization and browser se
 
 Refresh list is read-only. Refresh authorization is an explicit token operation. A normal refresh advances the token generation rather than the grant generation. Local disconnect requires an impact statement and checked confirmation, clears local credentials and invalidates old operations so late responses cannot reconnect it. It does not revoke the provider grant or stop remote tasks. Current-authorized local disconnect remains available when application configuration becomes unavailable.
 
-Each account card highlights the action for its current state. **Check this connection** reads that exact record when authorization or refresh is pending or uncertain. **Manage account** contains other available actions. For reauthorization, **Reuse these permissions and continue** prepares the attempt with the listed permissions, and **Select and adjust permissions** fills the form for editing. The panel calls out previously granted permissions that have left the available scope.
+Each account card highlights the action for its current state. **Check this connection** reads that exact record when authorization or refresh is pending or uncertain. **Manage account** contains other available actions. For reauthorization, **Reuse these permissions and open WorkBuddy** uses the displayed permissions and **Select and adjust permissions** fills the form for editing. The panel shows which original permissions are no longer available.
 
 Unknown writes retain the original caller, organization, project, version, operation ID and JSON. A control-plane recovery request may recover its original receipt; it does not obtain another provider token POST permit. A prepared or unknown exchange/refresh is not resent after a timeout, restart or lease expiry. Reading current state does not declare the unknown operation successful. Changing fields or using a new operation ID is not recovery.
 

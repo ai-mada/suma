@@ -14,7 +14,7 @@ T-WORKBUDDY-CONNECTIONS-147，初始产品1.0.0。沿[143原任务提交](workbu
 | --- | --- |
 | GET `/workbuddy-connections?project_id&limit&cursor` | 当前所有者的安全分页；默认20、1–50；返回`configured`、`available_scopes`、`can_authorize`、`items`、`limit`与`next_cursor`，没有伪精确总数 |
 | GET `/workbuddy-connections/{id}?project_id` | 当前所有者的安全连接事实及当前允许动作 |
-| POST `/workbuddy-authorizations` | 强类型`WorkBuddyAuthorizationRequest`；返回201及准确授权实例，浏览器明确点击返回的固定授权URL |
+| POST `/workbuddy-authorizations` | 强类型`WorkBuddyAuthorizationRequest`；返回201及准确授权实例，固定授权 URL 用于用户明确发起的 WorkBuddy 授权 |
 | GET `/workbuddy-authorizations/{id}?project_id` | 原所有者、原浏览器及当前写资格下读取安全状态；有效pending实例才重建授权URL |
 | POST `/workbuddy-connections/{id}/refresh` | `WorkBuddyRefreshRequest`，显式单次刷新，返回200安全事实 |
 | POST `/workbuddy-connections/{id}/disconnect` | `WorkBuddyDisconnectRequest`，本地断开，返回200安全事实 |
@@ -32,6 +32,8 @@ T-WORKBUDDY-CONNECTIONS-147，初始产品1.0.0。沿[143原任务提交](workbu
 `pending → exchanging`的准备事务先重核当前资格并持久取得一次发送许可，再在事务外调用固定OAuth端点。接纳响应时重新检查当前身份、连接版本、活动操作、授权代次和固定应用。重复回调不能取得第二次兑换许可；更换code、会话、操作标识或范围会被拒绝。期限到达不恢复发送资格。拒绝授权只取消原pending实例，不请求供应方令牌接口。
 
 当前所有者可在连接列表或详情中重新生成原连接的授权链接。当前项目写资格、原连接版本、应用及代次必须匹配，原活动授权须仍处于 `pending`。创建新实例和推进原连接版本使用同一事务。旧实例无法再取得兑换资格，原实例读取也不再返回旧链接。已取得兑换资格的操作沿原结果核对。
+
+用户可在一次明确的打开操作中创建授权实例并进入官方确认。普通浏览器仅在该操作中预留空白标签页，解除 opener 后，依据本次待授权回执、当前项目写资格和固定官方 HTTPS URL 跳转。授权未能打开时，用户可手动打开仍有效的原链接。恢复原操作只返回回执，由用户另行选择是否打开授权页。
 
 现有会话cookie保持SameSite=Strict。跨站首次GET可能没有cookie，因此GET仅交付隔离bridge：nonce CSP、无第三方资源、no-store、no-referrer，立即清除地址栏查询。Code／state只存在该文档的内存闭包；随后同源读取当前session和语言，再以原视角头POST。会话变更由原credential绑定拒绝。成功或已记录未知事实后，只定位带安全项目／连接ID的工具页面；没有postMessage、浏览器token存储或弱化原来源校验。
 

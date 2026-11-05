@@ -104,6 +104,8 @@
 .workbuddy-official-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:6px;width:fit-content;max-width:100%;white-space:normal;line-height:1.6;background:var(--accent);color:white;text-decoration:none}
 :root[data-theme=dark] .workbuddy-official-link{color:#16141f}
 .workbuddy-authorization .workbuddy-official-link{font:inherit}
+.workbuddy-authorization .workbuddy-official-link.workbuddy-reopen{color:var(--text);background:var(--surface);border:1px solid var(--border-strong)}
+.workbuddy-authorization .workbuddy-reopen:hover{border-color:var(--accent)}
 .workbuddy-pagination{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
 .workbuddy-pagination>span,.workbuddy-config,.workbuddy-notice{font-size:12px;line-height:1.7;color:var(--muted);margin:0}
 .workbuddy-notice[data-success=true]{display:flex;align-items:flex-start;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);color:var(--text)}

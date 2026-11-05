@@ -13,7 +13,7 @@ const identity:Session={user:{id:'user-a',name:'User',email:'a@example.test'},or
 const row={id:'connection-a',project_id:'p-a',version:3,owner_id:'user-a',client_id:'app-a',open_id:'account-a',scopes:['user.task.readable'],state:'connected',grant_generation:1,token_generation:2,expires_at:'2026-10-30T03:00:00Z',created_at:'2026-10-30T01:00:00Z',updated_at:'2026-10-30T02:00:00Z',last_error:'',allowed_actions:['authorize','refresh','disconnect']};
 const page=(items=[row],project='p-a')=>({project_id:project,configured:true,available_scopes:['user.task.readable','user.task.invokable'],can_authorize:true,items,limit:20,next_cursor:''});
 let host:HTMLDivElement,root:Root;
-beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);await setLocale('en-US',{persist:false});sessionStorage.clear();call.mockReset();call.mockResolvedValue(page());host=document.createElement('div');document.body.append(host);root=createRoot(host);});
+beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('open',vi.fn(()=>null));await setLocale('en-US',{persist:false});sessionStorage.clear();call.mockReset();call.mockResolvedValue(page());host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 async function render(project='p-a',session=identity){await act(async()=>root.render(<ApiViewProvider session={session}><WorkBuddyConnections project={project}/></ApiViewProvider>));}
 async function click(text:string){
@@ -31,6 +31,103 @@ async function chooseScope(){
  expect(box).toBeTruthy();
  if(!box!.checked)await act(async()=>box!.click());
 }
+
+function reservedBrowserTab(){
+ const tabDocument=document.implementation.createHTMLDocument();
+ const navigate=vi.fn();
+ tabDocument.addEventListener('click',event=>{
+  event.preventDefault();
+  const link=event.target as HTMLAnchorElement;
+  navigate({href:link.href,rel:link.rel,target:link.target});
+ });
+ const tab={document:tabDocument,opener:window,closed:false,close:vi.fn(()=>{tab.closed=true;})};
+ const open=vi.fn(()=>tab);
+ vi.stubGlobal('open',open);
+ return {tab,open,navigate};
+}
+
+it('opens WorkBuddy from one explicit first-time action after a current-authorized read',async()=>{
+ const {tab,open:openTab,navigate}=reservedBrowserTab();
+ const pending={...row,state:'authorizing',version:4,allowed_actions:['authorize','disconnect']};
+ const receipt={id:'direct-start',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=direct',expires_at:'2099-01-01T00:00:00Z',state:'pending'};
+ call.mockResolvedValue(page([]));
+ await render();await open();await chooseScope();
+ let reread!:(result:unknown)=>void;
+ call.mockImplementation(async(_path:string,body?:unknown)=>{
+  if(body){expect(openTab).toHaveBeenCalledTimes(1);expect(tab.opener).toBeNull();return receipt;}
+  return new Promise(resolve=>{reread=resolve;});
+ });
+ await click('Open WorkBuddy to authorize');
+ expect(navigate).not.toHaveBeenCalled();
+ await act(async()=>reread(page([pending])));
+ expect(navigate).toHaveBeenCalledExactlyOnceWith({href:receipt.authorization_url,rel:'noreferrer',target:'_self'});
+ expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);
+ expect(host.textContent).not.toContain('WorkBuddy account authorization was saved');
+});
+
+it('closes the reserved tab on an uncertain start and recovers the original link without opening again',async()=>{
+ const {tab,open:openTab,navigate}=reservedBrowserTab();
+ const pending={...row,state:'authorizing',version:4,allowed_actions:['authorize','disconnect']};
+ const receipt={id:'direct-recovery',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=recover',expires_at:'2099-01-01T00:00:00Z',state:'pending'};
+ await render();await open();await click('Connect WorkBuddy account');await chooseScope();
+ call.mockRejectedValueOnce(new ApiError(0,'network_error','Network unavailable'));
+ await click('Open WorkBuddy to authorize');
+ expect(tab.close).toHaveBeenCalledTimes(1);
+ expect(navigate).not.toHaveBeenCalled();
+ call.mockImplementation(async(_path:string,body?:unknown)=>body?receipt:page([pending]));
+ await click('Recover original operation');
+ expect(openTab).toHaveBeenCalledTimes(1);
+ expect(host.querySelector<HTMLAnchorElement>('a[target="_blank"]')?.href).toBe(receipt.authorization_url);
+ const writes=call.mock.calls.filter(([,body])=>body);
+ expect(writes).toHaveLength(2);
+ expect(writes[1].slice(0,3)).toEqual(writes[0].slice(0,3));
+});
+
+it('discards the pending launch when the fresh list removes write permission',async()=>{
+ const {tab,navigate}=reservedBrowserTab();
+ const pending={...row,state:'authorizing',version:4,allowed_actions:[]};
+ const receipt={id:'no-longer-writable',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=denied',expires_at:'2099-01-01T00:00:00Z',state:'pending'};
+ await render();await open();await click('Connect WorkBuddy account');await chooseScope();
+ call.mockImplementation(async(_path:string,body?:unknown)=>body?receipt:{...page([pending]),can_authorize:false});
+ await click('Open WorkBuddy to authorize');
+ expect(tab.close).toHaveBeenCalledTimes(1);
+ expect(navigate).not.toHaveBeenCalled();
+ expect(host.querySelector('a[target="_blank"]')).toBeNull();
+});
+
+it('reveals the original disconnected record even when it is outside the current page',async()=>{
+ const pending={...row,id:'outside-page',state:'authorizing',version:4,allowed_actions:['authorize','disconnect']};
+ const disconnected={...pending,state:'disconnected',version:5,grant_generation:2,allowed_actions:['authorize']};
+ const receipt={id:'outside-authorization',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=outside',expires_at:'2099-01-01T00:00:00Z',state:'pending'};
+ await render();await open();await click('Connect WorkBuddy account');await chooseScope();
+ call.mockImplementation(async(path:string,body?:unknown)=>body?receipt:path.startsWith('/workbuddy-connections/')?disconnected:page());
+ await click('Open WorkBuddy to authorize');
+ await click('Check authorization result');
+ expect(host.textContent).toContain('This connection is disconnected');
+ const card=host.querySelector('[data-workbuddy-connection-id="outside-page"]');
+ expect(card?.classList.contains('workbuddy-card-target')).toBe(true);
+ expect(card?.closest<HTMLDivElement>('.workbuddy-history-content')?.hidden).toBe(false);
+ expect(host.querySelector('a[target="_blank"]')).toBeNull();
+ expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);
+});
+
+it('reveals the original pending record when its off-page link expires',async()=>{
+ await render();await open();await click('Connect WorkBuddy account');await chooseScope();
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','Date']});
+ try{
+  const pending={...row,id:'expired-outside-page',state:'authorizing',version:4,allowed_actions:['authorize','disconnect']};
+  const receipt={id:'expiring-authorization',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=expired',expires_at:new Date(Date.now()+5000).toISOString(),state:'pending'};
+  call.mockImplementation(async(path:string,body?:unknown)=>body?receipt:path.startsWith('/workbuddy-connections/')?pending:page());
+  await click('Open WorkBuddy to authorize');
+  expect(host.querySelector('a[target="_blank"]')).toBeTruthy();
+  await act(async()=>vi.advanceTimersByTimeAsync(5001));
+  expect(host.querySelector('a[target="_blank"]')).toBeNull();
+  expect(host.textContent).toContain('The authorization link expired');
+  const card=host.querySelector('[data-workbuddy-connection-id="expired-outside-page"]');
+  expect(card?.querySelector('.workbuddy-card-primary')?.textContent).toBe('Generate a new authorization link');
+  expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);
+ }finally{vi.useRealTimers();}
+});
 
 it('keeps reauthorization scopes empty until explicit reuse and separates a manually added permission',async()=>{
  await render();await open();await click('Authorize again');
@@ -71,7 +168,7 @@ it('prepares reauthorization in one explicit action using only the displayed req
  expect(host.querySelector('.workbuddy-reuse')?.textContent).toContain('Create WorkBuddy tasks');
  expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(0);
  call.mockImplementation(async(_path:string,body?:unknown)=>body?receipt:{...page([pending]),available_scopes:['user.task.readable']});
- await click('Reuse these permissions and continue');
+ await click('Reuse these permissions and open WorkBuddy');
  const writes=call.mock.calls.filter(([,body])=>body);
  expect(writes).toHaveLength(1);
  expect(writes[0][1]).toMatchObject({project_id:'p-a',connection_id:row.id,expected_version:3,scopes:['user.task.readable']});
@@ -151,7 +248,7 @@ it('keeps connections folded and reads only a bounded page after expansion',asyn
 it('prepares only explicitly selected scopes and keeps the official URL out of storage',async()=>{await render();await open();await click('Connect WorkBuddy account');expect(host.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(true);await chooseScope();let stored='';const authorization={id:'authorization-a',version:1,connection:{...row,state:'authorizing',allowed_actions:['disconnect']},authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=private-state',expires_at:'2099-01-01T00:00:00Z',state:'pending'};call.mockImplementation(async(path:string,body?:unknown)=>{if(body){stored=Object.values(sessionStorage).join('');return authorization;}return page([authorization.connection]);});await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());const link=host.querySelector<HTMLAnchorElement>('a[target="_blank"]');expect(link?.href).toBe(authorization.authorization_url);expect(link?.rel).toBe('noopener noreferrer');expect(stored).toContain('user.task.readable');expect(stored).not.toContain('private-state');expect(Object.values(sessionStorage).join('')).not.toContain('private-state');const body=call.mock.calls.find(([,body])=>body)?.[1];expect(body).toMatchObject({project_id:'p-a',scopes:['user.task.readable']});expect(body).not.toHaveProperty('code');});
 it('gates writes by current server actions and supports read-only viewers',async()=>{call.mockResolvedValue({...page([{...row,allowed_actions:[]}]),can_authorize:false});await render();await open();expect(host.textContent).toContain('account-a');expect(host.textContent).not.toContain('Connect WorkBuddy account');expect([...host.querySelectorAll('button')].some(b=>b.textContent==='Refresh authorization')).toBe(false);});
 
-it('lets a first-time user choose permissions immediately and moves focus to the official action',async()=>{
+it('keeps the original authorization usable and focused when the browser blocks opening',async()=>{
  call.mockResolvedValue(page([]));
  await render();await open();
  const form=host.querySelector('form')!;
@@ -163,7 +260,9 @@ it('lets a first-time user choose permissions immediately and moves focus to the
  const pending={...row,state:'authorizing',allowed_actions:['authorize','disconnect']};
  const receipt={id:'first-connection',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=first',expires_at:'2099-01-01T00:00:00Z',state:'pending'};
  call.mockImplementation(async(_path:string,body?:unknown)=>body?receipt:page([pending]));
- await act(async()=>form.requestSubmit());
+ await click('Open WorkBuddy to authorize');
+ expect(window.open).toHaveBeenCalledTimes(1);
+ expect(host.textContent).toContain('Your authorization link is ready');
  const official=host.querySelector('a[target="_blank"]');
  expect(official).toBeTruthy();
  expect(document.activeElement).toBe(official);
@@ -232,7 +331,21 @@ it('requires an explicit local-only disconnect confirmation and moves the record
 it('does not accept cross-project, duplicate or unbounded pages and secret-bearing recovery bodies',()=>{expect(readWorkBuddyPage(page(),'p-b')).toBeUndefined();expect(readWorkBuddyPage(page([row,row]),'p-a')).toBeUndefined();expect(readWorkBuddyPage({...page(),limit:100},'p-a')).toBeUndefined();expect(validWorkBuddyRecovery({path:'/workbuddy-authorizations',body:{project_id:'p-a',scopes:['user.task.readable'],code:'secret',idempotency_key:'operation-a'},method:'POST',idempotency_key:'operation-a'},'p-a')).toBe(false);});
 it('uses bounded server cursors and restores the previous page without accumulating rows',async()=>{call.mockResolvedValueOnce({...page(),next_cursor:'opaque/page-2'});await render();await open();call.mockResolvedValueOnce(page([{...row,id:'connection-b',open_id:'account-b'}]));await click('Next page');expect(call.mock.calls.at(-1)?.[0]).toBe('/workbuddy-connections?project_id=p-a&limit=20&cursor=opaque%2Fpage-2');expect(host.textContent).toContain('account-b');expect(host.textContent).not.toContain('account-a');call.mockResolvedValueOnce({...page(),next_cursor:'opaque/page-2'});await click('Previous page');expect(call.mock.calls.at(-1)?.[0]).toBe('/workbuddy-connections?project_id=p-a&limit=20');expect(host.textContent).toContain('account-a');expect(host.textContent).not.toContain('account-b');});
 it('retains the original start after timeout and refuses writes when the reread becomes read-only',async()=>{await render();await open();await click('Connect WorkBuddy account');await chooseScope();call.mockRejectedValueOnce(new ApiError(0,'network_error','Network unavailable'));await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());const first=call.mock.calls.find(([,body])=>body);expect(first?.[0]).toBe('/workbuddy-authorizations');call.mockResolvedValueOnce({...page([{...row,allowed_actions:[]}]),can_authorize:false});await click('Read current status');expect(host.textContent).not.toContain('Recover original operation');expect(host.textContent).not.toContain('Connect WorkBuddy account');expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);expect(Object.values(sessionStorage).join('')).toContain((first?.[1] as {idempotency_key:string}).idempotency_key);});
-it('hides a late authorization URL and leaves its original safe recovery after an identity change',async()=>{await render();await open();await click('Connect WorkBuddy account');await chooseScope();let complete!:(value:unknown)=>void;call.mockImplementationOnce(()=>new Promise(resolve=>{complete=resolve;}));await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());call.mockResolvedValue(page([],'p-b'));await render('p-b',{...identity,user:{...identity.user,id:'user-b'}});await act(async()=>complete({id:'authorization-a',version:1,connection:{...row,state:'authorizing'},authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=private-late-state',expires_at:'2099-01-01T00:00:00Z',state:'pending'}));await open();expect(host.querySelector('a[target="_blank"]')).toBeNull();expect(host.textContent).not.toContain('account-a');const recovery=Object.values(sessionStorage).join('');expect(recovery).toContain('p-a');expect(recovery).not.toContain('private-late-state');expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);});
+it('closes the old tab and keeps only safe recovery after an identity change',async()=>{
+ const {tab,navigate}=reservedBrowserTab();
+ await render();await open();await click('Connect WorkBuddy account');await chooseScope();
+ let complete!:(value:unknown)=>void;call.mockImplementationOnce(()=>new Promise(resolve=>{complete=resolve;}));
+ await click('Open WorkBuddy to authorize');
+ call.mockResolvedValue(page([],'p-b'));await render('p-b',{...identity,user:{...identity.user,id:'user-b'}});
+ expect(tab.close).toHaveBeenCalledTimes(1);
+ await act(async()=>complete({id:'authorization-a',version:1,connection:{...row,state:'authorizing'},authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=private-late-state',expires_at:'2099-01-01T00:00:00Z',state:'pending'}));
+ await open();
+ expect(navigate).not.toHaveBeenCalled();expect(host.querySelector('a[target="_blank"]')).toBeNull();
+ expect(host.textContent).not.toContain('account-a');
+ const recovery=Object.values(sessionStorage).join('');
+ expect(recovery).toContain('p-a');expect(recovery).not.toContain('private-late-state');
+ expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);
+});
 it('protects a selected permission draft until explicit cancellation',async()=>{await render();await open();await click('Connect WorkBuddy account');await chooseScope();let allowed=true;await act(async()=>{allowed=window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));});expect(allowed).toBe(false);await click('Cancel');expect(window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))).toBe(true);});
 it('permits only an official fixed HTTPS authorization page',()=>{expect(officialWorkBuddyAuthorizationURL('https://www.workbuddy.cn/openapi/v2/authorize?state=private')).toBe(true);for(const url of ['javascript:alert(1)','https://evil.example/openapi/v2/authorize','https://www.workbuddy.cn.evil.example/openapi/v2/authorize','https://user@www.workbuddy.cn/openapi/v2/authorize','http://www.workbuddy.cn/openapi/v2/authorize','https://www.workbuddy.cn/openapi/v2/tasks','https://www.workbuddy.cn/openapi/v2/authorize#fragment'])expect(officialWorkBuddyAuthorizationURL(url),url).toBe(false);});
 it('keeps an in-memory link while authorization is still pending and clears it on 404',async()=>{
@@ -309,25 +422,28 @@ const nativeReceipt=()=>({id:'authorization-native',version:1,connection:{...row
 function nativeBridge(openAuthorization=vi.fn().mockResolvedValue({status:'opened'})){
  vi.stubGlobal('sumaDesktop',{platform:'win32',version:'1.0.0',chooseProjectDirectory:vi.fn(),openWorkBuddyAuthorization:openAuthorization});return openAuthorization;
 }
-async function prepareNative(reauthorize=false){
+async function prepareNative(reauthorize=false,direct=false){
  await render();await open();expect(host.querySelector('[data-workbuddy-browser-address]')).toBeNull();
  await click(reauthorize?'Authorize again':'Connect WorkBuddy account');await chooseScope();
  const receipt=nativeReceipt();call.mockImplementation(async(path:string,body?:unknown)=>body?receipt:path.startsWith('/workbuddy-connections/')?receipt.connection:page([receipt.connection]));
- await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());return receipt;
+ if(direct)await click('Open WorkBuddy to authorize');
+ else await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());
+ return receipt;
 }
 
 it('native desktop prepares a scoped start and sends only four IDs, with duplicate opening blocked',async()=>{
  let resolve!:(value:unknown)=>void;const native=nativeBridge(vi.fn(()=>new Promise(done=>{resolve=done;})));
- const receipt=await prepareNative();expect(host.querySelector('a[target="_blank"]')).toBeNull();expect(native).not.toHaveBeenCalled();
+ const receipt=await prepareNative(false,true);expect(host.querySelector('a[target="_blank"]')).toBeNull();
  const write=call.mock.calls.find(([,body])=>body);expect(write?.[0]).toBe('/workbuddy-authorizations');expect(write?.[1]).toMatchObject({project_id:'p-a',scopes:['user.task.readable']});
- await click('Authorize in desktop window');expect(native).toHaveBeenCalledExactlyOnceWith({project_id:'p-a',authorization_id:receipt.id,user_id:'user-a',tenant_id:'org-a'});
+ expect(window.open).not.toHaveBeenCalled();
+ expect(native).toHaveBeenCalledExactlyOnceWith({project_id:'p-a',authorization_id:receipt.id,user_id:'user-a',tenant_id:'org-a'});
  const opening=[...host.querySelectorAll('button')].find(button=>button.textContent?.includes('Opening authorization window'));expect(opening?.disabled).toBe(true);
  await act(async()=>opening!.click());expect(native).toHaveBeenCalledTimes(1);const reads=call.mock.calls.length;await act(async()=>window.dispatchEvent(new Event('focus')));expect(call).toHaveBeenCalledTimes(reads);
  await act(async()=>resolve({status:'opened'}));expect(host.textContent).toContain('The authorization window is open');expect(host.textContent).not.toContain('WorkBuddy account authorization was saved');expect(JSON.stringify(native.mock.calls)).not.toContain('private-native-state');expect(Object.values(sessionStorage).join('')).not.toContain('private-native-state');
 });
 
 it('native desktop supports reauthorization using the original connection version',async()=>{
- const native=nativeBridge();await prepareNative(true);expect(call.mock.calls.find(([,body])=>body)?.[1]).toMatchObject({connection_id:'connection-a',expected_version:3,scopes:['user.task.readable']});await click('Authorize in desktop window');expect(native).toHaveBeenCalledExactlyOnceWith({project_id:'p-a',authorization_id:'authorization-native',user_id:'user-a',tenant_id:'org-a'});
+ const native=nativeBridge();await prepareNative(true,true);expect(call.mock.calls.find(([,body])=>body)?.[1]).toMatchObject({connection_id:'connection-a',expected_version:3,scopes:['user.task.readable']});expect(native).toHaveBeenCalledExactlyOnceWith({project_id:'p-a',authorization_id:'authorization-native',user_id:'user-a',tenant_id:'org-a'});
 });
 
 it('native desktop return focus reads the exact connection before showing authorization success',async()=>{
