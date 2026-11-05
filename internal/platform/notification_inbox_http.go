@@ -24,6 +24,30 @@ func (s *Server) notificationInboxHTTP(w http.ResponseWriter, r *http.Request, a
 		bad()
 		return true
 	}
+	if len(parts) == 2 && parts[1] == "batch-commands" {
+		if scope != "" || actor.kind != actorBrowser {
+			writeError(w, forbidden())
+			return true
+		}
+		if r.Method != http.MethodPost {
+			w.Header().Set("Allow", http.MethodPost)
+			writeError(w, &APIError{Status: http.StatusMethodNotAllowed, Code: "method_not_allowed", Message: "Method not allowed"})
+			return true
+		}
+		if r.URL.RawQuery != "" || r.URL.ForceQuery {
+			bad()
+			return true
+		}
+		raw, err := io.ReadAll(io.LimitReader(r.Body, (16<<10)+1))
+		var req NotificationInboxBatchCommand
+		if err != nil || len(raw) > 16<<10 || woc.Decode(raw, &req) != nil || !validNotificationInboxBatchCommand(req) {
+			bad()
+			return true
+		}
+		out, err := s.Service.CommandNotificationInboxBatch(r.Context(), actor, req)
+		respond(w, http.StatusOK, out, err)
+		return true
+	}
 	organization := len(parts) == 2 && parts[1] == "organization"
 	if organization && (scope != "" || actor.kind != actorBrowser) {
 		writeError(w, forbidden())

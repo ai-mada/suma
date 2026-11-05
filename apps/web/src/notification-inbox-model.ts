@@ -1,5 +1,5 @@
 import type {
- NotificationInboxCommandReceipt,NotificationInboxItem,NotificationInboxPage,
+ NotificationInboxBatchReceipt,NotificationInboxBatchTarget,NotificationInboxCommandReceipt,NotificationInboxItem,NotificationInboxPage,
  NotificationOrganizationInboxItem,NotificationOrganizationInboxPage,
 } from '../../../packages/contracts/src';
 
@@ -10,6 +10,9 @@ export type NotificationInboxAction=typeof notificationInboxActions[number];
 export type NotificationInboxScopeMode='project'|'organization';
 export type InboxReadPage=NotificationInboxPage|NotificationOrganizationInboxPage;
 export const notificationInboxLimit=20;
+export const notificationInboxSelectionLimit=20;
+export const notificationInboxBatchPath='/notification-inbox/batch-commands';
+export type InboxWriteReceipt=NotificationInboxCommandReceipt|NotificationInboxBatchReceipt;
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const id=(value:unknown):value is string=>typeof value==='string'&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
 const version=(value:unknown):value is number=>typeof value==='number'&&Number.isSafeInteger(value)&&value>0&&value<=2147483647;
@@ -103,14 +106,50 @@ export function inboxRows(page:InboxReadPage):NotificationOrganizationInboxItem[
 
 type RecoveryRequest={path:string;method:string;idempotency_key:string;body:Record<string,unknown>};
 function requestID(request:RecoveryRequest){const match=request.path.match(/^\/notification-inbox\/([^/]+)\/commands$/);return match&&id(match[1])?match[1]:undefined;}
+function validBatchTargets(value:unknown,project?:string):value is NotificationInboxBatchTarget[]{
+ if(!Array.isArray(value)||value.length<1||value.length>notificationInboxSelectionLimit)return false;
+ const seen=new Set<string>();
+ for(const target of value){
+  if(!object(target)||!exact(target,['project_id','notification_id','expected_version'])||!id(target.project_id)||
+   project!==undefined&&target.project_id!==project||!id(target.notification_id)||seen.has(target.notification_id)||
+   !version(target.expected_version)||target.expected_version===2147483647)return false;
+  seen.add(target.notification_id);
+ }
+ return true;
+}
+
 export function validNotificationInboxRecovery(request:RecoveryRequest,project?:string){
  const body=request.body;
- return request.method==='POST'&&!!requestID(request)&&object(body)&&exact(body,['project_id','expected_version','action','idempotency_key'])&&id(body.project_id)&&(project===undefined||body.project_id===project)&&version(body.expected_version)&&body.expected_version<2147483647&&typeof body.action==='string'&&(notificationInboxActions as readonly string[]).includes(body.action)&&operationKey(request.idempotency_key)&&body.idempotency_key===request.idempotency_key;
+ if(request.method!=='POST'||!object(body)||typeof body.action!=='string'||
+  !(notificationInboxActions as readonly string[]).includes(body.action)||
+  !operationKey(request.idempotency_key)||body.idempotency_key!==request.idempotency_key)return false;
+ if(request.path===notificationInboxBatchPath){
+  return exact(body,['items','action','idempotency_key'])&&validBatchTargets(body.items,project);
+ }
+ return !!requestID(request)&&exact(body,['project_id','expected_version','action','idempotency_key'])&&
+  id(body.project_id)&&(project===undefined||body.project_id===project)&&version(body.expected_version)&&body.expected_version<2147483647;
 }
 export function validNotificationInboxReceipt(value:unknown,request:RecoveryRequest):value is NotificationInboxCommandReceipt{
  if(!object(value)||!exact(value,['idempotency_key','notification_id','version','action','read','archived','read_at','archived_at','updated_at'])||value.idempotency_key!==request.idempotency_key||value.notification_id!==requestID(request)||value.action!==request.body.action||!version(value.version)||typeof request.body.expected_version!=='number'||value.version<request.body.expected_version||value.version>request.body.expected_version+1||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||!instant(value.updated_at))return false;
  return value.action==='read'?value.read:value.action==='unread'?!value.read:value.action==='archive'?value.archived:value.action==='restore'?!value.archived:false;
 }
+/** A batch receipt must acknowledge the exact chosen targets in order. */
+export function validNotificationInboxResult(value:unknown,request:RecoveryRequest):value is InboxWriteReceipt{
+ if(request.path!==notificationInboxBatchPath)return validNotificationInboxReceipt(value,request);
+ const items=request.body.items;
+ if(!validBatchTargets(items)||!object(value)||!exact(value,['idempotency_key','action','results'])||
+  value.idempotency_key!==request.idempotency_key||value.action!==request.body.action||
+  !Array.isArray(value.results)||value.results.length!==items.length)return false;
+ return value.results.every((result,index)=>{
+  const target=items[index];
+  return object(result)&&exact(result,['project_id','receipt'])&&result.project_id===target.project_id&&
+   validNotificationInboxReceipt(result.receipt,{
+    path:notificationInboxCommandPath(target.notification_id),method:request.method,idempotency_key:request.idempotency_key,
+    body:{action:request.body.action,expected_version:target.expected_version},
+   });
+ });
+}
+
 /** An original receipt acknowledges that original command, not a newer row.
  * Never replace a later server read or rehydrate a title from a receipt. */
 export function notificationInboxReceiptIsStale(receipt:NotificationInboxCommandReceipt,page:InboxReadPage|undefined){return !!page&&inboxRows(page).some(({notification})=>notification.id===receipt.notification_id&&notification.version>receipt.version);}

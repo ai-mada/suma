@@ -65,6 +65,29 @@ type NotificationInboxCommandReceipt struct {
 	UpdatedAt      string `json:"updated_at"`
 }
 
+type NotificationInboxBatchTarget struct {
+	ProjectID       string `json:"project_id"`
+	NotificationID  string `json:"notification_id"`
+	ExpectedVersion int    `json:"expected_version"`
+}
+
+type NotificationInboxBatchCommand struct {
+	Items          []NotificationInboxBatchTarget `json:"items"`
+	Action         string                         `json:"action"`
+	IdempotencyKey string                         `json:"idempotency_key"`
+}
+
+type NotificationInboxBatchResult struct {
+	ProjectID string                          `json:"project_id"`
+	Receipt   NotificationInboxCommandReceipt `json:"receipt"`
+}
+
+type NotificationInboxBatchReceipt struct {
+	IdempotencyKey string                         `json:"idempotency_key"`
+	Action         string                         `json:"action"`
+	Results        []NotificationInboxBatchResult `json:"results"`
+}
+
 // NotificationOrganizationInboxItem associates the same private notification
 // projection with the current project needed to open its exact source.
 type NotificationOrganizationInboxItem struct {

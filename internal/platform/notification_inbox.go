@@ -256,46 +256,55 @@ func (s *Service) CommandNotificationInbox(ctx context.Context, actor Actor, pro
 		if replay {
 			return json.Unmarshal([]byte(hash), &out)
 		}
-		if stored.version != req.ExpectedVersion {
-			return conflict(notificationInboxChanged)
+		out, readErr = s.applyNotificationInboxCommandTx(bounded, auth, project, id, req, stored)
+		if readErr != nil {
+			return readErr
 		}
-		readAt, archivedAt := stored.readAt, stored.archivedAt
-		at := auth.checkedAt.UTC().Format(time.RFC3339Nano)
-		switch req.Action {
-		case "read":
-			if readAt == "" {
-				readAt = at
-			}
-		case "unread":
-			readAt = ""
-		case "archive":
-			if archivedAt == "" {
-				archivedAt = at
-			}
-		case "restore":
-			archivedAt = ""
-		}
-		version, updatedAt := stored.version, stored.updatedAt
-		if readAt != stored.readAt || archivedAt != stored.archivedAt {
-			version++
-			updatedAt = at
-			result, writeErr := auth.tx.ExecContext(bounded, s.q(`UPDATE suma_notification_inbox SET version=?,read_at=?,archived_at=?,updated_at=? WHERE tenant_id=? AND project_id=? AND recipient_user_id=? AND id=? AND version=?`), version, readAt, archivedAt, updatedAt, auth.target.tenantID, project, auth.currentPrincipal.ID, id, stored.version)
-			if writeErr != nil {
-				return writeErr
-			}
-			count, writeErr := result.RowsAffected()
-			if writeErr != nil {
-				return writeErr
-			}
-			if count != 1 {
-				return conflict(notificationInboxChanged)
-			}
-		}
-		out = NotificationInboxCommandReceipt{IdempotencyKey: req.IdempotencyKey, NotificationID: id, Version: version, Action: req.Action, Read: readAt != "", Archived: archivedAt != "", ReadAt: readAt, ArchivedAt: archivedAt, UpdatedAt: updatedAt}
 		return s.saveCommandReceipt(bounded, auth, req.IdempotencyKey, hash, out)
 	})
 	if err != nil {
 		return NotificationInboxCommandReceipt{}, err
 	}
+	return out, nil
+}
+
+// Single and batch commands share the exact private lifecycle transition.
+func (s *Service) applyNotificationInboxCommandTx(ctx context.Context, auth *authorizedCommand, project, id string, req NotificationInboxCommand, stored notificationInboxStored) (out NotificationInboxCommandReceipt, err error) {
+	if stored.version != req.ExpectedVersion {
+		return out, conflict(notificationInboxChanged)
+	}
+	readAt, archivedAt := stored.readAt, stored.archivedAt
+	at := auth.checkedAt.UTC().Format(time.RFC3339Nano)
+	switch req.Action {
+	case "read":
+		if readAt == "" {
+			readAt = at
+		}
+	case "unread":
+		readAt = ""
+	case "archive":
+		if archivedAt == "" {
+			archivedAt = at
+		}
+	case "restore":
+		archivedAt = ""
+	}
+	version, updatedAt := stored.version, stored.updatedAt
+	if readAt != stored.readAt || archivedAt != stored.archivedAt {
+		version++
+		updatedAt = at
+		result, writeErr := auth.tx.ExecContext(ctx, s.q(`UPDATE suma_notification_inbox SET version=?,read_at=?,archived_at=?,updated_at=? WHERE tenant_id=? AND project_id=? AND recipient_user_id=? AND id=? AND version=?`), version, readAt, archivedAt, updatedAt, auth.target.tenantID, project, auth.currentPrincipal.ID, id, stored.version)
+		if writeErr != nil {
+			return out, writeErr
+		}
+		count, writeErr := result.RowsAffected()
+		if writeErr != nil {
+			return out, writeErr
+		}
+		if count != 1 {
+			return out, conflict(notificationInboxChanged)
+		}
+	}
+	out = NotificationInboxCommandReceipt{IdempotencyKey: req.IdempotencyKey, NotificationID: id, Version: version, Action: req.Action, Read: readAt != "", Archived: archivedAt != "", ReadAt: readAt, ArchivedAt: archivedAt, UpdatedAt: updatedAt}
 	return out, nil
 }

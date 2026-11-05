@@ -50,6 +50,25 @@ func TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned(t *testing
 	}
 }
 
+func TestNotificationInboxContractBindsBatchSelectionAndBrowser(t *testing.T) {
+	api, _ := generate()
+	batch := mapAt(api, "paths", "/notification-inbox/batch-commands", "post")
+	security := batch["security"].([]any)
+	if len(security) != 1 || security[0].(map[string]any)["cookieAuth"] == nil {
+		t.Fatal("batch notification updates must use the current browser session")
+	}
+	for _, parameter := range batch["parameters"].([]any) {
+		if parameter.(map[string]any)["in"] == "query" {
+			t.Fatal("batch targets belong to the closed request body")
+		}
+	}
+	item := mapAt(api, "components", "schemas", "NotificationInboxBatchTarget", "properties")
+	pick := mapAt(api, "components", "schemas", "NotificationInboxBatchCommand", "properties", "items")
+	if len(item) != 3 || item["expected_version"] == nil || pick["minItems"] != 1 || pick["maxItems"] != 20 {
+		t.Fatal("batch must contain bounded explicit versioned targets")
+	}
+}
+
 func TestNotificationOrganizationInboxContractUsesCurrentBrowserScope(t *testing.T) {
 	api, _ := generate()
 	path := mapAt(api, "paths", "/notification-inbox/organization")

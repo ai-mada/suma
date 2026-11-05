@@ -5,7 +5,7 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {NotificationInbox,type NotificationInboxProps} from './NotificationInbox';
 import {ApiViewProvider} from './api-context';
 import {setLocale} from './i18n';
-import {notificationInboxScope,notificationOrganizationInboxScope} from './notification-inbox-model';
+import {notificationInboxBatchPath,notificationInboxScope,notificationOrganizationInboxScope} from './notification-inbox-model';
 import type {Session} from './api';
 
 const item=(patch:Record<string,unknown>={})=>({id:'notice-a',version:1,sequence:'9007199254740993',kind:'task_assigned',task_id:'task-a',source_task_version:2,source_resource_id:'human-a',created_at:'2026-10-29T02:00:00Z',read:false,archived:false,read_at:'',archived_at:'',source_available:true,assignment_current:true,current_task:{id:'task-a',version:4,title:'Private assigned task',status:'draft'},...patch});
@@ -270,4 +270,72 @@ it('reads an empty organization inbox without a selected project and coalesces f
  await settle();
  expect(reads).toHaveLength(2);
  expect(reads.every(read=>read.path==='/notification-inbox/organization?filter=inbox&limit=20')).toBe(true);
+});
+
+it('writes only explicitly selected organization rows and then reloads the server counts',async()=>{
+ let rows=[
+  orgRow('project-a','First project',item({id:'notice-c'})),
+  orgRow('project-b','Second project',item({id:'notice-b',version:5})),
+  orgRow('project-a','First project',item()),
+ ];
+ transport((path,init)=>{
+  if(!init?.body)return Response.json(orgPage(rows));
+  if(path!==notificationInboxBatchPath)return undefined;
+  const body=JSON.parse(String(init.body)) as {idempotency_key:string;action:string;items:{project_id:string;notification_id:string;expected_version:number}[]};
+  const results=body.items.map(target=>{
+   const value=receipt({...body,expected_version:target.expected_version},{notification_id:target.notification_id});
+   rows=rows.map(row=>row.notification.id===target.notification_id?{...row,notification:{...row.notification,read:value.read,read_at:value.read_at,version:value.version}}:row);
+   return {project_id:target.project_id,receipt:value};
+  });
+  return Response.json({idempotency_key:body.idempotency_key,action:body.action,results});
+ });
+ await render({scopeMode:'organization'});
+ await click('[data-notification-select-mode]');
+ const first='[data-notification-id=notice-c] [data-notification-select-row]';
+ const second='[data-notification-id=notice-b] [data-notification-select-row]';
+ expect(host.querySelector(first)?.getAttribute('aria-label')).toContain('First project');
+ await click(first);await click(second);
+ expect(host.querySelector('[data-notification-selection-count]')?.textContent).toBe('Selected: 2 / 20');
+ expect(host.querySelector<HTMLInputElement>('[data-notification-id=notice-a] input')?.checked).toBe(false);
+ expect(writes).toHaveLength(0);
+ expect(host.querySelector('[data-notification-filter=unread] .notification-inbox-count')?.textContent).toBe('3');
+ await click('[data-notification-batch-action=read]');
+ expect(writes).toHaveLength(1);
+ expect(writes[0].path).toBe(notificationInboxBatchPath);
+ expect(writes[0].body).toMatchObject({action:'read',items:[
+  {project_id:'project-a',notification_id:'notice-c',expected_version:1},
+  {project_id:'project-b',notification_id:'notice-b',expected_version:5},
+ ]});
+ expect(writes[0].headers.get('X-Suma-Expected-Organization')).toBe('org-a');
+ expect(reads).toHaveLength(2);
+ expect(host.querySelector('[data-notification-selection-count]')).toBeNull();
+ expect(host.querySelector('[data-notification-filter=unread] .notification-inbox-count')?.textContent).toBe('1');
+});
+
+it('recovers the exact saved batch and refreshes after a definitive stale-version refusal',async()=>{
+ let refusal=false;
+ transport((path)=>{
+  if(path!==notificationInboxBatchPath)return undefined;
+  if(!refusal)throw new TypeError('Receipt lost');
+  return Response.json({error:{code:'version_conflict',message:'Notification changed'}},{status:409});
+ });
+ await render();
+ await click('[data-notification-select-mode]');
+ await click('[data-notification-select-row]');
+ await click('[data-notification-batch-action=read]');
+ const key='suma-write-recovery-v1:'+notificationInboxScope('user-a','org-a','project-a');
+ expect(sessionStorage.getItem(key)).toContain(writes[0].body.idempotency_key);
+ records=[item({version:2})];
+ refusal=true;
+ await act(async()=>root.unmount());root=createRoot(host);await render();
+ await click('[data-notification-recover]');
+ expect(writes).toHaveLength(2);
+ expect(writes[1].body).toEqual(writes[0].body);
+ expect(sessionStorage.getItem(key)).toBeNull();
+ expect(host.textContent).toContain('Refresh the inbox, then select the notifications again.');
+ await click('.conflict-banner button');
+ expect(writes).toHaveLength(2);
+ expect(host.querySelector('.conflict-banner')).toBeNull();
+ expect(host.querySelector('[data-notification-selection-count]')).toBeNull();
+ expect(host.querySelector<HTMLButtonElement>('[data-notification-select-mode]')?.disabled).toBe(false);
 });

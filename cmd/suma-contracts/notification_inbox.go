@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func notificationInboxModels() []any {
-	return []any{platform.NotificationInboxCounts{}, platform.NotificationInboxTask{}, platform.NotificationInboxItem{}, platform.NotificationInboxPage{}, platform.NotificationOrganizationInboxItem{}, platform.NotificationOrganizationInboxPage{}, platform.NotificationInboxCommand{}, platform.NotificationInboxCommandReceipt{}}
+	return []any{platform.NotificationInboxCounts{}, platform.NotificationInboxTask{}, platform.NotificationInboxItem{}, platform.NotificationInboxPage{}, platform.NotificationOrganizationInboxItem{}, platform.NotificationOrganizationInboxPage{}, platform.NotificationInboxCommand{}, platform.NotificationInboxCommandReceipt{}, platform.NotificationInboxBatchTarget{}, platform.NotificationInboxBatchCommand{}, platform.NotificationInboxBatchResult{}, platform.NotificationInboxBatchReceipt{}}
 }
 
 // The inbox projects real task assignments. Its private lifecycle requires
@@ -35,15 +35,20 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 		}
 	}
 	write["parameters"] = parameters
+	batch := add("/notification-inbox/batch-commands", "post", "NotificationInboxBatchReceipt", false, true)
+	browserOnly(batch)
+	successStatus(batch, "200")
+	request(batch, "NotificationInboxBatchCommand")
+	batch["description"] = "Apply a single private inbox action atomically to explicitly selected notifications across current readable projects. Each target's owner and project access are rechecked before writing or replaying an original receipt."
 	for _, op := range []map[string]any{read, write} {
 		op["x-disallowed-token-scopes"] = []string{"runner", "agent"}
 		op["description"] = "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff and followed discussion, or from the durable task execution failure projection. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization."
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"NotificationInboxCounts", "NotificationInboxTask", "NotificationInboxItem", "NotificationInboxPage", "NotificationOrganizationInboxItem", "NotificationOrganizationInboxPage", "NotificationInboxCommand", "NotificationInboxCommandReceipt"} {
+	for _, name := range []string{"NotificationInboxCounts", "NotificationInboxTask", "NotificationInboxItem", "NotificationInboxPage", "NotificationOrganizationInboxItem", "NotificationOrganizationInboxPage", "NotificationInboxCommand", "NotificationInboxCommandReceipt", "NotificationInboxBatchTarget", "NotificationInboxBatchCommand", "NotificationInboxBatchResult", "NotificationInboxBatchReceipt"} {
 		model := toolContractMap(schemas, name)
 		model["additionalProperties"] = false
-		if name != "NotificationInboxCommand" {
+		if name != "NotificationInboxCommand" && name != "NotificationInboxBatchCommand" && name != "NotificationInboxBatchTarget" {
 			for _, value := range toolContractMap(model, "properties") {
 				value.(map[string]any)["readOnly"] = true
 			}
@@ -58,6 +63,13 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	field("NotificationInboxCommand", "expected_version", map[string]any{"minimum": 1, "maximum": 2147483646})
 	field("NotificationInboxCommand", "action", map[string]any{"enum": []string{"read", "unread", "archive", "restore"}})
 	field("NotificationInboxCommand", "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128, "x-max-utf8-bytes": 128})
+	field("NotificationInboxBatchTarget", "project_id", map[string]any{"minLength": 1, "maxLength": 64})
+	field("NotificationInboxBatchTarget", "notification_id", map[string]any{"minLength": 1, "maxLength": 64})
+	field("NotificationInboxBatchTarget", "expected_version", map[string]any{"minimum": 1, "maximum": 2147483646})
+	field("NotificationInboxBatchCommand", "items", map[string]any{"minItems": 1, "maxItems": 20, "description": "Explicit unique notification IDs and their original versions, in requested order."})
+	field("NotificationInboxBatchCommand", "action", map[string]any{"enum": []string{"read", "unread", "archive", "restore"}})
+	field("NotificationInboxBatchCommand", "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128, "x-max-utf8-bytes": 128})
+	field("NotificationInboxBatchReceipt", "results", map[string]any{"minItems": 1, "maxItems": 20, "description": "One result for each requested target in original order. The receipt contains private notification state only."})
 	// Source domains contribute fields below; the inbox owns the complete kind
 	// enumeration so a later domain cannot silently remove another source.
 	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", "task_run_failed"}})

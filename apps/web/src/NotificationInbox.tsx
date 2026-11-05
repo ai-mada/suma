@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {Archive,ArchiveRestore,ArrowUpRight,Bell,Check,CircleAlert,Mail,RefreshCw} from 'lucide-react';
-import type {NotificationInboxCommandReceipt,NotificationInboxItem} from '../../../packages/contracts/src';
+import type {NotificationInboxBatchTarget,NotificationInboxItem} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
@@ -9,11 +9,11 @@ import {Badge,Empty,ErrorNotice,Loading} from './ui';
 import {useWriteAction,WriteNotice} from './write-action';
 import {ProjectNotificationPreferencesControl} from './ProjectNotificationPreferences';
 import {
- appendNotificationInboxPage,appendNotificationOrganizationInboxPage,inboxRows,notificationInboxCommandPath,
- notificationInboxFilters,notificationInboxPath,notificationInboxReceiptIsStale,notificationInboxScope,
+ appendNotificationInboxPage,appendNotificationOrganizationInboxPage,inboxRows,notificationInboxBatchPath,notificationInboxCommandPath,
+ notificationInboxFilters,notificationInboxPath,notificationInboxReceiptIsStale,notificationInboxScope,notificationInboxSelectionLimit,
  notificationOrganizationInboxPath,notificationOrganizationInboxScope,validNotificationInboxFilter,
- validNotificationInboxPage,validNotificationInboxReceipt,validNotificationInboxRecovery,validNotificationOrganizationInboxPage,
- type InboxReadPage,type NotificationInboxAction,type NotificationInboxFilter,type NotificationInboxScopeMode,
+ validNotificationInboxPage,validNotificationInboxRecovery,validNotificationInboxResult,validNotificationOrganizationInboxPage,
+ type InboxReadPage,type InboxWriteReceipt,type NotificationInboxAction,type NotificationInboxFilter,type NotificationInboxScopeMode,
 } from './notification-inbox-model';
 import './NotificationInbox.css';
 
@@ -35,6 +35,7 @@ const st=(key:string,values?:Record<string,unknown>)=>tr('task-subscriptions.'+k
 const messageSource=(item:NotificationInboxItem)=>item.kind==='task_mentioned'||item.kind==='task_followed';
 const accessLost=(error:unknown)=>error instanceof ApiError&&[401,403,404].includes(error.status);
 type ReadState={key:string;api:ApiCaller;page?:InboxReadPage;loading:boolean;error?:unknown};
+type InboxSelection={key:string;api:ApiCaller;targets:NotificationInboxBatchTarget[]};
 const scopeKey=({scopeMode,userID,organizationID,project}:NotificationInboxProps)=>scopeMode==='organization'
  ?notificationOrganizationInboxScope(userID,organizationID)
  :notificationInboxScope(userID,organizationID,project);
@@ -46,18 +47,25 @@ export function NotificationInbox(props:NotificationInboxProps){const scope=scop
 function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMode='project',onScopeMode,onFilter,onTask,onMessage,onReviewRequest,onHandoff,onRun,invalid=false}:NotificationInboxProps&{scope:string}){
  useLocale();
  const api=useApi(),organization=scopeMode==='organization',projectScope=organization?undefined:project,key=JSON.stringify([filter,refresh,invalid]);
- const action=useWriteAction({scope,storage:toolSessionStorage(),allowLeaveWithPending:organization,validateRequest:request=>validNotificationInboxRecovery(request,projectScope),validateResponse:validNotificationInboxReceipt});
+ const action=useWriteAction({
+  scope,storage:toolSessionStorage(),allowLeaveWithPending:organization,
+  validateRequest:request=>validNotificationInboxRecovery(request,projectScope),validateResponse:validNotificationInboxResult,
+  definitiveRefusalOnRestore:(error,request)=>request.path===notificationInboxBatchPath&&
+   (error.code==='version_conflict'||error.code==='idempotency_conflict'),
+ });
  const [state,setState]=useState<ReadState>({key,api,loading:true}),[denial,setDenial]=useState<unknown>(),[notice,setNotice]=useState('');
+ const [selection,setSelection]=useState<InboxSelection>();
+ const batchWrite=useRef(false);
  const alive=useRef(true),epoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),currentKey=useRef(key),currentApi=useRef(api),denied=useRef(false),cached=useRef<{key:string;api:ApiCaller;page:InboxReadPage}|undefined>(undefined);
  currentKey.current=key;currentApi.current=api;
  const clearPrivate=useCallback((error:unknown)=>{
-  if(!alive.current)return;denied.current=true;epoch.current++;controller.current?.abort();cached.current=undefined;setNotice('');setDenial(error);setState({key:currentKey.current,api:currentApi.current,loading:false,error});
+  if(!alive.current)return;denied.current=true;epoch.current++;controller.current?.abort();cached.current=undefined;setSelection(undefined);setNotice('');setDenial(error);setState({key:currentKey.current,api:currentApi.current,loading:false,error});
  },[]);
  const read=useCallback(async(more=false):Promise<InboxReadPage|undefined>=>{
   const previous=more&&cached.current?.key===key&&cached.current.api===api?cached.current.page:undefined,cursor=previous?.next_cursor;
   if(more&&!cursor)return;
   const generation=++epoch.current;controller.current?.abort();const abort=new AbortController();controller.current=abort;
-  if(!more)cached.current=undefined;
+  if(!more){cached.current=undefined;setSelection(undefined);}
   setState({key,api,page:previous,loading:true});
   try{
    if(invalid||!validNotificationInboxFilter(filter))throw new UiError('notification-inbox.invalid_filter');
@@ -83,7 +91,7 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
    if(abort.signal.aborted||generation!==epoch.current||currentKey.current!==key||currentApi.current!==api)return;
    const failure=projectScope===undefined&&cursor&&error instanceof ApiError&&error.status===409
     ?new UiError('notification-inbox.organization_scope_changed'):error;
-   cached.current=undefined;setState({key,api,loading:false,error:failure});
+   cached.current=undefined;setSelection(undefined);setState({key,api,loading:false,error:failure});
   }finally{
    if(controller.current===abort)controller.current=undefined;
   }
@@ -123,8 +131,17 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
  const page=denial||writeDenied?undefined:visible.page;
  const locked=action.busy||!!action.pending, navigationLocked=action.busy||!organization&&!!action.pending;
  const commandsLocked=locked||!!denial||writeDenied||action.conflict||action.persistenceBlocked;
- async function confirmed(receipt:NotificationInboxCommandReceipt|undefined){
+ const rows=page?inboxRows(page):[];
+ const selected=page&&selection?.key===key&&selection.api===api?selection.targets:undefined;
+ const selectionLocked=commandsLocked||visible.loading;
+ const bulkActions:NotificationInboxAction[]=filter==='archived'?['read','unread','restore']:filter==='unread'?['read','archive']:['read','unread','archive'];
+ async function confirmed(receipt:InboxWriteReceipt|undefined){
   if(!receipt||!alive.current)return;
+  if('results' in receipt){
+   setSelection(undefined);setNotice('batch_confirmed');
+   if(!denied.current)await latestRead.current();
+   return;
+  }
   if(denied.current){setNotice('update_confirmed');return;}
   const current=cached.current?.key===currentKey.current&&cached.current.api===currentApi.current?cached.current.page:undefined;
   if(notificationInboxReceiptIsStale(receipt,current)){setNotice('update_confirmed_newer');return;}
@@ -134,10 +151,31 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
  }
  async function command(item:NotificationInboxItem,value:NotificationInboxAction,itemProject:string){
   if(commandsLocked||item.version>=2147483647)return;
-  setNotice('');await confirmed(await action.run<NotificationInboxCommandReceipt>(notificationInboxCommandPath(item.id),{project_id:itemProject,expected_version:item.version,action:value}));
+  batchWrite.current=false;setNotice('');await confirmed(await action.run<InboxWriteReceipt>(notificationInboxCommandPath(item.id),{project_id:itemProject,expected_version:item.version,action:value}));
  }
- async function recover(){const pending=action.pending;if(!pending||action.busy||denial)return;await confirmed(await action.run<NotificationInboxCommandReceipt>(pending.path,pending.body,pending.method));}
- async function retry(){action.setError('');denied.current=false;setDenial(undefined);await latestRead.current();}
+ function toggleSelection(item:NotificationInboxItem,itemProject:string){
+  if(selectionLocked||item.version>=2147483647)return;
+  setSelection(current=>{
+   if(!current||current.key!==key||current.api!==api)return current;
+   const target=current.targets.find(candidate=>candidate.notification_id===item.id);
+   if(target)return {...current,targets:current.targets.filter(candidate=>candidate!==target)};
+   if(current.targets.length>=notificationInboxSelectionLimit)return current;
+   return {...current,targets:[...current.targets,{project_id:itemProject,notification_id:item.id,expected_version:item.version}]};
+  });
+ }
+ async function commandBatch(value:NotificationInboxAction){
+  if(selectionLocked||!selected?.length)return;
+  batchWrite.current=true;setNotice('');await confirmed(await action.run<InboxWriteReceipt>(notificationInboxBatchPath,{items:selected,action:value}));
+ }
+ async function recover(){
+  const pending=action.pending;if(!pending||action.busy||denial)return;
+  batchWrite.current=pending.path===notificationInboxBatchPath;
+  await confirmed(await action.run<InboxWriteReceipt>(pending.path,pending.body,pending.method));
+ }
+ async function retry(){
+  action.setError('');denied.current=false;setDenial(undefined);
+  if(await latestRead.current()&&batchWrite.current)action.clearConflict();
+ }
  function openSource(item:NotificationInboxItem,itemProject:string){
   const origin:[]|[string]=organization?[itemProject]:[];
   if(item.kind==='task_run_failed'){if(item.run_id)onRun?.(item.task_id,item.run_id,...origin);}
@@ -146,7 +184,8 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
   else if(item.kind==='task_review_requested'&&item.review_request_id)onReviewRequest?.(item.task_id,item.review_request_id,...origin);
   else onTask(item.task_id,...origin);
  }
- const pendingAction=action.pending?.body.action;
+ const pendingAction=action.pending?.body.action,pendingItems=action.pending?.body.items;
+ const batchConflict=action.conflict&&batchWrite.current;
  return <section className="notification-inbox" aria-label={t('title')}>
   <header className="notification-inbox-heading">
    <div><h2><Bell size={19} aria-hidden="true"/>{t('title')}</h2><p>{t(organization?'organization_intro':'intro')}</p></div>
@@ -165,21 +204,45 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
   <div className="notification-inbox-filters" role="group" aria-label={mt('inbox_filter_label')}>
    {notificationInboxFilters.map(value=><button type="button" key={value} aria-pressed={filter===value&&!invalid} disabled={navigationLocked} onClick={()=>{action.setError('');onFilter(value);}} data-notification-filter={value}>{t('filter.'+value)}<span className="notification-inbox-count">{page?formatNumber(page.counts[value]):'—'}</span></button>)}
   </div>
-  {!writeDenied&&<WriteNotice action={action} onRebase={async()=>{if(!await latestRead.current())throw new UiError('notification-inbox.refresh_failed');}}/>}
-  {action.pending&&<div className="notification-inbox-recovery" role="status"><strong>{t('original_update')}</strong><p>{t(organization?'organization_original_update_hint':'original_update_hint')}</p>{typeof pendingAction==='string'&&<small>{t('action.'+pendingAction)}</small>}<button type="button" disabled={action.busy||!!denial||organization&&!page} onClick={()=>void recover()} data-notification-recover>{t('restore_original')}</button></div>}
+  {!writeDenied&&!batchConflict&&<WriteNotice action={action} onRebase={async()=>{if(!await latestRead.current())throw new UiError('notification-inbox.refresh_failed');}}/>}
+  {batchConflict&&!writeDenied&&<div className="conflict-banner notification-inbox-batch-conflict">
+   <div><strong>{t('batch_changed')}</strong><p>{t('batch_reselect')}</p></div>
+   <button type="button" disabled={visible.loading||action.busy} onClick={()=>void retry()}>{t('refresh')}</button>
+  </div>}
+  {action.pending&&<div className="notification-inbox-recovery" role="status"><strong>{t('original_update')}</strong><p>{t(organization?'organization_original_update_hint':'original_update_hint')}</p>{typeof pendingAction==='string'&&<small>{t('action.'+pendingAction)}{Array.isArray(pendingItems)&&' · '+t('batch_target_count',{count:formatNumber(pendingItems.length)})}</small>}<button type="button" disabled={action.busy||!!denial||organization&&!page} onClick={()=>void recover()} data-notification-recover>{t('restore_original')}</button></div>}
   {notice&&<p className={notice==='organization_write_denied'?'notification-inbox-note':'notification-inbox-notice'} role="status">{t(notice)}</p>}
   {Boolean(visible.error)&&<ErrorNotice error={visible.error} onRetry={()=>void retry()}/>}
   {Boolean(denial)&&<p className="notification-inbox-note" role="status">{t('private_cleared')}</p>}
   {visible.loading&&!page&&<Loading/>}
   {page&&<>
-   <div className="notification-inbox-scope"><p aria-live="polite">{t('showing',{loaded:formatNumber(page.items.length),total:formatNumber(page.total)})}</p><small>{t('as_of',{at:observed(page.as_of)})}</small></div>
-   {!page.items.length?<Empty title={mt('inbox_empty_'+filter)} description={t('empty_hint')}/>:<ul className="notification-inbox-list" aria-label={mt('inbox_list')} aria-busy={visible.loading}>{inboxRows(page).map(({notification:item,project_id:itemProject,project_title:projectTitle})=>{
+   <div className="notification-inbox-scope">
+    <div><p aria-live="polite">{t('showing',{loaded:formatNumber(page.items.length),total:formatNumber(page.total)})}</p><small>{t('as_of',{at:observed(page.as_of)})}</small></div>
+    {!!rows.length&&<button type="button" disabled={selected?action.busy:selectionLocked||rows.every(({notification})=>notification.version>=2147483647)}
+     data-notification-select-mode={selected?undefined:''} data-notification-select-cancel={selected?'':undefined}
+     onClick={()=>setSelection(selected?undefined:{key,api,targets:[]})}>{t(selected?'batch_cancel':'batch_select')}</button>}
+   </div>
+   {selected&&<div className="notification-inbox-batch" role="group" aria-label={t('batch_operations')}>
+    <div className="notification-inbox-batch-summary">
+     <strong role="status" data-notification-selection-count>{t('batch_selection',{count:formatNumber(selected.length),limit:formatNumber(notificationInboxSelectionLimit)})}</strong>
+     <small>{t('batch_scope')}</small>
+    </div>
+    <div className="notification-inbox-batch-actions">
+     {bulkActions.map(value=><button key={value} type="button" disabled={selectionLocked||!selected.length}
+      data-notification-batch-action={value} onClick={()=>void commandBatch(value)}>{t('action.'+value)}</button>)}
+     {!!selected.length&&<button type="button" disabled={action.busy} onClick={()=>setSelection({key,api,targets:[]})}>{t('batch_clear')}</button>}
+    </div>
+   </div>}
+   {!rows.length?<Empty title={mt('inbox_empty_'+filter)} description={t('empty_hint')}/>:<ul className="notification-inbox-list" aria-label={mt('inbox_list')} aria-busy={visible.loading}>{rows.map(({notification:item,project_id:itemProject,project_title:projectTitle})=>{
     const runFailed=item.kind==='task_run_failed',name=item.current_task?.title||item.task_id;
     const sourceDisabled=navigationLocked||messageSource(item)&&!onMessage||item.kind==='task_review_requested'&&!onReviewRequest||item.kind==='task_handoff_requested'&&!onHandoff||runFailed&&!onRun;
     const sourceLabel=runFailed?t('open_run_named',{name}):item.kind==='task_followed'?st('inbox_open_message',{title:name}):item.kind==='task_handoff_requested'?t('open_handoff',{name}):item.kind==='task_review_requested'?rt('open_notification',{name}):item.kind==='task_mentioned'?mt('open_discussion',{name}):t('open_task',{name});
     const eventLabel=runFailed?t('run_failed'):item.kind==='task_followed'?st('inbox_label'):item.kind==='task_handoff_requested'?t('handoff_requested'):item.kind==='task_review_requested'?rt('notification'):item.kind==='task_mentioned'?mt('mentioned'):t('assigned');
-    const at=observed(item.created_at);
-    return <li key={item.id} className={'notification-inbox-row'+(!item.read?' is-unread':'')} data-notification-id={item.id}>
+    const at=observed(item.created_at),checked=!!selected?.some(target=>target.notification_id===item.id);
+    const selectionLabel=[eventLabel,item.current_task?.title,organization?projectTitle||itemProject:undefined,at].filter(Boolean).join(' · ');
+    return <li key={item.id} className={'notification-inbox-row'+(!item.read?' is-unread':'')+(selected?' is-selecting':'')+(checked?' is-selected':'')} data-notification-id={item.id}>
+    {selected&&<label className="notification-inbox-select-row"><input type="checkbox" data-notification-select-row checked={checked}
+     disabled={selectionLocked||item.version>=2147483647||!checked&&selected.length>=notificationInboxSelectionLimit}
+     onChange={()=>toggleSelection(item,itemProject)} aria-label={t('batch_select_named',{name:selectionLabel})}/></label>}
     <div className="notification-inbox-main"><div className="notification-inbox-event">
      <span className={runFailed?'notification-inbox-run-failed':undefined}>{runFailed&&<CircleAlert size={15} aria-hidden="true"/>}{eventLabel}</span>
      <span className="notification-inbox-state">{t(item.read?'read':'unread')}</span>{item.archived&&<span className="notification-inbox-state">{t('archived')}</span>}
@@ -188,7 +251,7 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
      {item.source_available&&item.current_task?<><button type="button" className={'notification-inbox-source'+(runFailed?' is-run-source':'')} disabled={sourceDisabled} onClick={()=>openSource(item,itemProject)} aria-label={sourceLabel}>{name}{runFailed?<span className="notification-inbox-run-action">{t('open_run')}<ArrowUpRight size={15} aria-hidden="true"/></span>:<ArrowUpRight size={15} aria-hidden="true"/>}</button><div className="notification-inbox-source-facts"><span>{t('current_task_status')} <Badge state={item.current_task.status}/></span>{item.kind==='task_assigned'&&!item.assignment_current&&<span>{t('assignment_changed')}</span>}</div></>:<strong className="notification-inbox-unavailable">{t('source_unavailable')}</strong>}
      <time dateTime={item.created_at}>{runFailed?t('run_failed_at',{at}):item.kind==='task_followed'?st('inbox_created_at',{at}):item.kind==='task_handoff_requested'?t('handoff_requested_at',{at}):item.kind==='task_review_requested'?rt('requested_at',{at}):item.kind==='task_mentioned'?mt('mentioned_at',{at}):t('assigned_at',{at})}</time>
     </div>
-    <div className="notification-inbox-actions"><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.read?'unread':'read',itemProject)} data-notification-action={item.read?'unread':'read'} aria-label={t(item.read?'unread_named':'read_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.read?<Mail size={15} aria-hidden="true"/>:<Check size={15} aria-hidden="true"/>}{t('action.'+(item.read?'unread':'read'))}</button><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.archived?'restore':'archive',itemProject)} data-notification-action={item.archived?'restore':'archive'} aria-label={t(item.archived?'restore_named':'archive_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.archived?<ArchiveRestore size={15} aria-hidden="true"/>:<Archive size={15} aria-hidden="true"/>}{t('action.'+(item.archived?'restore':'archive'))}</button></div>
+    {!selected&&<div className="notification-inbox-actions"><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.read?'unread':'read',itemProject)} data-notification-action={item.read?'unread':'read'} aria-label={t(item.read?'unread_named':'read_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.read?<Mail size={15} aria-hidden="true"/>:<Check size={15} aria-hidden="true"/>}{t('action.'+(item.read?'unread':'read'))}</button><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.archived?'restore':'archive',itemProject)} data-notification-action={item.archived?'restore':'archive'} aria-label={t(item.archived?'restore_named':'archive_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.archived?<ArchiveRestore size={15} aria-hidden="true"/>:<Archive size={15} aria-hidden="true"/>}{t('action.'+(item.archived?'restore':'archive'))}</button></div>}
    </li>;})}</ul>}
    {page.next_cursor&&<div className="notification-inbox-more"><button type="button" disabled={visible.loading||navigationLocked} onClick={()=>void read(true)} data-notification-more>{visible.loading?t('loading_more'):t('more')}</button></div>}
    <p className="notification-inbox-note">{organization?t('organization_scope_hint'):mt('inbox_scope')}</p>

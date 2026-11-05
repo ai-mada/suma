@@ -126,6 +126,8 @@ T-MULTICA-136优先推进Multica式个人协作和统一命令导航，生产读
 
   T-MULTICA-RUN-FAILURE-INBOX 将正式任务运行失败、原问题回执和个人通知贯通，支持原运行定位与安全重放。其他通知事件和外部投递仍按原计划交付。 [合同](../../contracts/notification-inbox.md#任务执行失败通知) · [阶段验证](../quality/run-failure-inbox-verification.md)
 
+  T-MULTICA-INBOX-BATCH 增加当前项目及组织范围内已选通知的批量处理，逐项校验权限与版本，同事务保存个人状态和原回执。 [合同](../../contracts/notification-inbox.md#批量处理已选通知) · [阶段验证](../quality/inbox-batch-verification.md)
+
 T-WORKLOG-135补齐原P3人员明确登记、更正／作废历史、跨项目账号日期整数上限和中英工作台／CLI；[合同](../../contracts/worklogs.md)、[架构](../architecture/worklogs.md)与[证据](../quality/worklogs-verification.md)限定实现范围。HR／审批、自动计时、组织计划容量及全平台生产验收继续原范围，58／34／92总账不变。
 
 更新：2026-10-30。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。

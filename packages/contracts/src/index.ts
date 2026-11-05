@@ -4025,6 +4025,25 @@ export interface NonSecretDeploymentRequest {
   artifact_sha256: string;
   assignment: AssignmentRef;
 }
+export interface NotificationInboxBatchCommand {
+  items: (NotificationInboxBatchTarget)[];
+  action: string;
+  idempotency_key: string;
+}
+export interface NotificationInboxBatchReceipt {
+  idempotency_key: string;
+  action: string;
+  results: (NotificationInboxBatchResult)[];
+}
+export interface NotificationInboxBatchResult {
+  project_id: string;
+  receipt: NotificationInboxCommandReceipt;
+}
+export interface NotificationInboxBatchTarget {
+  project_id: string;
+  notification_id: string;
+  expected_version: number;
+}
 export interface NotificationInboxCommand {
   project_id: string;
   expected_version: number;

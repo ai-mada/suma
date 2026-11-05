@@ -20,6 +20,8 @@ T-WORKBUDDY-LOCAL-CANDIDATE-239 支持从等待交付的正式 WorkBuddy 尝试�
 
 T-TOOL-QUICK-START-239 简化添加工具。桌面端对唯一确认可启动的入口预填选择，自动接续当前项目的唯一节点和可用配置。检测结果可展开，登记仍需明确确认并保存为暂停。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-start-verification.md)
 
+T-MULTICA-INBOX-BATCH 支持当前项目及组织范围内已选通知的批量处理。逐条核对权限和版本后整批写入，并保存原操作回执。 [交互](../design/notification-inbox.md#批量处理已选通知) · [验证](../quality/inbox-batch-verification.md)
+
 T-MULTICA-RUN-FAILURE-INBOX 正式任务运行失败时通知投影时有权的关注者和人员负责人。项目和组织收件箱均可打开原运行，保留原问题与回执。 [交互](../design/notification-inbox.md#执行失败的处理入口) · [验证](../quality/run-failure-inbox-verification.md)
 
 T-MULTICA-ORGANIZATION-INBOX 在开发收件箱汇总组织内当前可读项目的个人通知。支持准确来源定位、原项目已读／归档，以及权限变化后的安全重读。 [交互](../design/notification-inbox.md#组织内跨项目处理) · [验证](../quality/organization-inbox-verification.md)

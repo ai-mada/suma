@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {appendNotificationInboxPage,appendNotificationOrganizationInboxPage,notificationInboxCommandPath,notificationInboxPath,notificationInboxReceiptIsStale,validNotificationInboxItem,validNotificationInboxPage,validNotificationInboxReceipt,validNotificationInboxRecovery,validNotificationInboxSequence,validNotificationOrganizationInboxPage} from './notification-inbox-model';
+import {appendNotificationInboxPage,appendNotificationOrganizationInboxPage,notificationInboxBatchPath,notificationInboxCommandPath,notificationInboxPath,notificationInboxReceiptIsStale,validNotificationInboxItem,validNotificationInboxPage,validNotificationInboxReceipt,validNotificationInboxRecovery,validNotificationInboxResult,validNotificationInboxSequence,validNotificationOrganizationInboxPage} from './notification-inbox-model';
 import type {NotificationInboxCommandReceipt,NotificationInboxPage,NotificationOrganizationInboxPage} from '../../../packages/contracts/src';
 
 const row=(patch:Record<string,unknown>={})=>({id:'notice-a',version:1,sequence:'9007199254740993',kind:'task_assigned',task_id:'task-a',source_task_version:2,source_resource_id:'human-a',created_at:'2026-10-29T02:00:00Z',read:false,archived:false,read_at:'',archived_at:'',source_available:true,assignment_current:true,current_task:{id:'task-a',version:4,title:'Current source title',status:'draft'},...patch});
@@ -108,4 +108,26 @@ it('validates the organization scope, UTC nanosecond ordering and cursor continu
  const next={...value,items:notices.slice(2)} as NotificationOrganizationInboxPage;
  expect(appendNotificationOrganizationInboxPage(first,next)?.items).toEqual(notices);
  expect(appendNotificationOrganizationInboxPage(first,{...next,scope_revision:'b'.repeat(64)})).toBeUndefined();
+});
+
+it('requires unique scoped targets and a complete batch receipt in the original order',()=>{
+ const items=[
+  {project_id:'project-a',notification_id:'notice-a',expected_version:1},
+  {project_id:'project-b',notification_id:'notice-b',expected_version:5},
+ ];
+ const batch=request({path:notificationInboxBatchPath,body:{items,action:'read',idempotency_key:request().idempotency_key}});
+ const results=[
+  {project_id:'project-a',receipt:receipt()},
+  {project_id:'project-b',receipt:receipt({notification_id:'notice-b',version:6})},
+ ];
+ const result={idempotency_key:batch.idempotency_key,action:'read',results};
+ expect(validNotificationInboxRecovery(batch)).toBe(true);
+ expect(validNotificationInboxRecovery(batch,'project-a')).toBe(false);
+ const invalidTargets=[[],[items[0],{...items[1],notification_id:'notice-a'}],Array.from({length:21},(_,index)=>({...items[0],notification_id:'notice-'+index}))];
+ for(const targets of invalidTargets)expect(validNotificationInboxRecovery({...batch,body:{...batch.body,items:targets}})).toBe(false);
+ expect(validNotificationInboxResult(result,batch)).toBe(true);
+ expect(validNotificationInboxResult({...result,results:[results[1],results[0]]},batch)).toBe(false);
+ expect(validNotificationInboxResult({...result,results:[results[0]]},batch)).toBe(false);
+ expect(validNotificationInboxResult({...result,results:[results[0],{...results[1],project_id:'project-a'}]},batch)).toBe(false);
+ expect(validNotificationInboxResult({...result,results:[results[0],{...results[1],receipt:receipt({notification_id:'notice-b',version:7})}]},batch)).toBe(false);
 });
