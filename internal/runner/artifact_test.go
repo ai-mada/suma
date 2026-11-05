@@ -54,6 +54,12 @@ func TestArtifactProcessHelper(t *testing.T) {
 	if mode != "build" {
 		return
 	}
+	if expected := os.Getenv("SUMA_ARTIFACT_SCOPE"); expected != "" {
+		actual, err := os.ReadFile("scope.txt")
+		if err != nil || string(actual) != expected {
+			os.Exit(36)
+		}
+	}
 	if counter := os.Getenv("SUMA_ARTIFACT_COUNTER"); counter != "" {
 		f, e := os.OpenFile(counter, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 		if e != nil {
@@ -237,6 +243,93 @@ func TestArtifactUploadCrashResumesAfterLostSealACKWithoutRerunning(t *testing.T
 		t.Fatal("final result not acknowledged")
 	}
 }
+func TestArtifactApplicationScopedBuildRejectsMismatchAndReplaysExactBasis(t *testing.T) {
+	ctx := context.Background()
+	repo, _ := gitFixture(t)
+	const root = "apps/store"
+	scope := filepath.Join(repo, filepath.FromSlash(root))
+	if err := os.MkdirAll(scope, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(scope, "scope.txt"), []byte("registered application source"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	gitTest(t, repo, "add", "--", root)
+	gitTest(t, repo, "commit", "-m", "Registered application scope")
+	head := strings.TrimSpace(gitTest(t, repo, "rev-parse", "HEAD"))
+	tree := strings.TrimSpace(gitTest(t, repo, "rev-parse", "HEAD:"+root))
+	basis := releasecontract.ApplicationBuildBasis{
+		ApplicationID: "application", VersionID: "version", VersionSHA256: strings.Repeat("a", 64),
+		ScopeID: "scope", ScopeRoot: root, ScopeTreeOID: tree, SourceCommit: head, ReceiptSHA256: strings.Repeat("b", 64),
+	}
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	counter := filepath.Join(t.TempDir(), "executions.txt")
+	store := &artifactHTTPFixture{t: t, blobs: map[string][]byte{}, dropSealACK: true}
+	server := httptest.NewServer(http.HandlerFunc(store.serve))
+	defer server.Close()
+	client := &Client{BaseURL: server.URL, ProjectID: "project", Token: "fixture-worker-token"}
+	cfg := ExecConfig{
+		AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: head, Artifacts: client,
+		Commands: map[string]CommandSpec{"build": {
+			Executable: executable, Args: []string{"-test.run=TestArtifactProcessHelper", "--"},
+			Env:            map[string]string{"SUMA_ARTIFACT_HELPER": "build", "SUMA_ARTIFACT_SCOPE": "registered application source", "SUMA_ARTIFACT_COUNTER": counter},
+			ArtifactOutput: ".cache/release/site",
+		}},
+	}
+	a := Assignment{RunID: "scoped-artifact", NodeID: "build", Attempt: 1, Fence: 1, WorkerID: "builder", Type: "command", Command: []string{"build"}}
+	wrong := basis
+	wrong.ScopeTreeOID = strings.TrimSpace(gitTest(t, repo, "rev-parse", "HEAD^{tree}"))
+	a.Config = map[string]any{releasecontract.ApplicationBuildConfigKey: wrong}
+	if result := Execute(ctx, a, cfg); result.ExitCode == 0 || !strings.Contains(result.Error, "registered Git tree") || result.ArtifactEvidence != nil {
+		t.Fatalf("mismatched scope reached the artifact executor: %+v", result)
+	}
+	if _, err = os.Stat(counter); !os.IsNotExist(err) {
+		t.Fatalf("mismatched scope started a command: %v", err)
+	}
+	a.Attempt, a.Fence = 2, 2
+	a.Config[releasecontract.ApplicationBuildConfigKey] = basis
+	dir := t.TempDir()
+	journal, err := OpenJournal(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = journal.Accept(a); err != nil {
+		t.Fatal(err)
+	}
+	cfg.Journal = journal
+	result := Execute(ctx, a, cfg)
+	if !result.artifactPending {
+		t.Fatalf("lost artifact ACK did not retain scoped proof: %+v", result)
+	}
+	if err = journal.Close(); err != nil {
+		t.Fatal(err)
+	}
+	journal, err = OpenJournal(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer journal.Close()
+	if err = Replay(ctx, client, journal); err != nil {
+		t.Fatal(err)
+	}
+	store.mu.Lock()
+	defer store.mu.Unlock()
+	if len(store.results) != 1 {
+		t.Fatalf("want one completed result, got %d", len(store.results))
+	}
+	proof := store.results[0].ArtifactEvidence
+	if proof == nil || proof.ApplicationBuild == nil || *proof.ApplicationBuild != basis || proof.SourceCommit != head {
+		t.Fatalf("original scoped proof was not restored: %+v", proof)
+	}
+	executions, err := os.ReadFile(counter)
+	if err != nil || string(executions) != "executed\n" {
+		t.Fatalf("recovery ran the application command again: %q %v", executions, err)
+	}
+}
+
 func artifactResult(t *testing.T, r Result) *releasecontract.ArtifactEvidence {
 	t.Helper()
 	b, err := json.Marshal(r)

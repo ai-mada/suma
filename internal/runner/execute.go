@@ -271,6 +271,10 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	applicationBuild, buildErr := applicationBuildAssignment(a)
+	if buildErr != nil {
+		return Result{Assignment: a, ExitCode: -1, Error: buildErr.Error()}
+	}
 	// Reject mixed or configuration-only continuation inputs before special
 	// executors can enter a journal, network or non-development workspace.
 	if err := developmentContinuationInput(a); err != nil {
@@ -341,6 +345,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	spec, ok := cfg.Commands[a.Command[0]]
 	if !ok {
 		return fail("command is not in the local allowlist")
+	}
+	if applicationBuild != nil && !validApplicationBuildCommand(spec) {
+		return fail("application build requires an administrator artifact build profile")
 	}
 	if err := developmentContinuationSpec(a, spec); err != nil {
 		return fail(err.Error())
@@ -484,6 +491,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail("workspace must be a directory")
 	}
 	var workspace *attemptWorkspace
+	if applicationBuild != nil {
+		ctx = context.WithValue(ctx, nativeGitScope{}, true)
+	}
 	if !spec.ReadOnly {
 		// Entering preparation can create private Git/filesystem state even
 		// when it returns an error. Only failures before this call certify it.
@@ -496,6 +506,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			return fail(err.Error())
 		}
 		root = workspace.Source
+	}
+	applicationScope, err := prepareApplicationBuildWorkspace(ctx, workspace, applicationBuild)
+	if err != nil {
+		return fail(err.Error())
 	}
 	modelAttempt := workspace
 	if spec.DispatchRecommendation || spec.TaskConversationReply {
@@ -539,6 +553,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	cmd := exec.Command(executable, arguments...)
 	cmd.Dir = root
+	if applicationScope != nil {
+		cmd.Dir = applicationScope.root
+	}
 	var dshStdin *dshInput
 	var dshPipe io.WriteCloser
 	var codexPipe io.WriteCloser
@@ -1338,7 +1355,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		var captureErr error
 		workspace.nativeEvidence = nativeEvidence
 		captureCtx := context.Background()
-		if native != nil || a.CodeBaseline != nil || a.DevelopmentContinuation != nil || codexBinding != nil {
+		if native != nil || a.CodeBaseline != nil || a.DevelopmentContinuation != nil || codexBinding != nil || applicationBuild != nil {
 			captureCtx = context.WithValue(captureCtx, nativeGitScope{}, true)
 		}
 		if a.Type == "agent" && codexBinding != nil && cfg.Artifacts != nil {
@@ -1353,7 +1370,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 	}
 	if r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown && r.Error == "" && (spec.ArtifactInput || spec.ArtifactOutput != "") {
-		if err = finishArtifact(ctx, a, cfg, spec, workspace, artifactDir, &r); err != nil {
+		if err = finishArtifact(ctx, a, cfg, spec, workspace, applicationScope, artifactDir, &r); err != nil {
 			r.ExitCode = -1
 			r.Error = "artifact evidence: " + err.Error()
 		}

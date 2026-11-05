@@ -1,9 +1,10 @@
 import {tr,useLocale,UiError,renderDiagnostic,formatNumber} from './i18n';
 import {ArrowUpRight,Copy} from 'lucide-react';
 import {useState} from 'react';
+import type {ArtifactProof} from '../../../packages/contracts/src';
 import {time} from './api';
 import {ErrorNotice} from './ui';
-import {deploymentFacts,type ArtifactProof,type DeploymentObservation,type HealthPolicy,type ReleaseBlocker,type ReleaseDeployment} from './release-model';
+import {deploymentFacts,type DeploymentObservation,type HealthPolicy,type ReleaseBlocker,type ReleaseDeployment} from './release-model';
 import type {ReleaseAction} from './release-hooks';
 import {useReleaseRead} from './release-hooks';
 import {releaseReferenceName,releaseReferencePath,type CandidateDetail,type ReleaseEnvironment,type ReleaseReferenceKind} from './release-model';
@@ -16,6 +17,41 @@ export function ReleasePill({children,tone='neutral'}:{children:React.ReactNode;
 export function ReleaseBlockers({items}:{items?:ReleaseBlocker[]}){useLocale();return items?.length?<div className="release-blockers" role="status"><strong>{tr('release.blockers.title')}</strong><ul>{items.map((item,index)=><li key={item.code+index}>{renderDiagnostic(item)}<small>{item.code}</small></li>)}</ul></div>:null;}
 export function ReleaseWriteNotice({action}:{action:ReleaseAction}){useLocale();return <>{action.error&&<ErrorNotice error={action.error}/>} {action.pending&&!action.busy&&<div className="warning" role="status"><p>{tr('release.write.unknown')}</p>{!action.deferred?<button type="button" onClick={action.defer}>{tr('release.write.defer')}</button>:<p>{tr('release.write.deferred')}</p>}</div>}</>;}
 export function HealthPolicyFacts({policy}:{policy:HealthPolicy}){useLocale();return <div className="release-health-policy"><p className="muted">{tr('release.health.summary',{timeout:formatNumber(policy.timeout_ms),attempts:formatNumber(policy.attempts)})}</p><div className="table-scroll"><table><thead><tr><th>{tr('release.health.path')}</th><th>{tr('release.health.http')}</th><th>{tr('release.health.file')}</th></tr></thead><tbody>{policy.checks.map(check=><tr key={check.path}><td><code>{check.path}</code></td><td>{check.expected_status}</td><td><code>{check.expected_file}</code>{check.expected_sha256&&<ReleaseFingerprint label={tr('release.health.fingerprint')} value={check.expected_sha256}/>}</td></tr>)}</tbody></table></div></div>;}
-export function ProofFacts({proof,title}:{proof:ArtifactProof;title:string}){useLocale();const identity=proof.assignment;return <section className="release-proof"><div className="release-section-heading"><h3>{title}</h3><ReleasePill tone="good">{tr('release.proof.derived')}</ReleasePill></div><dl className="release-facts"><div><dt>{tr('release.proof.profile')}</dt><dd>{proof.profile_id}</dd></div><div><dt>{tr('release.proof.worker')}</dt><dd>{identity.worker_id}</dd></div><div><dt>{tr('release.proof.attempt')}</dt><dd>{formatNumber(identity.attempt)} / {formatNumber(identity.fence)}</dd></div><div><dt>{tr('release.proof.created')}</dt><dd>{time(proof.created_at)}</dd></div></dl><a className="release-link" href={'?'+new URLSearchParams({project:proof.project_id,view:'development',sub:'runs',run:identity.run_id,node:identity.node_id})}>{tr('release.proof.run')} <ArrowUpRight size={13}/></a><ReleaseFingerprint value={proof.source_commit} label={tr('release.proof.commit')}/><details><summary>{tr('release.proof.technical')}</summary><ReleaseFingerprint value={proof.id} label={tr('release.proof.record')}/><ReleaseFingerprint value={proof.manifest_sha256}/><ReleaseFingerprint value={proof.profile_sha256} label={tr('release.proof.profile_hash')}/><ReleaseFingerprint value={proof.workspace_sha256} label={tr('release.proof.workspace_hash')}/></details></section>;}
+export function ProofFacts({proof,title}:{proof:ArtifactProof;title:string}){
+ useLocale();
+ const identity=proof.assignment;
+ const build=proof.kind==='build'?proof.application_build:undefined;
+ return <section className="release-proof">
+  <div className="release-section-heading"><h3>{title}</h3><ReleasePill tone="good">{tr('release.proof.derived')}</ReleasePill></div>
+  <dl className="release-facts">
+   <div><dt>{tr('release.proof.profile')}</dt><dd>{proof.profile_id}</dd></div>
+   <div><dt>{tr('release.proof.worker')}</dt><dd>{identity.worker_id}</dd></div>
+   <div><dt>{tr('release.proof.attempt')}</dt><dd>{formatNumber(identity.attempt)} / {formatNumber(identity.fence)}</dd></div>
+   <div><dt>{tr('release.proof.created')}</dt><dd>{time(proof.created_at)}</dd></div>
+  </dl>
+  {proof.kind==='build'&&(build?<>
+   <strong>{tr('release.proof.application_build')}</strong>
+   <dl className="release-facts">
+    <div><dt>{tr('release.proof.application_id')}</dt><dd><code>{build.application_id}</code></dd></div>
+    <div><dt>{tr('release.proof.application_version')}</dt><dd><code>{build.version_id}</code></dd></div>
+    <div><dt>{tr('release.proof.scope_root')}</dt><dd>{build.scope_root?<code>{build.scope_root}</code>:tr('release.proof.repository_root')}</dd></div>
+    <div><dt>{tr('release.proof.scope_tree')}</dt><dd><code>{build.scope_tree_oid}</code></dd></div>
+   </dl>
+  </>:<p className="muted">{tr('release.proof.project_build')}</p>)}
+  <a className="release-link" href={'?'+new URLSearchParams({project:proof.project_id,view:'development',sub:'runs',run:identity.run_id,node:identity.node_id})}>{tr('release.proof.run')} <ArrowUpRight size={13}/></a>
+  <ReleaseFingerprint value={proof.source_commit} label={tr('release.proof.commit')}/>
+  <details><summary>{tr('release.proof.technical')}</summary>
+   <ReleaseFingerprint value={proof.id} label={tr('release.proof.record')}/>
+   <ReleaseFingerprint value={proof.manifest_sha256}/>
+   <ReleaseFingerprint value={proof.profile_sha256} label={tr('release.proof.profile_hash')}/>
+   <ReleaseFingerprint value={proof.workspace_sha256} label={tr('release.proof.workspace_hash')}/>
+   {build&&<>
+    <ReleaseFingerprint value={build.version_sha256} label={tr('release.proof.application_version_hash')}/>
+    <ReleaseFingerprint value={build.scope_id} label={tr('release.proof.scope_id')}/>
+    <ReleaseFingerprint value={build.receipt_sha256} label={tr('release.proof.receipt_hash')}/>
+   </>}
+  </details>
+ </section>;
+}
 export function DeploymentStateFacts({deployment}:{deployment:ReleaseDeployment}){useLocale();const facts=deploymentFacts(deployment);return <div className="release-state-axes"><div><span>{tr('release.deployment.release')}</span><ReleasePill tone={deployment.state==='deployed_healthy'?'good':['failed','deployed_unhealthy'].includes(deployment.state)?'bad':'warning'}>{facts.state}</ReleasePill></div><div><span>{tr('release.deployment.effect')}</span><strong>{facts.effect}</strong></div><div><span>{tr('release.deployment.health')}</span><strong>{facts.health}</strong></div></div>;}
 export function ObservationFacts({observation}:{observation:DeploymentObservation}){useLocale();const facts=deploymentFacts({state:observation.state,effect_state:observation.effect.state,health_state:observation.health.state});return <section className="release-observation"><div className="release-section-heading"><h3>{tr('release.observation.title',{version:formatNumber(observation.version)})}</h3><ReleasePill>{facts.state}</ReleasePill></div><dl className="release-facts"><div><dt>{tr('release.observation.effect')}</dt><dd>{facts.effect}</dd></div><div><dt>{tr('release.observation.health')}</dt><dd>{facts.health}</dd></div><div><dt>{tr('release.observation.active_generation')}</dt><dd>{formatNumber(observation.effect.active_generation)}</dd></div><div><dt>{tr('release.observation.fence_generation')}</dt><dd>{formatNumber(observation.fence_generation)}</dd></div><div><dt>{tr('release.observation.switched_at')}</dt><dd>{time(observation.effect.observed_at)}</dd></div></dl><ReleaseFingerprint value={observation.effect.active_artifact_sha256} label={tr('release.observation.active_hash')}/>{observation.error&&<ErrorNotice error={tr('release.diagnostic',{message:renderDiagnostic(observation.error),code:observation.error.code})}/>} {observation.health.checks?.length?<div className="table-scroll"><table><thead><tr><th>{tr('release.observation.path')}</th><th>HTTP</th><th>{tr('release.observation.observed_at')}</th><th>{tr('release.observation.response_hash')}</th></tr></thead><tbody>{observation.health.checks.map((check,index)=><tr key={check.path+index}><td><code>{check.path}</code></td><td>{check.status_code}</td><td>{time(check.observed_at)}</td><td><code>{check.body_sha256}</code></td></tr>)}</tbody></table></div>:<p className="muted">{tr('release.observation.no_checks')}</p>}<details><summary>{tr('release.observation.binding')}</summary><ReleaseFingerprint value={observation.evidence_sha256} label={tr('release.observation.evidence_hash')}/><ReleaseFingerprint value={observation.request_sha256} label={tr('release.observation.request_hash')}/><p>{tr('release.observation.scope',{generation:formatNumber(observation.generation),revision:formatNumber(observation.plan_revision),id:observation.plan_id})}</p><ReleaseFingerprint value={observation.health.artifact_sha256} label={tr('release.observation.artifact_hash')}/></details></section>;}

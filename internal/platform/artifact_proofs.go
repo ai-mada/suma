@@ -11,13 +11,103 @@ import (
 
 const artifactProofColumns = `id,project_id,run_id,node_id,attempt,fence,worker_id,kind,artifact_id,manifest_sha256,source_commit,profile_id,profile_sha256,workspace_sha256,created_at`
 
-func scanArtifactProof(row interface{ Scan(...any) error }) (ArtifactProof, error) {
+func scanArtifactProof(row interface{ Scan(...any) error }, extra ...any) (ArtifactProof, error) {
 	var p ArtifactProof
-	err := row.Scan(&p.ID, &p.ProjectID, &p.Assignment.RunID, &p.Assignment.NodeID, &p.Assignment.Attempt, &p.Assignment.Fence, &p.Assignment.WorkerID, &p.Kind, &p.ArtifactID, &p.ManifestSHA256, &p.SourceCommit, &p.ProfileID, &p.ProfileSHA256, &p.WorkspaceSHA256, &p.CreatedAt)
+	dest := []any{&p.ID, &p.ProjectID, &p.Assignment.RunID, &p.Assignment.NodeID, &p.Assignment.Attempt, &p.Assignment.Fence, &p.Assignment.WorkerID, &p.Kind, &p.ArtifactID, &p.ManifestSHA256, &p.SourceCommit, &p.ProfileID, &p.ProfileSHA256, &p.WorkspaceSHA256, &p.CreatedAt}
+	err := row.Scan(append(dest, extra...)...)
 	return p, err
 }
 
-func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, result dag.Result, state string) error {
+// Application build provenance identifies the registered source scope and its
+// inspected Git tree. A shared commit alone cannot identify the application.
+func applicationBuildMatchesVersion(basis *rc.ApplicationBuildBasis, v ApplicationCodeVersion) bool {
+	if basis == nil || v.ApplicationID != basis.ApplicationID || v.ID != basis.VersionID || v.SnapshotSHA256 != basis.VersionSHA256 || len(v.Sources) != 1 {
+		return false
+	}
+	source := v.Sources[0]
+	return source.Scope.ID == basis.ScopeID && source.Scope.RelativeRoot == basis.ScopeRoot &&
+		source.Inspection.ScopeTreeOID == basis.ScopeTreeOID && source.Commit == basis.SourceCommit &&
+		source.ReceiptSHA256 == basis.ReceiptSHA256
+}
+
+func (s *Service) checkApplicationBuildBasisTx(ctx context.Context, tx *sql.Tx, p Principal, project string, basis *rc.ApplicationBuildBasis) error {
+	if basis == nil {
+		return nil
+	}
+	v, err := s.applicationVersionReadTx(ctx, tx, p, project, basis.ApplicationID, basis.VersionID)
+	if err != nil {
+		return err
+	}
+	if !applicationBuildMatchesVersion(basis, v) {
+		return conflict("应用构建来源与固定源码版本不一致")
+	}
+	view, err := s.applicationVersionViewReadTx(ctx, tx, p, v)
+	if err != nil {
+		return err
+	}
+	if !view.BasisCurrent {
+		return conflict("应用构建的当前授权或源码依据已变化")
+	}
+	return nil
+}
+
+// Both the frozen graph and the final Runner receipt must agree. A package
+// test attests sealed bytes and cannot add or remove application provenance.
+func checkApplicationBuildEvidence(spec dag.Node, e *rc.ArtifactEvidence) (*rc.ApplicationBuildBasis, error) {
+	basis, err := rc.DecodeApplicationBuild(spec.Config)
+	if err != nil {
+		return nil, conflict("固定应用构建配置无效")
+	}
+	if basis == nil {
+		if e != nil && e.ApplicationBuild != nil {
+			return nil, conflict("应用构建证明缺少固定执行配置")
+		}
+		return nil, nil
+	}
+	if spec.Type != "command" || e == nil || e.Kind != "build" || e.ApplicationBuild == nil || *e.ApplicationBuild != *basis || e.SourceCommit != basis.SourceCommit {
+		return nil, conflict("应用构建证明与固定执行配置不一致")
+	}
+	return basis, nil
+}
+
+func artifactFinalResultMatchesProof(result dag.Result, proof ArtifactProof) bool {
+	e := result.ArtifactEvidence
+	return e != nil && result.ExitCode == 0 && !result.Stopped && !result.OutcomeUnknown && result.Error == "" &&
+		e.ArtifactID == proof.ArtifactID && e.ManifestSHA256 == proof.ManifestSHA256 && e.SourceCommit == proof.SourceCommit &&
+		e.Kind == proof.Kind && e.ProfileID == proof.ProfileID && e.ProfileSHA256 == proof.ProfileSHA256 &&
+		result.WorkspaceEvidence["evidence_sha256"] == proof.WorkspaceSHA256
+}
+
+func applicationBuildFromFinalResult(spec dag.Node, result dag.Result, proof ArtifactProof) (*rc.ApplicationBuildBasis, error) {
+	basis, err := checkApplicationBuildEvidence(spec, result.ArtifactEvidence)
+	if err != nil || basis == nil {
+		return basis, err
+	}
+	if artifactRef(result) != proof.Assignment {
+		return nil, conflict("应用构建证明与最终执行身份不一致")
+	}
+	return basis, nil
+}
+
+// Artifact lists retain ordinary historical rows even when older executions
+// have no final receipt to join. Scoped provenance is projected only when the
+// frozen node, final receipt and stored proof all identify the same build.
+func decodeApplicationBuildProof(specRaw, resultRaw string, proof ArtifactProof) (*rc.ApplicationBuildBasis, error) {
+	var spec dag.Node
+	var result dag.Result
+	if json.Unmarshal([]byte(specRaw), &spec) != nil || json.Unmarshal([]byte(resultRaw), &result) != nil {
+		return nil, nil
+	}
+	if _, scoped := spec.Config[rc.ApplicationBuildConfigKey]; !scoped && (result.ArtifactEvidence == nil || result.ArtifactEvidence.ApplicationBuild == nil) {
+		return nil, nil
+	}
+	if !artifactFinalResultMatchesProof(result, proof) {
+		return nil, conflict("应用构建证明与最终回执不一致")
+	}
+	return applicationBuildFromFinalResult(spec, result, proof)
+}
+
+func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, spec dag.Node, result dag.Result, state string) error {
 	if auth == nil {
 		return unauthenticated()
 	}
@@ -27,16 +117,21 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *
 	p, project := auth.currentPrincipal, auth.target.projectID
 
 	e := result.ArtifactEvidence
-	if e == nil {
-		return nil
-	}
-	err := s.releaseWorkerBindingTx(ctx, tx, auth, result.WorkerID, e.ProfileID, e.ProfileSHA256, e.Kind)
-	if err != nil {
-		return err
+	if e != nil {
+		if err := s.releaseWorkerBindingTx(ctx, tx, auth, result.WorkerID, e.ProfileID, e.ProfileSHA256, e.Kind); err != nil {
+			return err
+		}
 	}
 	// Failed or uncertain attempts retain observations, never publication proof.
 	if state != "succeeded" {
 		return nil
+	}
+	basis, err := checkApplicationBuildEvidence(spec, e)
+	if err != nil || e == nil {
+		return err
+	}
+	if err := s.checkApplicationBuildBasisTx(ctx, tx, p, project, basis); err != nil {
+		return err
 	}
 	if result.Stopped || result.OutcomeUnknown || result.ExitCode != 0 || result.Error != "" {
 		return invalid("停止或结果未知的执行不能形成成功制品证明")
@@ -47,14 +142,6 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *
 	}
 	if !rc.ValidCommit(e.SourceCommit) || e.SourceCommit != head || result.WorkspaceEvidence["base_commit"] != head || !rc.ValidDigest(e.ManifestSHA256) {
 		return invalid("制品证明必须来自同一固定源码，构建及包测试不得改变代码")
-	}
-	var raw string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT spec FROM dag_nodes WHERE run_id=? AND id=?`), result.RunID, result.NodeID).Scan(&raw); err != nil {
-		return err
-	}
-	var spec dag.Node
-	if err = json.Unmarshal([]byte(raw), &spec); err != nil {
-		return err
 	}
 	if len(spec.Command) != 1 || spec.Command[0] != e.ProfileID {
 		return invalid("命令与登记的制品配置不符")
@@ -125,10 +212,10 @@ func (s *Service) artifactProofReadTx(ctx context.Context, tx *sql.Tx, p Princip
 	if err != nil {
 		return proof, missing()
 	}
-	var state, currentState, raw string
+	var state, currentState, raw, rawSpec string
 	var attempt int
 	var fence int64
-	err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT a.state,n.state,n.attempt,n.fence,a.result FROM dag_attempts a JOIN dag_nodes n ON n.run_id=a.run_id AND n.id=a.node_id JOIN dag_runs r ON r.id=a.run_id WHERE r.tenant_id=? AND r.project_id=? AND a.run_id=? AND a.node_id=? AND a.attempt=? AND a.fence=? AND a.worker_id=?`, current)), p.TenantID, project, proof.Assignment.RunID, proof.Assignment.NodeID, proof.Assignment.Attempt, proof.Assignment.Fence, proof.Assignment.WorkerID).Scan(&state, &currentState, &attempt, &fence, &raw)
+	err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT a.state,n.state,n.attempt,n.fence,a.result,n.spec FROM dag_attempts a JOIN dag_nodes n ON n.run_id=a.run_id AND n.id=a.node_id JOIN dag_runs r ON r.id=a.run_id WHERE r.tenant_id=? AND r.project_id=? AND a.run_id=? AND a.node_id=? AND a.attempt=? AND a.fence=? AND a.worker_id=?`, current)), p.TenantID, project, proof.Assignment.RunID, proof.Assignment.NodeID, proof.Assignment.Attempt, proof.Assignment.Fence, proof.Assignment.WorkerID).Scan(&state, &currentState, &attempt, &fence, &raw, &rawSpec)
 	if err != nil || state != "succeeded" || currentState != "succeeded" || attempt != proof.Assignment.Attempt || fence != proof.Assignment.Fence {
 		return proof, conflict("构建或包测试当前尝试已变化")
 	}
@@ -136,9 +223,21 @@ func (s *Service) artifactProofReadTx(ctx context.Context, tx *sql.Tx, p Princip
 	if json.Unmarshal([]byte(raw), &result) != nil || result.ArtifactEvidence == nil || result.ExitCode != 0 || result.Stopped || result.OutcomeUnknown || result.Error != "" {
 		return proof, conflict("缺少可信执行的最终制品回执")
 	}
-	e := result.ArtifactEvidence
-	if e.ArtifactID != proof.ArtifactID || e.ManifestSHA256 != proof.ManifestSHA256 || e.SourceCommit != proof.SourceCommit || e.Kind != proof.Kind || e.ProfileID != proof.ProfileID || e.ProfileSHA256 != proof.ProfileSHA256 || result.WorkspaceEvidence["evidence_sha256"] != proof.WorkspaceSHA256 {
+	if !artifactFinalResultMatchesProof(result, proof) {
 		return proof, conflict("制品证明与最终回执不一致")
+	}
+	var spec dag.Node
+	if json.Unmarshal([]byte(rawSpec), &spec) != nil {
+		return proof, conflict("缺少固定制品执行配置")
+	}
+	proof.ApplicationBuild, err = applicationBuildFromFinalResult(spec, result, proof)
+	if err != nil {
+		return proof, err
+	}
+	if current {
+		if err = s.checkApplicationBuildBasisTx(ctx, tx, p, project, proof.ApplicationBuild); err != nil {
+			return proof, err
+		}
 	}
 	return proof, nil
 }

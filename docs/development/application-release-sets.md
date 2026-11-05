@@ -4,6 +4,12 @@
 
 关联：[架构](../architecture/application-release-sets.md)、[接口合同](../../contracts/application-release-sets.md)、[应用操作](project-applications.md)、[English](../en/application-release-sets.md)。
 
+## 从应用源码版本构建
+
+在已登记应用的源码版本详情核对登记版本 ID、快照摘要和代码范围。配置项目发布 Runner 及其登记的构建档案，在已发布流程的命令节点设置 `config.application_build`。字段取自同一应用源码版本。顶层字段对应应用 ID、版本 ID 和快照摘要，来源条目提供范围 ID、相对目录、检查器的范围树对象、提交和原回执摘要。[字段合同](../../contracts/application-release-sets.md#scoped-build-evidence)
+
+Runner 必须能访问登记提交。在受管仓库准备该提交或复用现有候选交接，再按管理员命令执行。构建输出路径相对于选定代码范围，输出仍通过原制品校验及封存。另一个执行者使用包测试档案检查同一制品。确认构建和包测试证据后，显式创建候选并配置发布集合。构建范围变更时重新登记应用版本并更新流程绑定。
+
 ## 用户流程
 
 1. 打开当前项目的应用发布集合入口，读取真实应用代码版本和候选。先确认应用原源码任务与正式验收仍有效，再检查候选自己的构建、独立包测试、制品原件和验收。

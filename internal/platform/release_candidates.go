@@ -3,17 +3,18 @@ package platform
 import "github.com/ai-mada/suma/internal/releasecontract"
 
 type ArtifactProof struct {
-	ID              string                        `json:"id"`
-	ProjectID       string                        `json:"project_id"`
-	Assignment      releasecontract.AssignmentRef `json:"assignment"`
-	Kind            string                        `json:"kind"`
-	ArtifactID      string                        `json:"artifact_id"`
-	ManifestSHA256  string                        `json:"manifest_sha256"`
-	SourceCommit    string                        `json:"source_commit"`
-	ProfileID       string                        `json:"profile_id"`
-	ProfileSHA256   string                        `json:"profile_sha256"`
-	WorkspaceSHA256 string                        `json:"workspace_sha256"`
-	CreatedAt       string                        `json:"created_at"`
+	ID               string                                 `json:"id"`
+	ProjectID        string                                 `json:"project_id"`
+	Assignment       releasecontract.AssignmentRef          `json:"assignment"`
+	Kind             string                                 `json:"kind"`
+	ArtifactID       string                                 `json:"artifact_id"`
+	ManifestSHA256   string                                 `json:"manifest_sha256"`
+	SourceCommit     string                                 `json:"source_commit"`
+	ProfileID        string                                 `json:"profile_id"`
+	ProfileSHA256    string                                 `json:"profile_sha256"`
+	WorkspaceSHA256  string                                 `json:"workspace_sha256"`
+	CreatedAt        string                                 `json:"created_at"`
+	ApplicationBuild *releasecontract.ApplicationBuildBasis `json:"application_build,omitempty"`
 }
 type ReleaseTaskBasis struct {
 	ID       string `json:"id"`

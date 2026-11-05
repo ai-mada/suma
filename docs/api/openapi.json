@@ -704,6 +704,45 @@
         ],
         "type": "object"
       },
+      "ApplicationBuildBasis": {
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "receipt_sha256": {
+            "type": "string"
+          },
+          "scope_id": {
+            "type": "string"
+          },
+          "scope_root": {
+            "type": "string"
+          },
+          "scope_tree_oid": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          },
+          "version_id": {
+            "type": "string"
+          },
+          "version_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "application_id",
+          "version_id",
+          "version_sha256",
+          "scope_id",
+          "scope_root",
+          "scope_tree_oid",
+          "source_commit",
+          "receipt_sha256"
+        ],
+        "type": "object"
+      },
       "ApplicationCodeScope": {
         "additionalProperties": false,
         "properties": {
@@ -3900,6 +3939,16 @@
       },
       "ArtifactEvidence": {
         "properties": {
+          "application_build": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationBuildBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "artifact_id": {
             "type": "string"
           },
@@ -3979,6 +4028,16 @@
       },
       "ArtifactProof": {
         "properties": {
+          "application_build": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationBuildBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "artifact_id": {
             "type": "string"
           },

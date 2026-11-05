@@ -149,7 +149,7 @@ func (s *Service) applicationReleaseSetPreviewTx(ctx context.Context, tx *sql.Tx
 			if stringify(build) != stringify(candidate.BuildProof) || stringify(test) != stringify(candidate.PackageTestProof) {
 				block("release_set_candidate_stale", input.ApplicationID, candidate.ID)
 			}
-			if candidate.SourceCommit != m.SourceCommit {
+			if candidate.SourceCommit != m.SourceCommit || build.ApplicationBuild != nil && !applicationBuildMatchesVersion(build.ApplicationBuild, v) {
 				block("release_set_source_mismatch", input.ApplicationID, candidate.ID)
 			}
 			if build.Assignment.WorkerID == "" || build.Assignment.WorkerID == test.Assignment.WorkerID || build.ArtifactID != test.ArtifactID || build.ManifestSHA256 != test.ManifestSHA256 || build.SourceCommit != test.SourceCommit {

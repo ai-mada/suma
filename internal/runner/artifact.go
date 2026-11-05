@@ -221,13 +221,14 @@ func collectArtifact(root, blobDir string) (releasecontract.ArtifactManifest, st
 }
 
 type artifactTransfer struct {
-	Assignment     Assignment                       `json:"assignment"`
-	Result         Result                           `json:"result"`
-	Manifest       releasecontract.ArtifactManifest `json:"manifest"`
-	ManifestSHA256 string                           `json:"manifest_sha256"`
-	ProfileID      string                           `json:"profile_id"`
-	ProfileSHA256  string                           `json:"profile_sha256"`
-	BlobDirectory  string                           `json:"blob_directory"`
+	Assignment       Assignment                             `json:"assignment"`
+	Result           Result                                 `json:"result"`
+	Manifest         releasecontract.ArtifactManifest       `json:"manifest"`
+	ManifestSHA256   string                                 `json:"manifest_sha256"`
+	ProfileID        string                                 `json:"profile_id"`
+	ProfileSHA256    string                                 `json:"profile_sha256"`
+	BlobDirectory    string                                 `json:"blob_directory"`
+	ApplicationBuild *releasecontract.ApplicationBuildBasis `json:"application_build,omitempty"`
 }
 
 type artifactParent struct {
@@ -317,7 +318,7 @@ func uploadArtifact(ctx context.Context, c *Client, p artifactTransfer) (release
 	return receipt, nil
 }
 
-func finishArtifact(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec, w *attemptWorkspace, inputDir string, r *Result) error {
+func finishArtifact(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec, w *attemptWorkspace, scope *applicationBuildWorkspace, inputDir string, r *Result) error {
 	if w == nil || r.WorkspaceEvidence["clean"] != true || !releasecontract.ValidCommit(w.HeadCommit) {
 		return fmt.Errorf("artifact proof requires a clean known source commit")
 	}
@@ -337,8 +338,17 @@ func finishArtifact(ctx context.Context, a Assignment, cfg ExecConfig, spec Comm
 		r.ArtifactEvidence = &releasecontract.ArtifactEvidence{Kind: "package_test", ArtifactID: binding.ArtifactID, ManifestSHA256: hash, SourceCommit: binding.SourceCommit, ProfileID: p.ID, ProfileSHA256: profileHash}
 		return nil
 	}
-	dir := filepath.Join(w.Source, filepath.FromSlash(spec.ArtifactOutput))
-	if !within(w.Source, dir) {
+	root := w.Source
+	var applicationBuild *releasecontract.ApplicationBuildBasis
+	if scope != nil {
+		if err = scope.verify(ctx, w); err != nil {
+			return err
+		}
+		root = scope.root
+		applicationBuild = scope.basis
+	}
+	dir := filepath.Join(root, filepath.FromSlash(spec.ArtifactOutput))
+	if !within(root, dir) {
 		return fmt.Errorf("artifact output escaped attempt")
 	}
 	blobs := filepath.Join(w.Directory, "artifact-blobs")
@@ -346,7 +356,7 @@ func finishArtifact(ctx context.Context, a Assignment, cfg ExecConfig, spec Comm
 	if err != nil {
 		return err
 	}
-	pending := artifactTransfer{Assignment: a, Result: *r, Manifest: manifest, ManifestSHA256: hash, ProfileID: p.ID, ProfileSHA256: profileHash, BlobDirectory: blobs}
+	pending := artifactTransfer{Assignment: a, Result: *r, Manifest: manifest, ManifestSHA256: hash, ProfileID: p.ID, ProfileSHA256: profileHash, BlobDirectory: blobs, ApplicationBuild: applicationBuild}
 	b, _ := json.MarshalIndent(pending, "", "  ")
 	if err = writeEvidence(filepath.Join(w.Directory, "artifact-transfer.json"), b); err != nil {
 		return err
@@ -361,7 +371,7 @@ func finishArtifact(ctx context.Context, a Assignment, cfg ExecConfig, spec Comm
 		r.artifactPending = cfg.Journal != nil
 		return err
 	}
-	r.ArtifactEvidence = &releasecontract.ArtifactEvidence{Kind: "build", ArtifactID: receipt.ArtifactID, ManifestSHA256: hash, SourceCommit: w.HeadCommit, ProfileID: p.ID, ProfileSHA256: profileHash}
+	r.ArtifactEvidence = &releasecontract.ArtifactEvidence{Kind: "build", ArtifactID: receipt.ArtifactID, ManifestSHA256: hash, SourceCommit: w.HeadCommit, ProfileID: p.ID, ProfileSHA256: profileHash, ApplicationBuild: applicationBuild}
 	return nil
 }
 
@@ -373,13 +383,17 @@ func resumeArtifact(ctx context.Context, c *Client, j *Journal, p artifactTransf
 	if !ok || !releasecontract.ValidCommit(head) || !releasecontract.ValidProfileID(p.ProfileID) || !releasecontract.ValidDigest(p.ProfileSHA256) {
 		return fmt.Errorf("artifact checkpoint source/profile invalid")
 	}
+	applicationBuild, err := applicationBuildAssignment(p.Assignment)
+	if err != nil || (applicationBuild == nil) != (p.ApplicationBuild == nil) || applicationBuild != nil && (*applicationBuild != *p.ApplicationBuild || applicationBuild.SourceCommit != head) {
+		return fmt.Errorf("artifact checkpoint application build does not match its original source")
+	}
 	receipt, err := uploadArtifact(ctx, c, p)
 	if err != nil {
 		return err
 	}
 	r := p.Result
 	r.Assignment = p.Assignment
-	r.ArtifactEvidence = &releasecontract.ArtifactEvidence{Kind: "build", ArtifactID: receipt.ArtifactID, ManifestSHA256: receipt.ManifestSHA256, SourceCommit: head, ProfileID: p.ProfileID, ProfileSHA256: p.ProfileSHA256}
+	r.ArtifactEvidence = &releasecontract.ArtifactEvidence{Kind: "build", ArtifactID: receipt.ArtifactID, ManifestSHA256: receipt.ManifestSHA256, SourceCommit: head, ProfileID: p.ProfileID, ProfileSHA256: p.ProfileSHA256, ApplicationBuild: applicationBuild}
 	return j.Finish(r)
 }
 

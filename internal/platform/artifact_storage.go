@@ -112,6 +112,13 @@ func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project 
 	if spec.Type != "command" && spec.Type != "agent" || len(spec.Command) != 1 || spec.Command[0] != r.ProfileID {
 		return out, invalid("制品构建需绑定管理员登记命令")
 	}
+	basis, err := releasecontract.DecodeApplicationBuild(spec.Config)
+	if err != nil || basis != nil && spec.Type != "command" {
+		return out, invalid("固定应用构建配置无效")
+	}
+	if err = s.checkApplicationBuildBasisTx(ctx, tx, p, project, basis); err != nil {
+		return out, err
+	}
 	var total int64
 	for _, f := range m.Files {
 		total += f.SizeBytes

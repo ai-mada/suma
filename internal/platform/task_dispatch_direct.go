@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/ai-mada/suma/internal/dag"
+	rc "github.com/ai-mada/suma/internal/releasecontract"
 )
 
 // Plain fixed command/test flows may still attach tasks. Agent flows require
@@ -30,6 +31,15 @@ func (s *Service) BindDirectRunTx(ctx context.Context, tx *sql.Tx, auth *authori
 	var w dag.Workflow
 	if err = json.Unmarshal([]byte(raw), &w); err != nil {
 		return err
+	}
+	for _, node := range w.Nodes {
+		basis, e := rc.DecodeApplicationBuild(node.Config)
+		if e != nil {
+			return invalid("固定应用构建配置无效")
+		}
+		if e = s.checkApplicationBuildBasisTx(ctx, tx, p, project, basis); e != nil {
+			return e
+		}
 	}
 	agent, err := s.taskWorkflowHasAgentTx(ctx, tx, p, project, w, map[string]bool{}, 0)
 	if err != nil {

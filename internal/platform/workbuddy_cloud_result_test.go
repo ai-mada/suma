@@ -58,7 +58,8 @@ func completeCloudFixture(t *testing.T, h *cloudFixture, a dag.Assignment, r dag
 		}
 		return h.f.s.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, a.WorkerID, a.RunID)
 	}, func(tx *sql.Tx, _ string) error {
-		return h.f.s.validateToolResultTx(authority.ctx, tx, authority.proof, r)
+		_, err := h.f.s.validateToolResultTx(authority.ctx, tx, authority.proof, r)
+		return err
 	}, h.w.cloudResultResolver(projectCandidateSubject(h.actor, h.f.project)))
 }
 

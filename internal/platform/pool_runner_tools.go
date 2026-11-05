@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
+	rc "github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
 )
@@ -249,7 +250,7 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 	}
 	// Managed production/external effects need a separate pool capability and
 	// authorization protocol; their project-runner privileges are not inherited.
-	if n.Type == "external_workflow" || n.Config["artifact_from"] != nil {
+	if _, scopedBuild := n.Config[rc.ApplicationBuildConfigKey]; n.Type == "external_workflow" || n.Config["artifact_from"] != nil || scopedBuild {
 		return false, nil
 	}
 	if eligible, err := s.codeInputNodeEligibleTx(ctx, tx, scope.TenantID, scope.ProjectID, run, node, n); err != nil || !eligible {

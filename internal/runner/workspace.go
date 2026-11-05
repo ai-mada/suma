@@ -19,6 +19,7 @@ import (
 
 	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
+	rc "github.com/ai-mada/suma/internal/releasecontract"
 	ri "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 )
 
@@ -293,7 +294,7 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 	if err != nil {
 		return nil, err
 	}
-	if spec.NativeWorkspace != nil || spec.CandidateComposition || a.CodeBaseline != nil || a.DevelopmentContinuation != nil || codexCandidate {
+	if spec.NativeWorkspace != nil || spec.CandidateComposition || a.CodeBaseline != nil || a.DevelopmentContinuation != nil || codexCandidate || a.Config[rc.ApplicationBuildConfigKey] != nil {
 		if err = nativeBaseAttributes(ctx, repo, base); err != nil {
 			return nil, err
 		}

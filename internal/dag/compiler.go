@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	rc "github.com/ai-mada/suma/internal/releasecontract"
 )
 
 var identifier = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`)
@@ -49,8 +51,12 @@ func normalize(w Workflow) (Workflow, error) {
 				return w, dagDiagnostic(fmt.Errorf("%w: command/agent/test require one allowlisted command identifier", ErrInvalid), "dag.node.command", nil)
 			}
 		}
-		if _, _, _, err := ToolBinding(n); err != nil {
+		_, _, toolBound, err := ToolBinding(n)
+		if err != nil {
 			return w, err
+		}
+		if basis, err := rc.DecodeApplicationBuild(n.Config); err != nil || basis != nil && (n.Type != "command" || !toolBound) {
+			return w, fmt.Errorf("%w: application build requires an exact source basis and a bound command profile", ErrInvalid)
 		}
 		if _, err := ModelBinding(n); err != nil {
 			return w, err

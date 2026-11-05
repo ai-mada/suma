@@ -1351,10 +1351,11 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			}
 			return s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, result.WorkerID, result.RunID)
 		}, func(tx *sql.Tx, state string) error {
-			if err := s.Service.validateToolResultTx(authority.ctx, tx, authority.proof, result); err != nil {
+			spec, err := s.Service.validateToolResultTx(authority.ctx, tx, authority.proof, result)
+			if err != nil {
 				return err
 			}
-			if err := s.Service.verifyArtifactResultTx(authority.ctx, tx, authority.proof, result, state); err != nil {
+			if err := s.Service.verifyArtifactResultTx(authority.ctx, tx, authority.proof, spec, result, state); err != nil {
 				return err
 			}
 			if err := s.Service.ValidateReleaseResultTx(authority.ctx, tx, authority.proof, result, state); err != nil {

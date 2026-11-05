@@ -116,6 +116,16 @@ export interface AdapterDescriptor {
   source_refs: (string)[];
   limitations: (string)[];
 }
+export interface ApplicationBuildBasis {
+  application_id: string;
+  version_id: string;
+  version_sha256: string;
+  scope_id: string;
+  scope_root: string;
+  scope_tree_oid: string;
+  source_commit: string;
+  receipt_sha256: string;
+}
 export interface ApplicationCodeScope {
   id: string;
   target_id: string;
@@ -843,6 +853,7 @@ export interface ArtifactBinding {
   manifest: ArtifactManifest;
 }
 export interface ArtifactEvidence {
+  application_build?: ApplicationBuildBasis | null;
   kind: string;
   artifact_id: string;
   manifest_sha256: string;
@@ -872,6 +883,7 @@ export interface ArtifactProof {
   profile_sha256: string;
   workspace_sha256: string;
   created_at: string;
+  application_build?: ApplicationBuildBasis | null;
 }
 export interface ArtifactResolveRequest {
   project_id: string;

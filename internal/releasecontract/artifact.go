@@ -43,12 +43,13 @@ type ArtifactManifest struct {
 	Files         []ArtifactFile `json:"files"`
 }
 type ArtifactEvidence struct {
-	Kind           string `json:"kind"`
-	ArtifactID     string `json:"artifact_id"`
-	ManifestSHA256 string `json:"manifest_sha256"`
-	SourceCommit   string `json:"source_commit"`
-	ProfileID      string `json:"profile_id"`
-	ProfileSHA256  string `json:"profile_sha256"`
+	ApplicationBuild *ApplicationBuildBasis `json:"application_build,omitempty"`
+	Kind             string                 `json:"kind"`
+	ArtifactID       string                 `json:"artifact_id"`
+	ManifestSHA256   string                 `json:"manifest_sha256"`
+	SourceCommit     string                 `json:"source_commit"`
+	ProfileID        string                 `json:"profile_id"`
+	ProfileSHA256    string                 `json:"profile_sha256"`
 }
 type ArtifactBinding struct {
 	ArtifactID     string           `json:"artifact_id"`

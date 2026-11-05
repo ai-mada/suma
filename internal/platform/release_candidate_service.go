@@ -364,12 +364,22 @@ func (s *Service) releaseArtifactTx(ctx context.Context, tx *sql.Tx, p Principal
 	}
 	out.State = "sealed"
 	out.Proofs = []ArtifactProof{}
-	rows, err := tx.QueryContext(ctx, s.q(`SELECT `+artifactProofColumns+` FROM suma_artifact_proofs WHERE tenant_id=? AND project_id=? AND artifact_id=? ORDER BY created_at DESC,id`), p.TenantID, project, id)
+	// Keep historical proof visibility independent of current execution eligibility.
+	columns := "p." + strings.ReplaceAll(artifactProofColumns, ",", ",p.")
+	rows, err := tx.QueryContext(ctx, s.q(`SELECT `+columns+`,COALESCE(n.spec,''),COALESCE(a.result,'')
+ FROM suma_artifact_proofs p
+ LEFT JOIN dag_nodes n ON p.kind='build' AND n.run_id=p.run_id AND n.id=p.node_id AND n.spec LIKE '%"application_build"%'
+ LEFT JOIN dag_attempts a ON n.run_id=a.run_id AND n.id=a.node_id AND a.attempt=p.attempt AND a.fence=p.fence AND a.worker_id=p.worker_id
+ WHERE p.tenant_id=? AND p.project_id=? AND p.artifact_id=? ORDER BY p.created_at DESC,p.id`), p.TenantID, project, id)
 	if err != nil {
 		return out, err
 	}
 	for rows.Next() {
-		proof, err := scanArtifactProof(rows)
+		var spec, result string
+		proof, err := scanArtifactProof(rows, &spec, &result)
+		if err == nil && proof.Kind == "build" {
+			proof.ApplicationBuild, err = decodeApplicationBuildProof(spec, result, proof)
+		}
 		if err != nil {
 			rows.Close()
 			return out, err

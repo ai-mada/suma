@@ -8,9 +8,15 @@ Each member supplies `application_id`, `application_version_id`, `application_ve
 
 Maximum members: 16, unique application IDs, without reusing a candidate/artifact object. Every member's source scopes must have one governed target identity and one commit; unsupported multi-origin/multi-commit versions are blocked. Candidate source commit must match, and build/package-test proofs must identify the same artifact/manifest/source with different Workers.
 
-Member-to-candidate selection is an explicit human association with the set's review reason. Equal monorepo commits are not an automatic application-scoped build attestation. Current deployment transport remains the original static-site protocol.
+Member-to-candidate selection is explicit and retains the review reason. A scoped build proof must match the exact application version and its registered single source scope. A candidate from a scoped build cannot be attached to a sibling application or another version, even with the same commit. A project-wide build without scoped proof can be manually associated and keeps its project-wide provenance. Current deployment transport uses the static-site protocol.
 
 The selected versions' pinned dependencies must all be present with their exact version ID and SHA. Missing, conflicting or explicitly incompatible edges block registration. Unknown compatibility requires `acknowledge_unverified_compatibility`; acknowledgement never changes it into verified compatibility. Cycles are retained as strongly connected groups.
+
+## Scoped build evidence
+
+An administrator-bound `command` node can supply `config.application_build` with these exact string fields: `application_id`, `version_id`, `version_sha256`, `scope_id`, `scope_root`, `scope_tree_oid`, `source_commit`, and `receipt_sha256`. The empty root denotes the repository root. The selected registered version must have one source. Its snapshot, Git tree, source commit, and original integration receipt remain authoritative.
+
+The project release Runner uses an approved build command profile. Control checks the binding before claim, again before new artifact upload, and at successful completion. The Runner verifies the actual checkout and Git tree, executes from the non-linked scope directory, and collects the configured relative output there. Its build proof records the binding. The original package-test attempt continues to verify the sealed artifact and manifest independently. CWD and tree evidence cover the selected source scope; external dependency access remains under administrator command policy. This route uses project release Runner credentials.
 
 ## Project-scoped API
 
@@ -42,4 +48,4 @@ Repeated commands restore their original identity only after current authorizati
 
 The immutable set has no invented group approval/execution state. `ApplicationReleaseSetPlanGroupView.Items` derives each original plan version/state, deployment operation/state, effect and health. Pending, partial, failed and unknown member facts remain distinct; one healthy member cannot make the group healthy.
 
-History remains immutable when current eligibility changes. Rollback, cancellation, unknown-effect reconciliation and environment barriers remain original per-operation protocols. Dependency ordering is separately governed by the [ordered-rollout contract](application-release-rollouts.md), requiring original individual approvals and an explicit start. Cross-environment atomic rollout, coordinated rollback, generic container/package publication and automatic app-specific build provenance are outside this contract.
+History remains immutable when current eligibility changes. Rollback, cancellation, unknown-effect reconciliation and environment barriers remain original per-operation protocols. Dependency ordering is separately governed by the [ordered-rollout contract](application-release-rollouts.md), requiring original individual approvals and an explicit start. Cross-environment atomic rollout, coordinated rollback, generic container/package publication and automated builds covering multiple source scopes remain separate.

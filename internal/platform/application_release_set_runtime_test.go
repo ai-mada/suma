@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
@@ -19,6 +20,19 @@ import (
 
 func releaseSetRuntimeHTML(app string) string {
 	return "<!doctype html><title>Owned " + app + " static demo</title><h1>" + app + ":5</h1>" + string(rune(10))
+}
+
+func releaseSetRuntimeBuildBasis(t *testing.T, version ApplicationCodeVersion) rc.ApplicationBuildBasis {
+	t.Helper()
+	if len(version.Sources) != 1 {
+		t.Fatal("fixture application must register exactly one code scope", version.ID)
+	}
+	source := version.Sources[0]
+	return rc.ApplicationBuildBasis{
+		ApplicationID: version.ApplicationID, VersionID: version.ID, VersionSHA256: version.SnapshotSHA256,
+		ScopeID: source.Scope.ID, ScopeRoot: source.Scope.RelativeRoot, ScopeTreeOID: source.Inspection.ScopeTreeOID,
+		SourceCommit: source.Commit, ReceiptSHA256: source.ReceiptSHA256,
+	}
 }
 
 func applicationReleaseSetRuntimeHold(t *testing.T, h *actualApplicationFixture, receipt map[string]any) {
@@ -47,7 +61,28 @@ func newActualReleaseSetFixture(t *testing.T, wrapControl, wrapManagement func(h
 	f := h.f
 	ctx := context.Background()
 	candidates := releaseSetRuntimeCandidates(t, h)
-	request := ApplicationReleaseSetPreviewRequest{ProjectID: f.project, Label: "owned-pair124", Members: []ApplicationReleaseSetMemberInput{{ApplicationID: h.library.ID, ApplicationVersionID: h.libraryVersion.Version.ID, ApplicationVersionSHA256: h.libraryVersion.Version.SnapshotSHA256, CandidateID: candidates["library"].ID}, {ApplicationID: h.web.ID, ApplicationVersionID: h.webVersion.Version.ID, ApplicationVersionSHA256: h.webVersion.Version.SnapshotSHA256, CandidateID: candidates["web"].ID}}, AcknowledgeUnverifiedCompatibility: true, Reason: "Fixture owner explicitly associates each exact static-demo artifact candidate with its registered application version; this is not a new application-scoped build attestation or verified runtime compatibility."}
+	request := ApplicationReleaseSetPreviewRequest{ProjectID: f.project, Label: "owned-pair124", Members: []ApplicationReleaseSetMemberInput{{ApplicationID: h.library.ID, ApplicationVersionID: h.libraryVersion.Version.ID, ApplicationVersionSHA256: h.libraryVersion.Version.SnapshotSHA256, CandidateID: candidates["library"].ID}, {ApplicationID: h.web.ID, ApplicationVersionID: h.webVersion.Version.ID, ApplicationVersionSHA256: h.webVersion.Version.SnapshotSHA256, CandidateID: candidates["web"].ID}}, AcknowledgeUnverifiedCompatibility: true, Reason: "Fixture owner explicitly selects both application-scoped static-demo builds and acknowledges that dependency runtime compatibility remains unverified."}
+	// Both candidates share the exact monorepo commit. Only the immutable
+	// application build bindings can reject cross-application substitution.
+	swapped := request
+	swapped.Members = append([]ApplicationReleaseSetMemberInput(nil), request.Members...)
+	swapped.Members[0].CandidateID, swapped.Members[1].CandidateID = swapped.Members[1].CandidateID, swapped.Members[0].CandidateID
+	swappedPreview := issueRepairRuntimeDecode[ApplicationReleaseSetPreview](t, f.call("POST", "/application-release-sets/preview", swapped, 200))
+	if swappedPreview.CanRegister {
+		t.Fatal("same-commit candidates could be substituted between application scopes")
+	}
+	for _, member := range swapped.Members {
+		blocked := false
+		for _, blocker := range swappedPreview.Blockers {
+			if blocker.Code == "release_set_source_mismatch" && blocker.ApplicationID == member.ApplicationID && blocker.RefID == member.CandidateID {
+				blocked = true
+				break
+			}
+		}
+		if !blocked {
+			t.Fatal("swapped candidate did not report its application source mismatch", member, swappedPreview.Blockers)
+		}
+	}
 	preview := issueRepairRuntimeDecode[ApplicationReleaseSetPreview](t, f.call("POST", "/application-release-sets/preview", request, 200))
 	if !preview.CanRegister || len(preview.Set.Members) != 2 || len(preview.Set.Dependencies) != 1 {
 		t.Fatal("exact dependency-closed release set could not be previewed", preview.Blockers)
@@ -55,6 +90,10 @@ func newActualReleaseSetFixture(t *testing.T, wrapControl, wrapManagement func(h
 	for _, member := range preview.Set.Members {
 		if member.SourceCommit != h.delivery.CandidateCommit || member.BuildProof.Assignment.WorkerID == member.PackageTestProof.Assignment.WorkerID || len(member.SourceTasks) != 1 || len(member.CandidateTasks) != 1 || member.SourceTasks[0].ID == member.CandidateTasks[0].ID {
 			t.Fatal("source acceptance and independently proven build-task facts were not preserved separately", member)
+		}
+		basis := member.BuildProof.ApplicationBuild
+		if basis == nil || basis.ApplicationID != member.ApplicationID || basis.VersionID != member.ApplicationVersionID || basis.VersionSHA256 != member.ApplicationVersionSHA256 || member.PackageTestProof.ApplicationBuild != nil {
+			t.Fatal("release set changed or conflated the scoped build and independent package proofs", member)
 		}
 	}
 	registered := issueRepairRuntimeDecode[ApplicationReleaseSetView](t, f.call("POST", "/application-release-sets", ApplicationReleaseSetRegisterRequest{ApplicationReleaseSetPreviewRequest: request, ExpectedPreviewSHA256: preview.PreviewSHA256, IdempotencyKey: newID()}, 201))
@@ -227,7 +266,9 @@ func releaseSetRuntimeCandidates(t *testing.T, h *actualApplicationFixture) map[
 	criteria := []string{"The library static demo has exact-source JUnit and independent sealed-package HTTP proof", "The web static demo has exact-source JUnit and independent sealed-package HTTP proof"}
 	requirement := f.call("POST", "/requirements", f.body(map[string]any{"title": "Build the registered static demonstration pair", "acceptance_criteria": criteria}), 201)
 	task := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(map[string]any{"title": "Build exact registered application sources", "requirement_id": requirement["id"], "acceptance_criteria": criteria}), 201))
-	const buildScript = `const fs=require('node:fs'),path=require('node:path');const app=process.argv[1];if(!['library','web'].includes(app)||require('./sum.cjs')(2,3)!==5)throw Error('wrong exact source');const manifest=app==='library'?'packages/library/package.json':'apps/web/package.json';if(JSON.parse(fs.readFileSync(manifest,'utf8')).name!=='@fixture/'+app)throw Error('wrong source scope');const out=path.join('.cache','release124',app);fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'index.html'),'<!doctype html><title>Owned '+app+' static demo</title><h1>'+app+':5</h1>'+String.fromCharCode(10));console.log('Owned exact-source static package built.');`
+	// Both registered scopes are two directories below the repository root.
+	// The trusted command reads its own manifest and a known shared source file.
+	const buildScript = `const fs=require('node:fs'),path=require('node:path');const app=process.argv[1];if(!['library','web'].includes(app)||require('../../sum.cjs')(2,3)!==5)throw Error('wrong exact source');if(JSON.parse(fs.readFileSync('package.json','utf8')).name!=='@fixture/'+app)throw Error('wrong source scope');const out=path.join('.cache','release124',app);fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'index.html'),'<!doctype html><title>Owned '+app+' static demo</title><h1>'+app+':5</h1>'+String.fromCharCode(10));console.log('Owned exact-source static package built.');`
 	const sourceTest = `const fs=require('node:fs');const app=process.argv[1],manifest=app==='library'?'packages/library/package.json':'apps/web/package.json';const ok=require('./sum.cjs')(2,3)===5&&JSON.parse(fs.readFileSync(manifest,'utf8')).name==='@fixture/'+app;fs.writeFileSync(process.argv[2],'<testsuite tests="1" failures="'+(ok?'0':'1')+'"><testcase classname="releaseset124" name="'+app+'">'+(ok?'':'<failure message="exact source failed"/>')+'</testcase></testsuite>');process.exitCode=ok?0:1;`
 	const packageTest = `const fs=require('node:fs'),http=require('node:http'),path=require('node:path');const app=process.argv[1],expected='<!doctype html><title>Owned '+app+' static demo</title><h1>'+app+':5</h1>'+String.fromCharCode(10);(async()=>{const bytes=fs.readFileSync(path.join(process.env.SUMA_ARTIFACT_DIR,'index.html'));if(bytes.toString()!==expected)throw Error('wrong sealed bytes');const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html'});res.end(bytes)});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));try{const response=await fetch('http://127.0.0.1:'+server.address().port+'/');if(response.status!==200||await response.text()!==expected)throw Error('package HTTP failed');console.log('Owned sealed package HTTP checked.')}finally{await new Promise(resolve=>server.close(resolve))}})().catch(()=>{console.error('owned_package_check_failed');process.exitCode=1});`
 	base := runner.ExecConfig{AllowExec: true, Workspace: h.delivery.Repository, Repository: h.delivery.Repository, BaseCommit: h.delivery.CandidateCommit}
@@ -257,10 +298,17 @@ func releaseSetRuntimeCandidates(t *testing.T, h *actualApplicationFixture) map[
 	}
 	plan := issueRepairRuntimeDecode[TestPlanView](t, f.call("POST", "/test-plans", TestPlanCreateRequest{ProjectID: f.project, TaskID: task.ID, ExpectedTaskVersion: task.Version, ExpectedRequirementVersion: int(requirement["version"].(float64)), Title: "Registered source checks", Description: "Independent source checks supplement actual package HTTP proofs", Cases: cases, IdempotencyKey: newID()}, 201))
 	plan = issueRepairRuntimeDecode[TestPlanView](t, f.call("POST", "/test-plans/"+plan.ID+"/commands", TestPlanCommandRequest{ProjectID: f.project, ExpectedVersion: plan.Version, Action: "publish", Reason: "Fixture owner publishes the exact independent source checks.", IdempotencyKey: newID()}, 200))
+	bases := map[string]rc.ApplicationBuildBasis{
+		"library": releaseSetRuntimeBuildBasis(t, h.libraryVersion.Version),
+		"web":     releaseSetRuntimeBuildBasis(t, h.webVersion.Version),
+	}
+	if bases["library"].SourceCommit != bases["web"].SourceCommit || bases["library"].ScopeTreeOID == bases["web"].ScopeTreeOID {
+		t.Fatal("fixture must share one commit and have two distinct Git trees")
+	}
 	nodes := []any{map[string]any{"id": "source", "type": "command", "command": []string{"source124"}, "config": map[string]any{"tool_profile_id": profiles["source124"].ID, "tool_profile_sha256": profiles["source124"].Profile.ProfileSHA256}}}
 	for _, app := range []string{"library", "web"} {
 		buildID, pkgID, junitID := "build-"+app+"124", "package-"+app+"124", "junit-"+app+"124"
-		nodes = append(nodes, map[string]any{"id": "build-" + app, "type": "command", "command": []string{buildID}, "depends_on": []string{"source"}, "config": map[string]any{"candidate_from": "source", "tool_profile_id": profiles[buildID].ID, "tool_profile_sha256": profiles[buildID].Profile.ProfileSHA256}}, map[string]any{"id": "package-" + app, "type": "test", "command": []string{pkgID}, "depends_on": []string{"build-" + app}, "config": map[string]any{"candidate_from": "build-" + app, "artifact_from": "build-" + app, "tool_profile_id": toolProfiles[pkgID].ID, "tool_profile_sha256": toolProfiles[pkgID].Profile.ProfileSHA256}}, map[string]any{"id": "junit-" + app, "type": "test", "command": []string{junitID}, "depends_on": []string{"build-" + app}, "config": map[string]any{"candidate_from": "source", "tool_profile_id": toolProfiles[junitID].ID, "tool_profile_sha256": toolProfiles[junitID].Profile.ProfileSHA256}})
+		nodes = append(nodes, map[string]any{"id": "build-" + app, "type": "command", "command": []string{buildID}, "depends_on": []string{"source"}, "config": map[string]any{"candidate_from": "source", "tool_profile_id": profiles[buildID].ID, "tool_profile_sha256": profiles[buildID].Profile.ProfileSHA256, rc.ApplicationBuildConfigKey: bases[app]}}, map[string]any{"id": "package-" + app, "type": "test", "command": []string{pkgID}, "depends_on": []string{"build-" + app}, "config": map[string]any{"candidate_from": "build-" + app, "artifact_from": "build-" + app, "tool_profile_id": toolProfiles[pkgID].ID, "tool_profile_sha256": toolProfiles[pkgID].Profile.ProfileSHA256}}, map[string]any{"id": "junit-" + app, "type": "test", "command": []string{junitID}, "depends_on": []string{"build-" + app}, "config": map[string]any{"candidate_from": "source", "tool_profile_id": toolProfiles[junitID].ID, "tool_profile_sha256": toolProfiles[junitID].Profile.ProfileSHA256}})
 	}
 	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "Exact registered source to two independently checked static packages", "nodes": nodes}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"], "workflow_version": wf["version"], "task_id": task.ID, "expected_version": task.Version}), 201)
@@ -271,12 +319,42 @@ func releaseSetRuntimeCandidates(t *testing.T, h *actualApplicationFixture) map[
 			if err != nil || a == nil || a.RunID != run["id"] {
 				t.Fatal("actual fixed build/test claim missing", id, err)
 			}
+			if a.NodeID == "build-library" {
+				// Use a distinct local attempt directory. The altered assignment
+				// is never reported to the scheduler and must fail before execution.
+				drifted := *a
+				drifted.NodeID += "-tree-drift"
+				drifted.Config = maps.Clone(a.Config)
+				basis := bases["library"]
+				basis.ScopeTreeOID = bases["web"].ScopeTreeOID
+				drifted.Config[rc.ApplicationBuildConfigKey] = basis
+				refused := runner.Execute(ctx, drifted, cfg)
+				if refused.ExitCode == 0 || refused.ArtifactEvidence != nil || refused.Output != "" || !strings.Contains(refused.Error, "application build scope differs from its registered Git tree") {
+					t.Fatal("Runner did not reject the sibling Git tree before the build", refused.ExitCode, refused.Error, refused.Output)
+				}
+			}
 			result := runner.Execute(ctx, *a, cfg)
 			if result.OperationID == "" {
 				result.OperationID = newID()
 			}
 			if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown || result.WorkspaceEvidence["head_commit"] != h.delivery.CandidateCommit {
 				t.Fatalf("actual package execution failed node=%s exit=%d error=%s output=%q", a.NodeID, result.ExitCode, result.Error, result.Output[:min(len(result.Output), 3000)])
+			}
+			if a.NodeID == "build-library" {
+				if result.ArtifactEvidence == nil || result.ArtifactEvidence.ApplicationBuild == nil {
+					t.Fatal("scoped Runner returned no application build proof")
+				}
+				// The authenticated worker may finish only with the exact source
+				// scope. Reject a cross-app proof without consuming the attempt.
+				forged := result
+				forged.OperationID = newID()
+				proof := *result.ArtifactEvidence
+				other := bases["web"]
+				proof.ApplicationBuild = &other
+				forged.ArtifactEvidence = &proof
+				if err = client.Complete(ctx, forged); err == nil {
+					t.Fatal("control accepted a sibling application build proof")
+				}
 			}
 			if err = client.Complete(ctx, result); err != nil {
 				t.Fatal("actual package result rejected", a.NodeID, err)
@@ -303,14 +381,17 @@ func releaseSetRuntimeCandidates(t *testing.T, h *actualApplicationFixture) map[
 		for _, artifact := range artifacts {
 			for _, proof := range artifact.Proofs {
 				if proof.Assignment.RunID == run["id"] && proof.Assignment.NodeID == "build-"+app {
+					if proof.Kind != "build" || proof.ApplicationBuild == nil || *proof.ApplicationBuild != bases[app] {
+						t.Fatal("artifact listing lost the exact registered version, code scope or Git receipt", app, proof)
+					}
 					artifactID, buildProof = artifact.ID, proof.ID
 				}
 			}
 			if artifact.ID == artifactID {
 				for _, proof := range artifact.Proofs {
 					if proof.Kind == "package_test" {
-						if proof.Assignment.WorkerID == worker {
-							t.Fatal("package test reused builder")
+						if proof.Assignment.WorkerID != workers[app] || proof.Assignment.WorkerID == worker || proof.Assignment.RunID != run["id"] || proof.Assignment.NodeID != "package-"+app || proof.ApplicationBuild != nil {
+							t.Fatal("package test did not preserve the independent worker, run, node and proof kind", app, proof)
 						}
 						packageProof = proof.ID
 					}
@@ -323,6 +404,9 @@ func releaseSetRuntimeCandidates(t *testing.T, h *actualApplicationFixture) map[
 		view, err := f.s.CreateReleaseCandidate(ctx, f.actor, f.project, f.body(map[string]any{"name": app + " owned static demo", "artifact_id": artifactID, "build_attestation_id": buildProof, "package_test_attestation_id": packageProof, "tasks": []any{map[string]any{"id": accepted["id"], "expected_version": accepted["version"]}}, "idempotency_key": newID()}))
 		if err != nil || !view.Eligibility || view.Candidate.SourceCommit != h.delivery.CandidateCommit {
 			t.Fatal("candidate differs from registered code", app, err, view.Blockers, view.Candidate.SourceCommit)
+		}
+		if view.Candidate.BuildProof.ApplicationBuild == nil || *view.Candidate.BuildProof.ApplicationBuild != bases[app] || view.Candidate.PackageTestProof.ApplicationBuild != nil {
+			t.Fatal("candidate lost the application build basis or conflated it with the independent package test", app, view.Candidate)
 		}
 		out[app] = view.Candidate
 	}

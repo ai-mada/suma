@@ -745,6 +745,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "application_scoped_build": {
+    "stage": "T-APPLICATION-SCOPED-BUILD-250",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "85546ab57d23d728495c69fbcde607150472c2de",
+    "report": "docs/quality/application-scoped-build-verification.md",
+    "actual": "A project release Runner builds from the exact registered application scope. Frozen version, tree, commit and receipt are preserved in the artifact, candidate and release set. Same-commit sibling artifacts cannot substitute.",
+    "verification": "Windows real Git, SQLite, Node artifact builds, separate package tests and approved static fixture deployment. Wrong scope before launch, forged completion, swapped candidate and retry guards exercised. 3 Runner checks, 7 Web checks, bilingual Chrome and TypeScript.",
+    "known_limitations": "One registered source scope and a project release Runner; administrator command trust remains. Pool artifact transport, multi-scope builds, production and other infrastructure qualification remain separate.",
+    "full_platform_complete": false,
+    "git_record": ".cache/b250/post-git.json"
+  },
   "repository_application_handoff": {
     "stage": "T-REPOSITORY-APPLICATION-HANDOFF-249",
     "version": "1.0.0",
