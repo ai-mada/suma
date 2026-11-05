@@ -41,3 +41,31 @@ it('T119 retains the exact original operation when a successful-looking binding 
 it('T119 aborts late reads on scope changes and hides protected repair facts when access is revoked',async()=>{
  let release!:(value:Response)=>void;transport(async()=>new Promise(resolve=>{release=resolve;}));await render();await click('[data-ir-toggle]');const signal=reads[0].signal,old=release;const other={...session,user:{...session.user,id:'other-user'},organization:{id:'other-org',name:'Other'}};await render(other,'other-project','other-issue');expect(signal?.aborted).toBe(true);await act(async()=>old(Response.json(bound())));await settle();expect(host.textContent).not.toContain('Repair task');expect(host.querySelector('[data-ir-close]')).toBeNull();transport(async()=>Response.json({error:{code:'forbidden',message:'Current project access denied'}},{status:403}));await click('[data-ir-toggle]');expect(host.textContent).toContain('Current project access denied');expect(host.querySelector('[data-ir-prepare]')).toBeNull();expect(writes).toHaveLength(0);
 });
+
+it('opens protected package evidence and keeps closure blocked without independent verification',async()=>{
+ const original={run_id:'run-failed',node_id:'package.test',attempt:2,fence:8,artifact_id:'failed-package',manifest_sha256:digest,source_commit:'b'.repeat(40),scope_root:'apps/catalog'};
+ const current={...bound(),original_package:original,can_close:false,blockers:[{code:'package_regression_missing'}]};
+ current.issue.data={run_id:'forged-run',artifact_id:'forged-artifact'};
+ transport(async()=>Response.json(current));await render();await click('[data-ir-toggle]');
+ const card=host.querySelector('[data-ir-package="origin"]');
+ expect(card?.textContent).toContain('Original package failure');
+ expect(card?.textContent).toContain('apps/catalog');
+ expect(card?.querySelector('[data-ir-package-attempt]')?.getAttribute('href')).toBe('?project=project-a&view=development&sub=runs&run=run-failed&node=package.test&attempt=2');
+ expect(card?.querySelector('[data-ir-package-artifact]')?.getAttribute('href')).toBe('?project=project-a&view=operations&sub=artifacts&record=failed-package');
+ expect(host.querySelector('[data-ir-close]')).toBeNull();
+ expect(host.textContent).not.toContain('forged-run');
+ await act(async()=>setLocale('zh-CN',{persist:false}));
+ expect(card?.textContent).toContain('原包测试失败');
+ expect(host.querySelector('[data-ir-blockers]')?.textContent).toContain('请执行独立包测试');
+ expect(writes).toHaveLength(0);
+});
+
+it('retains the exact verified package links after reopening',async()=>{
+ const finished=closed();
+ const previous={...finished.current!,closure:{...finished.current!.closure!,package_regression:{node_id:'verify-package',attempt:4,fence:11,artifact_id:'repaired-package',manifest_sha256:digest,source_commit:'b'.repeat(40),proof_id:'proof-a'}},reopened_at:stamp,reopened_by:'user-a',reopen_reason:'Regression reported'};
+ transport(async()=>Response.json({...view(),cycle:2,history:[previous],history_total:1}));
+ await render();await click('[data-ir-toggle]');
+ const card=host.querySelector('[data-ir-history] [data-ir-package="regression"]');
+ expect(card?.querySelector('[data-ir-package-attempt]')?.getAttribute('href')).toBe('?project=project-a&view=development&sub=runs&run=run-a&node=verify-package&attempt=4');
+ expect(card?.querySelector('[data-ir-package-artifact]')?.getAttribute('href')).toBe('?project=project-a&view=operations&sub=artifacts&record=repaired-package');
+});

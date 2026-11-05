@@ -13,26 +13,55 @@ import './IssueRepairPanel.css';
 
 type Props={session:Session;project:string;issueId:string;issueVersion:number;refresh:number;onChanged:()=>void|Promise<void>;onOpenTask?:(id:string)=>void;onOpenRequirement?:(id:string)=>void};
 type Command='prepare'|'regression'|'close'|'reopen';
+type PackageEvidence={node_id:string;attempt:number;fence:number;artifact_id:string;manifest_sha256:string;source_commit:string};
 const t=(key:string,values?:Record<string,unknown>)=>tr('issue-repair.'+key,values);
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const id=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(value);
 const integer=(value:unknown):value is number=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0;
 const positive=(value:unknown):value is number=>integer(value)&&value>0;
 const hash=(value:unknown)=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+const commit=(value:unknown)=>typeof value==='string'&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
 const text=(value:unknown,max=2000,empty=false):value is string=>typeof value==='string'&&(empty||!!value.trim())&&new TextEncoder().encode(value).length<=max;
 const keys=(value:Record<string,unknown>,allowed:string[])=>Object.keys(value).every(key=>allowed.includes(key));
 const caseKeys=(value:unknown):value is string[]=>Array.isArray(value)&&value.length>0&&value.length<=100&&value.every(item=>typeof item==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(item))&&new Set(value).size===value.length;
 const equalKeys=(a:unknown,b:unknown)=>caseKeys(a)&&caseKeys(b)&&JSON.stringify([...a].sort())===JSON.stringify([...b].sort());
 const base=(issue:string)=>'/issues/'+encodeURIComponent(issue)+'/repair';
 const canNavigate=()=>window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));
-const blockerCodes=new Set(['repair_not_prepared','issue_closed','regression_not_bound','repair_task_not_accepted','repair_run_changed','repair_evidence_stale','regression_plan_changed','regression_case_failed','original_case_required','formal_review_missing']);
+function followEvidence(event:MouseEvent<HTMLAnchorElement>){if(!canNavigate())event.preventDefault();}
+function validPackageEvidence(value:unknown):boolean{
+ return object(value)&&typeof value.node_id==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value.node_id)&&positive(value.attempt)&&positive(value.fence)&&id(value.artifact_id)&&hash(value.manifest_sha256)&&commit(value.source_commit);
+}
+const blockerCodes=new Set(['repair_not_prepared','issue_closed','regression_not_bound','repair_task_not_accepted','repair_run_changed','repair_evidence_stale','regression_plan_changed','regression_case_failed','original_case_required','formal_review_missing','package_regression_missing','package_regression_scope_changed']);
 function record(value:unknown,project:string,expected?:string):value is IssueRepairView['issue']{
  return object(value)&&id(value.id)&&(expected===undefined||value.id===expected)&&value.project_id===project&&positive(value.version)&&typeof value.title==='string'&&typeof value.description==='string'&&typeof value.status==='string';
+}
+function PackageEvidenceCard({project,run,evidence,kind,scope}:{project:string;run:string;evidence:PackageEvidence;kind:'origin'|'regression';scope?:string}){
+ const heading=useId();
+ const attempt='?'+new URLSearchParams({project,view:'development',sub:'runs',run,node:evidence.node_id,attempt:String(evidence.attempt)});
+ const artifact='?'+new URLSearchParams({project,view:'operations',sub:'artifacts',record:evidence.artifact_id});
+ return <section className="ir-package-evidence" data-ir-package={kind} aria-labelledby={heading}>
+  <h4 id={heading}>{t(kind==='origin'?'package_origin':'package_regression')}</h4>
+  <p className="ir-muted"><code>{evidence.node_id}</code> · {t('package_attempt',{attempt:formatNumber(evidence.attempt)})}</p>
+  {scope&&<p className="ir-copy">{t('package_scope')} · <code>{scope}</code></p>}
+  <div className="ir-actions">
+   <a href={attempt} data-ir-package-attempt onClick={followEvidence}>{t('package_open_attempt')}<ArrowUpRight size={13} aria-hidden="true"/></a>
+   <a href={artifact} data-ir-package-artifact onClick={followEvidence}>{t('package_open_artifact')}<ArrowUpRight size={13} aria-hidden="true"/></a>
+  </div>
+  <details><summary>{t('package_details')}</summary><dl className="ir-facts">
+   <dt>{t('package_manifest')}</dt><dd><code>{evidence.manifest_sha256}</code></dd>
+   <dt>{t('commits')}</dt><dd><code>{evidence.source_commit}</code></dd>
+  </dl></details>
+ </section>;
 }
 function validCycle(value:unknown,project:string,issue:string):value is IssueRepair{
  if(!object(value)||!id(value.id)||value.project_id!==project||value.issue_id!==issue||!positive(value.cycle)||!positive(value.version)||!id(value.requirement_id)||!id(value.task_id)||typeof value.prepared_by!=='string'||typeof value.created_at!=='string'||typeof value.updated_at!=='string')return false;
  if(value.regression!=null){const r=value.regression;if(!object(r)||!id(r.plan_id)||!positive(r.plan_revision)||!hash(r.plan_sha256)||!caseKeys(r.case_keys)||typeof r.bound_by!=='string'||typeof r.bound_at!=='string')return false;}
- if(value.closure!=null){const c=value.closure;if(!object(c)||!id(c.run_id)||!positive(c.task_version)||!id(c.review_id)||!id(c.plan_id)||!positive(c.plan_revision)||!hash(c.plan_sha256)||!caseKeys(c.case_keys)||!Array.isArray(c.source_commits)||c.source_commits.some(item=>typeof item!=='string'||!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(item))||typeof c.closed_by!=='string'||typeof c.closed_at!=='string'||!text(c.reason))return false;}
+ if(value.closure!=null){
+  const c=value.closure;
+  if(!object(c)||!id(c.run_id)||!positive(c.task_version)||!id(c.review_id)||!id(c.plan_id)||!positive(c.plan_revision)||!hash(c.plan_sha256)||!caseKeys(c.case_keys)||!Array.isArray(c.source_commits)||!c.source_commits.every(commit)||typeof c.closed_by!=='string'||typeof c.closed_at!=='string'||!text(c.reason))return false;
+  const pkg=c.package_regression;
+  if(pkg!=null&&(!object(pkg)||!validPackageEvidence(pkg)||!id(pkg.proof_id)))return false;
+ }
  return ['reopened_at','reopened_by','reopen_reason'].every(key=>value[key]===undefined||typeof value[key]==='string');
 }
 /** The view is tied to one original issue. Editable issue.data never supplies
@@ -41,6 +70,8 @@ export function validIssueRepairView(value:unknown,project:string,issue:string):
  if(!object(value)||!record(value.issue,project,issue)||!['open','in_progress','closed'].includes(value.issue.status)||!integer(value.cycle)||!Array.isArray(value.history)||value.history.length>10||!integer(value.history_total)||value.history_total<value.history.length||typeof value.history_complete!=='boolean'||value.history_complete&&value.history_total!==value.history.length||!['can_prepare','can_bind','can_close','can_reopen'].every(key=>typeof value[key]==='boolean')||!Array.isArray(value.blockers)||value.blockers.length>100||!value.blockers.every(item=>object(item)&&typeof item.code==='string'&&item.code.length>0&&item.code.length<=150&&(item.ref_id===undefined||id(item.ref_id))))return false;
  if(value.current!=null&&(!validCycle(value.current,project,issue)||value.current.cycle!==value.cycle))return false;
  if(value.task!=null&&(!object(value.current)||!record(value.task,project,String(value.current.task_id))))return false;
+ const pkg=value.original_package;
+ if(pkg!=null&&(!object(pkg)||!validPackageEvidence(pkg)||!id(pkg.run_id)||!['application_id','scope_id','repository_id'].every(key=>pkg[key]===undefined||id(pkg[key]))||pkg.scope_root!==undefined&&!text(pkg.scope_root,1024)))return false;
  return value.history.every(item=>validCycle(item,project,issue))&&new Set(value.history.map(item=>item.id)).size===value.history.length;
 }
 function recovery(request:WriteRecoveryRequest,project:string,issue:string){
@@ -57,7 +88,7 @@ function originalResponse(value:unknown,request:WriteRecoveryRequest,project:str
  const action=request.path.slice(base(issue).length+1),current=value.current,body=request.body;
  if(action==='prepare')return !!current&&!!value.task&&value.issue.status==='in_progress'&&value.task.id===current.task_id;
  if(action==='regression')return !!current&&!!current.regression&&current.version>Number(body.expected_repair_version)&&current.regression.plan_id===body.plan_id&&equalKeys(current.regression.case_keys,body.case_keys);
- if(action==='close')return value.issue.status==='closed'&&!!current?.closure&&current.closure.run_id===body.run_id&&current.closure.reason===body.reason;
+ if(action==='close')return value.issue.status==='closed'&&!!current?.closure&&current.closure.run_id===body.run_id&&current.closure.reason===body.reason&&(!value.original_package||!!current.closure.package_regression);
  return action==='reopen'&&value.issue.status==='open'&&[...(value.history||[]),...(current?[current]:[])].some(item=>item.reopen_reason===body.reason&&!!item.reopened_at);
 }
 
@@ -115,6 +146,7 @@ function RepairScope({project,issueId,issueVersion,refresh,onChanged,onOpenTask,
     {view&&<>
      <div className="ir-state"><strong>{t('cycle',{cycle:formatNumber(view.cycle)})}</strong><span className={'ir-status state-'+view.issue.status}>{t('state.'+view.issue.status)}</span></div>
      {view.issue.version!==issueVersion&&<p className="ir-muted">{t('current_version',{version:formatNumber(view.issue.version)})}</p>}
+     {view.original_package&&<PackageEvidenceCard project={project} run={view.original_package.run_id} evidence={view.original_package} kind="origin" scope={view.original_package.scope_root}/>}
      {!!view.blockers.length&&view.issue.status!=='closed'&&<div className="ir-warning" data-ir-blockers><p>{t('blocked')}</p><ul>{view.blockers.map((item,index)=><li key={item.code+':'+index}>{blockerCodes.has(item.code)?t('blocker.'+item.code):<>{t('unknown_blocker')} <code>{item.code}</code></>}{item.ref_id&&<small> · <code>{item.ref_id}</code></small>}</li>)}</ul></div>}
      {current?<section className="ir-cycle"><div className="ir-actions"><a href={link('task',current.task_id)} onClick={event=>follow(event,'task',current.task_id)}>{t('open_task')}<ArrowUpRight size={13}/></a><a href={link('requirement',current.requirement_id)} onClick={event=>follow(event,'requirement',current.requirement_id)}>{t('open_requirement')}<ArrowUpRight size={13}/></a></div>
       {view.task&&<p className="ir-copy">{view.task.title} · {stateLabel(view.task.status)}</p>}
@@ -126,7 +158,7 @@ function RepairScope({project,issueId,issueVersion,refresh,onChanged,onOpenTask,
      {!mode&&<div className="ir-actions">{view.can_prepare&&<button type="button" className="primary" data-ir-prepare onClick={()=>begin('prepare')}>{t('prepare')}</button>}{view.can_bind&&<button type="button" data-ir-bind onClick={()=>begin('regression')}>{t(current?.regression?'update_regression':'bind')}</button>}{view.can_close&&<button type="button" className="primary" data-ir-close onClick={()=>begin('close')}>{t('close')}</button>}{view.can_reopen&&<button type="button" data-ir-reopen onClick={()=>begin('reopen')}>{t('reopen')}</button>}</div>}
      {mode&&<form ref={commandForm} className="ir-command" data-ir-form onSubmit={event=>{event.preventDefault();void submit();}}><h4>{t('action.'+mode)}</h4><WriteFields action={action}><fieldset disabled={locked}>
       {mode==='prepare'&&<><p className="ir-muted">{t('prepare_hint')}</p><Field label={t('task_title')}><input name="ir_title" value={title} maxLength={500} required onChange={event=>setTitle(event.target.value)}/></Field><Field label={t('criteria')} hint={t('criteria_hint')}><textarea name="ir_criteria" value={criteria} required rows={3} maxLength={200000} onChange={event=>setCriteria(event.target.value)}/></Field><details><summary>{t('description')}</summary><Field label={t('description')}><textarea name="ir_description" value={description} rows={4} maxLength={200000} onChange={event=>setDescription(event.target.value)}/></Field></details>{!prepareValid&&<p className="ir-muted">{t('prepare_required')}</p>}</>}
-      {mode==='regression'&&<><p className="ir-muted">{t('bind_hint')}</p>{plans.loading&&<Loading/>}{!!plans.error&&<ErrorNotice error={toolError(plans.error)} onRetry={()=>void plans.read()}/>}<Field label={t('plan')}><select name="ir_plan" value={selectedPlan} disabled={plans.loading||!!plans.error} onChange={event=>{setSelectedPlan(event.target.value);setSelectedCases([]);}}><option value="">{t('choose_plan')}</option>{plans.value?.items.map(item=><option value={item.id} key={item.id} disabled={!item.published||!item.basis_current||item.eligibility!=='current'}>{item.published?.title||item.id} · {t('published_revision',{revision:formatNumber(item.published_revision)})}</option>)}</select></Field>{plans.value&&!plans.value.items.length&&<p className="ir-muted">{t('no_plan')}</p>}{plans.value?.next_cursor&&<button type="button" disabled={plans.loading} onClick={()=>void plans.read(true)}>{t('more_plans')}</button>}{current&&<a href={link('plan','')} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('manage_plans')}<ArrowUpRight size={13}/></a>}{published&&<fieldset className="ir-cases"><legend>{t('select_cases')}</legend>{published.cases.map(item=><div className="ir-case" key={item.key}><label className="ir-check"><input type="checkbox" name="ir_case" value={item.key} checked={selectedCases.includes(item.key)} onChange={event=>setSelectedCases(previous=>event.target.checked?[...previous,item.key]:previous.filter(key=>key!==item.key))}/><span>{item.title} <code>{item.key}</code></span></label><small className="ir-muted">{item.selector.class_name} · {item.selector.name}</small></div>)}</fieldset>}</>}
+      {mode==='regression'&&<><p className="ir-muted">{t(view.original_package?'package_bind_hint':'bind_hint')}</p>{plans.loading&&<Loading/>}{!!plans.error&&<ErrorNotice error={toolError(plans.error)} onRetry={()=>void plans.read()}/>}<Field label={t('plan')}><select name="ir_plan" value={selectedPlan} disabled={plans.loading||!!plans.error} onChange={event=>{setSelectedPlan(event.target.value);setSelectedCases([]);}}><option value="">{t('choose_plan')}</option>{plans.value?.items.map(item=><option value={item.id} key={item.id} disabled={!item.published||!item.basis_current||item.eligibility!=='current'}>{item.published?.title||item.id} · {t('published_revision',{revision:formatNumber(item.published_revision)})}</option>)}</select></Field>{plans.value&&!plans.value.items.length&&<p className="ir-muted">{t('no_plan')}</p>}{plans.value?.next_cursor&&<button type="button" disabled={plans.loading} onClick={()=>void plans.read(true)}>{t('more_plans')}</button>}{current&&<a href={link('plan','')} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('manage_plans')}<ArrowUpRight size={13}/></a>}{published&&<fieldset className="ir-cases"><legend>{t('select_cases')}</legend>{published.cases.map(item=><div className="ir-case" key={item.key}><label className="ir-check"><input type="checkbox" name="ir_case" value={item.key} checked={selectedCases.includes(item.key)} onChange={event=>setSelectedCases(previous=>event.target.checked?[...previous,item.key]:previous.filter(key=>key!==item.key))}/><span>{item.title} <code>{item.key}</code></span></label><small className="ir-muted">{item.selector.class_name} · {item.selector.name}</small></div>)}</fieldset>}</>}
       {mode==='close'&&<><p className="ir-muted">{t('close_hint')}</p><p className="ir-copy">{t('run')}: <code>{view.task?.run_id}</code></p><label className="ir-check"><input name="ir_ack" type="checkbox" checked={ack} onChange={event=>setAck(event.target.checked)}/><span>{t('close_ack')}</span></label></>}
       {mode==='reopen'&&<p className="ir-muted">{t('reopen_hint')}</p>}
       <Field label={t('reason')}><textarea name="ir_reason" required rows={3} maxLength={2000} value={reason} onChange={event=>{setReason(event.target.value);setAck(false);}}/></Field>
@@ -137,4 +169,4 @@ function RepairScope({project,issueId,issueVersion,refresh,onChanged,onOpenTask,
   </div>}
  </section>;
 }
-function Closure({item,project}:{item:IssueRepair;project:string}){const closure=item.closure;if(!closure)return null;const run='?'+new URLSearchParams({project,view:'development',sub:'runs',run:closure.run_id}),regression='?'+new URLSearchParams({project,view:'quality',sub:'tests',record:closure.plan_id,run:closure.run_id,panel:'test-results'});return <details><summary>{t('closure_details')}</summary><div className="ir-actions"><a data-ir-closure-run href={run} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('open_original_run')}<ArrowUpRight size={13}/></a><a data-ir-closure-regression href={regression} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('open_original_regression')}<ArrowUpRight size={13}/></a></div><dl className="ir-facts"><dt>{t('closed_at')}</dt><dd>{formatDateTime(closure.closed_at)}</dd><dt>{t('closed_by')}</dt><dd>{closure.closed_by}</dd><dt>{t('reason')}</dt><dd className="ir-copy">{closure.reason}</dd><dt>{t('run')}</dt><dd><code>{closure.run_id}</code></dd><dt>{t('review')}</dt><dd><code>{closure.review_id}</code></dd><dt>{t('plan_sha')}</dt><dd><code>{closure.plan_sha256}</code></dd><dt>{t('case_keys')}</dt><dd>{closure.case_keys.join(', ')}</dd><dt>{t('commits')}</dt><dd>{closure.source_commits.map(value=><code key={value}>{value}<br/></code>)}</dd></dl></details>;}
+function Closure({item,project}:{item:IssueRepair;project:string}){const closure=item.closure;if(!closure)return null;const run='?'+new URLSearchParams({project,view:'development',sub:'runs',run:closure.run_id}),regression='?'+new URLSearchParams({project,view:'quality',sub:'tests',record:closure.plan_id,run:closure.run_id,panel:'test-results'});return <details><summary>{t('closure_details')}</summary><div className="ir-actions"><a data-ir-closure-run href={run} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('open_original_run')}<ArrowUpRight size={13}/></a><a data-ir-closure-regression href={regression} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('open_original_regression')}<ArrowUpRight size={13}/></a></div><dl className="ir-facts"><dt>{t('closed_at')}</dt><dd>{formatDateTime(closure.closed_at)}</dd><dt>{t('closed_by')}</dt><dd>{closure.closed_by}</dd><dt>{t('reason')}</dt><dd className="ir-copy">{closure.reason}</dd><dt>{t('run')}</dt><dd><code>{closure.run_id}</code></dd><dt>{t('review')}</dt><dd><code>{closure.review_id}</code></dd><dt>{t('plan_sha')}</dt><dd><code>{closure.plan_sha256}</code></dd><dt>{t('case_keys')}</dt><dd>{closure.case_keys.join(', ')}</dd><dt>{t('commits')}</dt><dd>{closure.source_commits.map(value=><code key={value}>{value}<br/></code>)}</dd></dl>{closure.package_regression&&<PackageEvidenceCard project={project} run={closure.run_id} evidence={closure.package_regression} kind="regression"/>}</details>;}

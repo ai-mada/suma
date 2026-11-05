@@ -37,6 +37,8 @@ Close的 `run_id` 是当前修复任务实际绑定的运行，不是最初失�
 
 command生产者只接受正式 `command/text-v1` 档案绑定；领取和回写继续核对当前授权库存及固定指纹，不允许用agent协议伪装或取消绑定来通过。map／subworkflow等不具备等价来源证明的流程在当前readiness受阻。确定命令的真实OS／HTTP执行证据不代表已调用AI模型。
 
+来源为独立包测试时，还需从当前修复运行获得新的已核验包测试证明。该证明固定在回归计划的同一次运行，使用原包测试的命令档案摘要，并核对不同于构建者的测试 Runner、封存清单和当前尝试。应用级包测试沿用原应用、代码范围及 Git 集成目标，可以针对同一范围的新源码版本复验。未登记应用范围的来源仅支持相同源码提交、原构建 Runner 和原构建命令档案下的复验。
+
 ## 响应及历史
 
 `IssueRepairView`：
@@ -50,12 +52,13 @@ command生产者只接受正式 `command/text-v1` 档案绑定；领取和回写
 | `history, history_total, history_complete` | 最近最多10个非current旧轮次；total不含current，complete仅声明旧轮次覆盖；不是全历史分页接口 |
 | `can_prepare, can_bind, can_close, can_reopen` | 当前授权及当前事实下的界面操作资格；实际命令再次核验 |
 | `blockers` | `IssueRepairBlocker{code,ref_id?}`；稳定代码与可定位原事实 |
+| `original_package?` | 保护记录中的原失败运行、节点、尝试、fence、制品、清单与源码；应用范围存在时附应用和 Git 目标标识 |
 
 `IssueRepair`：`id, tenant_id, project_id, issue_id, cycle, version, requirement_id, task_id, prepared_by, created_at, updated_at, regression?, closure?, reopened_at?, reopened_by?, reopen_reason?`。
 
 `IssueRegressionBinding`：`plan_id, plan_revision, plan_sha256, case_keys, bound_by, bound_at`。
 
-`IssueRepairClosure`：`run_id, task_version, review_id, plan_id, plan_revision, plan_sha256, case_keys, source_commits, closed_by, closed_at, reason`。这些字段由已复核事实生成，不接受调用方自行构造。
+`IssueRepairClosure`：`run_id, task_version, review_id, plan_id, plan_revision, plan_sha256, case_keys, source_commits, closed_by, closed_at, reason, package_regression?`。包测试关单快照包含复验的节点、尝试、fence、制品、清单、源码与证明标识，运行取同一关闭快照的 `run_id`。这些字段由已复核事实生成，不接受调用方自行构造。
 
 关闭状态为问题的 `closed`；修复过程使用 `open/in_progress/closed`，任务、回归和验收阶段从各自正式事实投影。关闭后的轮次仍为current并带closure；重开后保留旧 `closure`，记录原轮次重开人／时间／原因并移入history，新cycle在Prepare前没有current任务。原已关闭运行有保护索引，不可作为新轮次的关闭依据。
 
@@ -75,6 +78,8 @@ command生产者只接受正式 `command/text-v1` 档案绑定；领取和回写
 | `regression_case_failed` | 所选用例未全部形成当前可接受的passed证据 |
 | `original_case_required` | 缺少原失败key或原selector不一致 |
 | `formal_review_missing` | 缺少相应当前正式Review |
+| `package_regression_missing` | 当前回归缺少已核验的独立包测试证明 |
+| `package_regression_scope_changed` | 已核验的包测试不匹配原命令档案或应用、源码范围和 Git 目标 |
 
 未通过当前权限、版本、来源和证据校验不能写成功回执。数据库或读取错误不能伪装成无问题、无历史或已关闭。版本冲突与未知响应保留用户草稿和原操作key；需要重新读取原项目事实，不自动重试开发或改用另一运行。
 

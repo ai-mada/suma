@@ -33,17 +33,46 @@ type IssueRegressionBinding struct {
 // Closure freezes the exact accepted delivery and regression evidence. Reopening
 // preserves this snapshot and starts a fresh cycle rather than rewriting history.
 type IssueRepairClosure struct {
-	RunID         string   `json:"run_id"`
-	TaskVersion   int      `json:"task_version"`
-	ReviewID      string   `json:"review_id"`
-	PlanID        string   `json:"plan_id"`
-	PlanRevision  int      `json:"plan_revision"`
-	PlanSHA256    string   `json:"plan_sha256"`
-	CaseKeys      []string `json:"case_keys"`
-	SourceCommits []string `json:"source_commits"`
-	ClosedBy      string   `json:"closed_by"`
-	ClosedAt      string   `json:"closed_at"`
-	Reason        string   `json:"reason"`
+	RunID             string                   `json:"run_id"`
+	TaskVersion       int                      `json:"task_version"`
+	ReviewID          string                   `json:"review_id"`
+	PlanID            string                   `json:"plan_id"`
+	PlanRevision      int                      `json:"plan_revision"`
+	PlanSHA256        string                   `json:"plan_sha256"`
+	CaseKeys          []string                 `json:"case_keys"`
+	SourceCommits     []string                 `json:"source_commits"`
+	ClosedBy          string                   `json:"closed_by"`
+	ClosedAt          string                   `json:"closed_at"`
+	Reason            string                   `json:"reason"`
+	PackageRegression *IssueRepairPackageProof `json:"package_regression,omitempty"`
+}
+
+// IssueRepairPackageOrigin is read from the protected defect and original
+// build evidence. It remains historical when the application advances.
+type IssueRepairPackageOrigin struct {
+	RunID          string `json:"run_id"`
+	NodeID         string `json:"node_id"`
+	Attempt        int    `json:"attempt"`
+	Fence          int64  `json:"fence"`
+	ArtifactID     string `json:"artifact_id"`
+	ManifestSHA256 string `json:"manifest_sha256"`
+	SourceCommit   string `json:"source_commit"`
+	ApplicationID  string `json:"application_id,omitempty"`
+	ScopeID        string `json:"scope_id,omitempty"`
+	ScopeRoot      string `json:"scope_root,omitempty"`
+	RepositoryID   string `json:"repository_id,omitempty"`
+}
+
+// IssueRepairPackageProof retains the verified package attempt in the closed
+// cycle, whose RunID supplies the parent run for this proof.
+type IssueRepairPackageProof struct {
+	NodeID         string `json:"node_id"`
+	Attempt        int    `json:"attempt"`
+	Fence          int64  `json:"fence"`
+	ArtifactID     string `json:"artifact_id"`
+	ManifestSHA256 string `json:"manifest_sha256"`
+	SourceCommit   string `json:"source_commit"`
+	ProofID        string `json:"proof_id"`
 }
 
 type IssueRepairBlocker struct {
@@ -52,18 +81,19 @@ type IssueRepairBlocker struct {
 }
 
 type IssueRepairView struct {
-	Issue           Record               `json:"issue"`
-	Cycle           int                  `json:"cycle"`
-	Current         *IssueRepair         `json:"current,omitempty"`
-	Task            *Record              `json:"task,omitempty"`
-	History         []IssueRepair        `json:"history"`
-	HistoryTotal    int                  `json:"history_total"`
-	HistoryComplete bool                 `json:"history_complete"`
-	CanPrepare      bool                 `json:"can_prepare"`
-	CanBind         bool                 `json:"can_bind"`
-	CanClose        bool                 `json:"can_close"`
-	CanReopen       bool                 `json:"can_reopen"`
-	Blockers        []IssueRepairBlocker `json:"blockers"`
+	Issue           Record                    `json:"issue"`
+	Cycle           int                       `json:"cycle"`
+	Current         *IssueRepair              `json:"current,omitempty"`
+	Task            *Record                   `json:"task,omitempty"`
+	History         []IssueRepair             `json:"history"`
+	HistoryTotal    int                       `json:"history_total"`
+	HistoryComplete bool                      `json:"history_complete"`
+	CanPrepare      bool                      `json:"can_prepare"`
+	CanBind         bool                      `json:"can_bind"`
+	CanClose        bool                      `json:"can_close"`
+	CanReopen       bool                      `json:"can_reopen"`
+	Blockers        []IssueRepairBlocker      `json:"blockers"`
+	OriginalPackage *IssueRepairPackageOrigin `json:"original_package,omitempty"`
 }
 
 type IssueRepairPrepareRequest struct {

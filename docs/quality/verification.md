@@ -18,6 +18,8 @@ T-POOL-RUNNER-OCCUPANCY 核验拥有方当前授权、真实领取和待核对�
 
 T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
 
+T-PACKAGE-TEST-REPAIR-254 真实共享池原封存包失败后，纠正构建、独立复验、正式 Review 和关单通过。已验收的 JUnit-only 运行仍无法关单。 [阶段报告](package-test-repair-verification.md)
+
 T-PACKAGE-TEST-ISSUE-253 真实共享池包测试读取封存制品后失败，已核验准确问题及需求回流，并覆盖未知、旧尝试和原回执恢复。 [阶段报告](package-test-issue-verification.md)
 
 T-POOL-MIXED-QUALITY-252 真实 Git、SQLite、HTTP、三种 Pool 工具身份及 Node 进程验证混合门禁，另覆盖档案漂移、原验收任务重绑回滚和中英界面。 [阶段报告](pool-mixed-quality-verification.md)

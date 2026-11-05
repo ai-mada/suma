@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func issueRepairModels() []any {
-	return []any{platform.IssueRepair{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
+	return []any{platform.IssueRepair{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairPackageOrigin{}, platform.IssueRepairPackageProof{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
 }
 
 func issueRepairContracts(add operationAdder, api map[string]any) {
@@ -16,7 +16,7 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 	} {
 		op := add(route.path, route.method, "IssueRepairView", false, route.input != "")
 		successStatus(op, route.status)
-		op["description"] = "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Mutable record data never proves a repair. Exact original operations replay only after current authorization."
+		op["description"] = "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Package failures also require an independently verified package regression for the original scope. Exact original operations replay only after current authorization."
 		op["x-disallowed-token-scopes"] = []string{"agent", "runner"}
 		op["x-required-project-authority"] = "current project read"
 		if route.input == "" {
@@ -31,7 +31,7 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 		}
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"IssueRepair", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
+	for _, name := range []string{"IssueRepair", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairPackageOrigin", "IssueRepairPackageProof", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
 		toolContractMap(schemas, name)["additionalProperties"] = false
 	}
 	field := func(model, name string, attributes map[string]any) {
@@ -58,5 +58,19 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 	field("IssueRepairBindRequest", "case_keys", map[string]any{"minItems": 1, "maxItems": 100, "uniqueItems": true, "items": map[string]any{"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}})
 	field("IssueRepairCloseRequest", "run_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,100}$"})
 	field("IssueRepairView", "history", map[string]any{"maxItems": 10, "description": "Most recent bounded repair cycles. history_total/history_complete explicitly disclose omitted history; this window never determines closure authority."})
-	field("IssueRepairBlocker", "code", map[string]any{"enum": []string{"repair_not_prepared", "issue_closed", "regression_not_bound", "repair_task_not_accepted", "repair_run_changed", "repair_evidence_stale", "regression_plan_changed", "regression_case_failed", "original_case_required", "formal_review_missing"}})
+	field("IssueRepairView", "original_package", map[string]any{"readOnly": true, "description": "Historical source of an issue from a protected failed package attempt, independent of editable issue metadata."})
+	field("IssueRepairClosure", "package_regression", map[string]any{"readOnly": true, "description": "Exact sealed package proof retained by this closure cycle. The closure's run_id identifies the parent run."})
+	for _, name := range []string{"IssueRepairPackageOrigin", "IssueRepairPackageProof"} {
+		for _, property := range toolContractMap(schemas, name, "properties") {
+			property.(map[string]any)["readOnly"] = true
+		}
+		field(name, "node_id", map[string]any{"pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$"})
+		field(name, "attempt", map[string]any{"minimum": 1, "maximum": 2147483646})
+		field(name, "fence", map[string]any{"minimum": 1, "maximum": 9007199254740991})
+		field(name, "artifact_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,64}$"})
+		field(name, "manifest_sha256", map[string]any{"pattern": "^[a-f0-9]{64}$"})
+		field(name, "source_commit", map[string]any{"pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"})
+	}
+	field("IssueRepairPackageOrigin", "repository_id", map[string]any{"description": "Exact registered Git integration target ID, when the original build was application-scoped."})
+	field("IssueRepairBlocker", "code", map[string]any{"enum": []string{"repair_not_prepared", "issue_closed", "regression_not_bound", "repair_task_not_accepted", "repair_run_changed", "repair_evidence_stale", "regression_plan_changed", "regression_case_failed", "original_case_required", "formal_review_missing", "package_regression_missing", "package_regression_scope_changed"}})
 }

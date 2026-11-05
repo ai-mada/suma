@@ -18465,7 +18465,9 @@
               "regression_plan_changed",
               "regression_case_failed",
               "original_case_required",
-              "formal_review_missing"
+              "formal_review_missing",
+              "package_regression_missing",
+              "package_regression_scope_changed"
             ],
             "type": "string"
           },
@@ -18539,6 +18541,18 @@
           "closed_by": {
             "type": "string"
           },
+          "package_regression": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IssueRepairPackageProof"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exact sealed package proof retained by this closure cycle. The closure's run_id identifies the parent run.",
+            "readOnly": true
+          },
           "plan_id": {
             "type": "string"
           },
@@ -18579,6 +18593,125 @@
           "closed_by",
           "closed_at",
           "reason"
+        ],
+        "type": "object"
+      },
+      "IssueRepairPackageOrigin": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "artifact_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "attempt": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "fence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "manifest_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "repository_id": {
+            "description": "Exact registered Git integration target ID, when the original build was application-scoped.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "scope_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "scope_root": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_commit": {
+            "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "artifact_id",
+          "manifest_sha256",
+          "source_commit"
+        ],
+        "type": "object"
+      },
+      "IssueRepairPackageProof": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "attempt": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "fence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "manifest_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "proof_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_commit": {
+            "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "attempt",
+          "fence",
+          "artifact_id",
+          "manifest_sha256",
+          "source_commit",
+          "proof_id"
         ],
         "type": "object"
       },
@@ -18738,6 +18871,18 @@
           },
           "issue": {
             "$ref": "#/components/schemas/Record"
+          },
+          "original_package": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IssueRepairPackageOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Historical source of an issue from a protected failed package attempt, independent of editable issue metadata.",
+            "readOnly": true
           },
           "task": {
             "anyOf": [
@@ -81347,7 +81492,7 @@
     },
     "/issues/{id}/repair": {
       "get": {
-        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Mutable record data never proves a repair. Exact original operations replay only after current authorization.",
+        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Package failures also require an independently verified package regression for the original scope. Exact original operations replay only after current authorization.",
         "operationId": "get_issues_id_repair",
         "parameters": [
           {
@@ -81516,7 +81661,7 @@
     },
     "/issues/{id}/repair/close": {
       "post": {
-        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Mutable record data never proves a repair. Exact original operations replay only after current authorization.",
+        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Package failures also require an independently verified package regression for the original scope. Exact original operations replay only after current authorization.",
         "operationId": "post_issues_id_repair_close",
         "parameters": [
           {
@@ -81747,7 +81892,7 @@
     },
     "/issues/{id}/repair/prepare": {
       "post": {
-        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Mutable record data never proves a repair. Exact original operations replay only after current authorization.",
+        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Package failures also require an independently verified package regression for the original scope. Exact original operations replay only after current authorization.",
         "operationId": "post_issues_id_repair_prepare",
         "parameters": [
           {
@@ -81980,7 +82125,7 @@
     },
     "/issues/{id}/repair/regression": {
       "post": {
-        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Mutable record data never proves a repair. Exact original operations replay only after current authorization.",
+        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Package failures also require an independently verified package regression for the original scope. Exact original operations replay only after current authorization.",
         "operationId": "post_issues_id_repair_regression",
         "parameters": [
           {
@@ -82213,7 +82358,7 @@
     },
     "/issues/{id}/repair/reopen": {
       "post": {
-        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Mutable record data never proves a repair. Exact original operations replay only after current authorization.",
+        "description": "Current protected issue repair cycle. Reuses ordinary tasks, the single Go scheduler, immutable regression publications and current formal task approval. Package failures also require an independently verified package regression for the original scope. Exact original operations replay only after current authorization.",
         "operationId": "post_issues_id_repair_reopen",
         "parameters": [
           {

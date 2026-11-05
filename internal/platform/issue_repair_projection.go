@@ -39,7 +39,7 @@ func (s *Service) issueRepairSelectedCasesTx(ctx context.Context, auth *authoriz
 
 // Closure readiness uses the existing evidence authority, never a supplied
 // "passed" flag. The caller holds current identity and project coordination.
-func (s *Service) issueRepairClosureTx(ctx context.Context, auth *authorizedCommand, project string, repair IssueRepair, runID string) (*IssueRepairClosure, []IssueRepairBlocker, error) {
+func (s *Service) issueRepairClosureTx(ctx context.Context, auth *authorizedCommand, project string, repair IssueRepair, runID string, packageOrigin *issueRepairPackageOrigin) (*IssueRepairClosure, []IssueRepairBlocker, error) {
 	blockers := []IssueRepairBlocker{}
 	add := func(code, ref string) { blockers = append(blockers, IssueRepairBlocker{Code: code, RefID: ref}) }
 	task, err := s.getRecordTx(ctx, auth, project, "tasks", repair.TaskID)
@@ -159,10 +159,21 @@ func (s *Service) issueRepairClosureTx(ctx context.Context, auth *authorizedComm
 			}
 		}
 	}
+	var packageRegression *IssueRepairPackageProof
+	if packageOrigin != nil {
+		var blocker string
+		packageRegression, blocker, err = s.issueRepairPackageRegressionTx(ctx, auth, project, packageOrigin, fixed, execution)
+		if err != nil {
+			return nil, blockers, err
+		}
+		if packageRegression == nil {
+			add(blocker, runID)
+		}
+	}
 	if len(blockers) != 0 {
 		return nil, blockers, nil
 	}
-	return &IssueRepairClosure{RunID: runID, TaskVersion: task.Version, ReviewID: review, PlanID: plan.ID, PlanRevision: revision.Revision, PlanSHA256: revision.SHA256, CaseKeys: append([]string{}, repair.Regression.CaseKeys...), SourceCommits: append([]string{}, execution.SourceCommits...)}, blockers, nil
+	return &IssueRepairClosure{RunID: runID, TaskVersion: task.Version, ReviewID: review, PlanID: plan.ID, PlanRevision: revision.Revision, PlanSHA256: revision.SHA256, CaseKeys: append([]string{}, repair.Regression.CaseKeys...), SourceCommits: append([]string{}, execution.SourceCommits...), PackageRegression: packageRegression}, blockers, nil
 }
 
 func (s *Service) issueRepairViewTx(ctx context.Context, auth *authorizedCommand, project, issueID string) (out IssueRepairView, err error) {
@@ -170,6 +181,13 @@ func (s *Service) issueRepairViewTx(ctx context.Context, auth *authorizedCommand
 	out.Issue, err = s.getRecordTx(ctx, auth, project, "issues", issueID)
 	if err != nil {
 		return out, err
+	}
+	packageOrigin, err := s.issueRepairOriginalPackageTx(ctx, auth, project, issueID)
+	if err != nil {
+		return out, err
+	}
+	if packageOrigin != nil {
+		out.OriginalPackage = &packageOrigin.IssueRepairPackageOrigin
 	}
 	latest, err := s.issueRepairLatestTx(ctx, auth, project, issueID)
 	if err != nil {
@@ -257,7 +275,7 @@ func (s *Service) issueRepairViewTx(ctx context.Context, auth *authorizedCommand
 		return out, nil
 	}
 	out.CanBind = write && out.Issue.Status == "in_progress" && out.Current.Closure == nil
-	_, blockers, err := s.issueRepairClosureTx(ctx, auth, project, *out.Current, task.RunID)
+	_, blockers, err := s.issueRepairClosureTx(ctx, auth, project, *out.Current, task.RunID, packageOrigin)
 	if err != nil {
 		return out, err
 	}

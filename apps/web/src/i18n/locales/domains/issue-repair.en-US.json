@@ -86,5 +86,16 @@
   "issue-repair.blocker.formal_review_missing": "The current repair run has no matching formal acceptance review.",
   "issue-repair.unknown_blocker": "An additional condition needs attention:",
   "issue-repair.open_original_run": "View original run",
-  "issue-repair.open_original_regression": "View original regression evidence"
+  "issue-repair.open_original_regression": "View original regression evidence",
+  "issue-repair.package_origin": "Original package failure",
+  "issue-repair.package_regression": "Verified package regression",
+  "issue-repair.package_attempt": "Attempt {{attempt}}",
+  "issue-repair.package_scope": "Original source scope",
+  "issue-repair.package_manifest": "Sealed manifest SHA-256",
+  "issue-repair.package_details": "Package evidence details",
+  "issue-repair.package_open_attempt": "View test attempt",
+  "issue-repair.package_open_artifact": "View sealed artifact",
+  "issue-repair.package_bind_hint": "Choose the repair task’s published plan and regression cases. Closing also requires independent package verification for the original application scope.",
+  "issue-repair.blocker.package_regression_missing": "Run an independent package check for the repair and verify the sealed artifact before closing.",
+  "issue-repair.blocker.package_regression_scope_changed": "The regression does not match the original package check. Verify the test profile, application, source scope, and Git target."
 }

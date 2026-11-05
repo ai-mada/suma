@@ -3521,6 +3521,29 @@ export interface IssueRepairClosure {
   closed_by: string;
   closed_at: string;
   reason: string;
+  package_regression?: IssueRepairPackageProof | null;
+}
+export interface IssueRepairPackageOrigin {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  artifact_id: string;
+  manifest_sha256: string;
+  source_commit: string;
+  application_id?: string;
+  scope_id?: string;
+  scope_root?: string;
+  repository_id?: string;
+}
+export interface IssueRepairPackageProof {
+  node_id: string;
+  attempt: number;
+  fence: number;
+  artifact_id: string;
+  manifest_sha256: string;
+  source_commit: string;
+  proof_id: string;
 }
 export interface IssueRepairPrepareRequest {
   project_id: string;
@@ -3552,6 +3575,7 @@ export interface IssueRepairView {
   can_close: boolean;
   can_reopen: boolean;
   blockers: (IssueRepairBlocker)[];
+  original_package?: IssueRepairPackageOrigin | null;
 }
 export interface KnowledgeExtractionCapability {
   protocol: string;

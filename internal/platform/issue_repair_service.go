@@ -203,7 +203,11 @@ func (s *Service) CloseIssueRepair(ctx context.Context, actor Actor, project, is
 		if issue.Status != "in_progress" || repair.Closure != nil {
 			return conflict(issueRepairState)
 		}
-		closure, blockers, err := s.issueRepairClosureTx(ctx, auth, project, *repair, request.RunID)
+		packageOrigin, err := s.issueRepairOriginalPackageTx(ctx, auth, project, issueID)
+		if err != nil {
+			return err
+		}
+		closure, blockers, err := s.issueRepairClosureTx(ctx, auth, project, *repair, request.RunID, packageOrigin)
 		if err != nil {
 			return err
 		}

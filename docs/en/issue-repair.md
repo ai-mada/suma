@@ -41,6 +41,8 @@ A deterministic command producer remains a `command` node bound to an approved `
 
 The closure records the actual run, task version, Review ID, plan revision and SHA, selected cases, source commits, decision maker and reason. It does not alter the original failed report or deploy code.
 
+For a package-test issue, use the original run and artifact links to inspect the failure. Rebuild and seal the repair artifact, then run the original package test profile on a separate Runner alongside the JUnit plan. An application-scoped repair can use a new source revision for the same application, code scope and Git target. The repair must retain verified package evidence as well as the current formal Review. A closed cycle keeps links to the verified package attempt and artifact, including after reopening.
+
 ## Reopen without rewriting history
 
 A browser user with Review authority can reopen a closed issue with a reason. The original closure, task and evidence remain. The cycle increases and has no current repair task until another explicit Prepare. That next Prepare creates a new task while preserving the same canonical intake requirement. An already accepted task is not reused as a mutable repair container.

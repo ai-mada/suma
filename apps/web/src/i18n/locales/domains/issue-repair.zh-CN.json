@@ -86,5 +86,16 @@
   "issue-repair.blocker.formal_review_missing": "当前修复运行缺少匹配的正式验收记录。",
   "issue-repair.unknown_blocker": "还有一项条件需要处理：",
   "issue-repair.open_original_run": "查看原运行",
-  "issue-repair.open_original_regression": "查看原复测证据"
+  "issue-repair.open_original_regression": "查看原复测证据",
+  "issue-repair.package_origin": "原包测试失败",
+  "issue-repair.package_regression": "已验证的包测试复验",
+  "issue-repair.package_attempt": "第 {{attempt}} 次尝试",
+  "issue-repair.package_scope": "原源码范围",
+  "issue-repair.package_manifest": "封存清单 SHA-256",
+  "issue-repair.package_details": "包测试证据明细",
+  "issue-repair.package_open_attempt": "查看测试尝试",
+  "issue-repair.package_open_artifact": "查看封存制品",
+  "issue-repair.package_bind_hint": "请选择修复任务已发布的计划和复测用例。关单前还需要通过原应用范围的独立包测试。",
+  "issue-repair.blocker.package_regression_missing": "请执行独立包测试，核验修复后的封存制品，再关闭问题。",
+  "issue-repair.blocker.package_regression_scope_changed": "复验与原包测试不匹配。请核对测试配置、应用、源码范围和 Git 目标。"
 }

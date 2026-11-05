@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "package_test_repair": {
+    "stage": "T-PACKAGE-TEST-REPAIR-254",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "5b63144689f1790948ea196834503e41d9cef835",
+    "report": "docs/quality/package-test-repair-verification.md",
+    "actual": "Protected package issue retains its historical failed attempt and sealed artifact. Close requires current formal Review, selected independent JUnit and a verified package rerun matching the original test profile and governed scope. Reopen retains exact closure proof.",
+    "verification": "Real Pool build remediation, wrong then corrected sealed bytes, same package test profile and source commit. JUnit-only 409 and explicit Review before close, exact proof and receipt replay. Five focused existing Go regressions, one scope-identity check, seven UI tests, TypeScript, catalogs and zh-CN/en-US Chromium.",
+    "known_limitations": "Physical multihost, OceanBase, production and unscoped artifact real repair remain open. The real journey used a build configuration repair on the same Git commit. Browser uses isolated API fixtures.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q254/post-git.json"
+  },
   "package_test_issue": {
     "stage": "T-PACKAGE-TEST-ISSUE-253",
     "version": "1.0.0",

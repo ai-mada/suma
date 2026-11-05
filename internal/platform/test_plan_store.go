@@ -51,7 +51,10 @@ func (s *Service) InitializeTestPlans(ctx context.Context) error {
 			return err
 		}
 	}
-	return store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_test_plan_page", "suma_test_plans", "tenant_id", "project_id", "created_at", "id")
+	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_test_plan_page", "suma_test_plans", "tenant_id", "project_id", "created_at", "id"); err != nil {
+		return err
+	}
+	return store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_test_package_defect_issue", "suma_test_plan_package_defects", "tenant_id", "project_id", "issue_id")
 }
 func (s *Service) testPlanTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (out testPlanAggregate, err error) {
 	err = tx.QueryRowContext(ctx, s.q(`SELECT id,task_id,version,state,latest_revision,published_revision,governance_revision,created_at,updated_at FROM suma_test_plans WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, id).Scan(&out.ID, &out.TaskID, &out.Version, &out.State, &out.Latest, &out.Published, &out.Governance, &out.CreatedAt, &out.UpdatedAt)

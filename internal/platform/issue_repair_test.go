@@ -7,8 +7,41 @@ import (
 	"testing"
 
 	"github.com/ai-mada/suma/internal/dag"
+	rc "github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
+
+func TestIssueRepairPackageScopeKeepsOriginalRepositoryAuthority(t *testing.T) {
+	scope := ApplicationCodeScope{ID: "library", TargetID: "repository", ProviderID: "provider", TargetRef: "refs/heads/main", ConfigSHA256: digest("config"), RelativeRoot: "packages/library"}
+	origin := issueRepairPackageOrigin{IssueRepairPackageOrigin: IssueRepairPackageOrigin{ApplicationID: "app", SourceCommit: strings.Repeat("a", 40)}, Scope: &scope}
+	build := ArtifactProof{ApplicationBuild: &rc.ApplicationBuildBasis{ApplicationID: "app"}, SourceCommit: strings.Repeat("b", 40)}
+	if !issueRepairPackageScopeMatches(&origin, build, &scope) {
+		t.Fatal("a new commit within the same registered scope must remain eligible")
+	}
+	for _, change := range []struct {
+		name  string
+		apply func(*ApplicationCodeScope)
+	}{
+		{"scope", func(s *ApplicationCodeScope) { s.ID = "other-scope" }},
+		{"root", func(s *ApplicationCodeScope) { s.RelativeRoot = "packages/other" }},
+		{"target", func(s *ApplicationCodeScope) { s.TargetID = "other-repository" }},
+		{"provider", func(s *ApplicationCodeScope) { s.ProviderID = "other-provider" }},
+		{"ref", func(s *ApplicationCodeScope) { s.TargetRef = "refs/heads/other" }},
+		{"config", func(s *ApplicationCodeScope) { s.ConfigSHA256 = digest("other-config") }},
+	} {
+		t.Run(change.name, func(t *testing.T) {
+			changed := scope
+			change.apply(&changed)
+			if issueRepairPackageScopeMatches(&origin, build, &changed) {
+				t.Fatal("a different scope cannot close the original issue")
+			}
+		})
+	}
+	build.ApplicationBuild = &rc.ApplicationBuildBasis{ApplicationID: "other-app"}
+	if issueRepairPackageScopeMatches(&origin, build, &scope) {
+		t.Fatal("a different application cannot close the original issue")
+	}
+}
 
 func issueRepairPrepareFixture(t *testing.T, f *fixture, issue Record) (IssueRepairView, IssueRepairPrepareRequest) {
 	t.Helper()
