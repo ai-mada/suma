@@ -2,20 +2,36 @@
 import {act} from 'react';
 import {createRoot} from 'react-dom/client';
 import {expect,it,vi} from 'vitest';
-import type {ExpertTeamPlanItem,ExpertTeamRole} from '../../../packages/contracts/src';
+import type {ExpertTeamPlanItem,ExpertTeamRole,TaskDispatchTestOption} from '../../../packages/contracts/src';
 import {ApiViewProvider} from './api-context';
 import {ExpertTestBindings} from './ExpertTestBindings';
 import {setLocale} from './i18n';
 import type {ExpertTestChoices,ExpertTestTask} from './expert-test-bindings-model';
 
-it('T223 uses one on-demand directory and real profile checks, preserves definition intent through task refresh and rejects source-ABA callbacks',async()=>{
+it('T223 uses one on-demand directory and version-bound preflight, preserves definition intent through task refresh and rejects source-ABA callbacks',async()=>{
  await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const host=document.createElement('div');document.body.append(host);const root=createRoot(host),sha='a'.repeat(64),session={user:{id:'owner',name:'Owner',email:'o@example.test'},organization:{id:'org',name:'Org'}};
  const definition={command_id:'develop',adapter:'codex',protocol:'codex-jsonl-v1',read_only:false,profile_sha256:sha,executable_sha256:'b'.repeat(64),tool_version:'1.0.0'},developer={id:'tool',project_id:'project',worker_id:'worker-code',name:'Developer',version:3,state:'enabled',available:true,reason:'',enabled_by:'owner',created_at:'2026-11-03T00:00:00Z',updated_at:'2026-11-03T00:00:00Z',profile:definition,observation:{profile:definition,available:true,reason:''}};
  const testDefinition={...definition,command_id:'test-command',adapter:'command',protocol:'text-v1',test_report_protocol:'suma-junit-report-v1'},tester={...developer,id:'tester',worker_id:'worker-test',profile:testDefinition,observation:{profile:testDefinition,available:true,reason:''}};
  const workflow={id:'flow',version:2,name:'Develop and test',nodes:[{id:'code',type:'agent'},{id:'verify',type:'test',command:['published-test'],config:{candidate_from:'code'}}],edges:[{from:'code',to:'verify'}]},role={key:'developer',title:'Developer',workflow_id:'flow',workflow_version:2,agent_node_id:'code',tool_profile_id:'tool',tool_profile_version:3,tool_profile_sha256:sha} as ExpertTeamRole;
  const item={role_key:'developer',plan:{workflow_id:'flow',workflow_version:2,agent_node_id:'code',tool_profile_id:'tool',tool_profile_version:3,tool_profile_sha256:sha,test_bindings:[{node_id:'verify',tool_profile_id:'tester',tool_profile_version:3,tool_profile_sha256:sha,worker_id:'worker-test',command_id:'test-command'}],workflow:{...workflow,nodes:[workflow.nodes[0],{...workflow.nodes[1],command:['test-command'],config:{candidate_from:'code',tool_profile_id:'tester',tool_profile_sha256:sha}}]}}} as unknown as ExpertTeamPlanItem;
  const task:ExpertTestTask={taskID:'task',title:'Task',version:4,role,item},changed=vi.fn<(value:ExpertTestChoices)=>void>(),reads:string[]=[];let defer=false,release!:(response:Response)=>void;
- vi.stubGlobal('fetch',vi.fn(async(input:string)=>{const path=String(input);reads.push(path);if(path.includes('/workflows?'))return Response.json({items:[workflow]});if(path.includes('/tool-profiles?'))return Response.json({items:[tester,{...tester,id:'same-worker',worker_id:'worker-code'}],total:2,next_cursor:''});if(path.includes('/tool-profiles/tool?'))return Response.json(developer);if(path.includes('/tool-profiles/tester?'))return defer?new Promise<Response>(resolve=>{release=resolve;}):Response.json(tester);throw Error('Unexpected '+path);}));
+ const checkedVersions:number[]=[];
+ const option=(version:number):TaskDispatchTestOption=>({project_id:'project',task_id:task.taskID,task_version:version,workflow_id:workflow.id,workflow_version:workflow.version,
+  agent_node_id:role.agent_node_id,development_tool_profile_id:developer.id,development_tool_profile_version:developer.version,development_tool_profile_sha256:sha,
+  checked_at:developer.updated_at,execution_route:{tenant_id:'org',project_id:'project',version:0,pool_id:'',grant_id:'',grant_version:0},
+  binding:{node_id:'verify',tool_profile_id:tester.id,tool_profile_version:tester.version,tool_profile_sha256:sha,worker_id:tester.worker_id,command_id:testDefinition.command_id}});
+ vi.stubGlobal('fetch',vi.fn(async(input:string)=>{
+  const path=String(input);reads.push(path);
+  if(path.includes('/workflows?'))return Response.json({items:[workflow]});
+  if(path.includes('/tool-profiles?'))return Response.json({items:[tester,{...tester,id:'same-worker',worker_id:'worker-code'}],total:2,next_cursor:''});
+  if(path.includes('/tool-profiles/tool?'))return Response.json(developer);
+  if(path.includes('/tasks/task/dispatch-test-option?')){
+   const version=Number(new URL(path,'https://example.test').searchParams.get('expected_task_version'));
+   checkedVersions.push(version);
+   return defer?new Promise<Response>(resolve=>{release=resolve;}):Response.json(option(version));
+  }
+  throw Error('Unexpected '+path);
+ }));
  async function settle(){for(let i=0;i<3;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
  async function draw(value=task){await act(async()=>root.render(<ApiViewProvider session={session}><ExpertTestBindings project="project" tasks={[value]} disabled={false} onChange={changed}/></ApiViewProvider>));await settle();}
  async function select(selector:string,value:string){const node=host.querySelector<HTMLSelectElement>(selector)!;expect(node,selector).not.toBeNull();await act(async()=>{Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')!.set!.call(node,value);node.dispatchEvent(new Event('change',{bubbles:true}));});await settle();}
@@ -24,7 +40,16 @@ it('T223 uses one on-demand directory and real profile checks, preserves definit
   await draw();expect(reads).toEqual([]);expect(changed.mock.calls.at(-1)?.[0].ready).toBe(true);expect(changed.mock.calls.at(-1)?.[0].selections.task).toBeUndefined();expect(host.textContent).toContain('worker-test');
   await select('[data-expert-test-mode=task]','definition');await draw({...task,version:5});expect(host.querySelector<HTMLSelectElement>('[data-expert-test-mode=task]')?.value).toBe('definition');expect(changed.mock.calls.at(-1)?.[0].selections.task).toEqual([]);
   await select('[data-expert-test-mode=task]','adjust');await open();expect(host.querySelector<HTMLOptionElement>('[data-dispatch-test-select=verify] option[value="same-worker"]')?.disabled).toBe(true);await select('[data-dispatch-test-select=verify]','tester');expect(changed.mock.calls.at(-1)?.[0].selections.task).toEqual([{node_id:'verify',tool_profile_id:'tester',expected_tool_version:3}]);expect(reads.filter(path=>path.includes('/workflows?'))).toHaveLength(1);expect(reads.filter(path=>path.includes('/tool-profiles?'))).toHaveLength(1);
-  defer=true;const recheck=host.querySelector<HTMLButtonElement>('[data-dispatch-test-recheck=verify]')!;await act(async()=>recheck.click());await settle();await draw({...task,role:{...role,tool_profile_version:4}});await draw({...task,version:5});await act(async()=>release(Response.json(tester)));await settle();expect(host.querySelector<HTMLSelectElement>('[data-expert-test-mode=task]')?.value).toBe('retain');expect(changed.mock.calls.at(-1)?.[0].selections.task).toBeUndefined();expect(host.querySelector('[data-dispatch-test-status=ready]')).toBeNull();
+  expect(checkedVersions).toEqual([5]);
+  await draw({...task,version:6});
+  expect(host.querySelector<HTMLSelectElement>('[data-expert-test-mode=task]')?.value).toBe('adjust');
+  expect(changed.mock.calls.at(-1)?.[0].ready).toBe(false);
+  expect(changed.mock.calls.at(-1)?.[0].selections.task ?? []).toEqual([]);
+  expect(host.querySelector('[data-dispatch-test-status=ready]')).toBeNull();
+  await open();await select('[data-dispatch-test-select=verify]','tester');
+  expect(checkedVersions).toEqual([5,6]);
+  expect(changed.mock.calls.at(-1)?.[0].ready).toBe(true);
+  defer=true;const recheck=host.querySelector<HTMLButtonElement>('[data-dispatch-test-recheck=verify]')!;await act(async()=>recheck.click());await settle();await draw({...task,role:{...role,tool_profile_version:4}});await draw({...task,version:6});await act(async()=>release(Response.json(option(6))));await settle();expect(host.querySelector<HTMLSelectElement>('[data-expert-test-mode=task]')?.value).toBe('retain');expect(changed.mock.calls.at(-1)?.[0].selections.task).toBeUndefined();expect(host.querySelector('[data-dispatch-test-status=ready]')).toBeNull();
   await draw({...task,item:{...item,run_id:'already-started',dispatch_plan_id:'started-plan'}});expect(host.querySelector('[data-expert-test-started]')).not.toBeNull();expect(host.querySelector('[data-expert-test-mode=task]')).toBeNull();
  }finally{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();vi.restoreAllMocks();}
 });

@@ -3,10 +3,11 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func taskDispatchOptionsModels() []any {
-	return []any{platform.TaskDispatchOptionsRequest{}, platform.TaskDispatchOptions{}, platform.TaskDispatchToolOption{}}
+	return []any{platform.TaskDispatchOptionsRequest{}, platform.TaskDispatchOptions{}, platform.TaskDispatchToolOption{}, platform.TaskDispatchTestOptionRequest{}, platform.TaskDispatchTestOption{}}
 }
 
 func taskDispatchOptionsContracts(add operationAdder, api map[string]any) {
+	taskDispatchTestOptionContract(add, api)
 	op := add("/tasks/{id}/dispatch-options", "get", "TaskDispatchOptions", false, false)
 	op["description"] = "Read current tool observations and fixed workflow compatibility only. The first eligible tool on this stable ID-ordered page is suggested, without quality/cost/slot claims. Adoption never creates or starts work; explicit preview and Start recheck current authority, context, route and budget. Model stays fixed by tool; cost remains unknown."
 	for _, field := range []string{"expected_task_version", "workflow_version"} {

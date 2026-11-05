@@ -7541,6 +7541,33 @@ export interface TaskDispatchTestBinding {
   worker_id: string;
   command_id: string;
 }
+export interface TaskDispatchTestOption {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  development_tool_profile_id: string;
+  development_tool_profile_version: number;
+  development_tool_profile_sha256: string;
+  checked_at: string;
+  execution_route: ProjectExecutionRoute;
+  binding: TaskDispatchTestBinding;
+}
+export interface TaskDispatchTestOptionRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  development_tool_profile_id: string;
+  development_tool_profile_version: number;
+  test_node_id: string;
+  test_tool_profile_id: string;
+  test_tool_profile_version: number;
+}
 export interface TaskDispatchTestSelection {
   node_id: string;
   tool_profile_id: string;

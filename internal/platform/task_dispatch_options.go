@@ -2,8 +2,6 @@ package platform
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 	"errors"
 	"unicode/utf8"
 
@@ -92,16 +90,8 @@ func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine
 		// Match the original preview's fixed, non-managed template lookup. The
 		// pure workflow builder then performs exactly the same capability,
 		// protected-baseline, context-size and independent-test validation.
-		var raw string
-		e = tx.QueryRowContext(bounded, s.q(`SELECT w.spec FROM dag_workflows w WHERE w.tenant_id=? AND w.project_id=? AND w.id=? AND w.version=? AND NOT EXISTS(SELECT 1 FROM dag_managed_workflows m WHERE m.tenant_id=w.tenant_id AND m.project_id=w.project_id AND m.workflow_id=w.id)`), p.TenantID, project, req.WorkflowID, req.WorkflowVersion).Scan(&raw)
-		if errors.Is(e, sql.ErrNoRows) {
-			return missing()
-		}
+		workflow, e := s.readPublishedTaskDispatchWorkflowTx(bounded, tx, p.TenantID, project, req.WorkflowID, req.WorkflowVersion)
 		if e != nil {
-			return e
-		}
-		var workflow dag.Workflow
-		if e = json.Unmarshal([]byte(raw), &workflow); e != nil {
 			return e
 		}
 		route, e := engine.ReadProjectExecutionRouteTx(bounded, tx, p.TenantID, project)

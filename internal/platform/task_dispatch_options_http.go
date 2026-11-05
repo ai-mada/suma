@@ -9,7 +9,15 @@ import (
 // Recommendations are scoped observations. This endpoint never prepares or
 // starts an execution, enables a profile, or reserves an execution budget.
 func (s *Server) taskDispatchOptionsHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, project string, parts []string) bool {
-	if len(parts) != 3 || parts[0] != "tasks" || parts[2] != "dispatch-options" {
+	if len(parts) != 3 || parts[0] != "tasks" {
+		return false
+	}
+	switch parts[2] {
+	case "dispatch-test-option":
+		s.taskDispatchTestOptionHTTP(w, r, actor, project, parts[1])
+		return true
+	case "dispatch-options":
+	default:
 		return false
 	}
 	if scope != "" && scope != "api" {

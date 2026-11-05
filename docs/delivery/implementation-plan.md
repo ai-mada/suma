@@ -26,6 +26,8 @@ T-TEAM-WORKSTATION-RECOVERY-218：[共享节点恢复与 AI SOP](../product/team
 
 T-TOOL-RECOVERY-NAVIGATION-217：[工具恢复交接与AI SOP](../product/tool-recovery-navigation.md)／[交互](../design/tool-recovery-navigation.md)／[限定验证](../quality/tool-recovery-navigation-verification.md)。常用操作前置，Doctor→准确普通节点→原连接准备／上报／Quick贯通；来源ABA、截止、共享边界与原未知保护保持。5项定向、类型0／9774对词条、4组代表合成界面通过；1次构建，失败与宿主退出分开记录。真实远程修复及完整31／P0–P7继续。
 
+T-TEST-DISPATCH-PREFLIGHT 将另一执行节点的测试工具核对提前到选择时，沿原服务端绑定规则检查流程、当前路由和档案版本。正式预览与启动保留独立复核。见[交互](../design/test-dispatch-bindings.md#工作台与推荐)与[验证](../quality/test-dispatch-preflight-verification.md)。
+
 T-TEST-DISPATCH-BINDINGS-216：[明确开发／独立测试工具与AI SOP](../product/test-dispatch-bindings.md)／[交互](../design/test-dispatch-bindings.md)／[限定验证](../quality/test-dispatch-bindings-verification.md)。原派发按需选择并冻结另一Worker测试工具，准确来源及同提交质量门贯通；真实Git／双Worker／JUnit及夹具Review通过，SQLite取消泄漏沿官方稳定驱动修复。25项主要定向及新版存储／关键平台检查通过；全包曾超时，未声称整包或完整31／P0–P7完成。
 
 T-COMMAND-COMPOSITION-215：[已有命令配置组合与AI SOP](../product/command-composition.md)／[交互](../design/command-composition.md)／[限定验证](../quality/command-composition-verification.md)。跨文件checks沿原完整校验生成新配置，明确采用输出路径接回原连接指南；13项定向、9739对词条及实际PowerShell组合／拒覆盖通过。完整类型首次仅新mock3诊断，修正后5文件语义0；完整31／P0–P7继续。

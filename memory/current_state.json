@@ -695,6 +695,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "test_dispatch_preflight": {
+    "stage": "T-TEST-DISPATCH-PREFLIGHT",
+    "version": "1.0.0",
+    "classification": "progress",
+    "contract": "contracts/test-dispatch-bindings.md#选择时检查",
+    "design": "docs/design/test-dispatch-bindings.md#工作台与推荐",
+    "report": "docs/quality/test-dispatch-preflight-verification.md",
+    "actual": "Current browser project writers can verify one exact independent test tool and route before creating the formal task preview. The check reuses the preview validators and exposes only the matching binding and basis. Start still reauthorizes the saved plan.",
+    "known_limitations": "Interactive browser preflight for explicit test overrides. Runtime execution, provider accounts, physical multi-host and production acceptance require separate evidence.",
+    "full_platform_complete": false,
+    "git_record": ".cache/test-dispatch-preflight/post-git.json"
+  },
   "pool_runner_occupancy": {
     "stage": "T-POOL-RUNNER-OCCUPANCY",
     "version": "1.0.0",

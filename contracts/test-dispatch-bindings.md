@@ -6,15 +6,21 @@
 
 原TaskDispatchPreviewRequest增加可选test_bindings数组（最多64项；显式null拒绝），项为TaskDispatchTestSelection：node_id、tool_profile_id、expected_tool_version。只选择本次Agent关联的原静态test节点（candidate_from===agent_node_id）；拒重复、非test、其他来源及动态节点。省略保留原发布定义，不据此声称旧定义已固定独立测试工具或Worker。用户可以明确覆盖原测试command/绑定，但不改变节点身份、类型、依赖、条件、输入及发布图，不自动创建或发布流程。
 
-TaskDispatchPlan可选test_bindings只记录本次明确覆盖的冻结TaskDispatchTestBinding：node_id、tool_profile_id、tool_profile_version、tool_profile_sha256、worker_id、command_id。计划保存精确SHA／版本／Worker／命令，GET不补读当前元数据冒充历史。原派生workflow和原发布flow保持各自身份。所有新请求与回执沿原操作key、版本、事务及原恢复机制。0新API路径、数据表或调度器。
+TaskDispatchPlan可选test_bindings只记录本次明确覆盖的冻结TaskDispatchTestBinding：node_id、tool_profile_id、tool_profile_version、tool_profile_sha256、worker_id、command_id。计划保存精确SHA／版本／Worker／命令，GET不补读当前元数据冒充历史。原派生workflow和原发布flow保持各自身份。所有新请求与回执沿原操作key、版本、事务及原恢复机制。选择时增加一个只读接口，正式预览和启动仍复用原路径。
 
 每项在预览／计划当前验证／原子Start及最终运行route内复核原当前权限、准确profile版本／SHA／command、启用及新鲜库存、Worker身份与同一路由。只允许command/text-v1、可写且TestReportProtocol为原tr.Protocol（suma-junit-report-v1），不得兼任artifact_from。测试Worker必须非空且不同于所选开发Worker；Pool不同slot不能冒充不同Worker。只替换明确工具与command约束；其他额外能力不得借此绕过，最终仍原dag.Compile。配置资格不替代运行期同提交pin、报告与人工验收。
 
 ## 简洁交互与恢复
 
-原派发开发工具后默认折叠“本次独立测试工具”，列关联节点与原发布绑定／未确认状态，明确选择覆盖。共享当前工具目录供候选展示，采用时以当前useApi准确读取profile、核项目／ID／版本及原profile格式；目录分页外所选项保留。不默认选首项、不默默替换。工具状态和原因显示真实观察，非执行健康保证。
+原派发开发工具后默认折叠“本次独立测试工具”，列关联节点与原发布绑定／未确认状态，明确选择覆盖。共享当前工具目录供候选展示，采用时以当前会话检查任务、发布流程、测试绑定、工具版本与执行路由；目录分页外所选项保留。不默认选首项、不默默替换。工具状态和原因显示真实观察，非执行健康保证。
 
 选择归属当前账户／组织／API／项目／任务版本／流程版本／Agent／开发profile版本和SHA；切源清空，ABA与迟到读取不复活旧选择；原pending冻结原body和key，不重取版本生成另一写。只通过原正式预览提交明确test_bindings，冻结计划显示准确测试工具／Worker／SHA。显式覆盖存在或选择未确定时，原智能推荐不能静默创建忽略这些选择的计划；如推荐流程本阶段未扩展同合同，清楚禁用其新创建并指向正式预览，保留原已存在pending的核对／恢复与离开保护。中英文、键盘、44像素触达及窄屏。
+
+## 选择时检查
+
+`GET /api/v1/tasks/{id}/dispatch-test-option` 以当前项目浏览器写权限读取。查询固定项目、任务版本、发布流程版本和开发节点，以及开发档案 ID／版本、测试节点 ID、测试档案 ID／版本。参数必填且唯一。响应使用 `Cache-Control: no-store`，返回准确任务／流程／开发档案依据、当前执行路由、读取时间和一条可固定的测试绑定。
+
+核对沿正式预览的发布流程读取、开发档案、任务依据、路由与独立测试绑定规则。同一授权事务内核对原任务版本、档案版本和当前工具观察。已读结果只采用确切匹配的档案及执行节点。选择时检查不会保存计划、创建运行或预留额度。后续正式预览和启动仍按当前事实复核。
 
 ## 代码验收独立性
 

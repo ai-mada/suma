@@ -9,6 +9,13 @@
 .dispatch-test-bindings label{display:grid;gap:6px;min-width:0;font-size:13px}
 .dispatch-test-bindings select{box-sizing:border-box;width:100%;max-width:100%;min-width:0;align-self:start}
 .dispatch-test-bindings button{min-height:44px;max-width:100%;white-space:normal}
+.dispatch-test-preflight{display:grid;justify-items:start;gap:8px;min-width:0;padding:10px;border-radius:6px;background:var(--surface-soft)}
+.dispatch-test-preflight>p{display:flex;align-items:flex-start;gap:8px;font-weight:600}
+.dispatch-test-preflight>p svg{flex:none;margin-top:2px}
+.dispatch-test-preflight[data-phase="ready"]>p svg{color:var(--green)}
+.dispatch-test-preflight[data-phase="blocked"]>p svg,.dispatch-test-preflight[data-phase="changed"]>p svg{color:var(--amber)}
+.dispatch-test-preflight-basis{display:flex;flex-wrap:wrap;gap:4px 12px;min-width:0}
+.dispatch-test-preflight .error{width:100%;min-width:0;box-sizing:border-box;overflow-wrap:anywhere}
 .dispatch-test-muted,.dispatch-test-bindings small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
 .dispatch-test-actions{display:flex;gap:8px;flex-wrap:wrap}
 .dispatch-test-bindings :is(button,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}

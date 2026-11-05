@@ -3,7 +3,7 @@ import {act} from 'react';
 import {createRoot} from 'react-dom/client';
 import {expect, it, vi} from 'vitest';
 import type {ModelBinding, ModelExecutionOptions, TaskConversationMessage, TaskConversationPage, TaskConversationReply,
-  TaskDiscussionDevelopmentPlan, TaskDispatchOptions, TaskDispatchPlan, ToolProfile, UsageRateRevision, Workflow} from '../../../packages/contracts/src';
+  TaskDiscussionDevelopmentPlan, TaskDispatchOptions, TaskDispatchPlan, TaskDispatchTestOption, ToolProfile, UsageRateRevision, Workflow} from '../../../packages/contracts/src';
 import {DiscussionDevelopmentPanel} from './DiscussionDevelopmentPanel';
 import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
@@ -71,6 +71,10 @@ it.each([{continued:false,testing:false,name:'T129 reviews fresh coding selectio
   const currentReply={...previousReply,source:{...previousReply.source,task_run_id:continued?continuationSource.run_id:'',messages:[currentNote]}};
   const testDefinition={command_id:'verify-command',adapter:'command',protocol:'text-v1',read_only:false,tool_version:'1.0.0',test_report_protocol:'suma-junit-report-v1',profile_sha256:'8'.repeat(64),executable_sha256:'9'.repeat(64)};
   const tester:ToolProfile={...tool,id:'independent-tester',worker_id:'worker-test',profile:testDefinition,observation:{profile:{...testDefinition},available:true,reason:''}};
+  const testOption:TaskDispatchTestOption={project_id:project,task_id:task,task_version:7,workflow_id:workflow.id,workflow_version:workflow.version,
+    agent_node_id:'code',development_tool_profile_id:tool.id,development_tool_profile_version:tool.version,development_tool_profile_sha256:tool.profile.profile_sha256,
+    checked_at:stamp,execution_route:previousReply.source.execution_route,binding:{node_id:'verify',tool_profile_id:tester.id,
+      tool_profile_version:tester.version,tool_profile_sha256:tester.profile.profile_sha256,worker_id:tester.worker_id,command_id:tester.profile.command_id}};
   let delayTest=true,releaseTest:((value:Response)=>void)|undefined;
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
     const path = String(input).replace('/api/v1', ''), body = init?.body ? JSON.parse(String(init.body)) : undefined;
@@ -78,9 +82,12 @@ it.each([{continued:false,testing:false,name:'T129 reviews fresh coding selectio
     if(path.startsWith('/tasks/task-a/development-continuation-options?')){sourceReads++;return Response.json(continuationOptions);}
     if (path.startsWith('/workflows?')) return Response.json({items: [workflow]});
     if (path.startsWith('/tool-profiles?')) return Response.json({items:[tester],total:1,next_cursor:''});
-    if (path.startsWith('/tool-profiles/independent-tester?')) {
+    if (path.startsWith('/tasks/task-a/dispatch-test-option?')) {
+      const query = new URL(path, 'https://example.test').searchParams;
+      expect(query.get('expected_task_version')).toBe('7');
+      expect(query.get('development_tool_profile_id')).toBe(tool.id);
       if(testing&&delayTest){delayTest=false;return new Promise<Response>(resolve=>{releaseTest=resolve;});}
-      return Response.json(tester);
+      return Response.json(testOption);
     }
     if (path.startsWith('/tasks/task-a/dispatch-options?')) return Response.json(dispatchOptions);
     if (path.startsWith('/model-execution/options?')) return Response.json(models);
@@ -128,7 +135,7 @@ it.each([{continued:false,testing:false,name:'T129 reviews fresh coding selectio
       expect(host.querySelector('[data-dispatch-test-status="reading"]')).not.toBeNull();
       await change('.discussion-development-fields select','');await change('.discussion-development-fields select','flow-native@2');
       await click('.discussion-development-tools button');await change('[data-model-select]',modelBinding.deployment.deployment_sha256);await change('[data-model-token-budget]','400000');
-      await act(async()=>releaseTest?.(Response.json(tester)));await settle();
+      await act(async()=>releaseTest?.(Response.json(testOption)));await settle();
       expect(host.querySelector('[data-dispatch-test-status="ready"]')).toBeNull();
       await expand();await change('[data-dispatch-test-select="verify"]',tester.id);
       expect(host.querySelector('[data-dispatch-test-status="ready"]')).not.toBeNull();

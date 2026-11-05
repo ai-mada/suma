@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TEST-DISPATCH-PREFLIGHT 在任务派发中选择独立测试工具时，先核对发布流程、开发档案、测试节点和当前执行路由。结果显示原配置版本与读取时间；条件变化时在同一行提供原因。 [交互](../design/test-dispatch-bindings.md#工作台与推荐) · [验证](../quality/test-dispatch-preflight-verification.md)
+
 T-POOL-RUNNER-OCCUPANCY 从共享资源池的执行节点页查看已保留槽位和登记上限，区分执行中记录、待核对与未知占用。真实派发、保留和核对释放已定向验证。 [交互](../design/execution-pools.md#节点槽位占用) · [验证](../quality/pool-runner-occupancy-verification.md)
 
 T-PORTFOLIO-CAPACITY 从项目管理按周对照已分摊任务工时与组织工作日历。可筛选已超配或待核对人员，展开任务依据，跳转原任务和有权工作日历。已验证跨周分摊、当前撤权和桌面／窄屏交互。 [交互](../design/project-portfolio.md#跨项目周负荷与容量) · [验证](../quality/project-portfolio-capacity-verification.md)

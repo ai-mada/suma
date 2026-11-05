@@ -392,7 +392,7 @@ function TaskDispatchScope({
                 >
                   {t("development.dispatch.view_tool_configurations_and_unavailable_reasons")}</a>
               </small>
-              {currentTask&&flow&&profile&&<TaskDispatchTestBindings project={project} workflow={flow} agentID={agentID} developer={profile} scopeKey={testScope} inventory={profiles} disabled={blocked} onChange={updateTests}/>}
+              {currentTask&&flow&&profile&&<TaskDispatchTestBindings project={project} task={currentTask} workflow={flow} agentID={agentID} developer={profile} scopeKey={testScope} inventory={profiles} disabled={blocked} onChange={updateTests}/>}
               {profile && (
                 <div className="tool-context">
                   <strong>{profile.name}</strong>

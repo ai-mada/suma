@@ -8,7 +8,7 @@
 
 原`TaskDispatchPlan.test_bindings`只保存本次明确覆盖的六项事实：`node_id`、`tool_profile_id`、`tool_profile_version`、`tool_profile_sha256`、`worker_id`、`command_id`。版本、SHA、Worker和命令由服务端从当前准确工具解析。读取历史不会补读新元数据冒充原快照。
 
-接口保持原`POST /task-dispatch-plans`、`GET /task-dispatch-plans/{id}`和`POST /task-dispatch-plans/{id}/start`；项目参数、当前权限、操作回执及版本语义不变。没有新增表、后端路径、外部SDK或调度器。
+正式命令沿原 `POST /task-dispatch-plans`、`GET /task-dispatch-plans/{id}` 和 `POST /task-dispatch-plans/{id}/start`。选择阶段由 `GET /tasks/{id}/dispatch-test-option` 使用同一冻结规则核对一项绑定，并展示当前路由。项目参数、当前权限、操作回执及版本沿原合同。
 
 ## 服务模块及事务
 
@@ -22,7 +22,7 @@
 
 ## 工作台与推荐
 
-明确选择受当前账户、组织、API调用者、项目、任务版本、流程版本、开发节点和开发工具版本/SHA共同约束。目录分页不决定已选项是否有效；准确采用读取后才能提交。切源和ABA通过单调来源标识使旧异步结果失效，原pending优先冻结正文与key。
+明确选择受当前账户、组织、API调用者、项目、任务版本、流程版本、开发节点和开发工具版本/SHA共同约束。目录分页不决定已选项是否有效。选中或复核时在原行内检查当前执行路由、开发工具、测试档案及工作流节点；条件不匹配时显示原因，并保留选择，便于重新选工具或明确保留原发布定义。核对成功显示执行路由、绑定版本及读取时间。普通派发、讨论「据此开发」和专家团队派发共用选择器，各自提供当前任务版本。专家团队保留每项的测试方案选择；任务版本变化时，调整后的工具选择需要重新核对。切源和ABA通过单调来源标识使旧异步结果失效，原pending优先冻结正文与key。
 
 测试覆盖存在或仍未确定时，推荐的`creationDisabled`只阻止新创建及新采用，不覆盖原待确认操作的恢复入口。正式预览是本阶段承载明确覆盖的入口，推荐不得静默丢弃这些输入。
 

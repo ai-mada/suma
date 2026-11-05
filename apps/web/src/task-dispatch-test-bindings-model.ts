@@ -1,4 +1,4 @@
-import type { TaskDispatchTestBinding, TaskDispatchTestSelection } from '../../../packages/contracts/src';
+import type { TaskDispatchTestBinding, TaskDispatchTestOption, TaskDispatchTestSelection } from '../../../packages/contracts/src';
 import type { Workflow, WNode } from './api';
 import { parseToolManifest, type ToolProfile } from './tool-model';
 import { sameToolProfile } from './tool-profile-reuse-model';
@@ -40,6 +40,55 @@ export function readTestDispatchProfile(value: unknown, expected: ToolProfile, p
     return observation?.available && sameToolProfile(observation.profile, profile.profile) ? structuredClone(profile) : undefined;
   } catch { return; }
 }
+type TestDispatchOptionBasis = {
+  project: string;
+  task: { id: string; version: number };
+  workflow: Pick<Workflow, 'id' | 'version'>;
+  agentID: string;
+  developer: ToolProfile;
+  nodeID: string;
+  tester: ToolProfile;
+};
+
+export function testDispatchOptionPath({ project, task, workflow, agentID, developer, nodeID, tester }: TestDispatchOptionBasis) {
+  const params = new URLSearchParams({
+    project_id: project,
+    expected_task_version: String(task.version),
+    workflow_id: workflow.id,
+    workflow_version: String(workflow.version),
+    agent_node_id: agentID,
+    development_tool_profile_id: developer.id,
+    development_tool_profile_version: String(developer.version),
+    test_node_id: nodeID,
+    test_tool_profile_id: tester.id,
+    test_tool_profile_version: String(tester.version),
+  });
+  return '/tasks/' + encodeURIComponent(task.id) + '/dispatch-test-option?' + params;
+}
+
+/** Only the original task, workflow, two profile pins, and organization can
+ * authorize adoption of this read. A successful response is a snapshot. */
+export function validTestDispatchOption(value: unknown, basis: TestDispatchOptionBasis, organizationID: string): value is TaskDispatchTestOption {
+  const { project, task, workflow, agentID, developer, nodeID, tester } = basis;
+  if (!object(value) || value.project_id !== project || value.task_id !== task.id || value.task_version !== task.version ||
+      value.workflow_id !== workflow.id || value.workflow_version !== workflow.version || value.agent_node_id !== agentID ||
+      value.development_tool_profile_id !== developer.id || value.development_tool_profile_version !== developer.version ||
+      !hash(value.development_tool_profile_sha256) || value.development_tool_profile_sha256 !== developer.profile.profile_sha256 ||
+      typeof value.checked_at !== 'string' || !Number.isFinite(Date.parse(value.checked_at))) return false;
+  const route = value.execution_route;
+  if (!object(route) || route.project_id !== project || !organizationID || route.tenant_id !== organizationID ||
+      !Number.isSafeInteger(route.version) || Number(route.version) < 0) return false;
+  if (route.pool_id === '') {
+    if (route.grant_id !== '' || route.grant_version !== 0) return false;
+  } else if (!id(route.pool_id) || !id(route.grant_id) || !positive(route.grant_version) || !positive(route.version)) return false;
+  const confirmed = [value.binding];
+  if (!validTestBindingFields(confirmed)) return false;
+  const [binding] = confirmed;
+  return binding.node_id === nodeID && binding.tool_profile_id === tester.id && binding.tool_profile_version === tester.version &&
+    binding.tool_profile_sha256 === tester.profile.profile_sha256 && binding.worker_id === tester.worker_id &&
+    binding.worker_id !== developer.worker_id && binding.command_id === tester.profile.command_id;
+}
+
 /** Durable request validation cannot depend on a currently loaded directory or
  * graph. Association and current eligibility are checked at their own seam. */
 export function validTestSelectionFields(value: unknown): value is TaskDispatchTestSelection[] {

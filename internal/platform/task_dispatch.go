@@ -270,6 +270,20 @@ func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.E
 	return s.buildTaskDispatchSnapshotWithSourceTx(ctx, engine, auth, project, request, nil)
 }
 
+func (s *Service) readPublishedTaskDispatchWorkflowTx(ctx context.Context, tx *sql.Tx, tenant, project, workflowID string, version int) (dag.Workflow, error) {
+	var workflow dag.Workflow
+	var raw string
+	err := tx.QueryRowContext(ctx, s.q(`SELECT w.spec FROM dag_workflows w WHERE w.tenant_id=? AND w.project_id=? AND w.id=? AND w.version=? AND NOT EXISTS(SELECT 1 FROM dag_managed_workflows m WHERE m.tenant_id=w.tenant_id AND m.project_id=w.project_id AND m.workflow_id=w.id)`), tenant, project, workflowID, version).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return workflow, missing()
+	}
+	if err != nil {
+		return workflow, err
+	}
+	err = json.Unmarshal([]byte(raw), &workflow)
+	return workflow, err
+}
+
 // source is a previously persisted, reviewed snapshot used only for current
 // semantic revalidation. Public requests cannot supply a frozen binding.
 func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest, source *TaskDispatchPlan) (out TaskDispatchPlan, err error) {
@@ -308,16 +322,8 @@ func (s *Service) buildTaskDispatchSnapshotInputsTx(ctx context.Context, engine 
 	if err = s.checkDispatchProfileRouteTx(ctx, tx, p.TenantID, project, profile, route); err != nil {
 		return out, err
 	}
-	var raw string
-	err = tx.QueryRowContext(ctx, s.q(`SELECT w.spec FROM dag_workflows w WHERE w.tenant_id=? AND w.project_id=? AND w.id=? AND w.version=? AND NOT EXISTS(SELECT 1 FROM dag_managed_workflows m WHERE m.tenant_id=w.tenant_id AND m.project_id=w.project_id AND m.workflow_id=w.id)`), p.TenantID, project, request.WorkflowID, request.WorkflowVersion).Scan(&raw)
-	if errors.Is(err, sql.ErrNoRows) {
-		return out, missing()
-	}
+	workflow, err := s.readPublishedTaskDispatchWorkflowTx(ctx, tx, p.TenantID, project, request.WorkflowID, request.WorkflowVersion)
 	if err != nil {
-		return out, err
-	}
-	var workflow dag.Workflow
-	if err = json.Unmarshal([]byte(raw), &workflow); err != nil {
 		return out, err
 	}
 	derived, err := buildTaskDispatchWorkflowInputs(workflow, request.AgentNodeID, profile.ID, profile.Profile, context, continuation)

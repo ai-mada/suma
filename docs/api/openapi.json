@@ -39232,6 +39232,126 @@
         ],
         "type": "object"
       },
+      "TaskDispatchTestOption": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_node_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "binding": {
+            "$ref": "#/components/schemas/TaskDispatchTestBinding",
+            "readOnly": true
+          },
+          "checked_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "development_tool_profile_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "development_tool_profile_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "development_tool_profile_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "execution_route": {
+            "$ref": "#/components/schemas/ProjectExecutionRoute",
+            "readOnly": true
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "workflow_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "workflow_version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "task_version",
+          "workflow_id",
+          "workflow_version",
+          "agent_node_id",
+          "development_tool_profile_id",
+          "development_tool_profile_version",
+          "development_tool_profile_sha256",
+          "checked_at",
+          "execution_route",
+          "binding"
+        ],
+        "type": "object"
+      },
+      "TaskDispatchTestOptionRequest": {
+        "properties": {
+          "agent_node_id": {
+            "type": "string"
+          },
+          "development_tool_profile_id": {
+            "type": "string"
+          },
+          "development_tool_profile_version": {
+            "type": "integer"
+          },
+          "expected_task_version": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "test_node_id": {
+            "type": "string"
+          },
+          "test_tool_profile_id": {
+            "type": "string"
+          },
+          "test_tool_profile_version": {
+            "type": "integer"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "workflow_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "expected_task_version",
+          "workflow_id",
+          "workflow_version",
+          "agent_node_id",
+          "development_tool_profile_id",
+          "development_tool_profile_version",
+          "test_node_id",
+          "test_tool_profile_id",
+          "test_tool_profile_version"
+        ],
+        "type": "object"
+      },
       "TaskDispatchTestSelection": {
         "additionalProperties": false,
         "properties": {
@@ -143370,6 +143490,272 @@
           }
         ],
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/tasks/{id}/dispatch-test-option": {
+      "get": {
+        "description": "Read compatibility of one explicit independent test binding against the current task, published workflow, development profile and execution route. Requires current browser project write authority and does not create a preview or execution.",
+        "operationId": "get_tasks_id_dispatch-test-option",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact current version; canonical positive decimal.",
+            "in": "query",
+            "name": "expected_task_version",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Exact current version; canonical positive decimal.",
+            "in": "query",
+            "name": "workflow_version",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Exact current version; canonical positive decimal.",
+            "in": "query",
+            "name": "development_tool_profile_version",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Exact current version; canonical positive decimal.",
+            "in": "query",
+            "name": "test_tool_profile_version",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Exact source identity.",
+            "in": "query",
+            "name": "workflow_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact source identity.",
+            "in": "query",
+            "name": "agent_node_id",
+            "required": true,
+            "schema": {
+              "maxLength": 150,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact source identity.",
+            "in": "query",
+            "name": "test_node_id",
+            "required": true,
+            "schema": {
+              "maxLength": 150,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact source identity.",
+            "in": "query",
+            "name": "development_tool_profile_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact source identity.",
+            "in": "query",
+            "name": "test_tool_profile_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDispatchTestOption"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       }
     },
     "/tasks/{id}/execution-steering": {
