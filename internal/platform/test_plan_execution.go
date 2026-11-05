@@ -78,6 +78,10 @@ func (s *Service) freezeTaskTestPlanRunTx(ctx context.Context, tx *sql.Tx, auth 
 		}
 	}
 	if revision != nil && !cloudFound {
+		route, e := dag.ReadRunExecutionRouteTx(ctx, tx, s.Dialect, tenant, project, runID)
+		if e != nil {
+			return e
+		}
 		rows, e := tx.QueryContext(ctx, s.q(`SELECT spec FROM dag_nodes WHERE run_id=?`), runID)
 		if e != nil {
 			return e
@@ -124,6 +128,9 @@ func (s *Service) freezeTaskTestPlanRunTx(ctx context.Context, tx *sql.Tx, auth 
 			if _, e = s.validateToolDispatchTx(ctx, tx, auth, project, id, profile.Version, sha); e != nil {
 				return e
 			}
+			if e = s.checkDispatchProfileRouteTx(ctx, tx, tenant, project, profile, route); e != nil {
+				return e
+			}
 			if profile.Profile.TestReportProtocol == tr.Protocol {
 				// A report node cannot also consume an artifact. Runner contracts
 				// deliberately keep these two independent evidence kinds apart.
@@ -133,7 +140,7 @@ func (s *Service) freezeTaskTestPlanRunTx(ctx context.Context, tx *sql.Tx, auth 
 				count++
 				continue
 			}
-			binding, e := s.freezeTestPlanPackageBindingTx(ctx, tx, auth, project, runID, node, profile, specs)
+			binding, e := s.freezeTestPlanPackageBindingTx(ctx, tx, auth, project, runID, node, profile, specs, route)
 			if e != nil {
 				return e
 			}

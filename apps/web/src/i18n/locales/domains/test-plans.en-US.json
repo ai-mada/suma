@@ -137,5 +137,22 @@
   "test-plans.report_counts": "{{total}} reported · {{passed}} passed · {{failed}} failed or errored · {{skipped}} skipped",
   "test-plans.report_unverified": "This report has no currently verified case projection.",
   "test-plans.report_unknown": "Process outcome unknown",
-  "test-plans.process_exit": "Process exit {{code}}"
+  "test-plans.process_exit": "Process exit {{code}}",
+  "test-plans.package_checks": "Package checks",
+  "test-plans.package_checks_help": "Package checks and JUnit case results are evaluated separately.",
+  "test-plans.package_source_node": "Build node",
+  "test-plans.package_worker": "Test worker",
+  "test-plans.package_source_worker": "Build worker",
+  "test-plans.package_manifest": "Manifest SHA-256",
+  "test-plans.package_commit": "Source commit",
+  "test-plans.package_open_attempt": "View test attempt {{attempt}}",
+  "test-plans.package_open_node": "View test node",
+  "test-plans.package_open_artifact": "View artifact",
+  "test-plans.package.pending": "Pending",
+  "test-plans.package.verified": "Proof verified",
+  "test-plans.package.unverified": "Proof unverified",
+  "test-plans.package.failed": "Failed",
+  "test-plans.package.unknown": "Outcome unknown",
+  "test-plans.package.skipped": "Skipped",
+  "test-plans.package.cancelled": "Cancelled"
 }

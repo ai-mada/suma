@@ -283,6 +283,15 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 	if err != nil || !p.Available {
 		return false, err
 	}
+	if artifactKind != "" {
+		if err = s.checkPoolTestPlanArtifactProfileTx(ctx, tx, scope.TenantID, scope.ProjectID, run, node, p, scope); err != nil {
+			var stale *APIError
+			if errors.As(err, &stale) && (stale.Status == 409 || stale.Status == 403 || stale.Status == 404) {
+				return false, nil
+			}
+			return false, err
+		}
+	}
 	if artifactKind == "build" {
 		basis, err := rc.DecodeApplicationBuild(n.Config)
 		if err != nil {

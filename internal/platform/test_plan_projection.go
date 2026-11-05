@@ -69,11 +69,24 @@ func testPlanEvidenceSeverity(status string) int {
 	return 4
 }
 
+func testPlanPackageEvidenceState(state string) string {
+	switch state {
+	case "skipped", "failed", "cancelled":
+		return state
+	case "reconciling", "unknown":
+		return "unknown"
+	case "succeeded", "compensated", "":
+		return "unverified"
+	default:
+		return "pending"
+	}
+}
+
 // Ordinary summaries do not return XML. Persisted report projections exclude
 // it, while the current workspace-proof helper still decodes the private
 // attempt result. GetTestPlanReport explicitly exposes an authorized original.
 func (s *Service) testPlanExecutionTx(ctx context.Context, tx *sql.Tx, tenant, project string, current testPlanAggregate, fixed testPlanRunSnapshot, run string) (out TestPlanExecution, err error) {
-	out = TestPlanExecution{PlanID: current.ID, TaskID: fixed.TaskID, RunID: run, CreatedAt: fixed.CreatedAt, State: "pending", BasisCurrent: true, SourceCommits: []string{}, Cases: []TestCaseResult{}, Reports: []TestPlanReportRef{}}
+	out = TestPlanExecution{PlanID: current.ID, TaskID: fixed.TaskID, RunID: run, CreatedAt: fixed.CreatedAt, State: "pending", BasisCurrent: true, SourceCommits: []string{}, Cases: []TestCaseResult{}, Reports: []TestPlanReportRef{}, PackageEvidence: []TestPlanPackageEvidence{}}
 	err = tx.QueryRowContext(ctx, s.q(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, run).Scan(&out.RunState)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, missing()
@@ -142,19 +155,26 @@ func (s *Service) testPlanExecutionTx(ctx context.Context, tx *sql.Tx, tenant, p
 	}
 	allKnownReports := true
 	for _, binding := range fixed.PackageTests {
-		node, exists := nodes[binding.NodeID]
-		if !exists {
+		node := nodes[binding.NodeID]
+		item := TestPlanPackageEvidence{NodeID: binding.NodeID, SourceNodeID: binding.SourceNodeID,
+			State: testPlanPackageEvidenceState(node.State), Attempt: node.Attempt, WorkerID: node.Worker}
+		if node.State == "succeeded" && out.BasisCurrent {
+			proof, e := s.testPlanPackageProofCurrentTx(ctx, tx, tenant, project, run, binding, node)
+			if e != nil {
+				return out, e
+			}
+			if proof != nil {
+				item.State = "verified"
+				item.ArtifactID, item.ManifestSHA256, item.SourceCommit = proof.ArtifactID, proof.ManifestSHA256, proof.SourceCommit
+				item.SourceWorkerID = binding.SourceWorkerID
+			}
+		}
+		if item.State != "verified" && item.State != "skipped" {
 			allKnownReports = false
-			continue
 		}
-		current, e := s.testPlanPackageProofCurrentTx(ctx, tx, tenant, project, run, binding, node)
-		if e != nil {
-			return out, e
-		}
-		if !current {
-			allKnownReports = false
-		}
+		out.PackageEvidence = append(out.PackageEvidence, item)
 	}
+	sort.Slice(out.PackageEvidence, func(i, j int) bool { return out.PackageEvidence[i].NodeID < out.PackageEvidence[j].NodeID })
 	extraFailure := false
 	unknownReport := false
 	for i := range reports {

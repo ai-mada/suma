@@ -137,5 +137,22 @@
   "test-plans.report_counts": "报告 {{total}} 项 · 通过 {{passed}} · 失败或错误 {{failed}} · 跳过 {{skipped}}",
   "test-plans.report_unverified": "此报告尚无当前可核验的用例投影。",
   "test-plans.report_unknown": "进程结果未知",
-  "test-plans.process_exit": "进程退出码 {{code}}"
+  "test-plans.process_exit": "进程退出码 {{code}}",
+  "test-plans.package_checks": "包测试",
+  "test-plans.package_checks_help": "包测试证明与 JUnit 逐例结果分别核验。",
+  "test-plans.package_source_node": "构建节点",
+  "test-plans.package_worker": "测试执行节点",
+  "test-plans.package_source_worker": "构建执行节点",
+  "test-plans.package_manifest": "清单 SHA-256",
+  "test-plans.package_commit": "源代码提交",
+  "test-plans.package_open_attempt": "查看第 {{attempt}} 次测试",
+  "test-plans.package_open_node": "查看测试节点",
+  "test-plans.package_open_artifact": "查看制品",
+  "test-plans.package.pending": "待完成",
+  "test-plans.package.verified": "证明已核验",
+  "test-plans.package.unverified": "证明未核验",
+  "test-plans.package.failed": "失败",
+  "test-plans.package.unknown": "结果未知",
+  "test-plans.package.skipped": "已跳过",
+  "test-plans.package.cancelled": "已取消"
 }

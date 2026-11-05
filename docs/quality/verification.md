@@ -14,6 +14,8 @@ T-POOL-RUNNER-OCCUPANCY 核验拥有方当前授权、真实领取和待核对�
 
 T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
 
+T-POOL-MIXED-QUALITY-252 真实 Git、SQLite、HTTP、三种 Pool 工具身份及 Node 进程验证混合门禁，另覆盖档案漂移、原验收任务重绑回滚和中英界面。 [阶段报告](pool-mixed-quality-verification.md)
+
 T-POOL-APPLICATION-ARTIFACTS-251 核验两个 Pool 身份的真实制品构建及独立测试、确切候选、授权漂移、错槽位、回执恢复和项目模式回归。 [阶段验证](pool-application-artifacts-verification.md)
 
 T-APPLICATION-SCOPED-BUILD-250 核验同仓两应用的实际范围构建、封存、独立包测试、错用回执与候选拒绝、上传恢复及双语交互。 [阶段验证](application-scoped-build-verification.md)

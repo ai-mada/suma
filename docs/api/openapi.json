@@ -42192,6 +42192,15 @@
             "readOnly": true,
             "type": "integer"
           },
+          "package_evidence": {
+            "description": "Frozen package-test gates, separate from the JUnit case counts. Empty when there is no bound package gate.",
+            "items": {
+              "$ref": "#/components/schemas/TestPlanPackageEvidence"
+            },
+            "maxItems": 1000,
+            "readOnly": true,
+            "type": "array"
+          },
           "passed": {
             "maximum": 100,
             "minimum": 0,
@@ -42281,7 +42290,8 @@
           "skipped",
           "not_run",
           "cases",
-          "reports"
+          "reports",
+          "package_evidence"
         ],
         "type": "object"
       },
@@ -42334,6 +42344,56 @@
           "items",
           "total",
           "next_cursor"
+        ],
+        "type": "object"
+      },
+      "TestPlanPackageEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          },
+          "attempt": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "manifest_sha256": {
+            "description": "Present only with verified current evidence.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          },
+          "source_node_id": {
+            "type": "string"
+          },
+          "source_worker_id": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "verified",
+              "unverified",
+              "failed",
+              "unknown",
+              "skipped",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "source_node_id",
+          "state"
         ],
         "type": "object"
       },
@@ -146928,7 +146988,7 @@
     },
     "/test-plans": {
       "get": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "get_test-plans",
         "parameters": [
           {
@@ -147118,7 +147178,7 @@
         "x-required-project-authority": "current project read"
       },
       "post": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "post_test-plans",
         "parameters": [
           {
@@ -147343,7 +147403,7 @@
     },
     "/test-plans/{id}": {
       "get": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "get_test-plans_id",
         "parameters": [
           {
@@ -147510,7 +147570,7 @@
         "x-required-project-authority": "current project read"
       },
       "put": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "put_test-plans_id",
         "parameters": [
           {
@@ -147743,7 +147803,7 @@
     },
     "/test-plans/{id}/commands": {
       "post": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "post_test-plans_id_commands",
         "parameters": [
           {
@@ -147974,7 +148034,7 @@
     },
     "/test-plans/{id}/executions": {
       "get": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "get_test-plans_id_executions",
         "parameters": [
           {
@@ -148165,7 +148225,7 @@
     },
     "/test-plans/{id}/executions/{run}": {
       "get": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "get_test-plans_id_executions_run",
         "parameters": [
           {
@@ -148342,7 +148402,7 @@
     },
     "/test-plans/{id}/executions/{run}/defects": {
       "post": {
-        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "description": "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
         "operationId": "post_test-plans_id_executions_run_defects",
         "parameters": [
           {

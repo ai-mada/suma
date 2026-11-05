@@ -53,6 +53,12 @@ After confirmed process-tree completion, the Runner checks file and parent ident
 
 Actual process exit, protocol terminal, report errors and case outcomes are separate facts. A zero-exit process with failed/error cases still fails the test outcome while retaining exit code 0. A known nonzero process can retain valid XML. Missing, invalid, unsafe, stopped or unknown execution cannot manufacture passing evidence. Configured secrets found in raw or decoded report content prevent upload and leave the local original; this limited check is not a general DLP guarantee.
 
+## Combine source and package tests on a shared pool
+
+Register the application source scope and choose an authorized execution pool. Configure fixed commands for the build, JUnit and package checks. The build and package check require approved artifact profiles on different runners. The package check depends on the build and consumes its sealed manifest. Keep at least one JUnit node with an original report. Bind the run to a separate delivery task to preserve the acceptance that backs the application source.
+
+Open the run in the quality workbench's test plan. JUnit coverage and package gates appear separately. Open a package attempt or its verified artifact to inspect the underlying evidence. When JUnit finishes first, wait for the package proof before approving the task in Review. See the [execution pool contract](../../contracts/execution-pools.md#应用构建制品与独立包测试).
+
 ## Read evidence and resolve failures
 
 The server binds reports to the actual tenant, project, run, node, attempt, fence, Worker, fixed profile and clean source commit. Old attempts cannot replace current evidence. Every selected code head needs exactly one matching current result for each planned selector. Missing evidence is `not_run`; duplicate matches are `ambiguous`; unresolved execution is `unknown`. Skipped, missing, invalid, ambiguous or unknown evidence cannot pass Review. Unmapped failures/errors and a nonzero process exit also block it.

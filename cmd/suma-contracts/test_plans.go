@@ -6,7 +6,7 @@ import (
 )
 
 func testPlanModels() []any {
-	return []any{platform.QualityTestCase{}, platform.TestPlanSource{}, platform.TestPlanRevision{}, platform.TestPlanView{}, platform.TestPlanList{}, platform.TestPlanCreateRequest{}, platform.TestPlanSaveRequest{}, platform.TestPlanCommandRequest{}, platform.TestPlanReportRef{}, platform.TestPlanReport{}, platform.TestCaseEvidence{}, platform.TestCaseResult{}, platform.TestPlanExecution{}, platform.TestPlanExecutionList{}, platform.TestPlanDefectRequest{}, tr.TestReport{}, tr.TestCaseSelector{}, tr.TestReportCase{}, tr.ParsedTestReport{}}
+	return []any{platform.QualityTestCase{}, platform.TestPlanSource{}, platform.TestPlanRevision{}, platform.TestPlanView{}, platform.TestPlanList{}, platform.TestPlanCreateRequest{}, platform.TestPlanSaveRequest{}, platform.TestPlanCommandRequest{}, platform.TestPlanReportRef{}, platform.TestPlanReport{}, platform.TestCaseEvidence{}, platform.TestCaseResult{}, platform.TestPlanExecution{}, platform.TestPlanPackageEvidence{}, platform.TestPlanExecutionList{}, platform.TestPlanDefectRequest{}, tr.TestReport{}, tr.TestCaseSelector{}, tr.TestReportCase{}, tr.ParsedTestReport{}}
 }
 
 func testPlanContracts(add operationAdder, api map[string]any) {
@@ -25,7 +25,7 @@ func testPlanContracts(add operationAdder, api map[string]any) {
 		successStatus(op, r.status)
 		op["x-disallowed-token-scopes"] = []string{"agent", "runner"}
 		op["x-required-project-authority"] = "current project read"
-		op["description"] = "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct."
+		op["description"] = "Task-bound immutable test plan revisions and separate exact-attempt JUnit and package evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct."
 		if r.input != "" {
 			request(op, r.input)
 			op["x-required-project-authority"] = "current project write"
@@ -59,7 +59,7 @@ func testPlanContracts(add operationAdder, api map[string]any) {
 			toolContractMap(schemas, model, "properties", name)[key] = value
 		}
 	}
-	for _, name := range []string{"QualityTestCase", "TestPlanSource", "TestPlanRevision", "TestPlanView", "TestPlanList", "TestPlanCreateRequest", "TestPlanSaveRequest", "TestPlanCommandRequest", "TestPlanReportRef", "TestPlanReport", "TestCaseEvidence", "TestCaseResult", "TestPlanExecution", "TestPlanExecutionList", "TestPlanDefectRequest", "TestReport", "TestCaseSelector", "TestReportCase", "ParsedTestReport"} {
+	for _, name := range []string{"QualityTestCase", "TestPlanSource", "TestPlanRevision", "TestPlanView", "TestPlanList", "TestPlanCreateRequest", "TestPlanSaveRequest", "TestPlanCommandRequest", "TestPlanReportRef", "TestPlanReport", "TestCaseEvidence", "TestCaseResult", "TestPlanExecution", "TestPlanPackageEvidence", "TestPlanExecutionList", "TestPlanDefectRequest", "TestReport", "TestCaseSelector", "TestReportCase", "ParsedTestReport"} {
 		toolContractMap(schemas, name)["additionalProperties"] = false
 	}
 	for _, name := range []string{"TestPlanCreateRequest", "TestPlanSaveRequest", "TestPlanCommandRequest", "TestPlanDefectRequest"} {
@@ -94,6 +94,10 @@ func testPlanContracts(add operationAdder, api map[string]any) {
 	for _, name := range []string{"class_name", "name"} {
 		field("TestCaseSelector", name, map[string]any{"maxLength": 500, "x-max-utf8-bytes": 500, "description": "Exact JUnit identity with no controls or surrounding whitespace. Empty draft values are legal; publication and actual reports require nonempty name. No fuzzy matching."})
 	}
+	field("TestPlanExecution", "package_evidence", map[string]any{"maxItems": 1000, "description": "Frozen package-test gates, separate from the JUnit case counts. Empty when there is no bound package gate."})
+	field("TestPlanPackageEvidence", "state", map[string]any{"enum": []string{"pending", "verified", "unverified", "failed", "unknown", "skipped", "cancelled"}})
+	field("TestPlanPackageEvidence", "attempt", map[string]any{"minimum": 1})
+	field("TestPlanPackageEvidence", "manifest_sha256", map[string]any{"pattern": "^[a-f0-9]{64}$", "description": "Present only with verified current evidence."})
 	field("TestReport", "protocol", map[string]any{"const": tr.Protocol})
 	field("TestReport", "xml", map[string]any{"maxLength": tr.MaxXMLBytes, "x-max-utf8-bytes": tr.MaxXMLBytes, "description": "Complete original UTF-8 XML, never silently truncated. The domain parser rejects directives, namespaces, duplicate selectors, ambiguous outcomes, inconsistent counters and unsupported structures."})
 	field("TestReport", "sha256", map[string]any{"pattern": "^[a-f0-9]{64}$", "description": "SHA256 of exact original UTF-8 bytes, not reserialized or redacted XML."})

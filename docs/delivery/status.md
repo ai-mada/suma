@@ -14,6 +14,8 @@ T-POOL-RUNNER-OCCUPANCY 从共享资源池的执行节点页查看已保留槽�
 
 T-PORTFOLIO-CAPACITY 从项目管理按周对照已分摊任务工时与组织工作日历。可筛选已超配或待核对人员，展开任务依据，跳转原任务和有权工作日历。已验证跨周分摊、当前撤权和桌面／窄屏交互。 [交互](../design/project-portfolio.md#跨项目周负荷与容量) · [验证](../quality/project-portfolio-capacity-verification.md)
 
+T-POOL-MIXED-QUALITY-252 已发布质量计划支持共享池同一运行的源码用例与独立包测试。质量页分别展示门禁和原件，正式验收重核两类证据。 [合同](../../contracts/test-plans.md) · [验证](../quality/pool-mixed-quality-verification.md)
+
 T-POOL-APPLICATION-ARTIFACTS-251 共享池可构建、封存、下载并独立测试同一应用制品。当前授权变更时拒绝旧派发的传输回执和新的包测试证明。 [执行池合同](../../contracts/execution-pools.md#应用构建制品与独立包测试) · [验证](../quality/pool-application-artifacts-verification.md)
 
 T-APPLICATION-SCOPED-BUILD-250 构建证明固定应用版本、Git 子树、提交与合并回执。制品、发布候选和集合可追溯该范围，预览拒绝同提交的串用候选。 [操作](../development/application-release-sets.md#从应用源码版本构建) · [验证](../quality/application-scoped-build-verification.md)

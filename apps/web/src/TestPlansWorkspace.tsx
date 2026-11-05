@@ -6,7 +6,7 @@ import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {Badge,Empty,ErrorNotice,Field,Loading,Modal} from './ui';
 import {useLeaveGuard,useWriteAction,WriteFields,WriteNotice} from './write-action';
-import {caseStatuses,executionStates,newQualityCase,planDraftErrors,planID,planStates,planText,reportEligibility,taskCriteria,testPlanPath,testPlanRecovery,validPlanPage,validTestPlan,validTestPlanExecution,validTestPlanReport} from './test-plans-model';
+import {caseStatuses,executionStates,newQualityCase,packageEvidenceStates,planDraftErrors,planID,planStates,planText,reportEligibility,taskCriteria,testPlanPath,testPlanRecovery,validPlanPage,validTestPlan,validTestPlanExecution,validTestPlanReport} from './test-plans-model';
 import {useTestPlanPage,useTestPlanRead} from './test-plans-hooks';
 import './TestPlansWorkspace.css';
 
@@ -18,7 +18,7 @@ const content=(value:Pick<Draft,'title'|'description'|'cases'>)=>JSON.stringify(
 const canLeave=()=>window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));
 const fromPlan=(plan:TestPlanView):Draft=>({id:plan.id,version:plan.version,taskID:plan.task_id,taskVersion:plan.latest!.source.task.version,requirementVersion:plan.latest!.source.requirement?.version||0,title:plan.latest!.title,description:plan.latest!.description,cases:structuredClone(plan.latest!.cases),canonical:content(plan.latest!)});
 const freshDraft=(taskID=''):Draft=>({id:'',version:0,taskID,taskVersion:0,requirementVersion:0,title:'',description:'',cases:[],canonical:content({title:'',description:'',cases:[]})});
-function Status({kind,value}:{kind:'state'|'execution'|'case'|'report';value:string}){const known=kind==='state'?planStates:kind==='execution'?executionStates:kind==='case'?caseStatuses:reportEligibility;return <span className={'tp-status tp-status-'+value}>{known.includes(value as never)?t(kind+'.'+value):t('unknown_fact')}</span>;}
+function Status({kind,value}:{kind:'state'|'execution'|'case'|'report'|'package';value:string}){const known=kind==='state'?planStates:kind==='execution'?executionStates:kind==='case'?caseStatuses:kind==='package'?packageEvidenceStates:reportEligibility;return <span className={'tp-status tp-status-'+value}>{known.includes(value as never)?t(kind+'.'+value):t('unknown_fact')}</span>;}
 export function TestPlansWorkspace(props:TestPlansWorkspaceProps){return <TestPlanOwner key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project])} {...props}/>;}
 function TestPlanOwner(props:TestPlansWorkspaceProps){const [retry,setRetry]=useState(0);return <TestPlanScope key={retry} {...props} retryRead={()=>setRetry(value=>value+1)}/>;}
 
@@ -65,7 +65,8 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
  const validateExecution=useCallback((value:unknown):value is TestPlanExecution=>validTestPlanExecution(value,selectedID,current?.task_id),[selectedID,current?.task_id]);
  const validateExecutions=useCallback((value:unknown):value is {items:TestPlanExecution[];total:number;next_cursor:string}=>validPlanPage(value,validateExecution),[validateExecution]);
  const executions=useTestPlanPage(api,tab==='results'&&current&&!accessError?testPlanPath(current.id)+'/executions'+query(project)+'&limit=20':undefined,refresh,validateExecutions,failed);
- const execution=useTestPlanRead(api,tab==='results'&&current&&runID&&!accessError?testPlanPath(current.id)+'/executions/'+encodeURIComponent(runID)+query(project):undefined,refresh,validateExecution,failed);
+ const validateSelectedExecution=useCallback((value:unknown):value is TestPlanExecution=>validateExecution(value)&&value.run_id===runID,[validateExecution,runID]);
+ const execution=useTestPlanRead(api,tab==='results'&&current&&runID&&!accessError?testPlanPath(current.id)+'/executions/'+encodeURIComponent(runID)+query(project):undefined,refresh,validateSelectedExecution,failed);
  function edit(change:Partial<Pick<Draft,'title'|'description'|'cases'>>){if(locked)return;setDraft(before=>before?{...before,...change}:before);setNotice('');}
  async function changed(){try{await callbacks.current.onChanged();}catch{if(alive.current)action.setError(new UiError('test-plans.refresh_failed'));}}
  async function completed(value:TestPlanView|RecordItem|undefined){
@@ -108,6 +109,11 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
     </section>}
     {tab==='results'&&current&&<section role="tabpanel" id={bodyID+'-panel-results'} aria-labelledby={bodyID+'-tab-results'} className="tp-results" aria-label={t('results')}><p className="tp-muted">{t('results_boundary')}</p>{executions.loading&&<Loading/>}{Boolean(executions.error)&&<ErrorNotice error={executions.error} onRetry={()=>void executions.read()}/>}<Field label={t('execution')}><select value={runID} disabled={locked} onChange={event=>{if(canLeave())callbacks.current.onSelectExecution(event.target.value);}}><option value="">{t('select_execution')}</option>{executions.value?.items.map(item=><option key={item.run_id} value={item.run_id}>{formatDateTime(item.created_at)} · {item.revision?t('revision',{revision:formatNumber(item.revision)}):t('no_bound_revision')} · {t('execution.'+item.state)}</option>)}</select></Field>{executions.value?.next_cursor&&<button type="button" disabled={executions.loading||locked} onClick={()=>void executions.read(true)}>{t('more_executions')}</button>}{executions.value&&!executions.value.items.length&&<Empty title={t('no_executions')} description={t('dispatch_existing_task')} action={<button type="button" onClick={()=>{if(canLeave())callbacks.current.onOpenTask(current.task_id);}}>{t('open_task')}</button>}/>}
      {execution.loading&&<Loading/>}{Boolean(execution.error)&&<ErrorNotice error={execution.error} onRetry={()=>void execution.read()}/>}{execution.value&&<><div className="tp-execution-heading"><Status kind="execution" value={execution.value.state}/><span>{execution.value.revision?t('revision',{revision:formatNumber(execution.value.revision)}):t('no_bound_revision')}</span><button type="button" onClick={()=>{if(canLeave())callbacks.current.onOpenRun(execution.value!.run_id);}}>{t('open_run')}<ArrowRight size={13}/></button></div><p className="tp-muted">{t('actual_run_state')} <Badge state={execution.value.run_state}/></p>{!execution.value.basis_current&&<p className="tp-warning">{t('execution_basis_changed')}</p>}<div className="tp-counts">{(['total','passed','failed','errors','skipped','not_run'] as const).map(key=><span key={key}><strong>{formatNumber(execution.value![key])}</strong>{t('count.'+key)}</span>)}</div>
+      {execution.value.package_evidence.length>0&&<section className="tp-reports" aria-labelledby={bodyID+'-package-checks'}>
+       <h3 id={bodyID+'-package-checks'}>{t('package_checks')}</h3>
+       <p className="tp-muted">{t('package_checks_help')}</p>
+       {execution.value.package_evidence.map(evidence=><PackageEvidence key={evidence.node_id} evidence={evidence} project={project} locked={locked} onRun={()=>{if(canLeave())callbacks.current.onOpenRun(runID,evidence.node_id,evidence.attempt);}}/>)}
+      </section>}
       <Field label={t('filter_cases')}><input value={caseFilter} onChange={event=>setCaseFilter(event.target.value)}/></Field><div className="tp-result-cases">{execution.value.cases.filter(item=>!caseFilter||(item.title+' '+item.case_key).toLocaleLowerCase().includes(caseFilter.toLocaleLowerCase())).map(item=><ResultCase key={item.case_key} item={item} locked={locked} canDefect={canWrite&&!!execution.value?.basis_current&&current.basis_current} onRun={(node,attempt)=>{if(canLeave())callbacks.current.onOpenRun(runID,node,attempt);}} onIssue={id=>{if(canLeave())callbacks.current.onOpenIssue(id);}} onDefect={()=>setDefect({key:item.case_key,reason:''})}/>)}</div>
       <section className="tp-reports"><h3>{t('reports')}</h3>{execution.value.reports.length?execution.value.reports.map(report=><Report key={report.id} project={project} planID={current.id} runID={runID} report={report} failed={failed}/>):<p className="tp-warning">{t('no_reports')}</p>}</section>
      </>}</section>}
@@ -122,6 +128,23 @@ function CaseEditor({value,index,criteria,criteriaLoaded,disabled,open,onToggle,
 }
 function ResultCase({item,locked,canDefect,onRun,onIssue,onDefect}:{item:TestCaseResult;locked:boolean;canDefect:boolean;onRun:(node:string,attempt:number)=>void;onIssue:(id:string)=>void;onDefect:()=>void}){
  return <article className="tp-result-case" data-test-case-result={item.case_key}><div><strong>{item.title}</strong><Status kind="case" value={item.status}/></div><small className="tp-muted"><code>{item.case_key}</code>{item.covers.length>0&&<> · {t('covers_indices',{indices:item.covers.map(index=>formatNumber(index)).join(', ')})}</>}</small>{item.evidence.length?<details><summary>{t('case_evidence',{count:formatNumber(item.evidence.length)})}</summary><ul>{item.evidence.map((evidence,index)=><li key={evidence.report_id+'-'+index}><Status kind="case" value={evidence.status}/><button type="button" disabled={locked} onClick={()=>onRun(evidence.node_id,evidence.attempt)}>{evidence.node_id} · {t('attempt',{attempt:formatNumber(evidence.attempt)})}<ArrowRight size={12}/></button><code>{evidence.source_commit||t('not_recorded')}</code><small>{t('duration',{duration:formatNumber(evidence.duration_ms)})}</small>{evidence.message&&<pre>{evidence.message}</pre>}</li>)}</ul></details>:<p className="tp-muted">{t('case_no_evidence')}</p>}{item.issue_id?<button type="button" disabled={locked} onClick={()=>onIssue(item.issue_id)}>{t('open_issue')}<ArrowRight size={12}/></button>:['failed','error'].includes(item.status)&&canDefect&&<button type="button" disabled={locked} onClick={onDefect}>{t('register_defect')}</button>}</article>;
+}
+function PackageEvidence({evidence,project,locked,onRun}:{evidence:TestPlanExecution['package_evidence'][number];project:string;locked:boolean;onRun:()=>void}){
+ const verified=evidence.state==='verified';
+ const artifact=verified&&evidence.artifact_id?'?'+new URLSearchParams({project,view:'operations',sub:'artifacts',record:evidence.artifact_id}):'';
+ return <article className="tp-report tp-package" data-test-package-evidence={evidence.node_id}>
+  <div><ShieldCheck aria-hidden="true" size={16}/><strong>{evidence.node_id}</strong><Status kind="package" value={evidence.state}/></div>
+  <dl className="tp-package-facts">
+   <dt>{t('package_source_node')}</dt><dd><code>{evidence.source_node_id}</code></dd>
+   {evidence.worker_id&&<><dt>{t('package_worker')}</dt><dd><code>{evidence.worker_id}</code></dd></>}
+   {evidence.source_worker_id&&<><dt>{t('package_source_worker')}</dt><dd><code>{evidence.source_worker_id}</code></dd></>}
+   {verified&&<><dt>{t('package_manifest')}</dt><dd><code>{evidence.manifest_sha256}</code></dd><dt>{t('package_commit')}</dt><dd><code>{evidence.source_commit}</code></dd></>}
+  </dl>
+  <div className="tp-actions tp-package-actions">
+   <button type="button" disabled={locked} onClick={onRun}>{evidence.attempt?t('package_open_attempt',{attempt:formatNumber(evidence.attempt)}):t('package_open_node')}<ArrowRight aria-hidden="true" size={13}/></button>
+   {artifact&&!locked&&<a href={artifact} onClick={event=>{if(!canLeave())event.preventDefault();}}>{t('package_open_artifact')}<ArrowRight aria-hidden="true" size={13}/></a>}
+  </div>
+ </article>;
 }
 function Report({project,planID,runID,report,failed}:{project:string;planID:string;runID:string;report:TestPlanExecution['reports'][number];failed:(error:unknown)=>void}){
  const api=useApi(),[open,setOpen]=useState(false),valid=useCallback((value:unknown):value is TestPlanReport=>validTestPlanReport(value,runID,report.id),[runID,report.id]);

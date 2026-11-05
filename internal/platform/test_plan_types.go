@@ -150,25 +150,41 @@ type TestCaseResult struct {
 	IssueID  string             `json:"issue_id"`
 }
 
+// TestPlanPackageEvidence is the bounded gate projection for a sealed package.
+// It is independent of JUnit case counts. Artifact fields require a verified
+// current proof for the exact package attempt and its build ancestor.
+type TestPlanPackageEvidence struct {
+	NodeID         string `json:"node_id"`
+	SourceNodeID   string `json:"source_node_id"`
+	State          string `json:"state"`
+	Attempt        int    `json:"attempt,omitempty"`
+	WorkerID       string `json:"worker_id,omitempty"`
+	SourceWorkerID string `json:"source_worker_id,omitempty"`
+	ArtifactID     string `json:"artifact_id,omitempty"`
+	ManifestSHA256 string `json:"manifest_sha256,omitempty"`
+	SourceCommit   string `json:"source_commit,omitempty"`
+}
+
 type TestPlanExecution struct {
-	PlanID        string              `json:"plan_id"`
-	TaskID        string              `json:"task_id"`
-	Revision      int                 `json:"revision"`
-	PlanSHA256    string              `json:"plan_sha256"`
-	RunID         string              `json:"run_id"`
-	RunState      string              `json:"run_state"`
-	CreatedAt     string              `json:"created_at"`
-	State         string              `json:"state"`
-	BasisCurrent  bool                `json:"basis_current"`
-	SourceCommits []string            `json:"source_commits"`
-	Total         int                 `json:"total"`
-	Passed        int                 `json:"passed"`
-	Failed        int                 `json:"failed"`
-	Errors        int                 `json:"errors"`
-	Skipped       int                 `json:"skipped"`
-	NotRun        int                 `json:"not_run"`
-	Cases         []TestCaseResult    `json:"cases"`
-	Reports       []TestPlanReportRef `json:"reports"`
+	PlanID          string                    `json:"plan_id"`
+	TaskID          string                    `json:"task_id"`
+	Revision        int                       `json:"revision"`
+	PlanSHA256      string                    `json:"plan_sha256"`
+	RunID           string                    `json:"run_id"`
+	RunState        string                    `json:"run_state"`
+	CreatedAt       string                    `json:"created_at"`
+	State           string                    `json:"state"`
+	BasisCurrent    bool                      `json:"basis_current"`
+	SourceCommits   []string                  `json:"source_commits"`
+	Total           int                       `json:"total"`
+	Passed          int                       `json:"passed"`
+	Failed          int                       `json:"failed"`
+	Errors          int                       `json:"errors"`
+	Skipped         int                       `json:"skipped"`
+	NotRun          int                       `json:"not_run"`
+	Cases           []TestCaseResult          `json:"cases"`
+	Reports         []TestPlanReportRef       `json:"reports"`
+	PackageEvidence []TestPlanPackageEvidence `json:"package_evidence"`
 }
 
 type TestPlanExecutionList struct {

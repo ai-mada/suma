@@ -32,6 +32,18 @@ func (s *Service) BindDirectRunTx(ctx context.Context, tx *sql.Tx, auth *authori
 	if err = json.Unmarshal([]byte(raw), &w); err != nil {
 		return err
 	}
+	agent, err := s.taskWorkflowHasAgentTx(ctx, tx, p, project, w, map[string]bool{}, 0)
+	if err != nil {
+		return err
+	}
+	if agent {
+		return invalid("智能体任务必须先安排工具执行并核对固定任务上下文；直接关联运行不会发送任务内容")
+	}
+	if err = s.BindRunTx(ctx, tx, auth, project, taskID, runID, expected); err != nil {
+		return err
+	}
+	// Binding can replace the accepted run that backs a scoped application version.
+	// Check the resulting basis inside the transaction so an invalid rebind rolls back.
 	for _, node := range w.Nodes {
 		basis, e := rc.DecodeApplicationBuild(node.Config)
 		if e != nil {
@@ -41,14 +53,7 @@ func (s *Service) BindDirectRunTx(ctx context.Context, tx *sql.Tx, auth *authori
 			return e
 		}
 	}
-	agent, err := s.taskWorkflowHasAgentTx(ctx, tx, p, project, w, map[string]bool{}, 0)
-	if err != nil {
-		return err
-	}
-	if agent {
-		return invalid("智能体任务必须先安排工具执行并核对固定任务上下文；直接关联运行不会发送任务内容")
-	}
-	return s.BindRunTx(ctx, tx, auth, project, taskID, runID, expected)
+	return nil
 }
 
 func (s *Service) taskWorkflowHasAgentTx(ctx context.Context, tx *sql.Tx, p Principal, project string, w dag.Workflow, seen map[string]bool, depth int) (bool, error) {

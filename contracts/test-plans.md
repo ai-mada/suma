@@ -26,7 +26,11 @@
 
 沿用平台原有 Go DAG、派发预演、任务绑定、Runner 和执行池，不新增测试调度器或 `POST executions`。任务绑定运行时，同一事务冻结当时的已发布计划修订；当时没有已发布计划也保存明确的空绑定。事后发布不能给旧运行补签，停用或改发新修订不能取消旧运行的质量门禁。需要用新修订取证时，应按原任务流程创建并绑定新运行。
 
-有已发布计划时，绑定要求至少一个固定 `test` 节点；每个测试节点使用单一许可命令和固定 `tool_profile_id`／`tool_profile_sha256`，当前 profile 声明 `test_report_protocol=suma-junit-report-v1`，并通过现有工具／当前 Runner 或执行池的派发校验。当前明确拒绝包含 `map`、`subworkflow` 或 `external_workflow` 的此类运行；不能据此声称支持动态用例编排。
+有已发布计划时，绑定要求至少一个固定 JUnit `test` 节点，当前工具档案声明 `test_report_protocol=suma-junit-report-v1`。每个测试节点使用单一许可命令和固定 `tool_profile_id`／`tool_profile_sha256`，并通过当前 Runner 或执行池的派发校验。同一运行可额外包含以 `artifact_from` 指向构建节点的独立包测试。当前拒绝包含 `map`、`subworkflow` 或 `external_workflow` 的此类运行。
+
+共享池的包测试绑定固定运行路由、构建与包测试各自的已批准档案身份、版本及命令摘要，以及两者不同的 Runner 身份。构建固定已登记应用版本的当前源码范围，包测试使用原构建封存清单。领取、传输和成功回执分别核对这些依据及现有租约和授权边界。直接绑定新运行如果会替换应用的原验收任务，创建事务整体回滚。参见[执行池制品合同](execution-pools.md#应用构建制品与独立包测试)和[本阶段验收](../docs/quality/pool-mixed-quality-verification.md)。
+
+`TestPlanExecution.package_evidence` 始终返回数组，每个条目对应一个独立包测试门禁。状态独立区分待执行、已验证、未验证、失败、结果未知、跳过和取消。只有当前通过核对的证明提供制品、封存清单摘要和源码提交。JUnit 用例状态、计数和覆盖仍来自原报告。正式验收重核两类门禁，源码用例通过不足以批准仍缺包测试证明的任务。
 
 开发→独立测试复用同一运行中的 `config.candidate_from` 和显式依赖。服务端固定成功代码节点的干净提交及来源 attempt／fence／摘要，测试在新的独立工作树读取该提交。跨机器对象传递继续沿[候选交接](../docs/scheduler/candidate-handoff.md)与[传输合同](candidate-transfer.md)；测试计划没有另建跨运行基线或跳过现有候选校验。
 

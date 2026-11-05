@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "pool_mixed_quality": {
+    "stage": "T-POOL-MIXED-QUALITY-252",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "419c5371447b61197c47da000768fa2558ba9ae9",
+    "report": "docs/quality/pool-mixed-quality-verification.md",
+    "actual": "A single published plan can require independent package proof and JUnit on the same shared Pool run. Frozen route, approved profiles, workers, sealed artifact and active lease preserve provenance. Task review and eligible release candidate remain explicit.",
+    "verification": "Three targeted Go tests passed. The real Git, SQLite, HTTP and Node fixture also verified rollback when rebinding the accepted source task. 17 targeted web checks, TypeScript, i18n, generated contracts, and zh-CN 390/en-US 1280 Chromium fixture passed.",
+    "known_limitations": "Backend runtime used same-host Windows fixtures and distinct Pool identities. Browser used controlled API fixtures. Physical multihost, OceanBase, production, and complete platform scope remain open.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q252/post-git.json"
+  },
   "pool_application_artifacts": {
     "stage": "T-POOL-APPLICATION-ARTIFACTS-251",
     "version": "1.0.0",

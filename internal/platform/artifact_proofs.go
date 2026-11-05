@@ -161,6 +161,10 @@ func (s *Service) verifyPoolArtifactResultTx(ctx context.Context, tx *sql.Tx, ma
 	if err = s.poolArtifactGrantActiveTx(ctx, tx, a); err != nil {
 		return err
 	}
+	scope := dag.PoolScope{PoolID: a.PoolID, TenantID: a.TenantID, ProjectID: a.ProjectID, GrantID: a.PoolGrantID, GrantVersion: a.PoolGrantVersion}
+	if err = s.checkPoolTestPlanArtifactProfileTx(ctx, tx, a.TenantID, a.ProjectID, a.RunID, a.NodeID, profile, scope); err != nil {
+		return err
+	}
 	return s.storeVerifiedArtifactResultTx(ctx, tx, Principal{TenantID: a.TenantID}, a.ProjectID, tokenHash, spec, result, true)
 }
 

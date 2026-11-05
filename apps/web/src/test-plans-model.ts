@@ -5,6 +5,7 @@ export const planStates=['draft','published','retired'] as const;
 export const planEligibility=['none','current','source_changed','retired'] as const;
 export const executionStates=['pending','passed','failed','incomplete','source_changed','retired','run_changed','unknown'] as const;
 export const caseStatuses=['not_run','passed','failed','error','skipped','unknown','ambiguous'] as const;
+export const packageEvidenceStates=['pending','verified','unverified','failed','unknown','skipped','cancelled'] as const;
 export const reportEligibility=['current','invalid','unknown','source_changed','stale_attempt'] as const;
 export const testPlanPath=(id='')=>'/test-plans'+(id?'/'+encodeURIComponent(id):'');
 export const planID=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value);
@@ -61,11 +62,23 @@ function caseResult(value:unknown):value is TestCaseResult{
  if(!object(value)||!planID(value.case_key)||!text(value.title)||!oneOf(value.status,caseStatuses)||!indices(value.covers)||!text(value.issue_id)||!Array.isArray(value.evidence))return false;
  return value.evidence.every(item=>object(item)&&planID(item.report_id)&&text(item.node_id)&&positive(item.attempt)&&positive(item.fence)&&text(item.worker_id)&&text(item.source_commit)&&oneOf(item.status,caseStatuses)&&text(item.message)&&integer(item.duration_ms));
 }
+const dagNodeID=(value:unknown):value is string=>text(value)&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value);
+const sourceCommit=(value:unknown):value is string=>text(value)&&/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
+function packageEvidence(value:unknown,basisCurrent:boolean):value is TestPlanExecution['package_evidence'][number]{
+ if(!object(value)||!dagNodeID(value.node_id)||!dagNodeID(value.source_node_id)||value.node_id===value.source_node_id||!oneOf(value.state,packageEvidenceStates))return false;
+ if(value.attempt!==undefined&&!positive(value.attempt))return false;
+ if(![value.worker_id,value.source_worker_id].every(worker=>worker===undefined||planText(worker,200)))return false;
+ if(value.state==='verified')return basisCurrent&&positive(value.attempt)&&planID(value.artifact_id)&&planHash(value.manifest_sha256)&&sourceCommit(value.source_commit);
+ return [value.artifact_id,value.manifest_sha256,value.source_commit,value.source_worker_id].every(fact=>fact===undefined);
+}
 export function validTestPlanExecution(value:unknown,plan:string,task?:string):value is TestPlanExecution{
  if(!object(value)||value.plan_id!==plan||!planID(value.task_id)||task!==undefined&&value.task_id!==task||!integer(value.revision)||!(value.revision===0?value.plan_sha256==='':planHash(value.plan_sha256))||!text(value.run_id)||!text(value.run_state)||!text(value.created_at)||!oneOf(value.state,executionStates)||typeof value.basis_current!=='boolean'||!strings(value.source_commits)||!['total','passed','failed','errors','skipped','not_run'].every(key=>integer(value[key]))||!Array.isArray(value.cases)||value.cases.length>100||value.cases.length!==value.total||!value.cases.every(caseResult)||!unique(value.cases.map(item=>item.case_key))||!Array.isArray(value.reports)||!value.reports.every(reportRef)||!unique(value.reports.map(item=>item.id)))return false;
  if(!['passed','failed','errors','skipped','not_run'].every(key=>Number(value[key])<=Number(value.total)))return false;
- if(value.revision===0)return value.total===0&&value.reports.length===0&&value.state!=='passed';
- if(value.state==='passed'&&(value.total===0||value.passed!==value.total||!value.basis_current||value.run_state!=='succeeded'||!value.reports.some(item=>item.eligibility==='current')))return false;
+ const packages=value.package_evidence;
+ const basisCurrent=value.basis_current;
+ if(!Array.isArray(packages)||packages.length>1000||!packages.every(item=>packageEvidence(item,basisCurrent))||!unique(packages.map(item=>item.node_id)))return false;
+ if(value.revision===0)return value.total===0&&value.reports.length===0&&packages.length===0&&value.state!=='passed';
+ if(value.state==='passed'&&(value.total===0||value.passed!==value.total||!value.basis_current||value.run_state!=='succeeded'||!value.reports.some(item=>item.eligibility==='current')||packages.some(item=>!['verified','skipped'].includes(item.state))))return false;
  const reports=value.reports as TestPlanReportRef[],cases=value.cases as TestCaseResult[];
  return reports.every(item=>item.run_id===value.run_id)&&cases.every(item=>item.evidence.every(evidence=>reports.some(report=>report.id===evidence.report_id&&report.node_id===evidence.node_id&&report.attempt===evidence.attempt&&report.fence===evidence.fence&&report.worker_id===evidence.worker_id&&report.source_commit===evidence.source_commit)));
 }

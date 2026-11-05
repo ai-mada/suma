@@ -89,6 +89,9 @@ func (s *Service) poolArtifactAuthorityTx(ctx context.Context, tx *sql.Tx, subje
 	if err != nil || actual != kind || !profile.Available {
 		return nil, ToolProfile{}, forbidden()
 	}
+	if err = s.checkPoolTestPlanArtifactProfileTx(ctx, tx, subject.tenant, subject.project, a.RunID, a.NodeID, profile, scope); err != nil {
+		return nil, ToolProfile{}, err
+	}
 	basis, err := rc.DecodeApplicationBuild(proof.spec.Config)
 	if err != nil {
 		return nil, ToolProfile{}, err
