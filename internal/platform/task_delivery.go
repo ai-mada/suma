@@ -7,6 +7,9 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+
+	"github.com/ai-mada/suma/internal/dag"
+	wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
 
 const taskDeliveryReferenceLimit = 20
@@ -68,6 +71,59 @@ func (s *Service) taskDeliveryNodesTx(ctx context.Context, auth *authorizedComma
 		}
 	}
 	return nodes, tests, rows.Err()
+}
+
+// Select a target independently of the bounded generic list, using only local
+// run state and the original assignment retained by the DAG.
+func (s *Service) taskDeliveryWorkBuddyTargetTx(ctx context.Context, auth *authorizedCommand, run string) (*TaskDeliveryRunTarget, error) {
+	tenant, project := auth.target.tenantID, auth.target.projectID
+	const waiting, reason = "waiting", "cloud.delivery_required"
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT n.id,n.state,n.reason,n.attempt,n.fence,n.worker_id,n.spec
+		FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id
+		WHERE r.tenant_id=? AND r.project_id=? AND r.id=? AND n.state=? AND n.reason=? AND n.attempt>0 ORDER BY n.id`), tenant, project, run, waiting, reason)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	type candidate struct {
+		id, worker string
+		attempt    int
+		fence      int64
+	}
+	var candidates []candidate
+	for rows.Next() {
+		var c candidate
+		var state, marker, raw string
+		if err = rows.Scan(&c.id, &state, &marker, &c.attempt, &c.fence, &c.worker, &raw); err != nil {
+			return nil, err
+		}
+		var spec dag.Node
+		if state != waiting || marker != reason || json.Unmarshal([]byte(raw), &spec) != nil || !dag.WorkBuddyCloudNode(spec) {
+			continue
+		}
+		if _, err = wc.ParseNodeBinding(spec.Config["workbuddy_cloud"]); err == nil {
+			candidates = append(candidates, c)
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+	for _, c := range candidates {
+		assignment, err := dag.ReadExternalAssignmentTx(ctx, auth.tx, s.Dialect, tenant, project, run, c.id, c.attempt)
+		if errors.Is(err, dag.ErrNotFound) || errors.Is(err, dag.ErrConflict) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if assignment.Fence == c.fence && assignment.WorkerID == c.worker {
+			return &TaskDeliveryRunTarget{RunID: run, NodeID: c.id, Attempt: c.attempt}, nil
+		}
+	}
+	return nil, nil
 }
 
 func (s *Service) taskDeliveryExpertPlansTx(ctx context.Context, auth *authorizedCommand, task Record) (out TaskDeliveryExpertPlans, err error) {
@@ -178,6 +234,9 @@ func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, p
 		out.RunBasisState = "current"
 	}
 	if run.Nodes, run.Tests, err = s.taskDeliveryNodesTx(ctx, auth, task.RunID); err != nil {
+		return out, err
+	}
+	if run.WorkBuddyDelivery, err = s.taskDeliveryWorkBuddyTargetTx(ctx, auth, run.RunID); err != nil {
 		return out, err
 	}
 	out.Run = &run

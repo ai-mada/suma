@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-DELIVERY-TRACE-238 在交付与质量面板直接定位当前任务绑定的 WorkBuddy 待交付尝试，覆盖通用列表之外的节点。 [合同](../../contracts/task-delivery-chain.md) · [验证](../quality/workbuddy-delivery-trace-verification.md)
+
 T-MULTICA-TASK-BATCH-CLI 在原速码命令行提供任务优先级和计划状态的预览与提交。使用同一项目权限与原操作回执。 [CLI 合同](../api/cli-task-batch-changes.md) · [验证](../quality/task-batch-cli-verification.md)
 
 T-WORKBUDDY-HISTORY-ARTIFACTS-237 可在原授权会话的已保存历史中回看 WorkBuddy 产物类型和变更动作，沿现有私有记录读取。 [合同](../../contracts/workbuddy-cloud-collaboration.md) · [验证](../quality/workbuddy-history-artifacts-verification.md)

@@ -6,6 +6,8 @@ Version: 1.0.0. Delivery task: T-DELIVERY-112. Select a task in **Development â†
 
 Check the task version and execution basis first. A current basis means the bound run matches the current task inputs; it does not prove successful delivery. Changed inputs retain their original run for inspection without presenting it as current acceptance. Missing or unknown execution is shown explicitly.
 
+When **WorkBuddy code delivery pending verification** appears, select **Open original WorkBuddy attempt** to inspect the exact run, node and attempt behind that status. Opening the link is read-only.
+
 The test section reports test-node execution in the exact bound run. Successful nodes are not test-case coverage or approval eligibility. Open a test to inspect its run, node and an existing attempt; an unstarted node has no valid attempt. Complete child-workflow test conclusions require their original run evidence.
 
 Formal acceptance is shown separately. Open task review to recheck current authority, task and requirement versions, predecessor acceptance, independent tests and exact code evidence. Explicit rejection preserves the review, creates an issue with authoritative review lineage and invalidates current and accepted dependent delivery eligibility. It does not rewrite successful execution as a failed run.

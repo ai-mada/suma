@@ -9,13 +9,19 @@ function page(value:unknown,validate:(value:unknown)=>boolean){
  return object(value)&&integer(value.total)&&value.limit===20&&typeof value.complete==='boolean'&&Array.isArray(value.items)&&value.items.length===Math.min(value.total,20)&&value.complete===(value.total<=20)&&value.items.every(validate);
 }
 function node(value:unknown){return object(value)&&identifier(value.id)&&text(value.name)&&text(value.type)&&text(value.state)&&integer(value.attempt);}
-function summary(value:unknown,tests=false){
+function summary(value:unknown,tests=false):value is TaskDeliveryRun['nodes']{
  if(!page(value,item=>node(item)&&(!tests||object(item)&&item.type==='test'))||!object(value))return false;
  const counts=['waiting','running','succeeded','failed','skipped','reconciling','other'].map(key=>value[key]);
  return counts.every(integer)&&counts.reduce<number>((sum,count)=>sum+Number(count),0)===value.total&&new Set((value.items as Record<string,unknown>[]).map(item=>item.id)).size===(value.items as unknown[]).length;
 }
 export function validTaskDeliveryRun(value:unknown):value is TaskDeliveryRun{
- return object(value)&&identifier(value.run_id)&&positive(value.version)&&text(value.state)&&summary(value.nodes)&&summary(value.tests,true)&&Number((value.tests as Record<string,unknown>).total)<=Number((value.nodes as Record<string,unknown>).total);
+ if(!object(value)||!identifier(value.run_id)||!positive(value.version)||!text(value.state)||!summary(value.nodes)||!summary(value.tests,true)||value.tests.total>value.nodes.total)return false;
+ const trace=value.workbuddy_delivery;
+ if(trace===undefined)return true;
+ if(!object(trace)||Object.keys(trace).length!==3||trace.run_id!==value.run_id||!identifier(trace.node_id)||!positive(trace.attempt)||value.nodes.waiting===0)return false;
+ const node=value.nodes.items.find(item=>item.id===trace.node_id)??value.tests.items.find(item=>item.id===trace.node_id);
+ // The bounded summary can omit the original WorkBuddy node.
+ return node?node.attempt===trace.attempt&&node.type==='external_workflow'&&node.state==='waiting':!value.nodes.complete;
 }
 /** This projection is display evidence, never an execution or review grant.
  * Counts describe only the bound run; capped item lists cannot stand in for a

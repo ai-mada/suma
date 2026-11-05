@@ -36955,6 +36955,11 @@
           "version": {
             "readOnly": true,
             "type": "integer"
+          },
+          "workbuddy_delivery": {
+            "$ref": "#/components/schemas/TaskDeliveryRunTarget",
+            "description": "First exact waiting WorkBuddy assignment in this bound run that requires code delivery verification. Omitted when unavailable. A read-only navigation target, independent of the bounded node list.",
+            "readOnly": true
           }
         },
         "required": [
@@ -36963,6 +36968,34 @@
           "state",
           "nodes",
           "tests"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryRunTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "attempt"
         ],
         "type": "object"
       },

@@ -14,6 +14,8 @@
  "task-delivery.basis.unknown":"The execution basis could not be confirmed. Review the original run before continuing.",
  "task-delivery.node_counts":"{{total}} execution nodes · {{running}} running · {{failed}} failed · {{unknown}} reconciling",
  "task-delivery.open_run":"Open execution and evidence",
+ "task-delivery.workbuddy.pending":"WorkBuddy code delivery pending verification",
+ "task-delivery.workbuddy.open_attempt":"Open original WorkBuddy attempt",
  "task-delivery.tests":"Run tests and evidence",
  "task-delivery.test_boundary":"These are test-node execution facts for the current run, not approval eligibility. Open evidence to inspect independent checks and the exact code candidate; child workflows are not a complete test summary here.",
  "task-delivery.test_counts":"{{total}} test nodes · {{passed}} succeeded · {{failed}} failed · {{pending}} pending or unknown",

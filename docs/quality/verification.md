@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-DELIVERY-TRACE-238 验证 WorkBuddy 原派发核对、当前任务绑定、只读下钻及权限变化。 [阶段验证](workbuddy-delivery-trace-verification.md)
+
 T-MULTICA-TASK-BATCH-CLI 验证实际命令行、只读预览、明确提交及同一账号的原回执跨入口恢复。 [阶段验证](task-batch-cli-verification.md)
 
 T-WORKBUDDY-HISTORY-ARTIFACTS-237 核验原会话通知、产物元数据持久读取、分享隔离及中英文历史界面。 [阶段验证](workbuddy-history-artifacts-verification.md)

@@ -2,8 +2,11 @@ package platform
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
+
+	wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
 
 func TestTaskDeliveryHTTPUndispatchedReadOnlySnapshot(t *testing.T) {
@@ -19,6 +22,103 @@ func TestTaskDeliveryHTTPUndispatchedReadOnlySnapshot(t *testing.T) {
 	}
 	for _, suffix := range []string{"", "?project_id=" + f.project + "&project_id=" + f.project, "?project_id=" + f.project + "&limit=20"} {
 		f.call("GET", "/tasks/"+task["id"].(string)+"/delivery"+suffix, nil, 400)
+	}
+}
+
+func TestTaskDeliveryHTTPWorkBuddyTraceUsesExactCurrentAttemptBeyondNodeLimit(t *testing.T) {
+	h := newWorkBuddyTaskDispatchFixture(t)
+	f, ctx := h.f, context.Background()
+	cloud := &cloudFixture{f: f, w: h.w}
+	cloud.claimToken = f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "cloud-worker", "profiles": []any{}, "deployment": false}), 201)["token"].(string)
+	var err error
+	if cloud.actor, err = f.s.AuthenticateActor(ctx, cloud.claimToken); err != nil {
+		t.Fatal(err)
+	}
+	plan := workBuddyTaskPreview(t, h)
+	run := workBuddyTaskStart(t, h, plan, newID())
+	view, err := h.w.GetCloudNode(ctx, f.actor, f.project, run.ID, plan.NodeID)
+	if err != nil || view.Delegation == nil {
+		t.Fatal("missing original delegation", err)
+	}
+	cloud.delegation = *view.Delegation
+	claim := cloudHTTPClaim(t, cloud, false, newID(), 200)
+	if claim == nil || claim.RunID != run.ID || claim.NodeID != plan.NodeID {
+		t.Fatal("missing original claim")
+	}
+	cloud.request = wc.CloudCreateRequest{ProjectID: f.project, DelegationID: plan.DelegationID, ExpectedVersion: 1, Assignment: repositoryTestRef(*claim), IdempotencyKey: newID()}
+	sub := createCloudFixture(t, cloud)
+	a, result := cloudResultFixture(t, cloud)
+	result.WorkBuddyCloudWait.SubmissionID, result.WorkBuddyCloudWait.SubmissionVersion = sub.ID, sub.Version
+	if err = completeCloudFixture(t, cloud, a, result); err != nil {
+		t.Fatal(err)
+	}
+	exec := func(query string, args ...any) {
+		t.Helper()
+		if _, err := f.s.DB.Exec(query, args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for i := range 21 {
+		exec(`INSERT INTO dag_nodes(run_id,id,state,reason,attempt,fence,worker_id,output,error_text,started_at,completed_at,lease_until,wake_at,parent_id,spec) VALUES(?,?,'waiting','cloud.delivery_required',1,1,'','','','','',0,0,'',?)`, run.ID, fmt.Sprintf("0-unrelated-%02d", i), `{"name":"Unrelated node","type":"command"}`)
+	}
+	path := "/tasks/" + h.task.ID + "/delivery?project_id=" + f.project
+	beforeCreates, beforeQueries := h.creates.Load(), h.queries.Load()
+	beforeEvents := expertCount(t, f, "dag_events")
+	read := func() map[string]any {
+		t.Helper()
+		out := f.call("GET", path, nil, 200)
+		if out["formal_acceptance"] != false {
+			t.Fatal("cloud delivery waiting appeared as formal acceptance")
+		}
+		return out["run"].(map[string]any)
+	}
+	projected := read()
+	nodes := projected["nodes"].(map[string]any)
+	if nodes["total"] != float64(22) || nodes["complete"] != false || len(nodes["items"].([]any)) != 20 {
+		t.Fatalf("node limit fixture: %#v", nodes)
+	}
+	for _, item := range nodes["items"].([]any) {
+		if item.(map[string]any)["id"] == plan.NodeID {
+			t.Fatal("the cloud node must be beyond the bounded list")
+		}
+	}
+	target, ok := projected["workbuddy_delivery"].(map[string]any)
+	if !ok || len(target) != 3 || target["run_id"] != run.ID || target["node_id"] != plan.NodeID || target["attempt"] != float64(1) {
+		t.Fatalf("expected a compact exact target beyond the node limit, got %#v", projected["workbuddy_delivery"])
+	}
+
+	var originalSpec string
+	if err := f.s.DB.QueryRow(`SELECT spec FROM dag_nodes WHERE run_id=? AND id=?`, run.ID, plan.NodeID).Scan(&originalSpec); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name, column   string
+		value, restore any
+	}{
+		{"other wait marker", "reason", "cloud.waiting_input", "cloud.delivery_required"},
+		{"other node state", "state", "succeeded", "waiting"},
+		{"other node type", "spec", strings.Replace(originalSpec, `"type":"external_workflow"`, `"type":"command"`, 1), originalSpec},
+		{"other node protocol", "spec", strings.Replace(originalSpec, `"workflow":"workbuddy-cloud/v1"`, `"workflow":"workbuddy-cloud/v2"`, 1), originalSpec},
+		{"attempt not started", "attempt", 0, a.Attempt},
+		{"assignment for older attempt", "attempt", a.Attempt + 1, a.Attempt},
+		{"assignment fence differs", "fence", a.Fence + 1, a.Fence},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			query := `UPDATE dag_nodes SET ` + tc.column + `=? WHERE run_id=? AND id=?`
+			exec(query, tc.value, run.ID, plan.NodeID)
+			defer exec(query, tc.restore, run.ID, plan.NodeID)
+			if value, exists := read()["workbuddy_delivery"]; exists {
+				t.Fatalf("unverified target was projected: %#v", value)
+			}
+		})
+	}
+	exec(`INSERT INTO dag_runs(id,tenant_id,project_id,workflow_id,workflow_version,workflow_name,version,state,created_at,updated_at) VALUES(?,?,?,'fixture',1,'fixture',1,'running',?,?)`, "current-replacement", f.user.TenantID, f.project, now(), now())
+	exec(`UPDATE suma_tasks SET run_id='current-replacement' WHERE id=?`, h.task.ID)
+	if current := read(); current["run_id"] != "current-replacement" || current["workbuddy_delivery"] != nil {
+		t.Fatalf("old cloud execution escaped current task binding: %#v", current)
+	}
+	if h.creates.Load() != beforeCreates || h.queries.Load() != beforeQueries || expertCount(t, f, "dag_events") != beforeEvents {
+		t.Fatal("delivery reads contacted the provider or created execution events")
 	}
 }
 

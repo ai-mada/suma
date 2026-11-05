@@ -7129,6 +7129,12 @@ export interface TaskDeliveryRun {
   state: string;
   nodes: TaskDeliveryNodeSummary;
   tests: TaskDeliveryNodeSummary;
+  workbuddy_delivery?: TaskDeliveryRunTarget;
+}
+export interface TaskDeliveryRunTarget {
+  run_id: string;
+  node_id: string;
+  attempt: number;
 }
 export interface TaskDependencyChange {
   task_id: string;

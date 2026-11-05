@@ -20,4 +20,12 @@ func TestTaskDeliveryBoundedReadContract(t *testing.T) {
 			t.Fatalf("delivery read gained an unrelated field: %s", forbidden)
 		}
 	}
+	trace := mapAt(properties, "workbuddy_delivery")
+	if trace["$ref"] != "#/components/schemas/TaskDeliveryRunTarget" || trace["anyOf"] != nil {
+		t.Fatal("WorkBuddy trace must be a non-null target when present")
+	}
+	target := mapAt(api, "components", "schemas", "TaskDeliveryRunTarget")
+	if target["additionalProperties"] != false || len(mapAt(target, "properties")) != 3 || mapAt(target, "properties", "attempt")["minimum"] != 1 {
+		t.Fatal("WorkBuddy trace leaked non-routing fields or allows unstarted attempts")
+	}
 }

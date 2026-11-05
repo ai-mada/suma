@@ -16,11 +16,19 @@ type TaskDelivery struct {
 }
 
 type TaskDeliveryRun struct {
-	RunID   string                  `json:"run_id"`
-	Version int                     `json:"version"`
-	State   string                  `json:"state"`
-	Nodes   TaskDeliveryNodeSummary `json:"nodes"`
-	Tests   TaskDeliveryNodeSummary `json:"tests"`
+	RunID             string                  `json:"run_id"`
+	Version           int                     `json:"version"`
+	State             string                  `json:"state"`
+	Nodes             TaskDeliveryNodeSummary `json:"nodes"`
+	Tests             TaskDeliveryNodeSummary `json:"tests"`
+	WorkBuddyDelivery *TaskDeliveryRunTarget  `json:"workbuddy_delivery,omitempty" wire:"nonnull"`
+}
+
+// TaskDeliveryRunTarget locates an exact current node attempt for navigation.
+type TaskDeliveryRunTarget struct {
+	RunID   string `json:"run_id"`
+	NodeID  string `json:"node_id"`
+	Attempt int    `json:"attempt"`
 }
 
 // Counts cover every node in the bound run; Items is an explicitly capped

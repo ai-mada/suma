@@ -14,6 +14,8 @@
  "task-delivery.basis.unknown":"尚未确认执行依据，请核对原始运行后再继续。",
  "task-delivery.node_counts":"{{total}} 个执行节点 · {{running}} 个运行中 · {{failed}} 个失败 · {{unknown}} 个核对中",
  "task-delivery.open_run":"打开执行与证据",
+ "task-delivery.workbuddy.pending":"WorkBuddy 代码交付待核对",
+ "task-delivery.workbuddy.open_attempt":"打开 WorkBuddy 原始尝试",
  "task-delivery.tests":"运行测试与证据",
  "task-delivery.test_boundary":"这里展示当前运行的测试节点执行事实，不代表符合验收条件。请打开证据核对独立测试与确切代码候选；这里不汇总子流程的完整测试结论。",
  "task-delivery.test_counts":"{{total}} 个测试节点 · {{passed}} 个成功 · {{failed}} 个失败 · {{pending}} 个待完成或结果未知",

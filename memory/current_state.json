@@ -676,24 +676,24 @@
   "last_goal_turn_classification": "progress",
   "previous_goal_turn": {
     "classification": "progress",
-    "stage": "T-TASK-DISPATCH-ENVELOPE-236",
-    "commit": "ed6d8b1d4694df1622576bf0fcb862743ed26341",
-    "evidence": "Current dispatch envelope, re-open authorization, original reserved run and knowledge regressions verified, committed and remote dev confirmed."
+    "stage": "T-WORKBUDDY-HISTORY-ARTIFACTS-237",
+    "commit": "368e39a6805ffdb8c7af18e66d2b649c94839a14",
+    "evidence": "Original WorkBuddy session archive safely retains typed artifact change metadata, with Go/Web/Chrome evidence and verified remote dev."
   },
   "current_work": {
-    "stage": "T-WORKBUDDY-HISTORY-ARTIFACTS-237",
+    "stage": "T-WORKBUDDY-DELIVERY-TRACE-238",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "contract": "contracts/workbuddy-cloud-collaboration.md",
-    "report": "docs/quality/workbuddy-history-artifacts-verification.md",
-    "summary": "docs/quality/workbuddy-history-artifacts-summary.json",
-    "previous_commit": "a47e01deb73f22b7aee411f052f13cbe3766fd7a",
-    "verification": "31 related Go tests, 41 related Web tests, full Web typecheck, generated contracts and two actual Chrome 390px scenarios using controlled responses.",
-    "actual": "Exact WorkBuddy session-load artifact notifications persist as closed type and change metadata, remain owner-scoped and display with original sequence. Read pagination performs no provider calls; artifact sharing is rejected.",
-    "known_limitations": "No live vendor replay coverage, verified sandbox REST origin, Git candidate, same-commit independent test or multi-host acceptance.",
-    "next": "Continue authorized code intake with original WorkBuddy source scope, separately establish Git candidate proof and independent same-commit test before acceptance.",
+    "contract": "contracts/task-delivery-chain.md",
+    "report": "docs/quality/workbuddy-delivery-trace-verification.md",
+    "summary": "docs/quality/workbuddy-delivery-trace-summary.json",
+    "previous_commit": "7178df15d1c4c6ce26ed91a0344cfa663f53acd8",
+    "verification": "Real Suma HTTP and SQLite through original cloud result with loopback vendor, seven negative cases, 17 Web checks, full Web types and actual 390px Chrome with captured HTTP response.",
+    "actual": "Current task delivery view opens exact WorkBuddy run, node and attempt awaiting code verification, independently of the 20-node preview. Server verifies original persisted assignment and current attempt/fence; reads create no events or vendor calls.",
+    "known_limitations": "Browser verified URL rather than rendering target run details. Vendor Git proof, independent verification of a cloud candidate, multi-host and production remain pending.",
+    "next": "Bind a separately authorized local candidate to the exact original cloud provenance, with a new current run and same-commit independent test. Preserve the original waiting cloud fact.",
     "full_platform_complete": false,
-    "git_record": ".cache/workbuddy-history-artifacts-237/post-git.json"
+    "git_record": ".cache/workbuddy-delivery-trace-238/post-git.json"
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -2776,11 +2776,11 @@
     "implementation": "Six original maintenance factories: exact private installed-command source -> fixed Claude model or explicit unchanged native configuration -> immutable generation -> original bound inventory ACK -> exact paused Quick profile. Native/Node installation pins enter digest and Describe/Execute/restore checks. Cursor true Node-path return and Windows no-follow FileID corrected; no new table/API/dispatcher/dependency."
   },
   "active_implementation": {
-    "stage": "T-WORKBUDDY-HISTORY-ARTIFACTS-237",
+    "stage": "T-WORKBUDDY-DELIVERY-TRACE-238",
     "version": "1.0.0",
     "status": "scoped_verified_git_delivery_recorded_separately",
-    "base": "a47e01deb73f22b7aee411f052f13cbe3766fd7a",
-    "contract": "contracts/workbuddy-cloud-collaboration.md",
+    "base": "7178df15d1c4c6ce26ed91a0344cfa663f53acd8",
+    "contract": "contracts/task-delivery-chain.md",
     "full_platform_complete": false
   },
   "real_cli_onboarding": {
@@ -2965,5 +2965,20 @@
     "next": "Continue authorized code intake with original WorkBuddy source scope, separately establish Git candidate proof and independent same-commit test before acceptance.",
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-history-artifacts-237/post-git.json"
+  },
+  "workbuddy_delivery_trace": {
+    "stage": "T-WORKBUDDY-DELIVERY-TRACE-238",
+    "version": "1.0.0",
+    "status": "scoped_verified_git_delivery_recorded_separately",
+    "contract": "contracts/task-delivery-chain.md",
+    "report": "docs/quality/workbuddy-delivery-trace-verification.md",
+    "summary": "docs/quality/workbuddy-delivery-trace-summary.json",
+    "previous_commit": "7178df15d1c4c6ce26ed91a0344cfa663f53acd8",
+    "verification": "Real Suma HTTP and SQLite through original cloud result with loopback vendor, seven negative cases, 17 Web checks, full Web types and actual 390px Chrome with captured HTTP response.",
+    "actual": "Current task delivery view opens exact WorkBuddy run, node and attempt awaiting code verification, independently of the 20-node preview. Server verifies original persisted assignment and current attempt/fence; reads create no events or vendor calls.",
+    "known_limitations": "Browser verified URL rather than rendering target run details. Vendor Git proof, independent verification of a cloud candidate, multi-host and production remain pending.",
+    "next": "Bind a separately authorized local candidate to the exact original cloud provenance, with a new current run and same-commit independent test. Preserve the original waiting cloud fact.",
+    "full_platform_complete": false,
+    "git_record": ".cache/workbuddy-delivery-trace-238/post-git.json"
   }
 }

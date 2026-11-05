@@ -64,6 +64,44 @@ it('opens an unstarted test node without inventing an attempt zero',async()=>{
  expect(run).toHaveBeenCalledWith({run:'run-a',node:'verify'});expect(host.textContent).not.toContain('Attempt 0');
 });
 
+it('opens the exact WorkBuddy delivery attempt only with current, authorized facts',async()=>{
+ const base=delivery(),onOpenRun=vi.fn(),trace={run_id:'run-a',node_id:'develop',attempt:2};
+ const nodes={...summary(),waiting:1,succeeded:0,items:[{id:'develop',name:'Develop',type:'external_workflow',state:'waiting',attempt:2}]};
+ const tests={...summary(),total:0,succeeded:0,items:[]};
+ let target:unknown=trace,denied=false,basis='current';
+ transport(async()=>denied?Response.json({error:{code:'forbidden',message:'No access'}},{status:403}):Response.json({...base,run_basis_state:basis,run:{...base.run,state:'running',nodes,tests,workbuddy_delivery:target}}));
+ const action='[data-task-delivery-workbuddy]';
+ await render('task-a',{onOpenRun});await click('[data-task-delivery-toggle]');
+ expect(host.textContent).toContain('WorkBuddy code delivery pending verification');
+ expect(host.textContent).toContain('No test nodes are recorded in this run');
+ expect(host.textContent).toContain('Not accepted');
+ const link=host.querySelector<HTMLAnchorElement>(action)!;link.focus();expect(document.activeElement).toBe(link);
+ const href=link.getAttribute('href');
+ expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({project:'project-a',view:'development',sub:'runs',run:'run-a',node:'develop',attempt:'2'});
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});
+ expect(host.textContent).toContain('WorkBuddy 代码交付待核对');
+ expect(link.textContent).toBe('打开 WorkBuddy 原始尝试');
+ const beforeNavigation=reads.length;
+ await click(action);expect(onOpenRun).toHaveBeenCalledExactlyOnceWith({run:'run-a',node:'develop',attempt:'2'});expect(reads).toHaveLength(beforeNavigation);
+ await render();expect(host.querySelector(action)?.getAttribute('href')).toBe(href);
+ await render('task-a',{onOpenRun,taskVersion:4});expect(host.querySelector(action)).toBeNull();
+ await render('task-a',{onOpenRun,navigationDisabled:true});
+ const locked=host.querySelector<HTMLAnchorElement>(action)!;expect(locked.hasAttribute('href')).toBe(false);expect(locked.tabIndex).toBe(-1);
+ await render('task-a',{onOpenRun});
+ basis='changed';await click('[data-task-delivery-refresh]');expect(host.querySelector(action)).not.toBeNull();
+ for(const invalid of [{...trace,run_id:'run-other'},{...trace,node_id:'other'},{...trace,attempt:0},{...trace,attempt:1},{...trace,private_id:'vendor-task'},null]){
+  target=invalid;await click('[data-task-delivery-refresh]');
+  expect(host.querySelector(action)).toBeNull();expect(host.textContent).toContain('未能核实所选任务的交付记录');
+ }
+ target=trace;nodes.items[0].type='command';await click('[data-task-delivery-retry]');expect(host.querySelector(action)).toBeNull();
+ nodes.items[0].type='external_workflow';nodes.items[0].state='succeeded';await click('[data-task-delivery-retry]');expect(host.querySelector(action)).toBeNull();
+ nodes.items[0].state='waiting';nodes.waiting=0;nodes.succeeded=1;await click('[data-task-delivery-retry]');expect(host.querySelector(action)).toBeNull();
+ nodes.waiting=1;nodes.succeeded=0;await click('[data-task-delivery-retry]');expect(host.querySelector(action)).not.toBeNull();
+ denied=true;await click('[data-task-delivery-refresh]');expect(host.querySelector(action)).toBeNull();
+ expect(onOpenRun).toHaveBeenCalledOnce();expect(writes).toBe(0);
+ expect(vi.mocked(fetch).mock.calls.every(([,options])=>options?.method==='GET')).toBe(true);
+});
+
 it('extracts accepted delivery only from a current formal acceptance and honors navigation and callback locks',async()=>{
  const value={...delivery(),task_status:'accepted'},extract=vi.fn();transport(async()=>Response.json(value));
  await render('task-a',{onExtractAcceptedDelivery:extract});await click('[data-task-delivery-toggle]');expect(host.querySelector('[data-task-delivery-extract]')).toBeNull();

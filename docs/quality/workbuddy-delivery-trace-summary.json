@@ -1,0 +1,56 @@
+{
+  "stage": "T-WORKBUDDY-DELIVERY-TRACE-238",
+  "base": "7178df15d1c4c6ce26ed91a0344cfa663f53acd8",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "focused": {
+    "go_actual_http": true,
+    "go_negative_cases": 7,
+    "web_tests": 17,
+    "web_suites": 3,
+    "paired_locale_keys": 10281,
+    "typescript": "web_workspace_passed",
+    "generated_contract_check": "passed",
+    "generated_models": 1043,
+    "generated_api_paths": 468
+  },
+  "browser": {
+    "scope": "Actual Chrome with production TaskDeliveryPanel and real captured Suma HTTP response served by a controlled loopback fixture",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "locales": [
+      "en-US",
+      "zh-CN"
+    ],
+    "api_reads": 3,
+    "mutations": 0,
+    "exact_native_target": true,
+    "authorization_hides_target": true,
+    "keyboard": true,
+    "errors": 0,
+    "screenshot_sha256": "2dff6815f142d7636aa01229a3e909437efb4dd017a2d61411020e8fdd4b983b",
+    "actual_response_sha256": "17717d892bff18c5da838dc38753fd8ca12d922edb9bd8858a59cd7100f7bc9f"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "source_copied": false
+  },
+  "pending": [
+    "actual_workbuddy_vendor_git_proof",
+    "trusted_cloud_to_local_candidate_source",
+    "same_commit_independent_test",
+    "physical_multi_host",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "wire_test": ".cache/workbuddy-delivery-trace-238/wire-test.log",
+    "type": ".cache/workbuddy-delivery-trace-238/type.json",
+    "browser": ".cache/workbuddy-delivery-trace-238/web/visual-result.json",
+    "browser_build": ".cache/workbuddy-delivery-trace-238/web/build.json",
+    "wire": ".cache/workbuddy-delivery-trace-238/wire.json"
+  }
+}
