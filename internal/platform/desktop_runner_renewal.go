@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/strictjson"
 )
@@ -196,24 +197,41 @@ func (s *Service) desktopRunnerRenewalDrainedTx(ctx context.Context, tx *sql.Tx,
 			return desktopRunnerError(409, "renewal_pending")
 		}
 	}
-	// Transfer state is inside its original typed binding, not a parallel state
-	// column. A sealed historical transfer does not block later idle renewal.
-	rows, err := tx.QueryContext(ctx, s.q(`SELECT binding FROM suma_candidate_transfers WHERE tenant_id=? AND project_id=? AND worker_id=?`), tenant, project, worker)
+	// Transfer state lives in the original binding. Sealed history and
+	// structurally verified abandonment leave bytes intact and permit renewal.
+	rows, err := tx.QueryContext(ctx, s.q(`SELECT id,run_id,node_id,attempt,fence,binding,storage_path
+		FROM suma_candidate_transfers WHERE tenant_id=? AND project_id=? AND worker_id=?`), tenant, project, worker)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var raw string
-		var value struct {
-			State string `json:"state"`
-		}
-		if err = rows.Scan(&raw); err != nil {
+		var id, raw, storage string
+		var source cc.AssignmentRef
+		source.WorkerID = worker
+		if err = rows.Scan(&id, &source.RunID, &source.NodeID, &source.Attempt, &source.Fence, &raw, &storage); err != nil {
 			return err
 		}
-		if json.Unmarshal([]byte(raw), &value) != nil || value.State != "sealed" {
+		var fields map[string]json.RawMessage
+		if RejectDuplicateReleaseJSON([]byte(raw)) != nil || json.Unmarshal([]byte(raw), &fields) != nil {
 			return desktopRunnerError(409, "renewal_pending")
 		}
+		for name := range fields {
+			if name != "state" && strings.EqualFold(name, "state") {
+				return desktopRunnerError(409, "renewal_pending")
+			}
+		}
+		var state string
+		if json.Unmarshal(fields["state"], &state) == nil {
+			if state == "sealed" {
+				continue
+			}
+			if state == "abandoned" && exactManualCandidateBinding(raw, project, id, source).State == "abandoned" &&
+				(storage == "" || storageBlobPath.MatchString(storage)) {
+				continue
+			}
+		}
+		return desktopRunnerError(409, "renewal_pending")
 	}
 	return rows.Err()
 }

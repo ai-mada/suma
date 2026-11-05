@@ -85,7 +85,7 @@ type ReleaseRollbackPreview struct {
 }
 
 func releaseModels() []any {
-	return []any{platform.ReleaseWorker{}, platform.ReleaseWorkerRotationRequest{}, platform.ReleaseWorkerRotationResult{}, platform.ReleaseWorkerUploadRecoveryItem{}, platform.ReleaseWorkerUploadRecoveryView{}, platform.ReleaseWorkerUploadAbandonRequest{}, platform.ReleaseWorkerUploadAbandonResult{}, platform.ReleaseCandidateView{}, platform.ReleaseArtifact{}, platform.ReleaseEnvironment{}, platform.ReleasePlan{}, platform.ReleasePlanInput{}, platform.ReleasePlanPreview{}, platform.ReleaseDeployment{}, ProjectVersionedOperation{}, ReleaseWorkerRegisterRequest{}, ReleaseWorkerCreation{}, ReleaseWorkerRevokeRequest{}, ReleaseCandidateCreateRequest{}, ReleaseProviderOption{}, ReleaseEnvironmentList{}, ReleaseEnvironmentCreateRequest{}, ReleaseEnvironmentUpdateRequest{}, ReleasePlanExecuteRequest{}, ReleasePlanDecisionRequest{}, ReleaseRollbackPreviewRequest{}, ReleaseRollbackPreview{}, rc.ArtifactUploadRequest{}, rc.ArtifactUploadState{}, rc.ArtifactSealRequest{}, rc.ArtifactSealReceipt{}, rc.ArtifactResolveRequest{}, rc.ArtifactBinding{}, rc.ReleaseAuthorizationRequest{}, rc.ReleaseAuthorization{}, rc.DeploymentRequest{}, rc.NonSecretDeploymentRequest{}, rc.ConsumeDeploymentAuthorization{}, rc.InspectDeploymentAuthorization{}, rc.DeploymentAuthorizationGrant{}, rc.BeginDeploymentEffect{}, rc.DeploymentEffectGrant{}}
+	return []any{platform.ReleaseWorker{}, platform.ReleaseWorkerRotationRequest{}, platform.ReleaseWorkerRotationResult{}, platform.ReleaseWorkerUploadRecoveryItem{}, platform.ReleaseWorkerUploadRecoveryView{}, platform.ReleaseWorkerUploadAbandonRequest{}, platform.ReleaseWorkerUploadAbandonResult{}, platform.ReleaseWorkerCandidateRecoveryItem{}, platform.ReleaseWorkerCandidateRecoveryView{}, platform.ReleaseWorkerCandidateAbandonRequest{}, platform.ReleaseWorkerCandidateAbandonResult{}, platform.ReleaseCandidateView{}, platform.ReleaseArtifact{}, platform.ReleaseEnvironment{}, platform.ReleasePlan{}, platform.ReleasePlanInput{}, platform.ReleasePlanPreview{}, platform.ReleaseDeployment{}, ProjectVersionedOperation{}, ReleaseWorkerRegisterRequest{}, ReleaseWorkerCreation{}, ReleaseWorkerRevokeRequest{}, ReleaseCandidateCreateRequest{}, ReleaseProviderOption{}, ReleaseEnvironmentList{}, ReleaseEnvironmentCreateRequest{}, ReleaseEnvironmentUpdateRequest{}, ReleasePlanExecuteRequest{}, ReleasePlanDecisionRequest{}, ReleaseRollbackPreviewRequest{}, ReleaseRollbackPreview{}, rc.ArtifactUploadRequest{}, rc.ArtifactUploadState{}, rc.ArtifactSealRequest{}, rc.ArtifactSealReceipt{}, rc.ArtifactResolveRequest{}, rc.ArtifactBinding{}, rc.ReleaseAuthorizationRequest{}, rc.ReleaseAuthorization{}, rc.DeploymentRequest{}, rc.NonSecretDeploymentRequest{}, rc.ConsumeDeploymentAuthorization{}, rc.InspectDeploymentAuthorization{}, rc.DeploymentAuthorizationGrant{}, rc.BeginDeploymentEffect{}, rc.DeploymentEffectGrant{}}
 }
 
 func releaseContracts(add operationAdder) {
@@ -147,6 +147,14 @@ func releaseContracts(add operationAdder) {
 	browserOnly(op)
 	request(op, "ReleaseWorkerUploadAbandonRequest")
 	op["description"] = "Close an incomplete upload only after the exact original attempt is durably resolved. Preserve retained bytes and manifest, and never seal or publish a release. Exact replay requires current authority."
+	op = single("/release-workers/{id}/candidate-transfers", "get", "ReleaseWorkerCandidateRecoveryView", false, "200")
+	browserOnly(op)
+	appendQuery(op, queryParameter("cursor", "Continue after the last examined candidate transfer. A page may omit sealed and ended transfers.", map[string]any{"type": "string", "pattern": "^[a-f0-9]{32}$"}))
+	op["description"] = "Inspect scoped candidate transfers for the original manual node and current credential. Read a bounded set of records and show only safe evidence. No bundle or storage path is returned."
+	op = single("/release-workers/{id}/candidate-transfers/{transferID}/abandon", "post", "ReleaseWorkerCandidateAbandonResult", true, "200")
+	browserOnly(op)
+	request(op, "ReleaseWorkerCandidateAbandonRequest")
+	op["description"] = "End an unsealed transfer after its exact original attempt durably failed or was cancelled with a known outcome. Preserve its bundle, manifest and Git evidence, and keep the original operation receipt."
 	pagedList("/artifacts", "ReleaseArtifact")
 	single("/artifacts/{id}", "get", "ReleaseArtifact", false, "200")
 	op = single("/artifacts/{id}/blobs/{sha256}", "get", "", false, "200")
@@ -256,7 +264,7 @@ func enhanceReleaseSchemas(schemas map[string]any) {
 			value[key] = item
 		}
 	}
-	for _, model := range []string{"ReleaseWorkerRegisterRequest", "ReleaseWorkerRevokeRequest", "ReleaseWorkerRotationRequest", "ReleaseWorkerRotationResult", "ReleaseWorkerUploadAbandonRequest", "ReleaseWorkerUploadAbandonResult", "ReleaseWorkerUploadRecoveryItem", "ReleaseWorkerUploadRecoveryView", "ReleaseCandidateCreateRequest", "ReleaseCandidateTaskInput", "ReleaseEnvironmentCreateRequest", "ReleaseEnvironmentUpdateRequest", "ReleasePlanInput", "ReleasePlanExecuteRequest", "ReleasePlanDecisionRequest", "ReleaseRollbackPreviewRequest", "ProjectVersionedOperation", "ArtifactUploadRequest", "ArtifactSealRequest", "ArtifactResolveRequest", "ReleaseAuthorizationRequest", "ConsumeDeploymentAuthorization", "InspectDeploymentAuthorization", "BeginDeploymentEffect", "DeploymentObservation"} {
+	for _, model := range []string{"ReleaseWorkerRegisterRequest", "ReleaseWorkerRevokeRequest", "ReleaseWorkerRotationRequest", "ReleaseWorkerRotationResult", "ReleaseWorkerUploadAbandonRequest", "ReleaseWorkerUploadAbandonResult", "ReleaseWorkerUploadRecoveryItem", "ReleaseWorkerUploadRecoveryView", "ReleaseWorkerCandidateAbandonRequest", "ReleaseWorkerCandidateAbandonResult", "ReleaseWorkerCandidateRecoveryItem", "ReleaseWorkerCandidateRecoveryView", "ReleaseCandidateCreateRequest", "ReleaseCandidateTaskInput", "ReleaseEnvironmentCreateRequest", "ReleaseEnvironmentUpdateRequest", "ReleasePlanInput", "ReleasePlanExecuteRequest", "ReleasePlanDecisionRequest", "ReleaseRollbackPreviewRequest", "ProjectVersionedOperation", "ArtifactUploadRequest", "ArtifactSealRequest", "ArtifactResolveRequest", "ReleaseAuthorizationRequest", "ConsumeDeploymentAuthorization", "InspectDeploymentAuthorization", "BeginDeploymentEffect", "DeploymentObservation"} {
 		schemas[model].(map[string]any)["additionalProperties"] = false
 	}
 	field("ReleaseWorkerCreation", "token", map[string]any{"readOnly": true, "description": "Once-only plaintext credential; absent from registry and same-key replay. Memory only, no browser session/local storage."})
@@ -274,6 +282,13 @@ func enhanceReleaseSchemas(schemas map[string]any) {
 	field("ReleaseWorkerUploadAbandonRequest", "expected_manifest_sha256", map[string]any{"pattern": "^[a-f0-9]{64}$"})
 	field("ReleaseWorkerUploadAbandonRequest", "acknowledge_incomplete", map[string]any{"const": true})
 	field("ReleaseWorkerUploadAbandonResult", "state", map[string]any{"const": "abandoned"})
+	field("ReleaseWorkerCandidateRecoveryItem", "disposition", map[string]any{"enum": []string{"eligible", "awaiting_attempt", "unverified"}})
+	field("ReleaseWorkerCandidateRecoveryItem", "fence", map[string]any{"pattern": "^[1-9][0-9]{0,18}$", "description": "Exact original fencing number rendered as a decimal string."})
+	field("ReleaseWorkerCandidateRecoveryView", "items", map[string]any{"maxItems": 20})
+	field("ReleaseWorkerCandidateAbandonRequest", "expected_worker_version", map[string]any{"minimum": 1, "maximum": 2147483647})
+	field("ReleaseWorkerCandidateAbandonRequest", "expected_bundle_sha256", map[string]any{"pattern": "^[a-f0-9]{64}$"})
+	field("ReleaseWorkerCandidateAbandonRequest", "acknowledge_incomplete", map[string]any{"const": true})
+	field("ReleaseWorkerCandidateAbandonResult", "state", map[string]any{"const": "abandoned"})
 	field("ArtifactUploadState", "state", map[string]any{"enum": []string{"receiving", "sealed", "abandoned"}})
 	field("ReleaseWorkerRegisterRequest", "profiles", map[string]any{"maxItems": 32, "description": "Unique administrator-owned profile IDs and real configuration digests. An empty list supports a general execution node without release capability."})
 	field("ReleaseProfileRegistration", "kind", map[string]any{"enum": []string{"build", "package_test"}})

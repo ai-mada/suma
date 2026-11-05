@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CANDIDATE-TRANSFER-RECOVERY 在工具管理中核对手动登记节点的未封存 Git 包。原尝试确认失败或取消后，授权操作者可结束传递并保留原证据，再单独核对凭证轮换。 [合同](../../contracts/manual-worker-candidate-recovery.md) · [验证记录](../quality/candidate-transfer-recovery-verification.md)
+
 T-CURSOR-EDITOR-234 在 Windows 本机工作区提供“在 Cursor 中打开”，沿当前项目与原 Git 目录绑定发出编辑器启动请求。 [合同](../../contracts/desktop-workspace.md#windows-原工作区在-cursor-中打开) · [验证](../quality/cursor-editor-launch-verification.md)
 
 T-ARTIFACT-UPLOAD-RECOVERY 为手动节点增加未封存发布制品核对。以精确原尝试和围栏为依据结束上传，保留证据，凭证轮换由用户另行确认。 [合同](../../contracts/manual-worker-artifact-upload-recovery.md) · [验证记录](../quality/artifact-upload-recovery-verification.md)

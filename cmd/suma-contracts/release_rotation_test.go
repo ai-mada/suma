@@ -55,3 +55,29 @@ func TestManualRunnerUploadRecoveryKeepsScopedEvidenceAndExplicitAbandon(t *test
 		t.Fatal("recovery must project only the original safe scope and exact fence")
 	}
 }
+
+func TestManualRunnerCandidateRecoveryRequiresBoundMetadataAndConsent(t *testing.T) {
+	api, _ := generate()
+	read := mapAt(api, "paths", "/release-workers/{id}/candidate-transfers", "get")
+	abandon := mapAt(api, "paths", "/release-workers/{id}/candidate-transfers/{transferID}/abandon", "post")
+	for _, operation := range []map[string]any{read, abandon} {
+		if !reflect.DeepEqual(operation["security"], []any{map[string]any{"cookieAuth": []string{}}}) {
+			t.Fatal("candidate recovery must use current browser authority")
+		}
+	}
+	if got := responseSchema(abandon, "200")["$ref"]; got != "#/components/schemas/ReleaseWorkerCandidateAbandonResult" {
+		t.Fatal("the command must return the original typed metadata receipt")
+	}
+	schemas := mapAt(api, "components", "schemas")
+	request := mapAt(schemas, "ReleaseWorkerCandidateAbandonRequest")
+	if request["additionalProperties"] != false || mapAt(request, "properties", "acknowledge_incomplete")["const"] != true {
+		t.Fatal("candidate abandonment requires a closed explicitly acknowledged body")
+	}
+	item := mapAt(schemas, "ReleaseWorkerCandidateRecoveryItem", "properties")
+	if len(item) != 12 || item["token_hash"] != nil || item["storage_path"] != nil || item["bundle"] != nil || mapAt(item, "fence")["type"] != "string" {
+		t.Fatal("candidate closeout must retain only safe evidence and a lossless fence")
+	}
+	if mapAt(schemas, "ReleaseWorkerCandidateRecoveryView", "properties", "items")["maxItems"] != 20 {
+		t.Fatal("candidate inspection must remain bounded")
+	}
+}

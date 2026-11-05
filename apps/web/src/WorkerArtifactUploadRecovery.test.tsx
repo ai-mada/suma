@@ -18,7 +18,7 @@ const stagedBody=(idempotency_key:string)=>({project_id:worker.project_id,expect
 const receipt=(idempotency_key:string):UploadAbandonReceipt=>({project_id:worker.project_id,worker_registry_id:worker.id,upload_id:uploadID,operation_id:idempotency_key,state:'abandoned'});
 
 let root:Root,host:HTMLElement,reads:string[],posts:{path:string;body:Record<string,unknown>}[];
-let listing:()=>Response,send:(body:Record<string,unknown>)=>Promise<Response>;
+let listing:(url:URL)=>Response,send:(body:Record<string,unknown>)=>Promise<Response>;
 beforeEach(async()=>{
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);
   await setLocale('en-US',{persist:false});
@@ -34,7 +34,7 @@ beforeEach(async()=>{
       return send(body);
     }
     reads.push(endpoint+url.search);
-    return listing();
+    return listing(url);
   }));
   host=document.createElement('div');document.body.append(host);root=createRoot(host);
 });
@@ -130,4 +130,89 @@ it.each([
   expect(sessionStorage.getItem(recoveryKey)!==null).toBe(retains);
   expect(host.querySelector('[data-worker-upload-receipt]')).toBeNull();
   expect(host.querySelector('[data-worker-upload-restore]')!==null).toBe(retains);
+});
+
+const transferID='4'.repeat(32),bundle='5'.repeat(64),base='6'.repeat(40),head='7'.repeat(40);
+const transferPath='/release-workers/'+worker.id+'/candidate-transfers/'+transferID+'/abandon';
+const candidateRow={transfer_id:transferID,bundle_sha256:bundle,base_commit:base,head_commit:head,run_id:first.run_id,
+  node_id:first.node_id,attempt:first.attempt,fence:first.fence,created_at:first.created_at,size_bytes:128,
+  attempt_state:'failed',disposition:'eligible'};
+const candidateReceipt=(key:string)=>({project_id:worker.project_id,worker_registry_id:worker.id,
+  transfer_id:transferID,operation_id:key,state:'abandoned'});
+
+it('pages past filtered rows and offers closeout only for eligible candidate bundles',async()=>{
+  const cursor='1'.repeat(32);
+  listing=url=>{
+    if(!url.pathname.endsWith('/candidate-transfers'))return Response.json(uploadView());
+    const {items:_artifacts,...view}=uploadView();
+    if(!url.searchParams.has('cursor'))return Response.json({...view,items:[],next_cursor:cursor});
+    return Response.json({...view,items:[
+      {...candidateRow,transfer_id:'3'.repeat(32),attempt_state:'reconciling',disposition:'awaiting_attempt'},
+      candidateRow,
+      {...candidateRow,transfer_id:'8'.repeat(32),bundle_sha256:'',base_commit:'',head_commit:'',size_bytes:0,
+        attempt_state:'unverified',disposition:'unverified'},
+    ]});
+  };
+  await render();
+  await click('[data-worker-upload-recovery-open]');
+  await click('[data-worker-candidate-recovery-tab]');
+  expect(button('[data-worker-candidate-recovery-tab]')?.getAttribute('aria-pressed')).toBe('true');
+  expect(host.textContent).toContain('Continue to the next page');
+  const next=Array.from(host.querySelectorAll('button')).find(item=>item.textContent==='Next page');
+  await act(async()=>next?.click());
+  expect(reads.at(-1)).toBe('/release-workers/'+worker.id+'/candidate-transfers?project_id=project-a&cursor='+cursor);
+  expect(host.querySelectorAll('[data-worker-candidate-transfer-row]')).toHaveLength(3);
+  expect(host.querySelectorAll('[data-worker-candidate-transfer-select]')).toHaveLength(1);
+  expect(host.textContent).toContain('Bundle size unverified');
+  const candidate=host.querySelector('[data-worker-candidate-transfer-row="'+transferID+'"]');
+  expect(candidate?.querySelector('details')?.textContent).toContain(bundle);
+  expect(candidate?.querySelector('details')?.textContent).toContain(base);
+  expect(candidate?.querySelector('details')?.textContent).toContain(head);
+  await click('[data-worker-candidate-transfer-select="'+transferID+'"]');
+  expect(document.activeElement?.textContent).toBe('Confirm candidate transfer closeout');
+  expect(button('[data-worker-upload-abandon]')?.disabled).toBe(true);
+  expect(posts).toEqual([]);
+});
+
+it('restores a candidate closeout on the exact route and accepts only its original receipt',async()=>{
+  listing=url=>Response.json(url.pathname.endsWith('/candidate-transfers')?{...uploadView(),items:[candidateRow]}:uploadView());
+  // A response for an artifact upload is not proof that the candidate transfer was closed.
+  send=async body=>Response.json(receipt(String(body.idempotency_key)));
+  await render();
+  await click('[data-worker-upload-recovery-open]');
+  await click('[data-worker-candidate-recovery-tab]');
+  await click('[data-worker-candidate-transfer-select="'+transferID+'"]');
+  await click('[data-worker-upload-ack]');
+  await click('[data-worker-upload-abandon]');
+  const original=posts[0],key=String(original.body.idempotency_key);
+  expect(original).toEqual({path:transferPath,body:{project_id:worker.project_id,expected_worker_version:3,
+    expected_bundle_sha256:bundle,acknowledge_incomplete:true,idempotency_key:key}});
+  expect(button('[data-worker-candidate-recovery-tab]')?.disabled).toBe(true);
+  expect(button('[data-worker-upload-restore]')).not.toBeNull();
+  expect(host.querySelector('[data-worker-upload-receipt]')).toBeNull();
+  expect(JSON.parse(sessionStorage.getItem(recoveryKey)!)).toMatchObject(original);
+  await act(async()=>root.unmount());root=createRoot(host);
+  await render();
+  send=async body=>Response.json(candidateReceipt(String(body.idempotency_key)));
+  listing=()=>Response.json({...uploadView(),items:[]});
+  await click('[data-worker-upload-restore]');
+  expect(posts).toEqual([original,original]);
+  expect(host.querySelector('[data-worker-upload-receipt]')?.textContent).toContain('Incomplete candidate transfer closed');
+  expect(sessionStorage.getItem(recoveryKey)).toBeNull();
+});
+
+it.each([
+  ['candidate_transfer_attempt_unresolved',false],
+  ['artifact_upload_attempt_unresolved',true],
+] as const)('handles restored candidate refusal %s according to its route',async(code,retains)=>{
+  const key='original-candidate';
+  const body={project_id:worker.project_id,expected_worker_version:3,expected_bundle_sha256:bundle,
+    acknowledge_incomplete:true,idempotency_key:key};
+  sessionStorage.setItem(recoveryKey,JSON.stringify({path:transferPath,method:'POST',body,idempotency_key:key}));
+  send=async()=>Response.json({error:{code,message:'Original operation was refused'}},{status:409});
+  await render();
+  await click('[data-worker-upload-restore]');
+  expect(posts).toEqual([{path:transferPath,body}]);
+  expect(sessionStorage.getItem(recoveryKey)!==null).toBe(retains);
+  expect(button('[data-worker-upload-restore]')!==null).toBe(retains);
 });

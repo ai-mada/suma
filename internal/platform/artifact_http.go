@@ -98,17 +98,34 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, actor Acto
 			respond(w, 201, out, e)
 			return true
 		}
-		if len(parts) == 3 && parts[2] == "artifact-uploads" && r.Method == http.MethodGet &&
-			r.URL.Path == "/api/v1/release-workers/"+parts[1]+"/artifact-uploads" {
+		if len(parts) == 3 && (parts[2] == "artifact-uploads" || parts[2] == "candidate-transfers") && r.Method == http.MethodGet &&
+			r.URL.Path == "/api/v1/release-workers/"+parts[1]+"/"+parts[2] {
 			w.Header().Set("Cache-Control", "no-store")
 			query, err := url.ParseQuery(r.URL.RawQuery)
 			if err != nil || len(query["project_id"]) != 1 || query.Get("project_id") != project ||
 				len(query["cursor"]) > 1 || query.Has("cursor") && query.Get("cursor") == "" ||
 				len(query) > 1 && (!query.Has("cursor") || len(query) != 2) {
-				writeError(w, invalid("无效的执行节点上传核对请求"))
+				writeError(w, invalid("无效的执行节点传输核对请求"))
+				return true
+			}
+			if parts[2] == "candidate-transfers" {
+				out, err := s.Service.ListReleaseWorkerCandidateRecovery(ctx, actor, project, parts[1], query.Get("cursor"))
+				respond(w, http.StatusOK, out, err)
 				return true
 			}
 			out, err := s.Service.ListReleaseWorkerUploadRecovery(ctx, actor, project, parts[1], query.Get("cursor"))
+			respond(w, http.StatusOK, out, err)
+			return true
+		}
+		if len(parts) == 5 && parts[2] == "candidate-transfers" && parts[4] == "abandon" && r.Method == http.MethodPost && manualWorkerCandidateAbandonAPIPath(r.URL.Path) {
+			w.Header().Set("Cache-Control", "no-store")
+			var request ReleaseWorkerCandidateAbandonRequest
+			body, err := json.Marshal(m)
+			if r.URL.RawQuery != "" || err != nil || strictjson.Decode(body, &request, manualRunnerRotationBodyLimit) != nil {
+				writeError(w, invalid("无效的执行节点候选传输核对请求"))
+				return true
+			}
+			out, err := s.Service.AbandonReleaseWorkerCandidateTransfer(ctx, actor, project, parts[1], parts[3], request)
 			respond(w, http.StatusOK, out, err)
 			return true
 		}

@@ -766,7 +766,7 @@ function ScopedToolWorkspace({
       <ToolRecoveryNotice action={action} onRestored={saved} />
       {(!rotationWorker||workerAccessLost)&&<>
         {(uploadAction.pending||uploadAction.conflict)&&<WorkerUploadRecoveryNotice action={uploadAction} disabled={action.busy||workerAccessLost} onRestored={setUploadReceipt}/>}
-        {uploadReceipt&&!workerAccessLost&&<WorkerUploadRecoveryReceipt/>}
+        {uploadReceipt&&!workerAccessLost&&<WorkerUploadRecoveryReceipt receipt={uploadReceipt}/>}
       </>}
       {replacementReceipt&&<ToolProfileReplacementReceipt value={replacementReceipt} disabled={writeBlocked} onViewOriginal={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onViewReplacement={profile=>{if(!writeBlocked&&canLeave())onSelect(profile.id);}} onEnableReplacement={profile=>void reviewReplacementTarget(profile)}/>}
       {!!connectError&&<ErrorNotice error={renderDiagnostic(connectError)}/>}

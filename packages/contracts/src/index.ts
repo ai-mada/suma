@@ -5626,6 +5626,42 @@ export interface ReleaseWorker {
   expires_at: string;
   manual_rotation_allowed?: boolean;
 }
+export interface ReleaseWorkerCandidateAbandonRequest {
+  project_id: string;
+  expected_worker_version: number;
+  expected_bundle_sha256: string;
+  acknowledge_incomplete: boolean;
+  idempotency_key: string;
+}
+export interface ReleaseWorkerCandidateAbandonResult {
+  project_id: string;
+  worker_registry_id: string;
+  transfer_id: string;
+  operation_id: string;
+  state: string;
+}
+export interface ReleaseWorkerCandidateRecoveryItem {
+  transfer_id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: string;
+  bundle_sha256: string;
+  base_commit: string;
+  head_commit: string;
+  created_at: string;
+  size_bytes: number;
+  attempt_state: string;
+  disposition: string;
+}
+export interface ReleaseWorkerCandidateRecoveryView {
+  project_id: string;
+  worker_registry_id: string;
+  worker_id: string;
+  worker_version: number;
+  items: (ReleaseWorkerCandidateRecoveryItem)[];
+  next_cursor: string;
+}
 export interface ReleaseWorkerCreation {
   id: string;
   project_id: string;

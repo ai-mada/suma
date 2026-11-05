@@ -149,6 +149,14 @@ func manualRunnerRotationAPIPath(path string) bool {
 }
 
 func manualWorkerUploadAbandonAPIPath(path string) bool {
+	return manualWorkerTransferAbandonAPIPath(path, "/artifact-uploads/")
+}
+
+func manualWorkerCandidateAbandonAPIPath(path string) bool {
+	return manualWorkerTransferAbandonAPIPath(path, "/candidate-transfers/")
+}
+
+func manualWorkerTransferAbandonAPIPath(path, segment string) bool {
 	path, found := strings.CutPrefix(path, "/api/v1/release-workers/")
 	if !found {
 		return false
@@ -157,7 +165,7 @@ func manualWorkerUploadAbandonAPIPath(path string) bool {
 	if !found {
 		return false
 	}
-	workerID, uploadID, found := strings.Cut(path, "/artifact-uploads/")
+	workerID, uploadID, found := strings.Cut(path, segment)
 	return found && desktopWorkspaceHex(workerID, 32) && desktopWorkspaceHex(uploadID, 32)
 }
 
@@ -173,9 +181,9 @@ func decode(r *http.Request) (map[string]any, error) {
 	if manualRotation && (len(raw) > manualRunnerRotationBodyLimit || !toolcontract.ValidJSONUnicode(raw)) {
 		return nil, invalid("无效的执行节点凭证轮换请求")
 	}
-	manualUploadAbandon := manualWorkerUploadAbandonAPIPath(r.URL.Path)
-	if manualUploadAbandon && (len(raw) > manualRunnerRotationBodyLimit || !toolcontract.ValidJSONUnicode(raw)) {
-		return nil, invalid("无效的结束制品上传请求")
+	manualTransferAbandon := manualWorkerUploadAbandonAPIPath(r.URL.Path) || manualWorkerCandidateAbandonAPIPath(r.URL.Path)
+	if manualTransferAbandon && (len(raw) > manualRunnerRotationBodyLimit || !toolcontract.ValidJSONUnicode(raw)) {
+		return nil, invalid("无效的结束传递请求")
 	}
 	if err = RejectDuplicateReleaseJSON(raw); err != nil {
 		return nil, err
@@ -191,7 +199,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if manualRotation || manualUploadAbandon || strings.HasPrefix(r.URL.Path, "/api/v1/candidate-compositions") || (strings.HasPrefix(r.URL.Path, "/api/v1/tasks/") && strings.HasSuffix(r.URL.Path, "/code-baseline")) || strings.HasPrefix(r.URL.Path, "/api/v1/failure-diagnosis") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || r.URL.Path == taskIterationAssignmentAPIPath || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
+	if manualRotation || manualTransferAbandon || strings.HasPrefix(r.URL.Path, "/api/v1/candidate-compositions") || (strings.HasPrefix(r.URL.Path, "/api/v1/tasks/") && strings.HasSuffix(r.URL.Path, "/code-baseline")) || strings.HasPrefix(r.URL.Path, "/api/v1/failure-diagnosis") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || r.URL.Path == taskIterationAssignmentAPIPath || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {

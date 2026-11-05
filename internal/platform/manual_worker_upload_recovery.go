@@ -66,55 +66,49 @@ const manualWorkerUploadRecoveryQuery = `
 	LEFT JOIN dag_nodes n ON n.run_id=r.id AND n.id=u.node_id
 	WHERE u.tenant_id=? AND u.project_id=? AND u.worker_id=? AND u.token_hash=? AND u.state='receiving'`
 
-type uploadRecoveryScanner interface {
+type manualTransferRecoveryScanner interface {
 	Scan(...any) error
 }
 
-func readManualWorkerUploadRecovery(row uploadRecoveryScanner, worker string) (item ReleaseWorkerUploadRecoveryItem, err error) {
-	var fence int64
-	var artifactID string
-	var published bool
-	var attemptState, completedAt, raw, nodeState sql.NullString
-	var nodeAttempt, nodeFence, lease sql.NullInt64
-	if err = row.Scan(&item.UploadID, &item.RunID, &item.NodeID, &item.Attempt, &fence, &item.ManifestSHA256, &item.CreatedAt, &item.SizeBytes,
-		&artifactID, &published, &attemptState, &completedAt, &raw, &nodeState, &nodeAttempt, &nodeFence, &lease); err != nil {
-		return item, err
+type manualTransferAttemptProof struct {
+	attemptState, completedAt, result, nodeState sql.NullString
+	nodeAttempt, nodeFence, lease                sql.NullInt64
+}
+
+func (p *manualTransferAttemptProof) scanTargets() []any {
+	return []any{&p.attemptState, &p.completedAt, &p.result, &p.nodeState, &p.nodeAttempt, &p.nodeFence, &p.lease}
+}
+
+func (p manualTransferAttemptProof) disposition(original rc.AssignmentRef) (state, disposition string) {
+	if !original.Valid() {
+		return "unverified", "unverified"
 	}
-	item.Fence = strconv.FormatInt(fence, 10)
-	item.AttemptState = "unverified"
-	item.Disposition = "unverified"
-	original := rc.AssignmentRef{RunID: item.RunID, NodeID: item.NodeID, Attempt: item.Attempt, Fence: fence, WorkerID: worker}
-	if !original.Valid() || !rc.ValidDigest(item.ManifestSHA256) {
-		return item, nil
-	}
-	switch attemptState.String {
+	state = p.attemptState.String
+	switch state {
 	case "running", "waiting", "reconciling":
-		item.AttemptState = attemptState.String
-		item.Disposition = "awaiting_attempt"
-		return item, nil
+		return state, "awaiting_attempt"
 	case "succeeded", "failed", "cancelled":
-		item.AttemptState = attemptState.String
 	default:
-		return item, nil
+		return "unverified", "unverified"
 	}
-	if artifactID != "" || published || !nodeState.Valid || !nodeAttempt.Valid || !nodeFence.Valid || !lease.Valid ||
-		nodeAttempt.Int64 < int64(item.Attempt) || nodeFence.Int64 < fence {
-		return item, nil
+	if !p.nodeState.Valid || !p.nodeAttempt.Valid || !p.nodeFence.Valid || !p.lease.Valid ||
+		p.nodeAttempt.Int64 < int64(original.Attempt) || p.nodeFence.Int64 < original.Fence {
+		return state, "unverified"
 	}
-	if nodeAttempt.Int64 == int64(item.Attempt) {
-		if nodeFence.Int64 != fence || lease.Int64 != 0 {
-			return item, nil
+	if p.nodeAttempt.Int64 == int64(original.Attempt) {
+		if p.nodeFence.Int64 != original.Fence || p.lease.Int64 != 0 {
+			return state, "unverified"
 		}
-		switch nodeState.String {
+		switch p.nodeState.String {
 		case "pending", "ready", "succeeded", "failed", "skipped", "cancelled":
 		default:
-			return item, nil
+			return state, "unverified"
 		}
-	} else if nodeFence.Int64 <= fence {
-		return item, nil
+	} else if p.nodeFence.Int64 <= original.Fence {
+		return state, "unverified"
 	}
-	if _, err := time.Parse(time.RFC3339Nano, completedAt.String); err != nil {
-		return item, nil
+	if _, err := time.Parse(time.RFC3339Nano, p.completedAt.String); err != nil {
+		return state, "unverified"
 	}
 	// The original persisted result must positively name this assignment and
 	// include a known outcome. Missing outcome evidence is not a resolved run.
@@ -123,14 +117,34 @@ func readManualWorkerUploadRecovery(row uploadRecoveryScanner, worker string) (i
 		OperationID    string `json:"operation_id"`
 		OutcomeUnknown *bool  `json:"outcome_unknown"`
 	}
-	if RejectDuplicateReleaseJSON([]byte(raw.String)) != nil || json.Unmarshal([]byte(raw.String), &result) != nil ||
+	if RejectDuplicateReleaseJSON([]byte(p.result.String)) != nil || json.Unmarshal([]byte(p.result.String), &result) != nil ||
 		result.OutcomeUnknown == nil || *result.OutcomeUnknown || result.AssignmentRef != original || result.OperationID == "" {
-		return item, nil
+		return state, "unverified"
 	}
-	item.Disposition = "eligible"
-	return item, nil
+	return state, "eligible"
 }
 
+func readManualWorkerUploadRecovery(row manualTransferRecoveryScanner, worker string) (item ReleaseWorkerUploadRecoveryItem, err error) {
+	var fence int64
+	var artifactID string
+	var published bool
+	var proof manualTransferAttemptProof
+	targets := []any{&item.UploadID, &item.RunID, &item.NodeID, &item.Attempt, &fence, &item.ManifestSHA256, &item.CreatedAt, &item.SizeBytes, &artifactID, &published}
+	if err = row.Scan(append(targets, proof.scanTargets()...)...); err != nil {
+		return item, err
+	}
+	item.Fence = strconv.FormatInt(fence, 10)
+	if !rc.ValidDigest(item.ManifestSHA256) {
+		item.AttemptState, item.Disposition = "unverified", "unverified"
+		return item, nil
+	}
+	original := rc.AssignmentRef{RunID: item.RunID, NodeID: item.NodeID, Attempt: item.Attempt, Fence: fence, WorkerID: worker}
+	item.AttemptState, item.Disposition = proof.disposition(original)
+	if item.Disposition == "eligible" && (artifactID != "" || published) {
+		item.Disposition = "unverified"
+	}
+	return item, nil
+}
 func (s *Service) ListReleaseWorkerUploadRecovery(ctx context.Context, actor Actor, project, id, cursor string) (out ReleaseWorkerUploadRecoveryView, err error) {
 	if !releaseID(project) || !desktopWorkspaceHex(id, 32) || (cursor != "" && !desktopWorkspaceHex(cursor, 32)) {
 		return out, invalid("无效的执行节点上传核对请求")

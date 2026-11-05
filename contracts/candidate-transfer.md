@@ -26,6 +26,8 @@ Start固定唯一tenant/project/run/node/attempt/fence及manifest；同操作同
 
 seal早于source结果提交，不等于任务成功。resolve与GET必须同时证明源节点当前succeeded、原attempt/fence、当前workspace base/head/evidenceSHA与封存一致，及consumer的dag_candidate_revisions完全对应。源重试、撤权、旧fence或来源失配不得通过历史receipt绕过。
 
+手动登记节点的未封存候选在原尝试已明确失败或取消时，可由原登记人在工具管理核对并结束，保留已收 Git 包。详见[候选代码核对合同](manual-worker-candidate-recovery.md)。
+
 ## Runner持久恢复
 
 source生成完成后，先将原成功Result及固定bundle路径／摘要和上传操作写入Journal CandidatePending，再上传／seal。断网或ACK丢失只重传同包，不再次运行代码；重启保留该pending，持当前lease心跳恢复。租约已丢失或取消时停止新增传输并保留核对事实，不将未知外部执行声明为新成功。结果ACK仍走原持久结果流程。

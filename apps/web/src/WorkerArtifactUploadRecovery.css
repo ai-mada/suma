@@ -19,6 +19,17 @@
 .worker-upload-row details{font-size:13px}
 .worker-upload-row details summary{display:list-item;padding-block:12px;cursor:pointer;box-sizing:border-box}
 .worker-upload-confirm{background:var(--surface-soft)}
-.worker-upload-confirm label{min-height:44px}
+.worker-upload-confirm label{min-height:44px;align-items:flex-start;cursor:pointer}
+.worker-upload-confirm input[type=checkbox]{flex:none;width:18px;height:18px;margin:3px 0 0;accent-color:var(--accent)}
 .worker-upload-recovery-receipt{margin:0;padding:10px;border-inline-start:3px solid var(--accent);color:var(--text);font-size:13px;overflow-wrap:anywhere}
 @media(max-width:500px){.worker-upload-actions>button{flex:1 1 130px}.worker-upload-row-main{align-items:flex-start}.worker-upload-row dl{grid-template-columns:minmax(65px,auto) minmax(0,1fr)}}
+.worker-upload-recovery-kinds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;border:1px solid var(--border);border-radius:8px;padding:3px;background:var(--surface-soft)}
+.worker-upload-recovery-kinds>button{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;background:transparent;line-height:1.25;color:var(--muted)}
+.worker-upload-recovery-kinds>button>svg{flex:none}
+.worker-upload-recovery-kinds>button[aria-pressed="true"]{border-color:var(--border);background:var(--surface);color:var(--text);font-weight:600}
+.worker-upload-recovery-kinds>button[aria-pressed="true"]>svg{color:var(--accent)}
+.worker-upload-commits{display:flex;flex-wrap:wrap;gap:4px 12px;min-width:0;font-size:13px;color:var(--muted)}
+.worker-upload-commits>span{min-width:0;overflow-wrap:anywhere}
+.worker-upload-commits code{padding:2px 4px;border-radius:4px;background:var(--surface-soft);color:var(--text)}
+.worker-upload-empty{border:1px dashed var(--border);border-radius:8px;padding:12px}
+.worker-upload-pagination>button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
