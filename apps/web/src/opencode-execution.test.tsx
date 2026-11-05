@@ -14,7 +14,14 @@ import type {ApiCaller} from './api';
 const capability={sdk_version:'1.19.4',server_version:'1.19.4',provider_id:'owned',model:'team/model-a',endpoint_origin:'https://models.example',configuration_sha256:'a'.repeat(64),budget_mode:'observe_only',identity_evidence:'configuration_ack_only'};
 const profile={command_id:'opencode',adapter:'opencode',protocol:'opencode-sdk-v1',profile_sha256:'b'.repeat(64),executable_sha256:'c'.repeat(64),tool_version:'1.19.4',read_only:false,workspace_tools_version:'attempt-workspace-v1',opencode_execution:capability};
 const body={project_id:'project-a',task_id:'task-a',expected_task_version:2,workflow_id:'flow-a',workflow_version:1,agent_node_id:'develop',tool_profile_id:'tool-a',expected_tool_version:3};
-const plan={id:'plan-a',project_id:'project-a',task_id:'task-a',task_version:2,workflow_id:'flow-a',workflow_version:1,agent_node_id:'develop',tool_profile_id:'tool-a',tool_profile_version:3,opencode_execution:capability,workflow:{nodes:[{id:'develop',config:{opencode_execution:capability}}]}};
+const plan={
+ id:'plan-a',project_id:'project-a',task_id:'task-a',task_version:2,run_id:'run-a',state:'ready',version:1,
+ workflow_id:'flow-a',workflow_version:1,agent_node_id:'develop',tool_profile_id:'tool-a',tool_profile_version:3,tool_profile_sha256:profile.profile_sha256,
+ opencode_execution:capability,valid:true,reason:'',created_at:'2026-11-01T00:00:00Z',expires_at:'2026-11-01T00:15:00Z',
+ context:{task:{id:'task-a',version:2,title:'Implement the task',description:'',acceptance_criteria:[]}},
+ workflow:{id:'flow-a',version:1,nodes:[{id:'develop',name:'Develop',type:'agent',command:[profile.command_id],config:{tool_profile_id:'tool-a',tool_profile_sha256:profile.profile_sha256,opencode_execution:capability}}]},
+ execution_route:{tenant_id:'org-a',project_id:'project-a',version:0,pool_id:'',grant_id:'',grant_version:0},
+};
 let root:Root|undefined,host:HTMLDivElement|undefined;
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();vi.unstubAllGlobals();await setLocale('zh-CN',{persist:false});});
 
@@ -34,7 +41,7 @@ it('keeps an original dispatch operation after mismatched fixed producer facts a
  const values=new Map<string,string>(),storage={getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>{values.set(key,value);},removeItem:(key:string)=>{values.delete(key);}};
  let wrong=true;const calls:unknown[][]=[];
  const api:ApiCaller=async(...args)=>{calls.push(args);return (wrong?{...plan,opencode_execution:{...capability,model:'different'}}:plan) as never;};
- const validate=(value:unknown,request:Parameters<typeof validateTaskDispatchResponse>[1])=>validateTaskDispatchResponse(value,request,api,'project-a');
+ const validate=(value:unknown,request:Parameters<typeof validateTaskDispatchResponse>[1])=>validateTaskDispatchResponse(value,request,api,'project-a','org-a');
  const first=new ToolWriteRecovery('opencode-original',storage,api,validate);
  await expect(first.run('/task-dispatch-plans',body)).rejects.toThrow();
  expect(first.pending?.body).toEqual(body);wrong=false;

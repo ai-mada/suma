@@ -22,14 +22,22 @@ it('keeps the exact notice and original key after a bad 200 until the matching p
 
 it('keeps Start intent for invalid or unrelated runs until the reserved run is confirmed',async()=>{
  const {validateTaskDispatchResponse}=await import('./task-dispatch-response');
- const original={id:'plan-a',project_id:'project-a',run_id:'reserved-run',state:'started',workflow:{id:'published-flow',version:2}};
+ const toolDigest='d'.repeat(64);
+ const original={
+  id:'plan-a',project_id:'project-a',task_id:'task-a',task_version:2,run_id:'reserved-run',state:'started',version:2,
+  workflow_id:'published-flow',workflow_version:2,agent_node_id:'develop',tool_profile_id:'tool-a',tool_profile_version:3,tool_profile_sha256:toolDigest,
+  valid:false,reason:'already started',created_at:'2026-11-01T00:00:00Z',expires_at:'2026-11-01T00:15:00Z',
+  context:{task:{id:'task-a',version:2,title:'Implement the task',description:'',acceptance_criteria:[]}},
+  workflow:{id:'published-flow',version:2,nodes:[{id:'develop',name:'Develop',type:'agent',command:['codex-code'],config:{tool_profile_id:'tool-a',tool_profile_sha256:toolDigest}}]},
+  execution_route:{tenant_id:'org-a',project_id:'project-a',version:0,pool_id:'',grant_id:'',grant_version:0},
+ };
  let response:unknown=null,readFails=false;const calls:unknown[][]=[];
  const send:ApiCaller=async(...args)=>{if(args[0].startsWith('/task-dispatch-plans/plan-a?')){if(readFails)throw new ApiError(403,'forbidden','not currently readable');return original as never;}calls.push(args);return response as never;};
- const validate=(value:unknown,request:import('./tool-write').ToolPendingRequest)=>validateTaskDispatchResponse(value,request,send,'project-a');
+ const validate=(value:unknown,request:import('./tool-write').ToolPendingRequest)=>validateTaskDispatchResponse(value,request,send,'project-a','org-a');
  const store=storage(),body={project_id:'project-a',expected_version:1};const first=new ToolWriteRecovery('start',store,send,validate);
  await expect(first.run('/task-dispatch-plans/plan-a/start',body)).rejects.toThrow();expect(first.pending).toBeDefined();
- response={id:'unrelated-run',project_id:'project-a',workflow_id:'managed-reserved-run',workflow_version:1};await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();
- response={id:'reserved-run',project_id:'project-a',workflow_id:'managed-reserved-run',workflow_version:1};readFails=true;await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();readFails=false;
+ response={id:'unrelated-run',tenant_id:'org-a',project_id:'project-a',workflow_id:'managed-reserved-run',workflow_version:1};await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();
+ response={id:'reserved-run',tenant_id:'org-a',project_id:'project-a',workflow_id:'managed-reserved-run',workflow_version:1};readFails=true;await expect(first.restore()).rejects.toThrow();expect(first.pending).toBeDefined();readFails=false;
  const recovered=new ToolWriteRecovery('start',store,send,validate);await recovered.restore();expect(recovered.pending).toBeUndefined();expect(calls.every(call=>JSON.stringify(call)===JSON.stringify(calls[0]))).toBe(true);
 });
 

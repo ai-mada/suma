@@ -1,0 +1,51 @@
+{
+  "stage": "T-TASK-DISPATCH-ENVELOPE-236",
+  "base": "5da7ac2809f5a41625bf31533a16513dabff9625",
+  "version": "1.0.0",
+  "date": "2026-11-05",
+  "full_platform_complete": false,
+  "focused": {
+    "passed": 30,
+    "suites": 8,
+    "repaired_knowledge_cases": 2,
+    "before_fix": [
+      "matching identity with null context accepted",
+      "another task preview rendered in the opened task dialog"
+    ],
+    "typescript": "web_workspace_passed",
+    "paired_locale_keys": 10237,
+    "production_hardcoded_messages": 0
+  },
+  "browser": {
+    "scope": "Actual Chrome, production dispatch dialog, controlled HTTP responses",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "foreign_hidden": true,
+    "denied_hidden": true,
+    "confirmation_reset": true,
+    "plan_reads": 4,
+    "mutations": 0,
+    "errors": 0,
+    "screenshot_sha256": "94163a4e6cb5864137c41d4e214fc34d4ce72b915eb3f4523e1f7fc51442b88d"
+  },
+  "reference": {
+    "project": "multica-ai/multica",
+    "commit": "e8b6a97643ccc35efbcf2a4675c8d088a288ed6e",
+    "source_copied": false
+  },
+  "pending": [
+    "trusted_workbuddy_cloud_candidate_handoff",
+    "unix_native_runner_signal",
+    "physical_multi_host_execution",
+    "full_platform_acceptance"
+  ],
+  "local_evidence": {
+    "vitest": ".cache/task-dispatch-envelope-236/vitest.log",
+    "locales": ".cache/task-dispatch-envelope-236/i18n.log",
+    "type": ".cache/task-dispatch-envelope-236/type.json",
+    "browser": ".cache/task-dispatch-envelope-236/web/visual-result.json",
+    "browser_build": ".cache/task-dispatch-envelope-236/web/build.json"
+  }
+}

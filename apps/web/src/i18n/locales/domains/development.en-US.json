@@ -238,6 +238,7 @@
   "development.dispatch.arrange_task_execution": "Arrange task execution",
   "development.dispatch.fix_task_and_requirement_context_first_review": "Fix task and requirement context first, review the tool, workflow and independent tests, then explicitly start the same plan.",
   "development.dispatch.reading_immutable_execution_plan": "Reading immutable execution plan…",
+  "development.dispatch.plan_read_mismatch": "The execution plan could not be confirmed for this task. Retry to check the current plan.",
   "development.dispatch.this_prepares_a_fixed_plan_without_calling": "This prepares a fixed plan without calling a model or starting a process. The task assignee and machine execution identity remain separate.",
   "development.dispatch.reload_workflow_and_tool_conditions": "Reload workflow and tool conditions",
   "development.dispatch.the_server_reads_task_description_acceptance_criteria": "The server reads task description, acceptance criteria and the linked requirement in one transaction. They are explicitly marked as external context for the tool.",

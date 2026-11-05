@@ -50,6 +50,8 @@ Each compatible row offers an explicit selection action. The first compatible ro
 
 The direct preview receipt must match the original project, task and task version, workflow and workflow version, Agent node, tool profile and tool version before acknowledging the pending write. Protocol-specific bindings are checked afterwards. A receipt with missing or mismatched identity keeps the original request and operation ID for recovery. Start remains an explicit, separately authorized operation.
 
+The preview receipt also validates the frozen task context, ordered knowledge pins, selected Agent binding and plan state. Reopening a plan uses the current authorized read for the exact route plan and task. A failed read hides the previous facts and Start. A successful retry requires fresh confirmation. Historical rows without a public route may be read, with Start disabled. Start receipt recovery checks the organization and reserved managed run against the original plan after its transition to started.
+
 兼容项均可直接选用，当前页首个兼容项保留推荐标识。原预览回执需匹配项目、任务、流程、开发节点和工具版本。回执不匹配时保留原请求与操作标识，供用户核对恢复。
 
 CLI: `suma --project PROJECT tasks dispatch-options TASK --expected-version N --workflow FLOW --workflow-version N --node NODE [--limit N] [--before CURSOR]`. It uses the same current read contract and does not start work.

@@ -238,6 +238,7 @@
   "development.dispatch.arrange_task_execution": "安排任务执行",
   "development.dispatch.fix_task_and_requirement_context_first_review": "先固定任务与需求依据，审阅工具、流程和独立测试，再显式启动同一计划。",
   "development.dispatch.reading_immutable_execution_plan": "正在读取不可变执行计划…",
+  "development.dispatch.plan_read_mismatch": "无法确认这是当前任务的执行计划。请重试核对。",
   "development.dispatch.this_prepares_a_fixed_plan_without_calling": "本次只准备固定计划，不调用模型或启动进程。任务负责人和机器执行身份分别保留。",
   "development.dispatch.reload_workflow_and_tool_conditions": "重新读取流程与工具条件",
   "development.dispatch.the_server_reads_task_description_acceptance_criteria": "服务端会在同一事务中读取任务说明、验收条目及关联需求；它们会作为明确标记的外部上下文交给工具。",

@@ -1,7 +1,7 @@
 import {ExecutionModelFacts} from './ExecutionModelFacts';
 import {DevelopmentContinuationFacts} from './DevelopmentContinuationSelector';
 import {CodexNativeSkillFacts} from './CodexNativeSkillFacts';
-import {validateTaskDispatchResponse} from './task-dispatch-response';
+import {validTaskDispatchPlan, validateTaskDispatchResponse} from './task-dispatch-response';
 import {ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {useApi} from './api-context';
 import type {KnowledgeReference} from './knowledge-model';
@@ -50,6 +50,7 @@ type Props = {
   project: string;
   session: Session;
   task?: RecordItem;
+  taskID?: string;
   planID?: string;
   initialWorkflow?: Workflow;
   handoffTool?: ToolTaskHandoffPin;
@@ -60,12 +61,15 @@ type Props = {
 export function TaskDispatchDialog(props:Props){
   const api=useApi(),owner=useRef({api,epoch:0});
   if(owner.current.api!==api)owner.current={api,epoch:owner.current.epoch+1};
-  return <TaskDispatchScope key={JSON.stringify([props.session.organization.id,props.session.user.id,props.project,props.task?.id,props.handoffTool,owner.current.epoch])} {...props}/>;
+  const taskID=props.taskID||props.task?.id;
+  const task=props.task?.id===taskID?props.task:undefined;
+  return <TaskDispatchScope key={JSON.stringify([props.session.organization.id,props.session.user.id,props.project,taskID,props.handoffTool,owner.current.epoch])} {...props} task={task} taskID={taskID}/>;
 }
 function TaskDispatchScope({
   project,
   session,
   task,
+  taskID,
   planID,
   initialWorkflow,
   handoffTool,
@@ -84,9 +88,8 @@ function TaskDispatchScope({
         : "",
     ),
     [profileID, setProfileID] = useState(""),
-    [created, setCreated] = useState<TaskDispatchPlan>(),
     [error, setError] = useState<unknown>(""),
-    [confirmed, setConfirmed] = useState(false);
+    [confirmedPlan, setConfirmedPlan] = useState<TaskDispatchPlan>();
   const [adoptedProfile,setAdoptedProfile]=useState<ToolProfile>(),[profileScope,setProfileScope]=useState(''),[recommendationLocked,setRecommendationLocked]=useState(false);
   const [handoffSelectionKey,setHandoffSelectionKey]=useState(''),[manualToolIntent,setManualToolIntent]=useState(0);
   const [knowledgeSelection,setKnowledgeSelection]=useState<KnowledgeReference[]>([]),[knowledgeRefresh,setKnowledgeRefresh]=useState(0),[knowledgeAccessBlocked,setKnowledgeAccessBlocked]=useState(false),[knowledgeValidity,setKnowledgeValidity]=useState<{key:string;valid:boolean}>();
@@ -105,7 +108,7 @@ function TaskDispatchScope({
             session.user.id +
             ":" +
             project +
-            ":dispatch", toolSessionStorage(), api, (value,request)=>validateTaskDispatchResponse(value,request,api,project)),
+            ":dispatch", toolSessionStorage(), api, (value,request)=>validateTaskDispatchResponse(value,request,api,project,session.organization.id)),
       [session.organization.id, session.user.id, project, api],
     ),
     action = useToolAction(recovery, onClose);
@@ -113,13 +116,16 @@ function TaskDispatchScope({
       "/workflows" + query(project),
     ),
     profiles = useToolList<ToolProfile>(project, "tool-profiles");
-  const planRead = useToolRead<TaskDispatchPlan>(
+  const planRead = useToolRead<unknown>(
     planID && planID !== "new"
       ? "/task-dispatch-plans/" + encodeURIComponent(planID) + query(project)
       : "",
   );
-  const plan = planRead.data || (created?.id === planID ? created : undefined),
-    flow = workflows.data?.items.find(
+  const readSettled=!!planRead.path&&!planRead.loading&&!planRead.error;
+  const plan=useMemo(()=>readSettled&&validTaskDispatchPlan(planRead.data,{project,organization:session.organization.id,planID,taskID})?planRead.data:undefined,
+    [readSettled,planRead.data,project,session.organization.id,planID,taskID]);
+  const planError=planRead.error||(readSettled&&!plan?new UiError('development.dispatch.plan_read_mismatch'):undefined);
+  const flow = workflows.data?.items.find(
       (item) => item.id + "@" + item.version === flowKey,
     ),
     directBlocked = action.busy || !!action.pending,
@@ -162,9 +168,7 @@ function TaskDispatchScope({
   useEffect(() => {
     setCurrentTask(task);
   }, [task?.id, task?.version]);
-  useEffect(() => {
-    setConfirmed(false);
-  }, [planID]);
+  useEffect(()=>{setConfirmedPlan(undefined);},[planID]);
   function saved(path: string, value: unknown) {
     if (!value || typeof value !== "object") return;
     if (path.endsWith("/start")) {
@@ -173,8 +177,7 @@ function TaskDispatchScope({
       return;
     }
     const result = value as TaskDispatchPlan;
-    setCreated(result);
-    setConfirmed(false);
+    setConfirmedPlan(undefined);
     onPlan(result.id, result.task_id);
   }
   async function refreshTask() {
@@ -225,10 +228,10 @@ function TaskDispatchScope({
       <div className="tool-dispatch">
         <ToolRecoveryNotice action={action} onRestored={saved} />
         {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
-        {planRead.error && (
+        {planError && (
           <ErrorNotice
-            error={planRead.error}
-            onRetry={() => void planRead.read()}
+            error={planError}
+            onRetry={() => {setConfirmedPlan(undefined);void planRead.read();}}
           />
         )}{" "}
         {planRead.loading && <p role="status">{t("development.dispatch.reading_immutable_execution_plan")}</p>}
@@ -454,9 +457,9 @@ function TaskDispatchScope({
                 <label className="check tool-start-confirm">
                   <input
                     type="checkbox"
-                    checked={confirmed}
-                    disabled={blocked || !plan.valid}
-                    onChange={(event) => setConfirmed(event.target.checked)}
+                    checked={confirmedPlan===plan}
+                    disabled={blocked || !plan.valid || !plan.execution_route}
+                    onChange={(event) => setConfirmedPlan(event.target.checked?plan:undefined)}
                   />
                   {t("development.dispatch.i_reviewed_the_fixed_task_requirement_tool")}</label>
                 {action.conflict && (
@@ -468,9 +471,8 @@ function TaskDispatchScope({
                     type="button"
                     disabled={blocked}
                     onClick={() => {
-                      setCreated(undefined);
                       setKnowledgeSelection([]);
-                      setConfirmed(false);
+                      setConfirmedPlan(undefined);
                       action.clearError();
                       onPlan("new");
                       void refreshTask();
@@ -483,12 +485,12 @@ function TaskDispatchScope({
                     disabled={
                       blocked ||
                       action.conflict ||
-                      !confirmed ||
+                      confirmedPlan!==plan ||
                       !plan.valid ||
-                      planRead.loading ||
-                      !!planRead.error
+                      !plan.execution_route
                     }
                     onClick={async () => {
+                      if(blocked||action.conflict||confirmedPlan!==plan||!plan.valid||!plan.execution_route)return;
                       const path =
                         "/task-dispatch-plans/" +
                         encodeURIComponent(plan.id) +
@@ -506,7 +508,7 @@ function TaskDispatchScope({
               </>
             )}
           </>
-        ) : !planRead.loading && !planRead.error ? (
+        ) : !planRead.loading && !planError ? (
           <Loading />
         ) : null}
       </div>
