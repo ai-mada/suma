@@ -51,6 +51,30 @@ func TestExecutionPoolContractsSeparateHumanAndMachineAuthority(t *testing.T) {
 	}
 }
 
+func TestExecutionPoolRunnerSlotOccupancyContract(t *testing.T) {
+	api, _ := generate()
+	op := mapAt(api, "paths", "/execution-pools/{pool}/runners", "get")
+	security := op["security"].([]any)[0].(map[string]any)
+	if op["x-read-only"] != true || op["x-response-cache-control"] != "no-store" || op["requestBody"] != nil ||
+		security["cookieAuth"] == nil || responseSchema(op, "200")["$ref"] != "#/components/schemas/ExecutionPoolRunnerPage" {
+		t.Fatal("slot occupancy must remain an uncached browser-only list projection")
+	}
+	schemas := mapAt(api, "components", "schemas")
+	slotField := mapAt(schemas, "ExecutionPoolRunner", "properties", "slot_occupancy")
+	schema := mapAt(schemas, "ExecutionPoolRunnerSlotOccupancy")
+	props := mapAt(schema, "properties")
+	if slotField["readOnly"] != true || schema["additionalProperties"] != false ||
+		len(props) != 5 || mapAt(props, "observed_at")["format"] != "date-time" {
+		t.Fatal("slot occupancy must expose only aggregate facts and observation time")
+	}
+	for _, key := range []string{"held", "running", "reconciling", "unknown"} {
+		count := mapAt(props, key)
+		if count["type"] != "integer" || count["minimum"] != 0 || count["readOnly"] != true {
+			t.Fatalf("invalid aggregate count %s: %#v", key, count)
+		}
+	}
+}
+
 func TestExecutionPoolRunnerExactReadContract(t *testing.T) {
 	api, _ := generate()
 	op := mapAt(api, "paths", "/execution-pools/{pool}/runners/{runner}", "get")

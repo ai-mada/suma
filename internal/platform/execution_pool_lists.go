@@ -2,6 +2,9 @@ package platform
 
 import (
 	"context"
+	"time"
+
+	"github.com/ai-mada/suma/internal/dag"
 )
 
 // ListOwnedPoolGrants exposes the project-approved shared metadata, never
@@ -246,7 +249,23 @@ func (s *Service) readListExecutionPoolRunnersTx(ctx context.Context, auth *auth
 		out.Items = out.Items[:limit]
 		out.NextCursor = automationEncodeCursor(p, organizationScope, collection, out.Items[len(out.Items)-1].ID)
 	}
+	workers := make(map[string]string, len(out.Items))
+	for _, runner := range out.Items {
+		workers[runner.ID] = runner.WorkerID
+	}
+	occupancy, err := dag.ReadPoolRunnerSlotCountsTx(ctx, tx, s.Dialect, pool, workers)
+	if err != nil {
+		return ExecutionPoolRunnerPage{}, err
+	}
+	observedAt := auth.checkedAt.UTC().Format(time.RFC3339)
+	for i := range out.Items {
+		runner := &out.Items[i]
+		counts := occupancy[runner.ID]
+		runner.SlotOccupancy = &ExecutionPoolRunnerSlotOccupancy{
+			ObservedAt: observedAt, Held: counts.Held, Running: counts.Running,
+			Reconciling: counts.Reconciling, Unknown: counts.Unknown,
+		}
+	}
 	out.AllowedActions = []string{"register"}
 	return out, nil
-
 }

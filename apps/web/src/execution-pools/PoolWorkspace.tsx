@@ -1,7 +1,7 @@
 import {useApi} from '../api-context';
 import { tr, useLocale, UiError } from "../i18n";
 import { Trans } from "../i18n/Trans";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, RefreshCw, ChevronRight } from "lucide-react";
 import { useToolAction, useToolRead, toolSessionStorage } from "../tool-hooks";
 import { Modal } from "../ui";
@@ -94,6 +94,24 @@ function ScopedPoolWorkspace({
         : panel === "overview"
           ? "overview"
           : "grants";
+  const runnerReadFailed = !!runners.error || !!detail.error;
+  // A retry clears the collection error before its response arrives. Keep the
+  // denied snapshot hidden until a new runner-page response succeeds.
+  const [invalidatedRunnerItems, setInvalidatedRunnerItems] = useState<Runner[]>();
+  useEffect(() => {
+    if (runnerReadFailed) setInvalidatedRunnerItems(runners.items);
+    else if (invalidatedRunnerItems && invalidatedRunnerItems !== runners.items) setInvalidatedRunnerItems(undefined);
+  }, [runnerReadFailed, runners.items, invalidatedRunnerItems]);
+  const hideRunnerFacts = runnerReadFailed || invalidatedRunnerItems === runners.items;
+  const watchRunnerSnapshotAge = tab === "runners" && runners.items.length > 0 && !hideRunnerFacts;
+  const [occupancyNow, setOccupancyNow] = useState(Date.now);
+  useEffect(() => {
+    if (!watchRunnerSnapshotAge) return;
+    const updateClock = () => setOccupancyNow(Date.now());
+    updateClock();
+    const timer = window.setInterval(updateClock, 15_000);
+    return () => window.clearInterval(timer);
+  }, [watchRunnerSnapshotAge]);
   // A local preparation dialog never retains its original row as authority.
   // Refresh, revocation and capacity changes use the exact current list item.
   const currentRecovery=recoveryPin&&recoveryPin.pool_id===selected&&recoverySnapshot?.ownerEpoch===recoveryEpoch&&serializePoolToolTargetPin(recoverySnapshot.recovery.pin)===panel&&performance.now()<recoverySnapshot.expiresAt?recoverySnapshot:undefined;
@@ -439,9 +457,13 @@ function ScopedPoolWorkspace({
                 ) : (
                   <>
                     <header className="pool-toolbar">
-                      <h3>{tr("pools.workspace.independent_nodes")}</h3>
+                      <div className="runner-list-heading">
+                        <h3>{tr("pools.workspace.independent_nodes")}</h3>
+                        <p>{tr("pool-runner-occupancy.scope")}</p>
+                      </div>
                       <div className="inline wrap">
                         <button
+                          data-pool-runner-refresh
                           disabled={runners.loading}
                           onClick={() => void runners.read()}
                         >
@@ -456,14 +478,15 @@ function ScopedPoolWorkspace({
                     <PageState
                       loading={runners.loading}
                       error={runners.error}
-                      empty={!runners.items.length}
+                      empty={hideRunnerFacts || !runners.items.length}
                       retry={() => void runners.read()}
                     >
-                      {runners.items.length ? (
+                      {!hideRunnerFacts && (runners.items.length ? (
                         <ul className="pool-record-list">
                           {runners.items.map((item) => (
-                            <li key={item.id}>
-                              <RunnerFacts runner={item} />
+                            <li key={item.id} data-pool-runner={item.id}>
+                              <RunnerFacts runner={item} occupancyNow={occupancyNow}
+                                refreshing={runners.loading || detail.loading} />
                               <div className="pool-row-actions">
                                 {item.status === "active" && <button type="button" data-pool-config-open={item.id} disabled={blocked||stale||runners.loading||!!runners.error} onClick={()=>open({kind:"prepare-config",runnerID:item.id})}>{tr('pool-config-preparation.entry')}</button>}
                                 {ownsPool && item.pool_id === selected && (
@@ -513,21 +536,20 @@ function ScopedPoolWorkspace({
                           ))}
                         </ul>
                       ) : (
-                        !runners.loading &&
-                        !runners.error && (
+                        !runners.loading && (
                           <p className="pool-empty">
                             {tr("pools.workspace.no_nodes")}
                           </p>
                         )
-                      )}
+                      ))}
                     </PageState>
-                    <PageFooter
+                    {!hideRunnerFacts && <PageFooter
                       count={runners.items.length}
                       total={runners.total}
                       next={runners.next}
                       loading={runners.loading}
                       more={() => void runners.read(runners.next)}
-                    />
+                    />}
                   </>
                 )}
               </>

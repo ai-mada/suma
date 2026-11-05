@@ -283,7 +283,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P4 分布式与自动化
 
-- [x] 双边项目授权、独立池Runner、固定执行路由、共享账本与持久租户／项目加权准入；组织／项目配置及同机实际多项目并行、独立测试与故障回流。见[合同](../../contracts/execution-pools.md)、[共享池验收](../quality/execution-pool-verification.md)。
+- [x] 双边项目授权、独立池Runner、固定执行路由、共享账本与持久租户／项目加权准入；组织／项目配置及同机实际多项目并行、独立测试与故障回流。见[合同](../../contracts/execution-pools.md)、[共享池验收](../quality/execution-pool-verification.md)。 T-POOL-RUNNER-OCCUPANCY 在拥有方节点列表展示[已保留槽位及尝试状态](../design/execution-pools.md#节点槽位占用)，按当前授权汇总并区分执行中、待核对和未知。物理多机及生产规模仍单列验收。
 - [x] 多进程SQL调度互斥、租约与故障恢复测试。
 - [x] 外部流程HTTP桥接合同与可配置执行器。
 - [x] 不可变工具档案、项目绑定执行身份、受限本机探测及60秒观察；精确命令能力、配置/程序摘要与当前授权核验后再占用attempt和资源。

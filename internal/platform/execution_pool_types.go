@@ -95,18 +95,29 @@ type ExecutionPoolGrantCommand struct {
 }
 
 type ExecutionPoolRunner struct {
-	ID                  string   `json:"id"`
-	PoolID              string   `json:"pool_id"`
-	WorkerID            string   `json:"worker_id"`
-	Name                string   `json:"name"`
-	Version             int      `json:"version"`
-	Status              string   `json:"status"`
-	MaxSlots            int      `json:"max_slots"`
-	CredentialVersion   int      `json:"credential_version"`
-	CredentialExpiresAt string   `json:"credential_expires_at"`
-	LastSeenAt          string   `json:"last_seen_at,omitempty"`
-	AllowedActions      []string `json:"allowed_actions"`
-	CreatedAt           string   `json:"created_at"`
+	ID                  string                            `json:"id"`
+	PoolID              string                            `json:"pool_id"`
+	WorkerID            string                            `json:"worker_id"`
+	Name                string                            `json:"name"`
+	Version             int                               `json:"version"`
+	Status              string                            `json:"status"`
+	MaxSlots            int                               `json:"max_slots"`
+	CredentialVersion   int                               `json:"credential_version"`
+	CredentialExpiresAt string                            `json:"credential_expires_at"`
+	LastSeenAt          string                            `json:"last_seen_at,omitempty"`
+	AllowedActions      []string                          `json:"allowed_actions"`
+	CreatedAt           string                            `json:"created_at"`
+	SlotOccupancy       *ExecutionPoolRunnerSlotOccupancy `json:"slot_occupancy,omitempty"`
+}
+
+// ExecutionPoolRunnerSlotOccupancy is present on the authorized pool runner
+// page only. These persisted counts do not establish machine liveness.
+type ExecutionPoolRunnerSlotOccupancy struct {
+	ObservedAt  string `json:"observed_at"`
+	Held        int    `json:"held"`
+	Running     int    `json:"running"`
+	Reconciling int    `json:"reconciling"`
+	Unknown     int    `json:"unknown"`
 }
 
 type ExecutionPoolRunnerPage struct {

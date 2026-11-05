@@ -2765,6 +2765,7 @@ export interface ExecutionPoolRunner {
   last_seen_at?: string;
   allowed_actions: (string)[];
   created_at: string;
+  slot_occupancy?: ExecutionPoolRunnerSlotOccupancy | null;
 }
 export interface ExecutionPoolRunnerCreateRequest {
   name: string;
@@ -2782,6 +2783,13 @@ export interface ExecutionPoolRunnerSession {
   runner: ExecutionPoolRunner;
   pool_active: boolean;
   scopes: (PoolScope)[];
+}
+export interface ExecutionPoolRunnerSlotOccupancy {
+  observed_at: string;
+  held: number;
+  running: number;
+  reconciling: number;
+  unknown: number;
 }
 export interface ExecutionPoolWeightChange {
   tenant_id: string;

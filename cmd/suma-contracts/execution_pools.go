@@ -9,7 +9,7 @@ func executionPoolModels() []any {
 	return []any{
 		platform.ExecutionPool{}, platform.ExecutionPoolPage{}, platform.ExecutionPoolCreateRequest{}, platform.ExecutionPoolCommandRequest{},
 		platform.ExecutionPoolGrant{}, platform.ExecutionPoolGrantPage{}, platform.ExecutionPoolGrantRequest{}, platform.ExecutionPoolGrantCommand{},
-		platform.ExecutionPoolRunner{}, platform.ExecutionPoolRunnerPage{}, platform.ExecutionPoolRunnerCreateRequest{}, platform.ExecutionPoolCredentialRequest{}, platform.ExecutionPoolCredentialResponse{}, platform.ExecutionPoolRunnerSession{},
+		platform.ExecutionPoolRunner{}, platform.ExecutionPoolRunnerSlotOccupancy{}, platform.ExecutionPoolRunnerPage{}, platform.ExecutionPoolRunnerCreateRequest{}, platform.ExecutionPoolCredentialRequest{}, platform.ExecutionPoolCredentialResponse{}, platform.ExecutionPoolRunnerSession{},
 		platform.ExecutionPoolPolicyPreview{}, platform.ExecutionPoolPolicyPreviewRequest{}, platform.ExecutionPreviewCommitRequest{}, platform.ExecutionRouteView{}, platform.ExecutionRoutePreview{}, platform.ExecutionRoutePreviewRequest{},
 		dag.PoolClaimRequest{}, platform.PoolRunnerAssignmentRequest{}, platform.PoolRunnerProgressRequest{}, platform.PoolRunnerResultRequest{}, platform.PoolToolInventoryRequest{}, platform.PoolRunnerClaimResponse{},
 		platform.ProjectPoolRunnerPage{},
@@ -53,6 +53,12 @@ func enhanceExecutionPoolSchemas(schemas map[string]any) {
 	for _, model := range []string{"ExecutionPoolRunnerCreateRequest", "ExecutionPoolCredentialRequest"} {
 		field(model, "ttl_seconds", map[string]any{"minimum": 3600, "maximum": 2592000})
 	}
+	field("ExecutionPoolRunner", "slot_occupancy", map[string]any{"readOnly": true, "description": "Included only in the owner/admin pool runner list. Counts are scheduler reservations, independent of connectivity and machine capacity."})
+	toolContractMap(schemas, "ExecutionPoolRunnerSlotOccupancy")["additionalProperties"] = false
+	field("ExecutionPoolRunnerSlotOccupancy", "observed_at", map[string]any{"format": "date-time", "readOnly": true})
+	for _, name := range []string{"held", "running", "reconciling", "unknown"} {
+		field("ExecutionPoolRunnerSlotOccupancy", name, map[string]any{"minimum": 0, "readOnly": true})
+	}
 	field("ExecutionPoolCredentialResponse", "token", map[string]any{"readOnly": true, "x-sensitive": true, "description": "Returned once after a committed registration/rotation. Never stored in operation receipts; replay returns metadata only."})
 }
 
@@ -91,6 +97,10 @@ func executionPoolContracts(add operationAdder) {
 		op["x-authorization-scope"] = "current organization owner/admin; exact browser credential"
 		if route.project {
 			op["x-authorization-scope"] = "exact project; read or current project admin for mutations"
+		}
+		if route.path == "/execution-pools/{pool}/runners" && route.method == "get" {
+			op["description"] = "Read the current organization-owned pool's paged Runner registrations with aggregate held slot counts from the control plane. Running, reconciling and unknown refer to recorded attempt states; no project, run or slot identifiers are exposed."
+			op["x-read-only"], op["x-response-cache-control"] = true, "no-store"
 		}
 		if route.path == "/execution-pools/{pool}/runners/{runner}" {
 			op["description"] = "Read one exact registered Runner in its current organization-owned pool, independently of list pagination. Current browser owner/admin authority is checked before pool ownership and the closed request. No query parameters or project context are accepted. Registration and historical last contact do not prove tool readiness; credentials and consuming-project content are never returned."

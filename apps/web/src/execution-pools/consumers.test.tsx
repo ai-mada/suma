@@ -236,6 +236,12 @@ function button(text: string) {
   expect(item, "button " + text).toBeDefined();
   return item!;
 }
+async function openManualRunnerRegistration() {
+  const manual = document.querySelector<HTMLButtonElement>("[data-pool-runner-register-manual]");
+  if (!manual) throw new Error("Manual runner registration button is missing");
+  await act(async () => manual.click());
+  await settle();
+}
 async function click(text: string) {
   await act(async () => button(text).click());
   await settle();
@@ -403,10 +409,7 @@ describe("execution pool actual React consumers", () => {
   });
   it("registers only name and bounded slot/TTL settings and keeps the issued secret out of persistent browser state", async () => {
     await mount(<ExecutionPools {...props} panel="runners" />);
-    const manual = document.querySelector<HTMLButtonElement>('[data-pool-runner-register-manual]')!;
-    expect(manual).not.toBeNull();
-    await act(async () => manual.click());
-    await settle();
+    await openManualRunnerRegistration();
     await input("name", "本机开发节点");
     await input("max_slots", "2");
     await submit();
@@ -491,7 +494,7 @@ describe("execution pool actual React consumers", () => {
   });
   it("rejects out-of-range runner slots before sending any identity registration", async () => {
     await mount(<ExecutionPools {...props} panel="runners" />);
-    await click("登记执行节点");
+    await openManualRunnerRegistration();
     await input("name", "本机开发节点");
     await input("max_slots", "129");
     await submit();
@@ -511,7 +514,7 @@ describe("execution pool actual React consumers", () => {
         });
       return original(input, options);
     });
-    await click("登记执行节点");
+    await openManualRunnerRegistration();
     await input("name", "等待回执节点");
     await input("max_slots", "2");
     await submit();
@@ -543,7 +546,7 @@ describe("execution pool actual React consumers", () => {
   it("recovers a lost registration with the same operation and shows metadata without inventing a recoverable secret", async () => {
     loseRegistration = true;
     await mount(<ExecutionPools {...props} panel="runners" />);
-    await click("登记执行节点");
+    await openManualRunnerRegistration();
     await input("name", "本机开发节点");
     await input("max_slots", "2");
     await submit();

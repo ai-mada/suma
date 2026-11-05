@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-POOL-RUNNER-OCCUPANCY 从共享资源池的执行节点页查看已保留槽位和登记上限，区分执行中记录、待核对与未知占用。真实派发、保留和核对释放已定向验证。 [交互](../design/execution-pools.md#节点槽位占用) · [验证](../quality/pool-runner-occupancy-verification.md)
+
 T-PORTFOLIO-CAPACITY 从项目管理按周对照已分摊任务工时与组织工作日历。可筛选已超配或待核对人员，展开任务依据，跳转原任务和有权工作日历。已验证跨周分摊、当前撤权和桌面／窄屏交互。 [交互](../design/project-portfolio.md#跨项目周负荷与容量) · [验证](../quality/project-portfolio-capacity-verification.md)
 
 T-REPOSITORY-SOURCE-INTEGRATION-248 从当前正式验收直接打开仓库集成。已用同一 Git 候选完成独立测试、预演、批准、受管分支快进与原回执核对。 [验证](../quality/repository-source-integration-verification.md)

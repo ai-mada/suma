@@ -110,6 +110,7 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, acto
 		out, err := s.Service.CommandOwnedPoolGrant(ctx, s.Engine, actor, parts[1], parts[3], request)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "execution-pools" && parts[2] == "runners" && r.Method == http.MethodGet:
+		w.Header().Set("Cache-Control", "no-store")
 		limit, ok := page()
 		if !ok {
 			return true

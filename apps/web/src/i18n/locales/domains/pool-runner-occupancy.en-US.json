@@ -1,0 +1,12 @@
+{
+  "pool-runner-occupancy.title": "Held slots",
+  "pool-runner-occupancy.configured_value": "Registration limit {{count}}",
+  "pool-runner-occupancy.running": "Recorded running",
+  "pool-runner-occupancy.reconciling": "Pending reconciliation",
+  "pool-runner-occupancy.unknown": "State unknown",
+  "pool-runner-occupancy.observed_at": "Read at",
+  "pool-runner-occupancy.refreshing": "Refreshing",
+  "pool-runner-occupancy.stale": "Snapshot may be outdated",
+  "pool-runner-occupancy.unavailable": "Occupancy unavailable",
+  "pool-runner-occupancy.scope": "Counts come from the scheduler. Slots awaiting reconciliation remain held. Check node readiness separately before dispatch."
+}

@@ -8,6 +8,7 @@ import {
 } from "../SchedulingFacts";
 import type { PoolPolicy, Grant, Runner } from "./model";
 import { PoolStatus } from "./Shared";
+import { RunnerSlotOccupancy } from "./RunnerSlotOccupancy";
 export function PoolPolicyFacts({ policy }: { policy: PoolPolicy }) {
   useLocale();
   return (
@@ -126,7 +127,11 @@ export function GrantFacts({ grant }: { grant: Grant }) {
     </>
   );
 }
-export function RunnerFacts({ runner }: { runner: Runner }) {
+export function RunnerFacts({ runner, occupancyNow, refreshing }: {
+  runner: Runner;
+  occupancyNow: number;
+  refreshing: boolean;
+}) {
   useLocale();
   return (
     <>
@@ -157,6 +162,8 @@ export function RunnerFacts({ runner }: { runner: Runner }) {
         />
       </p>
       <small>{tr("pools.runner.registration_notice")}</small>
+      <RunnerSlotOccupancy snapshot={runner.slot_occupancy} configuredSlots={runner.max_slots}
+        now={occupancyNow} refreshing={refreshing} />
     </>
   );
 }

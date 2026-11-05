@@ -1,0 +1,12 @@
+{
+  "pool-runner-occupancy.title": "已占用槽位",
+  "pool-runner-occupancy.configured_value": "登记上限 {{count}} 个槽位",
+  "pool-runner-occupancy.running": "调度记录执行中",
+  "pool-runner-occupancy.reconciling": "待核对",
+  "pool-runner-occupancy.unknown": "状态未知",
+  "pool-runner-occupancy.observed_at": "读取时间",
+  "pool-runner-occupancy.refreshing": "正在刷新",
+  "pool-runner-occupancy.stale": "快照可能已过时",
+  "pool-runner-occupancy.unavailable": "占用数据不可用",
+  "pool-runner-occupancy.scope": "占用数量来自调度记录。待核对的槽位仍然占用。派发前请核对节点的就绪情况。"
+}

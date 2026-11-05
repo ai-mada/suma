@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-POOL-RUNNER-OCCUPANCY 核验拥有方当前授权、真实领取和待核对槽位、精确释放、只读汇总及双语节点页。 [阶段验证](pool-runner-occupancy-verification.md)
+
 T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
 
 T-REPOSITORY-SOURCE-INTEGRATION-248 核验真实 Git 分支从基线推进到独立测试的同一提交，覆盖提前执行、计划版本漂移、错用回执与原结果重传。 [阶段验证](repository-source-integration-verification.md)

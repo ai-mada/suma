@@ -695,6 +695,19 @@
     "full_platform_complete": false,
     "git_record": ".cache/workbuddy-local-candidate-239/post-git.json"
   },
+  "pool_runner_occupancy": {
+    "stage": "T-POOL-RUNNER-OCCUPANCY",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "2fcf6d8c72cf6a9ac877be2117a93ce8fbc9fd1f",
+    "contract": "contracts/execution-pools.md#节点槽位占用",
+    "design": "docs/design/execution-pools.md#节点槽位占用",
+    "report": "docs/quality/pool-runner-occupancy-verification.md",
+    "actual": "The owning organization reads aggregated held slots for the current runner page using exact attempt and fence. Running, reconciliation and unknown counts remain separate, and current authorization and registration APIs retain their own scope.",
+    "known_limitations": "The read covers scheduler reservations only. Machine liveness, readiness, physical multi-host, other databases and production scale need separate evidence.",
+    "full_platform_complete": false,
+    "git_record": ".cache/pool-runner-occupancy/post-git.json"
+  },
   "project_portfolio_capacity": {
     "stage": "T-PORTFOLIO-CAPACITY",
     "version": "1.0.0",

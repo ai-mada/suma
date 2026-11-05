@@ -14433,6 +14433,18 @@
           "pool_id": {
             "type": "string"
           },
+          "slot_occupancy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionPoolRunnerSlotOccupancy"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Included only in the owner/admin pool runner list. Counts are scheduler reservations, independent of connectivity and machine capacity.",
+            "readOnly": true
+          },
           "status": {
             "type": "string"
           },
@@ -14535,6 +14547,44 @@
           "runner",
           "pool_active",
           "scopes"
+        ],
+        "type": "object"
+      },
+      "ExecutionPoolRunnerSlotOccupancy": {
+        "additionalProperties": false,
+        "properties": {
+          "held": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "reconciling": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "running": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "unknown": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "observed_at",
+          "held",
+          "running",
+          "reconciling",
+          "unknown"
         ],
         "type": "object"
       },
@@ -73803,6 +73853,7 @@
     },
     "/execution-pools/{pool}/runners": {
       "get": {
+        "description": "Read the current organization-owned pool's paged Runner registrations with aggregate held slot counts from the control plane. Running, reconciling and unknown refer to recorded attempt states; no project, run or slot identifiers are exposed.",
         "operationId": "get_execution-pools_pool_runners",
         "parameters": [
           {
@@ -73974,7 +74025,9 @@
           "agent",
           "runner"
         ],
-        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-response-cache-control": "no-store"
       },
       "post": {
         "operationId": "post_execution-pools_pool_runners",
