@@ -218,8 +218,6 @@ func TestTaskPriorityChangesHTTPClosedDTOAndCurrentCaller(t *testing.T) {
 		invalid.Tasks = tasks
 		f.call("POST", "/task-priority-changes", invalid, 400)
 	}
-	token := f.call("POST", "/auth/tokens", f.body(map[string]any{"scope": "api", "label": "Batch authorization test"}), 201)["token"].(string)
-	f.bearer("POST", "/task-priority-changes", token, req, 403)
 
 	// This real browser actor can write initially. A later project role change
 	// has to stop access even when the previous body and operation ID match.
@@ -232,4 +230,101 @@ func TestTaskPriorityChangesHTTPClosedDTOAndCurrentCaller(t *testing.T) {
 	}
 	_, err = f.s.ChangeTaskPriorities(context.Background(), h.receiver, req)
 	handoffWantStatus(t, err, 403)
+}
+
+func TestTaskBatchCLIUsesCurrentProjectAuthority(t *testing.T) {
+	f := newFixture(t)
+	task := priorityChangeTask(t, f, "Editable priority", "medium")
+	unchanged := priorityChangeTask(t, f, "Already high", "high")
+	other := f.call("POST", "/projects", f.body(map[string]any{"title": "Other project"}), 201)["id"].(string)
+	priority := priorityChangeRequest(f.project, "high", unchanged, task)
+	priorityPreview := map[string]any{"project_id": f.project, "priority": priority.Priority, "tasks": priority.Tasks}
+
+	tokens := make(map[string]string)
+	for _, scope := range []string{"api", "runner", "agent"} {
+		tokens[scope] = f.call("POST", "/auth/tokens", f.body(map[string]any{"scope": scope, "label": "CLI authority fixture"}), 201)["token"].(string)
+	}
+	// A grant is issued by an organization administrator. Its user can later
+	// continue to use it with only their current project developer authority.
+	if _, err := f.s.DB.Exec("UPDATE suma_org_members SET role='member' WHERE tenant_id=? AND user_id=?", f.user.TenantID, f.user.ID); err != nil {
+		t.Fatal(err)
+	}
+	for _, project := range []string{f.project, other} {
+		if _, err := f.s.DB.Exec("INSERT INTO suma_project_members(project_id,user_id,role) VALUES(?,?,'developer') ON CONFLICT(project_id,user_id) DO UPDATE SET role='developer'", project, f.user.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	const priorityPath = "/task-priority-changes"
+	const previewPath = priorityPath + "/preview"
+	f.bearer("POST", previewPath, f.cookie.Value, priorityPreview, 428)
+	before := priorityChangeEffects(t, f)
+	got := f.bearer("POST", previewPath, tokens["api"], priorityPreview, 200)
+	expected := map[string]any{"project_id": f.project, "items": []any{
+		map[string]any{"task_id": unchanged.ID, "version": float64(unchanged.Version), "previous_priority": "high", "priority": "high", "changed": false},
+		map[string]any{"task_id": task.ID, "version": float64(task.Version), "previous_priority": "medium", "priority": "high", "changed": true},
+	}}
+	if !reflect.DeepEqual(got, expected) || priorityChangeEffects(t, f) != before {
+		t.Fatal("preview must return ordered current facts without changes, activity or receipt", got)
+	}
+	ownerChangeRaw(t, f, previewPath, stringify(priority), 400)
+	stalePriority := priority
+	stalePriority.Tasks = append([]TaskPriorityChangeSelection(nil), priority.Tasks...)
+	stalePriority.Tasks[1].ExpectedVersion++
+	stalePreview := map[string]any{"project_id": f.project, "priority": priority.Priority, "tasks": stalePriority.Tasks}
+	f.bearer("POST", previewPath, tokens["api"], stalePreview, 409)
+	f.bearer("POST", previewPath+"?project_id="+f.project, tokens["api"], priorityPreview, 400)
+
+	status := planningStatusRequest(f.project, "blocked", task)
+	statusPreview := TaskPlanningStatusPreviewRequest{ProjectID: f.project, Tasks: status.Tasks}
+	for _, scope := range []string{"runner", "agent"} {
+		f.bearer("POST", previewPath, tokens[scope], priorityPreview, 403)
+		f.bearer("POST", priorityPath, tokens[scope], priority, 403)
+		f.bearer("POST", testTaskPlanningStatusPreviewPath, tokens[scope], statusPreview, 403)
+		f.bearer("POST", testTaskPlanningStatusPath, tokens[scope], status, 403)
+	}
+	otherPriority := priority
+	otherPriority.ProjectID = other
+	otherStatus := status
+	otherStatus.ProjectID = other
+	f.bearer("POST", previewPath, tokens["api"], map[string]any{"project_id": other, "priority": priority.Priority, "tasks": priority.Tasks}, 403)
+	f.bearer("POST", priorityPath, tokens["api"], otherPriority, 403)
+	f.bearer("POST", testTaskPlanningStatusPreviewPath, tokens["api"], TaskPlanningStatusPreviewRequest{ProjectID: other, Tasks: status.Tasks}, 403)
+	f.bearer("POST", testTaskPlanningStatusPath, tokens["api"], otherStatus, 403)
+
+	// The operation belongs to the authorized user, so the same user can
+	// recover the original result on the other channel after versions change.
+	firstPriority := f.bearer("POST", priorityPath, tokens["api"], priority, 200)
+	if replay := f.call("POST", priorityPath, priority, 200); !reflect.DeepEqual(replay, firstPriority) {
+		t.Fatal("browser failed to replay API-originated priority receipt", replay)
+	}
+	status.Tasks[0].ExpectedVersion++
+	statusPreview.Tasks = status.Tasks
+	ready := f.bearer("POST", testTaskPlanningStatusPreviewPath, tokens["api"], statusPreview, 200)
+	if item := ready["items"].([]any)[0].(map[string]any); item["task_id"] != task.ID || item["eligibility"] != "editable" {
+		t.Fatal(ready)
+	}
+	firstStatus := f.call("POST", testTaskPlanningStatusPath, status, 200)
+	if replay := f.bearer("POST", testTaskPlanningStatusPath, tokens["api"], status, 200); !reflect.DeepEqual(replay, firstStatus) {
+		t.Fatal("API failed to replay browser-originated status receipt", replay)
+	}
+	before = priorityChangeEffects(t, f)
+	if _, err := f.s.DB.Exec("UPDATE suma_project_members SET role='viewer' WHERE project_id=? AND user_id=?", f.project, f.user.ID); err != nil {
+		t.Fatal(err)
+	}
+	f.bearer("POST", previewPath, tokens["api"], priorityPreview, 403)
+	f.bearer("POST", priorityPath, tokens["api"], priority, 403)
+	f.bearer("POST", testTaskPlanningStatusPreviewPath, tokens["api"], statusPreview, 403)
+	f.bearer("POST", testTaskPlanningStatusPath, tokens["api"], status, 403)
+	if _, err := f.s.DB.Exec("UPDATE suma_project_members SET role='developer' WHERE project_id=? AND user_id=?", f.project, f.user.ID); err != nil {
+		t.Fatal(err)
+	}
+	f.bearer("POST", "/auth/logout", tokens["api"], nil, 200)
+	f.bearer("POST", previewPath, tokens["api"], priorityPreview, 401)
+	f.bearer("POST", priorityPath, tokens["api"], priority, 401)
+	f.bearer("POST", testTaskPlanningStatusPreviewPath, tokens["api"], statusPreview, 401)
+	f.bearer("POST", testTaskPlanningStatusPath, tokens["api"], status, 401)
+	if priorityChangeEffects(t, f) != before {
+		t.Fatal("rejected requests created a domain effect")
+	}
 }

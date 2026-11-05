@@ -29,6 +29,8 @@ Read commands:
   --version                   Print product release version without an API request
   doctor | projects | requirements | tasks | runs | workflows
   task-owners --help          Preview and atomically change explicit task owners
+  task-priority --help        Preview or apply a task priority batch
+  task-status --help          Preview or apply a task planning-status batch
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
@@ -178,6 +180,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	}
 	if len(args) > 0 && args[0] == "skill-catalog" {
 		return skillCatalogCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 0 && (args[0] == "task-priority" || args[0] == "task-status") {
+		return taskBatchCommand(ctx, c, args, in, out)
 	}
 	if len(args) > 0 && args[0] == "task-owners" {
 		return taskOwnersCommand(ctx, c, args[1:], in, out)

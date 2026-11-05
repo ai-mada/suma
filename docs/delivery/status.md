@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-TASK-BATCH-CLI 在原速码命令行提供任务优先级和计划状态的预览与提交。使用同一项目权限与原操作回执。 [CLI 合同](../api/cli-task-batch-changes.md) · [验证](../quality/task-batch-cli-verification.md)
+
 T-WORKBUDDY-HISTORY-ARTIFACTS-237 可在原授权会话的已保存历史中回看 WorkBuddy 产物类型和变更动作，沿现有私有记录读取。 [合同](../../contracts/workbuddy-cloud-collaboration.md) · [验证](../quality/workbuddy-history-artifacts-verification.md)
 
 T-MULTICA-TASK-PLANNING-STATUS 支持列表和看板批量调整计划状态。逐项核对原运行及验收资格，符合条件时整批更新并可恢复原回执。 [合同](../../contracts/task-planning-status-changes.md) · [验证](../quality/task-planning-status-changes-verification.md)

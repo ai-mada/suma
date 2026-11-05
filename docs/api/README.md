@@ -1,5 +1,7 @@
 # HTTP、事件与客户端合同
 
+T-MULTICA-TASK-BATCH-CLI 提供[批量任务命令行操作](cli-task-batch-changes.md)。优先级和计划状态共享既有项目权限、版本检查和原回执。优先级新增只读预览，浏览器会话和当前用户的项目 API 凭证均须具备当前项目写权限。
+
 T-REMOTE-TOOL-SCAN-205增加13模型／6路径／7操作，原维护声明可选安装检测能力；浏览器创建及历史、普通／Pool固定目的领取与结果共用当前权威，真实stop counts显式必填。[合同](../../contracts/remote-tool-installation-scan.md)与[限定验证](../quality/remote-tool-installation-scan-verification.md)区分安装事实、配置、任务和历史。
 
 T-TURN-STEERING-188新增[原执行追加指令](../../contracts/turn-steering.md)：10接口／19模型、Codex安全steering证据。当前浏览器仅提交本人已保存message与准确session版本；机器Open基于真实turn ACK，四类普通／Pool调用复用完整原Assignment。原操作恢复不授予新写，Open正常非任务结果与权限／未知错误分开。

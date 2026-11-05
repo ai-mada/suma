@@ -249,7 +249,7 @@ func (s *Service) taskPlanningStatusRunFamilyEligibility(ctx context.Context, tx
 
 func (s *Service) PreviewTaskPlanningStatuses(ctx context.Context, actor Actor, req TaskPlanningStatusPreviewRequest) (TaskPlanningStatusPreview, error) {
 	var out TaskPlanningStatusPreview
-	if !actor.IsBrowser() {
+	if !myWorkHuman(actor) {
 		return out, forbidden()
 	}
 	if err := validateTaskPlanningStatusSelection(req.ProjectID, req.Tasks); err != nil {
@@ -273,7 +273,7 @@ func (s *Service) PreviewTaskPlanningStatuses(ctx context.Context, actor Actor, 
 
 func (s *Service) ChangeTaskPlanningStatuses(ctx context.Context, actor Actor, req TaskPlanningStatusChangeRequest) (TaskPlanningStatusChangeResult, error) {
 	var out TaskPlanningStatusChangeResult
-	if !actor.IsBrowser() {
+	if !myWorkHuman(actor) {
 		return out, forbidden()
 	}
 	if !manualTaskPlanningStatus(req.Status) || !planningKey(req.IdempotencyKey) {
@@ -352,7 +352,7 @@ func (s *Service) ChangeTaskPlanningStatuses(ctx context.Context, actor Actor, r
 
 func (s *Server) taskPlanningStatusChangesHTTP(w http.ResponseWriter, r *http.Request, actor Actor) {
 	w.Header().Set("Cache-Control", "no-store")
-	if !actor.IsBrowser() {
+	if !myWorkHuman(actor) {
 		writeError(w, forbidden())
 		return
 	}

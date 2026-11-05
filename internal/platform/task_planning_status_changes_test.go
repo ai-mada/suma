@@ -246,10 +246,6 @@ func TestTaskPlanningStatusesHTTPCloseDTOAndEnforceCurrentAuthority(t *testing.T
 	f.call("POST", testTaskPlanningStatusPreviewPath, TaskPlanningStatusPreviewRequest{ProjectID: f.project, Tasks: cross.Tasks}, 409)
 	f.call("POST", testTaskPlanningStatusPath, cross, 409)
 
-	token := f.call("POST", "/auth/tokens", f.body(map[string]any{"scope": "api", "label": "Planning status authorization test"}), 201)["token"].(string)
-	f.bearer("POST", testTaskPlanningStatusPath, token, req, 403)
-	f.bearer("POST", testTaskPlanningStatusPreviewPath, token, preview, 403)
-
 	first, err := f.s.ChangeTaskPlanningStatuses(ctx, h.receiver, req)
 	if err != nil || len(first.Changes) != 1 {
 		t.Fatal(first, err)

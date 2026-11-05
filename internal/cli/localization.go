@@ -150,6 +150,10 @@ var cliMessages = map[string]cliMessage{
 	"invalid delivery receipt; outcome may be unknown; retry the same delivery ID and exact body":                                           {"cli.webhook.receipt_invalid", "投递回执无效，结果可能未知；请使用相同投递标识和原始正文重试"},
 	"invalid list response":                     {"cli.tui.list_invalid", "列表响应无效"},
 	"terminal session ended or could not start": {"cli.tui.failed", "终端会话已结束或无法启动"},
+	taskBatchUsage:                              {"cli.task_batch.action", "task-priority 与 task-status 的批量操作需要 preview 或 apply 及 --file JSON_FILE|-，请查看 --help"},
+	taskBatchInputInvalid:                       {"cli.task_batch.invalid", "任务批量请求需要准确项目、1～16 个不同任务 ID 和整数版本、所需目标值，以及提交的原操作编号"},
+	taskBatchPreviewInvalid:                     {"cli.task_batch.preview_invalid", "任务批量预览与所选项目、任务或版本不一致"},
+	taskBatchUnconfirmed:                        {"cli.task_batch.unconfirmed", "任务批量回执尚未确认，请仅使用相同操作编号和请求正文重试"},
 	taskOwnersUsage:                             {"cli.task_owners.action", "task-owners 需要 targets、preview 或 apply，请查看 --help"},
 	taskOwnersInvalid:                           {"cli.task_owners.invalid", "负责人变更请求需要准确任务和人员版本；采用还需要预览摘要、明确确认及原操作编号"},
 	"handoffs requires list, get, create, accept, return, or withdraw; use handoffs --help":                          {"cli.handoff.action_required", "handoffs 需要 list、get、create、accept、return 或 withdraw，请查看 handoffs --help"},
@@ -283,6 +287,8 @@ const helpZH = `suma — 速码控制面客户端
   --version                   输出产品发布版本，不请求 API
   doctor | projects | requirements | tasks | runs | workflows
   task-owners --help          预览并原子变更明确所选任务的负责人
+  task-priority --help        预览或提交任务优先级批量变更
+  task-status --help          预览或提交任务计划状态批量变更
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID

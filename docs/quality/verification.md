@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MULTICA-TASK-BATCH-CLI 验证实际命令行、只读预览、明确提交及同一账号的原回执跨入口恢复。 [阶段验证](task-batch-cli-verification.md)
+
 T-WORKBUDDY-HISTORY-ARTIFACTS-237 核验原会话通知、产物元数据持久读取、分享隔离及中英文历史界面。 [阶段验证](workbuddy-history-artifacts-verification.md)
 
 T-MULTICA-TASK-PLANNING-STATUS 验证真实运行阻塞、正式验收保护、看板归组和跨刷新恢复原回执。 [阶段验证](task-planning-status-changes-verification.md)

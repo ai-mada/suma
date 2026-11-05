@@ -14,6 +14,7 @@ import (
 
 const (
 	taskPriorityChangeAPIPath    = "/api/v1/task-priority-changes"
+	taskPriorityPreviewAPIPath   = taskPriorityChangeAPIPath + "/preview"
 	taskPriorityChangeBodyLimit  = 16 << 10
 	taskPriorityChangeInvalid    = "Invalid task priority change request"
 	taskPrioritySelectionChanged = "所选任务已变化或不可编辑，请刷新任务列表"
@@ -31,6 +32,25 @@ type TaskPriorityChangeRequest struct {
 	IdempotencyKey string                        `json:"idempotency_key"`
 }
 
+type TaskPriorityChangePreviewRequest struct {
+	ProjectID string                        `json:"project_id"`
+	Priority  string                        `json:"priority"`
+	Tasks     []TaskPriorityChangeSelection `json:"tasks"`
+}
+
+type TaskPriorityChangePreviewItem struct {
+	TaskID           string `json:"task_id"`
+	Version          int    `json:"version"`
+	PreviousPriority string `json:"previous_priority"`
+	Priority         string `json:"priority"`
+	Changed          bool   `json:"changed"`
+}
+
+type TaskPriorityChangePreview struct {
+	ProjectID string                          `json:"project_id"`
+	Items     []TaskPriorityChangePreviewItem `json:"items"`
+}
+
 type TaskPriorityChangeReceipt struct {
 	TaskID           string `json:"task_id"`
 	PreviousVersion  int    `json:"previous_version"`
@@ -46,17 +66,17 @@ type TaskPriorityChangeResult struct {
 	Changes     []TaskPriorityChangeReceipt `json:"changes"`
 }
 
-func validateTaskPriorityChange(req TaskPriorityChangeRequest) error {
-	switch req.Priority {
+func validateTaskPrioritySelection(project, priority string, tasks []TaskPriorityChangeSelection) error {
+	switch priority {
 	case "urgent", "high", "medium", "low":
 	default:
 		return invalid(taskPriorityChangeInvalid)
 	}
-	if !handoffID(req.ProjectID, false) || !planningKey(req.IdempotencyKey) || len(req.Tasks) < 1 || len(req.Tasks) > 16 {
+	if !handoffID(project, false) || len(tasks) < 1 || len(tasks) > 16 {
 		return invalid(taskPriorityChangeInvalid)
 	}
-	seen := make(map[string]bool, len(req.Tasks))
-	for _, task := range req.Tasks {
+	seen := make(map[string]bool, len(tasks))
+	for _, task := range tasks {
 		if !handoffID(task.TaskID, false) || seen[task.TaskID] || task.ExpectedVersion < 1 || task.ExpectedVersion > math.MaxInt32 {
 			return invalid(taskPriorityChangeInvalid)
 		}
@@ -65,14 +85,73 @@ func validateTaskPriorityChange(req TaskPriorityChangeRequest) error {
 	return nil
 }
 
+type taskPriorityChangeRow struct {
+	item  TaskPriorityChangePreviewItem
+	title string
+}
+
+func (s *Service) taskPriorityChangeRowsTx(ctx context.Context, auth *authorizedCommand, project, priority string, tasks []TaskPriorityChangeSelection) ([]taskPriorityChangeRow, error) {
+	rows := make([]taskPriorityChangeRow, 0, len(tasks))
+	for _, selected := range tasks {
+		row := taskPriorityChangeRow{item: TaskPriorityChangePreviewItem{TaskID: selected.TaskID, Priority: priority}}
+		var status string
+		err := auth.tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT version,priority,status,title FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`)),
+			auth.target.tenantID, project, selected.TaskID).Scan(&row.item.Version, &row.item.PreviousPriority, &status, &row.title)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, conflict(taskPrioritySelectionChanged)
+		}
+		if err != nil {
+			return nil, err
+		}
+		if row.item.Version != selected.ExpectedVersion || status == "archived" || status == "deleted" {
+			return nil, conflict(taskPrioritySelectionChanged)
+		}
+		row.item.Changed = row.item.PreviousPriority != priority
+		if row.item.Changed && row.item.Version == math.MaxInt32 {
+			return nil, conflict(recordVersionExhausted)
+		}
+		rows = append(rows, row)
+	}
+	return rows, nil
+}
+
+// PreviewTaskPriorities returns the current authorized values without recording
+// an operation. Apply will recheck the same explicit versions and eligibility.
+func (s *Service) PreviewTaskPriorities(ctx context.Context, actor Actor, req TaskPriorityChangePreviewRequest) (TaskPriorityChangePreview, error) {
+	var out TaskPriorityChangePreview
+	if !myWorkHuman(actor) {
+		return out, forbidden()
+	}
+	if err := validateTaskPrioritySelection(req.ProjectID, req.Priority, req.Tasks); err != nil {
+		return out, err
+	}
+	ctx, auth, close, err := s.planningAuthority(ctx, actor, req.ProjectID, req.ProjectID, purposeProjectWrite)
+	if err != nil {
+		return out, err
+	}
+	defer close()
+	rows, err := s.taskPriorityChangeRowsTx(ctx, auth, req.ProjectID, req.Priority, req.Tasks)
+	if err != nil {
+		return out, err
+	}
+	out = TaskPriorityChangePreview{ProjectID: req.ProjectID, Items: make([]TaskPriorityChangePreviewItem, 0, len(rows))}
+	for _, row := range rows {
+		out.Items = append(out.Items, row.item)
+	}
+	return out, nil
+}
+
 // ChangeTaskPriorities changes planning metadata while keeping the original
 // task basis and formal evidence intact, including on an accepted task.
 func (s *Service) ChangeTaskPriorities(ctx context.Context, actor Actor, req TaskPriorityChangeRequest) (TaskPriorityChangeResult, error) {
 	var out TaskPriorityChangeResult
-	if !actor.IsBrowser() {
+	if !myWorkHuman(actor) {
 		return out, forbidden()
 	}
-	if err := validateTaskPriorityChange(req); err != nil {
+	if !planningKey(req.IdempotencyKey) {
+		return out, invalid(taskPriorityChangeInvalid)
+	}
+	if err := validateTaskPrioritySelection(req.ProjectID, req.Priority, req.Tasks); err != nil {
 		return out, err
 	}
 	project := req.ProjectID
@@ -91,33 +170,20 @@ func (s *Service) ChangeTaskPriorities(ctx context.Context, actor Actor, req Tas
 		return out, err
 	}
 
+	rows, err := s.taskPriorityChangeRowsTx(ctx, auth, project, req.Priority, req.Tasks)
+	if err != nil {
+		return out, err
+	}
 	tenant, tx := auth.target.tenantID, auth.tx
-	receipts := make([]TaskPriorityChangeReceipt, 0, len(req.Tasks))
-	titles := make([]string, 0, len(req.Tasks))
-	for _, selected := range req.Tasks {
-		receipt := TaskPriorityChangeReceipt{TaskID: selected.TaskID, Priority: req.Priority}
-		var status, title string
-		err = tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT version,priority,status,title FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`)),
-			tenant, project, selected.TaskID).Scan(&receipt.PreviousVersion, &receipt.PreviousPriority, &status, &title)
-		if errors.Is(err, sql.ErrNoRows) {
-			return out, conflict(taskPrioritySelectionChanged)
-		}
-		if err != nil {
-			return out, err
-		}
-		if receipt.PreviousVersion != selected.ExpectedVersion || status == "archived" || status == "deleted" {
-			return out, conflict(taskPrioritySelectionChanged)
-		}
-		receipt.Version = receipt.PreviousVersion
-		receipt.Changed = receipt.PreviousPriority != req.Priority
+	receipts := make([]TaskPriorityChangeReceipt, 0, len(rows))
+	for _, row := range rows {
+		item := row.item
+		receipt := TaskPriorityChangeReceipt{TaskID: item.TaskID, PreviousVersion: item.Version, Version: item.Version,
+			PreviousPriority: item.PreviousPriority, Priority: item.Priority, Changed: item.Changed}
 		if receipt.Changed {
-			if receipt.Version == math.MaxInt32 {
-				return out, conflict(recordVersionExhausted)
-			}
 			receipt.Version++
 		}
 		receipts = append(receipts, receipt)
-		titles = append(titles, title)
 	}
 
 	at := now()
@@ -140,7 +206,7 @@ func (s *Service) ChangeTaskPriorities(ctx context.Context, actor Actor, req Tas
 		if count != 1 {
 			return out, conflict(taskPrioritySelectionChanged)
 		}
-		if err = s.commandActivity(ctx, auth, "tasks.updated", receipt.TaskID, titles[i]); err != nil {
+		if err = s.commandActivity(ctx, auth, "tasks.updated", receipt.TaskID, rows[i].title); err != nil {
 			return out, err
 		}
 	}
@@ -157,7 +223,7 @@ func (s *Service) ChangeTaskPriorities(ctx context.Context, actor Actor, req Tas
 
 func (s *Server) taskPriorityChangesHTTP(w http.ResponseWriter, r *http.Request, actor Actor) {
 	w.Header().Set("Cache-Control", "no-store")
-	if !actor.IsBrowser() {
+	if !myWorkHuman(actor) {
 		writeError(w, forbidden())
 		return
 	}
@@ -171,8 +237,22 @@ func (s *Server) taskPriorityChangesHTTP(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	raw, err := io.ReadAll(io.LimitReader(r.Body, taskPriorityChangeBodyLimit+1))
+	if err != nil {
+		writeError(w, invalid(taskPriorityChangeInvalid))
+		return
+	}
+	if r.URL.Path == taskPriorityPreviewAPIPath {
+		var req TaskPriorityChangePreviewRequest
+		if strictjson.Decode(raw, &req, taskPriorityChangeBodyLimit) != nil {
+			writeError(w, invalid(taskPriorityChangeInvalid))
+			return
+		}
+		out, err := s.Service.PreviewTaskPriorities(r.Context(), actor, req)
+		respond(w, http.StatusOK, out, err)
+		return
+	}
 	var req TaskPriorityChangeRequest
-	if err != nil || strictjson.Decode(raw, &req, taskPriorityChangeBodyLimit) != nil {
+	if strictjson.Decode(raw, &req, taskPriorityChangeBodyLimit) != nil {
 		writeError(w, invalid(taskPriorityChangeInvalid))
 		return
 	}

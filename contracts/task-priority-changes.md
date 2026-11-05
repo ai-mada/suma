@@ -2,7 +2,9 @@
 
 T-MULTICA-TASK-PRIORITY。对应 Multica M07。工作台的任务列表和看板使用同一份已加载任务选择。在批量栏选择“调整优先级”，选定目标后逐项核对原值和新值。未改变的任务明确显示。目标已与所有任务相同时，界面无需提交。
 
-`POST /api/v1/task-priority-changes` 仅接受当前浏览器账号，无查询参数。正文为 `{project_id, priority, tasks:[{task_id, expected_version}], idempotency_key}`，目标值为 `urgent`、`high`、`medium`、`low`。保留选中顺序，一次最多 16 个不同任务。已有自定义优先级保留原显示，可明确更新为标准值。
+`POST /api/v1/task-priority-changes` 接受当前浏览器账号或该项目的用户 API 凭证，无查询参数。正文为 `{project_id, priority, tasks:[{task_id, expected_version}], idempotency_key}`，目标值为 `urgent`、`high`、`medium`、`low`。保留选中顺序，一次最多 16 个不同任务。已有自定义优先级保留原显示，可明确更新为标准值。
+
+只读预览使用 `POST /api/v1/task-priority-changes/preview`，正文只包含 `project_id`、`priority`、`tasks`。响应 `{project_id,items:[{task_id,version,previous_priority,priority,changed}]}`，不预留写入或生成操作回执。命令行沿用此接口。
 
 服务端核对当前项目写权限并检查原操作回执。新操作先在同一事务中核对每个任务的范围、版本和可编辑状态。一项不符则整批拒绝。只变更优先级、任务版本和更新时间。保留负责人、依赖、排期、任务状态及既有验收证据。变更形成原任务活动，空变更只返回原版本。已有草稿需要按最新任务版本核对。
 

@@ -7553,6 +7553,22 @@ export interface TaskPlanningStatusSelection {
   task_id: string;
   expected_version: number;
 }
+export interface TaskPriorityChangePreview {
+  project_id: string;
+  items: (TaskPriorityChangePreviewItem)[];
+}
+export interface TaskPriorityChangePreviewItem {
+  task_id: string;
+  version: number;
+  previous_priority: string;
+  priority: string;
+  changed: boolean;
+}
+export interface TaskPriorityChangePreviewRequest {
+  project_id: string;
+  priority: string;
+  tasks: (TaskPriorityChangeSelection)[];
+}
 export interface TaskPriorityChangeReceipt {
   task_id: string;
   previous_version: number;

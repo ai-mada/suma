@@ -361,7 +361,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.applyLocalePreferences(w, r, actor)
-	if r.URL.Path == taskPriorityChangeAPIPath {
+	if r.URL.Path == taskPriorityChangeAPIPath || r.URL.Path == taskPriorityPreviewAPIPath {
 		s.taskPriorityChangesHTTP(w, r, actor)
 		return
 	}

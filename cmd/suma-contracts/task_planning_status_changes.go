@@ -12,7 +12,7 @@ func taskPlanningStatusModels() []any {
 
 func taskPlanningStatusContracts(add operationAdder, api map[string]any) {
 	preview := add("/task-planning-status-changes/preview", "post", "TaskPlanningStatusPreview", false, false)
-	browserOnly(preview)
+	preview["x-disallowed-token-scopes"] = []string{"agent", "runner"}
 	successStatus(preview, "200")
 	request(preview, "TaskPlanningStatusPreviewRequest")
 	preview["parameters"] = []any{}
@@ -20,7 +20,7 @@ func taskPlanningStatusContracts(add operationAdder, api map[string]any) {
 	preview["x-no-external-effects"] = true
 	preview["description"] = "Read the exact selected task versions and authoritative eligibility for planning-status changes. This preview does not create an operation, run or acceptance."
 	apply := add("/task-planning-status-changes", "post", "TaskPlanningStatusChangeResult", false, true)
-	browserOnly(apply)
+	apply["x-disallowed-token-scopes"] = []string{"agent", "runner"}
 	successStatus(apply, "200")
 	request(apply, "TaskPlanningStatusChangeRequest")
 	apply["parameters"] = []any{}

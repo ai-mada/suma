@@ -14,8 +14,8 @@ func TestTaskPlanningStatusPublicContract(t *testing.T) {
 		t.Fatal("preview must stay read-only and separate from the batch command")
 	}
 	for _, op := range []map[string]any{preview, apply} {
-		if !reflect.DeepEqual(op["security"], []any{map[string]any{"cookieAuth": []string{}}}) {
-			t.Fatal("planning status requires current browser authority")
+		if !reflect.DeepEqual(op["security"], []any{map[string]any{"cookieAuth": []string{}}, map[string]any{"bearerAuth": []string{}}}) || !reflect.DeepEqual(op["x-disallowed-token-scopes"], []string{"agent", "runner"}) {
+			t.Fatal("planning status requires current browser or scoped user API authority")
 		}
 		for _, raw := range op["parameters"].([]any) {
 			if raw.(map[string]any)["in"] == "query" {
