@@ -35,6 +35,7 @@ Read commands:
   run events ID [--after SEQUENCE]
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
   run scheduling RUN --node NODE
+  run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks dispatch-test-option --help   Check an exact independent test tool
@@ -261,7 +262,7 @@ func commandFlags(name string) *flag.FlagSet {
 
 func runCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
 	switch args[0] {
-	case "watch", "scheduling", "queue":
+	case "watch", "scheduling", "workbuddy-status", "queue":
 		return runObservationCommand(ctx, c, args[0], args[1:], out)
 	case "show", "events", "command":
 		if len(args) < 2 || args[1] == "" || strings.ContainsAny(args[1], "/\\?#%") || args[1] == "." || args[1] == ".." {

@@ -13,15 +13,15 @@ import (
 )
 
 type cloudNode struct {
-	spec                                       dag.Node
-	binding                                    wc.NodeBinding
-	specHash, requestHash, runState, nodeState string
-	runVersion, attempt                        int
+	spec                                                   dag.Node
+	binding                                                wc.NodeBinding
+	specHash, requestHash, runState, nodeState, nodeReason string
+	runVersion, attempt                                    int
 }
 
 func (w *WorkBuddyConnections) cloudNodeTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string) (out cloudNode, err error) {
 	var raw string
-	err = tx.QueryRowContext(ctx, w.s.q(w.s.executionReadSQL(`SELECT n.spec,r.version,r.state,n.state,n.attempt FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id WHERE r.tenant_id=? AND r.project_id=? AND n.run_id=? AND n.id=?`, true)), tenant, project, run, node).Scan(&raw, &out.runVersion, &out.runState, &out.nodeState, &out.attempt)
+	err = tx.QueryRowContext(ctx, w.s.q(w.s.executionReadSQL(`SELECT n.spec,r.version,r.state,n.state,n.attempt,n.reason FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id WHERE r.tenant_id=? AND r.project_id=? AND n.run_id=? AND n.id=?`, true)), tenant, project, run, node).Scan(&raw, &out.runVersion, &out.runState, &out.nodeState, &out.attempt, &out.nodeReason)
 	if err == sql.ErrNoRows {
 		return out, missing()
 	}

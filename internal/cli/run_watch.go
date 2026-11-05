@@ -36,6 +36,8 @@ func runObservationCommand(ctx context.Context, c *client, action string, args [
 	switch action {
 	case "watch":
 		return runWatchCommand(ctx, c, args, out)
+	case "workbuddy-status":
+		return workBuddyProgressCommand(ctx, c, args, out)
 	case "scheduling":
 		if len(args) == 0 || !compositionCLIIdentifier(args[0], 100) {
 			return usage(runSchedulingUsage)
@@ -200,18 +202,22 @@ const runObservationHelpEN = `Follow and inspect a run in the current --project.
 
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
   run scheduling RUN --node NODE
+  run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
 
 Watch writes one complete JSON event per line. Stop with Ctrl+C or an explicit
 event limit. Resume from the last printed sequence of the same run.
+workbuddy-status reads the platform state and the saved WorkBuddy observation.
 `
 
 const runObservationHelpZH = `跟踪和查看当前 --project 的运行。
 
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
   run scheduling RUN --node NODE
+  run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
 
 watch 每行输出一条完整 JSON 事件。按 Ctrl+C 或设置事件数量上限结束。
 续传使用同一运行最后一条已输出事件的序号。
+workbuddy-status 读取平台状态和已保存的 WorkBuddy 观察。
 `

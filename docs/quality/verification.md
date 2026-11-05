@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-CLI-PROGRESS 核验闭合输出、项目授权与撤权，并通过实际终端和 SQLite 的四次只读查询。 [命令与证据](workbuddy-cli-progress-verification.md)
+
 T-WORKBUDDY-TEAM-READS 核验团队读取、本人账号延迟与拒绝后的内容清理。37 项定向检查和 4 项隔离 Chrome 交互通过。 [命令与证据](workbuddy-cloud-status-verification.md#团队进度读取补充验证)
 
 T-TOOL-QUICK-DESKTOP-251 核验实际 Windows 桌面检测、Runner 配置选择、暂停 v1、独立启用 v2 和窄屏首屏确认。 [阶段验证](tool-quick-desktop-verification.md)

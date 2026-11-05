@@ -97,6 +97,12 @@ Workspace的revision提示不进入原用户／组织／项目／run／node作�
 
 operation回执沿`suma_operations`，审计沿现有审计机制；不新增任务调度表、余额表或供应商token表。SQL使用现有`s.q`／`currentSQL`／`ddl`及项目guard。新增表只拥有委派和外部调用事实，不能直接修改别域的任务验收／测试／发布状态。
 
+## 终端读取固定节点进度
+
+`GET /api/v1/runs/{id}/nodes/{node}/workbuddy-status?project_id=PROJECT` 在同一读取事务校验当前项目权限、原运行、原节点和持久提交的请求摘要。支持当前项目成员的会话及当前项目 API 凭证。查询参数只允许一个明确的 `project_id`，禁止缓存。原 WorkBuddy 委派、外发、核对和会话接口继续使用各自的权限合同。
+
+`CloudNodeProgress` 返回运行版本、平台运行与节点状态、尝试次数和固定的 WorkBuddy 原因码。`submission_state` 区分本地暂无记录、已准备、外部效果未知和已知任务。只有 `task_known` 返回已保存的 `provider_status` 和 `observed_at`。陌生的供应方状态收敛为 `unknown`，`observation_failed` 标明后来核对失败且保留原观察。返回只包含读取所需事实，读取过程中无供应方调用或业务写入。见[终端操作](../docs/operations/task-dispatch-options.md#终端运行跟踪)。
+
 ## 用量与事实展示
 
 组织或项目任一策略为enforce时，云委派／准备均拒绝，错误明确为“当前云入口尚无可证明的硬预算能力”。通过observe或无强制预算策略不代表消费免费，不能借未绑定profile、未定价或已预留次数绕过检查。

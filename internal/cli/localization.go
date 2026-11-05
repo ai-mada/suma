@@ -177,6 +177,10 @@ var cliMessages = map[string]cliMessage{
 	"invalid live run event frame":                         {"cli.run.watch_frame_invalid", "实时运行事件帧无效"},
 	"live run event frame exceeds 16 MiB":                  {"cli.run.watch_frame_limit", "实时运行事件帧超过 16 MiB"},
 	"live run event stream reported an error":              {"cli.run.watch_stream_error", "实时运行事件流报告错误"},
+
+	workBuddyProgressUsage:    {"cli.run.workbuddy_status_usage", "run workbuddy-status 需要运行 ID 和一个 --node 节点 ID"},
+	workBuddyProgressInvalid:  {"cli.run.workbuddy_status_invalid", "WorkBuddy 进度响应无效或与请求的范围不一致"},
+	workBuddyProgressRejected: {"cli.run.workbuddy_status_rejected", "控制面拒绝读取 WorkBuddy 进度"},
 }
 
 func localizeFailure(locale localization.Locale, f *failure) *failure {
@@ -308,6 +312,7 @@ const helpZH = `suma — 速码控制面客户端
   run events ID [--after SEQUENCE]
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
   run scheduling RUN --node NODE
+  run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks dispatch-test-option --help   核对准确的独立测试工具

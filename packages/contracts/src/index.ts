@@ -1857,6 +1857,20 @@ export interface CloudLookupResult {
   state: string;
   submission?: CloudSubmission | null;
 }
+export interface CloudNodeProgress {
+  project_id: string;
+  run_id: string;
+  node_id: string;
+  run_version: number;
+  run_state: string;
+  node_state: string;
+  node_reason?: string;
+  attempt: number;
+  submission_state: string;
+  provider_status?: string;
+  observed_at?: string;
+  observation_failed: boolean;
+}
 export interface CloudNodeView {
   project_id: string;
   run_id: string;

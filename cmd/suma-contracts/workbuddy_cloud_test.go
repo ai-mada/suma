@@ -185,6 +185,44 @@ func TestWorkBuddyCloudSchemasKeepOnceOnlyAndUnknownFacts(t *testing.T) {
 	}
 }
 
+func TestWorkBuddyCloudProgressKeepsExactReadScopeAndClosedProjection(t *testing.T) {
+	api, _ := generate()
+	path := mapAt(api, "paths", "/runs/{id}/nodes/{node}/workbuddy-status")
+	op := mapAt(path, "get")
+	if len(path) != 1 || op["x-read-only"] != true || op["x-no-external-effects"] != true ||
+		!reflect.DeepEqual(op["security"], []any{map[string]any{"cookieAuth": []string{}}, map[string]any{"bearerAuth": []string{}}}) ||
+		!reflect.DeepEqual(op["x-disallowed-token-scopes"], []string{"agent", "runner"}) {
+		t.Fatal("cloud progress does not preserve exact read authority")
+	}
+	params := map[string]string{}
+	for _, raw := range op["parameters"].([]any) {
+		p := raw.(map[string]any)
+		if p["in"] == "header" {
+			continue
+		}
+		if p["required"] != true {
+			t.Fatal("scope parameter is optional", p["name"])
+		}
+		params[p["name"].(string)] = p["in"].(string)
+	}
+	if !reflect.DeepEqual(params, map[string]string{"id": "path", "node": "path", "project_id": "query"}) {
+		t.Fatal("cloud progress scope changed", params)
+	}
+	schema := mapAt(api, "components", "schemas", "CloudNodeProgress")
+	fields := mapAt(schema, "properties")
+	if schema["additionalProperties"] != false || len(fields) != 12 {
+		t.Fatal("cloud progress projection is open")
+	}
+	for _, name := range []string{"project_id", "run_id", "node_id", "run_version", "run_state", "node_state", "node_reason", "attempt", "submission_state", "provider_status", "observed_at", "observation_failed"} {
+		if mapAt(fields, name)["readOnly"] != true {
+			t.Fatal("cloud progress field is not read only", name)
+		}
+	}
+	if !reflect.DeepEqual(mapAt(schema, "then")["required"], []string{"provider_status", "observed_at"}) {
+		t.Fatal("known cloud observations can omit their saved evidence")
+	}
+}
+
 func TestWorkBuddyCloudLookupGeneratedRoutesAreMachineOnlyLocalReads(t *testing.T) {
 	api, _ := generate()
 	for _, prefix := range []string{"/runner", "/pool-runner"} {

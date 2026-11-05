@@ -8,10 +8,11 @@ import (
 )
 
 func workBuddyCloudModels() []any {
-	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
+	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudNodeProgress{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
 }
 
 func workBuddyCloudContracts(add operationAdder, api map[string]any) {
+	workBuddyCloudProgressContract(add, api)
 	for _, route := range []struct{ path, method, input, output, status string }{
 		{"/workbuddy-cloud-nodes", "get", "", "CloudNodeView", "200"},
 		{"/workbuddy-cloud-delegations", "post", "CloudDelegateRequest", "CloudDelegation", "201"},
@@ -179,4 +180,61 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 	// generate(). Preserve their actual optional typed references and other modes.
 	field("Assignment", "workbuddy_cloud", map[string]any{"readOnly": true, "description": "Claim-transaction-selected and persisted WorkBuddy delegation binding. Never inferred from workflow config or replaced by the Runner; current authority is rechecked before external actions."})
 	field("Result", "workbuddy_cloud_wait", map[string]any{"description": "Typed request to reconcile the original cloud effect through a trusted control-plane resolver. Not a success/acceptance or remote stop receipt; raw supplier status and this machine proof alone cannot complete the DAG or authorize another Create."})
+}
+
+func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
+	op := add("/runs/{id}/nodes/{node}/workbuddy-status", "get", "CloudNodeProgress", false, false)
+	successStatus(op, "200")
+	op["x-read-only"] = true
+	op["x-no-external-effects"] = true
+	op["x-disallowed-token-scopes"] = []string{"agent", "runner"}
+	op["description"] = "Read persisted progress for one exact WorkBuddy node under current browser project membership or a current project API credential. No provider requests, connection access, or mutation. An absent local submission record and an unknown remote effect are distinct. Provider completion does not establish platform delivery."
+	limits := map[string]int{"project_id": 64, "id": 100, "node": 150}
+	for _, raw := range op["parameters"].([]any) {
+		p := raw.(map[string]any)
+		if max, ok := limits[p["name"].(string)]; ok {
+			p["required"] = true
+			p["schema"] = map[string]any{"type": "string", "minLength": 1, "maxLength": max}
+		}
+	}
+	responses := op["responses"].(map[string]any)
+	responses["400"] = map[string]any{"description": "Invalid exact scope or the original node is not a valid WorkBuddy node."}
+	responses["404"] = map[string]any{"description": "Exact run or node is absent."}
+	responses["405"] = map[string]any{"description": "Only GET is supported."}
+	responses["503"] = map[string]any{"description": "The WorkBuddy component is unavailable."}
+	for _, raw := range responses {
+		raw.(map[string]any)["headers"] = map[string]any{
+			"Cache-Control":   map[string]any{"schema": map[string]any{"type": "string", "const": "no-store"}},
+			"Referrer-Policy": map[string]any{"schema": map[string]any{"type": "string", "const": "no-referrer"}},
+		}
+	}
+	toolContractMap(responses, "405", "headers")["Allow"] = map[string]any{"schema": map[string]any{"type": "string", "const": "GET"}}
+
+	schema := toolContractMap(api, "components", "schemas", "CloudNodeProgress")
+	schema["additionalProperties"] = false
+	properties := toolContractMap(schema, "properties")
+	for _, raw := range properties {
+		raw.(map[string]any)["readOnly"] = true
+	}
+	for name, max := range map[string]int{"project_id": 64, "run_id": 100, "node_id": 150} {
+		p := toolContractMap(properties, name)
+		p["minLength"], p["maxLength"] = 1, max
+	}
+	for name, min := range map[string]int{"run_version": 1, "attempt": 0} {
+		p := toolContractMap(properties, name)
+		p["minimum"], p["maximum"] = min, wc.MaxVersion
+	}
+	for _, name := range []string{"run_state", "node_state"} {
+		toolContractMap(properties, name)["pattern"] = "^[a-z][a-z0-9_]{0,79}$"
+	}
+	toolContractMap(properties, "node_reason")["description"] = "Allowlisted platform reason for this WorkBuddy node, if available."
+	toolContractMap(properties, "submission_state")["enum"] = []string{"not_recorded", "prepared", "unknown", "task_known"}
+	toolContractMap(properties, "provider_status")["enum"] = []string{"pending", "queued", "running", "working", "waiting_input", "completed", "failed", "cancelled", "canceled", "unknown"}
+	toolContractMap(properties, "observed_at")["format"] = "date-time"
+	schema["if"] = map[string]any{"properties": map[string]any{"submission_state": map[string]any{"const": "task_known"}}}
+	schema["then"] = map[string]any{"required": []string{"provider_status", "observed_at"}}
+	schema["else"] = map[string]any{
+		"properties": map[string]any{"observation_failed": map[string]any{"const": false}},
+		"not":        map[string]any{"anyOf": []any{map[string]any{"required": []string{"provider_status"}}, map[string]any{"required": []string{"observed_at"}}}},
+	}
 }

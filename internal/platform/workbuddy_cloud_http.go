@@ -28,6 +28,10 @@ func cloudHTTPHeaders(w http.ResponseWriter) {
 // The normal API entry authenticates Actor and validates the browser's original
 // view before calling this handler. Domain commands recheck current authority.
 func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject string, parts []string, c *WorkBuddyConnections) bool {
+	if len(parts) == 5 && parts[0] == "runs" && parts[2] == "nodes" && parts[4] == "workbuddy-status" {
+		workBuddyCloudProgressHTTP(w, r, actor, scope, boundProject, parts[1], parts[3], c)
+		return true
+	}
 	machine := len(parts) >= 2 && parts[0] == "runner" && parts[1] == "workbuddy-cloud-submissions"
 	browser := len(parts) >= 1 && (parts[0] == "workbuddy-cloud-delegations" || parts[0] == "workbuddy-cloud-submissions" || parts[0] == "workbuddy-cloud-nodes" || parts[0] == "workbuddy-cloud-history-loads")
 	if !machine && !browser {
@@ -148,6 +152,39 @@ func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, acto
 		writeError(w, missing())
 	}
 	return true
+}
+
+func workBuddyCloudProgressHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject, run, node string, c *WorkBuddyConnections) {
+	cloudHTTPHeaders(w)
+	if !(actor.IsBrowser() && scope == "" || actor.kind == actorProjectAPI && scope == "api") {
+		writeError(w, forbidden())
+		return
+	}
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		writeError(w, &APIError{Status: http.StatusMethodNotAllowed, Code: "method_not_allowed", Message: "Method not allowed"})
+		return
+	}
+	if len(r.URL.RawQuery) > 8192 {
+		writeError(w, cloudInvalid())
+		return
+	}
+	query, err := url.ParseQuery(r.URL.RawQuery)
+	project := query.Get("project_id")
+	if err != nil || len(query) != 1 || len(query["project_id"]) != 1 || !handoffID(project, false) {
+		writeError(w, cloudInvalid())
+		return
+	}
+	if scope == "api" && project != boundProject {
+		writeError(w, forbidden())
+		return
+	}
+	if c == nil {
+		writeError(w, &APIError{503, workBuddyUnavailable, workBuddyUnavailable, nil})
+		return
+	}
+	out, err := c.GetCloudNodeProgress(r.Context(), actor, project, run, node)
+	respond(w, http.StatusOK, out, err)
 }
 
 // Pool machines retain their real Bearer proof; no human Actor is fabricated.
