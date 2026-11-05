@@ -9,6 +9,7 @@ import {toolSessionStorage} from './tool-hooks';
 import {desktopWorkspaceBridge} from './desktop-workspace-model';
 import {useLeaveGuard,useWriteAction,WriteNotice} from './write-action';
 import {readWorkBuddyAuthorization,readWorkBuddyConnection,readWorkBuddyPage,validWorkBuddyReceipt,validWorkBuddyRecovery,workBuddyPageSize} from './workbuddy-connections-model';
+import {workBuddyConnectionReason,workBuddyReusableScopes,workBuddyScopeDifference} from './workbuddy-connection-presentation';
 import './WorkBuddyConnections.css';
 
 const t=(key:string,params?:Record<string,unknown>)=>tr('workbuddy-connections.'+key,params);
@@ -33,6 +34,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
  useLocale();const caller=useApi(),view=useApiView(),owner=view?.userID,scope='workbuddy-connections:'+context,desktop=desktopWorkspaceBridge(),native=desktop&&typeof(desktop as unknown as Partial<NativeAuthorizationBridge>).openWorkBuddyAuthorization==='function'?desktop as unknown as NativeAuthorizationBridge:undefined,desktopUnavailable=!!desktop&&!native;
  const [snapshot,setSnapshot]=useState<Snapshot>(),[cursor,setCursor]=useState(''),[history,setHistory]=useState<string[]>([]),[revision,setRevision]=useState(0),[form,setForm]=useState<Form>(),[selectedScopes,setSelectedScopes]=useState<string[]>([]),[confirmed,setConfirmed]=useState(false),[authorization,setAuthorization]=useState<WorkBuddyAuthorization>(),[notice,setNotice]=useState('');
  const [nativeBusy,setNativeBusy]=useState(false),nativeAttempt=useRef(0),nativePending=useRef(false),checkingCurrent=useRef(false);
+ const historyID=useId(),[historyDisclosure,setHistoryDisclosure]=useState<boolean>();
  const epoch=useRef(0),alive=useRef(true),activeCaller=useRef(caller);activeCaller.current=caller;
  const action=useWriteAction({scope,storage:toolSessionStorage(),validateRequest:request=>validWorkBuddyRecovery(request,project),validateResponse:(value,request)=>validWorkBuddyReceipt(value,request,project,owner)});
  const locked=action.busy||!!action.pending||action.persistenceBlocked||nativeBusy;
@@ -40,6 +42,8 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
  const denied=action.errorStatus===403||action.errorStatus===404||current?.error instanceof ApiError&&[403,404].includes(current.error.status);
  const page=!denied&&!current?.loading?current?.page:undefined;
  const rows=page?(current?.focused?[current.focused,...page.items.filter(row=>row.id!==current.focused!.id)]:page.items):[];
+ const currentRows=rows.filter(row=>row.state!=='disconnected'),disconnectedRows=rows.filter(row=>row.state==='disconnected');
+ const historyExpanded=historyDisclosure??disconnectedRows.some(row=>row.id===focusedID);
  const mayRecover=!!page&&(page.can_authorize||rows.some(row=>row.allowed_actions.length>0));
  const formAllowed=!!page&&!!form&&(form.kind==='authorize'?!desktopUnavailable&&(form.connection?!!rows.find(row=>row.id===form.connection?.id)?.allowed_actions.includes('authorize'):page.can_authorize):!!rows.find(row=>row.id===form.connection.id)?.allowed_actions.includes('disconnect'));
  useLeaveGuard(!!form&&(selectedScopes.length>0||confirmed),action.setError);
@@ -131,13 +135,48 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
    {form&&formAllowed&&<form className="workbuddy-form" onSubmit={event=>{event.preventDefault();if(locked||action.conflict)return;const connection=form.connection;if(form.kind==='authorize'){if(!selectedScopes.length)return;void write('/workbuddy-authorizations',{project_id:project,scopes:selectedScopes,...(connection?{connection_id:connection.id,expected_version:connection.version}:{})});}else{if(!confirmed)return;void write('/workbuddy-connections/'+encodeURIComponent(connection!.id)+'/disconnect',{project_id:project,expected_version:connection!.version,reason:'user_requested_local_disconnect'});}}}>
     <h4>{t(form.kind==='authorize'?'choose_scopes':'disconnect_title')}</h4>
     {form.connection&&<p>{t('account')}: <code>{form.connection.open_id||t('account_pending')}</code></p>}
-    <fieldset disabled={locked||action.conflict}><legend>{t(form.kind==='authorize'?'permissions':'confirmation')}</legend>{form.kind==='authorize'?<><p className="muted">{t('scopes_hint')}</p>{page.available_scopes.map(item=><label className="workbuddy-check" key={item}><input type="checkbox" value={item} checked={selectedScopes.includes(item)} onChange={event=>setSelectedScopes(values=>event.target.checked?[...values,item]:values.filter(value=>value!==item))}/><span>{scopeLabel(item)}</span></label>)}</>:<><p className="workbuddy-local-warning">{t('disconnect_warning')}</p><label className="workbuddy-check"><input name="confirm-disconnect" type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/><span>{t('disconnect_confirm')}</span></label></>}</fieldset>
+    <fieldset disabled={locked||action.conflict}><legend>{t(form.kind==='authorize'?'permissions':'confirmation')}</legend>{form.kind==='authorize'?<>
+     {form.connection&&<div className="workbuddy-current-scopes"><h5>{t('current_permissions')}</h5><PermissionList scopes={form.connection.scopes}/><button type="button" disabled={locked||action.conflict} onClick={()=>setSelectedScopes(workBuddyReusableScopes(form.connection!.scopes,page.available_scopes))}>{t('reuse_permissions')}</button><p className="muted">{t('reuse_permissions_hint')}</p></div>}
+     <p className="muted">{t('scopes_hint')}</p>{page.available_scopes.map(item=><label className="workbuddy-check" key={item}><input type="checkbox" value={item} checked={selectedScopes.includes(item)} onChange={event=>setSelectedScopes(values=>event.target.checked?[...values,item]:values.filter(value=>value!==item))}/><span>{scopeLabel(item)}</span></label>)}
+     {form.connection&&<PermissionChanges current={form.connection.scopes} requested={selectedScopes} available={page.available_scopes}/>}
+    </>:<><p className="workbuddy-local-warning">{t('disconnect_warning')}</p><label className="workbuddy-check"><input name="confirm-disconnect" type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/><span>{t('disconnect_confirm')}</span></label></>}</fieldset>
     <div className="workbuddy-actions"><button type="button" disabled={locked} onClick={cancelForm}>{t('cancel')}</button><button className="primary" type="submit" disabled={locked||action.conflict||(form.kind==='authorize'?!selectedScopes.length:!confirmed)}>{t(form.kind==='authorize'?'prepare':'disconnect_submit')}</button></div>
    </form>}
-   <div className="workbuddy-list" aria-label={t('accounts')}>{rows.map(row=><article key={row.id} data-workbuddy-connection-id={row.id} className={"workbuddy-card"+(row.id===focusedID?" workbuddy-card-target":"")}><header><div><span className="workbuddy-fact-label">{t('account')}</span><h4>{row.open_id||t('account_pending')}</h4></div><span className={'workbuddy-state workbuddy-state-'+row.state}>{t('state.'+row.state)}</span></header><dl className="workbuddy-facts"><div><dt>{t('permissions')}</dt><dd>{row.scopes.length?row.scopes.map(scopeLabel).join(' · '):t('permissions_pending')}</dd></div><div><dt>{t('expires')}</dt><dd>{time(row.expires_at)}</dd></div></dl><div className="workbuddy-actions">{!desktopUnavailable&&row.allowed_actions.includes('authorize')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'authorize',connection:row})}>{t('reauthorize')}</button>}{row.allowed_actions.includes('refresh')&&<button type="button" disabled={locked||!!form} onClick={()=>{setAuthorization(undefined);void write('/workbuddy-connections/'+encodeURIComponent(row.id)+'/refresh',{project_id:project,expected_version:row.version});}}>{t('refresh_authorization')}</button>}{row.allowed_actions.includes('disconnect')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'disconnect',connection:row})}>{t('disconnect')}</button>}</div><details><summary>{t('technical')}</summary><dl className="workbuddy-technical"><div><dt>{t('connection_id')}</dt><dd><code>{row.id}</code></dd></div><div><dt>{t('version')}</dt><dd>{row.version}</dd></div><div><dt>{t('grant_generation')}</dt><dd>{row.grant_generation}</dd></div><div><dt>{t('token_generation')}</dt><dd>{row.token_generation}</dd></div></dl></details></article>)}</div>
+   {!!rows.length&&<div className="workbuddy-account-groups" aria-label={t('accounts')}>
+    <p className="workbuddy-page-scope">{t('records_scope')}</p>
+    {currentRows.length>0&&<section className="workbuddy-account-group" aria-label={t('current_accounts')}><h3>{t('current_accounts')}</h3><div className="workbuddy-list">{currentRows.map(renderConnection)}</div></section>}
+    {disconnectedRows.length>0&&<section className="workbuddy-account-group workbuddy-history" aria-label={t('disconnected_accounts')}>
+     <h3><button type="button" className="workbuddy-history-toggle" aria-expanded={historyExpanded} aria-controls={historyID} onClick={()=>setHistoryDisclosure(!historyExpanded)}><ChevronRight size={18} aria-hidden="true"/><span>{t('disconnected_read_count',{count:disconnectedRows.length})}</span><span className="workbuddy-history-action">{t(historyExpanded?'collapse_history':'expand_history')}</span></button></h3>
+     <div id={historyID} className="workbuddy-history-content" hidden={!historyExpanded}><p>{t('retained_history')}</p><div className="workbuddy-list">{disconnectedRows.map(renderConnection)}</div></div>
+    </section>}
+   </div>}
    {!rows.length&&<Empty title={t('empty')} description={t('empty_hint')}/>}
    {(history.length>0||page.next_cursor)&&<nav className="workbuddy-pagination" aria-label={t('pagination')}><button type="button" disabled={!history.length||locked||!!form} onClick={()=>{setAuthorization(undefined);setCursor(history[history.length-1]);setHistory(values=>values.slice(0,-1));}}>{t('previous')}</button><span>{t('page',{page:history.length+1})}</span><button type="button" disabled={!page.next_cursor||locked||!!form} onClick={()=>{setAuthorization(undefined);setHistory(values=>[...values,cursor]);setCursor(page.next_cursor);}}>{t('next')}</button></nav>}
   </>}
+ </div>;
+
+ function renderConnection(row:WorkBuddyConnection){
+  const reason=workBuddyConnectionReason(row);
+  return <article key={row.id} data-workbuddy-connection-id={row.id} className={"workbuddy-card"+(row.id===focusedID?" workbuddy-card-target":"")}>
+   <header><div><span className="workbuddy-fact-label">{t('account')}</span><h4>{row.open_id||t('account_pending')}</h4></div><span className={'workbuddy-state workbuddy-state-'+row.state}>{t('state.'+row.state)}</span></header>
+   <dl className="workbuddy-facts"><div><dt>{t('permissions')}</dt><dd>{row.scopes.length?row.scopes.map(scopeLabel).join(' · '):t('permissions_pending')}</dd></div><div><dt>{t('expires')}</dt><dd>{time(row.expires_at)}</dd></div><div><dt>{t('updated')}</dt><dd><time dateTime={row.updated_at}>{time(row.updated_at)}</time></dd></div></dl>
+   {reason&&<p className="workbuddy-connection-reason">{t('reason.'+reason)}</p>}
+   <div className="workbuddy-actions">{!desktopUnavailable&&row.allowed_actions.includes('authorize')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'authorize',connection:row})}>{t('reauthorize')}</button>}{row.allowed_actions.includes('refresh')&&<button type="button" disabled={locked||!!form} onClick={()=>{setAuthorization(undefined);void write('/workbuddy-connections/'+encodeURIComponent(row.id)+'/refresh',{project_id:project,expected_version:row.version});}}>{t('refresh_authorization')}</button>}{row.allowed_actions.includes('disconnect')&&<button type="button" disabled={locked||!!form} onClick={()=>openForm({kind:'disconnect',connection:row})}>{t('disconnect')}</button>}</div>
+   <details><summary>{t('technical')}</summary><dl className="workbuddy-technical"><div><dt>{t('connection_id')}</dt><dd><code>{row.id}</code></dd></div><div><dt>{t('version')}</dt><dd>{row.version}</dd></div><div><dt>{t('grant_generation')}</dt><dd>{row.grant_generation}</dd></div><div><dt>{t('token_generation')}</dt><dd>{row.token_generation}</dd></div></dl></details>
+  </article>;
+ }
+}
+
+function PermissionList({scopes}:{scopes:readonly string[]}){
+ return scopes.length?<ul className="workbuddy-scope-list">{[...new Set(scopes)].map(scope=><li key={scope}>{scopeLabel(scope)}</li>)}</ul>:<p className="muted">{t('no_permissions')}</p>;
+}
+
+function PermissionChanges({current,requested,available}:{current:readonly string[];requested:readonly string[];available:readonly string[]}){
+ const changes=workBuddyScopeDifference(current,requested,available);
+ return <div className="workbuddy-scope-review" role="group" aria-label={t('permission_changes')}>
+  <h5>{t('permission_changes')}</h5><p className="muted">{t('permission_changes_hint')}</p>
+  <div className="workbuddy-scope-diff" aria-live="polite">{(['added','removed','retained'] as const).map(kind=><section key={kind} aria-label={t('permissions_'+kind)}><h6>{t('permissions_'+kind)}</h6><PermissionList scopes={changes[kind]}/></section>)}</div>
+  {changes.unavailable.length>0&&<div className="workbuddy-scope-unavailable"><h6>{t('permissions_unavailable')}</h6><PermissionList scopes={changes.unavailable}/><p>{t('permissions_unavailable_hint')}</p></div>}
  </div>;
 }
 

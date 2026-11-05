@@ -43,6 +43,8 @@ import {ToolDiscoveryPanel,type ToolDiscoveryAdoption} from './ToolDiscoveryPane
 import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
 import "./tool.css";
 import "./ToolWorkspace.css";
+import {classifyToolWorkerIdentity,projectToolWorkerIdentities,type ToolWorkerIdentityFilter} from './tool-worker-identity-presentation';
+import './ToolWorkerIdentityList.css';
 import { currentPoolToolWorker, parsePoolToolLocator } from './execution-pools/pool-config-connection-model';
 import {buildPoolRecoveryOwnerHref,createPoolToolRecoveryPin,parsePoolToolRecoveryPin,readPoolRecoveryTool,type PoolToolRecoveryPin} from './execution-pools/pool-tool-recovery-model';
 import {buildPoolSetupOwnerHref,createPoolToolSetupPin,parsePoolToolSetupPin,type PoolToolSetupPin} from './execution-pools/pool-tool-setup-model';
@@ -140,6 +142,9 @@ function ScopedToolWorkspace({
   const [taskHandoff,setTaskHandoff]=useState<{epoch:number;intent:number;tool:ToolProfile;task?:RecordItem;pin?:ToolTaskHandoffPin;planID?:string}>();
   function setDialog(value:Dialog|undefined){if(pairingCaller.current.api===api&&pairingCaller.current.generation===pairingGeneration)setDialogState(value?{caller:api,generation:pairingGeneration,value}:undefined);}
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
+  const [workerIdentityClock,setWorkerIdentityClock]=useState(()=>Date.now());
+  const [workerIdentitySelection,setWorkerIdentitySelection]=useState<{caller:typeof api;generation:number;filter:ToolWorkerIdentityFilter;query:string}>(()=>({caller:api,generation:pairingGeneration,filter:'current',query:''}));
+  const workerIdentityPreferences=workerIdentitySelection.caller===api&&workerIdentitySelection.generation===pairingGeneration?workerIdentitySelection:{filter:'current' as ToolWorkerIdentityFilter,query:''};
   const connectIntent=useRef(0),connectDraft=useRef<{caller:typeof api;generation:number;context:string;nonce:number;value:ToolConnectDraft;sourceTool?:ToolProfile;sourceEpoch?:number}|undefined>(undefined);
   const inspectionLookup=useRef<AbortController|undefined>(undefined);
   const replacementLookup=useRef<AbortController|undefined>(undefined),selectedProfile=useRef(selected);selectedProfile.current=selected;
@@ -235,6 +240,35 @@ function ScopedToolWorkspace({
     stale = detail.loading || !!detail.error,
     uncertain = profiles.loading || !!profiles.error || !profiles.items,
     filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter));
+  const workerIdentityRecords=workers.data?.items??[];
+  const workerIdentityView=projectToolWorkerIdentities(workerIdentityRecords,workerIdentityClock,workerIdentityPreferences.filter,workerIdentityPreferences.query);
+  const matchingWorkerIdentityIDs=new Set(workerIdentityView.items.map(worker=>worker.id));
+  // Keep the exact context row mounted and visible when a filter would hide an
+  // original operation, setup draft or explicitly selected Doctor target.
+  const workerIdentityTargets=new Set([
+    publicDraft?.workerID,connection?.expectedWorkerID,
+    current?.id===selected?current.worker_id:undefined,
+    dialog?.kind==='remote-scan'?dialog.workerID:dialog?.kind==='revoke-worker'?dialog.worker.worker_id:dialog?.kind==='inspection'?dialog.profile.worker_id:undefined,
+    typeof action.pending?.body.worker_id==='string'?action.pending.body.worker_id:undefined,
+    workerIdentityRecords.find(worker=>action.pending?.path==='/release-workers/'+encodeURIComponent(worker.id))?.worker_id,
+  ].filter((value):value is string=>typeof value==='string'&&!!value));
+  const retainedWorkerIdentities=workerIdentityRecords.filter(worker=>!matchingWorkerIdentityIDs.has(worker.id)&&workerIdentityTargets.has(worker.worker_id));
+  const retainedWorkerIdentityIDs=new Set(retainedWorkerIdentities.map(worker=>worker.id));
+  function updateWorkerIdentityView(filter:ToolWorkerIdentityFilter,query=workerIdentityPreferences.query){
+    if(writeBlocked)return;
+    setWorkerIdentitySelection({caller:api,generation:pairingGeneration,filter,query});
+  }
+  // Expiry is a local display boundary. These timers never read or mutate API
+  // state, renew a credential, or infer online/dispatch eligibility.
+  useEffect(()=>{setWorkerIdentityClock(Date.now());},[api,workers.data]);
+  useEffect(()=>{
+    const now=Date.now();let delay=60000;
+    if(Number.isFinite(now))for(const worker of workerIdentityRecords){const expiry=Date.parse(worker.expires_at);if(worker.status==='active'&&Number.isFinite(expiry)&&expiry>now)delay=Math.min(delay,Math.max(1,expiry-now));}
+    const timer=setTimeout(()=>setWorkerIdentityClock(Date.now()),delay);
+    const visible=()=>{if(document.visibilityState!=='hidden')setWorkerIdentityClock(Date.now());};
+    document.addEventListener('visibilitychange',visible);
+    return()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',visible);};
+  },[api,workers.data,workerIdentityClock]);
   // A detail refresh is not a new dispatch owner. Once the task dialog exists,
   // its original pending operation must survive list/detail loading changes.
   // Exact task/profile reads and original preview remain authoritative.
@@ -529,8 +563,12 @@ function ScopedToolWorkspace({
   function locateInspectionWorker(workerID:string){
     if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||dialog?.kind!=='inspection'||dialog.profile.project_id!==project||workerID!==dialog.profile.worker_id||pending||action.busy||pairingLocked)return;
     const row=inspectionWorkerRow(workerID);if(!row)return;
+    const identity=workerIdentityRecords.find(worker=>worker.worker_id===workerID);
+    if(identity&&!matchingWorkerIdentityIDs.has(identity.id)){
+      setWorkerIdentitySelection({caller:api,generation:pairingGeneration,filter:'all',query:''});
+    }
     setDialog(undefined);setInspectionLocked(false);
-    requestAnimationFrame(()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||!row.isConnected)return;row.scrollIntoView?.({block:'nearest'});row.focus({preventScroll:true});});
+    requestAnimationFrame(()=>{if(pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration||!row.isConnected||row.hidden)return;row.scrollIntoView?.({block:'nearest'});row.focus({preventScroll:true});});
   }
   function openRunnerPairing() {
     if(writeBlocked)return;
@@ -553,6 +591,23 @@ function ScopedToolWorkspace({
     if(expectedWorkerID&&!sameTarget)beginPublicDraft({adapterID:adapter!.id,workerID:expectedWorkerID,commandID:'',name:'',nameEdited:false});
     setDialog(undefined);setConnectionSelection({context:contextKey,caller:api,generation:pairingGeneration,nonce:++connectionRequestNonce.current,expectedWorkerID,preset:target.preset,...(owner?.sourceTool?{sourceEpoch:owner.sourceEpoch}:{})});setGuideOpen(true);
     focusNavigation(()=>document.getElementById(guideID)?.querySelector<HTMLElement>(expectedWorkerID?.startsWith('pool-')?'[data-shared-pool-prepare]':discovery?'[data-remote-runner-allow-installed-discovery]':focusRemote?'[data-remote-runner-setup]>summary':'summary'));return true;
+  }
+  function openWorkerQuickConnect(worker:ExecutionWorker) {
+    if(writeBlocked || workers.loading || workers.error || !activeWorkspace.current) return;
+    if(pairingCaller.current.api!==api || pairingCaller.current.generation!==pairingGeneration) return;
+    const now=Date.now();
+    if(classifyToolWorkerIdentity(worker,now)!=='current'){
+      setWorkerIdentityClock(now);
+      return;
+    }
+    if(!canLeave())return;
+    const sameWorker=publicDraft?.workerID===worker.worker_id;
+    beginPublicDraft(
+      sameWorker?publicDraft:{adapterID:'',workerID:worker.worker_id,commandID:'',name:'',nameEdited:false},
+      sameWorker?replacementSource:undefined
+    );
+    action.clearError();
+    setDialog({kind:'quick',preferredWorkerID:worker.worker_id});
   }
   function openRemoteScan(workerID:string){
     if(writeBlocked||!activeWorkspace.current||pairingCaller.current.api!==api||pairingCaller.current.generation!==pairingGeneration)return;
@@ -867,12 +922,12 @@ function ScopedToolWorkspace({
         )}
       </div>
       <div className="tool-boundary-note"><ShieldCheck size={16}/><p>{t("development.tools.configuration_probing_actual_execution_and_acceptance_are")}</p></div>
-      <section className="panel tool-workers">
+      <section className="panel tool-workers tool-worker-identities" aria-labelledby={guideID+'-worker-identities'}>
         <div className="tool-section-heading">
           <div>
-            <h3>{t("development.tools.execution_worker_identity")}</h3>
+            <h3 id={guideID+'-worker-identities'}>{t("development.tools.execution_worker_identity")}</h3>
             <p className="muted">
-              {t("development.tools.reuse_a_runner_credential_bound_by_the")}</p>
+              {t('tool-worker-identities.boundary')}</p>
           </div>
           <button
             disabled={writeBlocked}
@@ -885,6 +940,14 @@ function ScopedToolWorkspace({
             <Plus size={14} />
             {t("development.tools.register_execution_worker")}</button>
         </div>
+        <div className="tool-worker-identity-toolbar">
+          <div className="tool-worker-identity-filters" role="group" aria-label={t('tool-worker-identities.views')}>
+            {(['current','attention','revoked','all'] as const).map(value=><button type="button" key={value} data-tool-worker-filter={value} aria-pressed={workerIdentityPreferences.filter===value} disabled={writeBlocked} onClick={()=>updateWorkerIdentityView(value)}><span>{t('tool-worker-identities.filter.'+value)}</span><span className="tool-worker-identity-count">{formatNumber(workerIdentityView.counts[value])}</span></button>)}
+          </div>
+          <label className="tool-worker-identity-search"><span>{t('tool-worker-identities.search')}</span><div><Search size={16} aria-hidden="true"/><input type="search" data-tool-worker-search value={workerIdentityPreferences.query} maxLength={120} disabled={writeBlocked} placeholder={t('tool-worker-identities.search_hint')} onChange={event=>updateWorkerIdentityView(workerIdentityPreferences.filter,event.target.value)}/></div></label>
+        </div>
+        {workers.data&&<p className="tool-worker-identity-summary" data-tool-worker-counts role="status">{t('tool-worker-identities.read_scope',{read:workerIdentityView.readCount,matched:workerIdentityView.counts.all,shown:workerIdentityView.items.length})}{retainedWorkerIdentities.length>0&&<span>{t('tool-worker-identities.retained_count',{count:retainedWorkerIdentities.length})}</span>}</p>}
+        {workers.loading&&workers.data&&<p className="muted">{t('tool-worker-identities.checking')}</p>}
         {workers.error && (
           <ErrorNotice
             error={workers.error}
@@ -896,34 +959,41 @@ function ScopedToolWorkspace({
             <Loading />
           ) : null
         ) : workers.data.items.length ? (
-          workers.data.items.map((worker) => (
-            <article className={"tool-worker-row"+(workerRecoverySource(worker.worker_id)?" with-recovery":"")} key={worker.id} tabIndex={-1} data-tool-worker={worker.worker_id} ref={element=>{if(element)workerRows.current.set(worker.worker_id,element);else workerRows.current.delete(worker.worker_id);}}>
-              <div>
-                <strong>
+          <div className="tool-worker-identity-rows">{workerIdentityRecords.map((worker) => {
+            const identityState=classifyToolWorkerIdentity(worker,workerIdentityClock),retained=retainedWorkerIdentityIDs.has(worker.id);
+            return <article className={"tool-worker-row tool-worker-identity-row"+(workerRecoverySource(worker.worker_id)?" with-recovery":"")+(retained?" is-context-target":"")} key={worker.id} hidden={!matchingWorkerIdentityIDs.has(worker.id)&&!retained} tabIndex={-1} data-tool-worker={worker.worker_id} data-tool-worker-credential-state={identityState} data-tool-worker-context={retained?'':undefined} ref={element=>{if(element)workerRows.current.set(worker.worker_id,element);else workerRows.current.delete(worker.worker_id);}}>
+              <div className="tool-worker-identity-facts">
+                <div className="tool-worker-identity-title"><strong>
                   <Terminal size={14} /> {worker.worker_id}
-                </strong>
+                </strong><span className={'tool-worker-credential-state is-'+identityState}>{t('tool-worker-identities.state.'+identityState)}</span></div>
+                {retained&&<small className="tool-worker-identity-context">{t('tool-worker-identities.retained_target')}</small>}
                 <small>
-                  {t("development.tools.expires_at",{status:worker.status === "active"?t("development.tools.credential_registered_consult_tool_observations_for_online"):t("development.tools.credential_revoked"),at:formatDateTime(worker.expires_at,{dateStyle:"short",timeStyle:"medium"})})}
+                  {identityState==='unknown'||!Number.isFinite(Date.parse(worker.expires_at))?t('tool-worker-identities.expiry_unknown'):t('tool-worker-identities.expires_at',{at:formatDateTime(worker.expires_at,{dateStyle:'short',timeStyle:'medium'})})}
                 </small>
                 <small>
                   {worker.deployment ? t("development.tools.also_permitted_to_release") : t("development.tools.no_deployment_permission")}
                 </small>
+                {identityState!=='current'&&<small>{t('tool-worker-identities.hint.'+identityState)}</small>}
               </div>
-              {worker.status === "active"&&<button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button>}
+              <div className="tool-worker-identity-actions">
+              {identityState==='current'&&<button type="button" data-tool-worker-connect={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>openWorkerQuickConnect(worker)}>{t('tool-worker-identities.configure_tools')}</button>}
+              {identityState==='current'&&<button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>{const now=Date.now();if(writeBlocked||workers.loading||workers.error)return;if(classifyToolWorkerIdentity(worker,now)!=='current'){setWorkerIdentityClock(now);return;}openRemoteScan(worker.worker_id);}}>{t('remote-tool-scan.open')}</button>}
               {worker.status === "active" && (
                 <button
-                  disabled={writeBlocked}
+                  type="button" data-tool-worker-revoke={worker.worker_id}
+                  disabled={writeBlocked||workers.loading||!!workers.error}
                   onClick={() => {
-                    if(writeBlocked)return;
+                    if(writeBlocked||workers.loading||workers.error)return;
                     action.clearError();
                     setDialog({ kind: "revoke-worker", worker });
                   }}
                 >
                   {t("development.tools.revoke_worker_credential")}</button>
               )}
-              {workerConnectionPreparation(worker.worker_id)}
-            </article>
-          ))
+              </div>
+              {identityState==='current'&&workerConnectionPreparation(worker.worker_id)}
+            </article>;
+          })}{!workerIdentityView.items.length&&!retainedWorkerIdentities.length&&<div className="tool-worker-identity-empty"><p>{t('tool-worker-identities.empty_view')}</p><button type="button" data-tool-worker-show-all disabled={writeBlocked} onClick={()=>updateWorkerIdentityView('all','')}>{t('tool-worker-identities.show_all')}</button></div>}</div>
         ) : (
           <Empty
             title={t("development.tools.no_bound_execution_identity")}

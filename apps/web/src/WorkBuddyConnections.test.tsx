@@ -19,13 +19,108 @@ async function render(project='p-a',session=identity){await act(async()=>root.re
 async function click(text:string){const button=[...host.querySelectorAll('button')].find(node=>node.textContent?.trim()===text);expect(button,text).toBeTruthy();await act(async()=>button!.click());}
 async function open(){await act(async()=>host.querySelector<HTMLButtonElement>('.workbuddy-disclosure')!.click());}
 async function chooseScope(){const box=host.querySelector<HTMLInputElement>('input[value="user.task.readable"]');expect(box).toBeTruthy();await act(async()=>box!.click());}
-it('keeps connections folded and reads only a bounded page after expansion',async()=>{await render();expect(call).not.toHaveBeenCalled();await open();expect(call.mock.calls[0][0]).toBe('/workbuddy-connections?project_id=p-a&limit=20');expect(host.textContent).toContain('account-a');expect(host.textContent).toContain('Cloud task dispatch is not available');expect(host.querySelector('details')).toBeTruthy();});
+
+it('keeps reauthorization scopes empty until explicit reuse and separates a manually added permission',async()=>{
+ await render();await open();await click('Authorize again');
+ const form=host.querySelector<HTMLFormElement>('form')!;
+ expect([...form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')].every(input=>!input.checked)).toBe(true);
+ expect(form.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(true);
+ expect(form.querySelector('.workbuddy-current-scopes')?.textContent).toContain('Read WorkBuddy tasks');
+ await click('Reuse current requestable permissions');
+ expect(form.querySelector<HTMLInputElement>('input[value="user.task.readable"]')?.checked).toBe(true);
+ expect(form.querySelector<HTMLInputElement>('input[value="user.task.invokable"]')?.checked).toBe(false);
+ expect(form.querySelector('[aria-label="Requested again"]')?.textContent).toContain('Read WorkBuddy tasks');
+ expect(form.querySelector('[aria-label="New requests"]')?.textContent).toContain('None');
+ await act(async()=>form.querySelector<HTMLInputElement>('input[value="user.task.invokable"]')!.click());
+ expect(form.querySelector('[aria-label="New requests"]')?.textContent).toContain('Create WorkBuddy tasks');
+ expect(call.mock.calls.every(([,body])=>!body)).toBe(true);
+});
+
+it('explains scope tightening and reuses only the still-requestable part of the original grant',async()=>{
+ call.mockResolvedValue({...page([{...row,scopes:['user.task.readable','user.task.invokable']}]),available_scopes:['user.task.readable']});
+ await render();await open();await click('Authorize again');
+ expect(host.querySelector('form .workbuddy-current-scopes')?.textContent).toContain('Create WorkBuddy tasks');
+ expect(host.querySelector('form input[value="user.task.invokable"]')).toBeNull();
+ await click('Reuse current requestable permissions');
+ expect(host.querySelector<HTMLInputElement>('form input[value="user.task.readable"]')?.checked).toBe(true);
+ expect(host.querySelector('form [aria-label="Not requested again"]')?.textContent).toContain('Create WorkBuddy tasks');
+ expect(host.querySelector('form .workbuddy-scope-unavailable')?.textContent).toContain('Create WorkBuddy tasks');
+ expect(host.textContent).toContain('These are proposed changes');expect(call.mock.calls.every(([,body])=>!body)).toBe(true);
+});
+
+it('shows safe bilingual reasons and timestamps while leaving unknown and pending connections outside disconnected history',async()=>{
+ const unknown={...row,id:'unknown-a',state:'refresh_unknown',last_error:'private-machine-token-C:/private/account',allowed_actions:['authorize','disconnect']};
+ const required={...row,id:'required-a',state:'reauthorization_required',last_error:'workbuddy_reauthorization_required',allowed_actions:['authorize','disconnect']};
+ const pending={...row,id:'pending-a',state:'authorizing',allowed_actions:['disconnect']};
+ const disconnected={...row,id:'disconnected-a',state:'disconnected',allowed_actions:['authorize']};
+ call.mockResolvedValue(page([unknown,required,pending,disconnected]));await render();await open();
+ const current=host.querySelector('[aria-label="Current authorizations and pending actions"]')!;
+ for(const id of ['unknown-a','required-a','pending-a'])expect(current.querySelector('[data-workbuddy-connection-id="'+id+'"]')).toBeTruthy();
+ expect(host.querySelector('.workbuddy-history [data-workbuddy-connection-id="unknown-a"]')).toBeNull();
+ expect(host.querySelector('[data-workbuddy-connection-id="unknown-a"] .workbuddy-connection-reason')?.textContent).toBe('The connection needs attention. Read its current status and review the currently allowed actions.');
+ expect(host.querySelector('[data-workbuddy-connection-id="required-a"] .workbuddy-connection-reason')?.textContent).toContain('The original authorization needs confirmation again');
+ expect(host.querySelector('[data-workbuddy-connection-id="required-a"] time')?.getAttribute('datetime')).toBe(row.updated_at);
+ expect(host.textContent).not.toContain('private-machine-token');expect(host.textContent).not.toContain('C:/private/account');
+ expect(host.textContent).toContain('not every account in the project');expect(call.mock.calls.every(([,body])=>!body)).toBe(true);
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});
+ expect(host.textContent).toContain('连接出现异常。请读取当前状态');expect(host.textContent).toContain('原授权需要重新确认');expect(host.textContent).toContain('最近更新');
+});
+
+it('keeps an explicitly located disconnected account visible and reauthorizable outside the bounded list page',async()=>{
+ const target={...row,id:'history-target',open_id:'history-account',state:'disconnected',allowed_actions:['authorize']};
+ call.mockImplementation(async(path:string)=>path.startsWith('/workbuddy-connections/')?target:page());
+ await act(async()=>root.render(<ApiViewProvider session={identity}><WorkBuddyConnections project="p-a" panel="workbuddy:history-target"/></ApiViewProvider>));
+ const card=host.querySelector('.workbuddy-history [data-workbuddy-connection-id="history-target"]');
+ expect(card).toBeTruthy();expect(card?.classList.contains('workbuddy-card-target')).toBe(true);expect(card?.textContent).toContain('history-account');
+ expect(host.querySelector('.workbuddy-history-toggle')?.getAttribute('aria-expanded')).toBe('true');expect(host.querySelector<HTMLDivElement>('.workbuddy-history-content')?.hidden).toBe(false);
+ expect(host.querySelectorAll('[data-workbuddy-connection-id="history-target"]')).toHaveLength(1);
+ expect(host.querySelector('[aria-label="Current authorizations and pending actions"] [data-workbuddy-connection-id="connection-a"]')).toBeTruthy();
+ const reauthorize=[...card!.querySelectorAll('button')].find(button=>button.textContent==='Authorize again');await act(async()=>reauthorize!.click());
+ expect(host.querySelector('form')?.textContent).toContain('history-account');expect(host.querySelector<HTMLInputElement>('form input[type="checkbox"]')?.checked).toBe(false);
+ await chooseScope();await act(async()=>host.querySelector<HTMLButtonElement>('.workbuddy-history-toggle')!.click());
+ expect(host.querySelector<HTMLDivElement>('.workbuddy-history-content')?.hidden).toBe(true);expect(host.querySelector<HTMLInputElement>('form input[value="user.task.readable"]')?.checked).toBe(true);
+ await act(async()=>host.querySelector<HTMLButtonElement>('.workbuddy-history-toggle')!.click());expect(host.querySelector<HTMLInputElement>('form input[value="user.task.readable"]')?.checked).toBe(true);
+ expect(call.mock.calls.every(([,body])=>!body)).toBe(true);
+ await click('Cancel');call.mockRejectedValue(new ApiError(403,'forbidden','Access denied'));await click('Refresh list');
+ expect(host.textContent).not.toContain('history-account');expect(host.querySelector('.workbuddy-history')).toBeNull();
+});
+
+it('retains an unknown reauthorization and its original recovery when disconnected history is collapsed',async()=>{
+ const disconnected={...row,state:'disconnected',allowed_actions:['authorize']};call.mockResolvedValue(page([disconnected]));await render();await open();
+ const toggle=host.querySelector<HTMLButtonElement>('.workbuddy-history-toggle')!;
+ expect(toggle.getAttribute('aria-expanded')).toBe('false');expect(toggle.textContent).toContain('Disconnected records in this read · 1');
+ await act(async()=>toggle.click());await click('Authorize again');await chooseScope();call.mockRejectedValueOnce(new ApiError(0,'network_error','Network unavailable'));
+ await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());
+ const original=call.mock.calls.find(([,body])=>body),stored=Object.values(sessionStorage).join(''),requests=call.mock.calls.length;
+ expect(original?.[1]).toMatchObject({project_id:'p-a',connection_id:'connection-a',expected_version:3,scopes:['user.task.readable']});
+ await act(async()=>toggle.click());
+ expect(host.querySelector<HTMLDivElement>('.workbuddy-history-content')?.hidden).toBe(true);
+ const recover=[...host.querySelectorAll('button')].find(button=>button.textContent==='Recover original operation');
+ expect(recover).toBeTruthy();expect(recover?.closest('.workbuddy-history-content')).toBeNull();expect(recover?.disabled).toBe(false);
+ expect(host.textContent).toContain('The operation outcome is unknown');expect(host.querySelector<HTMLInputElement>('form input[value="user.task.readable"]')?.checked).toBe(true);
+ expect(Object.values(sessionStorage).join('')).toBe(stored);expect(stored).toContain((original?.[1] as {idempotency_key:string}).idempotency_key);expect(call).toHaveBeenCalledTimes(requests);
+});
+
+it('keeps connections folded and reads only a bounded page after expansion',async()=>{await render();expect(call).not.toHaveBeenCalled();await open();expect(call.mock.calls[0][0]).toBe('/workbuddy-connections?project_id=p-a&limit=20');expect(host.textContent).toContain('account-a');expect(host.textContent).toContain('permissions and execution eligibility checked separately');expect(host.textContent).not.toContain('Cloud task dispatch is not available');expect(host.querySelector('details')).toBeTruthy();});
 it('prepares only explicitly selected scopes and keeps the official URL out of storage',async()=>{await render();await open();await click('Connect WorkBuddy account');expect(host.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(true);await chooseScope();let stored='';const authorization={id:'authorization-a',version:1,connection:{...row,state:'authorizing',allowed_actions:['disconnect']},authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=private-state',expires_at:'2099-01-01T00:00:00Z',state:'pending'};call.mockImplementation(async(path:string,body?:unknown)=>{if(body){stored=Object.values(sessionStorage).join('');return authorization;}return page([authorization.connection]);});await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());const link=host.querySelector<HTMLAnchorElement>('a[target="_blank"]');expect(link?.href).toBe(authorization.authorization_url);expect(link?.rel).toBe('noopener noreferrer');expect(stored).toContain('user.task.readable');expect(stored).not.toContain('private-state');expect(Object.values(sessionStorage).join('')).not.toContain('private-state');const body=call.mock.calls.find(([,body])=>body)?.[1];expect(body).toMatchObject({project_id:'p-a',scopes:['user.task.readable']});expect(body).not.toHaveProperty('code');});
 it('gates writes by current server actions and supports read-only viewers',async()=>{call.mockResolvedValue({...page([{...row,allowed_actions:[]}]),can_authorize:false});await render();await open();expect(host.textContent).toContain('account-a');expect(host.textContent).not.toContain('Connect WorkBuddy account');expect([...host.querySelectorAll('button')].some(b=>b.textContent==='Refresh authorization')).toBe(false);});
 it('clears protected summaries and URL on access loss',async()=>{await render();await open();call.mockRejectedValueOnce(new ApiError(403,'forbidden','Access denied'));await click('Refresh list');expect(host.textContent).not.toContain('account-a');expect(host.querySelector('a[target="_blank"]')).toBeNull();expect(host.textContent).toContain('Access denied');});
 it('ignores a late response after switching project and identity',async()=>{let complete!:(value:unknown)=>void;call.mockImplementationOnce(()=>new Promise(resolve=>{complete=resolve;}));await render();await open();await render('p-b',{...identity,user:{...identity.user,id:'user-b'}});expect(host.textContent).not.toContain('account-a');call.mockResolvedValue(page([],'p-b'));await open();await act(async()=>complete(page()));expect(host.textContent).not.toContain('account-a');expect(host.textContent).toContain('No WorkBuddy accounts connected');});
 it('preserves the original refresh key and version after an unknown outcome',async()=>{await render();await open();call.mockRejectedValueOnce(new ApiError(0,'network_error','Network unavailable'));await click('Refresh authorization');const first=call.mock.calls.find(([,body])=>body);expect(first?.[1]).toMatchObject({project_id:'p-a',expected_version:3});expect(host.textContent).toContain('The operation outcome is unknown');expect(host.querySelector('button[type="submit"]')).toBeNull();call.mockResolvedValueOnce({...row,version:4});await click('Recover original operation');const writes=call.mock.calls.filter(([,body])=>body);expect(writes).toHaveLength(2);expect(writes[1].slice(0,3)).toEqual(writes[0].slice(0,3));});
-it('requires an explicit local-only disconnect confirmation',async()=>{await render();await open();await click('Disconnect locally');expect(host.textContent).toContain('does not revoke access at WorkBuddy or stop remote tasks');expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(0);const box=host.querySelector<HTMLInputElement>('input[name="confirm-disconnect"]');await act(async()=>box!.click());call.mockImplementation(async(path:string,body?:unknown)=>body?{...row,state:'disconnected',version:4,allowed_actions:['authorize']}:page([{...row,state:'disconnected',version:4,allowed_actions:['authorize']}]));await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());expect(call.mock.calls.find(([,body])=>body)?.[1]).toMatchObject({project_id:'p-a',expected_version:3,reason:'user_requested_local_disconnect'});});
+it('requires an explicit local-only disconnect confirmation and moves the record only after its receipt',async()=>{
+ await render();await open();await click('Disconnect locally');expect(host.textContent).toContain('does not revoke access at WorkBuddy or stop remote tasks');expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(0);
+ const box=host.querySelector<HTMLInputElement>('input[name="confirm-disconnect"]');await act(async()=>box!.click());
+ const disconnected={...row,state:'disconnected',version:4,allowed_actions:['authorize']};let complete!:(value:unknown)=>void;
+ call.mockImplementation((path:string,body?:unknown)=>body?new Promise(resolve=>{complete=resolve;}):Promise.resolve(page([disconnected])));
+ await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());
+ const write=call.mock.calls.find(([,body])=>body);expect(write?.[0]).toBe('/workbuddy-connections/connection-a/disconnect');expect(write?.[1]).toMatchObject({project_id:'p-a',expected_version:3,reason:'user_requested_local_disconnect'});expect((write?.[1] as {idempotency_key:string}).idempotency_key).toBeTruthy();
+ expect(host.querySelector('.workbuddy-history')).toBeNull();expect(host.querySelector('[aria-label="Current authorizations and pending actions"] [data-workbuddy-connection-id="connection-a"]')).toBeTruthy();
+ await act(async()=>complete(disconnected));
+ expect(host.querySelector('.workbuddy-history [data-workbuddy-connection-id="connection-a"]')).toBeTruthy();expect(host.querySelector('[aria-label="Current authorizations and pending actions"]')).toBeNull();
+ const toggle=host.querySelector<HTMLButtonElement>('.workbuddy-history-toggle')!;expect(toggle.getAttribute('aria-expanded')).toBe('false');expect(toggle.textContent).toContain('Disconnected records in this read · 1');expect(host.querySelector<HTMLDivElement>('.workbuddy-history-content')?.hidden).toBe(true);
+ await act(async()=>toggle.click());expect(host.querySelector<HTMLDivElement>('.workbuddy-history-content')?.hidden).toBe(false);
+ expect(host.textContent).toContain('retain their records and related task and run evidence');expect(host.textContent).toContain('Remote access and remote tasks were not revoked or stopped');
+});
 it('does not accept cross-project, duplicate or unbounded pages and secret-bearing recovery bodies',()=>{expect(readWorkBuddyPage(page(),'p-b')).toBeUndefined();expect(readWorkBuddyPage(page([row,row]),'p-a')).toBeUndefined();expect(readWorkBuddyPage({...page(),limit:100},'p-a')).toBeUndefined();expect(validWorkBuddyRecovery({path:'/workbuddy-authorizations',body:{project_id:'p-a',scopes:['user.task.readable'],code:'secret',idempotency_key:'operation-a'},method:'POST',idempotency_key:'operation-a'},'p-a')).toBe(false);});
 it('uses bounded server cursors and restores the previous page without accumulating rows',async()=>{call.mockResolvedValueOnce({...page(),next_cursor:'opaque/page-2'});await render();await open();call.mockResolvedValueOnce(page([{...row,id:'connection-b',open_id:'account-b'}]));await click('Next page');expect(call.mock.calls.at(-1)?.[0]).toBe('/workbuddy-connections?project_id=p-a&limit=20&cursor=opaque%2Fpage-2');expect(host.textContent).toContain('account-b');expect(host.textContent).not.toContain('account-a');call.mockResolvedValueOnce({...page(),next_cursor:'opaque/page-2'});await click('Previous page');expect(call.mock.calls.at(-1)?.[0]).toBe('/workbuddy-connections?project_id=p-a&limit=20');expect(host.textContent).toContain('account-a');expect(host.textContent).not.toContain('account-b');});
 it('retains the original start after timeout and refuses writes when the reread becomes read-only',async()=>{await render();await open();await click('Connect WorkBuddy account');await chooseScope();call.mockRejectedValueOnce(new ApiError(0,'network_error','Network unavailable'));await act(async()=>host.querySelector<HTMLFormElement>('form')!.requestSubmit());const first=call.mock.calls.find(([,body])=>body);expect(first?.[0]).toBe('/workbuddy-authorizations');call.mockResolvedValueOnce({...page([{...row,allowed_actions:[]}]),can_authorize:false});await click('Read current status');expect(host.textContent).not.toContain('Recover original operation');expect(host.textContent).not.toContain('Connect WorkBuddy account');expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);expect(Object.values(sessionStorage).join('')).toContain((first?.[1] as {idempotency_key:string}).idempotency_key);});

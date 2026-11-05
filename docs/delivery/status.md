@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-IDENTITY-MANAGEMENT：[节点与账号管理设计](../design/tool-identity-management.md)／[验证记录](../quality/tool-identity-management-verification.md)。节点凭证筛选、按节点配置、撤销历史，以及 WorkBuddy 权限差异与断开历史已通过代表验证。
+
 T-REAL-CLI-ONBOARDING-226：[产品](../product/real-cli-onboarding.md)／[架构与接入](../integrations/real-cli-onboarding.md)／[交互](../design/real-cli-onboarding.md)／[限定验证](../quality/real-cli-onboarding-verification.md)。真实 Codex CLI 版本／帮助、原准备和库存确认已贯通至暂停登记；三字段诊断提供准确指南与明确重检，未知停止保留现场。私有探测配置保真，中英文完整，完整31项／P0–P7继续。
 
 T-MANAGED-CLI-PREPARATION-225：[已安装CLI快速接入](../product/managed-cli-preparation.md)／[架构与AI SOP](../architecture/managed-cli-preparation.md)／[简洁交互](../design/managed-cli-preparation.md)／[限定验证](../quality/managed-cli-preparation-verification.md)。新增Codex JSONL、CodeBuddy、dsh和Claude CLI，当前六种自动工厂复用原准备／库存／暂停登记；准确来源进入摘要并在执行前复核。两代隔离配置实跑及中英文代表界面已验，厂商／模型和完整31项／P0–P7继续。
