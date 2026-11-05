@@ -5351,6 +5351,25 @@ export interface ProjectRiskView {
   readiness: ProjectRiskReadiness;
   created?: boolean;
 }
+export interface ProjectScheduleOverlapAssignment {
+  project_id: string;
+  project_title: string;
+  task_id: string;
+  task_title: string;
+  start_date: string;
+  due_date: string;
+}
+export interface ProjectScheduleOverlapPage {
+  week_start: string;
+  as_of: string;
+  items: (ProjectScheduleOverlapPerson)[];
+}
+export interface ProjectScheduleOverlapPerson {
+  user_id: string;
+  name: string;
+  days: (string)[];
+  assignments: (ProjectScheduleOverlapAssignment)[];
+}
 export interface ProjectVersionedOperation {
   project_id: string;
   expected_version: number;

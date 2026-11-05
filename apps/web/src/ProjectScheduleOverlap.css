@@ -1,0 +1,111 @@
+.project-schedule-overlap {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  container-type: inline-size;
+}
+.overlap-heading h2 { margin: 6px 0 4px; }
+.overlap-heading p, .overlap-scope-note { margin: 0; color: var(--muted); line-height: 1.65; }
+.overlap-back { padding-inline: 0; color: var(--accent); }
+.overlap-results { min-width: 0; padding: 0; }
+.overlap-toolbar, .overlap-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.overlap-week { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.overlap-week > svg { flex-shrink: 0; color: var(--accent); }
+.overlap-week > div { display: grid; gap: 3px; }
+.overlap-week span, .overlap-status span, .overlap-person-name span, .overlap-scope-note {
+  color: var(--muted);
+  font-size: 12px;
+}
+.overlap-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.overlap-controls button { min-width: 36px; min-height: 36px; }
+.overlap-status { justify-content: flex-start; padding-block: 10px; }
+.overlap-status:empty { display: none; }
+.overlap-feedback { padding: 14px 20px; }
+.overlap-people, .overlap-week-grid, .overlap-projects ul { margin: 0; padding: 0; list-style: none; }
+.overlap-person { min-width: 0; padding: 16px 20px; }
+.overlap-person + .overlap-person { border-top: 1px solid var(--border); }
+.overlap-person-summary {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 14px;
+}
+.overlap-person-name h3 { margin: 0 0 3px; overflow-wrap: anywhere; }
+.overlap-week-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.overlap-week-grid li {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 58px;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  padding: 5px 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+}
+.overlap-week-grid time { display: grid; gap: 2px; text-align: center; font-size: 12px; overflow-wrap: anywhere; }
+.overlap-week-grid li[data-overlapped="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.overlap-day-description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.overlap-assignments { margin-top: 10px; }
+.overlap-assignments summary {
+  padding-block: 8px;
+  width: fit-content;
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+}
+.overlap-projects {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+.overlap-projects section { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
+.overlap-projects h4 { margin: 0; overflow-wrap: anywhere; }
+.overlap-projects li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 8px; }
+.overlap-projects li + li { border-top: 1px solid var(--border); }
+.overlap-projects li span { color: var(--muted); font-size: 12px; }
+.overlap-projects a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-block: 8px;
+  min-width: 0;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+.overlap-projects a svg { flex-shrink: 0; }
+@container (max-width: 600px) {
+  .overlap-toolbar, .overlap-status, .overlap-person, .overlap-feedback { padding-inline: 14px; }
+  .overlap-person-summary, .overlap-projects { grid-template-columns: minmax(0, 1fr); }
+  .overlap-week-grid { gap: 3px; }
+  .overlap-week-grid time { font-size: 11px; }
+  .overlap-controls button, .overlap-back, .overlap-assignments summary, .overlap-projects a {
+    min-height: 44px;
+    align-content: center;
+  }
+  .overlap-controls button { min-width: 44px; }
+  .overlap-projects li { padding-bottom: 4px; }
+}

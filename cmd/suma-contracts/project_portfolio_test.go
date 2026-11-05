@@ -29,3 +29,29 @@ func TestProjectPortfolioContract(t *testing.T) {
 		t.Fatal("portfolio must describe a bounded page and distinguish snapshot time from planned date")
 	}
 }
+
+func TestProjectScheduleOverlapContract(t *testing.T) {
+	api, _ := generate()
+	op := mapAt(api, "paths", "/project-portfolio/schedule-overlaps", "get")
+	if op["x-read-only"] != true || op["requestBody"] != nil || responseSchema(op, "200")["$ref"] != "#/components/schemas/ProjectScheduleOverlapPage" {
+		t.Fatal("schedule overlaps must use a typed organization read")
+	}
+	security := op["security"].([]any)
+	if len(security) != 1 || mapAt(security[0])["cookieAuth"] == nil {
+		t.Fatal("schedule overlaps must be scoped to a browser session")
+	}
+	queryCount := 0
+	for _, p := range op["parameters"].([]any) {
+		parameter := mapAt(p)
+		if parameter["in"] != "query" {
+			continue
+		}
+		queryCount++
+		if parameter["name"] != "week" || parameter["required"] != true || mapAt(parameter, "schema")["format"] != "date" {
+			t.Fatalf("schedule overlaps has an invalid query parameter: %#v", parameter)
+		}
+	}
+	if queryCount != 1 {
+		t.Fatalf("schedule overlaps must expose one required week, got %d query parameters", queryCount)
+	}
+}

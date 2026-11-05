@@ -7,6 +7,9 @@ import (
 )
 
 func (s *Server) projectPortfolioHTTP(w http.ResponseWriter, r *http.Request, actor Actor, path string) bool {
+	if path == "project-portfolio/schedule-overlaps" {
+		return s.projectScheduleOverlapHTTP(w, r, actor, path)
+	}
 	if path != "project-portfolio" {
 		return false
 	}

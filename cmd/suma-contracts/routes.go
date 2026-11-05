@@ -5,7 +5,7 @@ import "strings"
 type operationAdder func(path, method, model string, list, body bool) map[string]any
 
 func projectScoped(path string) bool {
-	return path != "/localization/catalog" && path != "/notification-inbox/organization" && path != "/notification-inbox/batch-commands" && !strings.HasPrefix(path, "/account/") && !strings.HasPrefix(path, "/execution-pools") && !strings.HasPrefix(path, "/pool-runner/") && !strings.HasPrefix(path, "/hooks/") && !strings.HasPrefix(path, "/provider/") && !strings.HasPrefix(path, "/repository-provider/") && !strings.HasPrefix(path, "/auth/") && path != "/projects" && path != "/project-portfolio" && path != "/organizations" && !strings.HasPrefix(path, "/organization/") && path != "/teams" && !strings.HasPrefix(path, "/teams/")
+	return path != "/localization/catalog" && path != "/notification-inbox/organization" && path != "/notification-inbox/batch-commands" && !strings.HasPrefix(path, "/account/") && !strings.HasPrefix(path, "/execution-pools") && !strings.HasPrefix(path, "/pool-runner/") && !strings.HasPrefix(path, "/hooks/") && !strings.HasPrefix(path, "/provider/") && !strings.HasPrefix(path, "/repository-provider/") && !strings.HasPrefix(path, "/auth/") && path != "/projects" && path != "/project-portfolio" && path != "/project-portfolio/schedule-overlaps" && path != "/organizations" && !strings.HasPrefix(path, "/organization/") && path != "/teams" && !strings.HasPrefix(path, "/teams/")
 }
 func queryParameter(name, description string, value map[string]any) map[string]any {
 	return map[string]any{"in": "query", "name": name, "description": description, "schema": value}

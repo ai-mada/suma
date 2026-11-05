@@ -13,6 +13,7 @@ type Props = {
   refresh: number;
   onSearch: (q: string) => void;
   onCreate: () => void;
+  onScheduleOverlap: () => void;
   onOpen: (id: string) => void;
   onOverview: (id: string) => void;
 };
@@ -49,7 +50,7 @@ export function ProjectDirectory(props: Props) {
   return <PortfolioScope key={JSON.stringify([user.id, organization.id])} {...props}/>;
 }
 
-function PortfolioScope({session, q, refresh, onSearch, onCreate, onOpen, onOverview}: Props) {
+function PortfolioScope({session, q, refresh, onSearch, onCreate, onScheduleOverlap, onOpen, onOverview}: Props) {
   useLocale();
   const api = useApi();
   const {user, organization} = session;
@@ -156,9 +157,14 @@ function PortfolioScope({session, q, refresh, onSearch, onCreate, onOpen, onOver
         <h2 id={id + '-title'}>{t('title')}</h2>
         <p>{t('description')}</p>
       </div>
-      {canCreate && <button type="button" className="primary" onClick={onCreate}>
-        <Plus size={16} aria-hidden="true"/>{tr('shell.create_project')}
-      </button>}
+      <div className="project-portfolio-heading-actions">
+        <button type="button" data-portfolio-schedule-overlap onClick={onScheduleOverlap}>
+          <CalendarDays size={16} aria-hidden="true"/>{tr('project-schedule-overlap.title')}
+        </button>
+        {canCreate && <button type="button" className="primary" onClick={onCreate}>
+          <Plus size={16} aria-hidden="true"/>{tr('shell.create_project')}
+        </button>}
+      </div>
     </header>
     <section className="project-portfolio-results panel" aria-labelledby={id + '-results'}>
       <div className="project-portfolio-toolbar">

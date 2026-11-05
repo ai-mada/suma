@@ -27,7 +27,7 @@ function View({session: current, refresh = 0}: {session: Session; refresh?: numb
   const [q, setQuery] = useState('');
   return <ApiViewProvider session={current}>
     <ProjectDirectory session={current} refresh={refresh} q={q} onSearch={setQuery}
-      onOverview={overview} onOpen={open} onCreate={create}/>
+      onOverview={overview} onOpen={open} onCreate={create} onScheduleOverlap={()=>{}}/>
   </ApiViewProvider>;
 }
 

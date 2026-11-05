@@ -37,6 +37,14 @@ Governance owns internal/platform/governance*.go, governance*_test.go, docs/prod
 
 `ProjectPortfolioItem` 包含项目公开名称与状态、全部任务数、`accepted` 任务数、`blocked` 任务数、活动风险数（`open`、`mitigating`、`in_review`）。可选里程碑指本项目有计划日期且处于 `planned` 或 `active` 的最早一项，同日用 ID 稳定排序。没有合格里程碑时省略字段。该读不返回组合总量，不修改项目、任务、发布或调度事实。 [交互规格](../docs/design/project-portfolio.md)
 
+### 跨项目排期重叠
+
+`GET /api/v1/project-portfolio/schedule-overlaps?week=YYYY-MM-DD` 只接受当前组织的浏览器会话。参数是必填的周一日期，拒绝其他查询字段与重复值。响应 `week_start`、`as_of` 与 `items`，使用 `Cache-Control: no-store`。候选项目及任务在同一当前授权事务内读取。项目读取资格变化会影响下一次结果。
+
+按真实人员账号合并当前有效的项目内人力绑定。仅纳入当前可访问项目中、已明确负责人、起止日齐全、尚未验收且未退出计划的任务。对周内每个自然日，统计该人员有排期的不同项目。两个及以上项目的日期交集构成一条重叠事实。同一项目的多任务不能单独形成重叠。响应按人员列出确切日期和参与重叠的任务来源，隐藏项目及失去访问资格的绑定不参与计算。
+
+扫描限制为每周 2000 条符合条件的任务。超限返回 `409 schedule_overlap_scope_too_large`，不返回部分事实。日期区间使用业务计划中的自然日。重叠表达多项目计划占用同一天，估算工时、已记录工时、资源日历与全组织实际可用容量使用各自的事实和规则。 [项目组合交互](../docs/design/project-portfolio.md#跨项目排期重叠)
+
 ## UI (workbench agent)
 
 Own apps/web, packages/ui, docs/design/planning-governance.md only. Preserve existing navigation hierarchy and design tokens. Add development tabs iterations/planning (milestones, timeline, baseline and capacity), settings tabs organization/teams/project-access; organization switch via real GET organizations + POST auth/switch followed by session reload. Invitation acceptance page reads token only from URL fragment/manual entry, never query/log; no automatic acceptance. Root routes public acceptance and switch to cookie session. All loading/error/empty/no-permission/conflict states and uncertain write replay guard remain. UI may store a new invitation token only in component memory until dismissed. No external design uploads (previously rejected).
