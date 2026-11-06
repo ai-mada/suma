@@ -209,6 +209,13 @@ var cliMessages = map[string]cliMessage{
 	workBuddyProgressUsage:     {"cli.run.workbuddy_status_usage", "run workbuddy-status 需要运行 ID 和一个 --node 节点 ID"},
 	workBuddyProgressInvalid:   {"cli.run.workbuddy_status_invalid", "WorkBuddy 进度响应无效或与请求的范围不一致"},
 	workBuddyProgressRejected:  {"cli.run.workbuddy_status_rejected", "控制面拒绝读取 WorkBuddy 进度"},
+	usageEvidenceUsage:         {"cli.usage_evidence.usage", "用量查询命令为 usage attempts 或 usage evidence ATTEMPT。请查看 usage --help"},
+	usageAttemptsUsage:         {"cli.usage_evidence.attempts_usage", "usage attempts 需要 --project，支持 --month YYYY-MM、--state、--limit 1–100 和原 --before 游标"},
+	usageFactsUsage:            {"cli.usage_evidence.facts_usage", "usage evidence 需要 --project 和准确的尝试 ID，支持 --limit 1–100 和原 --before 游标"},
+	usageEvidenceBrowser:       {"cli.usage_evidence.browser_required", "用量查询需要已有登录会话和原 --expected-user。也可提供原 --expected-organization"},
+	usageEvidenceInvalid:       {"cli.usage_evidence.invalid", "用量响应无效或与请求的范围不一致"},
+	usageEvidenceRejected:      {"cli.usage_evidence.rejected", "控制面拒绝读取用量证据"},
+	usageEvidenceViewChanged:   {"cli.usage_evidence.view_changed", "当前会话的账户或组织与原请求不一致"},
 }
 
 func localizeFailure(locale localization.Locale, f *failure) *failure {
@@ -350,6 +357,7 @@ const helpZH = `suma — 速码控制面客户端
   run workbuddy-status RUN --node NODE
   run workbuddy-list [--limit 1..20] [--filter attention] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
+  usage --help               使用登录会话读取用量尝试及证据
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
        [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]

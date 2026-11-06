@@ -44,6 +44,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-USAGE-EVIDENCE-CLI-281 终端可使用工作台会话按月筛选执行尝试并续页核对准确尝试的用量证据。 [验证](../quality/usage-evidence-cli-verification.md)
+
 T-USAGE-EVIDENCE-ORDER-280 用量证据按 UTC 纳秒时间稳定续页，修正同秒小数精度不同导致的乱序。 [验证](../quality/usage-evidence-order-verification.md)
 
 T-USAGE-EVIDENCE-279 用量尝试可展开原始／后续回执、核对和人工确认，按当前授权续读。 [验证](../quality/usage-evidence-verification.md)

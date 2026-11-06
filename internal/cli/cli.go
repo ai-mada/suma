@@ -45,6 +45,7 @@ Read commands:
   run workbuddy-status RUN --node NODE
   run workbuddy-list [--limit 1..20] [--filter attention] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
+  usage --help               Read usage attempts and evidence with a login session
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
        [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]
@@ -144,6 +145,9 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "usage" {
+		return usageEvidenceCommand(ctx, c, args[1:], out)
+	}
 	if len(args) > 0 && args[0] == "tools" {
 		return toolProfilesCommand(ctx, c, args[1:], in, out)
 	}

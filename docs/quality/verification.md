@@ -44,6 +44,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-USAGE-EVIDENCE-CLI-281 核验真实本地 HTTP 和 SQLite 的 CLI 分页、权限及只读行为。 [阶段报告](usage-evidence-cli-verification.md)
+
 T-USAGE-EVIDENCE-ORDER-280 核验同秒混合精度、相同时间 ID 排序和单条续页。 [阶段报告](usage-evidence-order-verification.md)
 
 T-USAGE-EVIDENCE-279 核验私有内容边界、准确分页、撤权及中英文键盘交互。 [阶段报告](usage-evidence-verification.md)

@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "usage_evidence_cli": {
+    "stage": "T-USAGE-EVIDENCE-CLI-281",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "73dac1ed480e604bff4cf08d1e0c3137057d0329",
+    "report": "docs/quality/usage-evidence-cli-verification.md",
+    "actual": "The CLI reads scoped usage attempt pages and exact-attempt evidence through the existing human session authorization.",
+    "verification": "Focused CLI tests used a real localhost platform service and isolated SQLite. Both language help screens passed with the built CLI.",
+    "known_limitations": "Other database engines, remote hosts and provider billing are outside this stage evidence.",
+    "full_platform_complete": false
+  },
   "usage_evidence_order": {
     "stage": "T-USAGE-EVIDENCE-ORDER-280",
     "version": "1.0.0",

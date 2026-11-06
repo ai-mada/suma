@@ -57,6 +57,8 @@ UsageConfirmRequest{project_id,expected_version,usage:toolcontract.Usage,source_
 
 当前权限在receipt replay前重核；Runner/Agent token不能访问管理读写。严格未知字段/null/完整显式nullable字段与月份/游标范围校验。金额只显示各自币种，不用汇率。宿主诊断中文/英文成对，原用量、模型ID、用户reason原样保存。
 
+CLI 的 `usage attempts` 与 `usage evidence` 复用上述两个读取接口和工作台会话授权。操作者提供预期用户和项目，可指定预期组织。两个接口的游标各自用于原查询，读取不会改变账本状态。 [操作说明](../docs/operations/model-execution.md#在终端核对用量证据)
+
 ## 文件所有权
 
 - backend代理：internal/platform/usage_accounting*.go（除Root HTTP），DTO/迁移/费率/策略/账户/ledger/实现DAG hook/有界读取及7左右必要权限/幂等/事务/unknown/精确计算检查。可在本域自己的测试显式注入hook；共享http/main不改，Root接。请先落types。

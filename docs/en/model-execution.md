@@ -34,6 +34,17 @@ Rates are operator-configured, versioned per project/tool. New options read one 
 
 Organization and project enforce policies apply during admission. Unpriced execution cannot satisfy a monetary budget or a policy requiring matching pricing. Unknown cost is never displayed as zero. Partial, unreported, unknown, mismatched or overflowing evidence retains unresolved facts and applicable holds. Existing authorized manual usage confirmation requires an evidence source, reason, expected version and stable operation key, and cannot reduce already reported counters. It does not certify execution or acceptance.
 
+## Read usage evidence from the CLI
+
+Use an existing workbench login session from the current process's `SUMA_TOKEN`. Keep the same project, user and organization when reading the attempt list and evidence.
+
+```powershell
+suma --control https://suma.example --project PROJECT_ID --expected-user USER_ID --expected-organization ORG_ID --language en-US usage attempts --month 2026-11 --state confirmed --limit 20
+suma --control https://suma.example --project PROJECT_ID --expected-user USER_ID --expected-organization ORG_ID --language en-US usage evidence ATTEMPT_ID --limit 20
+```
+
+Copy an attempt `id` from the first command into the second. Each command returns one JSON document. To read another page, pass its `next_cursor` as `--before` with the original scope and filters. Evidence keeps server order and distinguishes the original result, subsequent reconciliation records and manual confirmations. Missing counters stay absent. These reads use archived Suma records without contacting the provider.
+
 ## Implementation and delivery boundary
 
 The bounded provider adapter reuses the existing cancellable fetch transport and raw usage evidence. Workspace access reuses the official MCP SDK. No official OpenAI or Agents SDK has been added, and local protocol fixtures do not establish vendor authentication, model quality, invoices or production acceptance.

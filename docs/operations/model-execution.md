@@ -36,6 +36,17 @@ Start 使用原计划 ID／版本与原操作身份，重新核验当前项目�
 
 费用是按原冻结运营方费率计算的估算值；后来更新当前报价不改旧 attempt。模型身份或用量核对不能代替独立代码测试、Review、合并或生产批准。未经可信执行前证明，不能将失败推断为零用量。
 
+## 在终端核对用量证据
+
+将已有的工作台登录会话令牌保存在当前进程的 `SUMA_TOKEN` 中。使用相同项目、操作者及组织，先筛选尝试，再用返回的尝试 `id` 查看证据。
+
+```powershell
+suma --control https://suma.example --project PROJECT_ID --expected-user USER_ID --expected-organization ORG_ID --language zh-CN usage attempts --month 2026-11 --state confirmed --limit 20
+suma --control https://suma.example --project PROJECT_ID --expected-user USER_ID --expected-organization ORG_ID --language zh-CN usage evidence ATTEMPT_ID --limit 20
+```
+
+两条命令各返回一份 JSON。若 `next_cursor` 非空，在原命令后加 `--before NEXT_CURSOR`，保留原项目、尝试及筛选。证据列表保留服务端顺序，可以区分原始结果、后续核对记录和人工确认，缺失的计数保持缺失。命令只读取速码已存档的记录，无需调用厂商。
+
 ## 核对厂商用量与账单
 
 1. 在速码打开原运行与计量计费，记录 UTC 调用窗口、模型版本、尝试／fence、厂商返回的完成 ID、输入／输出／缓存计数、币种及冻结费率。先确认原尝试用量是否完整。
