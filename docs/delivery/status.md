@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-POOL-IDLE-BACKOFF 共享槽位对持久确认的连续空领取启用有界退避。原领取继续按配置间隔恢复。本机 SQLite 和真实子进程已走通领取及结果回写。 [调度合同](../../contracts/execution-pools.md#空闲领取退避) · [阶段验证](../quality/pool-idle-backoff-verification.md)
+
 T-QUEUE-POOL-CREDENTIALS 共享池队列区分无活动节点登记和无可用机器凭证，沿项目权限提供执行资源入口。控制面节点保持原判定。 [交互](../design/scheduling-workspace.md#队列分诊) · [验证](../quality/queue-pool-credentials-verification.md)
 
 T-QUEUE-TOOL-BLOCKERS 待派发队列和节点详情说明固定工具的当前阻塞。队列可直达准确工具体检并返回原节点，CLI 读取同一事实。 [交互](../design/scheduling-workspace.md#队列分诊) · [验证](../quality/queue-tool-blockers-verification.md)

@@ -96,6 +96,8 @@ suma-runner --pool-config local.pool.json --describe-tools --allow-exec
 
 配置支持 1–128 个真实本地槽位，不能超过服务端当前登记上限；最多 256 个本地范围。poll 可设 100–60000 毫秒，heartbeat 可设 100–10000 毫秒，缺失或零使用 2000／5000 毫秒默认值。库存按 30 秒刷新；单次网络失败关闭新领取资格，不凭库存失败取消已在执行的任务。
 
+`poll_interval_ms` 是槽位领取的基础间隔。连续收到空领取回执时，各槽位独立退避，首次空回执后等待基础间隔，后续按两倍、四倍增加，上限为 10 秒。默认 2 秒时空闲间隔最多 8 秒。基础间隔达到或超过 10 秒时保持配置值。较长等待在基础间隔以上加入随机抖动，减少槽位同时查询。收到任务后立即沿原流程执行；待核对的领取仍按基础间隔恢复。心跳和库存刷新保持独立。 [阶段验证](../quality/pool-idle-backoff-verification.md)
+
 每个 scope 固定 workspace、repository、base_commit、worktrees 和 commands；目录解析为真实绝对路径后参与恢复摘要。不同项目不能共用进程工作目录。写命令沿用已有的固定 Git 基准与独立 worktree 协议，并把完整资源池范围加入 attempt 目录摘要。
 
 原生 Suma 命令自动固定 `SUMA_PROJECT_ID` 为该 scope；明确不同的值或从可变父环境导入项目号会被拒绝。机器凭证不会自动继承到子进程，也不能在 pool 命令的 Env／EnvFrom 中转发；原生 Agent 如需业务只读工具，必须另有该项目的 Agent 凭证，不能把 pool token 改名当作 Agent token。

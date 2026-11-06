@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 )
 
 // Local scopes are configurations, never project grants. Paths and command
@@ -429,6 +431,31 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 	return runErr
 }
 
+type poolClaimPoll struct {
+	base time.Duration
+	idle time.Duration
+}
+
+func (p *poolClaimPoll) next(confirmedEmpty bool) time.Duration {
+	if !confirmedEmpty {
+		p.idle = 0
+		return p.base
+	}
+	const ceiling = 10 * time.Second
+	if p.base >= ceiling {
+		return p.base
+	}
+	if p.idle == 0 {
+		p.idle = p.base
+		return p.base
+	}
+	p.idle = min(p.idle*2, 4*p.base, ceiling)
+	// Jitter only expanded waits to spread idle slots without exceeding the
+	// configured floor or the ceiling. Keep the nominal interval for growth.
+	spread := min(p.idle/8, p.idle-p.base)
+	return p.idle - rand.N(spread+1)
+}
+
 func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j *Journal) error {
 	poll, beat := w.PollInterval, w.HeartbeatInterval
 	if poll <= 0 {
@@ -443,6 +470,7 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 			beat = time.Duration(w.Config.HeartbeatIntervalMS) * time.Millisecond
 		}
 	}
+	claimPoll := poolClaimPoll{base: poll}
 	for ctx.Err() == nil {
 		for _, a := range j.pendingCloudExecutions() {
 			if ctx.Err() != nil {
@@ -492,7 +520,7 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 				return fmt.Errorf("pool callback authority rejected; original outbox retained for reconciliation")
 			}
 			w.notice("callback_pending", slot)
-			if !wait(ctx, poll) {
+			if !wait(ctx, claimPoll.next(false)) {
 				break
 			}
 			continue
@@ -500,8 +528,11 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 		if ctx.Err() != nil {
 			return nil
 		}
-		_ = ReplayWorkspaceObservations(ctx, w.Client, j, nil)
-		_ = ReplayWorkspaceWrites(ctx, w.Client, j, nil)
+		observationErr := ReplayWorkspaceObservations(ctx, w.Client, j, nil)
+		writeErr := ReplayWorkspaceWrites(ctx, w.Client, j, nil)
+		if observationErr != nil || writeErr != nil {
+			claimPoll.idle = 0
+		}
 		if ctx.Err() != nil {
 			return nil
 		}
@@ -511,7 +542,7 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 				return e
 			}
 			w.notice("session_unavailable", slot)
-			if !wait(ctx, poll) {
+			if !wait(ctx, claimPoll.next(false)) {
 				break
 			}
 			continue
@@ -539,7 +570,7 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 		}
 		if (len(scopes) == 0 || !session.PoolActive) && (old == nil || old.Complete) {
 			w.notice("waiting_for_scope_or_pool", slot)
-			if !wait(ctx, poll) {
+			if !wait(ctx, claimPoll.next(false)) {
 				break
 			}
 			continue
@@ -557,7 +588,7 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 		a, e := w.Client.ClaimPool(ctx, checkpoint.Request)
 		if e != nil {
 			w.notice("claim_pending", slot)
-			if !wait(ctx, poll) {
+			if !wait(ctx, claimPoll.next(false)) {
 				break
 			}
 			continue
@@ -568,6 +599,7 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 			return e
 		}
 		if a != nil && a.DispatchState == "active" {
+			claimPoll.idle = 0
 			// The original claim response remains replayable until acceptance.
 			if ctx.Err() != nil {
 				return nil
@@ -619,7 +651,8 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 			if e = savePoolClaim(j, checkpoint); e != nil {
 				return e
 			}
-			if !wait(ctx, poll) {
+			// Only durable, empty responses extend the slot polling interval.
+			if !wait(ctx, claimPoll.next(a == nil)) {
 				break
 			}
 		}

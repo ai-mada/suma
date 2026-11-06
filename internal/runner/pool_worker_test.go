@@ -15,6 +15,47 @@ import (
 	"time"
 )
 
+func TestPoolClaimPollBacksOffOnlyConsecutiveEmptyClaims(t *testing.T) {
+	tests := []struct {
+		name   string
+		base   time.Duration
+		second time.Duration
+		limit  time.Duration
+	}{
+		{name: "four-times limit", base: 2 * time.Second, second: 4 * time.Second, limit: 8 * time.Second},
+		{name: "ten-second limit", base: 3 * time.Second, second: 6 * time.Second, limit: 10 * time.Second},
+		{name: "near ceiling", base: 9500 * time.Millisecond, second: 10 * time.Second, limit: 10 * time.Second},
+		{name: "at ceiling", base: 10 * time.Second, second: 10 * time.Second, limit: 10 * time.Second},
+		{name: "above ceiling", base: time.Minute, second: time.Minute, limit: time.Minute},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			poll := poolClaimPoll{base: tt.base}
+			for i, step := range []struct {
+				empty   bool
+				nominal time.Duration
+			}{
+				{true, tt.base},
+				{true, tt.second},
+				{true, tt.limit},
+				{true, tt.limit},
+				{false, tt.base},
+				{true, tt.base},
+				{true, tt.second},
+				{false, tt.base},
+				{false, tt.base},
+				{true, tt.base},
+			} {
+				got := poll.next(step.empty)
+				lower := max(tt.base, step.nominal-step.nominal/8)
+				if got < lower || got > step.nominal {
+					t.Fatalf("step %d: got %v, want [%v, %v]", i, got, lower, step.nominal)
+				}
+			}
+		})
+	}
+}
+
 func TestPoolParallelProcess(t *testing.T) {
 	if os.Getenv("SUMA_POOL_TEST_MARKER") == "" {
 		return
