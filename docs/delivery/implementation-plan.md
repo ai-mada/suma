@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-DISPATCH-SEARCH 为多节点和大量工具配置补齐授权目录搜索与准确候选采用。 [合同](../../contracts/task-dispatch-options.md#filtered-candidates) · [阶段验证](../quality/tool-dispatch-search-verification.md)
+
 T-TOOL-DISPATCH-ALTERNATIVES 衔接准确工具预检和候选选择，按当前任务及执行路径提供替代配置。 [交互](../design/task-dispatch-options.md#从已带入工具继续) · [阶段验证](../quality/tool-dispatch-alternatives-verification.md)
 
 T-TOOL-TASK-PREFLIGHT 推进团队统一工具与任务交接。网页和命令行共用准确配置预检，沿原调度、模型和质量门禁。 [合同](../../contracts/task-dispatch-options.md#exact-tool-handoff) · [阶段验证](../quality/tool-task-preflight-verification.md)

@@ -22,6 +22,7 @@ type TaskDispatchOptionsRequest struct {
 	WorkflowVersion     int    `json:"workflow_version"`
 	AgentNodeID         string `json:"agent_node_id"`
 	ToolProfileID       string `json:"tool_profile_id,omitempty"`
+	Query               string `json:"query,omitempty"`
 	Limit               int    `json:"limit,omitempty"`
 	Before              string `json:"before,omitempty"`
 }
@@ -44,6 +45,7 @@ type TaskDispatchOptions struct {
 	WorkflowID               string                    `json:"workflow_id"`
 	WorkflowVersion          int                       `json:"workflow_version"`
 	AgentNodeID              string                    `json:"agent_node_id"`
+	Query                    string                    `json:"query,omitempty"`
 	ObservedAt               string                    `json:"observed_at"`
 	Context                  TaskContext               `json:"context"`
 	ExecutionRoute           dag.ProjectExecutionRoute `json:"execution_route"`
@@ -53,11 +55,16 @@ type TaskDispatchOptions struct {
 	RecommendedToolProfileID string                    `json:"recommended_tool_profile_id"`
 }
 
-// A profile-page cursor cannot be reused after changing the engineering basis.
+// A profile-page cursor cannot be reused by another actor or after changing
+// the engineering basis or canonical search.
 // The inner profile reader retains its existing authority/projection contract;
 // only its stable last-profile position is re-enveloped in this exact scope.
-func taskDispatchOptionsCursorScope(req TaskDispatchOptionsRequest) string {
-	return "task_dispatch_options:" + digest(stringify(map[string]any{"task_id": req.TaskID, "task_version": req.ExpectedTaskVersion, "workflow_id": req.WorkflowID, "workflow_version": req.WorkflowVersion, "agent_node_id": req.AgentNodeID}))
+func taskDispatchOptionsCursorScope(p Principal, req TaskDispatchOptionsRequest, search string) string {
+	basis := map[string]any{"actor_id": p.ID, "task_id": req.TaskID, "task_version": req.ExpectedTaskVersion, "workflow_id": req.WorkflowID, "workflow_version": req.WorkflowVersion, "agent_node_id": req.AgentNodeID}
+	if search != "" {
+		basis["query"] = search
+	}
+	return "task_dispatch_options:" + digest(stringify(basis))
 }
 
 // GetTaskDispatchOptions evaluates a page or an exact profile in a current-authority
@@ -70,7 +77,7 @@ func taskDispatchOptionsCursorScope(req TaskDispatchOptionsRequest) string {
 // model selection stays fixed by the administrator's exact tool profile.
 func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine, actor Actor, project, taskID string, req TaskDispatchOptionsRequest) (out TaskDispatchOptions, err error) {
 	out.Items = []TaskDispatchToolOption{}
-	if req.ToolProfileID != "" && (!handoffID(req.ToolProfileID, false) || req.Limit != 0 || req.Before != "") {
+	if req.ToolProfileID != "" && (!handoffID(req.ToolProfileID, false) || req.Limit != 0 || req.Before != "" || req.Query != "") {
 		return out, invalid(taskDispatchOptionsInvalid)
 	}
 	if req.Limit == 0 {
@@ -110,7 +117,7 @@ func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine
 		if e != nil {
 			return e
 		}
-		out = TaskDispatchOptions{ProjectID: project, TaskID: taskID, TaskVersion: task.Task.Version, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, AgentNodeID: req.AgentNodeID, ObservedAt: automationStamp(clock), Context: task, ExecutionRoute: route, Total: profiles.Total, NextCursor: profiles.NextCursor, Items: []TaskDispatchToolOption{}}
+		out = TaskDispatchOptions{ProjectID: project, TaskID: taskID, TaskVersion: task.Task.Version, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, AgentNodeID: req.AgentNodeID, Query: req.Query, ObservedAt: automationStamp(clock), Context: task, ExecutionRoute: route, Total: profiles.Total, NextCursor: profiles.NextCursor, Items: []TaskDispatchToolOption{}}
 		for _, profile := range profiles.Items {
 			option := TaskDispatchToolOption{Tool: profile, ReasonCode: "eligible", ModelState: "fixed_by_tool", CostState: "unknown", EligibleBasis: "current_observation_and_compatibility"}
 			switch {
@@ -165,13 +172,20 @@ func (s *Service) taskDispatchOptionProfiles(auth *authorizedCommand, project st
 		return ToolProfileList{Items: []ToolProfile{profile}, Total: 1}, nil
 	}
 
-	cursorScope := taskDispatchOptionsCursorScope(req)
+	query := ToolProfileListQuery{State: "active", Query: req.Query, Limit: req.Limit}
+	canonical, err := normalizeToolProfileListQuery(query)
+	if err != nil {
+		return ToolProfileList{}, err
+	}
+	if req.Query != "" && canonical.Query == "" {
+		return ToolProfileList{}, invalid(taskDispatchOptionsInvalid)
+	}
+	cursorScope := taskDispatchOptionsCursorScope(p, req, canonical.Query)
 	position, err := automationDecodeCursor(p, project, cursorScope, req.Before)
 	if err != nil {
 		return ToolProfileList{}, err
 	}
-	query := ToolProfileListQuery{State: "active", Limit: req.Limit}
-	profileCursorScope := toolProfileListCursorScope(p, query)
+	profileCursorScope := toolProfileListCursorScope(p, canonical)
 	if position != "" {
 		query.Cursor = automationEncodeCursor(p, project, profileCursorScope, position)
 	}

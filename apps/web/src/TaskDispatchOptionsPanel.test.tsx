@@ -34,8 +34,22 @@ async function settle(){for(let i=0;i<4;i++)await act(async()=>{await new Promis
 async function render(current=scope,disabled=false,panelRef?:Ref<TaskDispatchOptionsHandle>){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={session}><TaskDispatchOptionsPanel session={session} scope={current} disabled={disabled} panelRef={panelRef} onAdopt={adopt} onUnavailable={unavailable}/></ApiViewProvider>);});await settle();}
 async function click(selector:string){const node=document.querySelector<HTMLElement>(selector);expect(node,selector).not.toBeNull();await act(async()=>node!.click());await settle();}
 
+const searchField=()=>host.querySelector<HTMLInputElement>('[data-dispatch-options-search]')!;
+async function editSearch(value:string){
+ const input=searchField();
+ await act(async()=>{
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,value);
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+ });
+}
+
 it('rejects mismatched basis, stale nested facts and fabricated or duplicate page recommendations',()=>{
  expect(validDispatchOptions(page(),scope,session.organization.id)).toBe(true);
+ const filtered={...page(),query:'Tool B'};
+ expect(validDispatchOptions(filtered,scope,session.organization.id,'Tool B')).toBe(true);
+ expect(validDispatchOptions(filtered,scope,session.organization.id,'tool b')).toBe(false);
+ expect(validDispatchOptions(filtered,scope,session.organization.id)).toBe(false);
+ expect(validDispatchOptions(page(),scope,session.organization.id,'Tool B')).toBe(false);
  const corruptions:((value:TaskDispatchOptions)=>void)[]=[value=>{value.project_id='other';},value=>{value.task_id='other';},value=>{value.task_version++;},value=>{value.workflow_version++;},value=>{value.agent_node_id='other';},value=>{value.context.task.version++;},value=>{value.execution_route.project_id='other';},value=>{value.execution_route.tenant_id='other';},value=>{value.items[1].tool.project_id='other';},value=>{value.items.push(value.items[1]);},value=>{value.total=0;},value=>{value.next_cursor='x'.repeat(4097);},value=>{value.recommended_tool_profile_id='tool-c';},value=>{value.items[1].eligible=false;},value=>{value.items[1].cost_state='free';},value=>{value.items[1].tool.observation!.profile.profile_sha256='d'.repeat(64);}];
  for(const corrupt of corruptions){const changed=structuredClone(page());corrupt(changed);expect(validDispatchOptions(changed,scope,session.organization.id)).toBe(false);}
  expect(dispatchOptionsPath(scope,'page-2')).toContain('expected_task_version=4&workflow_id=flow-a&workflow_version=2&agent_node_id=code&limit=50&before=page-2');
@@ -137,6 +151,84 @@ it('retries the original tool page, keeps keyboard focus and rejects cursor loop
  await click('[data-dispatch-page="first"]');
  expect(host.querySelector('[data-dispatch-option="tool-b"]')).not.toBeNull();
  expect(requests.every(request=>request.method==='GET')).toBe(true);expect(adopt).not.toHaveBeenCalled();
+});
+
+it('applies search on Enter and keeps the committed filter through paging and retry',async()=>{
+ const submitted='Worker-A';
+ let failed=false;
+ reply=async path=>{
+  const params=new URL(path,'http://localhost').searchParams;
+  if(!params.has('query'))return Response.json(page());
+  expect(params.get('query')).toBe(submitted);
+  if(params.has('before')){
+   if(!failed){failed=true;return Response.json({error:{code:'unavailable',message:'Temporarily unavailable'}},{status:503});}
+   return Response.json({...page([option('tool-d')],''),query:submitted,total:2});
+  }
+  return Response.json({...page([option('tool-c')],'filtered-next'),query:submitted,total:2});
+ };
+ await render();
+ await click('[data-dispatch-options-toggle]');
+ await click('[data-dispatch-options-adopt]');
+ await editSearch('  '+submitted+'  ');
+ expect(requests).toHaveLength(1);
+ searchField().focus();
+ const enter=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});
+ await act(async()=>{searchField().dispatchEvent(enter);});await settle();
+ expect(enter.defaultPrevented).toBe(true);
+ expect(document.activeElement).toBe(searchField());
+ expect(host.textContent).toContain('“'+submitted+'” · 1 on this page · 2 matching');
+ expect(host.querySelector('[data-dispatch-option="tool-b"]')).toBeNull();
+ await editSearch('different unsent draft');
+ await click('[data-dispatch-page="next"]');
+ expect(host.querySelector('[data-dispatch-option]')).toBeNull();
+ await click('[data-dispatch-page="refresh"]');
+ expect(host.textContent).toContain('Page 2');
+ expect(host.querySelector('[data-dispatch-option="tool-d"]')).not.toBeNull();
+ expect(adopt).toHaveBeenCalledTimes(1);
+ expect(unavailable).not.toHaveBeenCalled();
+ const filters=requests.map(request=>{
+  const params=new URL(request.path,'http://localhost').searchParams;
+  return [request.method,params.get('query'),params.get('before')];
+ });
+ expect(filters).toEqual([
+  ['GET',null,null],
+  ['GET',submitted,null],
+  ['GET',submitted,'filtered-next'],
+  ['GET',submitted,'filtered-next'],
+ ]);
+});
+
+it('validates the byte limit, replaces stale searches and clears an empty result to page one',async()=>{
+ let completeSlow:((value:Response)=>void)|undefined;
+ reply=async path=>{
+  const query=new URL(path,'http://localhost').searchParams.get('query');
+  if(query==='slow')return new Promise(resolve=>{completeSlow=resolve;});
+  if(query==='absent')return Response.json({...page([],''),query,total:0});
+  return Response.json(page());
+ };
+ await render();
+ await click('[data-dispatch-options-toggle]');
+ await editSearch('中'.repeat(41));
+ await click('[data-dispatch-options-search-submit]');
+ expect(searchField().getAttribute('aria-invalid')).toBe('true');
+ expect(host.querySelector('[role="alert"]')?.textContent).toContain('The query is too long');
+ expect(requests).toHaveLength(1);
+ await editSearch('slow');
+ await click('[data-dispatch-options-search-submit]');
+ expect(host.querySelector('[data-dispatch-option]')).toBeNull();
+ await editSearch('absent');
+ await click('[data-dispatch-options-search-submit]');
+ expect(host.textContent).toContain('No tool configurations match this search');
+ await act(async()=>completeSlow!(Response.json({error:{code:'forbidden',message:'Stale denial'}},{status:403})));
+ await settle();
+ expect(host.textContent).toContain('No tool configurations match this search');
+ expect(unavailable).not.toHaveBeenCalled();
+ await click('[data-dispatch-options-search-clear]');
+ expect(searchField().value).toBe('');
+ expect(document.activeElement).toBe(searchField());
+ expect(host.querySelector('[data-dispatch-option="tool-b"]')).not.toBeNull();
+ expect(new URL(requests.at(-1)!.path,'http://localhost').searchParams.has('query')).toBe(false);
+ expect(adopt).not.toHaveBeenCalled();
 });
 
 it('uses the newly observed exact profile version in the existing explicit preview, preserving its pending request',async()=>{

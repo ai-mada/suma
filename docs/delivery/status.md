@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-DISPATCH-SEARCH 派发候选可在项目授权目录搜索，跨过首屏找到工具，网页与终端共用范围及分页。 [交互](../design/task-dispatch-options.md#在候选目录内搜索) · [验证](../quality/tool-dispatch-search-verification.md)
+
 T-TOOL-DISPATCH-ALTERNATIVES 工具交接受阻时，可就地查找当前流程的兼容工具。候选优先显示可选配置，不可用原因按需展开。 [交互](../design/task-dispatch-options.md#从已带入工具继续) · [验证](../quality/tool-dispatch-alternatives-verification.md)
 
 T-TOOL-TASK-PREFLIGHT 从工具详情交给任务时，在采用前核对准确配置、流程节点和执行路径。不可用原因直接呈现，终端可按同一配置查询。 [交互](../design/tool-task-handoff.md) · [验证](../quality/tool-task-preflight-verification.md)

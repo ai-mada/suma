@@ -13,14 +13,14 @@ After selecting a fixed workflow version and its development Agent node, a task 
 `GET /tasks/{id}/dispatch-options`
 
 Required query: `project_id`, `expected_task_version`, `workflow_id`, `workflow_version`, `agent_node_id`.
-Optional: `limit` (canonical decimal 1..200, default50), `before` (original actor/project/task/workflow/node-bound cursor, maximum4096 bytes). Exact alternative: tool_profile_id selects one tool in the same project and cannot be combined with limit or before. Unknown/repeated/empty query parameters, noncanonical versions or extra scope are rejected. Task and workflow versions must still match.
+Optional: `limit` (canonical decimal 1..200, default50), `before` (original actor/project/task/workflow/node/search-bound cursor, maximum4096 bytes), and query (up to 120 UTF-8 bytes, with nonempty trimmed text). Exact alternative: tool_profile_id selects one tool in the same project and cannot be combined with limit, before, or query. Unknown/repeated/empty query parameters, noncanonical versions or extra scope are rejected. Task and workflow versions must still match.
 
 `TaskDispatchOptionsRequest`: those fields plus server-selected `task_id`.
 
 `TaskDispatchOptions`:
 
 - project_id, task_id, task_version, workflow_id, workflow_version, agent_node_id;
-- observed_at, context (`TaskContext`), execution_route (`ProjectExecutionRoute`);
+- optional query (the submitted spelling when a text filter was applied), observed_at, context (`TaskContext`), execution_route (`ProjectExecutionRoute`);
 - items (`TaskDispatchToolOption[]`), total, next_cursor, recommended_tool_profile_id.
 
 `TaskDispatchToolOption`:
@@ -35,6 +35,10 @@ Optional: `limit` (canonical decimal 1..200, default50), `before` (original acto
 Read the complete selected task context, including protected design and code baseline. Additional knowledge references are frozen/rechecked in the existing explicit preview. Tool availability must reuse authenticated real inventory, profile activation and current private/Pool execution identity; workflow compatibility must reuse the actual dispatch builder and DAG compiler. Declared capability is insufficient.
 
 The current project read accepts a browser session or an API credential bound to that project. Responses use `Cache-Control: no-store`. All returned records use current organization/project authorization. The read must not invoke quota reservation or attempt accounting, insert dispatch rows, or alter any workflow/template. Errors in a candidate can exclude that candidate; database/authority failures must not be silently converted into a healthy recommendation.
+
+## Filtered candidates
+
+Search uses the authorized project tool directory's case-insensitive substring match on configuration name, command ID, worker ID, adapter, or protocol. It filters before pagination, live observations, and compatibility checks. Total counts matched configurations in the active directory, including paused tools. The first eligible tool in the returned page remains page-local. Paging and retry use the canonical trimmed, case-folded search bound to the original cursor. The response echoes the original spelling for client scope checks.
 
 ## Exact tool handoff
 

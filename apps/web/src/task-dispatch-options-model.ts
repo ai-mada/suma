@@ -37,9 +37,10 @@ function dispatchOptionsURL(task: string, parameters: URLSearchParams) {
  return '/tasks/' + encodeURIComponent(task) + '/dispatch-options?' + parameters;
 }
 
-export function dispatchOptionsPath(scope: DispatchOptionsScope, before = '') {
+export function dispatchOptionsPath(scope: DispatchOptionsScope, before = '', query = '') {
  const parameters = dispatchOptionsParameters(scope);
  parameters.set('limit', '50');
+ if (query) parameters.set('query', query);
  if (before) parameters.set('before', before);
  return dispatchOptionsURL(scope.task_id, parameters);
 }
@@ -51,8 +52,8 @@ export function exactDispatchOptionPath(scope: DispatchOptionsScope, toolID: str
 }
 /** Check the whole response before exposing any candidate. These checks reject
  * cross-organization/project/task/template pages; current authorization remains server-owned. */
-export function validDispatchOptions(value:unknown,scope:DispatchOptionsScope,organizationID:string):value is Omit<TaskDispatchOptions, 'items'> & {items:CheckedOption[]}{
- if(!object(value)||value.project_id!==scope.project_id||value.task_id!==scope.task_id||value.task_version!==scope.expected_task_version||value.workflow_id!==scope.workflow_id||value.workflow_version!==scope.workflow_version||value.agent_node_id!==scope.agent_node_id||!stamp(value.observed_at)||!object(value.context)||!record(value.context.task)||!object(value.context.task)||value.context.task.id!==scope.task_id||value.context.task.version!==scope.expected_task_version||value.context.requirement!=null&&!record(value.context.requirement)||!object(value.execution_route)||value.execution_route.project_id!==scope.project_id||!text(organizationID,100)||value.execution_route.tenant_id!==organizationID||!integer(value.execution_route.version)||typeof value.execution_route.pool_id!=='string'||typeof value.execution_route.grant_id!=='string'||!integer(value.execution_route.grant_version)||!Array.isArray(value.items)||value.items.length>50||!integer(value.total)||value.total<value.items.length||!cursor(value.next_cursor)||typeof value.recommended_tool_profile_id!=='string')return false;
+export function validDispatchOptions(value:unknown,scope:DispatchOptionsScope,organizationID:string,query=''):value is Omit<TaskDispatchOptions, 'items'> & {items:CheckedOption[]}{
+ if(!object(value)||value.query!==(query||undefined)||value.project_id!==scope.project_id||value.task_id!==scope.task_id||value.task_version!==scope.expected_task_version||value.workflow_id!==scope.workflow_id||value.workflow_version!==scope.workflow_version||value.agent_node_id!==scope.agent_node_id||!stamp(value.observed_at)||!object(value.context)||!record(value.context.task)||!object(value.context.task)||value.context.task.id!==scope.task_id||value.context.task.version!==scope.expected_task_version||value.context.requirement!=null&&!record(value.context.requirement)||!object(value.execution_route)||value.execution_route.project_id!==scope.project_id||!text(organizationID,100)||value.execution_route.tenant_id!==organizationID||!integer(value.execution_route.version)||typeof value.execution_route.pool_id!=='string'||typeof value.execution_route.grant_id!=='string'||!integer(value.execution_route.grant_version)||!Array.isArray(value.items)||value.items.length>50||!integer(value.total)||value.total<value.items.length||!cursor(value.next_cursor)||typeof value.recommended_tool_profile_id!=='string')return false;
  const route=value.execution_route;
  if(route.pool_id?( !text(route.pool_id,100)||!text(route.grant_id,100)||Number(route.grant_version)<1||Number(route.version)<1):(route.grant_id!==''||route.grant_version!==0))return false;
  let previous='',recommended='';

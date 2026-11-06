@@ -40056,6 +40056,9 @@
           "project_id": {
             "type": "string"
           },
+          "query": {
+            "type": "string"
+          },
           "recommended_tool_profile_id": {
             "type": "string"
           },
@@ -40107,6 +40110,9 @@
             "type": "integer"
           },
           "project_id": {
+            "type": "string"
+          },
+          "query": {
             "type": "string"
           },
           "task_id": {
@@ -146935,11 +146941,21 @@
             }
           },
           {
-            "description": "Check the exact profile in the current project, including paused or revoked profiles. Returns one item without a continuation cursor, or 404. Cannot be combined with limit or before.",
+            "description": "Check the exact profile in the current project, including paused or revoked profiles. Returns one item without a continuation cursor, or 404. Cannot be combined with query, limit or before.",
             "in": "query",
             "name": "tool_profile_id",
             "schema": {
               "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Case-insensitive text in the public tool name, command ID, worker ID, adapter or protocol, filtered before pagination. Nonblank, at most 120 UTF-8 bytes and no control characters. The original spelling is echoed in the response. Cannot be combined with tool_profile_id.",
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "maxLength": 120,
               "minLength": 1,
               "type": "string"
             }
@@ -146956,7 +146972,7 @@
             }
           },
           {
-            "description": "Original actor/project/task/workflow/node-bound cursor.",
+            "description": "Original actor/project/task/workflow/node/search-bound cursor.",
             "in": "query",
             "name": "before",
             "schema": {

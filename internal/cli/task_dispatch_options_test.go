@@ -15,7 +15,7 @@ func TestTaskDispatchOptionsCLIScopedRead(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls++
 		q := r.URL.Query()
-		if r.Method != "GET" || r.URL.Path != "/api/v1/tasks/task-one/dispatch-options" || q.Get("project_id") != "project-one" || q.Get("expected_task_version") != "2" || q.Get("workflow_id") != "flow-one" || q.Get("workflow_version") != "3" || q.Get("agent_node_id") != "develop" || q.Get("limit") != "50" {
+		if r.Method != "GET" || r.URL.Path != "/api/v1/tasks/task-one/dispatch-options" || q.Get("project_id") != "project-one" || q.Get("expected_task_version") != "2" || q.Get("workflow_id") != "flow-one" || q.Get("workflow_version") != "3" || q.Get("agent_node_id") != "develop" || q.Get("limit") != "50" || q.Has("query") {
 			t.Error("scoped read changed", r.Method, r.URL)
 		}
 		_, _ = w.Write([]byte(`{"items":[],"recommended_tool_profile_id":"","total":0,"next_cursor":""}`))
@@ -47,7 +47,7 @@ func TestTaskDispatchOptionsCLIExactTool(t *testing.T) {
 		if r.Method != http.MethodGet || r.URL.Path != "/api/v1/tasks/task-one/dispatch-options" ||
 			q.Get("project_id") != "project-one" || q.Get("expected_task_version") != "2" ||
 			q.Get("workflow_id") != "flow-one" || q.Get("workflow_version") != "3" ||
-			q.Get("agent_node_id") != "develop" || q.Has("limit") || q.Has("before") || len(q["tool_profile_id"]) != 1 {
+			q.Get("agent_node_id") != "develop" || q.Has("limit") || q.Has("before") || q.Has("query") || len(q["tool_profile_id"]) != 1 {
 			t.Error("exact tool read changed", r.Method, r.URL)
 		}
 		switch q.Get("tool_profile_id") {
@@ -114,5 +114,55 @@ func TestTaskDispatchOptionsCLIExactTool(t *testing.T) {
 	}
 	if calls.Load() != 2 {
 		t.Fatalf("expected only the two exact reads, got %d requests", calls.Load())
+	}
+}
+
+func TestTaskDispatchOptionsCLIQuery(t *testing.T) {
+	const search = " 团队 +& Codex "
+	const cursor = "original-filtered-cursor"
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		query := r.URL.Query()
+		if r.Method != http.MethodGet || r.ContentLength != 0 || r.URL.Path != "/api/v1/tasks/task-one/dispatch-options" ||
+			query.Get("project_id") != "project-one" || query.Get("expected_task_version") != "2" ||
+			query.Get("workflow_id") != "flow-one" || query.Get("workflow_version") != "3" ||
+			query.Get("agent_node_id") != "develop" || query.Has("tool_profile_id") ||
+			query.Get("limit") != "5" || query.Get("before") != cursor ||
+			len(query["query"]) != 1 || query.Get("query") != search {
+			t.Error("filtered read changed", r.Method, r.URL)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"items": []any{}, "query": search, "next_cursor": "following-cursor"})
+	}))
+	defer server.Close()
+
+	base := []string{"--control", server.URL, "--project", "project-one", "tasks", "dispatch-options", "task-one",
+		"--expected-version", "2", "--workflow", "flow-one", "--workflow-version", "3", "--node", "develop"}
+	execute := func(args ...string) (int, string, string) {
+		var out, stderr strings.Builder
+		code := Execute(context.Background(), append(append([]string{}, base...), args...), strings.NewReader(""), &out, &stderr)
+		return code, out.String(), stderr.String()
+	}
+	code, out, stderr := execute("--query", search, "--limit", "5", "--before", cursor)
+	var result map[string]any
+	if err := json.Unmarshal([]byte(out), &result); code != 0 || err != nil || result["query"] != search || result["next_cursor"] != "following-cursor" {
+		t.Fatalf("exit %d, output %q, error %q, parse error %v", code, out, stderr, err)
+	}
+	for _, args := range [][]string{
+		{"--query="},
+		{"--query", "　 "},
+		{"--query", "team\nworker"},
+		{"--query", string([]byte{0xff})},
+		{"--query", strings.Repeat("技", 41)},
+		{"--tool", "Profile-One", "--query", "Codex"},
+		{"--query=", "--tool", "Profile-One"},
+	} {
+		code, out, stderr := execute(args...)
+		if code != 2 || out != "" || !strings.Contains(stderr, "--query") {
+			t.Fatalf("invalid flags %q: exit %d, output %q, error %q", args, code, out, stderr)
+		}
+	}
+	if calls.Load() != 1 {
+		t.Fatalf("expected one filtered read, got %d requests", calls.Load())
 	}
 }

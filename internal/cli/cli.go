@@ -46,7 +46,7 @@ Read commands:
   run workbuddy-list [--limit 1..20] [--filter attention] [--task TASK] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   usage --help               Read usage attempts and evidence with a login session
-  tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID [--tool ID]
+  tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID [--tool ID | --query TEXT]
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
        [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]
   tasks recommendations TASK [--limit 1..100] [--before CURSOR]

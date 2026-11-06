@@ -64,6 +64,28 @@ func TestTaskDispatchOptionsAndTestOptionProjectAPIUseCurrentAuthority(t *testin
 			t.Fatal("API preflight resolved the wrong task or independent test tool", got)
 		}
 	})
+
+	t.Run("cursor belongs to current actor", func(t *testing.T) {
+		memberCookie := f.cookie
+		defer func() {
+			f.cookie = memberCookie
+			readQuery.Del("limit")
+			readQuery.Del("before")
+		}()
+		readQuery.Set("limit", "1")
+		first := read(t, optionsPath+"?"+readQuery.Encode())
+		cursor, ok := first["next_cursor"].(string)
+		if !ok || cursor == "" {
+			t.Fatal("expected a continuation from the member's first page", first)
+		}
+		readQuery.Set("before", cursor)
+		second := read(t, optionsPath+"?"+readQuery.Encode())
+		if len(second["items"].([]any)) != 1 || second["next_cursor"] != "" {
+			t.Fatal("member could not continue the original page", second)
+		}
+		f.cookie = owner
+		f.call(http.MethodGet, optionsPath+"?"+readQuery.Encode(), nil, http.StatusBadRequest)
+	})
 	readQuery.Set("tool_profile_id", preview.ToolProfileID)
 	exact := read(t, optionsPath+"?"+readQuery.Encode())
 	if exact["total"] != float64(1) || exact["next_cursor"] != "" || exact["recommended_tool_profile_id"] != preview.ToolProfileID {

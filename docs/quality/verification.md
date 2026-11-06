@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOL-DISPATCH-SEARCH 核验越页工具查找、跨搜索与跨操作者游标拒绝、CLI 及真实浏览器。 [阶段验证](tool-dispatch-search-verification.md)
+
 T-TOOL-DISPATCH-ALTERNATIVES 代表验证覆盖暂停配置、键盘查找与采用、按需排查及真实 HTTP 只读范围。 [阶段验证](tool-dispatch-alternatives-verification.md)
 
 T-TOOL-TASK-PREFLIGHT 核验准确工具、当前授权、流程和执行路径，覆盖 CLI 与窄屏浏览器采用。 [阶段验证](tool-task-preflight-verification.md)

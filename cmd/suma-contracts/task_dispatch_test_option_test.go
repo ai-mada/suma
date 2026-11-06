@@ -15,14 +15,23 @@ func TestTaskDispatchOptionsUsesScopedReadCredentials(t *testing.T) {
 	if len(denied) != 2 || denied[0] != "runner" || denied[1] != "agent" {
 		t.Fatal("dispatch options must deny Runner and Agent token scopes")
 	}
+	expectedBounds := map[string]int{"tool_profile_id": 64, "query": 120}
 	for _, raw := range op["parameters"].([]any) {
 		parameter := mapAt(raw)
-		if parameter["name"] == "tool_profile_id" && parameter["in"] == "query" && parameter["required"] != true &&
-			mapAt(parameter, "schema")["maxLength"] == 64 {
-			return
+		name := parameter["name"].(string)
+		if max, expected := expectedBounds[name]; expected && parameter["in"] == "query" &&
+			parameter["required"] != true && mapAt(parameter, "schema")["maxLength"] == max {
+			delete(expectedBounds, name)
 		}
 	}
-	t.Fatal("dispatch options must publish the optional exact profile query")
+	if len(expectedBounds) > 0 {
+		t.Fatalf("missing optional dispatch filters with their bounds: %#v", expectedBounds)
+	}
+	for _, schema := range []string{"TaskDispatchOptionsRequest", "TaskDispatchOptions"} {
+		if mapAt(api, "components", "schemas", schema, "properties", "query")["type"] != "string" {
+			t.Fatalf("%s must describe the search scope", schema)
+		}
+	}
 }
 
 func TestTaskDispatchTestOptionContract(t *testing.T) {

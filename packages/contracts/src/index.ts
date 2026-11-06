@@ -7644,6 +7644,7 @@ export interface TaskDispatchOptions {
   workflow_id: string;
   workflow_version: number;
   agent_node_id: string;
+  query?: string;
   observed_at: string;
   context: TaskContext;
   execution_route: ProjectExecutionRoute;
@@ -7660,6 +7661,7 @@ export interface TaskDispatchOptionsRequest {
   workflow_version: number;
   agent_node_id: string;
   tool_profile_id?: string;
+  query?: string;
   limit?: number;
   before?: string;
 }

@@ -11,7 +11,7 @@ import (
 	"unicode/utf8"
 )
 
-const dispatchOptionsCLIUsage = "tasks dispatch-options requires TASK --expected-version N --workflow ID --workflow-version N --node ID; optionally use --tool ID or pagination with --limit 1..200 and --before original_cursor"
+const dispatchOptionsCLIUsage = "tasks dispatch-options requires TASK --expected-version N --workflow ID --workflow-version N --node ID; optionally use --tool ID or search with --query TEXT and pagination with --limit 1..200 and --before original_cursor"
 
 // This read command deliberately cannot enable, prepare or start a tool. The
 // server checks task/workflow versions and signs the recommendation page scope.
@@ -25,6 +25,7 @@ func taskDispatchOptionsCommand(ctx context.Context, c *client, args []string, o
 	version := fs.String("workflow-version", "", "fixed workflow version")
 	node := fs.String("node", "", "development Agent node ID")
 	tool := fs.String("tool", "", "exact tool profile ID")
+	query := fs.String("query", "", "tool search text (up to 120 UTF-8 bytes)")
 	limit := fs.String("limit", "50", "page size 1..200")
 	before := fs.String("before", "", "original scoped next_cursor")
 	if fs.Parse(args[1:]) != nil || fs.NArg() != 0 {
@@ -37,22 +38,30 @@ func taskDispatchOptionsCommand(ctx context.Context, c *client, args []string, o
 	if !valid(*task, 2147483646) || !valid(*version, 2147483646) || !valid(*limit, 200) || !compositionCLIIdentifier(*flow, 100) || !compositionCLIIdentifier(*node, 150) || len(*before) > 4096 || !utf8.ValidString(*before) || strings.IndexFunc(*before, unicode.IsControl) >= 0 {
 		return usage(dispatchOptionsCLIUsage)
 	}
-	var toolProvided, paginationProvided bool
+	var toolProvided, queryProvided, paginationProvided bool
 	fs.Visit(func(option *flag.Flag) {
 		switch option.Name {
 		case "tool":
 			toolProvided = true
+		case "query":
+			queryProvided = true
 		case "limit", "before":
 			paginationProvided = true
 		}
 	})
 	q := url.Values{"expected_task_version": {*task}, "workflow_id": {*flow}, "workflow_version": {*version}, "agent_node_id": {*node}}
 	if toolProvided {
-		if paginationProvided || !compositionCLIIdentifier(*tool, 64) || strings.ContainsRune(*tool, ' ') {
+		if queryProvided || paginationProvided || !compositionCLIIdentifier(*tool, 64) || strings.ContainsRune(*tool, ' ') {
 			return usage(dispatchOptionsCLIUsage)
 		}
 		q.Set("tool_profile_id", *tool)
 	} else {
+		if queryProvided {
+			if len(*query) > 120 || !utf8.ValidString(*query) || strings.IndexFunc(*query, unicode.IsControl) >= 0 || strings.TrimSpace(*query) == "" {
+				return usage(dispatchOptionsCLIUsage)
+			}
+			q.Set("query", *query)
+		}
 		q.Set("limit", *limit)
 		if *before != "" {
 			q.Set("before", *before)

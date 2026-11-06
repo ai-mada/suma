@@ -25,9 +25,10 @@ func taskDispatchOptionsContracts(add operationAdder, api map[string]any) {
 		p["required"] = true
 		appendQuery(op, p)
 	}
-	appendQuery(op, queryParameter("tool_profile_id", "Check the exact profile in the current project, including paused or revoked profiles. Returns one item without a continuation cursor, or 404. Cannot be combined with limit or before.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64}))
+	appendQuery(op, queryParameter("tool_profile_id", "Check the exact profile in the current project, including paused or revoked profiles. Returns one item without a continuation cursor, or 404. Cannot be combined with query, limit or before.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64}))
+	appendQuery(op, queryParameter("query", "Case-insensitive text in the public tool name, command ID, worker ID, adapter or protocol, filtered before pagination. Nonblank, at most 120 UTF-8 bytes and no control characters. The original spelling is echoed in the response. Cannot be combined with tool_profile_id.", map[string]any{"type": "string", "minLength": 1, "maxLength": 120}))
 	appendQuery(op, queryParameter("limit", "Current page size; recommendation is page-local.", map[string]any{"type": "integer", "minimum": 1, "maximum": 200, "default": 50}))
-	appendQuery(op, queryParameter("before", "Original actor/project/task/workflow/node-bound cursor.", map[string]any{"type": "string", "maxLength": 4096}))
+	appendQuery(op, queryParameter("before", "Original actor/project/task/workflow/node/search-bound cursor.", map[string]any{"type": "string", "maxLength": 4096}))
 	for field, value := range map[string]any{"reason_code": []string{"eligible", "tool_unavailable", "workflow_incompatible", "route_incompatible"}, "model_state": []string{"fixed_by_tool"}, "cost_state": []string{"unknown"}, "eligible_basis": []string{"current_observation_and_compatibility"}} {
 		toolContractMap(api, "components", "schemas", "TaskDispatchToolOption", "properties", field)["enum"] = value
 	}

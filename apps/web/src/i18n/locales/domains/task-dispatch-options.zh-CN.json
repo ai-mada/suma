@@ -1,6 +1,13 @@
 {
   "task-dispatch-options.title": "查找兼容工具",
   "task-dispatch-options.intro": "检查当前工具清单、授权、流程与执行路由兼容性，不代表机器空闲、预算充足或可以立即执行。",
+  "task-dispatch-options.search_label": "筛选工具配置",
+  "task-dispatch-options.search_placeholder": "名称、工具或执行节点",
+  "task-dispatch-options.search_submit": "搜索",
+  "task-dispatch-options.search_clear": "清除搜索",
+  "task-dispatch-options.search_page_count": "本页 {{count}} 个 · “{{query}}”共匹配 {{total}} 个配置",
+  "task-dispatch-options.search_empty": "没有工具配置符合搜索条件。可更换关键词或清除搜索。",
+  "task-dispatch-options.page_empty": "本页没有工具配置。可返回第一页或刷新。",
   "task-dispatch-options.pagination": "兼容工具分页",
   "task-dispatch-options.page_count": "本页 {{count}} 个 · 共 {{total}} 个",
   "task-dispatch-options.observed": "观测时间 {{time}}",

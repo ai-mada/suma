@@ -1,5 +1,5 @@
 import {useEffect,useId,useImperativeHandle,useRef,useState,type Ref} from 'react';
-import {ChevronDown,ChevronRight,CircleCheck,ListFilter} from 'lucide-react';
+import {ChevronDown,ChevronRight,CircleCheck,ListFilter,Search} from 'lucide-react';
 import type {TaskDispatchOptions,TaskDispatchToolOption} from '../../../packages/contracts/src';
 import {useApi} from './api-context';
 import {ApiError,type Session} from './api';
@@ -7,6 +7,7 @@ import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {toolReason} from './ToolFacts';
 import {toolError} from './tool-hooks';
 import type {ToolProfile} from './tool-model';
+import {validToolListQuery} from './tool-management-list-model';
 import {dispatchOptionsPath,dispatchOptionsScopeKey,selectedDispatchOption,validDispatchOptions,type DispatchOptionsScope} from './task-dispatch-options-model';
 import {ErrorNotice} from './ui';
 import {DispatchPageNavigation,firstDispatchPage} from './DispatchPageNavigation';
@@ -29,23 +30,30 @@ export function TaskDispatchOptionsPanel(props:Props){
  return <OptionsScope key={JSON.stringify([props.session.user.id,props.session.organization.id,dispatchOptionsScopeKey(props.scope)])} {...props}/>;
 }
 function OptionsScope({session,scope,disabled=false,panelRef,onAdopt,onUnavailable}:Props){
- useLocale();const api=useApi(),bodyID=useId(),[open,setOpen]=useState(false),[page,setPage]=useState<TaskDispatchOptions>(),[cursorTrail,setCursorTrail]=useState(firstDispatchPage),[loading,setLoading]=useState(false),[error,setError]=useState<unknown>(),epoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),unavailable=useRef(onUnavailable);
+ useLocale();const api=useApi(),bodyID=useId(),[open,setOpen]=useState(false),[page,setPage]=useState<TaskDispatchOptions>(),[cursorTrail,setCursorTrail]=useState(firstDispatchPage),[loading,setLoading]=useState(false),[error,setError]=useState<unknown>(),epoch=useRef(0),unavailable=useRef(onUnavailable);
+ const pending=useRef<{controller:AbortController;query:string}|undefined>(undefined);
+ const [query,setQuery]=useState('');
+ const [search,setSearch]=useState('');
+ const [searchInvalid,setSearchInvalid]=useState(false);
+ const searchID=useId();
+ const searchInput=useRef<HTMLInputElement>(null);
  const toggleButton=useRef<HTMLButtonElement>(null);
  const opened=useRef(false);
  unavailable.current=onUnavailable;
- useEffect(()=>()=>{epoch.current++;controller.current?.abort();},[]);
- async function read(trail:readonly string[]){
-  if(disabled||controller.current)return;
+ useEffect(()=>()=>{epoch.current++;pending.current?.controller.abort();},[]);
+ async function read(trail:readonly string[],requestedQuery=query){
+  if(disabled||pending.current?.query===requestedQuery)return;
   const before=trail[trail.length-1];
   const request=++epoch.current;
+  pending.current?.controller.abort();
   const abort=new AbortController();
-  controller.current=abort;
+  pending.current={controller:abort,query:requestedQuery};
   // Keep the requested cursor for recovery without exposing an older page.
   setCursorTrail(trail);setPage(undefined);setError(undefined);setLoading(true);
   try{
-   const value=await api<unknown>(dispatchOptionsPath(scope,before),undefined,'GET',undefined,abort.signal);
+   const value=await api<unknown>(dispatchOptionsPath(scope,before,requestedQuery),undefined,'GET',undefined,abort.signal);
    if(request!==epoch.current||abort.signal.aborted)return;
-   if(!validDispatchOptions(value,scope,session.organization.id)||(value.next_cursor&&trail.includes(value.next_cursor)))throw new UiError('task-dispatch-options.invalid_read');
+   if(!validDispatchOptions(value,scope,session.organization.id,requestedQuery)||(value.next_cursor&&trail.includes(value.next_cursor)))throw new UiError('task-dispatch-options.invalid_read');
    setPage(value);
   }catch(problem){
    if(request!==epoch.current||abort.signal.aborted)return;
@@ -55,8 +63,8 @@ function OptionsScope({session,scope,disabled=false,panelRef,onAdopt,onUnavailab
     unavailable.current();
    }
   }finally{
-   if(controller.current===abort){
-    controller.current=undefined;
+   if(pending.current?.controller===abort){
+    pending.current=undefined;
     if(request===epoch.current&&!abort.signal.aborted)setLoading(false);
    }
   }
@@ -74,12 +82,32 @@ function OptionsScope({session,scope,disabled=false,panelRef,onAdopt,onUnavailab
   if(!opened.current){openPanel();return;}
   opened.current=false;
   epoch.current++;
-  controller.current?.abort();
-  controller.current=undefined;
+  pending.current?.controller.abort();
+  pending.current=undefined;
   setLoading(false);
   setPage(undefined);
   setError(undefined);
   setOpen(false);
+ }
+ function submitSearch(){
+  if(disabled)return;
+  if(!validToolListQuery(search)){
+   setSearchInvalid(true);
+   searchInput.current?.focus();
+   return;
+  }
+  const requested=search.trim();
+  setSearch(requested);
+  setQuery(requested);
+  void read(firstDispatchPage,requested);
+ }
+ function clearSearch(){
+  if(disabled)return;
+  searchInput.current?.focus();
+  setSearch('');
+  setSearchInvalid(false);
+  setQuery('');
+  if(query||cursorTrail.length>1)void read(firstDispatchPage,'');
  }
  useImperativeHandle(panelRef,()=>({
   open(){
@@ -95,8 +123,28 @@ function OptionsScope({session,scope,disabled=false,panelRef,onAdopt,onUnavailab
   <button ref={toggleButton} type="button" data-dispatch-options-toggle className="composition-toggle" aria-expanded={open} aria-controls={bodyID} disabled={disabled} onClick={toggle}><ListFilter size={16} aria-hidden="true"/><span>{t('title')}</span><ChevronDown size={16} aria-hidden="true"/></button>
   {open&&<div id={bodyID} className="composition-body">
    <p className="composition-muted">{t('intro')}</p>
+   <div className="dispatch-tool-search" role="search" aria-label={t('search_label')}>
+    <label htmlFor={searchID}>{t('search_label')}</label>
+    <div className="dispatch-tool-search-controls">
+     <div className="dispatch-tool-search-input">
+      <Search size={16} aria-hidden="true"/>
+      <input ref={searchInput} id={searchID} type="search" data-dispatch-options-search
+       value={search} disabled={disabled} placeholder={t('search_placeholder')}
+       aria-invalid={searchInvalid} aria-describedby={searchInvalid?searchID+'-error':undefined}
+       onChange={event=>{setSearch(event.target.value);setSearchInvalid(false);}}
+       onKeyDown={event=>{
+        if(event.key!=='Enter'||event.nativeEvent.isComposing)return;
+        event.preventDefault();
+        if(!event.repeat)submitSearch();
+       }}/>
+     </div>
+     <button type="button" data-dispatch-options-search-submit disabled={disabled} onClick={submitSearch}>{t('search_submit')}</button>
+     {(search||query)&&<button type="button" data-dispatch-options-search-clear disabled={disabled} onClick={clearSearch}>{t('search_clear')}</button>}
+    </div>
+    {searchInvalid&&<p role="alert" id={searchID+'-error'} className="warning">{tr('tool-workspace.query_invalid')}</p>}
+   </div>
    <DispatchPageNavigation label={t('pagination')} number={cursorTrail.length} loading={loading} failed={!!error}
-    summary={page&&t('page_count',{count:formatNumber(page.items.length),total:formatNumber(page.total)})}
+    summary={page&&t(query?'search_page_count':'page_count',{query,count:formatNumber(page.items.length),total:formatNumber(page.total)})}
     onFirst={!disabled&&!loading&&cursorTrail.length>1?()=>void read(firstDispatchPage):undefined}
     onPrevious={!disabled&&!loading&&cursorTrail.length>1?()=>void read(cursorTrail.slice(0,-1)):undefined}
     onNext={!disabled&&!loading&&page?.next_cursor?()=>void read([...cursorTrail,page.next_cursor]):undefined}
@@ -104,7 +152,7 @@ function OptionsScope({session,scope,disabled=false,panelRef,onAdopt,onUnavailab
    {!!error&&<ErrorNotice error={toolError(error)}/>}
    {page&&<>
     <p className="composition-muted">{t('observed',{time:formatDateTime(page.observed_at,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})})}</p>
-    {!page.items.length?<p data-dispatch-options-empty>{t('empty')}</p>:<>
+    {!page.items.length?<p data-dispatch-options-empty>{t(page.total?'page_empty':query?'search_empty':'empty')}</p>:<>
      {recommended?<p className="composition-muted">{t('recommended',{name:recommended.name})}</p>:<p className="dispatch-tool-options-empty">{t(page.next_cursor?'none_eligible':'none_eligible_last')}</p>}
      {compatible.length>0&&<ul className="dispatch-tool-option-list" role="list" aria-label={t('tools')}>
       {compatible.map(option=><DispatchToolOptionRow key={option.tool.id} option={option} recommended={option.tool.id===recommended?.id} disabled={disabled||loading} onAdopt={onAdopt}/>)}

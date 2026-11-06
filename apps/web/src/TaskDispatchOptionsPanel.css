@@ -8,6 +8,58 @@
   outline-offset: -2px;
 }
 
+.dispatch-tool-search {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dispatch-tool-search label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dispatch-tool-search-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dispatch-tool-search-input {
+  position: relative;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.dispatch-tool-search-input input {
+  width: 100%;
+  min-height: 44px;
+  padding-inline-start: 34px;
+}
+
+.dispatch-tool-search-input input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.dispatch-tool-search-controls > button {
+  min-height: 44px;
+}
+
+@media (max-width: 480px) {
+  .dispatch-tool-search-input {
+    flex-basis: 100%;
+  }
+}
+
+.dispatch-tool-search-input svg {
+  position: absolute;
+  inset-inline-start: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
 .dispatch-tool-option-list {
   margin: 0;
   padding: 0;

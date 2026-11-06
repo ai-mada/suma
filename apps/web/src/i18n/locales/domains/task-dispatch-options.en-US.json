@@ -1,6 +1,13 @@
 {
   "task-dispatch-options.title": "Find compatible tools",
   "task-dispatch-options.intro": "Check current inventory, authorization, workflow and execution route compatibility. This does not confirm free capacity, sufficient budget or immediate execution.",
+  "task-dispatch-options.search_label": "Filter tool configurations",
+  "task-dispatch-options.search_placeholder": "Name, tool, or execution node",
+  "task-dispatch-options.search_submit": "Search",
+  "task-dispatch-options.search_clear": "Clear search",
+  "task-dispatch-options.search_page_count": "“{{query}}” · {{count}} on this page · {{total}} matching",
+  "task-dispatch-options.search_empty": "No tool configurations match this search. Try another term or clear the search.",
+  "task-dispatch-options.page_empty": "There are no tool configurations on this page. Return to the first page or refresh.",
   "task-dispatch-options.pagination": "Compatible tools pages",
   "task-dispatch-options.page_count": "{{count}} tools on this page · {{total}} total",
   "task-dispatch-options.observed": "Observed {{time}}",
