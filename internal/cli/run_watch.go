@@ -36,6 +36,8 @@ func runObservationCommand(ctx context.Context, c *client, action string, args [
 	switch action {
 	case "watch":
 		return runWatchCommand(ctx, c, args, out)
+	case "attempts", "attempt", "tool-events":
+		return runAttemptReadCommand(ctx, c, action, args, out)
 	case "workbuddy-status":
 		return workBuddyProgressCommand(ctx, c, args, out)
 	case "scheduling":
@@ -202,6 +204,9 @@ const runObservationHelpEN = `Follow and inspect a run in the current --project.
 
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
   run scheduling RUN --node NODE
+  run attempts RUN --node NODE [--limit 1..100] [--cursor CURSOR]
+  run attempt RUN --node NODE --attempt N
+  run tool-events RUN --node NODE --attempt N [--limit 1..100] [--cursor CURSOR]
   run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
 
@@ -214,6 +219,9 @@ const runObservationHelpZH = `跟踪和查看当前 --project 的运行。
 
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
   run scheduling RUN --node NODE
+  run attempts RUN --node NODE [--limit 1..100] [--cursor 原游标]
+  run attempt RUN --node NODE --attempt 尝试号
+  run tool-events RUN --node NODE --attempt 尝试号 [--limit 1..100] [--cursor 原游标]
   run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
 

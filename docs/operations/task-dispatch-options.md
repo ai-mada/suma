@@ -108,6 +108,18 @@ suma --project PROJECT run workbuddy-status RUN --node NODE
 - 队列展示当前已就绪节点及服务端分页结果。找到运行和节点后，`run scheduling` 返回当前阻塞、所需资源和执行路由依据。历史事件、当前准入、实际结果与人工验收分别读取。
 - `run workbuddy-status` 读取指定 WorkBuddy 节点的本地已保存进度，输出一份 JSON。可用项目 API 凭证读取。`not_recorded` 表示本地没有提交记录，`unknown` 表示外部提交待核对。供应方完成与平台交付分别判断。需要跟随平台事件时，继续使用同一运行的 `run watch`。
 
+### 核对某次执行尝试
+
+```sh
+suma --project PROJECT run attempts RUN --node NODE --limit 20
+suma --project PROJECT run attempt RUN --node NODE --attempt 2
+suma --project PROJECT run tool-events RUN --node NODE --attempt 2 --limit 20
+```
+
+先从尝试列表定位执行者和尝试号，再读取该次尝试的执行状态、结果来源、核对记录或子运行。工具事件是该次尝试已经保存的进度事实。两种列表各自使用返回的 `next_cursor` 续页，保留同一项目、运行、节点和尝试范围。工具事件页还保留原观测窗口的 `watermark`，可区分已读取的历史窗口与随后发生的事件。
+
+命令输出 JSON，可使用当前项目 API 凭证。当前登录会话可用 `--expected-user` 和 `--expected-organization` 核对原账号与组织。指定尝试不存在时显示服务端拒绝结果。待核对的执行继续在工作台按原操作处理。
+
 [持久事件合同](../../contracts/automation-events.md#持久运行事件) · [调度工作台](../design/scheduling-workspace.md)
 
 ## IDE 保存回执恢复

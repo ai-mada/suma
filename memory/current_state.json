@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "cli_attempt_history": {
+    "stage": "T-CLI-ATTEMPT-HISTORY-262",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "ca28f5f695612eb390744e96b559c7a673d870b3",
+    "report": "docs/quality/cli-attempt-history-verification.md",
+    "actual": "CLI reads exact persisted node attempts, single-attempt detail and scoped tool-event pages using current project authorization and original cursor semantics.",
+    "verification": "Compiled CLI + real HTTP + SQLite exercised seven isolated calls, two attempts, original tool-event pagination and cross-project refusal. Focused CLI boundary tests passed.",
+    "known_limitations": "No external agents, live model calls or cross-machine recovery were exercised in this stage.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q262/post-git.json"
+  },
   "local_tools_foreground": {
     "stage": "T-LOCAL-TOOLS-FOREGROUND-261",
     "version": "1.0.0",

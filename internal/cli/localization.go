@@ -184,11 +184,15 @@ var cliMessages = map[string]cliMessage{
 	"handoff decision requires ID, positive --version, --reason, and --operation (8..128 characters)":                {"cli.handoff.decision_options", "交接决定需要 ID、正整数 --version、--reason 及 8–128 字符的 --operation"},
 	"handoff accept requires explicit --acknowledge-invalidation":                                                    {"cli.handoff.acknowledgement", "接收交接须显式提供 --acknowledge-invalidation，确认旧执行与验收依据失效"},
 
-	runWatchUsage:          {"cli.run.watch_usage", "run watch 需要运行 ID，--after 为 0–9007199254740991，--max-events 为 1–100000"},
-	runSchedulingUsage:     {"cli.run.scheduling_usage", "run scheduling 需要运行 ID 和 --node 节点 ID"},
-	runQueueUsage:          {"cli.run.queue_usage", "run queue 可指定 1–100 的 --limit 和原 --cursor"},
-	runWatchRetryExhausted: {"cli.run.watch_retry_exhausted", "实时事件重连次数已达上限，可从最后一条已输出事件续传"},
-	runWatchOutputFailed:   {"cli.run.watch_output_failed", "无法完整写出运行事件"},
+	runWatchUsage:             {"cli.run.watch_usage", "run watch 需要运行 ID，--after 为 0–9007199254740991，--max-events 为 1–100000"},
+	runSchedulingUsage:        {"cli.run.scheduling_usage", "run scheduling 需要运行 ID 和 --node 节点 ID"},
+	runAttemptsUsage:          {"cli.run.attempts_usage", "run attempts 需要运行 ID 和 --node 节点 ID，可用 --limit 和原 --cursor 续页"},
+	runAttemptUsage:           {"cli.run.attempt_usage", "run attempt 需要运行 ID、--node 节点 ID 和正整数 --attempt"},
+	runToolEventsUsage:        {"cli.run.tool_events_usage", "run tool-events 需要运行 ID、--node 节点 ID 和正整数 --attempt，可用 --limit 和原 --cursor 续页"},
+	runAttemptResponseInvalid: {"cli.run.attempt_response_invalid", "尝试或工具事件响应无效，或与所选项目、运行、节点、尝试不符"},
+	runQueueUsage:             {"cli.run.queue_usage", "run queue 可指定 1–100 的 --limit 和原 --cursor"},
+	runWatchRetryExhausted:    {"cli.run.watch_retry_exhausted", "实时事件重连次数已达上限，可从最后一条已输出事件续传"},
+	runWatchOutputFailed:      {"cli.run.watch_output_failed", "无法完整写出运行事件"},
 	"live run event response must be a UTF-8 event stream": {"cli.run.watch_content_type", "实时运行事件响应须为 UTF-8 事件流"},
 	"invalid live run event frame":                         {"cli.run.watch_frame_invalid", "实时运行事件帧无效"},
 	"live run event frame exceeds 16 MiB":                  {"cli.run.watch_frame_limit", "实时运行事件帧超过 16 MiB"},
@@ -328,6 +332,9 @@ const helpZH = `suma — 速码控制面客户端
   run events ID [--after SEQUENCE]
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
   run scheduling RUN --node NODE
+  run attempts RUN --node NODE [--limit 1..100] [--cursor 原游标]
+  run attempt RUN --node NODE --attempt 尝试号
+  run tool-events RUN --node NODE --attempt 尝试号 [--limit 1..100] [--cursor 原游标]
   run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
