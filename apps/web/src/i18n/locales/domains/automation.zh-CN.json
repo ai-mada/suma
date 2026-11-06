@@ -1,4 +1,6 @@
 {
+  "automation.manual_trigger_authority_revoked": "触发人的项目写入权限已失效，本次触发已阻止。",
+  "automation.manual_trigger_authority_unverified": "无法核实本次触发的发起人，已阻止派发。",
   "automation.run_origin.title": "自动化来源",
   "automation.run_origin.loading": "正在核对原触发记录…",
   "automation.run_origin.denied": "当前无法读取此运行的自动化来源。",

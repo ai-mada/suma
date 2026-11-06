@@ -1,4 +1,6 @@
 {
+  "automation.manual_trigger_authority_revoked": "The person who triggered this run no longer has project write access. This trigger was blocked.",
+  "automation.manual_trigger_authority_unverified": "This trigger was blocked because its initiator could not be verified.",
   "automation.run_origin.title": "Automation source",
   "automation.run_origin.loading": "Checking the original trigger…",
   "automation.run_origin.denied": "The automation source is unavailable for this run.",

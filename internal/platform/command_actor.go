@@ -29,6 +29,7 @@ type credentialRef struct {
 type delegationRef struct {
 	recordID, tenantID, projectID, subjectID, secondarySubjectID string
 	sourceDigest, bodyDigest, deliveryID, linkedRecordID         string
+	manualOccurrenceID, manualInvokerID                          string
 	revision, generation                                         int
 }
 

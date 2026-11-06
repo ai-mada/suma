@@ -109,6 +109,7 @@ func (s *Service) InitializeAutomations(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_automations(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,revision INTEGER NOT NULL,state VARCHAR(20) NOT NULL,activated_by VARCHAR(64) NOT NULL,next_at VARCHAR(40) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,last_error TEXT NOT NULL,spec TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_automation_revisions(rule_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,spec TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(rule_id,revision))`,
 		`CREATE TABLE IF NOT EXISTS suma_automation_occurrences(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,rule_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,source VARCHAR(20) NOT NULL,scheduled_at VARCHAR(40) NOT NULL,state VARCHAR(20) NOT NULL,reason TEXT NOT NULL,run_id VARCHAR(64) NOT NULL,dedupe_key VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,UNIQUE(tenant_id,project_id,rule_id,revision,dedupe_key))`,
+		automationManualInvocationsDDL,
 	} {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(q)); err != nil {
 			return fmt.Errorf("automation migration: %w", err)
@@ -462,7 +463,7 @@ func (s *Service) insertAutomationOccurrence(ctx context.Context, auth *authoriz
 	}
 	switch auth.purpose {
 	case purposeBrowserProjectWrite:
-		if source != "manual" || auth.target.resourceID != a.ID {
+		if source != "manual" || auth.actor.kind != actorBrowser || auth.target.resourceID != a.ID {
 			return AutomationOccurrence{}, forbidden()
 		}
 	case purposeAutomationMaterialize:
@@ -502,6 +503,9 @@ func (s *Service) insertAutomationOccurrence(ctx context.Context, auth *authoriz
 	at := automationStamp(clock)
 	o := AutomationOccurrence{ID: newID(), RuleID: a.ID, Revision: a.Revision, Source: source, ScheduledAt: scheduled, State: state, Reason: reason, CreatedAt: at, UpdatedAt: at}
 	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_automation_occurrences(id,tenant_id,project_id,rule_id,revision,source,scheduled_at,state,reason,run_id,dedupe_key,created_at,updated_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`), o.ID, p.TenantID, a.ProjectID, a.ID, a.Revision, source, scheduled, state, reason, "", digest(key), at, at)
+	if err == nil && source == "manual" {
+		_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_automation_manual_invocations(tenant_id,project_id,occurrence_id,rule_id,invoker_user_id) VALUES(?,?,?,?,?)`), p.TenantID, a.ProjectID, o.ID, a.ID, p.ID)
+	}
 	return o, err
 }
 func (s *Service) CommandAutomation(ctx context.Context, actor Actor, project, id string, req AutomationCommandRequest) (AutomationCommandResult, error) {

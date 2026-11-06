@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_manual_authority": {
+    "stage": "T-AUTOMATION-MANUAL-AUTHORITY-278",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "8c87f54296905d10e302a521b97554b2984f150f",
+    "report": "docs/quality/automation-manual-authority-verification.md",
+    "actual": "Manual automation occurrences bind the authenticated initiator and independently recheck current project write authority at dispatch.",
+    "verification": "39 targeted Go tests, 35 subtests, and 19 Web checks passed. Real HTTP and SQLite verify revocation, valid developer, missing proof and stable repeated ticks.",
+    "known_limitations": "Local SQLite and Web component verification. OceanBase, PostgreSQL, multi-host and production scale remain open.",
+    "full_platform_complete": false
+  },
   "usage_confirmed_receipts": {
     "stage": "T-USAGE-CONFIRMED-RECEIPTS-277",
     "version": "1.0.0",

@@ -64,7 +64,17 @@ func (s *Service) durableAutomationOccurrenceActor(ctx context.Context, q author
 	if err != nil {
 		return Actor{}, err
 	}
-	if source.String == "webhook" {
+	switch source.String {
+	case "manual":
+		invoker, err := s.manualAutomationInvoker(ctx, q, ref, occurrence)
+		if err != nil {
+			return Actor{}, err
+		}
+		// Missing evidence is handled by evaluation so a single unprovable
+		// manual occurrence cannot remain queued at the head of its rule.
+		actor.delegation.manualOccurrenceID = occurrence
+		actor.delegation.manualInvokerID = invoker
+	case "webhook":
 		actor.delegation.linkedRecordID = ingress.String
 		actor.delegation.secondarySubjectID = user.String
 	}
@@ -104,7 +114,7 @@ func (s *Service) authorizeDelegationTx(ctx context.Context, tx *sql.Tx, actor A
 	if err := s.authorityWriter(bounded, tx); err != nil {
 		return nil, err
 	}
-	users := sortedAuthorityIDs([]string{d.subjectID, d.secondarySubjectID, target.subjectID})
+	users := sortedAuthorityIDs([]string{d.subjectID, d.secondarySubjectID, d.manualInvokerID, target.subjectID})
 	orgs := append([]string{d.tenantID}, organizations...)
 	for _, user := range users {
 		current, err := s.authorityOrganizations(bounded, tx, user)

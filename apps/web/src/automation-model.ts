@@ -40,6 +40,8 @@ export function automationMoment(value:string,timezone='UTC'){
 const reasonNames:Record<string,string>={
  get activation_authority_or_workflow_unavailable(){return tr("automation.the_activator_s_permissions_or_fixed_workflow_are");},
  get activation_authority_revoked(){return tr("automation.the_activator_s_project_write_or_approval_permission");},
+ get manual_trigger_authority_revoked(){return tr("automation.manual_trigger_authority_revoked");},
+ get manual_trigger_authority_unverified(){return tr("automation.manual_trigger_authority_unverified");},
  get workflow_unavailable(){return tr("automation.the_fixed_workflow_version_is_unavailable_dispatch_stopped");},
  get rule_inactive_or_revised(){return tr("automation.the_rule_is_inactive_or_its_specification_changed");},
  get rule_revised(){return tr("automation.the_rule_specification_changed_dispatch_stopped_for_this");},get rule_revise(){return tr("automation.the_rule_policy_changed_waiting_triggers_for_the");},

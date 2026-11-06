@@ -13,6 +13,11 @@ import (
 const automationRuleBatch = 32
 const automationDispatchBatch = 100
 
+const (
+	manualTriggerAuthorityRevoked    = "manual_trigger_authority_revoked"
+	manualTriggerAuthorityUnverified = "manual_trigger_authority_unverified"
+)
+
 type automationRef struct{ tenant, project, id string }
 
 // TickAutomations performs bounded durable materialization followed by guarded
@@ -258,6 +263,30 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *aut
 		}
 		return a, o, err
 	}
+	if o.Source == "manual" {
+		// The candidate identity determines the existing authority lock set,
+		// but only the fresh occurrence binding may authorize this execution.
+		d := auth.actor.delegation
+		if d.manualOccurrenceID != o.ID {
+			return a, o, forbidden()
+		}
+		invoker, err := s.manualAutomationInvoker(ctx, tx, ref, o.ID)
+		if err != nil {
+			return a, o, err
+		}
+		if invoker != d.manualInvokerID {
+			return a, o, &APIError{409, "authority_retry", "权限集合已改变，请重试", nil}
+		}
+		if invoker == "" {
+			return a, o, &automationDeferred{"blocked", manualTriggerAuthorityUnverified}
+		}
+		if _, err = s.currentProjectMembershipLockedTx(ctx, tx, ref.tenant, invoker, ref.project, true, false); err != nil {
+			if automationAuthorityFailure(err) {
+				return a, o, &automationDeferred{"blocked", manualTriggerAuthorityRevoked}
+			}
+			return a, o, err
+		}
+	}
 	if err = s.automationIngressDispatchAdmission(ctx, tx, ref, a, o); err != nil {
 		return a, o, err
 	}
@@ -384,7 +413,8 @@ func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref aut
 	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_automation_occurrences SET state=?,reason=?,updated_at=? WHERE tenant_id=? AND project_id=? AND rule_id=? AND id=? AND state='queued'`), deferred.state, deferred.reason, automationStamp(evaluation.checkedAt), ref.tenant, ref.project, ref.id, id); err != nil {
 		return err
 	}
-	if deferred.state == "blocked" {
+	// Manual authorization applies to this trigger alone, not rule health.
+	if deferred.state == "blocked" && deferred.reason != manualTriggerAuthorityRevoked && deferred.reason != manualTriggerAuthorityUnverified {
 		if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_automations SET last_error=? WHERE tenant_id=? AND project_id=? AND id=?`), deferred.reason, ref.tenant, ref.project, ref.id); err != nil {
 			return err
 		}

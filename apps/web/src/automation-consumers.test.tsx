@@ -3,6 +3,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {describe,expect,it} from 'vitest';
 import {AutomationRuleFacts,AutomationOccurrenceRow,AutomationUnread,AutomationRevisionFacts} from './AutomationWorkspace';
 import type {AutomationRule} from './automation-model';
+import {setLocale} from './i18n';
 const rule:AutomationRule={id:'rule-real',project_id:'p',version:8,revision:3,name:'每日校验',workflow_id:'wf-real',workflow_version:2,trigger:'cron',cron:'0 9 * * 1-5',timezone:'Asia/Shanghai',misfire:'catch_up',catch_up_limit:4,overlap:'queue',state:'paused',activated_by:'reviewer-real',next_at:'',last_error:'当前启用人权限已撤销',created_at:'2026-10-24T00:00:00Z',updated_at:'2026-10-24T00:00:00Z'};
 describe('automation rendered facts',()=>{
  it('shows persisted pause, exact pinned workflow version, policies and a real dispatch blocker',()=>{
@@ -26,6 +27,21 @@ describe('automation rendered facts',()=>{
   const webhook=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence,project:'p'}));expect(webhook).toContain('入口或规则启用人');
   for(const source of ['manual','cron']){const html=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence:{...occurrence,source},project:'p'}));expect(html).toContain('启用人的项目写入或审批权限已撤销');expect(html).not.toContain('入口或规则启用人');}
   const unknown=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence:{...occurrence,reason:'future_webhook_reason'},project:'p'}));expect(unknown).toContain('服务端原因');expect(unknown).toContain('future_webhook_reason');
+ });
+ it('shows manual submitter blockers in both languages without linking to a run',async()=>{
+  const base={id:'occ-manual',rule_id:rule.id,revision:3,source:'manual',scheduled_at:rule.created_at,state:'blocked',run_id:'',created_at:rule.created_at,updated_at:rule.created_at};
+  try{
+   for(const [locale,revoked,unverified] of [
+    ['en-US','no longer has project write access','its initiator could not be verified'],
+    ['zh-CN','触发人的项目写入权限已失效','无法核实本次触发的发起人'],
+   ] as const){
+    await setLocale(locale,{persist:false});
+    for(const [reason,text] of [['manual_trigger_authority_revoked',revoked],['manual_trigger_authority_unverified',unverified]]){
+     const html=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence:{...base,reason},project:'p'}));
+     expect(html).toContain(text);expect(html).toContain(reason);expect(html).not.toContain('href=');
+    }
+   }
+  }finally{await setLocale('zh-CN',{persist:false});}
  });
  it('explains server blockers and keeps raw reason codes collapsed for audit',()=>{
   const html=renderToStaticMarkup(createElement(AutomationRuleFacts,{rule:{...rule,last_error:'activation_authority_revoked',state:'enabled',next_at:'2026-10-24T00:00:00Z'}}));
