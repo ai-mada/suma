@@ -25,6 +25,49 @@ it('reads one task only when opened, separates execution/tests/acceptance and dr
  await render('task-a',{navigationDisabled:true});const locked=host.querySelector<HTMLAnchorElement>('[data-task-delivery-test-plan]')!;expect(locked.getAttribute('aria-disabled')).toBe('true');expect(locked.tabIndex).toBe(-1);const lockedClick=new MouseEvent('click',{bubbles:true,cancelable:true});await act(async()=>{locked.dispatchEvent(lockedClick);});expect(lockedClick.defaultPrevented).toBe(true);
 });
 
+it('keeps delivery actions tied to the verified original run until explicitly switching to current delivery',async()=>{
+ const original=delivery(),openCurrent=vi.fn(),runID='run-a';
+ let reply:()=>Promise<Response>=async()=>Response.json(original);
+ transport(()=>reply());
+ const origin='[data-task-delivery-origin]',current='[data-task-delivery-current-link]';
+ const onOpenRun=vi.fn();
+ await render('task-a',{openOnEntry:true,originRunID:runID,onOpenCurrentDelivery:openCurrent,onOpenRun});
+ expect(host.querySelector(origin)?.getAttribute('data-relation')).toBe('current');
+ expect(host.querySelector('[data-task-delivery-test="verify"]')).not.toBeNull();
+ expect(host.querySelector(current)).toBeNull();
+ let resolve!:(response:Response)=>void;
+ reply=()=>new Promise<Response>(done=>{resolve=done;});
+ await click('[data-task-delivery-refresh]');
+ expect(host.querySelector(origin)).toBeNull();
+ expect(host.querySelector('[data-task-delivery-review]')).toBeNull();
+ const rebound={...original,run:{...original.run,run_id:'run-b'}};
+ await act(async()=>resolve(Response.json(rebound)));
+ expect(host.querySelector(origin)?.getAttribute('data-relation')).toBe('changed');
+ for(const action of ['run','test','test-plan','review','repository','issue','plan'])expect(host.querySelector('[data-task-delivery-'+action+']')).toBeNull();
+ expect(new URL(host.querySelector<HTMLAnchorElement>(current)!.href).searchParams.get('panel')).toBe('task-delivery');
+ const guard=(event:Event)=>event.preventDefault();
+ window.addEventListener('suma:navigate',guard);
+ try{await click(current);expect(openCurrent).not.toHaveBeenCalled();}
+ finally{window.removeEventListener('suma:navigate',guard);}
+ await click(current);expect(openCurrent).toHaveBeenCalledOnce();
+ for(const basis of ['not_dispatched','unknown']){
+  reply=async()=>Response.json({...original,run:null,run_basis_state:basis});
+  await click('[data-task-delivery-refresh]');
+  expect(host.querySelector(origin)?.getAttribute('data-relation')).toBe(basis==='not_dispatched'?'unbound':'unknown');
+  expect(host.querySelector(current)).not.toBeNull();
+ }
+ reply=async()=>Response.json({...rebound,task_version:4});
+ await click('[data-task-delivery-refresh]');
+ expect(host.querySelector(origin)).toBeNull();
+ expect(host.querySelector(current)).toBeNull();
+ reply=async()=>Response.json({error:{code:'forbidden',message:'No access'}},{status:403});
+ await click('[data-task-delivery-refresh]');
+ expect(host.querySelector(origin)).toBeNull();
+ expect(host.querySelector(current)).toBeNull();
+ expect(reads.every(read=>read.path==='/tasks/task-a/delivery?project_id=project-a')).toBe(true);
+ expect(writes).toBe(0);
+});
+
 it('opens repository integration only from current accepted delivery and makes no write',async()=>{
  const openRepository=vi.fn(),selector='[data-task-delivery-repository]';
  let facts=delivery();

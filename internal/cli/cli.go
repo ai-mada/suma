@@ -31,6 +31,7 @@ Read commands:
   task-owners --help          Preview and atomically change explicit task owners
   task-priority --help        Preview or apply a task priority batch
   task-status --help          Preview or apply a task planning-status batch
+  task delivery TASK          Read current task delivery evidence
   run show ID
   run events ID [--after SEQUENCE]
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
@@ -192,6 +193,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	}
 	if len(args) > 0 && args[0] == "review-requests" {
 		return taskReviewRequestsCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 1 && args[0] == "task" && args[1] == "delivery" {
+		return taskDeliveryCommand(ctx, c, args[2:], out)
 	}
 	if len(args) > 1 && args[0] == "tasks" && args[1] == "run-history" {
 		return taskRunHistoryCommand(ctx, c, args[2:], out)

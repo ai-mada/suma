@@ -24,7 +24,7 @@ function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string
     input_id:input,run_id:params.get('run'),node_id:params.get('node'),attempt:parseAttempt(params.get('attempt')||''),
    })?panel:'';
  }
- if(panel===taskDeliveryPanel)return isTaskDeliveryLocator(params)?panel:'';
+ if(panel===taskDeliveryPanel||panel.startsWith(taskDeliveryPanel+':'))return isTaskDeliveryLocator(params)?panel:'';
  if(panel.startsWith('tool-inventory-connect:')){
   const unique=['panel','project','view','sub'].every(key=>params.getAll(key).length===1);
   return unique&&params.get('view')==='settings'&&params.get('sub')==='tools'&&!params.has('record')?panel:'';

@@ -1,3 +1,4 @@
+import type {MouseEvent} from 'react';
 import type {WorkbenchRoute} from './navigation';
 
 /** Public navigation locators only. A matching locator never grants review or
@@ -7,9 +8,17 @@ export type TaskAcceptanceConsumption={userID:string;organizationID:string;proje
 const identifier=(value:string)=>typeof value==='string'&&!/[\u0000-\u001f\u007f]/.test(value)&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
 const version=(value:number)=>Number.isSafeInteger(value)&&value>0&&value<=2147483646;
 export const taskDeliveryPanel='task-delivery';
+const taskDeliveryOriginPrefix=taskDeliveryPanel+':';
+export const taskDeliveryNavigateEvent='suma:open-task-delivery';
+export function parseTaskDeliveryPanel(panel:string):{runID?:string}|undefined{
+  if(panel===taskDeliveryPanel)return {};
+  if(!panel.startsWith(taskDeliveryOriginPrefix))return undefined;
+  const runID=panel.slice(taskDeliveryOriginPrefix.length);
+  return identifier(runID)?{runID}:undefined;
+}
 export function isTaskDeliveryLocator(params:URLSearchParams):boolean{
   return ['project','view','sub','record','panel'].every(key=>params.getAll(key).length===1)
-    &&params.get('view')==='development'&&params.get('sub')==='tasks'&&params.get('panel')===taskDeliveryPanel
+    &&params.get('view')==='development'&&params.get('sub')==='tasks'&&!!parseTaskDeliveryPanel(params.get('panel')||'')
     &&identifier(params.get('project')||'')&&identifier(params.get('record')||'')
     &&(!params.has('layout')||params.getAll('layout').length===1&&params.get('layout')==='list')
     &&!['run','node','attempt'].some(key=>params.has(key));
@@ -32,7 +41,11 @@ export function taskDeliveryHref(project:string,target:{kind:'issue'|'requiremen
     case 'requirement':Object.assign(fields,{view:'requirements',sub:'',record:target.id,layout:'list'});break;
     case 'team':Object.assign(fields,{view:'development',sub:'runs',layout:'team',panel:'expert-team:'+target.id});break;
     case 'repository':Object.assign(fields,{view:'development',sub:'tasks',record:target.id,layout:'list',panel:'repository-integration'});break;
-    case 'delivery':Object.assign(fields,{view:'development',sub:'tasks',record:target.id,layout:'list',panel:taskDeliveryPanel});break;
+    case 'delivery':{
+      if(target.runID!==undefined&&!identifier(target.runID))return undefined;
+      const panel=target.runID===undefined?taskDeliveryPanel:taskDeliveryOriginPrefix+target.runID;
+      Object.assign(fields,{view:'development',sub:'tasks',record:target.id,layout:'list',panel});break;
+    }
     case 'review':{
       const panel=taskAcceptancePanel(target.taskVersion||0,target.runID||'');if(!panel)return undefined;
       Object.assign(fields,{view:'development',sub:'tasks',record:target.id,layout:'list',panel});break;
@@ -40,6 +53,12 @@ export function taskDeliveryHref(project:string,target:{kind:'issue'|'requiremen
     default:return undefined;
   }
   return '?'+new URLSearchParams(fields);
+}
+/** Use ordinary browser navigation when the workbench is not mounted. */
+export function followTaskDeliveryHref(event:MouseEvent<HTMLAnchorElement>,href:string){
+  if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  const claimed=!window.dispatchEvent(new CustomEvent(taskDeliveryNavigateEvent,{detail:href,cancelable:true}));
+  if(claimed||!window.dispatchEvent(new Event('suma:navigate',{cancelable:true})))event.preventDefault();
 }
 /** Consume only the originating route. A queued callback from an older
  * account, task or panel must never clear a more recent user's navigation. */

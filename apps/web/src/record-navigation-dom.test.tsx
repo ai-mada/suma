@@ -191,6 +191,39 @@ it("opens only an authorized task's delivery projection and keeps the close guar
   expect(requests.mock.calls.every(([, options]) => !options?.body)).toBe(true);
 });
 
+it("navigates a team delivery origin and requires an explicit unpinned route after rebinding", async () => {
+  const pinned = taskDeliveryHref(project, { kind: "delivery", id: taskID, runID: "former-run" })!;
+  history.replaceState(null, "", "?project=" + project + "&view=development&sub=runs&layout=team");
+  const requests = vi.mocked(fetch);
+  const defaultReply = requests.getMockImplementation()!;
+  const empty = { scope: "current_run", total: 0, limit: 20, complete: true, items: [] };
+  requests.mockImplementation(async (input, options) => {
+    const url = new URL(String(input), location.href);
+    const path = url.pathname.replace(/^\/api\/v1/, "");
+    if (path === "/tasks/" + taskID + "/delivery") {
+      expect([...url.searchParams]).toEqual([["project_id", project]]);
+      expect(options?.method).toBe("GET");
+      return Response.json({
+        project_id: project, task_id: taskID, task_version: task.version, task_status: task.status,
+        run_basis_state: "not_dispatched", run: null, formal_acceptance: false, expert_plans: empty, issues: empty,
+      });
+    }
+    return defaultReply(input, options);
+  });
+  await renderConsumer(<App />);
+  await settle(() => !!container.querySelector("main"));
+  const open = new CustomEvent("suma:open-task-delivery", { detail: pinned, cancelable: true });
+  await act(async () => { window.dispatchEvent(open); });
+  expect(open.defaultPrevented).toBe(true);
+  await settle(() => !!container.querySelector('[data-task-delivery-origin][data-relation="unbound"]'));
+  const unpin = container.querySelector<HTMLAnchorElement>("[data-task-delivery-current-link]")!;
+  expect(new URL(location.href).searchParams.get("panel")).toBe("task-delivery:former-run");
+  await act(async () => { unpin.click(); });
+  await settle(() => new URL(location.href).searchParams.get("panel") === "task-delivery");
+  expect(container.querySelector("[data-task-delivery-origin]")).toBeNull();
+  expect(requests.mock.calls.every(([, options]) => !options?.body)).toBe(true);
+});
+
 describe("actual React consumer requirement navigation", () => {
   it("uses one wrapping clickable box for the label, icon and long requirement identifier", async () => {
     await renderConsumer(

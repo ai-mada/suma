@@ -4,6 +4,8 @@ T-MODEL-DIRECTORY 补齐网关部署、Codex 与工具固定模型的目录展�
 
 T-TOOL-QUICK-RECOVERY-266 添加工具在所选入口旁显示本机和节点问题的下一步，明确保存失败保留草稿，结果未知核对原回执。实际 Windows 桌面已验证 9 个入口检测及 Codex 保存恢复。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-recovery-verification.md)
 
+T-TEAM-DELIVERY 团队计划可按原运行直接打开交付与质量面板，运行不匹配时明确切换。CLI 使用同一交付摘要。 [操作](../development/team-execution.md#从团队计划核对交付) · [验证](../quality/team-delivery-verification.md)
+
 T-QUEUE-SCOPE 按项目专用或共享池路径及准确运行查询待派发节点。网页可分享筛选，CLI 使用同一范围及游标。 [交互](../design/scheduling-workspace.md#按执行路径和运行定位) · [验证](../quality/queue-scope-verification.md)
 
 T-TOOL-DECISION-IMPACT 停用和移除工具前可在同一窗口核对当前配置与运行影响。版本冲突、过期或权限变化后须重新核对和确认。 [交互](../design/tool-management.md#停用与移除确认) · [验证](../quality/tool-decision-impact-verification.md)

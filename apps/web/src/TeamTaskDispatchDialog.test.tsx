@@ -85,7 +85,7 @@ it('does not read while closed rejects oversized selections and isolates late id
 });
 
 it('recovers the original pause then explicitly resumes or stops only new work while preserving the active run',async()=>{
- current=plan('active');let lost=true;reply=async(path,init)=>{if(init?.body){const body=JSON.parse(String(init.body));if(body.action==='pause'){current={...plan('paused'),version:3};if(lost)throw TypeError('lost pause');}if(body.action==='resume')current={...plan('active'),version:4,activation_generation:2};if(body.action==='stop')current={...plan('stopped','queued','stopped'),version:5};return Response.json(current);}return defaults(path);};await render('batch-a',session,project,[]);await command('pause');expect(writes[0].body).toMatchObject({action:'pause',expected_version:2,acknowledge:true});expect(document.body.textContent).toContain('Existing runs continue');await act(async()=>root!.unmount());root=undefined;await render('batch-a',session,project,[]);lost=false;await click('[data-team-command-restore]');expect(writes[1].body).toEqual(writes[0].body);expect(document.querySelectorAll('[data-team-run]')).toHaveLength(1);await command('resume');expect(writes[2].body).toMatchObject({action:'resume',expected_version:3,acknowledge:true});await command('stop');expect(writes[3].body).toMatchObject({action:'stop',expected_version:4,acknowledge:true});expect(document.querySelectorAll('[data-team-run]')).toHaveLength(1);expect(document.querySelector('[data-team-item=task-b]')?.textContent).toContain('Unstarted work stopped');expect(writes.some(value=>value.path.includes('/runs/')||value.path.includes('/task-dispatch-plans'))).toBe(false);
+ current=plan('active');let lost=true;reply=async(path,init)=>{if(init?.body){const body=JSON.parse(String(init.body));if(body.action==='pause'){current={...plan('paused'),version:3};if(lost)throw TypeError('lost pause');}if(body.action==='resume')current={...plan('active'),version:4,activation_generation:2};if(body.action==='stop')current={...plan('stopped','queued','stopped'),version:5};return Response.json(current);}return defaults(path);};await render('batch-a',session,project,[]);await command('pause');expect(writes[0].body).toMatchObject({action:'pause',expected_version:2,acknowledge:true});expect(document.body.textContent).toContain('Existing runs continue');const lockedDelivery=document.querySelector('[data-team-task-delivery]');expect(lockedDelivery?.getAttribute('aria-disabled')).toBe('true');expect(lockedDelivery?.hasAttribute('href')).toBe(false);await act(async()=>root!.unmount());root=undefined;await render('batch-a',session,project,[]);lost=false;await click('[data-team-command-restore]');expect(writes[1].body).toEqual(writes[0].body);expect(document.querySelectorAll('[data-team-run]')).toHaveLength(1);await command('resume');expect(writes[2].body).toMatchObject({action:'resume',expected_version:3,acknowledge:true});await command('stop');expect(writes[3].body).toMatchObject({action:'stop',expected_version:4,acknowledge:true});expect(document.querySelectorAll('[data-team-run]')).toHaveLength(1);expect(document.querySelector('[data-team-item=task-b]')?.textContent).toContain('Unstarted work stopped');expect(writes.some(value=>value.path.includes('/runs/')||value.path.includes('/task-dispatch-plans'))).toBe(false);
 });
 
 it('revises only explicit unstarted task sources keeps drafts through CAS and reads immutable history without actions',async()=>{
@@ -115,6 +115,46 @@ it('revises only the chosen unstarted expert task with Codex and restores its or
  current=plan('paused');let bad=true;const original=structuredClone(current.items[0]);reply=async(path,init)=>{if(path.startsWith('/model-execution/options?'))return Response.json(codexOptions());if(init?.body){const next:any=withCodex({...current,version:4,revision:2});next.items[0]=original;next.items[1].task_version=4;if(bad)next.items[1].plan.codex_execution.token_notice_limit=41;else current=next;return Response.json(next);}return defaults(path);};
  await render('batch-a',session,project,[]);await click('[data-team-command=revise]');await click('[name=team_revision_select_task-b]');await chooseCodex();await change('[name=team_plan_reason]','Reviewed Codex revision');await click('[name=team_plan_ack]');await click('[data-team-confirm-command]');expect(writes[0].body.items).toEqual([{task_id:'task-b',expected_task_version:4,role_key:'developer',codex_execution_selection:codexSelection}]);expect(document.querySelector('[data-team-command-restore]')).not.toBeNull();
  await act(async()=>root!.unmount());root=undefined;bad=false;await render('batch-a',session,project,[]);await click('[data-team-command-restore]');expect(writes[1]).toEqual(writes[0]);expect(current.items[0]).toEqual(original);expect(document.querySelector('[data-team-command-restore]')).toBeNull();expect(document.querySelector('[data-team-item=task-b]')?.textContent).toContain('Fixed Codex configuration');
+});
+
+it('opens delivery for the exact current dispatch and keeps revisions read-only',async()=>{
+ current=plan('active','awaiting_review');
+ const historical={...current,allowed_actions:[],can_start:false};
+ reply=async path=>{
+  if(path.includes('/revisions?'))return Response.json({items:[historical],total:1,next_cursor:''});
+  if(path.includes('/revisions/1?'))return Response.json(historical);
+  return defaults(path);
+ };
+ await render('batch-a',session,project,[]);
+ const card=document.querySelector('[data-team-item=task-a]')!;
+ const link=card.querySelector<HTMLAnchorElement>('[data-team-task-delivery]')!;
+ expect(link.textContent).toBe('Review delivery');
+ expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({
+  project,view:'development',sub:'tasks',record:'task-a',layout:'list',panel:'task-delivery:run-0',
+ });
+ expect(new URL(card.querySelector<HTMLAnchorElement>('[data-team-run]')!.href).searchParams.get('run')).toBe('run-0');
+ expect(document.querySelector('[data-team-item=task-b] [data-team-task-delivery]')).toBeNull();
+ const block=(event:Event)=>event.preventDefault();
+ window.addEventListener('suma:navigate',block);
+ try{
+  await act(async()=>{expect(link.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false);});
+ }finally{window.removeEventListener('suma:navigate',block);}
+ await click('.expert-plan-history>summary');
+ await click('.expert-plan-history .expert-plan-history-list button');
+ expect(document.querySelector('.expert-plan-history [data-team-task-delivery]')).toBeNull();
+ expect(document.querySelector('.expert-plan-history [data-team-item=task-a]')?.textContent).toContain('Open task');
+ expect(writes).toHaveLength(0);
+});
+
+it('uses the delivery view for other started tasks and omits mismatched dispatch references',async()=>{
+ current=plan('active','queued');
+ await render('batch-a',session,project,[]);
+ expect(document.querySelector('[data-team-task-delivery]')?.textContent).toBe('Open delivery');
+ current={...current,version:3,items:current.items.map(item=>item.task_id==='task-a'?{...item,plan:{...item.plan,run_id:'different-run'}}:item)};
+ await click('[data-team-refresh]');
+ expect(document.querySelector('[data-team-task-delivery]')).toBeNull();
+ expect(document.querySelector('[data-team-item=task-a]')?.textContent).toContain('Open task');
+ expect(writes).toHaveLength(0);
 });
 
 it('keeps paused plans refreshing waiting and unknown execution facts without creating execution actions',async()=>{

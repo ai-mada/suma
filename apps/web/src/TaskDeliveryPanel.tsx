@@ -1,5 +1,5 @@
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
-import {ChevronDown,GitPullRequest,RefreshCw} from 'lucide-react';
+import {ChevronDown,CircleAlert,GitPullRequest,Link2,RefreshCw} from 'lucide-react';
 import {type Session} from './api';
 import {tr,useLocale,formatNumber} from './i18n';
 import {Badge,ErrorNotice,Loading} from './ui';
@@ -10,17 +10,27 @@ import type {TaskDeliveryRunTarget} from './TaskDependenciesWorkspace';
 import {taskDeliveryHref} from './task-delivery-navigation-model';
 import {executionHref} from './scheduling-model';
 import './TaskDeliveryPanel.css';
-export type TaskDeliveryPanelProps={session:Session;project:string;taskId:string;taskVersion:number;refresh:number;openOnEntry?:boolean;navigationDisabled?:boolean;onOpenRun?:(target:TaskDeliveryRunTarget)=>void;onOpenReview?:()=>void;onOpenRepository?:()=>void;onOpenIssue?:(id:string)=>void;onOpenRequirement?:(id:string)=>void;onTeamPlan?:(id:string)=>void;onExtractAcceptedDelivery?:(taskID:string)=>void;onVersionMismatch?:()=>void;onForbidden?:()=>void};
-export function TaskDeliveryPanel(props:TaskDeliveryPanelProps){return <DeliveryOwner key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project,props.taskId])} {...props}/>;}
+export type TaskDeliveryPanelProps={session:Session;project:string;taskId:string;taskVersion:number;refresh:number;openOnEntry?:boolean;originRunID?:string;navigationDisabled?:boolean;onOpenCurrentDelivery?:()=>void;onOpenRun?:(target:TaskDeliveryRunTarget)=>void;onOpenReview?:()=>void;onOpenRepository?:()=>void;onOpenIssue?:(id:string)=>void;onOpenRequirement?:(id:string)=>void;onTeamPlan?:(id:string)=>void;onExtractAcceptedDelivery?:(taskID:string)=>void;onVersionMismatch?:()=>void;onForbidden?:()=>void};
+export function TaskDeliveryPanel(props:TaskDeliveryPanelProps){return <DeliveryOwner key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project,props.taskId,props.originRunID])} {...props}/>;}
 function DeliveryOwner(props:TaskDeliveryPanelProps){const [retry,setRetry]=useState(0);return <DeliveryScope key={retry} {...props} initiallyOpen={retry>0} retryRead={()=>setRetry(value=>value+1)}/>;}
 const t=(key:string,values?:Record<string,unknown>)=>tr('task-delivery.'+key,values);
-function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,navigationDisabled,onOpenRun,onOpenReview,onOpenRepository,onOpenIssue,onOpenRequirement,onTeamPlan,onExtractAcceptedDelivery,onVersionMismatch,onForbidden,initiallyOpen,retryRead}:TaskDeliveryPanelProps&{initiallyOpen:boolean;retryRead:()=>void}){
- useLocale();const [open,setOpen]=useState(initiallyOpen||!!openOnEntry),[repositoryLocked,setRepositoryLocked]=useState(false),body=useId(),read=useTaskDeliveryRead(project,taskId,open,refresh),value=read.value;
- useEffect(()=>{if(openOnEntry)setOpen(true);},[openOnEntry]);
+function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,originRunID,navigationDisabled,onOpenCurrentDelivery,onOpenRun,onOpenReview,onOpenRepository,onOpenIssue,onOpenRequirement,onTeamPlan,onExtractAcceptedDelivery,onVersionMismatch,onForbidden,initiallyOpen,retryRead}:TaskDeliveryPanelProps&{initiallyOpen:boolean;retryRead:()=>void}){
+ useLocale();const [open,setOpen]=useState(initiallyOpen||!!openOnEntry),[repositoryLocked,setRepositoryLocked]=useState(false),body=useId(),read=useTaskDeliveryRead(project,taskId,open,refresh),snapshot=read.value;
+ const toggle=useRef<HTMLButtonElement>(null);
+ useEffect(()=>{
+  if(!openOnEntry)return;
+  setOpen(true);
+  toggle.current?.focus({preventScroll:true});
+  toggle.current?.scrollIntoView?.({block:'nearest'});
+ },[openOnEntry]);
  const callbacks=useRef({onVersionMismatch,onForbidden});callbacks.current={onVersionMismatch,onForbidden};
- useEffect(()=>{if(value&&value.task_version!==taskVersion)callbacks.current.onVersionMismatch?.();},[value,taskVersion]);
+ useEffect(()=>{if(snapshot&&snapshot.task_version!==taskVersion)callbacks.current.onVersionMismatch?.();},[snapshot,taskVersion]);
  useEffect(()=>{if(read.forbidden)callbacks.current.onForbidden?.();},[read.forbidden]);
- const locked=!!navigationDisabled||read.loading||!!read.error,run=value?.run;
+ const locked=!!navigationDisabled||read.loading||!!read.error;
+ const originRelation=originRunID&&!read.loading&&!read.error&&!read.forbidden&&snapshot?.task_version===taskVersion
+  ?snapshot.run?snapshot.run.run_id===originRunID?'current':'changed':snapshot.run_basis_state==='not_dispatched'?'unbound':'unknown'
+  :undefined;
+ const value=!originRunID||originRelation==='current'?snapshot:undefined,run=value?.run;
  const workbuddy=value?.task_version===taskVersion?run?.workbuddy_delivery:undefined;
  const reviewHref=value&&value.task_version===taskVersion&&value.run_basis_state==='current'&&run
   ?taskDeliveryHref(project,{kind:'review',id:taskId,taskVersion:value.task_version,runID:run.run_id}):undefined;
@@ -28,10 +38,17 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,n
   ?taskDeliveryHref(project,{kind:'repository',id:taskId}):undefined;
  const canLeave=()=>window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));
  const scope=(total:number,loaded:number)=>t('scope',{loaded:formatNumber(loaded),total:formatNumber(total)});
- return <section className="task-delivery" aria-label={t('title')}><button type="button" className="task-delivery-toggle" data-task-delivery-toggle aria-expanded={open} aria-controls={body} onClick={()=>{if(!open||canLeave())setOpen(current=>!current);}}><span>{t('title')}</span><ChevronDown size={15}/></button>
+ return <section className="task-delivery" aria-label={t('title')}><button type="button" className="task-delivery-toggle" ref={toggle} data-task-delivery-toggle aria-expanded={open} aria-controls={body} onClick={()=>{if(!open||canLeave())setOpen(current=>!current);}}><span>{t('title')}</span><ChevronDown size={15}/></button>
   {open&&<div id={body} className="task-delivery-body"><p className="task-delivery-muted">{t('intro')}</p><div className="task-delivery-actions"><button type="button" data-task-delivery-refresh disabled={repositoryLocked||read.loading||read.forbidden} onClick={()=>void read.read()}><RefreshCw size={13}/>{t('refresh')}</button></div>{read.loading&&<Loading/>}{Boolean(read.error)&&<ErrorNotice error={read.error}/>}
    {read.forbidden&&<div className="task-delivery-warning"><p>{t('access_changed')}</p><button type="button" data-task-delivery-retry onClick={retryRead}>{tr('common.retry')}</button></div>}
    {!read.forbidden&&Boolean(read.error)&&!read.loading&&<button type="button" data-task-delivery-retry onClick={()=>void read.read()}>{tr('common.retry')}</button>}
+   {originRunID&&snapshot&&snapshot.task_version!==taskVersion&&<p role="status" className="task-delivery-muted">{t('origin.version_pending')}</p>}
+   {originRelation&&<div className="task-delivery-origin" data-task-delivery-origin data-relation={originRelation}>
+    {originRelation==='current'?<Link2 size={16} aria-hidden="true"/>:<CircleAlert size={16} aria-hidden="true"/>}
+    <div><div role="status"><strong>{t('origin.'+originRelation+'.title')}</strong><p>{t('origin.'+originRelation+'.detail')}</p></div>
+     {originRelation!=='current'&&<DeliveryReference kind="current-link" id={taskId} href={taskDeliveryHref(project,{kind:'delivery',id:taskId})} locked={locked||repositoryLocked} canLeave={canLeave} onNavigate={onOpenCurrentDelivery}>{t('origin.open_current')}</DeliveryReference>}
+    </div>
+   </div>}
    {value&&<><section className="task-delivery-section"><h4>{t('business')}</h4><div className="inline wrap"><Badge state={value.task_status}/><span className="task-delivery-muted">{t('version',{version:formatNumber(value.task_version)})}</span></div>{value.task_version!==taskVersion&&<p className="task-delivery-warning">{t('graph_changed')}</p>}</section>
     <section className="task-delivery-section"><h4>{t('execution')}</h4><p className={value.run_basis_state==='changed'||value.run_basis_state==='unknown'?'task-delivery-warning':'task-delivery-muted'}>{t('basis.'+value.run_basis_state)}</p>{run&&<><div className="inline wrap"><Badge state={run.state}/><code>{run.run_id.slice(0,8)}</code></div><p className="task-delivery-muted">{t('node_counts',{total:formatNumber(run.nodes.total),running:formatNumber(run.nodes.running),failed:formatNumber(run.nodes.failed),unknown:formatNumber(run.nodes.reconciling)})}</p><button type="button" data-task-delivery-run disabled={locked||!onOpenRun} onClick={()=>onOpenRun?.({run:run.run_id})}>{t('open_run')}</button></>}
      {workbuddy&&<div className="inline wrap">
@@ -43,8 +60,8 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,n
       </DeliveryReference>
      </div>}
     </section></>}
-    <TaskDeliveryRepositorySource project={project} taskId={taskId} taskVersion={taskVersion} organization={session.organization.id} owner={JSON.stringify([session.user.id,session.organization.id,project,taskId])}
-      attempt={!locked&&value?.run_basis_state==='current'?workbuddy:undefined} disabled={locked} onLockChange={setRepositoryLocked} onOpenRun={onOpenRun?runID=>onOpenRun({run:runID}):undefined}/>
+    {(!originRunID||originRelation==='current'||repositoryLocked&&!read.forbidden)&&<TaskDeliveryRepositorySource project={project} taskId={taskId} taskVersion={taskVersion} organization={session.organization.id} owner={JSON.stringify([session.user.id,session.organization.id,project,taskId])}
+      attempt={!locked&&value?.run_basis_state==='current'?workbuddy:undefined} disabled={locked} onLockChange={setRepositoryLocked} onOpenRun={onOpenRun?runID=>onOpenRun({run:runID}):undefined}/>}
     {value&&<>
     <section className="task-delivery-section"><h4>{t('tests')}</h4>{value.test_plan_id&&<a data-task-delivery-test-plan aria-disabled={locked||undefined} tabIndex={locked?-1:undefined} href={'?'+new URLSearchParams({project,view:'quality',sub:'tests',record:value.test_plan_id,...(run?{run:run.run_id,panel:'test-results'}:{})})} onClick={event=>{if(locked||!canLeave())event.preventDefault();}}>{tr('test-report-setup.open_plan')}</a>}<p className="task-delivery-muted">{t('test_boundary')}</p>{run?<><p>{t('test_counts',{total:formatNumber(run.tests.total),passed:formatNumber(run.tests.succeeded),failed:formatNumber(run.tests.failed),pending:formatNumber(run.tests.waiting+run.tests.running+run.tests.reconciling+run.tests.other)})}</p>{!!run.tests.items.length&&<ul className="task-delivery-list">{run.tests.items.map(node=><li key={node.id}><button type="button" data-task-delivery-test={node.id} disabled={locked||!onOpenRun} onClick={()=>onOpenRun?.({run:run.run_id,node:node.id,...(node.attempt>0?{attempt:String(node.attempt)}:{})})}>{node.name||node.id}</button><Badge state={node.state}/><small>{node.attempt>0?t('attempt',{attempt:formatNumber(node.attempt)}):tr('development.workflow.not_yet_executed')}</small></li>)}</ul>}{!run.tests.complete&&<p className="task-delivery-muted">{scope(run.tests.total,run.tests.items.length)} <button type="button" disabled={locked||!onOpenRun} onClick={()=>onOpenRun?.({run:run.run_id})}>{t('open_all_nodes')}</button></p>}{!run.tests.total&&<p className="task-delivery-muted">{t('no_tests')}</p>}</>:<p className="task-delivery-muted">{t('no_run')}</p>}</section>
     <section className="task-delivery-section"><h4>{t('acceptance')}</h4><strong className={value.formal_acceptance?'task-delivery-accepted':'task-delivery-muted'}>{t(value.formal_acceptance?'accepted':'not_accepted')}</strong><p className="task-delivery-muted">{t('acceptance_boundary')}</p><DeliveryReference kind="review" id={taskId} href={reviewHref} locked={locked} canLeave={canLeave} onNavigate={onOpenReview}>{t('open_review')}</DeliveryReference>
@@ -61,7 +78,7 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,n
 /** Keep a real URL for copy/new-tab and keyboard use. Only an ordinary current
  * page activation uses the optional SPA callback; locked references have no URL. */
 function DeliveryReference({kind,id,href,locked,canLeave,onNavigate,children}:{
- kind:'plan'|'issue'|'requirement'|'review'|'workbuddy'|'repository';id:string;href?:string;locked:boolean;
+ kind:'plan'|'issue'|'requirement'|'review'|'workbuddy'|'repository'|'current-link';id:string;href?:string;locked:boolean;
  canLeave:()=>boolean;onNavigate?:()=>void;children:ReactNode;
 }){
  const disabled=locked||!href;

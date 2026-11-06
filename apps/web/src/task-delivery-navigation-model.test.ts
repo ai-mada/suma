@@ -68,6 +68,28 @@ describe('task delivery navigation targets',()=>{
     }
   });
 
+  it('round-trips an exact original run without exposing an ambiguous task route',()=>{
+    const project='project-a',id='task-a',runID='run-Exact_1.2';
+    const href=taskDeliveryHref(project,{kind:'delivery',id,runID})!;
+    const params=new URLSearchParams(href);
+    expect(params.get('panel')).toBe('task-delivery:'+runID);
+    expect(params.has('run')).toBe(false);
+    expect(parseWorkbenchRoute(href)).toMatchObject({record:id,run:'',panel:'task-delivery:'+runID});
+    for(const invalid of ['','.','..','run/extra','run:extra','run\n','r'.repeat(65)]){
+      expect(taskDeliveryHref(project,{kind:'delivery',id,runID:invalid})).toBeUndefined();
+      params.set('panel','task-delivery:'+invalid);
+      expect(parseWorkbenchRoute('?'+params).panel).toBe('');
+    }
+    params.set('panel','task-delivery:'+runID);
+    for(const key of ['run','node','attempt']){
+      const conflicting=new URLSearchParams(params);
+      conflicting.set(key,'');
+      expect(parseWorkbenchRoute('?'+conflicting).panel).toBe('');
+    }
+    params.append('panel','task-delivery');
+    expect(parseWorkbenchRoute('?'+params).panel).toBe('');
+  });
+
   it('consumes only the matching originating route and preserves newer account, scope or panel objects',()=>{
     const route:WorkbenchRoute={project:'project-a',view:'development',sub:'tasks',record:'task-a',panel:'task-acceptance:3:run-a',run:'',node:'',attempt:'',q:'keep this filter',status:'all',layout:'list',week:'2026-11-02',task_owner:'member-a'};
     const owner={userID:'user-a',organizationID:'org-a'};
