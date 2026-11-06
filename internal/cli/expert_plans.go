@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"unicode/utf8"
 
@@ -19,8 +20,11 @@ import (
 
 const expertPlanUsage = "team-plan requires list, get, revisions, create, start, or command; use team-plan --help"
 const expertPlanReadInvalid = "invalid team-plan read options; provide a valid ID, revision and limit 1..100"
+const expertPlanScopeResponseInvalid = "team-plan list response must preserve the requested project, exact team and page boundaries"
 const expertPlanWriteOptions = "team-plan writes require --file JSON_FILE or --file - and explicit --confirm"
 const expertPlanWriteInvalid = "team-plan requires exact positive integer versions, typed items, explicit acknowledgement and a stable 8..128 character idempotency_key"
+
+var expertPlanTeamFilterID = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
 
 type expertPlanCLIItem struct {
 	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty"`
@@ -232,12 +236,36 @@ func expertPlansCommand(ctx context.Context, c *client, args []string, in io.Rea
 		fs := commandFlags("team-plan " + action)
 		limit := fs.Int("limit", 20, "page size 1..100")
 		before := fs.String("before", "", "next_cursor from the previous page")
-		if fs.Parse(args[offset:]) != nil || fs.NArg() != 0 || *limit < 1 || *limit > 100 || !handoffCLIIdentifier(*before, true) {
+		var team string
+		if action == "list" {
+			fs.Func("team", "exact team ID", func(value string) error {
+				if !expertPlanTeamFilterID.MatchString(value) {
+					return usage(expertPlanReadInvalid)
+				}
+				team = value
+				return nil
+			})
+		}
+		if fs.Parse(args[offset:]) != nil || fs.NArg() != 0 || *limit < 1 || *limit > 100 {
+			return usage(expertPlanReadInvalid)
+		}
+		if action == "list" && !toolListCursor(*before) || action == "revisions" && !handoffCLIIdentifier(*before, true) {
 			return usage(expertPlanReadInvalid)
 		}
 		query := url.Values{"limit": {strconv.Itoa(*limit)}}
 		if *before != "" {
 			query.Set("before", *before)
+		}
+		if team != "" {
+			query.Set("team_id", team)
+			raw, err := c.request(ctx, http.MethodGet, path+"?"+query.Encode(), nil, true)
+			if err != nil {
+				return err
+			}
+			if !validExpertPlanTeamPage(raw, c.project, team, *before, *limit) {
+				return &failure{Code: "response", Message: expertPlanScopeResponseInvalid}
+			}
+			return writeJSON(out, raw, c.token)
 		}
 		return contextRead(ctx, c, path+"?"+query.Encode(), out)
 	}
@@ -283,6 +311,58 @@ func expertPlansCommand(ctx context.Context, c *client, args []string, in io.Rea
 	return writeJSON(out, raw, c.token)
 }
 
+// Decode only the direct page and plan fields. The request already checked the
+// bounded JSON document; nested plan details stay opaque and keep their shape.
+func expertPlanListFields(raw json.RawMessage) map[string]json.RawMessage {
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	if token, err := decoder.Token(); err != nil || token != json.Delim('{') {
+		return nil
+	}
+	fields := map[string]json.RawMessage{}
+	for decoder.More() {
+		token, err := decoder.Token()
+		key, ok := token.(string)
+		var value json.RawMessage
+		if err != nil || !ok || fields[key] != nil || decoder.Decode(&value) != nil {
+			return nil
+		}
+		fields[key] = value
+	}
+	return fields
+}
+
+func validExpertPlanTeamPage(raw json.RawMessage, project, team, before string, limit int) bool {
+	fields := expertPlanListFields(raw)
+	var items []json.RawMessage
+	var total *int
+	if !tc.ValidJSONUnicode(raw) || json.Unmarshal(fields["items"], &items) != nil || items == nil || len(items) > limit ||
+		json.Unmarshal(fields["total"], &total) != nil || total == nil || *total < len(items) {
+		return false
+	}
+	if cursor := fields["next_cursor"]; cursor != nil {
+		var next *string
+		if len(fields) != 3 || json.Unmarshal(cursor, &next) != nil || next == nil || !toolListCursor(*next) ||
+			*next != "" && (*next == before || len(items) != limit || *total <= len(items)) {
+			return false
+		}
+	} else if len(fields) != 2 {
+		return false
+	}
+	seen := make(map[string]bool, len(items))
+	for _, item := range items {
+		fields := expertPlanListFields(item)
+		var id, projectID, teamID string
+		if !recommendationHistoryCanonicalFields(fields, "id", "project_id", "team_id") ||
+			json.Unmarshal(fields["id"], &id) != nil || !handoffCLIIdentifier(id, false) || seen[id] ||
+			json.Unmarshal(fields["project_id"], &projectID) != nil || projectID != project ||
+			json.Unmarshal(fields["team_id"], &teamID) != nil || teamID != team {
+			return false
+		}
+		seen[id] = true
+	}
+	return true
+}
+
 func expertPlansHelp(locale localization.Locale) string {
 	if locale == localization.EnUS {
 		return expertPlansHelpEN
@@ -292,7 +372,7 @@ func expertPlansHelp(locale localization.Locale) string {
 
 const expertPlansHelpEN = `
 Expert team delivery plans (global flags precede the command):
-  team-plan list [--limit 1..100] [--before NEXT_CURSOR]
+  team-plan list [--team TEAM_ID] [--limit 1..100] [--before NEXT_CURSOR]
   team-plan get ID
   team-plan revisions ID [REVISION | --limit 1..100 --before NEXT_CURSOR]
   team-plan create --file request.json --confirm
@@ -306,7 +386,7 @@ Run success never accepts a task. Stop does not stop active processes; no autoac
 `
 const expertPlansHelpZH = `
 专家组交付计划（全局参数放在命令前）：
-  team-plan list [--limit 1..100] [--before NEXT_CURSOR]
+  team-plan list [--team TEAM_ID] [--limit 1..100] [--before NEXT_CURSOR]
   team-plan get ID
   team-plan revisions ID [REVISION | --limit 1..100 --before NEXT_CURSOR]
   team-plan create --file request.json --confirm

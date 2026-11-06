@@ -5,6 +5,26 @@ import (
 	"testing"
 )
 
+func TestExpertTeamPlanListContractScopesOptionalTeamFilter(t *testing.T) {
+	api, _ := generate()
+	for _, path := range []string{"/expert-team-plans", "/expert-teams", "/expert-team-plans/{id}/revisions"} {
+		found := false
+		for _, param := range mapAt(api, "paths", path, "get")["parameters"].([]any) {
+			p := param.(map[string]any)
+			if p["in"] != "query" || p["name"] != "team_id" {
+				continue
+			}
+			found = true
+			if p["required"] == true || mapAt(p, "schema")["pattern"] != `^[A-Za-z0-9_-]{1,64}$` {
+				t.Fatal("team filter must be optional and bounded", path)
+			}
+		}
+		if found != (path == "/expert-team-plans") {
+			t.Fatal("team filter is missing or accepted outside the plan collection", path)
+		}
+	}
+}
+
 func TestExpertTeamExecutionContractPreservesBoundedReadOnlyFacts(t *testing.T) {
 	api, _ := generate()
 	field := func(model, name string) map[string]any {

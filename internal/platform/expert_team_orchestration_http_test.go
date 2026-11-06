@@ -1,8 +1,10 @@
 package platform
 
 import (
+	"context"
 	"encoding/json"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -47,6 +49,79 @@ func TestExpertTeamPlanHTTPRevisionsCommandsAndExactIngress(t *testing.T) {
 	current := f.call("GET", base+query, nil, 200)
 	if current["state"] != "stopped" || current["can_start"] != false {
 		t.Fatal("terminal plan became executable")
+	}
+}
+
+func TestExpertTeamPlanHTTPFiltersExactTeamBeforePaging(t *testing.T) {
+	h := newExpertFixture(t, false)
+	f, ctx := h.f, context.Background()
+	first, second := h.preview(t), h.preview(t)
+	other := f.call("POST", "/teams", map[string]any{"name": "Other expert team", "expected_version": 0, "idempotency_key": newID()}, 201)["id"].(string)
+	if _, err := f.s.SaveTeamMember(ctx, f.actor, other, map[string]any{"resource_kind": "agent", "resource_id": h.resource.ID, "project_id": f.project, "role": "member", "expected_version": float64(0), "idempotency_key": newID()}); err != nil {
+		t.Fatal(err)
+	}
+	config := f.call("POST", "/expert-teams/"+other, ExpertTeamSaveRequest{ProjectID: f.project, Roles: []ExpertTeamRoleRequest{h.role}, IdempotencyKey: newID()}, 200)
+	config = f.call("POST", "/expert-teams/"+other+"/commands", f.body(map[string]any{"expected_version": config["version"], "action": "publish", "reason": "Review the second team's execution source"}), 200)
+	request := h.request()
+	request.TeamID, request.ExpectedConfigurationVersion = other, int(config["version"].(float64))
+	foreign := f.call("POST", "/expert-team-plans", request, 201)
+	owner := f.cookie
+	const reviewerEmail = "expert-team-filter-reviewer@example.test"
+	invitation := governanceInvite(f, reviewerEmail, "member", []any{map[string]any{"project_id": f.project, "role": "reviewer"}})
+	governanceAccept(f, invitation, reviewerEmail)
+	reviewer := f.cookie
+	f.cookie = owner
+	base := "/expert-team-plans?project_id=" + f.project
+	filtered := base + "&team_id=" + h.team
+	operations := expertCount(t, f, "suma_operations")
+	page := f.call("GET", filtered+"&limit=1", nil, 200)
+	if page["total"] != float64(2) || len(page["items"].([]any)) != 1 {
+		t.Fatal("team restriction was not applied to count and page")
+	}
+	cursor := url.QueryEscape(page["next_cursor"].(string))
+	next := f.call("GET", filtered+"&limit=1&before="+cursor, nil, 200)
+	if next["total"] != float64(2) || len(next["items"].([]any)) != 1 || next["next_cursor"] != nil {
+		t.Fatal("continuation did not end at the exact team boundary")
+	}
+	matched := map[string]bool{}
+	for _, result := range []map[string]any{page, next} {
+		item := result["items"].([]any)[0].(map[string]any)
+		if item["team_id"] != h.team {
+			t.Fatal("another team appeared in the filtered window")
+		}
+		matched[item["id"].(string)] = true
+	}
+	if !matched[first.ID] || !matched[second.ID] {
+		t.Fatal("filtered paging did not return both distinct plans")
+	}
+	otherPage := f.call("GET", base+"&team_id="+other, nil, 200)
+	if otherPage["total"] != float64(1) || otherPage["items"].([]any)[0].(map[string]any)["id"] != foreign["id"] {
+		t.Fatal("other team did not return its own plan")
+	}
+	if differentCase := strings.ToUpper(h.team); differentCase != h.team {
+		if empty := f.call("GET", base+"&team_id="+differentCase, nil, 200); empty["total"] != float64(0) || len(empty["items"].([]any)) != 0 {
+			t.Fatal("case variant selected a team")
+		}
+	}
+	f.call("GET", base+"&team_id="+other+"&before="+cursor, nil, 400)
+	f.call("GET", base+"&before="+cursor, nil, 400)
+	unfiltered := f.call("GET", base+"&limit=1", nil, 200)
+	oldCursor := url.QueryEscape(unfiltered["next_cursor"].(string))
+	if old := f.call("GET", base+"&before="+oldCursor, nil, 200); old["total"] != float64(3) || len(old["items"].([]any)) != 2 {
+		t.Fatal("unfiltered continuation changed")
+	}
+	f.call("GET", filtered+"&before="+oldCursor, nil, 400)
+	for _, invalid := range []string{"", "other%2Fteam", "team.id", url.QueryEscape("团队"), h.team + "&team_id=" + other} {
+		f.call("GET", base+"&team_id="+invalid, nil, 400)
+	}
+	f.call("GET", "/expert-teams?project_id="+f.project+"&team_id="+h.team, nil, 400)
+	f.call("GET", "/expert-team-plans/"+first.ID+"/revisions?project_id="+f.project+"&team_id="+h.team, nil, 400)
+	f.call("GET", "/expert-team-plans?project_id="+newID()+"&team_id="+h.team, nil, 404)
+	f.cookie = reviewer
+	f.call("GET", filtered, nil, 200)
+	f.call("GET", filtered+"&before="+cursor, nil, 400)
+	if expertCount(t, f, "suma_operations") != operations || expertCount(t, f, "dag_runs") != 0 {
+		t.Fatal("read-only team listing changed operations or execution")
 	}
 }
 

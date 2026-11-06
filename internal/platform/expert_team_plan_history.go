@@ -6,17 +6,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/ai-mada/suma/internal/dag"
 )
 
-func (s *Service) ListExpertTeamPlans(ctx context.Context, engine *dag.Engine, actor Actor, project string, limit int, before string) (out ExpertTeamPlanPage, err error) {
+var expertTeamPlanFilterID = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
+
+func (s *Service) ListExpertTeamPlans(ctx context.Context, engine *dag.Engine, actor Actor, project, team string, limit int, before string) (out ExpertTeamPlanPage, err error) {
 	out.Items = []ExpertTeamPlan{}
 	if limit == 0 {
 		limit = 20
 	}
-	if engine == nil || !handoffID(project, false) || limit < 1 || limit > 100 {
+	if engine == nil || !handoffID(project, false) || team != "" && !expertTeamPlanFilterID.MatchString(team) || limit < 1 || limit > 100 {
 		return out, expertError("expert_team_invalid", expertInvalid)
 	}
 	ctx, auth, close, err := s.planningAuthority(ctx, actor, project, "", purposeProjectRead)
@@ -24,14 +27,30 @@ func (s *Service) ListExpertTeamPlans(ctx context.Context, engine *dag.Engine, a
 		return out, err
 	}
 	defer close()
-	position, err := automationDecodeCursor(auth.currentPrincipal, project, "expert_team_plans", before)
+	collection := "expert_team_plans"
+	from := ` FROM suma_expert_team_plans p WHERE p.tenant_id=? AND p.project_id=? AND EXISTS(SELECT 1 FROM suma_expert_team_plan_revisions r WHERE r.tenant_id=p.tenant_id AND r.project_id=p.project_id AND r.plan_id=p.id AND r.revision>0 AND LENGTH(r.graph_sha256)=64)`
+	args := []any{auth.target.tenantID, project}
+	if team != "" {
+		collection += ":team:" + digest(stringify([2]string{auth.currentPrincipal.ID, team}))
+		// IDs are case-sensitive even under a case-insensitive database collation.
+		switch s.Dialect {
+		case "oceanbase":
+			from += ` AND CAST(p.team_id AS BINARY)=CAST(? AS BINARY)`
+		case "postgres":
+			from += ` AND p.team_id COLLATE "C"=?`
+		default:
+			from += ` AND p.team_id=?`
+		}
+		args = append(args, team)
+	}
+	position, err := automationDecodeCursor(auth.currentPrincipal, project, collection, before)
 	if err != nil {
 		return out, err
 	}
-	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_expert_team_plans p WHERE p.tenant_id=? AND p.project_id=? AND EXISTS(SELECT 1 FROM suma_expert_team_plan_revisions r WHERE r.tenant_id=p.tenant_id AND r.project_id=p.project_id AND r.plan_id=p.id AND r.revision>0 AND LENGTH(r.graph_sha256)=64)`), auth.target.tenantID, project).Scan(&out.Total); err != nil {
+	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*)`+from), args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT p.id FROM suma_expert_team_plans p WHERE p.tenant_id=? AND p.project_id=? AND p.id>? AND EXISTS(SELECT 1 FROM suma_expert_team_plan_revisions r WHERE r.tenant_id=p.tenant_id AND r.project_id=p.project_id AND r.plan_id=p.id AND r.revision>0 AND LENGTH(r.graph_sha256)=64) ORDER BY p.id LIMIT ?`), auth.target.tenantID, project, position, limit+1)
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT p.id`+from+` AND p.id>? ORDER BY p.id LIMIT ?`), append(args, position, limit+1)...)
 	if err != nil {
 		return out, err
 	}
@@ -52,12 +71,15 @@ func (s *Service) ListExpertTeamPlans(ctx context.Context, engine *dag.Engine, a
 	}
 	if len(ids) > limit {
 		ids = ids[:limit]
-		out.NextCursor = automationEncodeCursor(auth.currentPrincipal, project, "expert_team_plans", ids[len(ids)-1])
+		out.NextCursor = automationEncodeCursor(auth.currentPrincipal, project, collection, ids[len(ids)-1])
 	}
 	for _, id := range ids {
 		p, e := s.expertTeamPlanTx(ctx, auth.tx, auth.target.tenantID, project, id)
 		if e != nil {
 			return out, e
+		}
+		if team != "" && p.TeamID != team {
+			return out, expertError("expert_team_changed", expertPlanChanged)
 		}
 		p, e = s.expertTeamPlanProjectionTx(ctx, engine, auth, p)
 		if e != nil {

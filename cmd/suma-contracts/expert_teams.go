@@ -34,6 +34,9 @@ func expertTeamContracts(add operationAdder, api map[string]any) {
 			appendQuery(op, queryParameter("limit", "Exact integer page size, 1..100.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
 			appendQuery(op, queryParameter("before", "Opaque scope-bound page boundary from next_cursor.", map[string]any{"type": "string", "maxLength": 4096}))
 		}
+		if route.method == "get" && route.path == "/expert-team-plans" {
+			appendQuery(op, queryParameter("team_id", "Exact team ID. A filtered continuation is valid only for the same current reader, project and team.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": `^[A-Za-z0-9_-]{1,64}$`}))
+		}
 	}
 	field := func(model, name string, extra map[string]any) {
 		p := toolContractMap(api, "components", "schemas", model, "properties", name)

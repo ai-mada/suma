@@ -20,7 +20,7 @@ func TestExpertTeamCurrentModelExcludesOriginalOnlyHistoryAndUsesRevisionTime(t 
 	if _, err = f.s.DB.Exec(`INSERT INTO suma_expert_team_plans(id,tenant_id,project_id,team_id,version,state,expires_at,payload)VALUES(?,?,?,?,2,'started','',?)`, oldID, f.user.TenantID, f.project, h.team, original); err != nil {
 		t.Fatal(err)
 	}
-	page, err := f.s.ListExpertTeamPlans(ctx, f.e, f.actor, f.project, 1, "")
+	page, err := f.s.ListExpertTeamPlans(ctx, f.e, f.actor, f.project, "", 1, "")
 	if err != nil || page.Total != 1 || len(page.Items) != 1 || page.Items[0].ID != current.ID || page.NextCursor != "" {
 		t.Fatal("original-only history entered current orchestration", page, err)
 	}

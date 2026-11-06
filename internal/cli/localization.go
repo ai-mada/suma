@@ -96,6 +96,7 @@ var cliMessages = map[string]cliMessage{
 	diagnosisCLIBrowserRequired:    {"cli.failure_diagnosis.browser_required", "失败分诊写入需要既有浏览器会话凭据和原 --expected-user；不支持 API 凭据写入，视图请求头不授予权限"},
 	expertPlanUsage:                {"cli.team_plan.action_required", "team-plan 需要 list、get、revisions、create、start 或 command，请查看 team-plan --help"},
 	expertPlanReadInvalid:          {"cli.team_plan.read_invalid", "交付计划读取参数无效，请提供有效标识、修订号及 1–100 的 limit"},
+	expertPlanScopeResponseInvalid: {"cli.team_plan.scope_response_invalid", "交付计划列表响应与请求的项目、团队或分页范围不符"},
 	expertPlanWriteOptions:         {"cli.team_plan.write_options", "交付计划写入需要 --file JSON_FILE 或 --file -，并明确提供 --confirm"},
 	expertPlanWriteInvalid:         {"cli.team_plan.basis_required", "交付计划需要精确正整数版本、类型化任务、明确确认及稳定的 8–128 字符 idempotency_key"},
 	"skill-catalog requires list, get, revisions, promote, update, retire, or adopt; use skill-catalog --help":              {"cli.skill_catalog.action_required", "skill-catalog 需要 list、get、revisions、promote、update、retire 或 adopt，请查看 skill-catalog --help"},

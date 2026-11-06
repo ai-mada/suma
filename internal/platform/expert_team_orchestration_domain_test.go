@@ -196,7 +196,7 @@ func TestExpertTeamPlanCommandsReviseOnlyPendingStopAndReplay(t *testing.T) {
 	if err != nil || history.Total != 2 || len(history.Items) != 1 || history.NextCursor == "" {
 		t.Fatal(history, err)
 	}
-	_, err = f.s.ListExpertTeamPlans(ctx, f.e, f.actor, f.project, 1, history.NextCursor)
+	_, err = f.s.ListExpertTeamPlans(ctx, f.e, f.actor, f.project, "", 1, history.NextCursor)
 	expertStatus(t, err, 400)
 	_, err = f.s.CommandExpertTeamPlan(ctx, f.e, f.actor, f.project, p.ID, expertPlanCommand(h, p, "resume"))
 	expertStatus(t, err, 409)

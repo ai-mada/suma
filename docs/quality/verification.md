@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TEAM-PLAN-FILTER 核验准确团队查询、游标隔离、网页和终端的只读操作及窄屏交互。 [命令与证据](team-plan-filter-verification.md)
+
 T-QUEUE-TRIAGE 核验共享池诊断一致性、队列筛选范围、准确节点入口与浏览器返回。 [命令与证据](queue-triage-verification.md)
 
 T-WORKER-TOOL-FILTER 核验节点精确匹配、权限及游标隔离，以及工具页的定位、链接恢复和清除。 [命令与证据](worker-tool-filter-verification.md)

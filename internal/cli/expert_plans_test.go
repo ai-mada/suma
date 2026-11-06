@@ -45,7 +45,7 @@ func TestExpertPlanCLI(t *testing.T) {
 			calls := 0
 			s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				calls++
-				if r.Method != "GET" || r.URL.Path != test.path || r.URL.Query().Get("project_id") != "project-one" || r.URL.Query().Get("before") != test.before || r.URL.Query().Get("limit") != test.limit || r.Header.Get("Authorization") != "Bearer fixture-token" || r.Header.Get("X-Suma-Expected-User") != "" {
+				if r.Method != "GET" || r.URL.Path != test.path || r.URL.Query().Get("project_id") != "project-one" || r.URL.Query().Get("before") != test.before || r.URL.Query().Get("limit") != test.limit || r.Header.Get("Authorization") != "Bearer fixture-token" || r.Header.Get("X-Suma-Expected-User") != strings.Repeat("a", 32) || r.Header.Get("X-Suma-Expected-Organization") != strings.Repeat("b", 32) {
 					t.Error("wrong fixed read route", r.Method, r.URL)
 				}
 				_, _ = w.Write([]byte(`{"version":9007199254740993,"title":"用户原文不改"}`))
@@ -103,6 +103,67 @@ func TestExpertPlanCLI(t *testing.T) {
 		code, _, _ := contextInvoke(t, s.URL, "en-US", `{"expected_version":1,"action":"accept","reason":"no implicit acceptance","acknowledge":true,"idempotency_key":"original-key"}`, "team-plan", "command", "plan-one", "--file", "-", "--confirm")
 		if code != 2 || calls != 0 {
 			t.Fatal("invalid input made a mutation", code, calls)
+		}
+	})
+}
+
+func TestExpertPlanCLIExactTeamList(t *testing.T) {
+	cursor := strings.Repeat("aB1_-", 40)
+	const correct = `{"id":"plan-one","project_id":"project-one","team_id":"Team_one","detail":{"number":9007199254740993,"title":"用户原文"}}`
+	for _, test := range []struct {
+		name, body, before string
+		ok                 bool
+	}{
+		{"first page", `{"items":[` + correct + `],"total":2,"next_cursor":"` + cursor + `"}`, "", true},
+		{"opaque continuation", `{"items":[` + correct + `],"total":2}`, cursor, true},
+		{"empty result", `{"items":[],"total":0}`, "", true},
+		{"different team", `{"items":[` + strings.Replace(correct, `"Team_one"`, `"team_one"`, 1) + `],"total":1}`, "", false},
+		{"different project", `{"items":[` + strings.Replace(correct, `"project-one"`, `"project-other"`, 1) + `],"total":1}`, "", false},
+		{"ambiguous team", `{"items":[` + strings.Replace(correct, `"team_id":"Team_one"`, `"team_id":"Team_one","TEAM_ID":"team_other"`, 1) + `],"total":1}`, "", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				q := r.URL.Query()
+				if r.Method != http.MethodGet || r.URL.Path != "/api/v1/expert-team-plans" || q.Get("team_id") != "Team_one" || q.Get("project_id") != "project-one" || q.Get("limit") != "1" || q.Get("before") != test.before || r.Header.Get("X-Suma-Expected-User") != strings.Repeat("a", 32) || r.Header.Get("X-Suma-Expected-Organization") != strings.Repeat("b", 32) {
+					t.Error("filtered request changed scope or cursor", r.Method, r.URL)
+				}
+				_, _ = io.WriteString(w, test.body)
+			}))
+			defer s.Close()
+			args := []string{"team-plan", "list", "--team", "Team_one", "--limit", "1"}
+			if test.before != "" {
+				args = append(args, "--before", test.before)
+			}
+			code, out, problem := contextInvoke(t, s.URL, "en-US", "", args...)
+			if !test.ok {
+				if code == 0 || out != "" || !strings.Contains(problem, "cli.team_plan.scope_response_invalid") {
+					t.Fatal("mismatched response was exposed", code, out, problem)
+				}
+				return
+			}
+			if code != 0 || problem != "" || !json.Valid([]byte(out)) {
+				t.Fatal("valid exact page was rejected", code, out, problem)
+			}
+			if strings.Contains(test.body, "9007199254740993") && (!strings.Contains(out, "9007199254740993") || !strings.Contains(out, "用户原文")) || strings.Contains(test.body, cursor) && !strings.Contains(out, cursor) {
+				t.Fatal("filtered read rewrote the source fields", out)
+			}
+		})
+	}
+	t.Run("invalid flags and bilingual help are local", func(t *testing.T) {
+		s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Error("unexpected request for invalid option or help", r.URL)
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		defer s.Close()
+		for _, args := range [][]string{{"list", "--team", ""}, {"list", "--team", "../other"}, {"list", "--team", "team.other"}, {"list", "--team", "team other"}, {"revisions", "plan-one", "--team", "Team_one"}} {
+			if code, out, _ := contextInvoke(t, s.URL, "en-US", "", append([]string{"team-plan"}, args...)...); code != 2 || out != "" {
+				t.Fatal("invalid flags were accepted", args, code, out)
+			}
+		}
+		for _, language := range []string{"en-US", "zh-CN"} {
+			if code, out, problem := contextInvoke(t, s.URL, language, "", "team-plan", "--help"); code != 0 || problem != "" || !strings.Contains(out, "team-plan list [--team TEAM_ID]") {
+				t.Fatal("help omitted team filter", language, code, out, problem)
+			}
 		}
 	})
 }

@@ -15,6 +15,9 @@ export function ExecutionWorkspace({
   onRun,
   onPlan,
   onTasks,
+  team,
+  invalidTeam,
+  onTeam,
   children,
 }: {
   project: string;
@@ -26,6 +29,9 @@ export function ExecutionWorkspace({
   onRun: (run: string, node: string) => void;
   onPlan: (id: string) => void;
   onTasks: () => void;
+  team?: string;
+  invalidTeam?: boolean;
+  onTeam?: (id: string) => void;
   children: ReactNode;
 }) {
   useLocale();
@@ -48,7 +54,7 @@ export function ExecutionWorkspace({
           {t('team-execution.tab')}
         </button>
       </div>
-      {layout === 'team' ? <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><TeamExecutionWorkspace session={session} project={project} refresh={refresh} panel={panel} onPlan={onPlan} onTasks={onTasks}/></Suspense></ErrorBoundary> : layout === "queue" ? (
+      {layout === 'team' ? <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><TeamExecutionWorkspace session={session} project={project} refresh={refresh} panel={panel} team={team} invalidTeam={invalidTeam} onTeam={onTeam} onPlan={onPlan} onTasks={onTasks}/></Suspense></ErrorBoundary> : layout === "queue" ? (
         <SchedulingQueue project={project} refresh={refresh} onRun={onRun} />
       ) : (
         children

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TEAM-PLAN-FILTER 团队执行可按准确团队查询、分享及续页，并从已加载计划筛选需处理和待验收。CLI 使用相同项目授权与团队条件。 [操作](../development/team-execution.md) · [验证](../quality/team-plan-filter-verification.md)
+
 T-QUEUE-TRIAGE 待派发队列可按已加载节点的准入状态筛选，直接打开准确运行与节点。共享池暂停与项目授权变化在队列和节点详情使用同一诊断。 [交互](../design/scheduling-workspace.md#队列分诊) · [验证](../quality/queue-triage-verification.md)
 
 T-WORKER-TOOL-FILTER 从普通或共享节点定位当前项目的工具配置与历史，网页支持恢复筛选链接，终端按完整节点 ID 分页。 [交互](../design/tool-management.md#从节点查看工具配置) · [验证](../quality/worker-tool-filter-verification.md)

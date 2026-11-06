@@ -8,6 +8,8 @@ In the current project, open Development → Execution history → Team executio
 
 Each plan shows its team, current state and original task-progress counts. Waiting, executing, awaiting review, accepted, blocked and stopped remain separate. Open a plan with blockers or work awaiting review to inspect its tasks, dependencies, actual runs and existing actions.
 
+Use **Needs attention** for blocked plans or plans with a changed basis, and **Awaiting review** for plans with a task awaiting human review. Both filters apply to loaded plans. The team action on a plan row reads that team's exact results, and the team filter can be cleared independently.
+
 | Fact shown | Meaning |
 | --- | --- |
 | Preview / ready to start | The plan and its execution basis are prepared; no task or model execution is implied. Starting still needs explicit confirmation in the detail view. |
@@ -28,5 +30,7 @@ After a temporary read failure, displayed records may be the previous snapshot. 
 Opening a plan retains the view and plan ID in the address. Refreshing or sharing the link performs current authorization and reads that plan again. Closing details returns to the same team-execution list. Refreshing the list reads it again; retaining every loaded page or scroll position is not guaranteed.
 
 The current address uses `view=development&sub=runs&layout=team&panel=expert-team:<planID>`, with the original `project` parameter. A URL grants no project or team permission. An unreadable plan is not silently replaced by another plan.
+
+The shareable team filter adds `execution_team=<teamID>`. In the terminal, use `suma --project PROJECT team-plan list --team TEAM_ID --limit 20`. Keep the same team and pass the original `--before` cursor to continue.
 
 This guide covers the current 1.0.0 team-execution entry. Physical multi-host operation, external Multica service interoperability, complete vendor CLI support, the full IDE and production capacity require separate implementation and acceptance.
