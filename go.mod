@@ -14,6 +14,7 @@ require (
 	github.com/mattn/go-isatty v0.0.24
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/zalando/go-keyring v0.2.6
+	go.yaml.in/yaml/v3 v3.0.6
 	golang.org/x/text v0.37.0
 	modernc.org/sqlite v1.61.1
 )

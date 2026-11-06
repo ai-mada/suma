@@ -46,6 +46,8 @@
 
 用户在导入编辑器复核并明确保存后，沿 `POST /api/v1/project-knowledge` 创建 `kind=skill` 的人工草稿。文件路径、原文件及外部工具授权字段不进入请求。发布、修订和执行引用继续由现有知识权限及事务控制。
 
+CLI 的 `knowledge import-skill --file PATH_TO_SKILL.md` 按同一输入范围生成可审阅的 JSON 草稿。预览在本机完成，选填 `--project` 时将项目写入结果。用户明确执行 `knowledge create --file` 后，沿原项目权限和幂等合同保存。预览不生成操作标识。相同调用者、目标和原 JSON 可用于核对结果未知的提交。
+
 ## 任务与智能体消费
 
 `TaskDispatchPreviewRequest.knowledge` 显式选择最多十六个 `ProjectKnowledgeReference{id,revision,sha256}`，默认空。服务端从批准的不可变版本解析出 `TaskContext.knowledge`；前端或外部工具不能提供正文快照冒充已批准输入。

@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "cli_skill_import": {
+    "stage": "T-CLI-SKILL-IMPORT-284",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "f5dee68eaada55a4fb6029a404a2611b0e956d0d",
+    "report": "docs/quality/cli-skill-import-verification.md",
+    "actual": "Preview a local SKILL.md offline as a knowledge create request with optional project pinning. Save using the existing authenticated draft command.",
+    "verification": "Ten focused CLI tests passed. Actual SQLite/HTTP verified explicit creation and replay. Built CLI verified offline JSON and bilingual help.",
+    "known_limitations": "Symlink creation lacked Windows test privilege. Remote packages, supporting files, and non-Windows runtime verification remain outside the stage.",
+    "full_platform_complete": false
+  },
   "project_skill_import": {
     "stage": "T-PROJECT-SKILL-IMPORT-283",
     "version": "1.0.0",

@@ -14,6 +14,8 @@ T-TEST-DISPATCH-BINDINGS-216：SQLite取消竞态沿官方稳定`modernc.org/sql
 
 2026-11-01：T-CLAUDE-SDK-192新增官方`@anthropic-ai/claude-agent-sdk 0.3.314`及其精确SDK依赖。包许可按原件记录，不标为MIT／Apache；最终11资产及依赖告知见[增量清单](claude-sdk-dependencies.json)。外部native CLI2.1.314与账号验收独立，不复制Multica自动许可实现，不作为最终安装／生产SBOM。
 
+T-CLI-SKILL-IMPORT-284 固定 `go.yaml.in/yaml/v3 v3.0.6`，用于本地技能文件的有界解析。模块校验值见 Go 锁文件。上游保留 Apache-2.0 和 MIT 两份许可及原始声明。 [LICENSE](licenses/go-yaml-v3.0.6.LICENSE) · [NOTICE](licenses/go-yaml-v3.0.6.NOTICE) · [固定版本](https://pkg.go.dev/go.yaml.in/yaml/v3@v3.0.6)
+
 ## 参考项目与实际依赖分开记录
 
 2026-10-29，T-MULTICA-137首次实际改编Multica旧提交 `e6f840ca115740a6fb80786537405bcf049d6497` 的 `buildColumns` 分组算法，用于速码任务列表／看板。完整原LICENSE、版权、文件摘要和修改范围见[来源说明](../../third_party/multica-legacy/PROVENANCE.md)与[清单](../../third_party/multica-legacy/manifest.json)。当前 `139b13a…` 的受限源码只作功能参考；没有引入其运行权限旁路、保存视图实现或品牌素材。下表旧“未复制”结论仅对应原调查日期，不能覆盖此项新增采用。

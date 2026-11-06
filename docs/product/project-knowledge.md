@@ -21,6 +21,17 @@
 
 桌面和窄屏共用现有编辑器及关闭确认。可通过键盘选择文件和提交草稿，导入状态和错误使用当前工作台语言。
 
+### 命令行预览与保存
+
+以下 PowerShell 7 示例使用项目标识固定草稿的保存范围。第一条命令生成本地 JSON，核对或编辑完成后，再用当前有效的 `SUMA_TOKEN` 执行第二条命令。
+
+```powershell
+suma --project PROJECT_ID knowledge import-skill --file ./SKILL.md > skill-draft.json
+suma --control https://suma.example --project PROJECT_ID knowledge create --file skill-draft.json
+```
+
+创建命令返回草稿 ID。若写入结果未知，保留同一项目、调用身份和原 JSON，再使用相同命令核对结果。对内容的后续编辑沿现有草稿修订进行。
+
 ## 角色与权限
 
 | 操作者 | 可执行操作 |

@@ -50,6 +50,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-CLI-SKILL-IMPORT-284 CLI 可预览本地 SKILL.md 并通过现有项目命令保存草稿。 [操作](../product/project-knowledge.md#命令行预览与保存) · [验证](../quality/cli-skill-import-verification.md)
+
 T-PROJECT-SKILL-IMPORT-283 项目知识支持本地 SKILL.md 预填、编辑及保存草稿。 [交互](../product/project-knowledge.md#导入本地技能) · [验证](../quality/project-skill-import-verification.md)
 
 T-ORGANIZATION-INBOX-UNREAD-282 顶栏显示当前组织可见项目的个人未读数，直接打开组织收件箱。 [交互](../design/notification-inbox.md#顶栏未读提示) · [验证](../quality/organization-inbox-unread-verification.md)

@@ -43,10 +43,12 @@ func knowledgeCommand(ctx context.Context, c *client, args []string, in io.Reade
 		return err
 	}
 	if len(args) == 0 {
-		return usage("knowledge requires list, search, show, history, create, edit, extract, or command; use knowledge --help")
+		return usage(knowledgeActionsUsage)
 	}
 	path := "/api/v1/project-knowledge"
 	switch args[0] {
+	case "import-skill":
+		return knowledgeSkillImportCommand(c, args[1:], out)
 	case "search":
 		return knowledgeSearchCommand(ctx, c, args[1:], out)
 	case "list":
