@@ -28,6 +28,15 @@ func TestJournalInspectionCLIIsLocalReadOnlyAndCredentialIndependent(t *testing.
 		if code != 0 || json.Unmarshal(out.Bytes(), &got) != nil || got["status"] != "available" || got["component"] != "local_execution_journal" {
 			t.Fatalf("local CLI failed: code=%d stdout=%s stderr=%s", code, &out, &stderr)
 		}
+		counts, _ := got["counts"].(map[string]any)
+		items, _ := got["items"].([]any)
+		if counts["closed_results"] != float64(0) || len(items) != 1 {
+			t.Fatalf("closed result counts must be present for an ordinary pending entry: %+v", got)
+		}
+		item, _ := items[0].(map[string]any)
+		if item["result_rejected_closed"] != false {
+			t.Fatalf("closed result fields must be present for ordinary pending entries: %+v", got)
+		}
 		if locale == "zh-CN" && !strings.Contains(stderr.String(), "本地执行日志") || locale == "en-US" && !strings.Contains(stderr.String(), "Local execution journal") {
 			t.Fatal("inspection diagnostics are not paired Chinese/English")
 		}

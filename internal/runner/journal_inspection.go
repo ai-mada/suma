@@ -5,12 +5,15 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/ai-mada/suma/internal/strictjson"
 )
 
 const journalInspectionMaxBytes int64 = 16 << 20
@@ -33,6 +36,7 @@ type JournalInspectionCounts struct {
 	Entries             int `json:"entries"`
 	PendingResults      int `json:"pending_results"`
 	AcknowledgedResults int `json:"acknowledged_results"`
+	ClosedResults       int `json:"closed_results"`
 	UnknownResults      int `json:"unknown_results"`
 	PendingProgress     int `json:"pending_progress"`
 	UnresolvedInbox     int `json:"unresolved_inbox"`
@@ -42,23 +46,24 @@ type JournalInspectionCounts struct {
 }
 
 type JournalInspectionItem struct {
-	EntryRef           string `json:"entry_ref"`
-	RunID              string `json:"run_id,omitempty"`
-	NodeID             string `json:"node_id,omitempty"`
-	Attempt            int    `json:"attempt"`
-	Fence              int64  `json:"fence"`
-	ResultRecorded     bool   `json:"result_recorded"`
-	ResultAcknowledged bool   `json:"result_acknowledged"`
-	OutcomeUnknown     bool   `json:"outcome_unknown"`
-	PendingProgress    int    `json:"pending_progress"`
-	ProgressTruncated  bool   `json:"progress_truncated"`
-	ArtifactPending    bool   `json:"artifact_pending"`
-	CandidatePending   bool   `json:"candidate_pending"`
-	IdentifiersOmitted bool   `json:"identifiers_omitted"`
+	EntryRef             string `json:"entry_ref"`
+	RunID                string `json:"run_id,omitempty"`
+	NodeID               string `json:"node_id,omitempty"`
+	Attempt              int    `json:"attempt"`
+	Fence                int64  `json:"fence"`
+	ResultRecorded       bool   `json:"result_recorded"`
+	ResultAcknowledged   bool   `json:"result_acknowledged"`
+	ResultRejectedClosed bool   `json:"result_rejected_closed"`
+	OutcomeUnknown       bool   `json:"outcome_unknown"`
+	PendingProgress      int    `json:"pending_progress"`
+	ProgressTruncated    bool   `json:"progress_truncated"`
+	ArtifactPending      bool   `json:"artifact_pending"`
+	CandidatePending     bool   `json:"candidate_pending"`
+	IdentifiersOmitted   bool   `json:"identifiers_omitted"`
 }
 
-// Decode only the metadata needed for a public projection. Unknown fields are
-// skipped by encoding/json rather than retained as private runtime structs.
+// Keep only metadata needed for the public projection. An entry that claims
+// a closed rejection briefly decodes its private proof for validation.
 type inspectionDiskEntry struct {
 	Assignment *struct {
 		RunID   string `json:"run_id"`
@@ -68,10 +73,9 @@ type inspectionDiskEntry struct {
 	} `json:"assignment"`
 	Result *struct {
 		OutcomeUnknown bool `json:"outcome_unknown"`
-		Stopped        bool `json:"stopped"`
 	} `json:"result"`
 	Acked           bool            `json:"acked"`
-	ResultRejection ResultRejection `json:"result_rejection"`
+	ResultRejection json.RawMessage `json:"result_rejection"`
 	Progress        []struct {
 		Acked         bool              `json:"acked"`
 		Rejection     ProgressRejection `json:"rejection"`
@@ -80,6 +84,20 @@ type inspectionDiskEntry struct {
 	ProgressTruncated bool      `json:"progress_truncated"`
 	ArtifactPending   *struct{} `json:"artifact_pending"`
 	CandidatePending  *struct{} `json:"candidate_pending"`
+	closedEntryKey    string
+}
+
+func (d *inspectionDiskEntry) UnmarshalJSON(raw []byte) error {
+	type projection inspectionDiskEntry
+	if err := json.Unmarshal(raw, (*projection)(d)); err != nil || len(d.ResultRejection) == 0 {
+		return err
+	}
+	var original entry
+	if err := strictjson.Decode(raw, &original, len(raw)); err != nil || original.ResultRejection != ResultRejectedClosedAttempt || !original.validResultDisposition() {
+		return fmt.Errorf("invalid closed result disposition")
+	}
+	d.closedEntryKey = key(original.Assignment)
+	return nil
 }
 
 func newJournalInspection(status string) JournalInspection {
@@ -187,12 +205,13 @@ func inspectJournalBytes(raw []byte) JournalInspection {
 		if decoder.Decode(&disk) != nil || disk.Assignment == nil || disk.Assignment.RunID == "" || disk.Assignment.NodeID == "" || disk.Assignment.Attempt < 1 || disk.Assignment.Fence < 1 || disk.Acked && disk.Result == nil {
 			return invalid
 		}
-		if disk.ResultRejection != "" && (disk.ResultRejection != ResultRejectedClosedAttempt || disk.Acked || disk.Result == nil || disk.Result.OutcomeUnknown || disk.Result.Stopped || disk.ArtifactPending != nil || disk.CandidatePending != nil) {
+		closed := disk.closedEntryKey != ""
+		if closed && disk.closedEntryKey != key {
 			return invalid
 		}
 		identity := disk.Assignment
 		digest := sha256.Sum256([]byte(key))
-		item := JournalInspectionItem{EntryRef: hex.EncodeToString(digest[:]), Attempt: identity.Attempt, Fence: identity.Fence, ResultRecorded: disk.Result != nil, ResultAcknowledged: disk.Acked, ProgressTruncated: disk.ProgressTruncated, ArtifactPending: disk.ArtifactPending != nil, CandidatePending: disk.CandidatePending != nil}
+		item := JournalInspectionItem{EntryRef: hex.EncodeToString(digest[:]), Attempt: identity.Attempt, Fence: identity.Fence, ResultRecorded: disk.Result != nil, ResultAcknowledged: disk.Acked, ResultRejectedClosed: closed, ProgressTruncated: disk.ProgressTruncated, ArtifactPending: disk.ArtifactPending != nil, CandidatePending: disk.CandidatePending != nil}
 		if safeInspectionIdentifier(identity.RunID) {
 			item.RunID = identity.RunID
 		} else {
@@ -208,7 +227,9 @@ func inspectJournalBytes(raw []byte) JournalInspection {
 			item.OutcomeUnknown = disk.Result.OutcomeUnknown
 			if disk.Acked {
 				out.Counts.AcknowledgedResults++
-			} else if disk.ResultRejection == "" {
+			} else if closed {
+				out.Counts.ClosedResults++
+			} else {
 				out.Counts.PendingResults++
 				if disk.Result.OutcomeUnknown {
 					out.Counts.UnknownResults++
@@ -218,7 +239,7 @@ func inspectJournalBytes(raw []byte) JournalInspection {
 			out.Counts.UnresolvedInbox++
 		}
 		for _, progress := range disk.Progress {
-			if !validProgressDisposition(progress.Acked, progress.Rejection, progress.HostOperation != nil) || disk.ResultRejection != "" && progress.HostOperation != nil {
+			if !validProgressDisposition(progress.Acked, progress.Rejection, progress.HostOperation != nil) {
 				return invalid
 			}
 			if !progress.Acked && progress.Rejection == "" {

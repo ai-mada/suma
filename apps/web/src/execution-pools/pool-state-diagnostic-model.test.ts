@@ -4,7 +4,7 @@ import {
 } from './pool-state-diagnostic-model';
 
 const counts = {
-  entries: 2, pending_results: 1, acknowledged_results: 1, unknown_results: 1,
+  entries: 3, pending_results: 1, acknowledged_results: 1, closed_results: 1, unknown_results: 1,
   pending_progress: 3, unresolved_inbox: 0, pending_artifacts: 0,
   pending_candidates: 0, truncated_progress: 1,
 };
@@ -49,6 +49,9 @@ describe('pool state diagnostic import', () => {
       { ...snapshot, complete: false, slots: [{ ...slot, journal_status: 'invalid' }] },
       { ...snapshot, slots: [{ ...slot, journal_counts: { ...counts, entries: -1 } }] },
       { ...snapshot, slots: [{ ...slot, journal_counts: { ...counts, unknown_results: 2 } }] },
+      { ...snapshot, slots: [{ ...slot, journal_counts: { ...counts, closed_results: 2 } }] },
+      { ...snapshot, slots: [{ ...slot, journal_counts: { ...counts, closed_results: -1 } }] },
+      { ...snapshot, slots: [{ ...slot, journal_counts: { ...counts, closed_results: undefined } }] },
     ]) {
       expect(readPoolStateDiagnostic(JSON.stringify(invalid))).toBeUndefined();
     }

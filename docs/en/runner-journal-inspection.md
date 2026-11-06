@@ -26,7 +26,7 @@ No Runner token, model account, control-plane URL or tool configuration is requi
 
 Read `status` first. `available` means the local journal was read; `missing` means it does not exist. `invalid`, `unreadable` and `over_limit` indicate invalid content, an unsafe or inaccessible input, and the 16 MiB read limit. A failed read does not emit private payloads or a partial summary.
 
-`counts` summarizes locally pending results, unknown outcomes, unacknowledged progress, inbox entries without results, and artifact or candidate checkpoints. `items` lists at most 100 entries. `complete:false` explicitly marks an incomplete item list. An opaque entry reference distinguishes local records; it is not an operation key or authorization token.
+`counts` separates pending deliveries, acknowledgements, and results kept locally after their attempts closed. The pool overview displays the three counts per slot. In a slot journal, `items[].result_rejected_closed` identifies the original run, node, and attempt. `items` lists at most 100 entries, and `complete:false` marks a partial list. An opaque entry reference distinguishes local records.
 
 Only `journal.json` is covered. Claim checkpoints, workspace sidecars, current server acknowledgements, leases, actual rejection reasons and runner health are not inspected. An `acked` flag is a local record; a pending item does not prove server rejection. Output excludes log text, commands, configuration, paths, credentials and execution payloads.
 

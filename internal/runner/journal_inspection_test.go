@@ -19,6 +19,12 @@ func inspectionFixtureEntry(run string) map[string]any {
 	}
 }
 
+func closedInspectionFixture(run string) (string, entry) {
+	a := Assignment{RunID: run, NodeID: "develop", WorkerID: "worker-private", Attempt: 1, Fence: 7, Type: "command"}
+	r := &Result{Assignment: a, OperationID: "closed-operation-private", Output: "closed-output-private", Error: "closed-error-private"}
+	return key(a), entry{Assignment: a, Result: r, ResultRejection: ResultRejectedClosedAttempt}
+}
+
 func writeInspectionFixture(t *testing.T, dir string, content any) []byte {
 	t.Helper()
 	raw, err := json.Marshal(content)
@@ -45,7 +51,8 @@ func TestInspectJournalStateProjectsOnlySafeLocalFactsWithoutMutation(t *testing
 	artifact["artifact_pending"] = map[string]any{"token": "artifact-private"}
 	candidate := inspectionFixtureEntry("run-candidate")
 	candidate["candidate_pending"] = map[string]any{"token": "candidate-private"}
-	before := writeInspectionFixture(t, dir, map[string]any{"entry-key-private": pending, "acked": acked, "inbox": inbox, "artifact": artifact, "candidate": candidate})
+	closedKey, closed := closedInspectionFixture("run-closed")
+	before := writeInspectionFixture(t, dir, map[string]any{"entry-key-private": pending, "acked": acked, "inbox": inbox, "artifact": artifact, "candidate": candidate, closedKey: closed})
 	beforeInfo, err := os.Stat(filepath.Join(dir, "journal.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -58,18 +65,23 @@ func TestInspectJournalStateProjectsOnlySafeLocalFactsWithoutMutation(t *testing
 	}
 	defer unlock()
 	got := InspectJournalState(dir)
-	if got.SchemaVersion != 1 || got.Component != "local_execution_journal" || got.Status != "available" || !got.Complete || got.Limit != 100 || len(got.Items) != 5 {
+	if got.SchemaVersion != 1 || got.Component != "local_execution_journal" || got.Status != "available" || !got.Complete || got.Limit != 100 || len(got.Items) != 6 {
 		t.Fatalf("unexpected local inspection metadata: %+v", got)
 	}
-	want := JournalInspectionCounts{Entries: 5, PendingResults: 1, AcknowledgedResults: 1, UnknownResults: 1, PendingProgress: 4, UnresolvedInbox: 1, PendingArtifacts: 1, PendingCandidates: 1, TruncatedProgress: 1}
+	want := JournalInspectionCounts{Entries: 6, PendingResults: 1, AcknowledgedResults: 1, ClosedResults: 1, UnknownResults: 1, PendingProgress: 4, UnresolvedInbox: 1, PendingArtifacts: 1, PendingCandidates: 1, TruncatedProgress: 1}
 	if got.Counts != want {
 		t.Fatalf("counts %+v, want %+v", got.Counts, want)
+	}
+	for _, item := range got.Items {
+		if item.ResultRejectedClosed != (item.RunID == "run-closed") || item.ResultRejectedClosed && (!item.ResultRecorded || item.ResultAcknowledged || item.OutcomeUnknown) {
+			t.Fatalf("incorrect closed result fact: %+v", item)
+		}
 	}
 	encoded, err := json.Marshal(got)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, forbidden := range []string{"entry-key-private", "worker-private", "command-private", "configuration-private", "progress-private", "tool-event-private", "error-private", "output-private", "operation-private", "evidence-private", "artifact-private", "candidate-private", dir} {
+	for _, forbidden := range []string{"entry-key-private", "worker-private", "command-private", "configuration-private", "progress-private", "tool-event-private", "error-private", "output-private", "operation-private", "evidence-private", "artifact-private", "candidate-private", closedKey, dir} {
 		if bytes.Contains(encoded, []byte(forbidden)) {
 			t.Fatalf("private journal content escaped through inspection: %s", forbidden)
 		}
@@ -85,6 +97,32 @@ func TestInspectJournalStateProjectsOnlySafeLocalFactsWithoutMutation(t *testing
 	files, err := os.ReadDir(dir)
 	if err != nil || len(files) != 2 {
 		t.Fatal("inspection created additional state files")
+	}
+}
+
+func TestInspectJournalStateRejectsContradictoryClosedResults(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		edit func(*entry)
+	}{
+		{"acknowledged", func(e *entry) { e.Acked = true }},
+		{"missing result", func(e *entry) { e.Result = nil }},
+		{"unknown", func(e *entry) { e.Result.OutcomeUnknown = true }},
+		{"stopped", func(e *entry) { e.Result.Stopped = true }},
+		{"protected result", func(e *entry) { e.Result.WorkspaceEvidence = map[string]any{"private": true} }},
+		{"changed tuple", func(e *entry) { e.Result.Fence++ }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			key, e := closedInspectionFixture("run-closed")
+			tc.edit(&e)
+			raw, err := json.Marshal(map[string]entry{key: e})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := inspectJournalBytes(raw); got.Status != "invalid" || got.Counts.Entries != 0 || len(got.Items) != 0 {
+				t.Fatalf("unproven closed result leaked into the projection: %+v", got)
+			}
+		})
 	}
 }
 

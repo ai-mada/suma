@@ -145,6 +145,8 @@ function DiagnosticBody({ runnerLabel }: Pick<Props, 'runnerLabel'>) {
                         {t('unknown_results', { count: formatNumber(counts.unknown_results) })}
                       </span>
                       <span>{t('pending_results', { count: formatNumber(counts.pending_results) })}</span>
+                      <span>{t('acknowledged_results', { count: formatNumber(counts.acknowledged_results) })}</span>
+                      <span>{t('closed_results', { count: formatNumber(counts.closed_results) })}</span>
                       <span>{t('unresolved_inbox', { count: formatNumber(counts.unresolved_inbox) })}</span>
                     </div>}
                   </div>

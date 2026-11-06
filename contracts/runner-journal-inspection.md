@@ -46,9 +46,9 @@ suma-runner --inspect-pool-state --state EXACT_RUNNER_STATE_DIR --language zh-CN
 | `counts` | 整个已解析文件的白名单计数 |
 | `items` | 最多 100 个条目，只输出下面列出的安全元数据 |
 
-`counts` 包含 `entries`、`pending_results`、`acknowledged_results`、`unknown_results`、`pending_progress`、`unresolved_inbox`、`pending_artifacts`、`pending_candidates`、`truncated_progress`。`unknown_results` 仅统计尚未本地确认且已记录 `outcome_unknown` 的结果；`unresolved_inbox` 表示没有结果或制品／候选检查点的本地收件项，不证明进程仍在运行。
+`counts` 包含 `entries`、`pending_results`、`acknowledged_results`、`closed_results`、`unknown_results`、`pending_progress`、`unresolved_inbox`、`pending_artifacts`、`pending_candidates`、`truncated_progress`。三类结果计数互斥。`closed_results` 仅统计原尝试已关闭且结果留存在本机的有效拒收记录。`unknown_results` 是 `pending_results` 的子集。`unresolved_inbox` 表示没有结果或制品／候选检查点的本地收件项。
 
-每个条目只含摘要引用 `entry_ref`、安全的 `run_id/node_id`、`attempt/fence`、是否已记录／确认结果、原 `outcome_unknown` 标记、待回写进度数量、进度截断标记、待制品／候选检查点标记及 `identifiers_omitted`。引用由私有条目键计算摘要；它不是操作标识、凭据或恢复授权。标识只允许有界字母、数字及 `_ . : -`；不安全标识省略，并明确标记。条目排序确定，超过 100 项时 `complete:false`，计数仍覆盖完整文件。
+每个条目只含摘要引用 `entry_ref`、安全的 `run_id/node_id`、`attempt/fence`、是否已记录／确认结果、`result_rejected_closed`、原 `outcome_unknown` 标记、待回写进度数量、进度截断标记、待制品／候选检查点标记及 `identifiers_omitted`。关闭拒收标记要求原日志记录与身份一致，矛盾记录返回 `invalid`。引用由私有条目键计算摘要，标识限于有界字母、数字及 `_ . : -`。不安全标识省略并明确标记。条目排序确定，超过 100 项时 `complete:false`，计数仍覆盖完整文件。
 
 以下字段永不输出：私有条目原键、Worker 凭据、操作 key、控制面 URL、本地路径、命令和参数、Assignment 配置、原始 Result、Error、Output、Progress.Message、ToolEvent、模型和工作区／制品／候选载荷。读取或解析错误只提供上述受控状态，不输出原始 OS 路径、JSON 片段或载荷。
 
@@ -60,7 +60,7 @@ suma-runner --inspect-pool-state --state EXACT_RUNNER_STATE_DIR --language zh-CN
 
 输出只证明本地单个执行日志中的记录。`acked` 是本地保存标记，不是对当前服务器回执的重新查询。摘要不证明租约有效、执行器健康、工具可用、操作确实执行／未执行、当前预算或服务器接受状态。不读取 `claim.json`、`pool-claim.json`、工具库存或工作区读写 sidecar，也不声称覆盖这些独立状态。
 
-当前私有 Runner 在原回写未确认时停止新领取；资源池普通回写错误阻塞对应槽位，撤权等致命错误会停止整机。现有日志没有持久化完整拒绝原因，因此本命令不把 pending 伪装成“已隔离”或推断具体 HTTP 拒绝。
+原回写未确认时，私有 Runner 暂停新领取，资源池暂停对应槽位。已确认原尝试关闭的普通结果留存在本机并退出待发队列。诊断分别展示两种状态，实际服务器回执和运行结果仍从控制面核对。
 
 ## 退出与后续操作
 

@@ -26,7 +26,7 @@ suma-runner --inspect-state --state .cache/runner/pool/slots/0 --language zh-CN
 
 先看 `status`。`available` 表示本地日志已读取；`missing` 表示指定日志不存在；`invalid`、`unreadable`、`over_limit` 分别表示内容无法解析、不能安全读取或超过 16 MiB。失败不会输出原始载荷，也不会把局部数据当成完整摘要。
 
-`counts` 统计本地日志中的待确认结果、未知结果、待回写进度、未形成结果的收件项、待制品及待候选检查点。`items` 最多显示 100 项；`complete:false` 时需要注意条目列表不完整。摘要引用用于区分本地记录，不可用作操作凭据。
+`counts` 将待回执、已回执和原尝试关闭后留存本机的结果分开计数。槽位总览可直接比较三类数量。查看原槽位时，`items[].result_rejected_closed` 标出对应的运行、节点和尝试。`items` 最多显示 100 项，`complete:false` 表示条目列表不完整。摘要引用用于区分本地记录。
 
 本命令只读 `journal.json`。它不检查领取检查点、工作区保存 sidecar、服务器当前回执、租约、真实拒绝原因或执行器健康。`acked` 只是本地记录；pending 也不等于已被服务器拒绝。输出包含安全标识和计数，排除了日志正文、命令、配置、路径、口令与执行载荷。
 

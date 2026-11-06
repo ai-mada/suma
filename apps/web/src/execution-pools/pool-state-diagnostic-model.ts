@@ -11,7 +11,7 @@ const readStatuses = ['available', 'missing', 'invalid', 'unreadable', 'over_lim
 const observedClaims = ['missing', 'request_recorded', 'response_recorded', 'complete'] as const;
 const claimStates = [...observedClaims, 'invalid', 'unreadable', 'over_limit'] as const;
 const countFields = [
-  'entries', 'pending_results', 'acknowledged_results', 'unknown_results',
+  'entries', 'pending_results', 'acknowledged_results', 'closed_results', 'unknown_results',
   'pending_progress', 'unresolved_inbox', 'pending_artifacts', 'pending_candidates', 'truncated_progress',
 ] as const;
 const snapshotFields = ['schema_version', 'component', 'status', 'complete', 'slots'];
@@ -50,7 +50,7 @@ function validCounts(value: unknown): value is PoolStateDiagnosticCounts {
   if (!object(value) || !exact(value, countFields) || !countFields.every(key => validCount(value[key]))) return false;
   const counts = value as PoolStateDiagnosticCounts;
   return counts.unknown_results <= counts.pending_results &&
-    counts.pending_results + counts.acknowledged_results + counts.unresolved_inbox <= counts.entries &&
+    counts.pending_results + counts.acknowledged_results + counts.closed_results + counts.unresolved_inbox <= counts.entries &&
     counts.pending_artifacts <= counts.entries && counts.pending_candidates <= counts.entries &&
     counts.truncated_progress <= counts.entries;
 }

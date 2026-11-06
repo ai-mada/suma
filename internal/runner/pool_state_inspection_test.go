@@ -110,7 +110,12 @@ func TestInspectPoolStateProjectsSafeSlotCountsAndClaimStages(t *testing.T) {
 		dir := makePoolInspectionSlot(t, pool, slot)
 		pending := inspectionFixtureEntry("journal-run-private")
 		pending["result"] = map[string]any{"outcome_unknown": true, "output": "journal-output-private"}
-		writeInspectionFixture(t, dir, map[string]any{"journal-key-private": pending})
+		entries := map[string]any{"journal-key-private": pending}
+		if slot == "10" {
+			key, closed := closedInspectionFixture("journal-closed-private")
+			entries[key] = closed
+		}
+		writeInspectionFixture(t, dir, entries)
 		if stage := stages[slot]; stage != "missing" {
 			recordPoolInspectionClaim(t, dir, config, slot, stage)
 		}
@@ -132,7 +137,11 @@ func TestInspectPoolStateProjectsSafeSlotCountsAndClaimStages(t *testing.T) {
 	counts := JournalInspectionCounts{Entries: 1, PendingResults: 1, UnknownResults: 1, PendingProgress: 1}
 	for i, slot := range []string{"2", "9", "10", "127"} {
 		row := got.Slots[i]
-		if row.SlotID != slot || row.ClaimState != stages[slot] || row.JournalStatus != "available" || row.JournalCounts == nil || *row.JournalCounts != counts {
+		want := counts
+		if slot == "10" {
+			want.Entries, want.ClosedResults = 2, 1
+		}
+		if row.SlotID != slot || row.ClaimState != stages[slot] || row.JournalStatus != "available" || row.JournalCounts == nil || *row.JournalCounts != want {
 			t.Fatalf("slot %s: unexpected projection %+v", slot, row)
 		}
 	}

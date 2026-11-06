@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "runner_closed_result_inspection": {
+    "stage": "T-RUNNER-CLOSED-RESULT-INSPECTION-273",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "3444f7be350fadf41eaf9e3aa5f286ce756fc9d5",
+    "report": "docs/quality/runner-closed-result-inspection-verification.md",
+    "actual": "Read-only journal reports and the existing pool diagnostics show closed-attempt results separately from pending and acknowledged.",
+    "verification": "12 Go and 6 Web checks passed. Compiled Runner CLI read an unchanged synthetic pool journal and its output rendered in bilingual Chromium.",
+    "known_limitations": "Browser fixture and local Windows only. Physical nodes and other native operating systems remain unverified.",
+    "full_platform_complete": false
+  },
   "runner_result_recovery": {
     "stage": "T-RUNNER-RESULT-RECOVERY-272",
     "version": "1.0.0",

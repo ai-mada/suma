@@ -36,6 +36,8 @@
   "pool-state-diagnostic.copy_slot": "复制原日志命令",
   "pool-state-diagnostic.unknown_results": "未知结果 {{count}}",
   "pool-state-diagnostic.pending_results": "待回执 {{count}}",
+  "pool-state-diagnostic.acknowledged_results": "已回执 {{count}}",
+  "pool-state-diagnostic.closed_results": "尝试已结束，结果留存本机 {{count}}",
   "pool-state-diagnostic.unresolved_inbox": "未决收件 {{count}}",
   "pool-state-diagnostic.file_status.available": "可读取",
   "pool-state-diagnostic.file_status.missing": "缺失",

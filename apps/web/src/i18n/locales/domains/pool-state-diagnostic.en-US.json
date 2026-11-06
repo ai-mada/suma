@@ -36,6 +36,8 @@
   "pool-state-diagnostic.copy_slot": "Copy journal command",
   "pool-state-diagnostic.unknown_results": "Unknown results {{count}}",
   "pool-state-diagnostic.pending_results": "Pending receipts {{count}}",
+  "pool-state-diagnostic.acknowledged_results": "Acknowledged results {{count}}",
+  "pool-state-diagnostic.closed_results": "Closed-attempt results kept locally {{count}}",
   "pool-state-diagnostic.unresolved_inbox": "Unresolved inbox {{count}}",
   "pool-state-diagnostic.file_status.available": "readable",
   "pool-state-diagnostic.file_status.missing": "missing",
