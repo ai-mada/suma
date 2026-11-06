@@ -113,7 +113,7 @@ func TestTaskToolInputInboxRoutesOriginalAttempt(t *testing.T) {
 				t.Helper()
 				page := f.bearer("GET", projectPath, token, nil, 200)
 				raw := stringify(page)
-				if strings.Contains(raw, privateQuestion) || strings.Contains(raw, privateAnswer) || strings.Contains(raw, inputID) ||
+				if strings.Contains(raw, privateQuestion) || strings.Contains(raw, privateAnswer) ||
 					strings.Contains(raw, request.Codex.ParamsSHA256) {
 					t.Fatal("notification response exposed a private question, answer or native binding")
 				}
@@ -132,19 +132,19 @@ func TestTaskToolInputInboxRoutesOriginalAttempt(t *testing.T) {
 				}
 				return matches
 			}
-			checkSource := func(item NotificationInboxItem) {
+			checkSource := func(item NotificationInboxItem, expectedInput string) {
 				t.Helper()
 				target := item.ToolInputTarget
 				if !item.SourceAvailable || item.Read || item.Archived || item.CurrentTask == nil || item.CurrentTask.ID != task.ID ||
-					item.RunID != "" || target == nil || target.RunID != a.RunID || target.NodeID != a.NodeID || target.Attempt != a.Attempt ||
-					item.SourceResourceID == inputID || item.SourceResourceID == a.RunID {
+					item.RunID != "" || target == nil || target.InputID != expectedInput || target.RunID != a.RunID || target.NodeID != a.NodeID || target.Attempt != a.Attempt ||
+					item.SourceResourceID == expectedInput || item.SourceResourceID == a.RunID {
 					t.Fatalf("wrong tool input notification state or target: %+v", item)
 				}
 			}
 			ownerNotice := readNotice(ownerCookie.Value, 1)[0]
 			followerNotice := readNotice(followerToken, 1)[0]
-			checkSource(ownerNotice)
-			checkSource(followerNotice)
+			checkSource(ownerNotice, inputID)
+			checkSource(followerNotice, inputID)
 			if ownerNotice.SourceResourceID == followerNotice.SourceResourceID {
 				t.Fatal("opaque source fingerprint is not bound to the recipient")
 			}
@@ -164,7 +164,7 @@ func TestTaskToolInputInboxRoutesOriginalAttempt(t *testing.T) {
 				t.Fatal(err)
 			}
 			history := readNotice(followerToken, 1)[0]
-			checkSource(history)
+			checkSource(history, inputID)
 			if history.ID != followerNotice.ID || history.Version != followerNotice.Version {
 				t.Fatal("opening and answering changed the personal inbox record")
 			}
@@ -177,14 +177,34 @@ func TestTaskToolInputInboxRoutesOriginalAttempt(t *testing.T) {
 			if len(aggregate.Items) != 1 || aggregate.Items[0].ProjectID != f.project || aggregate.Items[0].Notification.ID != history.ID {
 				t.Fatal("organization inbox did not carry the exact project and notification")
 			}
-			checkSource(aggregate.Items[0].Notification)
+			checkSource(aggregate.Items[0].Notification, inputID)
+
+			next := open(toolInputRequest187(binding, "second-blocking-input-265"), 200)
+			secondID, ok := next["id"].(string)
+			if !ok || secondID == inputID || next["state"] != "pending" {
+				t.Fatal("second blocking input did not get its own identity")
+			}
+			matches := readNotice(followerToken, 2)
+			seen := map[string]bool{}
+			for _, item := range matches {
+				if item.ToolInputTarget == nil {
+					t.Fatal("question locator missing")
+				}
+				id := item.ToolInputTarget.InputID
+				checkSource(item, id)
+				seen[id] = true
+			}
+			if !seen[inputID] || !seen[secondID] {
+				t.Fatal("two questions in one attempt did not retain distinct inbox targets")
+			}
 
 			if _, err = f.s.DB.Exec(`UPDATE suma_task_run_provenance SET payload='{}' WHERE run_id=?`, a.RunID); err != nil {
 				t.Fatal(err)
 			}
-			lostSource := readNotice(followerToken, 1)[0]
-			if lostSource.SourceAvailable || lostSource.CurrentTask != nil || lostSource.ToolInputTarget != nil {
-				t.Fatal("corrupt provenance exposed an original attempt link or task")
+			for _, lostSource := range readNotice(followerToken, 2) {
+				if lostSource.SourceAvailable || lostSource.CurrentTask != nil || lostSource.ToolInputTarget != nil {
+					t.Fatal("corrupt provenance exposed an original question link or task")
+				}
 			}
 			if _, err = f.s.DB.Exec(`DELETE FROM suma_project_members WHERE project_id=? AND user_id=?`, f.project, follower.credential.subjectID); err != nil {
 				t.Fatal(err)

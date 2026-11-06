@@ -100,16 +100,16 @@ it('opens the original failed run in its own project from the organization inbox
  expect(writes).toHaveLength(0);
 });
 
-it('opens the original tool input attempt across projects without reading or answering the request',async()=>{
- const target={run_id:'run-original',node_id:'implement[2]',attempt:3},onToolInput=vi.fn();
+it('opens the original tool input question across projects without reading or answering the request',async()=>{
+ const target={run_id:'run-original',node_id:'implement[2]',attempt:3,input_id:'a'.repeat(32)},onToolInput=vi.fn();
  const notice={kind:'task_tool_input_requested',assignment_current:false,tool_input_target:target};
  transport(()=>Response.json(orgPage([orgRow('project-b','Other project',item(notice))])));
  await render({scopeMode:'organization'});
  expect(host.querySelector<HTMLButtonElement>('.notification-inbox-source')?.disabled).toBe(true);
  await render({onToolInput});
  expect(host.textContent).toContain('An agent requested input');
- expect(host.querySelector('.notification-inbox-run-action')?.textContent).toBe('Open original attempt');
- expect(host.querySelector('.notification-inbox-source')?.getAttribute('aria-label')).toBe('Open original attempt for Private assigned task');
+ expect(host.querySelector('.notification-inbox-run-action')?.textContent).toBe('Open original question');
+ expect(host.querySelector('.notification-inbox-source')?.getAttribute('aria-label')).toBe('Open original question for Private assigned task');
  await click('.notification-inbox-source');
  expect(onToolInput).toHaveBeenCalledExactlyOnceWith('task-a',target,'project-b');
  expect(props.onTask).not.toHaveBeenCalled();
@@ -117,7 +117,7 @@ it('opens the original tool input attempt across projects without reading or ans
  expect(reads).toHaveLength(1);
  await act(async()=>setLocale('zh-CN',{persist:false}));
  expect(host.textContent).toContain('智能体请求了人工输入');
- expect(host.querySelector('.notification-inbox-run-action')?.textContent).toBe('打开原执行尝试');
+ expect(host.querySelector('.notification-inbox-run-action')?.textContent).toBe('打开原问题');
  transport(()=>Response.json(orgPage([orgRow('project-b','Other project',item({...notice,source_available:false,current_task:undefined,tool_input_target:undefined}))])));
  await render({refresh:1});
  expect(host.querySelector('.notification-inbox-source')).toBeNull();

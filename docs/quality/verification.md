@@ -12,6 +12,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-TOOL-INPUT-LOCATOR-265 验证普通和共享 Runner 同次尝试多问题、原尝试回查与中英文键盘定位。 [阶段报告](tool-input-exact-locator-verification.md)
+
 T-TOOL-INPUT-INBOX-264 验证普通和共享 Runner 的输入通知事务、接收权限、重放去重及中英文原尝试导航。 [阶段报告](tool-input-inbox-verification.md)
 
 T-CLI-TOOL-INPUT-STATUS-263 验证普通和共享节点准确工具问题读取、错误 fence 拒绝与 CLI 摘要隔离。 [阶段报告](cli-tool-input-status-verification.md)

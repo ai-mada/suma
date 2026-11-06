@@ -25,7 +25,8 @@ const operationKey=(value:unknown):value is string=>typeof value==='string'&&!!v
 export type NotificationToolInputTarget=NonNullable<NotificationInboxItem['tool_input_target']>;
 
 export function validNotificationToolInputTarget(value:unknown):value is NotificationToolInputTarget{
- return object(value)&&exact(value,['run_id','node_id','attempt'])&&
+ return object(value)&&exact(value,['run_id','node_id','attempt','input_id'])&&
+  typeof value.input_id==='string'&&value.input_id.length===32&&/^[a-f0-9]{32}$/.test(value.input_id)&&
   typeof value.run_id==='string'&&value.run_id.trim()===value.run_id&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value.run_id)&&
   typeof value.node_id==='string'&&value.node_id.trim()===value.node_id&&value.node_id.length<=150&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}(?:\[[0-9]+\])?$/.test(value.node_id)&&
   typeof value.attempt==='number'&&Number.isSafeInteger(value.attempt)&&value.attempt>0;

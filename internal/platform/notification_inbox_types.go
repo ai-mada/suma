@@ -14,6 +14,7 @@ type NotificationInboxTask struct {
 }
 
 type NotificationInboxToolInputTarget struct {
+	InputID string `json:"input_id"`
 	RunID   string `json:"run_id"`
 	NodeID  string `json:"node_id"`
 	Attempt int    `json:"attempt"`

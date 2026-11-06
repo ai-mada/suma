@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "tool_input_locator": {
+    "stage": "T-TOOL-INPUT-LOCATOR-265",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "18669d8c58bac5aa34f99c86de3f4a52f9b8fbb9",
+    "report": "docs/quality/tool-input-exact-locator-verification.md",
+    "actual": "Inbox target includes the original question identity. The scoped route reads the durable attempt and its exact fence, opens the existing input panel and highlights only the original question.",
+    "verification": "Real HTTP and SQLite tested distinct same-attempt questions and unavailable source. Seventy scoped Web checks, bilingual Chromium, API generation and TypeScript passed.",
+    "known_limitations": "Browser uses protocol fixtures. Live vendor sessions, physical cross-machine execution, and OceanBase remain outside this stage.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q265/post-git.json"
+  },
   "tool_input_inbox": {
     "stage": "T-TOOL-INPUT-INBOX-264",
     "version": "1.0.0",

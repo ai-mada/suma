@@ -190,7 +190,9 @@ func (s *Service) notificationInboxItemsTx(ctx context.Context, auth *authorized
 				inputSource.tenant == auth.target.tenantID && inputSource.project == row.ProjectID &&
 				inputSource.available(*item, inputBinding, eventKey, recipient, inputRun, inputNode, inputWorker)
 			if item.SourceAvailable {
-				item.ToolInputTarget = &NotificationInboxToolInputTarget{RunID: inputSource.run, NodeID: inputSource.node, Attempt: inputSource.attempt}
+				item.ToolInputTarget = &NotificationInboxToolInputTarget{
+					InputID: inputSource.id, RunID: inputSource.run, NodeID: inputSource.node, Attempt: inputSource.attempt,
+				}
 			}
 		}
 		if item.Kind == "task_followed" {

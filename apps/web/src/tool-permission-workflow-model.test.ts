@@ -1,7 +1,7 @@
 import {expect,it} from 'vitest';
 import type {ACPExecutionCapability,CodexBinding} from '../../../packages/contracts/src';
 import type {Run,Workflow} from './api';
-import {frozenToolPermissionProtocolForNode} from './tool-permission-workflow-model';
+import {frozenToolInputProtocolForNode,frozenToolPermissionProtocolForNode} from './tool-permission-workflow-model';
 
 const hash='a'.repeat(64);
 const acp:ACPExecutionCapability={runtime:'qoder',protocol_version:1,sdk_version:'0.13.5',configuration_sha256:hash,model:'fixed-model',model_source:'administrator_session_config',budget_mode:'observe_only',identity_evidence:'configuration_ack_only',auth_strategy:'existing_cli_login',permission_mode:'human_once'};
@@ -16,6 +16,17 @@ function fixture(protocol:'acp'|'codex'){
 
 it('identifies the exact current ACP or Codex binding without excluding terminal evidence',()=>{
  for(const [driver,expected] of [['acp','acp-stdio-v1'],['codex','codex-app-server-v1']] as const){const {definition,run,node}=fixture(driver);expect(frozenToolPermissionProtocolForNode(definition,run,node)).toBe(expected);expect(frozenToolPermissionProtocolForNode(definition,{...run,state:'succeeded',nodes:[{...run.nodes[0],state:'succeeded'}]},{...node,state:'succeeded'})).toBe(expected);}
+});
+
+it('keeps the frozen question protocol across an unclaimed retry and a mapped node',()=>{
+ const {definition,run,node}=fixture('codex');
+ const retry={...node,state:'ready',worker_id:'',fence:0};
+ expect(frozenToolInputProtocolForNode(definition,{...run,nodes:[retry]},retry)).toBe('codex-app-server-v1');
+ const child={...retry,id:'mapped[2]'};
+ const mapped={...definition,nodes:[{id:'mapped',name:'Mapped tasks',type:'map',config:{template:definition.nodes[0]}}]};
+ expect(frozenToolInputProtocolForNode(mapped,{...run,nodes:[child]},child)).toBe('codex-app-server-v1');
+ expect(frozenToolInputProtocolForNode(mapped,{...run,nodes:[child]},{...child,tool_profile_sha256:'b'.repeat(64)})).toBeUndefined();
+ expect(frozenToolInputProtocolForNode(definition,{...run,nodes:[child]},child)).toBeUndefined();
 });
 
 it('T192 exposes Claude SDK decisions only for its exact frozen original attempt and independent capability',()=>{

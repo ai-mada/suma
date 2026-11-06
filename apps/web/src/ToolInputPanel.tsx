@@ -11,7 +11,7 @@ import {ToolInputCard} from './ToolInputCard';
 import {buildToolInputAnswerBody,buildToolInputIntent,canAnswerToolInput,readToolInputList,toolInputListPath,toolInputMatchesIntent,toolInputRecoveryScope,validToolInputIntent,validToolInputReceipt,validToolInputRecovery,type ToolInputIntent,type ToolInputScope,type ToolInputSubmission} from './tool-input-model';
 import './ToolInputPanel.css';
 
-export type ToolInputPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;protocol:'codex-app-server-v1'|'acp-stdio-v1'|'claude-sdk-v1';state?:string;revision?:number;readOnly?:boolean;onChanged?:()=>void|Promise<void>};
+export type ToolInputPanelProps={project:string;runID:string;nodeID:string;attempt:number;fence:number;protocol:'codex-app-server-v1'|'acp-stdio-v1'|'claude-sdk-v1';requestedInputID?:string;state?:string;revision?:number;readOnly?:boolean;onChanged?:()=>void|Promise<void>};
 type Snapshot={key:string;protocol:string;items:ToolInput[];loading:boolean;loaded?:boolean;error?:unknown;denied?:boolean};
 type IntentState={intent?:ToolInputIntent;error?:unknown};
 const t=(key:string,values?:Record<string,unknown>)=>tr('tool-inputs.'+key,values);
@@ -37,15 +37,19 @@ export function ToolInputPanel(props:ToolInputPanelProps){
  return <InputController key={JSON.stringify([toolInputRecoveryScope(scope),owner.current.epoch])} {...props} scope={scope}/>;
 }
 
-function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInputPanelProps&{scope:ToolInputScope}){
+function InputController({scope,requestedInputID,state,revision,readOnly=false,onChanged}:ToolInputPanelProps&{scope:ToolInputScope}){
  useLocale();const api=useApi(),panelID=useId(),storage=toolSessionStorage(),recoveryScope=toolInputRecoveryScope(scope),intentKey='suma-tool-input-intent:'+recoveryScope;
  const [intentState,setIntentState]=useState<IntentState>(()=>readIntent(storage,intentKey,scope)),intent=useRef(intentState.intent);
  const liveScope=useRef(scope);liveScope.current=scope;
  const effectiveScope=intentState.intent?.scope||scope,effectiveKey=readKey(effectiveScope);
  const [snapshot,setSnapshot]=useState<Snapshot>({key:effectiveKey,protocol:'',items:[],loading:!!scope.userID&&!!scope.organizationID,denied:!scope.userID||!scope.organizationID});
  const current=useRef(snapshot),alive=useRef(true),owner=useRef(api),generation=useRef(0),controller=useRef<AbortController|undefined>(undefined),flight=useRef<{key:string;promise:Promise<boolean>}|undefined>(undefined);
- const [open,setOpen]=useState(false),[backgroundPaused,setBackgroundPaused]=useState(false),polls=useRef(0),commandBusy=useRef(false),notify=useRef(onChanged);
+ const linkID=requestedInputID&&/^[a-f0-9]{32}$/.test(requestedInputID)?requestedInputID:undefined;
+ const linkKey=linkID?JSON.stringify([readKey(scope),linkID]):'';
+ const [open,setOpen]=useState(!!linkKey),[backgroundPaused,setBackgroundPaused]=useState(false),polls=useRef(0),commandBusy=useRef(false),notify=useRef(onChanged);
  const toggleRef=useRef<HTMLButtonElement>(null),lastFocus=useRef<HTMLElement|null>(null),retired=useRef<ToolInputIntent|undefined>(undefined),settled=useRef<{intent:ToolInputIntent;value:ToolInput}|undefined>(undefined);
+ const linkHeading=useRef<HTMLHeadingElement>(null);
+ const linkEntry=useRef<{initial:Element|null;moved:boolean;handled:boolean}|undefined>(undefined);
  owner.current=api;notify.current=onChanged;
  const setIntent=(value:IntentState)=>{intent.current=value.intent;setIntentState(value);};
  const visible=snapshot.key===effectiveKey?snapshot:{key:effectiveKey,protocol:'',items:[],loading:true};
@@ -96,6 +100,29 @@ function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInp
  const savedIntent=intentState.intent,hasRecovery=!!savedIntent||!!action.pending;
  const requestMatches=!action.pending||!!savedIntent&&canonical(action.pending)===canonical(savedIntent.request);
  const intentUnavailable=!!intentState.error||!!action.pending&&(!savedIntent||!requestMatches);
+ // A requested question is a locator only. Never use the earlier scope
+ // selected by an unresolved write journal to resolve it.
+ const linkScopeCurrent=!!linkID&&!hasRecovery&&!intentUnavailable&&!action.busy&&!writeDenied&&!visible.denied&&
+  visible.loaded&&!visible.error&&effectiveKey===readKey(scope);
+ const linkReady=linkScopeCurrent&&!visible.loading;
+ const linkedInput=linkScopeCurrent?visible.items.find(item=>item.id===linkID):undefined;
+ useLayoutEffect(()=>{
+  if(!linkKey){linkEntry.current=undefined;return;}
+  setOpen(true);
+  const entry={initial:document.activeElement,moved:false,handled:false};
+  linkEntry.current=entry;
+  const focusChanged=(event:FocusEvent)=>{if(event.target!==entry.initial)entry.moved=true;};
+  document.addEventListener('focusin',focusChanged);
+  return()=>document.removeEventListener('focusin',focusChanged);
+ },[linkKey]);
+ useLayoutEffect(()=>{
+  const entry=linkEntry.current;
+  if(!entry||entry.handled||!linkReady||!linkedInput||!open||!linkHeading.current)return;
+  entry.handled=true;
+  if(!entry.moved&&(document.activeElement===entry.initial||!entry.initial?.isConnected&&document.activeElement===document.body)){
+   linkHeading.current.focus();
+  }
+ },[linkKey,linkReady,!!linkedInput,open]);
  const locked=historical||!capable||action.busy||hasRecovery||intentUnavailable||action.persistenceBlocked||action.conflict||visible.denied||writeDenied||visible.loading||!!visible.error;
  const recoveryInput=savedIntent?visible.items.find(item=>toolInputMatchesIntent(item,savedIntent)):undefined;
  const commandGate=useRef({locked,intentUnavailable,requestMatches,recoveryInput,denied:!!visible.denied||writeDenied,loading:visible.loading,error:visible.error});
@@ -133,7 +160,7 @@ function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInp
    try{await notify.current?.();}catch{/* Parent refresh cannot undo the saved answer. */}
   }finally{commandBusy.current=false;}
  }
- if(visible.loaded&&!capable&&!visible.items.length&&!hasRecovery&&!intentUnavailable&&!visible.error&&!visible.denied&&!writeDenied)return null;
+ if(visible.loaded&&!capable&&!visible.items.length&&!hasRecovery&&!intentUnavailable&&!visible.error&&!visible.denied&&!writeDenied&&!linkID)return null;
  return <section className="tool-input-panel" data-tool-input-panel aria-label={t('title')} onFocusCapture={event=>{lastFocus.current=event.target as HTMLElement;}}>
   <div className="tool-input-panel-heading"><button ref={toggleRef} type="button" className="tool-input-panel-toggle" data-tool-input-toggle aria-expanded={open} aria-controls={panelID} onClick={()=>{if(open)toggleRef.current?.focus();setOpen(value=>!value);}}><MessageSquare size={16} aria-hidden="true"/><span>{t('title')}</span>{pendingCount>0&&!visible.denied&&<span className="tool-input-panel-count">{formatNumber(pendingCount)}</span>}<ChevronDown size={15} aria-hidden="true"/></button>
    <button type="button" data-tool-input-refresh aria-label={t('refresh')} disabled={visible.loading||action.busy} onClick={()=>void refresh()}><RefreshCw size={15} aria-hidden="true"/></button></div>
@@ -145,8 +172,17 @@ function InputController({scope,state,revision,readOnly=false,onChanged}:ToolInp
    {!!visible.error&&<ErrorNotice error={visible.error}/>}{backgroundPaused&&<p className="tool-input-panel-note" role="status">{t('background_paused')}</p>}
    <div id={panelID} hidden={!open} className="tool-input-panel-body" aria-busy={visible.loading}>
     {effectiveScope.protocol==='codex-app-server-v1'&&<p className="tool-input-panel-note">{t('experimental')}</p>}{historical&&<p className="tool-input-panel-note">{t('historical_readonly')}</p>}{!capable&&!!visible.items.length&&<p className="tool-input-panel-note">{t('capability_disabled')}</p>}
-    {visible.loading&&!visible.loaded&&<p role="status">{t('loading')}</p>}{visible.loaded&&!visible.items.length&&<p className="tool-input-panel-note">{t('empty')}</p>}
-    {visible.items.map(input=><ToolInputCard key={input.id} input={input} readOnly={historical||!capable||input.attempt!==scope.attempt||input.fence!==scope.fence||input.id===retired.current?.input_id} disabled={!!locked||!canAnswerToolInput(input)} onAnswer={submission=>void answer(input,submission)}/>)}
+    {visible.loading&&!visible.loaded&&<p role="status">{t('loading')}</p>}
+    {linkReady&&!linkedInput&&<p className="tool-input-panel-note" role="status">{t('link_unavailable')}</p>}
+    {visible.loaded&&!visible.items.length&&!linkReady&&<p className="tool-input-panel-note">{t('empty')}</p>}
+    {linkedInput&&<button type="button" className="tool-input-panel-jump" onClick={()=>linkHeading.current?.focus()}>{t('link_jump')}</button>}
+    {visible.items.map(input=>{
+     const selected=input===linkedInput;
+     return <div key={input.id} className={selected?'tool-input-panel-target':undefined} data-tool-input-target={selected?input.id:undefined}>
+      {selected&&<h4 ref={linkHeading} tabIndex={-1} className="tool-input-panel-target-heading">{t('link_target')}</h4>}
+      <ToolInputCard input={input} readOnly={historical||!capable||input.attempt!==scope.attempt||input.fence!==scope.fence||input.id===retired.current?.input_id} disabled={!!locked||!canAnswerToolInput(input)} onAnswer={submission=>void answer(input,submission)}/>
+     </div>;
+    })}
    </div>
   </>}
  </section>;

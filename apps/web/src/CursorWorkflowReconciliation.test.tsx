@@ -3,7 +3,7 @@ import {webcrypto} from 'node:crypto';
 import {act,type ReactNode} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-import type {ACPExecutionCapability,ToolEvidence} from '../../../packages/contracts/src';
+import type {ACPExecutionCapability,ExecutionAttempt,ToolEvidence} from '../../../packages/contracts/src';
 import {ApiViewProvider} from './api-context';
 import type {Run,Session,Workflow} from './api';
 import {setLocale} from './i18n';
@@ -12,7 +12,11 @@ import {WorkflowView} from './Workflow';
 vi.mock('@xyflow/react',()=>({ReactFlow:({children}:{children:ReactNode})=><div>{children}</div>,Background:()=>null,Controls:()=>null,MiniMap:()=>null,Handle:()=>null,Position:{Left:'left',Right:'right'},MarkerType:{ArrowClosed:'arrowclosed'},applyNodeChanges:(_:unknown,nodes:unknown)=>nodes,applyEdgeChanges:(_:unknown,edges:unknown)=>edges}));
 vi.mock('elkjs/lib/elk.bundled.js',()=>({default:class{async layout(graph:{children:{id:string}[]}){return {...graph,children:graph.children.map((node,index)=>({...node,x:index*240,y:0}))};}}}));
 vi.mock('./run-events',async load=>({...await load<typeof import('./run-events')>(),connectRunEvents:vi.fn(async()=>{})}));
-vi.mock('./NodeSchedulingFacts',()=>({NodeSchedulingFacts:()=>null}));
+const historyFixture=vi.hoisted(()=>({attempt:undefined as ExecutionAttempt|undefined}));
+vi.mock('./NodeSchedulingFacts',()=>({NodeSchedulingFacts:({renderAttemptContext}:{renderAttemptContext?:(attempt:ExecutionAttempt)=>ReactNode})=>
+ historyFixture.attempt?renderAttemptContext?.(historyFixture.attempt):null}));
+vi.mock('./ToolInputPanel',()=>({ToolInputPanel:({requestedInputID,attempt,fence,readOnly}:{requestedInputID?:string;attempt:number;fence:number;readOnly?:boolean})=>
+ <output data-question={requestedInputID||'current'} data-attempt={attempt} data-fence={fence} data-readonly={readOnly}/>}));
 vi.mock('./ToolBindingStatus',()=>({ToolBindingStatus:()=>null}));
 vi.mock('./execution-pools/RunRouteFacts',()=>({RunRouteFacts:()=>null}));
 
@@ -32,7 +36,7 @@ beforeEach(async()=>{
  vi.stubGlobal('crypto',webcrypto);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);
  vi.stubGlobal('matchMedia',()=>({matches:false,addEventListener(){},removeEventListener(){},addListener(){},removeListener(){}}));
  await setLocale('en-US',{persist:false});
- sessionStorage.clear();localStorage.clear();currentRun=structuredClone(originalRun);writes=[];
+ sessionStorage.clear();localStorage.clear();currentRun=structuredClone(originalRun);writes=[];historyFixture.attempt=undefined;
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
  vi.stubGlobal('fetch',vi.fn(async(input:string,options?:RequestInit)=>{
   const url=new URL(String(input),location.href),path=url.pathname.replace(/^\/api\/v1/,'');
@@ -50,11 +54,27 @@ beforeEach(async()=>{
  }));
 });
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();await setLocale('zh-CN',{persist:false});vi.unstubAllGlobals();});
-async function render(attemptId?:string,refresh=0){
- await act(async()=>root.render(<ApiViewProvider session={session}><WorkflowView project="project-a" runId="run-a" nodeId="develop" attemptId={attemptId} onNode={()=>{}} onRun={()=>{}} onRefresh={()=>{}} refresh={refresh}/></ApiViewProvider>));
+async function render(attemptId?:string,refresh=0,requestedInputID?:string,nodeId='develop'){
+ await act(async()=>root.render(<ApiViewProvider session={session}><WorkflowView project="project-a" runId="run-a" nodeId={nodeId} attemptId={attemptId} requestedInputID={requestedInputID} onNode={()=>{}} onRun={()=>{}} onRefresh={()=>{}} refresh={refresh}/></ApiViewProvider>));
  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,150));});
  for(let i=0;i<5;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
 }
+it('binds a requested historical question to the durable fence even before the retry has a worker',async()=>{
+ currentRun={...originalRun,nodes:[{...originalRun.nodes[0],state:'ready',worker_id:'',tool_evidence:undefined}]};
+ historyFixture.attempt={run_id:'run-a',node_id:'develop',attempt:1,fence:2,worker_id:'worker-old',state:'failed',started_at:stamp,completed_at:stamp,result_source:'unreported'};
+ const input='b'.repeat(32);
+ await render('1',0,input);
+ const scope=host.querySelector<HTMLOutputElement>('[data-question]')?.dataset;
+ expect(scope).toMatchObject({question:input,attempt:'1',fence:'2',readonly:'true'});
+ expect(host.querySelector('[data-question="current"]')).toBeNull();
+ historyFixture.attempt={...historyFixture.attempt,run_id:'another-run'};
+ await render('1',0,input);
+ expect(host.querySelector('[data-question]')).toBeNull();
+ await render('1',0,input,'missing-node');
+ expect(host.textContent).toContain('The linked input is unavailable in this execution attempt.');
+ expect(host.querySelector('[data-question]')).toBeNull();
+ expect(writes).toHaveLength(0);
+});
 function button(label:string,scope:ParentNode=host){return [...scope.querySelectorAll('button')].find(item=>item.textContent===label);}
 async function value(field:HTMLSelectElement|HTMLTextAreaElement,text:string){
  const select=field instanceof HTMLSelectElement;

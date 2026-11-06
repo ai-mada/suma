@@ -22409,7 +22409,7 @@
           },
           "tool_input_target": {
             "$ref": "#/components/schemas/NotificationInboxToolInputTarget",
-            "description": "Present only for an intact task_tool_input_requested source. This locates the historical attempt and does not report current answer eligibility or include question or answer text.",
+            "description": "Present only for an intact task_tool_input_requested source. This locates the original question in its historical attempt. The workbench rechecks current access and answer eligibility.",
             "readOnly": true
           },
           "version": {
@@ -22526,6 +22526,12 @@
             "readOnly": true,
             "type": "integer"
           },
+          "input_id": {
+            "description": "Opaque ID of the original tool input within this attempt.",
+            "pattern": "^[0-9a-f]{32}$",
+            "readOnly": true,
+            "type": "string"
+          },
           "node_id": {
             "maxLength": 150,
             "minLength": 1,
@@ -22540,6 +22546,7 @@
           }
         },
         "required": [
+          "input_id",
           "run_id",
           "node_id",
           "attempt"

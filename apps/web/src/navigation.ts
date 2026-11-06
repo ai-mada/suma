@@ -6,10 +6,24 @@ export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'ope
 export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_scope?:'organization';inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;execution_team?:string;execution_team_invalid?:'1';project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
+const toolInputPanelPrefix='tool-input:';
+export function toolInputPanelID(panel:string):string|undefined {
+ const input=panel.startsWith(toolInputPanelPrefix)?panel.slice(toolInputPanelPrefix.length):'';
+ return input.length===32&&/^[a-f0-9]{32}$/.test(input)?input:undefined;
+}
 /** Formal task sources retain a locator only in one unambiguous task scope.
  * Parsing never opens, marks read or decides the source. */
 function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string{
  const panel=params.get('panel')||'',review=panel.startsWith('task-review:'),handoff=panel.startsWith('task-handoff:');
+ if(panel.startsWith(toolInputPanelPrefix)){
+  const input=toolInputPanelID(panel),project=params.get('project')||'';
+  const exact=['panel','project','view','sub','run','node','attempt'].every(key=>params.getAll(key).length===1);
+  const validLayout=params.getAll('layout').length<2&&(!params.has('layout')||params.get('layout')==='list');
+  return exact&&validLayout&&!params.has('record')&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/.test(project)&&project.trim()===project&&
+   params.get('view')==='development'&&params.get('sub')==='runs'&&validNotificationToolInputTarget({
+    input_id:input,run_id:params.get('run'),node_id:params.get('node'),attempt:parseAttempt(params.get('attempt')||''),
+   })?panel:'';
+ }
  if(panel===taskDeliveryPanel)return isTaskDeliveryLocator(params)?panel:'';
  if(panel.startsWith('tool-inventory-connect:')){
   const unique=['panel','project','view','sub'].every(key=>params.getAll(key).length===1);
@@ -174,8 +188,8 @@ export function locateNotificationSource(project:string,task:string,source:Notif
   case 'handoff':return locateTaskHandoff(task,source.id,canLeave,scoped);
   case 'tool-input':{
    if(!validNotificationToolInputTarget(source.target)||!canLeave())return false;
-   const {run_id:run,node_id:node,attempt}=source.target;
-   scoped(route=>({...route,view:'development',sub:'runs',record:'',run,node,attempt:String(attempt),panel:'',q:'',status:'all',layout:'list'}));
+   const {run_id:run,node_id:node,attempt,input_id:input}=source.target;
+   scoped(route=>({...route,view:'development',sub:'runs',record:'',run,node,attempt:String(attempt),panel:toolInputPanelPrefix+input,q:'',status:'all',layout:'list'}));
    return true;
   }
   case 'run':

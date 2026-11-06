@@ -19,6 +19,7 @@ const (
 )
 
 var taskToolInputInboxNode = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}(\[[0-9]+\])?$`)
+var taskToolInputInboxID = regexp.MustCompile(`^[0-9a-f]{32}$`)
 
 // Join only immutable source identifiers and binding metadata. Question and
 // answer bodies remain in the protected tool-input read, including on replay.
@@ -54,7 +55,7 @@ func (source taskToolInputInboxSource) fingerprint(recipient string) string {
 
 func (source taskToolInputInboxSource) boundVersion(payload string) int {
 	var binding TaskRunProvenance
-	if !taskSubscriptionID(source.task) || !taskSubscriptionID(source.id) || !handoffID(source.eventKey(), false) ||
+	if !taskSubscriptionID(source.task) || !taskToolInputInboxID.MatchString(source.id) ||
 		!tc.ValidCommandID(source.run) || len(source.node) > 150 || !taskToolInputInboxNode.MatchString(source.node) ||
 		source.attempt < 1 || int64(source.attempt) > cc.MaxSafeInteger || source.fence < 1 ||
 		!tc.ValidDigest(source.requestSHA256) ||

@@ -39,12 +39,12 @@ it('accepts a failed run only with its exact locator and keeps unavailable sourc
  expect(validNotificationInboxItem(row({...unavailable,current_task:undefined,run_id:'run-original'}))).toBe(false);
 });
 
-it('requires the original execution attempt only on an available tool input source',()=>{
- const target={run_id:'run-original',node_id:'implement[2]',attempt:2};
+it('requires the original question and execution attempt only on an available tool input source',()=>{
+ const target={run_id:'run-original',node_id:'implement[2]',attempt:2,input_id:'a'.repeat(32)};
  const input={kind:'task_tool_input_requested',assignment_current:false,tool_input_target:target};
  expect(validNotificationInboxItem(row(input))).toBe(true);
  for(const invalid of [undefined,null,{...target,run_id:'../other'},{...target,node_id:'bad/node'},{...target,node_id:'implement[2]\n'},
-  {...target,attempt:0},{...target,attempt:Number.MAX_SAFE_INTEGER+1},{...target,input_id:'unexpected'}]){
+  {...target,attempt:0},{...target,attempt:Number.MAX_SAFE_INTEGER+1},{...target,input_id:'unexpected'},{...target,input_id:undefined},{...target,input_id:'A'.repeat(32)},{...target,body:'unexpected'}]){
   expect(validNotificationInboxItem(row({...input,tool_input_target:invalid}))).toBe(false);
  }
  expect(validNotificationInboxItem(row({...input,run_id:'run-original'}))).toBe(false);

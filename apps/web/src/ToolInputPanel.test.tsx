@@ -66,6 +66,55 @@ function journals(key:string){
   .filter(item=>item.value.idempotency_key===key||item.value.request?.idempotency_key===key);
 }
 
+it('T265 opens and focuses only the linked question once without changing either answer',async()=>{
+ const linked='b'.repeat(32);
+ items.push({...structuredClone(toolInputRecord),id:linked,state:'closed',allowed_actions:[]});
+ await render({requestedInputID:linked});
+
+ const target=host.querySelector<HTMLElement>('[data-tool-input-target]');
+ expect(target?.dataset.toolInputTarget).toBe(linked);
+ expect(target?.querySelector('[data-tool-input-card]')?.getAttribute('data-tool-input-state')).toBe('closed');
+ expect(host.querySelectorAll('[data-tool-input-target]')).toHaveLength(1);
+ expect(host.querySelector('[data-tool-input-toggle]')?.getAttribute('aria-expanded')).toBe('true');
+ expect(document.activeElement).toBe(target?.querySelector('h4'));
+ expect(host.querySelectorAll('input:checked')).toHaveLength(0);
+ expect(writes()).toHaveLength(0);
+
+ const toggle=host.querySelector<HTMLElement>('[data-tool-input-toggle]')!;
+ toggle.focus();
+ await click('[data-tool-input-refresh]');
+ expect(document.activeElement).toBe(toggle);
+ await click('[data-tool-input-toggle]');
+ await render({requestedInputID:linked,revision:1});
+ expect(toggle.getAttribute('aria-expanded')).toBe('false');
+ expect(writes()).toHaveLength(0);
+});
+
+it('T265 preserves newer focus during a linked read and reports when the exact attempt has no linked question',async()=>{
+ const linked='b'.repeat(32);
+ items.push({...structuredClone(toolInputRecord),id:linked});
+ let complete!:(response:Response)=>void;
+ reply=()=>new Promise(resolve=>{complete=resolve;});
+ await render({requestedInputID:linked});
+ const outside=host.querySelector<HTMLElement>('[data-public-run]')!;
+ outside.tabIndex=-1;
+ outside.focus();
+ await act(async()=>complete(Response.json({protocol,items})));
+ await settle();
+ expect(document.activeElement).toBe(outside);
+ await click('.tool-input-panel-jump');
+ expect(document.activeElement).toBe(host.querySelector('[data-tool-input-target] h4'));
+
+ reply=normal;
+ items.push({...structuredClone(toolInputRecord),id:'next-input',attempt:3,fence:10});
+ await render({requestedInputID:linked,attempt:3,fence:10});
+ expect(host.querySelector('[data-tool-input-target]')).toBeNull();
+ expect(host.querySelector('[data-tool-input-card="'+linked+'"]')).toBeNull();
+ expect(host.querySelector('[data-tool-input-card="next-input"]')).not.toBeNull();
+ expect(host.textContent).toContain('The linked input is unavailable in this execution attempt.');
+ expect(writes()).toHaveLength(0);
+});
+
 it('T187 preserves one explicit original answer and key through an unknown receipt, remount and storage cleanup without repeating a settled HTTP write',async()=>{
  let lost=true;reply=async request=>{const response=await normal(request);if(request.method==='POST'&&lost){lost=false;throw TypeError('Original receipt lost after save');}return response;};
  await render();expect(requests[0].path).toBe('/runs/run-a/nodes/develop/tool-inputs?project_id=project-a&attempt=2&fence=9');
@@ -80,9 +129,10 @@ it('T187 preserves one explicit original answer and key through an unknown recei
  expect(metadata.raw).not.toContain(toolInputRecord.request.codex!.questions[0].question);expect(metadata.raw).not.toContain('options');
  await click('[data-tool-input-refresh]');expect(onChanged).not.toHaveBeenCalled();expect(journals(key)).toHaveLength(2);
  expect(host.querySelector('[data-tool-input-status="saved"]')).not.toBeNull();expect(host.querySelector('[data-tool-input-status="written"]')).toBeNull();
- items.push({...structuredClone(toolInputRecord),id:'input-next',attempt:3,fence:10,dispatch_id:'dispatch-next'});
- await render({attempt:3,fence:10});expect(host.querySelector('[data-tool-input-card="input-next"]')).toBeNull();expect(journals(key)).toHaveLength(2);
- await act(async()=>root.unmount());root=createRoot(host);await render({attempt:3,fence:10});
+ const nextInput='c'.repeat(32);
+ items.push({...structuredClone(toolInputRecord),id:nextInput,attempt:3,fence:10,dispatch_id:'dispatch-next'});
+ await render({attempt:3,fence:10,requestedInputID:nextInput});expect(host.querySelector('[data-tool-input-card="'+nextInput+'"]')).toBeNull();expect(host.querySelector('[data-tool-input-target]')).toBeNull();expect(journals(key)).toHaveLength(2);
+ await act(async()=>root.unmount());root=createRoot(host);await render({attempt:3,fence:10,requestedInputID:nextInput});
  expect(requests.at(-1)?.path).toBe('/runs/run-a/nodes/develop/tool-inputs?project_id=project-a&attempt=2&fence=9');
  const remove=Storage.prototype.removeItem;
  const cleanup=vi.spyOn(Storage.prototype,'removeItem').mockImplementation(function(this:Storage,name:string){if(name.startsWith('suma-write-recovery-v1:'))throw Error('Fixture cleanup unavailable');return remove.call(this,name);});
@@ -90,7 +140,7 @@ it('T187 preserves one explicit original answer and key through an unknown recei
  cleanup.mockRestore();await click('[data-tool-input-recover]');
  expect(writes()).toHaveLength(2);expect(journals(key)).toHaveLength(0);expect(onChanged).toHaveBeenCalledOnce();
  await open();expect(requests.at(-1)?.path).toBe('/runs/run-a/nodes/develop/tool-inputs?project_id=project-a&attempt=3&fence=10');
- expect(host.querySelector('[data-tool-input-card="input-a"]')).toBeNull();expect(host.querySelector('[data-tool-input-card="input-next"]')).not.toBeNull();
+ expect(host.querySelector('[data-tool-input-card="input-a"]')).toBeNull();expect(host.querySelector('[data-tool-input-target="'+nextInput+'"] [data-tool-input-card="'+nextInput+'"]')).not.toBeNull();
  expect(saved.get(key)?.state).toBe('answered');expect(host.querySelector<HTMLButtonElement>('[data-tool-input-submit]')?.disabled).toBe(true);
 });
 

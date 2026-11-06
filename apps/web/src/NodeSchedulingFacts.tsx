@@ -1,5 +1,5 @@
 import { tr as t, useLocale, formatNumber } from "./i18n";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { ApiError, query } from "./api";
 import { ErrorNotice, Loading } from "./ui";
 import { useToolRead } from "./tool-hooks";
@@ -27,6 +27,7 @@ export function NodeSchedulingFacts({
   onAttempt,
   historyRefresh = 0,
   executionSkills,
+  renderAttemptContext,
 }: {
   project: string;
   run: string;
@@ -39,6 +40,7 @@ export function NodeSchedulingFacts({
   onAttempt: (value: string) => void;
   historyRefresh?: number | string;
   executionSkills?:ExecutionSkillBundle;
+  renderAttemptContext?: (attempt: ExecutionAttempt) => ReactNode;
 }) { useLocale();
   const detailRoot = useRef<HTMLDivElement>(null),
     listRoot = useRef<HTMLElement>(null),
@@ -67,14 +69,14 @@ export function NodeSchedulingFacts({
     return () => clearInterval(timer);
   }, [diagnostic.read, page.accessLost]);
   useEffect(() => {
-    if (!page.accessLost && attempt && exact.data?.attempt === attempt) {
+    if (!renderAttemptContext && !page.accessLost && attempt && exact.data?.attempt === attempt) {
       detailRoot.current?.scrollIntoView?.({
         block: "start",
         behavior: "auto",
       });
       detailRoot.current?.focus({ preventScroll: true });
     }
-  }, [attempt, exact.data?.attempt, page.accessLost]);
+  }, [attempt, exact.data?.attempt, page.accessLost, renderAttemptContext]);
   // A retry cannot revive a denied cached record before authorization succeeds.
   if (exact.failure instanceof ApiError && [401,403,404].includes(exact.failure.status)) detailAccessLost.current = true;
   else if (!exact.loading && !exact.error) detailAccessLost.current = false;
@@ -205,6 +207,7 @@ export function NodeSchedulingFacts({
             record.node_id === node &&
             record.attempt === attempt ? (
               <div ref={detailRoot} tabIndex={-1} aria-label={t("development.attempts.selected_historical_attempt_details")}>
+                {!exact.error && renderAttemptContext?.(record)}
                 <AttemptFacts attempt={record} executionSkills={executionSkills}/>
                 <AttemptToolEventHistory key={JSON.stringify([project,run,node,record.attempt,record.fence,record.worker_id])} project={project} attempt={record} refresh={historyRefresh}/>
               </div>

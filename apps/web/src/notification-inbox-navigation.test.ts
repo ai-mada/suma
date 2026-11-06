@@ -39,18 +39,30 @@ describe('current notification reading route',()=>{
   expect(route).toMatchObject({project:'beta',sub:'runs',run:'run-b',record:'',panel:'',node:'',attempt:''});
   expect(route.inbox_scope).toBeUndefined();
  });
- it('opens the original tool input attempt within its own project and honors the leave guard',()=>{
+ it('opens the original tool input question within its own attempt and honors the leave guard',()=>{
   const start=parseWorkbenchRoute('?project=alpha&view=development&sub=inbox&inbox_scope=organization&inbox_filter=unread');
   let route=start;
   const update=(change:(value:typeof route)=>typeof route)=>{route=change(route);};
-  const target={run_id:'run-original',node_id:'implement[2]',attempt:3};
+  const target={run_id:'run-original',node_id:'implement[2]',attempt:3,input_id:'a'.repeat(32)};
   expect(locateNotificationSource('beta','task-b',{kind:'tool-input',target},()=>false,update)).toBe(false);
   expect(locateNotificationSource('beta','task-b',{kind:'tool-input',target:{...target,attempt:0}},()=>true,update)).toBe(false);
   expect(route).toBe(start);
   expect(locateNotificationSource('beta','task-b',{kind:'tool-input',target},()=>true,update)).toBe(true);
-  expect(route).toMatchObject({project:'beta',view:'development',sub:'runs',run:'run-original',node:'implement[2]',attempt:'3',record:'',panel:'',layout:'list'});
+  expect(route).toMatchObject({project:'beta',view:'development',sub:'runs',run:'run-original',node:'implement[2]',attempt:'3',record:'',panel:'tool-input:'+target.input_id,layout:'list'});
   expect(route.inbox_scope).toBeUndefined();
   expect(route.inbox_filter).toBeUndefined();
+ });
+ it('retains a tool input locator only for an unambiguous execution route',()=>{
+  const params=new URLSearchParams({project:'p',view:'development',sub:'runs',run:'run-a',node:'node[2]',attempt:'3',panel:'tool-input:'+'a'.repeat(32)});
+  expect(parseWorkbenchRoute('?'+params).panel).toBe(params.get('panel'));
+  for(const [key,value] of [['attempt','0'],['node','../other'],['sub','tasks'],['layout','queue'],['record','another'],['panel','tool-input:other']]){
+   const invalid=new URLSearchParams(params);invalid.set(key,value);
+   expect(parseWorkbenchRoute('?'+invalid).panel).toBe('');
+  }
+  for(const key of ['project','view','sub','run','node','attempt','panel']){
+   const ambiguous=new URLSearchParams(params);ambiguous.append(key,params.get(key)!);
+   expect(parseWorkbenchRoute('?'+ambiguous).panel).toBe('');
+  }
  });
  it('clears the private filter on a project fallback and keeps an accessible same-scope saved route',()=>{
   const current=parseWorkbenchRoute('?project=old&view=development&sub=inbox&inbox_filter=unread&inbox_invalid=1');

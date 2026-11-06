@@ -4189,6 +4189,7 @@ export interface NotificationInboxTask {
   status: string;
 }
 export interface NotificationInboxToolInputTarget {
+  input_id: string;
   run_id: string;
   node_id: string;
   attempt: number;

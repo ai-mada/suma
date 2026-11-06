@@ -45,9 +45,10 @@ func TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned(t *testing
 		t.Fatal("run failures must carry a read-only source locator")
 	}
 	target := mapAt(api, "components", "schemas", "NotificationInboxToolInputTarget", "properties")
-	if !toolInputKind || mapAt(item, "tool_input_target")["readOnly"] != true || len(target) != 3 ||
-		target["run_id"] == nil || target["node_id"] == nil || target["attempt"] == nil {
-		t.Fatal("tool input notifications must carry only a read-only attempt locator")
+	if !toolInputKind || mapAt(item, "tool_input_target")["readOnly"] != true || len(target) != 4 ||
+		target["run_id"] == nil || target["node_id"] == nil || target["attempt"] == nil ||
+		mapAt(target, "input_id")["pattern"] != "^[0-9a-f]{32}$" {
+		t.Fatal("tool input notifications must carry only a read-only question locator")
 	}
 	for _, key := range []string{"title", "current_task", "body", "task_status", "run_id", "tool_input_target"} {
 		if mapAt(api, "components", "schemas", "NotificationInboxCommandReceipt", "properties")[key] != nil {
