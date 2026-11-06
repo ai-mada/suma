@@ -364,5 +364,10 @@
   "release.repair_handoff.review": "正式验收标识",
   "release.repair_handoff.unavailable": "该修复轮次目前无法交接发布候选。请返回来源问题核对当前修复。",
   "release.repair_handoff.conflict": "修复依据已变化。请重新读取依据后再创建候选。",
-  "release.repair_handoff.invalid_receipt": "返回的候选与该修复无法核对。请先恢复原请求，再继续操作。"
+  "release.repair_handoff.invalid_receipt": "返回的候选与该修复无法核对。请先恢复原请求，再继续操作。",
+  "release.repair_source.title": "修复来源",
+  "release.repair_source.open_cycle": "打开第 {{cycle}} 轮修复",
+  "release.repair_source.forward": "正向发布会重新核对当前修复，并需单独审批。",
+  "release.repair_source.rollback": "回滚依据历史健康部署，并需单独审批。",
+  "release.repair_source.history": "这是该操作记录的原始修复来源。"
 }

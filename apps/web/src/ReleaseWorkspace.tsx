@@ -1,20 +1,22 @@
 import {useApi} from './api-context';
 import {ApplicationReleaseSetReference} from './ApplicationReleaseSetReference';
-import {tr,useLocale,formatNumber} from './i18n';
-import {useEffect,useMemo,useState} from 'react';
+import {tr,useLocale,formatNumber,UiError} from './i18n';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowRight,ArrowUpRight,Box,CheckCircle2,ChevronRight,FileCheck2,GitBranch,Plus,RefreshCw,RotateCcw,ShieldCheck,X} from 'lucide-react';
-import {api,query,time,type Session} from './api';
+import {query,time,type Session} from './api';
 import {Empty,ErrorNotice,Loading,Modal} from './ui';
 import {ReleaseWriteRecovery} from './release-write';
 import {useReleaseAction,useReleaseCollection,useReleaseRead,releaseError} from './release-hooks';
-import {deploymentFacts,hasReleaseAction,planStateNames,releaseItemID,releaseNames,type CandidateDetail,type PlanInput,type PlanPreview,type ReleaseArtifact,type ReleaseDeployment,type ReleaseEnvironment,type ReleaseListItem,type ReleaseListKind,type ReleasePlan} from './release-model';
+import {deploymentFacts,hasReleaseAction,planStateNames,releaseItemID,releaseNames,type CandidateDetail,type ReleaseArtifact,type ReleaseDeployment,type ReleaseEnvironment,type ReleaseListItem,type ReleaseListKind,type ReleasePlan} from './release-model';
 import {CandidateForm,EnvironmentForm,PlanDecisionForm,PlanPreparationForm} from './ReleaseForms';
 import {RepairReleaseCandidateForm} from './RepairReleaseCandidateForm';
+import {ReleaseRollbackForm,rollbackReview,type RollbackReview} from './ReleaseRollbackForm';
+import {ReleaseRepairSource} from './ReleaseRepairSource';
 import {repairReleaseIssueHref,repairReleaseTarget,validRepairReleaseHandoff} from './repair-release-handoff';
 import {DeploymentStateFacts,HealthPolicyFacts,ObservationFacts,ProofFacts,ReleaseBlockers,ReleaseFingerprint,ReleaseNamedReference,ReleasePill,ReleaseWriteNotice} from './ReleaseFacts';
 
 type Props={onOpenReleaseSets:()=>void;project:string;session:Session;tab:ReleaseListKind;selected:string;panel:string;search:string;onSearch:(value:string)=>void;refresh:number;onSelect:(id:string,panel?:string)=>void;onTab:(tab:ReleaseListKind,id?:string,panel?:string)=>void};
-type Dialog={kind:'candidate';artifact?:string}|{kind:'environment';value?:ReleaseEnvironment}|{kind:'prepare';candidate?:string;rollback?:PlanInput}|{kind:'decision'|'execute';value:ReleasePlan};
+type Dialog={kind:'candidate';artifact?:string}|{kind:'environment';value?:ReleaseEnvironment}|{kind:'prepare';candidate?:string}|{kind:'rollback';source:ReleaseDeployment;review:RollbackReview}|{kind:'decision'|'execute';value:ReleasePlan};
 function sessionStore(){try{return typeof sessionStorage==='undefined'?undefined:sessionStorage;}catch{return undefined;}}
 function canLeave(){return window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));}
 const short=(value:string)=>value.length>20?value.slice(0,16)+'…':value;
@@ -22,6 +24,9 @@ function reference(project:string,view:string,sub:string,record:string){return '
 
 export function ReleaseWorkspace({project,session,tab,selected,panel,search,onSearch,refresh,onSelect,onTab,onOpenReleaseSets}:Props){ const api=useApi();useLocale();
  const[revision,setRevision]=useState(0),[dialog,setDialog]=useState<Dialog>(),[localError,setLocalError]=useState<unknown>('');
+ const [rollbackReading,setRollbackReading]=useState('');
+ const rollbackPending=useRef<{project:string;id:string}|undefined>(undefined),detailScope=useRef({project,selected});
+ detailScope.current={project,selected};
  const repairTarget=tab==='release-candidates'&&!selected?repairReleaseTarget(panel):undefined;
  const recovery=useMemo(()=>new ReleaseWriteRecovery(session.organization.id+':'+session.user.id+':'+project, sessionStore(), api),[session.organization.id, session.user.id, project, api]),action=useReleaseAction(recovery,()=>{setDialog(undefined);if(repairTarget)onSelect('');}),tick=refresh+revision;
  const collection=useReleaseCollection(project,tab,tick),detail=useReleaseRead<ReleaseListItem>(selected?'/'+tab+'/'+encodeURIComponent(selected)+query(project):'',tick);
@@ -31,7 +36,22 @@ export function ReleaseWorkspace({project,session,tab,selected,panel,search,onSe
  function changed(){setRevision(value=>value+1);}
  function committed(path:string,result:unknown){setDialog(undefined);changed();if(!result||typeof result!=='object')return;const object=result as Record<string,unknown>;if(typeof object.operation_id==='string')onTab('deployments',object.operation_id,'reconcile');else if(object.candidate&&typeof object.candidate==='object')onTab('release-candidates',(object.candidate as {id:string}).id,'basis');else if(typeof object.id==='string')onTab(path.startsWith('/release-plans')?'release-plans':'environments',object.id,path.startsWith('/release-plans')?'review':'current');}
  async function restorePending(){const original=action.pending;if(!original)return;const result=await action.restore<unknown>();if(result)committed(original.path,result);}
- async function prepareRollback(deployment:ReleaseDeployment){setLocalError('');try{const environment=await fetchEnvironment(project,deployment.environment_id);const result=await readRollback(project,deployment.operation_id,environment.generation);setDialog({kind:'prepare',rollback:result.input,candidate:result.input.candidate_id});}catch(error){setLocalError(error);}}
+ async function readRollback(source:ReleaseDeployment){
+  if(source.project_id!==project)throw new UiError('release.validation.preview_stale');
+  const environment=await api<ReleaseEnvironment>('/environments/'+encodeURIComponent(source.environment_id)+query(project));
+  if(environment.project_id!==project||environment.id!==source.environment_id||!Number.isSafeInteger(environment.generation)||environment.generation<0)throw new UiError('release.validation.preview_stale');
+  const result=await api<RollbackReview>('/deployments/'+encodeURIComponent(source.operation_id)+'/rollback-preview',{project_id:project,expected_environment_generation:environment.generation});
+  return rollbackReview(source,environment.generation,result);
+ }
+ async function prepareRollback(source:ReleaseDeployment){
+  if(source.operation_id!==selected||rollbackPending.current?.id===selected&&rollbackPending.current.project===project)return;
+  const request={project,id:selected};
+  const isCurrent=()=>rollbackPending.current===request&&detailScope.current.project===request.project&&detailScope.current.selected===request.id;
+  rollbackPending.current=request;setRollbackReading(request.id);setLocalError('');
+  try{const review=await readRollback(source);if(isCurrent())setDialog({kind:'rollback',source,review});}
+  catch(error){if(isCurrent())setLocalError(error);}
+  finally{if(rollbackPending.current===request){rollbackPending.current=undefined;setRollbackReading('');}}
+ }
  const filtered=(collection.items||[]).filter(item=>(releaseItemTitle(item)+' '+releaseItemID(item)).toLowerCase().includes(search.toLowerCase()));
  return <div className="release-workspace">
   <div className="release-intro"><span className="row-icon"><Box size={19}/></span><div><h2>{releaseNames[tab]}</h2><p>{({artifacts:tr('release.intro.artifacts'),'release-candidates':tr('release.intro.candidates'),environments:tr('release.intro.environments'),'release-plans':tr('release.intro.plans'),deployments:tr('release.intro.deployments')})[tab]}</p></div>{tab==='release-candidates'&&<button type="button" onClick={onOpenReleaseSets}>{tr('application-release-sets.title')}<ArrowUpRight size={13}/></button>}</div>
@@ -45,25 +65,25 @@ export function ReleaseWorkspace({project,session,tab,selected,panel,search,onSe
     {tab==='artifacts'&&<ArtifactDetails artifact={current as ReleaseArtifact} onCandidate={()=>{action.clearError();setDialog({kind:'candidate',artifact:(current as ReleaseArtifact).id});}} disabled={stale||unknown}/>}
     {tab==='release-candidates'&&<CandidateDetails project={project} detail={current as CandidateDetail} onPrepare={()=>{action.clearError();setDialog({kind:'prepare',candidate:(current as CandidateDetail).candidate.id});}} disabled={stale||unknown}/>}
     {tab==='environments'&&<EnvironmentDetails environment={current as ReleaseEnvironment} disabled={stale||unknown} onEdit={()=>{action.clearError();setDialog({kind:'environment',value:current as ReleaseEnvironment});}} onOperation={id=>{if(canLeave())onTab('deployments',id,'reconcile');}} onArtifact={id=>{if(canLeave())onTab('artifacts',id,'proofs');}}/>}
+    {!detail.error&&(tab==='release-plans'||tab==='deployments')&&<ReleaseRepairSource project={project} selected={selected} detail={current as ReleasePlan|ReleaseDeployment}/>}
     {tab==='release-plans'&&<PlanDetails plan={current as ReleasePlan} disabled={stale||unknown} onDecision={()=>{action.clearError();setDialog({kind:'decision',value:current as ReleasePlan});}} onExecute={()=>{action.clearError();setDialog({kind:'execute',value:current as ReleasePlan});}} onCandidate={id=>{if(canLeave())onTab('release-candidates',id,'basis');}} onEnvironment={id=>{if(canLeave())onTab('environments',id,'current');}} onOperation={id=>{if(canLeave())onTab('deployments',id,'reconcile');}}/>}
-    {tab==='deployments'&&<DeploymentDetails deployment={current as ReleaseDeployment} disabled={stale||unknown||action.busy} onPlan={id=>{if(canLeave())onTab('release-plans',id,'review');}} onEnvironment={id=>{if(canLeave())onTab('environments',id,'current');}} onReconcile={async()=>{const deployment=current as ReleaseDeployment;const result=await action.run<ReleaseDeployment>('/deployments/'+encodeURIComponent(deployment.operation_id)+'/reconcile',{project_id:project,expected_version:deployment.version});if(result)committed('/deployments/'+deployment.operation_id+'/reconcile',result);}} onRollback={()=>void prepareRollback(current as ReleaseDeployment)}/>}
+    {tab==='deployments'&&<DeploymentDetails deployment={current as ReleaseDeployment} disabled={stale||unknown||action.busy||rollbackReading===selected} onPlan={id=>{if(canLeave())onTab('release-plans',id,'review');}} onEnvironment={id=>{if(canLeave())onTab('environments',id,'current');}} onReconcile={async()=>{const deployment=current as ReleaseDeployment;const result=await action.run<ReleaseDeployment>('/deployments/'+encodeURIComponent(deployment.operation_id)+'/reconcile',{project_id:project,expected_version:deployment.version});if(result)committed('/deployments/'+deployment.operation_id+'/reconcile',result);}} onRollback={()=>void prepareRollback(current as ReleaseDeployment)}/>}
    </div>}</section>}
   </div>
   <Modal open={!!repairTarget&&!dialog} onClose={()=>{if(canLeave())onSelect('');}} title={tr('release.repair_handoff.title')} description={tr('release.repair_handoff.help')}>
    {repairTarget&&!dialog&&<RepairReleaseCandidateForm key={JSON.stringify([session.user.id,session.organization.id,project,repairTarget.issue,repairTarget.cycle])} project={project} target={repairTarget} refresh={tick} action={action} onCancel={()=>onSelect('')} onRestore={()=>void restorePending()} onSaved={result=>committed('/release-candidates',result)}/>}
   </Modal>
-  <Modal open={!!dialog} onClose={()=>{if(canLeave())setDialog(undefined);}} title={dialog?.kind==='candidate'?tr('release.dialog.candidate'):dialog?.kind==='environment'?(dialog.value?tr('release.dialog.edit_environment'):tr('release.dialog.environment')):dialog?.kind==='prepare'?(dialog.rollback?tr('release.dialog.rollback'):tr('release.toolbar.prepare')):dialog?.kind==='execute'?tr('release.dialog.execute'):tr('release.dialog.review')} description={tr('release.dialog.help')}>
+  <Modal open={!!dialog} onClose={()=>{if(canLeave())setDialog(undefined);}} title={dialog?.kind==='candidate'?tr('release.dialog.candidate'):dialog?.kind==='environment'?(dialog.value?tr('release.dialog.edit_environment'):tr('release.dialog.environment')):dialog?.kind==='rollback'?tr('release.dialog.rollback'):dialog?.kind==='prepare'?tr('release.toolbar.prepare'):dialog?.kind==='execute'?tr('release.dialog.execute'):tr('release.dialog.review')} description={tr('release.dialog.help')}>
    {dialog?.kind==='candidate'&&<CandidateForm key={dialog.artifact||'new'} project={project} action={action} initialArtifact={dialog.artifact} onCancel={()=>setDialog(undefined)} onSaved={result=>committed('/release-candidates',result)}/>}
    {dialog?.kind==='environment'&&<EnvironmentForm key={dialog.value?.id||'new'} project={project} environment={dialog.value} action={action} onCancel={()=>setDialog(undefined)} onSaved={result=>committed('/environments',result)}/>}
-   {dialog?.kind==='prepare'&&<PlanPreparationForm key={dialog.rollback?.rollback_source_operation_id||dialog.candidate||'new'} project={project} initialCandidate={dialog.candidate} rollback={dialog.rollback} action={action} onCancel={()=>setDialog(undefined)} onSaved={result=>committed('/release-plans',result)}/>}
+   {dialog?.kind==='prepare'&&<PlanPreparationForm key={dialog.candidate||'new'} project={project} initialCandidate={dialog.candidate} action={action} onCancel={()=>setDialog(undefined)} onSaved={result=>committed('/release-plans',result)}/>}
+   {dialog?.kind==='rollback'&&<ReleaseRollbackForm key={dialog.source.operation_id} source={dialog.source} initial={dialog.review} refresh={()=>readRollback(dialog.source)} action={action} onRestore={()=>void restorePending()} onCancel={()=>setDialog(undefined)} onSaved={result=>committed('/release-plans',result)}/>}
    {(dialog?.kind==='decision'||dialog?.kind==='execute')&&<PlanDecisionForm key={dialog.kind+dialog.value.id} plan={dialog.value} action={action} execute={dialog.kind==='execute'} onCancel={()=>setDialog(undefined)} onSaved={result=>committed('/release-plans/'+dialog.value.id+(dialog.kind==='execute'?'/execute':'/approve'),result)}/>}
   </Modal>
  </div>;
 }
 
-async function fetchEnvironment(project:string,id:string){return api<ReleaseEnvironment>('/environments/'+encodeURIComponent(id)+query(project));}
 export function ReleaseUnreadList({loading}:{loading:boolean}){useLocale();return loading?<Loading/>:<Empty title={tr('release.list.unread_title')} description={tr('release.list.unread_help')}/>;}
-async function readRollback(project:string,id:string,generation:number){return api<{input:PlanInput;preview:PlanPreview}>('/deployments/'+encodeURIComponent(id)+'/rollback-preview',{project_id:project,expected_environment_generation:generation});}
 
 function releaseItemTitle(item:ReleaseListItem){return 'candidate'in item?item.candidate.name:'name'in item?item.name:'operation_id'in item?tr('release.item.operation',{id:short(item.operation_id)}):'manifest'in item?tr('release.item.artifact',{id:short(item.id)}):tr('release.item.plan',{id:short(item.id)});}
 function releaseItemSummary(tab:ReleaseListKind,item:ReleaseListItem){if(tab==='artifacts'){const value=item as ReleaseArtifact;return tr('release.summary.artifact',{count:value.manifest.files.length,files:formatNumber(value.manifest.files.length),bytes:formatNumber(value.size_bytes),time:time(value.created_at)});}if(tab==='release-candidates'){const value=(item as CandidateDetail).candidate;return tr('release.summary.candidate',{count:value.tasks.length,tasks:formatNumber(value.tasks.length),time:time(value.created_at)});}if(tab==='environments'){const value=item as ReleaseEnvironment;return tr('release.summary.environment',{active:formatNumber(value.active_generation),reserved:formatNumber(value.generation),provider:value.provider_id});}if(tab==='release-plans'){const value=item as ReleasePlan;return tr('release.summary.plan',{revision:formatNumber(value.revision),version:formatNumber(value.version),time:time(value.created_at)});}return tr('release.summary.deployment',{environment:short((item as ReleaseDeployment).environment_id),generation:formatNumber((item as ReleaseDeployment).generation),time:time((item as ReleaseDeployment).created_at)});}
@@ -84,7 +104,7 @@ export function CandidateDetails({project,detail,onPrepare,disabled}:{project?:s
   <ReleaseBlockers items={detail.blockers}/><ReleaseFingerprint value={candidate.artifact_sha256}/><ReleaseFingerprint value={candidate.source_commit} label={tr('release.proof.commit')}/>
   <button className="primary" disabled={disabled||!detail.eligibility} onClick={onPrepare}>{tr('release.candidate.prepare')}<ArrowRight size={14}/></button>
   <section id="release-basis"><h3>{tr('release.candidate.basis')}</h3>
-   {linkedRepair&&<div className="release-task-basis"><a data-release-repair-origin href={repairReleaseIssueHref(candidate.project_id,handoff.issue_id)} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr('release.repair_handoff.open_issue')}<ArrowUpRight size={13} aria-hidden="true"/></a><small>{tr('release.repair_handoff.cycle',{cycle:formatNumber(handoff.cycle)})}</small></div>}
+   {linkedRepair&&<div className="release-task-basis"><a data-release-repair-origin href={repairReleaseIssueHref(candidate.project_id,handoff.issue_id,handoff.cycle)} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr('release.repair_handoff.open_issue')}<ArrowUpRight size={13} aria-hidden="true"/></a><small>{tr('release.repair_handoff.cycle',{cycle:formatNumber(handoff.cycle)})}</small></div>}
    <ProofFacts proof={candidate.build_proof} title={tr('release.candidate.build')}/><ProofFacts proof={candidate.package_test_proof} title={tr('release.candidate.test')}/>
    <h3>{tr('release.candidate.acceptance')}</h3><p className="muted">{tr('release.candidate.acceptance_help')}</p>
    {candidate.tasks.map(task=><div className="release-task-basis" key={task.id}><a href={reference(candidate.project_id,'development','tasks',task.id)}>{tr('release.candidate.open_task',{id:short(task.id)})}<ArrowUpRight size={13}/></a><span>{tr('release.candidate.fixed_version',{version:formatNumber(task.version)})}</span><small>{tr('release.candidate.review',{id:task.review_id})}</small><ReleaseFingerprint value={task.sha256} label={tr('release.candidate.task_hash')}/></div>)}

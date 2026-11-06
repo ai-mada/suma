@@ -42,6 +42,10 @@ Deployment：`{operation_id,project_id,version,plan_id,plan_revision,plan_sha256
 
 问题重开或交接依据漂移时，原候选仍可读取，但不可用于新的正向发布。候选列表和已存在的正向计划都按当前证据表达资格。历史部署和回滚继续按原同环境、健康记录和原制品规则核对。
 
+发布计划与部署详情可返回只读 `repair_source={issue_id,cycle,candidate_id}`。来源从固定的候选与计划关系读取，部署还核对原操作绑定。该引用供审计和导航，问题重开后仍可显示。已经批准但失去执行资格的正向计划仍可由当前有权人撤销批准。
+
+回滚审阅使用历史部署回滚预览中的准确计划和环境代数。页面分别展示回滚资格与原候选的正向资格。创建回滚计划时服务端重新核对原预览、环境代数和同环境健康记录。
+
 ## Runner/Provider API 与共享 DTO
 
 Runner 请求携带管理员登记的专属 worker 发布凭证；只对真实 managed run/node/current attempt/fence/worker + 未停止有效租约发放授权。

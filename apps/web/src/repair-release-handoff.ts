@@ -25,8 +25,15 @@ export function repairReleaseHref(project:string,target:RepairReleaseTarget){
  return '?'+new URLSearchParams({project,view:'operations',sub:'release-candidates',panel:'repair-release:'+target.issue+':'+target.cycle});
 }
 
-export function repairReleaseIssueHref(project:string,issue:string){
- return '?'+new URLSearchParams({project,view:'quality',sub:'issues',record:issue});
+export function repairReleaseIssueHref(project:string,issue:string,cycle?:number){
+ return '?'+new URLSearchParams({project,view:'quality',sub:'issues',record:issue,...(positive(cycle)?{panel:'repair-cycle:'+cycle}:{})});
+}
+
+export function issueRepairCycleTarget(panel:string){
+ const match=/^repair-cycle:([1-9][0-9]{0,9})$/.exec(panel);
+ if(!match)return;
+ const cycle=Number(match[1]);
+ if(positive(cycle))return cycle;
 }
 
 export function validRepairReleaseHandoff(value:unknown):value is IssueRepairReleaseHandoff{

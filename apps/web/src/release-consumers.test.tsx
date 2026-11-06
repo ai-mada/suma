@@ -3,6 +3,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {describe,expect,it} from 'vitest';
 import {ArtifactDetails,CandidateDetails,DeploymentDetails,PlanDetails,ReleaseUnreadList} from './ReleaseWorkspace';
 import {ReleaseNamedReferenceView} from './ReleaseFacts';
+import {ReleaseRepairSource} from './ReleaseRepairSource';
 import {parseWorkbenchRoute} from './navigation';
 import {releaseItemID,releaseListPath,releaseReferenceName,releaseReferencePath,type ReleaseArtifact,type ReleaseDeployment,type ReleasePlan} from './release-model';
 
@@ -51,6 +52,12 @@ describe('release rendered consumers and deep links',()=>{
   const html=renderToStaticMarkup(createElement(PlanDetails,{plan,disabled:false,onDecision:noop,onExecute:noop,onCandidate:noop,onEnvironment:noop,onOperation:noop}));
   for(const text of ['r1','v9','plan-hash','basis_changed','任务验收依据已变化','历史批准依据','artifact-hash','accepted-basis','expected-body','env-real','site-real'])expect(html).toContain(text);
   expect(html).not.toContain('执行这份已批准计划');
+  const linked={...plan,content:{...plan.content,action:'rollback'},repair_source:{issue_id:'original-issue',cycle:2,candidate_id:plan.content.candidate_id}};
+  const source=renderToStaticMarkup(createElement(ReleaseRepairSource,{project:'p',selected:'plan',detail:linked}));
+  expect(source).toContain('record=original-issue&amp;panel=repair-cycle%3A2');
+  expect(source).toContain('回滚依据历史健康部署');
+  expect(renderToStaticMarkup(createElement(ReleaseRepairSource,{project:'different',selected:'plan',detail:linked}))).toBe('');
+  expect(renderToStaticMarkup(createElement(ReleaseRepairSource,{project:'p',selected:'plan',detail:{...linked,repair_source:{...linked.repair_source,candidate_id:'other'}}}))).toBe('');
  });
  it('shows applied content and failed health together and gives only server permitted recovery actions',()=>{
   const deployment={operation_id:'op-real',project_id:'p',version:3,plan_id:'plan-real',environment_id:'env-real',artifact_sha256:'artifact-real',run_id:'managed-run',node_id:'deploy',state:'deployed_unhealthy',effect_state:'applied',health_state:'failed',allowed_actions:['reconcile','rollback_preview'],blockers:[],observation:null,observations:[],issue_id:'issue-real',created_at:'2026-10-24T00:00:00Z'} as unknown as ReleaseDeployment;

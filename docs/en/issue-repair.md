@@ -45,6 +45,8 @@ For a package-test issue, use the original run and artifact links to inspect the
 
 When a closed cycle remains eligible, open its release candidate form from the issue. The form loads the current accepted task and sealed artifact proofs for that exact cycle. Enter a candidate name and confirm creation. The candidate links back to the issue and preserves the handoff. Reopening the issue makes that candidate ineligible for future forward releases, while historical deployments keep their original records.
 
+Release plans and deployment details link back to the source repair cycle. An authorized reviewer can revoke an approval after the forward plan loses eligibility. To roll back, open the original healthy deployment in the same environment and review the server's rollback preview and generation before creating and approving a new rollback plan.
+
 ## Reopen without rewriting history
 
 A browser user with Review authority can reopen a closed issue with a reason. The original closure, task and evidence remain. The cycle increases and has no current repair task until another explicit Prepare. That next Prepare creates a new task while preserving the same canonical intake requirement. An already accepted task is not reused as a mutable repair container.

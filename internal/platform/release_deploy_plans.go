@@ -231,7 +231,7 @@ func (s *Service) releasePlanBasisReadTx(ctx context.Context, tx *sql.Tx, p Prin
 	if err != nil {
 		return err
 	}
-	if candidate.ArtifactID != plan.Content.ArtifactID || candidate.ArtifactSHA256 != plan.Content.ArtifactSHA256 || candidate.SourceCommit != plan.Content.SourceCommit || candidate.BuildAttestationID != plan.Content.BuildAttestationID || candidate.PackageTestAttestationID != plan.Content.PackageTestAttestationID || candidate.AcceptedTaskBasisSHA256 != plan.Content.AcceptedTaskBasisSHA256 {
+	if !releaseCandidateMatchesPlan(candidate, plan.Content) {
 		return releaseConflict("release_basis_changed", "候选发布依据已变化")
 	}
 	return nil
@@ -495,6 +495,9 @@ func (s *Service) ReleasePlan(ctx context.Context, actor Actor, project, id stri
 		defer cancel()
 		var e error
 		result0, e = s.readReleasePlanTx(bounded, auth, project, id)
+		if e == nil {
+			result0.RepairSource, e = s.releasePlanRepairSourceReadTx(bounded, auth.tx, auth.target.tenantID, project, result0)
+		}
 		return e
 	})
 	return result0, err
@@ -569,12 +572,14 @@ func (s *Service) readReleasePlanTx(ctx context.Context, auth *authorizedCommand
 	admin := auth.actor.IsBrowser() && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
 	if admin && plan.ExecutionOperationID == "" && basis == nil {
 		if plan.State == "approved" {
-			plan.AllowedActions = append(plan.AllowedActions, "execute", "revoke")
+			plan.AllowedActions = append(plan.AllowedActions, "execute")
 		} else if plan.State == "pending_approval" || plan.State == "rejected" || plan.State == "revoked" {
 			plan.AllowedActions = append(plan.AllowedActions, "approve", "reject")
 		}
 	}
-	if admin && plan.ExecutionOperationID != "" && plan.Approval != nil && plan.Approval.Decision == "approved" {
+	// Revocation withdraws existing approval and must remain available after
+	// the approved candidate basis becomes stale.
+	if admin && plan.Approval != nil && plan.Approval.Decision == "approved" {
 		plan.AllowedActions = append(plan.AllowedActions, "revoke")
 	}
 	return plan, nil

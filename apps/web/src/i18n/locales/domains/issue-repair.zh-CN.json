@@ -68,6 +68,7 @@
   "issue-repair.history": "修复历史（共 {{count}} 轮）",
   "issue-repair.reopened_at": "重开时间：{{at}}",
   "issue-repair.history_limited": "这里只显示部分历史，较早记录仍保留。",
+  "issue-repair.linked_cycle_unavailable": "链接指向的第 {{cycle}} 轮关闭记录未在此处显示，或暂不可读取。",
   "issue-repair.closure_details": "已记录的关闭依据",
   "issue-repair.closed_at": "关闭时间",
   "issue-repair.closed_by": "关闭人",

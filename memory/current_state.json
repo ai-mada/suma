@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "package_repair_deployment": {
+    "stage": "T-PACKAGE-REPAIR-DEPLOY-256",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "1655ce75fac9bf21af645ac7b137ba8da0fffbc9",
+    "report": "docs/quality/package-repair-deployment-verification.md",
+    "actual": "Protected repair source is available on release plan and deployment details. Reopened repairs block forward execution while preserving approval revocation. Historical rollback has its own server preview, explicit creation and traceable repair cycle.",
+    "verification": "Real Windows SQLite and loopback static provider recovered repair bytes across generations 1, 2 and 3. Reopen blocked new and already-approved forward deployment; revocation and historical rollback succeeded. Browser and localized checks are scoped in the report.",
+    "known_limitations": "Actual provider was isolated and managed deployment used the dedicated release route after Pool execution. Physical multihost, OceanBase, direct managed deployment on Pool and production remain open.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q256/post-git.json"
+  },
   "package_repair_release": {
     "stage": "T-PACKAGE-REPAIR-RELEASE-255",
     "version": "1.0.0",

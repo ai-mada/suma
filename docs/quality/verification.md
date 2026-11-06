@@ -22,6 +22,8 @@ T-POOL-RUNNER-OCCUPANCY 核验拥有方当前授权、真实领取和待核对�
 
 T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
 
+T-PACKAGE-REPAIR-DEPLOY-256 真实隔离提供方验证修复制品发布、不同制品发布、重开阻断及第三代回滚，HTTP 字节恢复并保留原健康记录。 [阶段报告](package-repair-deployment-verification.md)
+
 T-PACKAGE-REPAIR-RELEASE-255 真实共享池验证精确修复交接、候选原回执与重开失效，工作台核对中英文候选审阅。 [阶段报告](package-repair-release-verification.md)
 
 T-PACKAGE-TEST-REPAIR-254 真实共享池原封存包失败后，纠正构建、独立复验、正式 Review 和关单通过。已验收的 JUnit-only 运行仍无法关单。 [阶段报告](package-test-repair-verification.md)

@@ -5657,6 +5657,7 @@ export interface ReleaseDeployment {
   updated_at: string;
   allowed_actions: (string)[];
   blockers: (ReleaseBlocker)[];
+  repair_source?: ReleaseRepairSource | null;
 }
 export interface ReleaseEnvironment {
   id: string;
@@ -5728,6 +5729,7 @@ export interface ReleasePlan {
   eligibility: boolean;
   blockers: (ReleaseBlocker)[];
   allowed_actions: (string)[];
+  repair_source?: ReleaseRepairSource | null;
 }
 export interface ReleasePlanContent {
   application_release_set?: ApplicationReleaseSetRef | null;
@@ -5795,6 +5797,11 @@ export interface ReleaseProviderOption {
   site_ids: (string)[];
   kind: string;
   capability_state: string;
+}
+export interface ReleaseRepairSource {
+  issue_id: string;
+  cycle: number;
+  candidate_id: string;
 }
 export interface ReleaseResult {
   operation_id: string;

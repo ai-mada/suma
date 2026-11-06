@@ -82,6 +82,44 @@ it('keeps future state codes and provider diagnostics precise while translating 
 it('translates invalid preview selection and retains the same form without network writes',async()=>{
  await render(<PreparationConsumer/>);await act(async()=>host.querySelector('form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));expect(host.textContent).toContain('Select and read an actual release environment.');const form=host.querySelector('form');await switchToChinese();expect(host.textContent).toContain('请选择并读取真实发布环境。');expect(host.querySelector('form')).toBe(form);expect(writes).toHaveLength(0);
 });
+it('uses the authorized rollback preview without forward candidate reads and recovers a lost create receipt inside the dialog',async()=>{
+ const source={...deployment,state:'deployed_healthy',repair_source:{issue_id:'repair-source',cycle:1,candidate_id:candidate.candidate.id}};
+ const input={project_id:project,candidate_id:candidate.candidate.id,environment_id:environment.id,action:'rollback',expected_environment_generation:8,rollback_source_operation_id:source.operation_id};
+ const preview={preview_sha256:'a'.repeat(64),environment,candidate_id:input.candidate_id,action:'rollback',health:environment.health,eligibility:true,blockers:[],allowed_actions:['create']};
+ const previous=vi.mocked(fetch).getMockImplementation()!,onTab=vi.fn();
+ let lost=true;
+ vi.mocked(fetch).mockImplementation(async(input,options)=>{
+  const path=new URL(String(input),location.href).pathname.replace(/^\/api\/v1/,'');
+  if(path==='/deployments')return Response.json({items:[source],total:1});
+  if(path==='/deployments/'+source.operation_id)return Response.json(source);
+  if(path==='/deployments/'+source.operation_id+'/rollback-preview'){
+   expect(JSON.parse(String(options?.body))).toEqual({project_id:project,expected_environment_generation:8});
+   return Response.json({input:rollbackInput,preview});
+  }
+  if(path==='/release-plans'&&options?.method==='POST'){
+   writes.push({path,body:JSON.parse(String(options.body))});
+   if(lost){lost=false;return Response.json({error:{code:'internal_error',message:'Receipt lost'}},{status:503});}
+   return Response.json(plan,{status:201});
+  }
+  return previous(input,options);
+ });
+ const rollbackInput=input;
+ await render(<ReleaseWorkspace onOpenReleaseSets={noop} project={project} session={session} tab="deployments" selected={source.operation_id} panel="" search="" onSearch={noop} refresh={0} onSelect={noop} onTab={onTab}/>);
+ expect(host.querySelector('[data-release-repair-source] a')?.getAttribute('href')).toBe('?project=release-project&view=quality&sub=issues&record=repair-source&panel=repair-cycle%3A1');
+ await click('Prepare independent rollback plan');
+ const dialog=document.querySelector('[role=dialog]');
+ expect(dialog?.querySelector('form select')).toBeNull();
+ expect(dialog?.textContent).toContain(source.operation_id);
+ expect(writes).toHaveLength(0);
+ await click('Save immutable plan');
+ expect(writes[0].body).toMatchObject({...input,preview_sha256:preview.preview_sha256});
+ const restore=[...document.querySelectorAll<HTMLButtonElement>('[role=dialog] button')].find(button=>button.textContent?.trim()==='Recover original operation receipt');
+ expect(restore).toBeDefined();
+ await act(async()=>restore!.click());await settle();
+ expect(writes[1]).toEqual(writes[0]);
+ expect(onTab).toHaveBeenCalledWith('release-plans',plan.id,'review');
+ expect(vi.mocked(fetch).mock.calls.some(([path])=>String(path).includes('/release-candidates'))).toBe(false);
+});
 it('keeps edited environment health paths and their exact configuration version while switching',async()=>{
  await render(<EnvironmentConsumer/>);expect(host.textContent).toContain('Environment name');const name=host.querySelector<HTMLInputElement>('input[name=name]')!,path=host.querySelector<HTMLInputElement>('input[placeholder="/"]')!;await change(name,'用户环境草稿');await change(path,'/原始路径');const requests=vi.mocked(fetch).mock.calls.length;await switchToChinese();expect(path.isConnected).toBe(true);expect(path.value).toBe('/原始路径');expect(name.value).toBe('用户环境草稿');expect(vi.mocked(fetch).mock.calls).toHaveLength(requests);await click('保存环境配置');expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({path:'/environments/environment-original',body:{project_id:project,name:'用户环境草稿',expected_version:4,status:'active',health:{checks:[{path:'/原始路径',expected_status:200,expected_file:'原始文件.html',expected_sha256:'file-original'}],timeout_ms:2000,attempts:3}}});
 });

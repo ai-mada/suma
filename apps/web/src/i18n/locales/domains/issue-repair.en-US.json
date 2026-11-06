@@ -68,6 +68,7 @@
   "issue-repair.history": "Repair history ({{count}})",
   "issue-repair.reopened_at": "Reopened at {{at}}",
   "issue-repair.history_limited": "Only part of the history is shown here. Earlier records remain preserved.",
+  "issue-repair.linked_cycle_unavailable": "The closure for linked repair cycle {{cycle}} is outside the records shown here or is unavailable.",
   "issue-repair.closure_details": "Recorded closure evidence",
   "issue-repair.closed_at": "Closed at",
   "issue-repair.closed_by": "Closed by",

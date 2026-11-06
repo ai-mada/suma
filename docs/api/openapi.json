@@ -29909,6 +29909,18 @@
           "provider_id": {
             "type": "string"
           },
+          "repair_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReleaseRepairSource"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Historical repair cycle from the exact protected candidate and plan binding, provided on authorized detail reads. Does not express current forward release eligibility.",
+            "readOnly": true
+          },
           "request_sha256": {
             "type": "string"
           },
@@ -30253,6 +30265,18 @@
           "project_id": {
             "type": "string"
           },
+          "repair_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReleaseRepairSource"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Historical repair cycle from the exact protected candidate and plan binding, provided on authorized detail reads. Does not express current forward release eligibility.",
+            "readOnly": true
+          },
           "revision": {
             "description": "Immutable content revision; v1 always 1 and content edits create a new plan.",
             "minimum": 1,
@@ -30593,6 +30617,33 @@
           "site_ids",
           "kind",
           "capability_state"
+        ],
+        "type": "object"
+      },
+      "ReleaseRepairSource": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "cycle": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "issue_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "issue_id",
+          "cycle",
+          "candidate_id"
         ],
         "type": "object"
       },

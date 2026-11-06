@@ -326,6 +326,9 @@ func (s *Service) ReleaseDeployment(ctx context.Context, actor Actor, project, i
 		defer cancel()
 		var e error
 		result0, e = s.readReleaseDeploymentTx(bounded, auth, project, id)
+		if e == nil {
+			result0.RepairSource, e = s.releaseDeploymentRepairSourceReadTx(bounded, auth.tx, auth.target.tenantID, project, result0)
+		}
 		return e
 	})
 	return result0, err

@@ -55,6 +55,15 @@ type ReleaseApproval struct {
 	At         string `json:"at"`
 	PlanSHA256 string `json:"plan_sha256"`
 }
+
+// ReleaseRepairSource identifies the immutable repair behind a release detail.
+// It remains a source reference when the issue or forward eligibility changes.
+type ReleaseRepairSource struct {
+	IssueID     string `json:"issue_id"`
+	Cycle       int    `json:"cycle"`
+	CandidateID string `json:"candidate_id"`
+}
+
 type ReleasePlan struct {
 	ID                   string                `json:"id"`
 	ProjectID            string                `json:"project_id"`
@@ -71,6 +80,7 @@ type ReleasePlan struct {
 	Eligibility          bool                  `json:"eligibility"`
 	Blockers             []ReleaseBlocker      `json:"blockers"`
 	AllowedActions       []string              `json:"allowed_actions"`
+	RepairSource         *ReleaseRepairSource  `json:"repair_source,omitempty"`
 }
 type ReleasePlanInput struct {
 	ProjectID                     string `json:"project_id"`
@@ -120,6 +130,7 @@ type ReleaseDeployment struct {
 	ExecutedBy     string                     `json:"-"`
 	AllowedActions []string                   `json:"allowed_actions"`
 	Blockers       []ReleaseBlocker           `json:"blockers"`
+	RepairSource   *ReleaseRepairSource       `json:"repair_source,omitempty"`
 }
 
 func (s *Service) InitializeReleaseDeployment(ctx context.Context) error {

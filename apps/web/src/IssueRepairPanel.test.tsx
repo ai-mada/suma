@@ -19,7 +19,7 @@ let root:Root|undefined,host:HTMLDivElement,reads:{path:string;signal?:AbortSign
 beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();host=document.createElement('div');document.body.append(host);reads=[];writes=[];vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);});
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host.remove();vi.unstubAllGlobals();vi.restoreAllMocks();await setLocale('zh-CN',{persist:false});});
 async function settle(){for(let n=0;n<3;n++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
-async function render(s=session,p=project,i=issue,onChanged:()=>void|Promise<void>=()=>{}){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={s}><IssueRepairPanel session={s} project={p} issueId={i} issueVersion={3} refresh={0} onChanged={onChanged}/></ApiViewProvider>);});await settle();}
+async function render(s=session,p=project,i=issue,onChanged:()=>void|Promise<void>=()=>{},panel=''){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={s}><IssueRepairPanel session={s} project={p} issueId={i} issueVersion={3} panel={panel} refresh={0} onChanged={onChanged}/></ApiViewProvider>);});await settle();}
 function transport(reply:(path:string,options?:RequestInit)=>Promise<Response>){vi.stubGlobal('fetch',vi.fn(async(input:string,options?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(options?.body)writes.push({path,body:JSON.parse(String(options.body)),headers:new Headers(options.headers)});else reads.push({path,signal:options?.signal});return reply(path,options);}));}
 async function click(selector:string){const element=host.querySelector<HTMLElement>(selector);expect(element,selector).not.toBeNull();await act(async()=>element!.click());await settle();}
 async function change(selector:string,value:string){const element=host.querySelector<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(selector);expect(element,selector).not.toBeNull();const proto=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(element,value);element!.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
@@ -82,4 +82,18 @@ it('retains the exact verified package links after reopening',async()=>{
  const card=host.querySelector('[data-ir-history] [data-ir-package="regression"]');
  expect(card?.querySelector('[data-ir-package-attempt]')?.getAttribute('href')).toBe('?project=project-a&view=development&sub=runs&run=run-a&node=verify-package&attempt=4');
  expect(card?.querySelector('[data-ir-package-artifact]')?.getAttribute('href')).toBe('?project=project-a&view=operations&sub=artifacts&record=repaired-package');
+});
+
+it('reveals the exact linked historical closure and discloses unavailable cycles',async()=>{
+ const finished=closed(),previous={...finished.current!,reopened_at:stamp,reopened_by:'user-a',reopen_reason:'Regression reported'};
+ transport(async()=>Response.json({...view(),cycle:8,history:[previous],history_total:4,history_complete:false}));
+ await render(session,project,issue,undefined,'repair-cycle:1');
+ const original=host.querySelector('[data-ir-cycle="1"]');
+ expect(original?.closest('details')?.open).toBe(true);
+ expect(original?.querySelector('details')?.open).toBe(true);
+ expect(original?.textContent).toContain('Verified the exact fix');
+ await render(session,project,issue,undefined,'repair-cycle:2');
+ expect(host.textContent).toContain('linked repair cycle 2');
+ expect(host.querySelector('[data-ir-cycle="2"]')).toBeNull();
+ expect(writes).toHaveLength(0);
 });

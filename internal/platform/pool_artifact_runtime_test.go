@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
+	"slices"
 	"strings"
 	"testing"
 
@@ -631,6 +632,26 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		if !replayed.Eligibility || replayed.Candidate.ID != issued.ID {
 			t.Fatal("candidate replay changed the original release handoff", replayed)
 		}
+
+		// The shared Pool delivered and tested the artifact. The project uses a
+		// dedicated Runner for the managed release and its subsequent rollback.
+		dispatchSetRoute(t, f, 1, nil)
+		deployment := newRepairDeploymentFixture(t, f, h.control.URL)
+		firstPlan := deployment.approve(t, deployment.forwardInput(issued.ID, 0), "")
+		first := deployment.deploy(t, firstPlan, output)
+		variant := releaseVariantCandidate(t, f)
+		if first.Generation != 1 || variant.ArtifactSHA256 == issued.ArtifactSHA256 {
+			t.Fatal("the intervening candidate must contain different sealed bytes")
+		}
+		secondPlan := deployment.approve(t, deployment.forwardInput(variant.ID, first.Generation), "")
+		second := deployment.deploy(t, secondPlan, releaseVariantHTML)
+		if second.Generation != 2 || second.ArtifactID == first.ArtifactID {
+			t.Fatal("the second deployment did not replace the repaired package")
+		}
+		// Even an already approved forward plan must recheck the issue when it
+		// attempts to start. Its failure must leave generation 2 unmodified.
+		stalePlan := deployment.approve(t, deployment.forwardInput(issued.ID, second.Generation), "")
+
 		reopened := issueRepairRuntimeDecode[IssueRepairView](t, f.call("POST", repairPath+"/reopen", IssueRepairReopenRequest{
 			ProjectID: f.project, ExpectedIssueVersion: closed.Issue.Version, ExpectedRepairVersion: closed.Current.Version,
 			Reason: "Fixture owner confirms the defect has resurfaced.", IdempotencyKey: newID(),
@@ -649,7 +670,57 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		}
 		releaseRequest["idempotency_key"] = newID()
 		f.call("POST", "/release-candidates", releaseRequest, 409)
+
+		forwardConflict := f.call("POST", "/release-plans/preview", deployment.forwardInput(issued.ID, second.Generation), 409)
+		stalePlanPath := "/release-plans/" + stalePlan.ID
+		stalePlanRead := f.call("GET", stalePlanPath+"?project_id="+f.project, nil, 200)
+		assertRepairReleaseSource(t, stalePlanRead, *handoff, issued.ID)
+		stalePlan = issueRepairRuntimeDecode[ReleasePlan](t, stalePlanRead)
+		if stalePlan.Eligibility || slices.Contains(stalePlan.AllowedActions, "execute") ||
+			!slices.Contains(stalePlan.AllowedActions, "revoke") {
+			t.Fatal("stale approved plan must block execute while allowing revocation", stalePlan.AllowedActions)
+		}
+		executeConflict := f.call("POST", stalePlanPath+"/execute", releaseExecuteBody(f, stalePlan), 409)
+		for _, conflict := range []map[string]any{forwardConflict, executeConflict} {
+			apiError, _ := conflict["error"].(map[string]any)
+			if apiError["code"] != "release_basis_changed" {
+				t.Fatal("forward release must fail on the changed repair basis", apiError)
+			}
+		}
+		revoked := issueRepairRuntimeDecode[ReleasePlan](t, f.call("POST", stalePlanPath+"/approve", f.body(map[string]any{
+			"expected_version": stalePlan.Version, "plan_revision": stalePlan.Revision, "plan_sha256": stalePlan.SHA256,
+			"decision": "revoked", "reason": "Revoke unused forward authorization after the original issue reopened.",
+		}), 200))
+		if revoked.Approval == nil || revoked.Approval.Decision != "revoked" {
+			t.Fatal("stale approved plan did not allow revocation")
+		}
+		rollbackPreview := f.call("POST", "/deployments/"+first.OperationID+"/rollback-preview",
+			map[string]any{"project_id": f.project, "expected_environment_generation": second.Generation}, 200)
+		rollbackInput, ok := rollbackPreview["input"].(map[string]any)
+		preview, hasPreview := rollbackPreview["preview"].(map[string]any)
+		if !ok || !hasPreview || rollbackInput["candidate_id"] != issued.ID || rollbackInput["environment_id"] != deployment.env.ID ||
+			rollbackInput["rollback_source_operation_id"] != first.OperationID || rollbackInput["action"] != "rollback" || str(preview, "preview_sha256") == "" {
+			t.Fatal("historical rollback did not return the exact healthy deployment and candidate", rollbackPreview)
+		}
+		rollbackPlan := deployment.approve(t, rollbackInput, str(preview, "preview_sha256"))
+		rolledBack := deployment.deploy(t, rollbackPlan, output)
+		if rolledBack.OperationID == first.OperationID || rolledBack.Generation != 3 || rolledBack.ArtifactID != first.ArtifactID {
+			t.Fatal("rollback must restore the original repaired package in a new operation and generation", rolledBack)
+		}
+		rollbackRead := f.call("GET", "/deployments/"+rolledBack.OperationID+"?project_id="+f.project, nil, 200)
+		assertRepairReleaseSource(t, rollbackRead, *handoff, issued.ID)
+		historicalRead := f.call("GET", "/deployments/"+first.OperationID+"?project_id="+f.project, nil, 200)
+		assertRepairReleaseSource(t, historicalRead, *handoff, issued.ID)
+		historicalDeployment := issueRepairRuntimeDecode[ReleaseDeployment](t, historicalRead)
+		if historicalDeployment.State != "deployed_healthy" || historicalDeployment.Observation == nil ||
+			historicalDeployment.Observation.EvidenceSHA256 != first.Observation.EvidenceSHA256 ||
+			historicalDeployment.Generation != first.Generation || historicalDeployment.ArtifactID != first.ArtifactID {
+			t.Fatal("later deployments or issue reopen altered the original healthy observation", historicalDeployment)
+		}
 		t.Logf("package_repair_release_candidate=%s repair=%s artifact=%s build_proof=%s package_proof=%s review=%s reopened_cycle=%d",
 			issued.ID, handoff.RepairID, issued.ArtifactID, issued.BuildAttestationID, issued.PackageTestAttestationID, handoff.ReviewID, reopened.Cycle)
+		t.Logf("package_repair_deployment=%s intervening_deployment=%s rollback=%s generations=%d,%d,%d restored_manifest=%s restored_body_sha256=%s original_health=%s rollback_health=%s",
+			first.OperationID, second.OperationID, rolledBack.OperationID, first.Generation, second.Generation, rolledBack.Generation,
+			rolledBack.ArtifactSHA256, digest(output), first.Observation.EvidenceSHA256, rolledBack.Observation.EvidenceSHA256)
 	})
 }

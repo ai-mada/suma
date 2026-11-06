@@ -86,7 +86,7 @@ type ReleaseRollbackPreview struct {
 }
 
 func releaseModels() []any {
-	return []any{platform.ReleaseWorker{}, platform.ReleaseWorkerList{}, platform.ReleaseWorkerRotationRequest{}, platform.ReleaseWorkerRotationResult{}, platform.ReleaseWorkerUploadRecoveryItem{}, platform.ReleaseWorkerUploadRecoveryView{}, platform.ReleaseWorkerUploadAbandonRequest{}, platform.ReleaseWorkerUploadAbandonResult{}, platform.ReleaseWorkerCandidateRecoveryItem{}, platform.ReleaseWorkerCandidateRecoveryView{}, platform.ReleaseWorkerCandidateAbandonRequest{}, platform.ReleaseWorkerCandidateAbandonResult{}, platform.ReleaseCandidateView{}, platform.ReleaseArtifact{}, platform.ReleaseEnvironment{}, platform.ReleasePlan{}, platform.ReleasePlanInput{}, platform.ReleasePlanPreview{}, platform.ReleaseDeployment{}, ProjectVersionedOperation{}, ReleaseWorkerRegisterRequest{}, ReleaseWorkerCreation{}, ReleaseWorkerRevokeRequest{}, ReleaseCandidateCreateRequest{}, ReleaseProviderOption{}, ReleaseEnvironmentList{}, ReleaseEnvironmentCreateRequest{}, ReleaseEnvironmentUpdateRequest{}, ReleasePlanExecuteRequest{}, ReleasePlanDecisionRequest{}, ReleaseRollbackPreviewRequest{}, ReleaseRollbackPreview{}, rc.ArtifactUploadRequest{}, rc.ArtifactUploadState{}, rc.ArtifactSealRequest{}, rc.ArtifactSealReceipt{}, rc.ArtifactResolveRequest{}, rc.ArtifactBinding{}, rc.ReleaseAuthorizationRequest{}, rc.ReleaseAuthorization{}, rc.DeploymentRequest{}, rc.NonSecretDeploymentRequest{}, rc.ConsumeDeploymentAuthorization{}, rc.InspectDeploymentAuthorization{}, rc.DeploymentAuthorizationGrant{}, rc.BeginDeploymentEffect{}, rc.DeploymentEffectGrant{}}
+	return []any{platform.ReleaseWorker{}, platform.ReleaseWorkerList{}, platform.ReleaseWorkerRotationRequest{}, platform.ReleaseWorkerRotationResult{}, platform.ReleaseWorkerUploadRecoveryItem{}, platform.ReleaseWorkerUploadRecoveryView{}, platform.ReleaseWorkerUploadAbandonRequest{}, platform.ReleaseWorkerUploadAbandonResult{}, platform.ReleaseWorkerCandidateRecoveryItem{}, platform.ReleaseWorkerCandidateRecoveryView{}, platform.ReleaseWorkerCandidateAbandonRequest{}, platform.ReleaseWorkerCandidateAbandonResult{}, platform.ReleaseCandidateView{}, platform.ReleaseArtifact{}, platform.ReleaseEnvironment{}, platform.ReleasePlan{}, platform.ReleasePlanInput{}, platform.ReleasePlanPreview{}, platform.ReleaseDeployment{}, platform.ReleaseRepairSource{}, ProjectVersionedOperation{}, ReleaseWorkerRegisterRequest{}, ReleaseWorkerCreation{}, ReleaseWorkerRevokeRequest{}, ReleaseCandidateCreateRequest{}, ReleaseProviderOption{}, ReleaseEnvironmentList{}, ReleaseEnvironmentCreateRequest{}, ReleaseEnvironmentUpdateRequest{}, ReleasePlanExecuteRequest{}, ReleasePlanDecisionRequest{}, ReleaseRollbackPreviewRequest{}, ReleaseRollbackPreview{}, rc.ArtifactUploadRequest{}, rc.ArtifactUploadState{}, rc.ArtifactSealRequest{}, rc.ArtifactSealReceipt{}, rc.ArtifactResolveRequest{}, rc.ArtifactBinding{}, rc.ReleaseAuthorizationRequest{}, rc.ReleaseAuthorization{}, rc.DeploymentRequest{}, rc.NonSecretDeploymentRequest{}, rc.ConsumeDeploymentAuthorization{}, rc.InspectDeploymentAuthorization{}, rc.DeploymentAuthorizationGrant{}, rc.BeginDeploymentEffect{}, rc.DeploymentEffectGrant{}}
 }
 
 func releaseContracts(add operationAdder) {
@@ -354,6 +354,14 @@ func enhanceReleaseSchemas(schemas map[string]any) {
 	field("ReleasePlan", "revision", map[string]any{"minimum": 1, "description": "Immutable content revision; v1 always 1 and content edits create a new plan."})
 	field("ReleaseDeployment", "effect_state", map[string]any{"enum": []string{"not_started", "applied", "unknown"}})
 	field("ReleaseDeployment", "health_state", map[string]any{"enum": []string{"not_checked", "passed", "failed", "unknown"}})
+	toolContractMap(schemas, "ReleaseRepairSource")["additionalProperties"] = false
+	for _, model := range []string{"ReleasePlan", "ReleaseDeployment"} {
+		field(model, "repair_source", map[string]any{"readOnly": true, "description": "Historical repair cycle from the exact protected candidate and plan binding, provided on authorized detail reads. Does not express current forward release eligibility."})
+	}
+	for _, name := range []string{"issue_id", "candidate_id"} {
+		field("ReleaseRepairSource", name, map[string]any{"readOnly": true, "pattern": "^[A-Za-z0-9_-]{1,64}$"})
+	}
+	field("ReleaseRepairSource", "cycle", map[string]any{"readOnly": true, "minimum": 1, "maximum": 2147483646})
 	field("HealthPolicy", "checks", map[string]any{"minItems": 1, "maxItems": 8})
 	field("HealthPolicy", "timeout_ms", map[string]any{"minimum": 100, "maximum": 10000})
 	field("HealthPolicy", "attempts", map[string]any{"minimum": 1, "maximum": 5})

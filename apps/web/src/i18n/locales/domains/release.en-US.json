@@ -364,5 +364,10 @@
   "release.repair_handoff.review": "Formal Review ID",
   "release.repair_handoff.unavailable": "This repair cycle is no longer available for release handoff. Return to the source issue to check the current repair.",
   "release.repair_handoff.conflict": "The repair evidence changed. Reload it before creating a candidate.",
-  "release.repair_handoff.invalid_receipt": "The returned candidate could not be matched to this repair. Recover the original request before trying again."
+  "release.repair_handoff.invalid_receipt": "The returned candidate could not be matched to this repair. Recover the original request before trying again.",
+  "release.repair_source.title": "Repair provenance",
+  "release.repair_source.open_cycle": "Open repair cycle {{cycle}}",
+  "release.repair_source.forward": "Forward release rechecks the current repair and requires separate approval.",
+  "release.repair_source.rollback": "Rollback uses the recorded healthy deployment and requires its own approval.",
+  "release.repair_source.history": "This is the recorded source of this operation."
 }
