@@ -56,6 +56,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-AUTOMATION-PAUSE-INBOX-287 核验暂停通知原子写入、权限隔离和中英文收件箱跳转。 [阶段报告](automation-pause-inbox-verification.md)
+
 T-AUTOMATION-FAILURE-PAUSE-286 核验规则失败保护、原子回滚及真实控制面中英文浏览器操作。 [阶段报告](automation-failure-pause-verification.md)
 
 T-AUTOMATION-ATTENTION-285 核验真实 SQLite 的范围绑定分页，以及中英文桌面与窄屏排障。 [阶段报告](automation-attention-verification.md)

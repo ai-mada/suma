@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_pause_inbox": {
+    "stage": "T-AUTOMATION-PAUSE-INBOX-287",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "04b60dd615bb0e1bf560058547321e6f8860314b",
+    "report": "docs/quality/automation-pause-inbox-verification.md",
+    "actual": "A failure-pause transaction notifies the original authorized rule activator. The project and organization inbox hydrate the exact blocked trigger and historical rule revision and link to the current source.",
+    "verification": "SQLite HTTP validates rollback, deduplication, scope and pinned history. Real English desktop and Chinese 390px Chrome verify exact rule navigation and independent read state.",
+    "known_limitations": "External notification channels, multi-process delivery scale and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "automation_failure_pause": {
     "stage": "T-AUTOMATION-FAILURE-PAUSE-286",
     "version": "1.0.0",

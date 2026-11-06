@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Archive,ArchiveRestore,ArrowUpRight,Bell,Check,CircleAlert,Mail,MessageSquare,RefreshCw} from 'lucide-react';
+import {Archive,ArchiveRestore,ArrowUpRight,Bell,Check,CircleAlert,CirclePause,Mail,MessageSquare,RefreshCw} from 'lucide-react';
 import type {NotificationInboxBatchTarget,NotificationInboxItem} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi} from './api-context';
@@ -28,6 +28,7 @@ export type NotificationInboxProps={
  onHandoff?:(taskID:string,handoffID:string,projectID?:string)=>void;
  onRun?:(taskID:string,runID:string,projectID?:string)=>void;
  onToolInput?:(taskID:string,target:NotificationToolInputTarget,projectID?:string)=>void;
+ onAutomationRule?:(ruleID:string,projectID:string)=>void;
 };
 const t=(key:string,values?:Record<string,unknown>)=>tr('notification-inbox.'+key,values);
 const mt=(key:string,values?:Record<string,unknown>)=>tr('task-conversation-mentions.'+key,values);
@@ -45,7 +46,7 @@ const scopeKey=({scopeMode,userID,organizationID,project}:NotificationInboxProps
  * changes cannot discard or retarget an unacknowledged personal command. */
 export function NotificationInbox(props:NotificationInboxProps){const scope=scopeKey(props);return <InboxScope key={scope} {...props} scope={scope}/>;}
 
-function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMode='project',onScopeMode,onFilter,onTask,onMessage,onReviewRequest,onHandoff,onRun,onToolInput,invalid=false}:NotificationInboxProps&{scope:string}){
+function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMode='project',onScopeMode,onFilter,onTask,onMessage,onReviewRequest,onHandoff,onRun,onToolInput,onAutomationRule,invalid=false}:NotificationInboxProps&{scope:string}){
  useLocale();
  const api=useApi(),organization=scopeMode==='organization',projectScope=organization?undefined:project,key=JSON.stringify([filter,refresh,invalid]);
  const action=useWriteAction({
@@ -183,6 +184,11 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
   }
  }
  function openSource(item:NotificationInboxItem,itemProject:string){
+  if(navigationLocked||!item.source_available)return;
+  if(item.kind==='automation_failure_paused'){
+   if(item.automation_target)onAutomationRule?.(item.automation_target.rule_id,itemProject);
+   return;
+  }
   const origin:[]|[string]=organization?[itemProject]:[];
   if(item.kind==='task_run_failed'){if(item.run_id)onRun?.(item.task_id,item.run_id,...origin);}
   else if(item.kind==='task_tool_input_requested'){if(item.tool_input_target)onToolInput?.(item.task_id,item.tool_input_target,...origin);}
@@ -239,27 +245,30 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
      {!!selected.length&&<button type="button" disabled={action.busy} onClick={()=>setSelection({key,api,targets:[]})}>{t('batch_clear')}</button>}
     </div>
    </div>}
-   {!rows.length?<Empty title={mt('inbox_empty_'+filter)} description={t('empty_hint')}/>:<ul className="notification-inbox-list" aria-label={mt('inbox_list')} aria-busy={visible.loading}>{rows.map(({notification:item,project_id:itemProject,project_title:projectTitle})=>{
+   {!rows.length?<Empty title={mt('inbox_empty_'+filter)} description={t('empty_hint')}/>:<ul className="notification-inbox-list" aria-label={t('list')} aria-busy={visible.loading}>{rows.map(({notification:item,project_id:itemProject,project_title:projectTitle})=>{
     const runFailed=item.kind==='task_run_failed',toolInput=item.kind==='task_tool_input_requested';
-    const name=item.current_task?.title||item.task_id,runAction=toolInput?'open_tool_input':runFailed?'open_run':'';
-    const sourceDisabled=navigationLocked||messageSource(item)&&!onMessage||item.kind==='task_review_requested'&&!onReviewRequest||item.kind==='task_handoff_requested'&&!onHandoff||runFailed&&!onRun||toolInput&&!onToolInput;
-    const sourceLabel=runAction?t(runAction+'_named',{name}):item.kind==='task_followed'?st('inbox_open_message',{title:name}):item.kind==='task_handoff_requested'?t('open_handoff',{name}):item.kind==='task_review_requested'?rt('open_notification',{name}):item.kind==='task_mentioned'?mt('open_discussion',{name}):t('open_task',{name});
-    const eventLabel=toolInput?t('tool_input_requested'):runFailed?t('run_failed'):item.kind==='task_followed'?st('inbox_label'):item.kind==='task_handoff_requested'?t('handoff_requested'):item.kind==='task_review_requested'?rt('notification'):item.kind==='task_mentioned'?mt('mentioned'):t('assigned');
+    const automationPaused=item.kind==='automation_failure_paused',automation=item.automation_target;
+    const name=automation?.title||item.current_task?.title||item.task_id;
+    const sourceAction=automationPaused?'open_automation_rule':toolInput?'open_tool_input':runFailed?'open_run':'';
+    const sourceDisabled=navigationLocked||messageSource(item)&&!onMessage||item.kind==='task_review_requested'&&!onReviewRequest||item.kind==='task_handoff_requested'&&!onHandoff||runFailed&&!onRun||toolInput&&!onToolInput||automationPaused&&!onAutomationRule;
+    const sourceLabel=sourceAction?t(sourceAction+'_named',{name}):item.kind==='task_followed'?st('inbox_open_message',{title:name}):item.kind==='task_handoff_requested'?t('open_handoff',{name}):item.kind==='task_review_requested'?rt('open_notification',{name}):item.kind==='task_mentioned'?mt('open_discussion',{name}):t('open_task',{name});
+    const eventLabel=automationPaused?t('automation_failure_paused'):toolInput?t('tool_input_requested'):runFailed?t('run_failed'):item.kind==='task_followed'?st('inbox_label'):item.kind==='task_handoff_requested'?t('handoff_requested'):item.kind==='task_review_requested'?rt('notification'):item.kind==='task_mentioned'?mt('mentioned'):t('assigned');
     const at=observed(item.created_at),checked=!!selected?.some(target=>target.notification_id===item.id);
-    const selectionLabel=[eventLabel,item.current_task?.title,organization?projectTitle||itemProject:undefined,at].filter(Boolean).join(' · ');
+    const actionName=automation?.title||item.current_task?.title||t(automationPaused?'automation_source_unavailable':'source_unavailable');
+    const selectionLabel=[eventLabel,automation?.title||item.current_task?.title,organization?projectTitle||itemProject:undefined,at].filter(Boolean).join(' · ');
     return <li key={item.id} className={'notification-inbox-row'+(!item.read?' is-unread':'')+(selected?' is-selecting':'')+(checked?' is-selected':'')} data-notification-id={item.id}>
     {selected&&<label className="notification-inbox-select-row"><input type="checkbox" data-notification-select-row checked={checked}
      disabled={selectionLocked||item.version>=2147483647||!checked&&selected.length>=notificationInboxSelectionLimit}
      onChange={()=>toggleSelection(item,itemProject)} aria-label={t('batch_select_named',{name:selectionLabel})}/></label>}
     <div className="notification-inbox-main"><div className="notification-inbox-event">
-     <span className={runFailed?'notification-inbox-run-failed':toolInput?'notification-inbox-tool-input':undefined}>{runFailed&&<CircleAlert size={15} aria-hidden="true"/>}{toolInput&&<MessageSquare size={15} aria-hidden="true"/>}{eventLabel}</span>
+     <span className={automationPaused?'notification-inbox-automation-paused':runFailed?'notification-inbox-run-failed':toolInput?'notification-inbox-tool-input':undefined}>{automationPaused&&<CirclePause size={15} aria-hidden="true"/>}{runFailed&&<CircleAlert size={15} aria-hidden="true"/>}{toolInput&&<MessageSquare size={15} aria-hidden="true"/>}{eventLabel}</span>
      <span className="notification-inbox-state">{t(item.read?'read':'unread')}</span>{item.archived&&<span className="notification-inbox-state">{t('archived')}</span>}
     </div>
      {organization&&<span className="notification-inbox-project">{t('source_project',{name:projectTitle||itemProject})}</span>}
-     {item.source_available&&item.current_task?<><button type="button" className={'notification-inbox-source'+(runAction?' is-run-source':'')} disabled={sourceDisabled} onClick={()=>openSource(item,itemProject)} aria-label={sourceLabel}>{name}{runAction?<span className="notification-inbox-run-action">{t(runAction)}<ArrowUpRight size={15} aria-hidden="true"/></span>:<ArrowUpRight size={15} aria-hidden="true"/>}</button><div className="notification-inbox-source-facts"><span>{t('current_task_status')} <Badge state={item.current_task.status}/></span>{item.kind==='task_assigned'&&!item.assignment_current&&<span>{t('assignment_changed')}</span>}</div></>:<strong className="notification-inbox-unavailable">{t('source_unavailable')}</strong>}
-     <time dateTime={item.created_at}>{toolInput?t('tool_input_requested_at',{at}):runFailed?t('run_failed_at',{at}):item.kind==='task_followed'?st('inbox_created_at',{at}):item.kind==='task_handoff_requested'?t('handoff_requested_at',{at}):item.kind==='task_review_requested'?rt('requested_at',{at}):item.kind==='task_mentioned'?mt('mentioned_at',{at}):t('assigned_at',{at})}</time>
+     {item.source_available&&(item.current_task||automation)?<><button type="button" className={'notification-inbox-source'+(sourceAction?' is-run-source':'')} data-notification-open-automation={automation?.rule_id} disabled={sourceDisabled} onClick={()=>openSource(item,itemProject)} aria-label={sourceLabel}>{name}{sourceAction?<span className="notification-inbox-run-action">{t(sourceAction)}<ArrowUpRight size={15} aria-hidden="true"/></span>:<ArrowUpRight size={15} aria-hidden="true"/>}</button><div className="notification-inbox-source-facts">{item.current_task&&<span>{t('current_task_status')} <Badge state={item.current_task.status}/></span>}{automation&&<span>{t('automation_pause_revision',{revision:formatNumber(automation.revision)})}</span>}{item.kind==='task_assigned'&&!item.assignment_current&&<span>{t('assignment_changed')}</span>}</div></>:<strong className="notification-inbox-unavailable">{t(automationPaused?'automation_source_unavailable':'source_unavailable')}</strong>}
+     <time dateTime={item.created_at}>{automationPaused?t('automation_paused_at',{at}):toolInput?t('tool_input_requested_at',{at}):runFailed?t('run_failed_at',{at}):item.kind==='task_followed'?st('inbox_created_at',{at}):item.kind==='task_handoff_requested'?t('handoff_requested_at',{at}):item.kind==='task_review_requested'?rt('requested_at',{at}):item.kind==='task_mentioned'?mt('mentioned_at',{at}):t('assigned_at',{at})}</time>
     </div>
-    {!selected&&<div className="notification-inbox-actions"><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.read?'unread':'read',itemProject)} data-notification-action={item.read?'unread':'read'} aria-label={t(item.read?'unread_named':'read_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.read?<Mail size={15} aria-hidden="true"/>:<Check size={15} aria-hidden="true"/>}{t('action.'+(item.read?'unread':'read'))}</button><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.archived?'restore':'archive',itemProject)} data-notification-action={item.archived?'restore':'archive'} aria-label={t(item.archived?'restore_named':'archive_named',{name:item.current_task?.title||t('source_unavailable')})}>{item.archived?<ArchiveRestore size={15} aria-hidden="true"/>:<Archive size={15} aria-hidden="true"/>}{t('action.'+(item.archived?'restore':'archive'))}</button></div>}
+    {!selected&&<div className="notification-inbox-actions"><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.read?'unread':'read',itemProject)} data-notification-action={item.read?'unread':'read'} aria-label={t(item.read?'unread_named':'read_named',{name:actionName})}>{item.read?<Mail size={15} aria-hidden="true"/>:<Check size={15} aria-hidden="true"/>}{t('action.'+(item.read?'unread':'read'))}</button><button type="button" disabled={commandsLocked||item.version>=2147483647} onClick={()=>void command(item,item.archived?'restore':'archive',itemProject)} data-notification-action={item.archived?'restore':'archive'} aria-label={t(item.archived?'restore_named':'archive_named',{name:actionName})}>{item.archived?<ArchiveRestore size={15} aria-hidden="true"/>:<Archive size={15} aria-hidden="true"/>}{t('action.'+(item.archived?'restore':'archive'))}</button></div>}
    </li>;})}</ul>}
    {page.next_cursor&&<div className="notification-inbox-more"><button type="button" disabled={visible.loading||navigationLocked} onClick={()=>void read(true)} data-notification-more>{visible.loading?t('loading_more'):t('more')}</button></div>}
    <p className="notification-inbox-note">{organization?t('organization_scope_hint'):mt('inbox_scope')}</p>

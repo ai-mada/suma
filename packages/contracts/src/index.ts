@@ -4157,6 +4157,12 @@ export interface NonSecretDeploymentRequest {
   artifact_sha256: string;
   assignment: AssignmentRef;
 }
+export interface NotificationInboxAutomationTarget {
+  rule_id: string;
+  revision: number;
+  trigger_id: string;
+  title: string;
+}
 export interface NotificationInboxBatchCommand {
   items: (NotificationInboxBatchTarget)[];
   action: string;
@@ -4219,6 +4225,7 @@ export interface NotificationInboxItem {
   handoff_id?: string;
   run_id?: string;
   tool_input_target?: NotificationInboxToolInputTarget;
+  automation_target?: NotificationInboxAutomationTarget;
 }
 export interface NotificationInboxPage {
   project_id: string;

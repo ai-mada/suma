@@ -39,6 +39,18 @@ describe('current notification reading route',()=>{
   expect(route).toMatchObject({project:'beta',sub:'runs',run:'run-b',record:'',panel:'',node:'',attempt:''});
   expect(route.inbox_scope).toBeUndefined();
  });
+ it('opens an automation alert in the originating project without task state',()=>{
+  const start=parseWorkbenchRoute('?project=alpha&view=development&sub=inbox&inbox_scope=organization&inbox_filter=unread');
+  let route=start;
+  const update=(change:(value:typeof route)=>typeof route)=>{route=change(route);};
+  expect(locateNotificationSource('beta','',{kind:'automation',id:'rule-b'},()=>false,update)).toBe(false);
+  expect(locateNotificationSource('beta','',{kind:'automation',id:'../rule-b'},()=>true,update)).toBe(false);
+  expect(route).toBe(start);
+  expect(locateNotificationSource('beta','',{kind:'automation',id:'rule-b'},()=>true,update)).toBe(true);
+  expect(route).toMatchObject({project:'beta',view:'development',sub:'automations',record:'rule-b',panel:'',run:'',node:'',attempt:'',layout:'list'});
+  expect(route.inbox_scope).toBeUndefined();
+  expect(route.inbox_filter).toBeUndefined();
+ });
  it('opens the original tool input question within its own attempt and honors the leave guard',()=>{
   const start=parseWorkbenchRoute('?project=alpha&view=development&sub=inbox&inbox_scope=organization&inbox_filter=unread');
   let route=start;

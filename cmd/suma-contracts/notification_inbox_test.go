@@ -36,10 +36,11 @@ func TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned(t *testing
 	}
 	item := mapAt(api, "components", "schemas", "NotificationInboxItem", "properties")
 	kinds, _ := mapAt(item, "kind")["enum"].([]string)
-	runKind, toolInputKind := false, false
+	runKind, toolInputKind, automationKind := false, false, false
 	for _, kind := range kinds {
 		runKind = runKind || kind == "task_run_failed"
 		toolInputKind = toolInputKind || kind == "task_tool_input_requested"
+		automationKind = automationKind || kind == "automation_failure_paused"
 	}
 	if !runKind || mapAt(item, "run_id")["readOnly"] != true {
 		t.Fatal("run failures must carry a read-only source locator")
@@ -50,7 +51,15 @@ func TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned(t *testing
 		mapAt(target, "input_id")["pattern"] != "^[0-9a-f]{32}$" {
 		t.Fatal("tool input notifications must carry only a read-only question locator")
 	}
-	for _, key := range []string{"title", "current_task", "body", "task_status", "run_id", "tool_input_target"} {
+	automation := mapAt(api, "components", "schemas", "NotificationInboxAutomationTarget")
+	automationFields := mapAt(automation, "properties")
+	if !automationKind || mapAt(item, "automation_target")["readOnly"] != true || automation["additionalProperties"] != false ||
+		len(automationFields) != 4 || automationFields["rule_id"] == nil || automationFields["trigger_id"] == nil ||
+		mapAt(automationFields, "revision")["minimum"] != 1 || mapAt(automationFields, "title")["x-max-utf8-bytes"] != 200 ||
+		mapAt(item, "source_task_version")["minimum"] != 0 {
+		t.Fatal("automation pause notifications must carry only the read-only pinned rule locator and allow a zero task version")
+	}
+	for _, key := range []string{"title", "current_task", "body", "task_status", "run_id", "tool_input_target", "automation_target"} {
 		if mapAt(api, "components", "schemas", "NotificationInboxCommandReceipt", "properties")[key] != nil {
 			t.Fatal("replay must not retain task content", key)
 		}

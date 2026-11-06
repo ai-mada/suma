@@ -3,10 +3,10 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func notificationInboxModels() []any {
-	return []any{platform.NotificationInboxCounts{}, platform.NotificationInboxTask{}, platform.NotificationInboxToolInputTarget{}, platform.NotificationInboxItem{}, platform.NotificationInboxPage{}, platform.NotificationOrganizationInboxItem{}, platform.NotificationOrganizationInboxPage{}, platform.NotificationOrganizationUnreadSummary{}, platform.NotificationInboxCommand{}, platform.NotificationInboxCommandReceipt{}, platform.NotificationInboxBatchTarget{}, platform.NotificationInboxBatchCommand{}, platform.NotificationInboxBatchResult{}, platform.NotificationInboxBatchReceipt{}}
+	return []any{platform.NotificationInboxCounts{}, platform.NotificationInboxTask{}, platform.NotificationInboxToolInputTarget{}, platform.NotificationInboxAutomationTarget{}, platform.NotificationInboxItem{}, platform.NotificationInboxPage{}, platform.NotificationOrganizationInboxItem{}, platform.NotificationOrganizationInboxPage{}, platform.NotificationOrganizationUnreadSummary{}, platform.NotificationInboxCommand{}, platform.NotificationInboxCommandReceipt{}, platform.NotificationInboxBatchTarget{}, platform.NotificationInboxBatchCommand{}, platform.NotificationInboxBatchResult{}, platform.NotificationInboxBatchReceipt{}}
 }
 
-// The inbox projects real task assignments. Its private lifecycle requires
+// The inbox projects durable task and automation events. Its private lifecycle requires
 // current read authority, never project business-write or acceptance rights.
 func notificationInboxContracts(add operationAdder, api map[string]any) {
 	read := add("/notification-inbox", "get", "NotificationInboxPage", false, false)
@@ -19,7 +19,7 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	browserOnly(organization)
 	successStatus(organization, "200")
 	organization["x-read-only"] = true
-	organization["description"] = "Current browser recipient across readable projects of the active organization. Counts and hydrated sources are restricted to current authority. A change to the visible project set invalidates earlier continuation cursors."
+	organization["description"] = "Current browser recipient across readable projects of the active organization. Counts and hydrated task or automation sources are restricted to current authority. A change to the visible project set invalidates earlier continuation cursors."
 	appendQuery(organization, queryParameter("filter", "Inbox, unread or archived in the current organization.", map[string]any{"type": "string", "enum": []string{"inbox", "unread", "archived"}, "default": "inbox"}))
 	appendQuery(organization, queryParameter("limit", "Bounded page size; counts cover all currently readable projects.", map[string]any{"type": "integer", "minimum": 1, "maximum": 50, "default": 20}))
 	appendQuery(organization, queryParameter("cursor", "Opaque keyset cursor bound to current identity, organization, visible projects, filter and limit.", map[string]any{"type": "string", "minLength": 1, "maxLength": 4096}))
@@ -47,10 +47,10 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	batch["description"] = "Apply a single private inbox action atomically to explicitly selected notifications across current readable projects. Each target's owner and project access are rechecked before writing or replaying an original receipt."
 	for _, op := range []map[string]any{read, write} {
 		op["x-disallowed-token-scopes"] = []string{"runner", "agent"}
-		op["description"] = "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff, followed discussion, execution failure or a durable tool input request. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization."
+		op["description"] = "Current human/user-API project authority; recipient is derived from current identity. Notifications project durable task events or an automatic failure pause. Automation alerts go only to the rule activator and locate the exact blocked trigger and pinned revision. Unavailable sources have no cached title. Private read/archive commands require project read authority and an owned notification, change only inbox state, and recover the original operation receipt after reauthorization."
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"NotificationInboxCounts", "NotificationInboxTask", "NotificationInboxToolInputTarget", "NotificationInboxItem", "NotificationInboxPage", "NotificationOrganizationInboxItem", "NotificationOrganizationInboxPage", "NotificationOrganizationUnreadSummary", "NotificationInboxCommand", "NotificationInboxCommandReceipt", "NotificationInboxBatchTarget", "NotificationInboxBatchCommand", "NotificationInboxBatchResult", "NotificationInboxBatchReceipt"} {
+	for _, name := range []string{"NotificationInboxCounts", "NotificationInboxTask", "NotificationInboxToolInputTarget", "NotificationInboxAutomationTarget", "NotificationInboxItem", "NotificationInboxPage", "NotificationOrganizationInboxItem", "NotificationOrganizationInboxPage", "NotificationOrganizationUnreadSummary", "NotificationInboxCommand", "NotificationInboxCommandReceipt", "NotificationInboxBatchTarget", "NotificationInboxBatchCommand", "NotificationInboxBatchResult", "NotificationInboxBatchReceipt"} {
 		model := toolContractMap(schemas, name)
 		model["additionalProperties"] = false
 		if name != "NotificationInboxCommand" && name != "NotificationInboxBatchCommand" && name != "NotificationInboxBatchTarget" {
@@ -77,7 +77,9 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	field("NotificationInboxBatchReceipt", "results", map[string]any{"minItems": 1, "maxItems": 20, "description": "One result for each requested target in original order. The receipt contains private notification state only."})
 	// Source domains contribute fields below; the inbox owns the complete kind
 	// enumeration so a later domain cannot silently remove another source.
-	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", "task_run_failed", "task_tool_input_requested"}})
+	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", "task_run_failed", "task_tool_input_requested", "automation_failure_paused"}})
+	field("NotificationInboxItem", "task_id", map[string]any{"maxLength": 64, "description": "Task ID for a task source. Empty for automation_failure_paused."})
+	field("NotificationInboxItem", "source_task_version", map[string]any{"minimum": 0, "description": "Positive task version for a task source. Zero for automation_failure_paused."})
 	field("NotificationInboxItem", "handoff_id", map[string]any{"minLength": 1, "maxLength": 64, "description": "Exact handoff ID only when the current task, immutable recipient/basis and reverse private notification binding all match. Opening is a read, never acceptance or marking the notification read."})
 	field("NotificationInboxItem", "run_id", map[string]any{"minLength": 1, "maxLength": 64, "description": "Exact original run ID only for an intact task_run_failed source with a persisted failure event and matching task binding. Opening does not change run, task, or notification state."})
 	field("NotificationInboxItem", "tool_input_target", map[string]any{"description": "Present only for an intact task_tool_input_requested source. This locates the original question in its historical attempt. The workbench rechecks current access and answer eligibility."})
@@ -85,6 +87,11 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	field("NotificationInboxToolInputTarget", "run_id", map[string]any{"minLength": 1, "maxLength": 100})
 	field("NotificationInboxToolInputTarget", "node_id", map[string]any{"minLength": 1, "maxLength": 150})
 	field("NotificationInboxToolInputTarget", "attempt", map[string]any{"minimum": 1, "maximum": int64(9007199254740991)})
+	field("NotificationInboxItem", "automation_target", map[string]any{"description": "Present only when the original failure-paused trigger, rule and pinned revision can be verified in the current project. Reading this locator does not resume or change the rule."})
+	field("NotificationInboxAutomationTarget", "rule_id", map[string]any{"minLength": 1, "maxLength": 64})
+	field("NotificationInboxAutomationTarget", "revision", map[string]any{"minimum": 1})
+	field("NotificationInboxAutomationTarget", "trigger_id", map[string]any{"minLength": 1, "maxLength": 64})
+	field("NotificationInboxAutomationTarget", "title", map[string]any{"minLength": 1, "maxLength": 200, "x-max-utf8-bytes": 200, "description": "Rule name from the triggering occurrence's pinned revision."})
 	field("NotificationInboxItem", "sequence", map[string]any{"type": "string", "pattern": "^[1-9][0-9]{0,18}$", "description": "Positive signed BIGINT decimal string; never coerce to an imprecise JSON number."})
 	field("NotificationInboxPage", "items", map[string]any{"maxItems": 50})
 	field("NotificationInboxPage", "limit", map[string]any{"minimum": 1, "maximum": 50})

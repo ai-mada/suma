@@ -407,7 +407,7 @@ func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref aut
 		}
 		return err
 	}
-	current, _, err := s.automationAdmission(ctx, tx, evaluation, ref, id)
+	current, occurrence, err := s.automationAdmission(ctx, tx, evaluation, ref, id)
 	if !errors.As(err, &deferred) {
 		return err
 	}
@@ -415,7 +415,7 @@ func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref aut
 		return nil
 	}
 	if deferred.reason == automationFailurePauseReason {
-		if err = s.pauseAutomationAfterFailures(ctx, evaluation, ref, current); err != nil {
+		if err = s.pauseAutomationAfterFailures(ctx, evaluation, ref, current, occurrence); err != nil {
 			return err
 		}
 		return tx.Commit()

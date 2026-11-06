@@ -127,8 +127,8 @@ func (s *Service) notificationInboxItemsTx(ctx context.Context, auth *authorized
 	// Select the bounded authorized page before joining source tables. This
 	// keeps hydration proportional to the page even when many projects match.
 	page := "SELECT n.*,p.title AS project_title" + notificationInboxFrom + where + " ORDER BY " + order + " LIMIT ?"
-	joins := ` LEFT JOIN suma_tasks t ON t.tenant_id=n.tenant_id AND t.project_id=n.project_id AND t.id=n.task_id LEFT JOIN suma_task_conversation_mentions cm ON n.kind='task_mentioned' AND cm.tenant_id=n.tenant_id AND cm.project_id=n.project_id AND cm.task_id=n.task_id AND cm.notification_id=n.id AND cm.resource_id=n.source_resource_id AND cm.recipient_user_id=n.recipient_user_id AND cm.ordinal>=0 AND cm.ordinal<20 LEFT JOIN suma_task_conversation_messages msg ON msg.tenant_id=n.tenant_id AND msg.project_id=n.project_id AND msg.task_id=n.task_id AND msg.id=cm.message_id AND msg.task_version=n.source_task_version AND msg.actor_kind IN ('human','api') LEFT JOIN suma_task_review_requests rq ON n.kind='task_review_requested' AND rq.tenant_id=n.tenant_id AND rq.project_id=n.project_id AND rq.task_id=n.task_id AND rq.notification_id=n.id AND rq.reviewer_resource_id=n.source_resource_id AND rq.reviewer_user_id=n.recipient_user_id AND rq.task_version=n.source_task_version AND rq.state IN ('pending','cancelled','closed') LEFT JOIN suma_task_handoffs h ON n.kind='task_handoff_requested' AND h.tenant_id=n.tenant_id AND h.project_id=n.project_id AND h.task_id=n.task_id AND h.id=n.source_event_key` + taskRunFailureInboxJoins + taskToolInputInboxJoins
-	query := `SELECT n.project_id,n.project_title,n.id,n.version,n.sequence,n.kind,n.task_id,n.source_task_version,n.source_resource_id,n.created_at,n.read_at,n.archived_at,COALESCE(t.id,''),COALESCE(t.version,0),COALESCE(t.title,''),COALESCE(t.status,''),COALESCE(t.owner_id,''),COALESCE(msg.id,''),n.source_event_key,n.recipient_user_id,COALESCE(rq.id,''),COALESCE(h.version,0),COALESCE(h.state,''),COALESCE(h.payload,''),COALESCE(fr.id,''),COALESCE(fp.payload,''),COALESCE(fe.sequence,0),COALESCE(fe.at_time,'')` + taskToolInputInboxColumns + " FROM (" + page + ") n" + joins + " ORDER BY " + order
+	joins := ` LEFT JOIN suma_tasks t ON t.tenant_id=n.tenant_id AND t.project_id=n.project_id AND t.id=n.task_id LEFT JOIN suma_task_conversation_mentions cm ON n.kind='task_mentioned' AND cm.tenant_id=n.tenant_id AND cm.project_id=n.project_id AND cm.task_id=n.task_id AND cm.notification_id=n.id AND cm.resource_id=n.source_resource_id AND cm.recipient_user_id=n.recipient_user_id AND cm.ordinal>=0 AND cm.ordinal<20 LEFT JOIN suma_task_conversation_messages msg ON msg.tenant_id=n.tenant_id AND msg.project_id=n.project_id AND msg.task_id=n.task_id AND msg.id=cm.message_id AND msg.task_version=n.source_task_version AND msg.actor_kind IN ('human','api') LEFT JOIN suma_task_review_requests rq ON n.kind='task_review_requested' AND rq.tenant_id=n.tenant_id AND rq.project_id=n.project_id AND rq.task_id=n.task_id AND rq.notification_id=n.id AND rq.reviewer_resource_id=n.source_resource_id AND rq.reviewer_user_id=n.recipient_user_id AND rq.task_version=n.source_task_version AND rq.state IN ('pending','cancelled','closed') LEFT JOIN suma_task_handoffs h ON n.kind='task_handoff_requested' AND h.tenant_id=n.tenant_id AND h.project_id=n.project_id AND h.task_id=n.task_id AND h.id=n.source_event_key` + taskRunFailureInboxJoins + taskToolInputInboxJoins + automationPauseInboxJoins
+	query := `SELECT n.project_id,n.project_title,n.id,n.version,n.sequence,n.kind,n.task_id,n.source_task_version,n.source_resource_id,n.created_at,n.read_at,n.archived_at,COALESCE(t.id,''),COALESCE(t.version,0),COALESCE(t.title,''),COALESCE(t.status,''),COALESCE(t.owner_id,''),COALESCE(msg.id,''),n.source_event_key,n.recipient_user_id,COALESCE(rq.id,''),COALESCE(h.version,0),COALESCE(h.state,''),COALESCE(h.payload,''),COALESCE(fr.id,''),COALESCE(fp.payload,''),COALESCE(fe.sequence,0),COALESCE(fe.at_time,'')` + taskToolInputInboxColumns + automationPauseInboxColumns + " FROM (" + page + ") n" + joins + " ORDER BY " + order
 	args = append(args, limit+1)
 	rows, err := auth.tx.QueryContext(ctx, s.q(query), args...)
 	if err != nil {
@@ -144,16 +144,21 @@ func (s *Service) notificationInboxItemsTx(ctx context.Context, auth *authorized
 		var owner, messageID, eventKey, recipient, reviewRequestID, handoffState, handoffPayload string
 		var failedRun, binding, failedAt string
 		var inputSource taskToolInputInboxSource
+		var pauseSource automationPauseInboxSource
+		occurrence := &pauseSource.occurrence
 		var inputBinding, inputRun, inputNode, inputWorker string
 		var handoffVersion int
 		var sequence, failureSequence int64
 		if err = rows.Scan(&row.ProjectID, &row.ProjectTitle, &item.ID, &item.Version, &sequence, &item.Kind, &item.TaskID, &item.SourceTaskVersion, &item.SourceResourceID, &item.CreatedAt, &item.ReadAt, &item.ArchivedAt, &task.ID, &task.Version, &task.Title, &task.Status, &owner, &messageID, &eventKey, &recipient, &reviewRequestID, &handoffVersion, &handoffState, &handoffPayload, &failedRun, &binding, &failureSequence, &failedAt,
 			&inputSource.tenant, &inputSource.project, &inputSource.id, &inputSource.run, &inputSource.node,
 			&inputSource.attempt, &inputSource.fence, &inputSource.worker, &inputSource.requestSHA256,
-			&inputBinding, &inputRun, &inputNode, &inputWorker); err != nil {
+			&inputBinding, &inputRun, &inputNode, &inputWorker,
+			&pauseSource.tenant, &pauseSource.project, &occurrence.ID, &occurrence.RuleID, &occurrence.Revision,
+			&occurrence.State, &occurrence.Reason, &occurrence.RunID, &occurrence.UpdatedAt,
+			&pauseSource.ruleTenant, &pauseSource.ruleProject, &pauseSource.ruleID, &pauseSource.revisionRuleID, &pauseSource.spec); err != nil {
 			return nil, err
 		}
-		if sequence < 1 || item.Version < 1 || item.SourceTaskVersion < 1 || !validNotificationInboxKind(item.Kind) {
+		if sequence < 1 || item.Version < 1 || !validNotificationInboxKind(item.Kind) || !validNotificationInboxTaskBasis(item.Kind, item.TaskID, item.SourceTaskVersion) {
 			return nil, conflict("The notification source is invalid")
 		}
 		item.Sequence = strconv.FormatInt(sequence, 10)
@@ -203,7 +208,10 @@ func (s *Service) notificationInboxItemsTx(ctx context.Context, auth *authorized
 			}
 			item.SourceAvailable = false
 		}
-		if item.SourceAvailable {
+		if item.Kind == automationFailurePausedInboxKind {
+			item.AutomationTarget = pauseSource.target(*item, auth.target.tenantID, row.ProjectID, eventKey)
+			item.SourceAvailable = item.AutomationTarget != nil
+		} else if item.SourceAvailable {
 			item.CurrentTask = &task
 			item.AssignmentCurrent = item.Kind == "task_assigned" && owner == item.SourceResourceID
 		}

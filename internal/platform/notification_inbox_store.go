@@ -106,11 +106,18 @@ func notificationRecipientCanRead(organizationRole string, projectRole sql.NullS
 
 func validNotificationInboxKind(kind string) bool {
 	switch kind {
-	case "task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", taskRunFailedInboxKind, taskToolInputInboxKind:
+	case "task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", taskRunFailedInboxKind, taskToolInputInboxKind, automationFailurePausedInboxKind:
 		return true
 	default:
 		return false
 	}
+}
+
+func validNotificationInboxTaskBasis(kind, taskID string, taskVersion int) bool {
+	if kind == automationFailurePausedInboxKind {
+		return taskID == "" && taskVersion == 0
+	}
+	return handoffID(taskID, false) && taskVersion > 0
 }
 
 // Source callers validate their persisted business event before reaching this
@@ -132,13 +139,13 @@ func (s *Service) insertNotificationInboxTx(ctx context.Context, auth *authorize
 
 // Trusted domain projections share one sequence/row writer. The ordinary
 // authority wrapper above stays mandatory for public actor commands; the
-// completed-assistant path validates its persisted backing event separately
-// under the original machine transaction before calling this private core.
+// machine paths validate their persisted backing events under the original
+// domain transaction before calling this private core.
 func (s *Service) insertNotificationInboxSourceTx(ctx context.Context, tx *sql.Tx, tenant, project, at string, source notificationInboxSource) (string, error) {
 	if tx == nil || tenant == "" || project == "" || at == "" {
 		return "", forbidden()
 	}
-	if !validNotificationInboxKind(source.Kind) || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
+	if !validNotificationInboxKind(source.Kind) || !validNotificationInboxTaskBasis(source.Kind, source.TaskID, source.TaskVersion) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) {
 		return "", conflict(notificationInboxSourceChanged)
 	}
 	var existing string

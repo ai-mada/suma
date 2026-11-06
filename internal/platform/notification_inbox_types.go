@@ -20,27 +20,35 @@ type NotificationInboxToolInputTarget struct {
 	Attempt int    `json:"attempt"`
 }
 
+type NotificationInboxAutomationTarget struct {
+	RuleID    string `json:"rule_id"`
+	Revision  int    `json:"revision"`
+	TriggerID string `json:"trigger_id"`
+	Title     string `json:"title"`
+}
+
 type NotificationInboxItem struct {
-	ID                string                            `json:"id"`
-	Version           int                               `json:"version"`
-	Sequence          string                            `json:"sequence"`
-	Kind              string                            `json:"kind"`
-	TaskID            string                            `json:"task_id"`
-	SourceTaskVersion int                               `json:"source_task_version"`
-	SourceResourceID  string                            `json:"source_resource_id"`
-	CreatedAt         string                            `json:"created_at"`
-	Read              bool                              `json:"read"`
-	Archived          bool                              `json:"archived"`
-	ReadAt            string                            `json:"read_at"`
-	ArchivedAt        string                            `json:"archived_at"`
-	SourceAvailable   bool                              `json:"source_available"`
-	AssignmentCurrent bool                              `json:"assignment_current"`
-	CurrentTask       *NotificationInboxTask            `json:"current_task,omitempty"`
-	MessageID         string                            `json:"message_id,omitempty"`
-	ReviewRequestID   string                            `json:"review_request_id,omitempty"`
-	HandoffID         string                            `json:"handoff_id,omitempty"`
-	RunID             string                            `json:"run_id,omitempty"`
-	ToolInputTarget   *NotificationInboxToolInputTarget `json:"tool_input_target,omitempty" wire:"nonnull"`
+	ID                string                             `json:"id"`
+	Version           int                                `json:"version"`
+	Sequence          string                             `json:"sequence"`
+	Kind              string                             `json:"kind"`
+	TaskID            string                             `json:"task_id"`
+	SourceTaskVersion int                                `json:"source_task_version"`
+	SourceResourceID  string                             `json:"source_resource_id"`
+	CreatedAt         string                             `json:"created_at"`
+	Read              bool                               `json:"read"`
+	Archived          bool                               `json:"archived"`
+	ReadAt            string                             `json:"read_at"`
+	ArchivedAt        string                             `json:"archived_at"`
+	SourceAvailable   bool                               `json:"source_available"`
+	AssignmentCurrent bool                               `json:"assignment_current"`
+	CurrentTask       *NotificationInboxTask             `json:"current_task,omitempty"`
+	MessageID         string                             `json:"message_id,omitempty"`
+	ReviewRequestID   string                             `json:"review_request_id,omitempty"`
+	HandoffID         string                             `json:"handoff_id,omitempty"`
+	RunID             string                             `json:"run_id,omitempty"`
+	ToolInputTarget   *NotificationInboxToolInputTarget  `json:"tool_input_target,omitempty" wire:"nonnull"`
+	AutomationTarget  *NotificationInboxAutomationTarget `json:"automation_target,omitempty" wire:"nonnull"`
 }
 
 type NotificationInboxPage struct {

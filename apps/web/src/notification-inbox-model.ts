@@ -56,9 +56,17 @@ export function notificationOrganizationInboxPath(filter:NotificationInboxFilter
 export function notificationInboxCommandPath(notificationID:string){return '/notification-inbox/'+encodeURIComponent(notificationID)+'/commands';}
 
 /** Source facts are hydrated by this authorized read only. An unavailable
- * source has no cached task title or actionable task locator in the UI. */
+ * source has no cached title or actionable locator in the UI. */
 export function validNotificationInboxItem(value:unknown):value is NotificationInboxItem{
- if(!object(value)||!id(value.id)||!version(value.version)||!validNotificationInboxSequence(value.sequence)||typeof value.kind!=='string'||!['task_assigned','task_mentioned','task_followed','task_review_requested','task_handoff_requested','task_run_failed','task_tool_input_requested'].includes(value.kind)||!id(value.task_id)||!version(value.source_task_version)||!id(value.source_resource_id)||!instant(value.created_at)||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||typeof value.source_available!=='boolean'||typeof value.assignment_current!=='boolean')return false;
+ if(!object(value)||!id(value.id)||!version(value.version)||!validNotificationInboxSequence(value.sequence)||typeof value.kind!=='string'||!['task_assigned','task_mentioned','task_followed','task_review_requested','task_handoff_requested','task_run_failed','task_tool_input_requested','automation_failure_paused'].includes(value.kind)||!id(value.source_resource_id)||!instant(value.created_at)||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||typeof value.source_available!=='boolean'||typeof value.assignment_current!=='boolean')return false;
+ if(value.kind==='automation_failure_paused'){
+  if(value.task_id!==''||value.source_task_version!==0||value.assignment_current||value.current_task!==undefined||value.message_id!==undefined||value.review_request_id!==undefined||value.handoff_id!==undefined||value.run_id!==undefined||value.tool_input_target!==undefined)return false;
+  const target=value.automation_target;
+  if(!value.source_available)return target===undefined;
+  return object(target)&&exact(target,['rule_id','revision','trigger_id','title'])&&target.rule_id===value.source_resource_id&&
+   version(target.revision)&&id(target.trigger_id)&&typeof target.title==='string'&&!!target.title.trim()&&new TextEncoder().encode(target.title).length<=200;
+ }
+ if(!id(value.task_id)||!version(value.source_task_version)||value.automation_target!==undefined)return false;
  const messageSource=value.kind==='task_mentioned'||value.kind==='task_followed';
  const runSource=value.kind==='task_run_failed';
  const toolInputSource=value.kind==='task_tool_input_requested';

@@ -227,13 +227,13 @@ export function sourceHref(project:string,source:unknown):string|undefined {
 /** Notification filters belong to one current human and reading scope. */
 export function resetInboxScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,inbox_scope:undefined,inbox_filter:undefined,inbox_invalid:undefined};}
 
-export type NotificationSourceLocation={kind:'task'}|{kind:'message'|'review'|'handoff'|'run';id:string}|{kind:'tool-input';target:NotificationToolInputTarget};
+export type NotificationSourceLocation={kind:'task'}|{kind:'message'|'review'|'handoff'|'run'|'automation';id:string}|{kind:'tool-input';target:NotificationToolInputTarget};
 
 /** A current authorized inbox row can target another project. Keep the
- * project and exact task/source locator in one guarded route transition. */
+ * project and exact source locator in one guarded route transition. */
 export function locateNotificationSource(project:string,task:string,source:NotificationSourceLocation,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
  const validID=(value:string)=>/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
- if(!validID(project)||!validID(task))return false;
+ if(!validID(project)||(source.kind==='automation'?task!=='':!validID(task)))return false;
  if(source.kind!=='task'&&source.kind!=='tool-input'&&!validID(source.id))return false;
  const scoped:typeof update=change=>update(route=>change({...resetInboxScope(resetTaskCollectionScope(route)),project}));
  switch(source.kind){
@@ -244,6 +244,11 @@ export function locateNotificationSource(project:string,task:string,source:Notif
    if(!validNotificationToolInputTarget(source.target)||!canLeave())return false;
    const {run_id:run,node_id:node,attempt,input_id:input}=source.target;
    scoped(route=>({...route,view:'development',sub:'runs',record:'',run,node,attempt:String(attempt),panel:toolInputPanelPrefix+input,q:'',status:'all',layout:'list'}));
+   return true;
+  }
+  case 'automation':{
+   if(!canLeave())return false;
+   scoped(route=>({...route,view:'development',sub:'automations',record:source.id,run:'',node:'',attempt:'',panel:'',q:'',status:'all',layout:'list'}));
    return true;
   }
   case 'run':

@@ -22453,6 +22453,43 @@
         ],
         "type": "object"
       },
+      "NotificationInboxAutomationTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "rule_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "title": {
+            "description": "Rule name from the triggering occurrence's pinned revision.",
+            "maxLength": 200,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          },
+          "trigger_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "revision",
+          "trigger_id",
+          "title"
+        ],
+        "type": "object"
+      },
       "NotificationInboxBatchCommand": {
         "additionalProperties": false,
         "properties": {
@@ -22692,6 +22729,11 @@
             "readOnly": true,
             "type": "boolean"
           },
+          "automation_target": {
+            "$ref": "#/components/schemas/NotificationInboxAutomationTarget",
+            "description": "Present only when the original failure-paused trigger, rule and pinned revision can be verified in the current project. Reading this locator does not resume or change the rule.",
+            "readOnly": true
+          },
           "created_at": {
             "readOnly": true,
             "type": "string"
@@ -22726,7 +22768,8 @@
               "task_handoff_requested",
               "task_followed",
               "task_run_failed",
-              "task_tool_input_requested"
+              "task_tool_input_requested",
+              "automation_failure_paused"
             ],
             "readOnly": true,
             "type": "string"
@@ -22775,10 +22818,14 @@
             "type": "string"
           },
           "source_task_version": {
+            "description": "Positive task version for a task source. Zero for automation_failure_paused.",
+            "minimum": 0,
             "readOnly": true,
             "type": "integer"
           },
           "task_id": {
+            "description": "Task ID for a task source. Empty for automation_failure_paused.",
+            "maxLength": 64,
             "readOnly": true,
             "type": "string"
           },
@@ -87230,7 +87277,7 @@
     },
     "/notification-inbox": {
       "get": {
-        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff, followed discussion, execution failure or a durable tool input request. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization.",
+        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications project durable task events or an automatic failure pause. Automation alerts go only to the rule activator and locate the exact blocked trigger and pinned revision. Unavailable sources have no cached title. Private read/archive commands require project read authority and an owned notification, change only inbox state, and recover the original operation receipt after reauthorization.",
         "operationId": "get_notification-inbox",
         "parameters": [
           {
@@ -87639,7 +87686,7 @@
     },
     "/notification-inbox/organization": {
       "get": {
-        "description": "Current browser recipient across readable projects of the active organization. Counts and hydrated sources are restricted to current authority. A change to the visible project set invalidates earlier continuation cursors.",
+        "description": "Current browser recipient across readable projects of the active organization. Counts and hydrated task or automation sources are restricted to current authority. A change to the visible project set invalidates earlier continuation cursors.",
         "operationId": "get_notification-inbox_organization",
         "parameters": [
           {
@@ -87974,7 +88021,7 @@
     },
     "/notification-inbox/{id}/commands": {
       "post": {
-        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff, followed discussion, execution failure or a durable tool input request. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization.",
+        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications project durable task events or an automatic failure pause. Automation alerts go only to the rule activator and locate the exact blocked trigger and pinned revision. Unavailable sources have no cached title. Private read/archive commands require project read authority and an owned notification, change only inbox state, and recover the original operation receipt after reauthorization.",
         "operationId": "post_notification-inbox_id_commands",
         "parameters": [
           {

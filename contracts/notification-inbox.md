@@ -22,7 +22,7 @@
 
 `NotificationInboxPage`：project_id、user_id、limit、items、total、counts、next_cursor、as_of。counts为inbox／unread／archived三项完整当前范围计数，total是所选filter的匹配量。items是当前有界页，不是完整项目列表。
 
-`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned／task_mentioned／task_review_requested／task_handoff_requested／task_followed／task_run_failed、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current、可选current_task、message_id或review_request_id。只有对应完整来源才返回其定位ID；消息提及见[精准提及合同](task-conversation-mentions.md)，明确验收责任及原Review决定见[验收请求合同](task-review-requests.md)。取消／已决定的请求保留个人事件，打开来源不等于已读或验收。
+`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned／task_mentioned／task_review_requested／task_handoff_requested／task_followed／task_run_failed／task_tool_input_requested／automation_failure_paused、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current，以及按来源返回的可选字段。可选字段包括 current_task、message_id、review_request_id、handoff_id、run_id、tool_input_target 与 automation_target。只有对应完整来源才返回其定位ID；消息提及见[精准提及合同](task-conversation-mentions.md)，明确验收责任及原Review决定见[验收请求合同](task-review-requests.md)。取消／已决定的请求保留个人事件，打开来源不等于已读或验收。
 
 `NotificationInboxTask`只包含id、version、title、status；source_available=false时不得返回current_task。assignment_current仅在当前来源可用且当前负责人仍为原资源时为true，不据此宣称执行或验收完成。
 
@@ -71,6 +71,12 @@ T-INBOX-138原阶段只实现任务分配来源；T-MENTIONS-140增加明确人�
 `task_tool_input_requested` 仅在正式任务绑定的原运行首次保存符合条件的工具问题时投影。Codex 须明确报告阻塞问题。Cursor 与 Claude SDK 使用各自已启用的原生交互输入。通知接收人为当前有项目写权限的规范人员负责人和明确关注者。同一人仅收一条，原操作重放不重新投影。
 
 工具问题与通知同事务提交。通知记录事件时间、原任务绑定版本与不可导航的来源摘要。项目和组织收件箱读取时，须核对同项目的正式任务来源、原问题及持久尝试，才返回 `tool_input_target={input_id,run_id,node_id,attempt}`。其中 `input_id` 是原工具问题的不透明标识。通知只说明曾发生请求，当前能否回答以原尝试为准。问答正文和供应方回执沿原工具问题权限读取。
+
+## 自动化暂停通知
+
+`automation_failure_paused` 由规则连续失败保护成功暂停时产生，接收人固定为仍有授权的原审批启用人。暂停、队列阻塞和私有通知在同一事务写入，原触发事件去重。该来源无任务，`task_id` 为空，`source_task_version` 为 0。
+
+读取时在当前项目权限内核对规则、原修订和因保护被阻止的准确触发。来源完整时返回 `automation_target={rule_id,revision,trigger_id,title}`。标题来自原规格。来源不匹配时保留通知和个人状态操作，隐藏定位信息。打开规则读取当前状态。
 
 ## 批量处理已选通知
 

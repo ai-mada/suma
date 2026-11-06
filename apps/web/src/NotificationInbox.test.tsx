@@ -51,6 +51,34 @@ it('opens an exact handoff only through its callback without marking read or acc
  records=[item({kind:'task_handoff_requested',assignment_current:false,source_available:false,current_task:undefined})];await render({refresh:1});expect(host.querySelector('.notification-inbox-source')).toBeNull();expect(writes).toHaveLength(0);
 });
 
+it('opens the paused rule in its source project and retains personal notification actions when it becomes unavailable',async()=>{
+ const onAutomationRule=vi.fn(),selector='[data-notification-open-automation="rule-original"]';
+ const pause={
+  kind:'automation_failure_paused',assignment_current:false,task_id:'',source_task_version:0,source_resource_id:'rule-original',
+  current_task:undefined,automation_target:{rule_id:'rule-original',revision:2,trigger_id:'trigger-blocked',title:'CI review'},
+ };
+ let notice=item(pause);
+ transport(()=>Response.json(orgPage([orgRow('project-b','Other project',notice)])));
+ await render({scopeMode:'organization',onAutomationRule});
+ expect(host.textContent).toContain('Automation paused after repeated failures');
+ expect(host.textContent).toContain('Rule revision 2 at pause');
+ expect(host.querySelector(selector)?.getAttribute('aria-label')).toBe('Open automation rule: CI review');
+ await click(selector);
+ expect(onAutomationRule).toHaveBeenCalledExactlyOnceWith('rule-original','project-b');
+ expect(props.onTask).not.toHaveBeenCalled();
+ expect(writes).toHaveLength(0);
+ await act(async()=>setLocale('zh-CN',{persist:false}));
+ expect(host.querySelector(selector)?.getAttribute('aria-label')).toBe('打开自动化规则：CI review');
+ expect(host.textContent).toContain('自动化因连续失败已暂停');
+ notice=item({...pause,source_available:false,automation_target:undefined});
+ await render({refresh:1});
+ expect(host.querySelector(selector)).toBeNull();
+ expect(host.textContent).toContain('自动化规则不可用');
+ expect(host.textContent).not.toContain('CI review');
+ expect(host.querySelector('[data-notification-action="read"]')).not.toBeNull();
+ expect(host.querySelector('[data-notification-action="archive"]')).not.toBeNull();
+});
+
 it('opens the exact original review request without accepting or marking the notification read',async()=>{
  const onReviewRequest=vi.fn();records=[item({kind:'task_review_requested',assignment_current:false,review_request_id:'request-old'})];transport();await render({onReviewRequest});expect(host.textContent).toContain('You were asked to review a task delivery');expect(host.textContent).not.toContain('Assignment has changed');
  await click('.notification-inbox-source');expect(onReviewRequest).toHaveBeenCalledWith('task-a','request-old');expect(props.onTask).not.toHaveBeenCalled();expect(writes).toHaveLength(0);expect(reads).toHaveLength(1);
