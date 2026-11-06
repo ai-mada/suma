@@ -8,6 +8,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-LOCAL-TOOLS-FOREGROUND-261 桌面回到前台后刷新过期工具观测，保留现有选择与手动重检。 [交互](../design/local-tools-discovery-experience.md#状态与操作) · [验证](../quality/local-tools-foreground-refresh-verification.md)
+
 T-CLI-INVENTORY-CONNECT-260 从新鲜节点上报生成快捷接入链接，浏览器核对原节点、命令和配置摘要后进入暂停登记审阅。 [操作](../operations/task-dispatch-options.md#从终端进入快捷接入) · [验证](../quality/tool-inventory-connect-link-verification.md)
 
 T-TOOL-CLI-INVENTORY 终端可读取指定普通或共享节点的工具上报，并按命令 ID 使用最新配置查找已有档案。 [操作](../operations/task-dispatch-options.md#从节点上报查找已有工具档案) · [验证](../quality/tool-cli-inventory-verification.md)

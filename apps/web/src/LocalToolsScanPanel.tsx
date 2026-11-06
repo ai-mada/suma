@@ -33,32 +33,104 @@ export function LocalToolsScanPanel(props:LocalToolsScanPanelProps){
  return <ScanScope key={JSON.stringify(scope)+owner.current.epoch} {...props} scope={scope} bridge={bridge}/>;
 }
 function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSelect,onAutoSelect,onAdvanced,onWorker,onViewExisting,scope,bridge}:LocalToolsScanPanelProps&{scope:LocalToolsScanScope;bridge:NonNullable<ReturnType<typeof localToolsScanBridge>>}){
- const locale=useLocale(),[result,setResult]=useState<Extract<LocalToolsScanResult,{status:'observed'}>>(),[busy,setBusy]=useState(false),[failure,setFailure]=useState(false),[expired,setExpired]=useState(false);
+ const locale=useLocale(),[result,setResult]=useState<Extract<LocalToolsScanResult,{status:'observed'}>>(),[scanTrigger,setScanTrigger]=useState<'initial'|'manual'|'foreground'>(),[failure,setFailure]=useState(false),[expired,setExpired]=useState(false);
+ const busy=scanTrigger!==undefined;
+ // Keep the keyboard's current button mounted and focusable on a passive
+ // refresh. The handlers still prevent action while a request is in flight.
+ const foregroundBusy=scanTrigger==='foreground';
+ const controlsDisabled=disabled||(busy&&!foregroundBusy);
  const active=useRef(true),attempted=useRef(false),inflight=useRef(false),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),generation=useRef(0);
- const expiresAt=useRef(0),suggested=useRef(false);
+ const expiresAt=useRef(0),suggested=useRef(false),foregroundResult=useRef(false);
+ const foregroundTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
+ const foregroundRefresh=useRef({allowed:false,scan:()=>{}});
  const panel=useRef<HTMLElement>(null),resultsDisclosure=useRef<HTMLDetailsElement>(null),focusIntent=useRef<{adapterID:string;button:HTMLButtonElement}|undefined>(undefined);
+ const stopBlocked=hasUnverifiedInstallationStop(result?.report.items??[]);
  // StrictMode replays effects on the same instance: preserve its original scan.
  // A real scope remount has separate refs; the old instance remains inactive.
  useEffect(()=>{active.current=true;return()=>{active.current=false;clearTimeout(timer.current);};},[]);
- async function scan(force=false){
-  if(disabled||inflight.current||hasUnverifiedInstallationStop(result?.report.items??[]))return;inflight.current=true;setBusy(true);setFailure(false);const epoch=++generation.current,startWall=Date.now(),startMono=performance.now();
-  try{const raw=await bridge.discoverInstalledTools({action:'scan',project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,locale,...(force?{force:true}:{})});if(!active.current||epoch!==generation.current)return;const next=readLocalToolsScanResult(raw,scope);if(!next||next.status!=='observed'){setResult(undefined);setFailure(true);return;}
-   const now=performance.now(),elapsed=now-startMono,remaining=elapsed<0?0:Math.max(0,Math.min(60000,Date.parse(next.scan.expires_at)-startWall)-elapsed);expiresAt.current=now+remaining;clearTimeout(timer.current);setResult(next);setExpired(remaining<=0);if(remaining>0)timer.current=setTimeout(()=>setExpired(true),remaining);
-  }catch{if(active.current&&epoch===generation.current){setResult(undefined);setFailure(true);}}
-  finally{if(active.current&&epoch===generation.current){inflight.current=false;setBusy(false);}}
+ async function scan(trigger:'initial'|'manual'|'foreground'){
+  if(!active.current||disabled||inflight.current||stopBlocked)return;
+  clearTimeout(foregroundTimer.current);
+  inflight.current=true;setScanTrigger(trigger);setFailure(false);
+  const epoch=++generation.current,startWall=Date.now(),startMono=performance.now();
+  const current=()=>active.current&&epoch===generation.current;
+  function failed(preserve=false){
+   clearTimeout(timer.current);
+   expiresAt.current=0;
+   if(trigger==='foreground'&&preserve)setExpired(true);
+   else setResult(undefined);
+   setFailure(true);
+  }
+  try{
+   const raw=await bridge.discoverInstalledTools({action:'scan',project_id:scope.project,user_id:scope.userID,tenant_id:scope.organizationID,locale,...(trigger==='manual'?{force:true}:{})});
+   if(!current())return;
+   const next=readLocalToolsScanResult(raw,scope);
+   if(!next||next.status!=='observed'){
+    failed(next?.status==='failed'&&!['discovery_access_changed','discovery_request_rejected'].includes(next.code));
+    return;
+   }
+   const now=performance.now(),elapsed=now-startMono;
+   // The native observation may have been made after the request began.
+   // Deduct elapsed time before capping the remaining observation lifetime.
+   const sameObservation=result?.scan.id===next.scan.id&&result.scan.observed_at===next.scan.observed_at;
+   const remaining=elapsed<0?0:Math.max(0,Math.min(
+    60000,Date.parse(next.scan.expires_at)-startWall-elapsed,
+    sameObservation?expiresAt.current-now:60000,
+   ));
+   expiresAt.current=now+remaining;clearTimeout(timer.current);
+   foregroundResult.current=trigger==='foreground';
+   setResult(next);setExpired(remaining<=0);
+   if(remaining>0)timer.current=setTimeout(()=>setExpired(true),Math.ceil(remaining));
+  }catch{if(current())failed(true);}
+  finally{if(current()){inflight.current=false;setScanTrigger(undefined);}}
  }
- useEffect(()=>{if(!disabled&&!attempted.current){attempted.current=true;void scan();}},[disabled]);
+ useEffect(()=>{if(!disabled&&!attempted.current){attempted.current=true;void scan('initial');}},[disabled]);
+ foregroundRefresh.current={allowed:!!result&&!disabled&&!stopBlocked,scan:()=>void scan('foreground')};
+ useEffect(()=>{if(disabled||stopBlocked)clearTimeout(foregroundTimer.current);},[disabled,stopBlocked]);
+ useEffect(()=>{
+  const doc=panel.current?.ownerDocument,win=doc?.defaultView;
+  if(!doc||!win)return;
+  let focused=doc.hasFocus();
+  const isForeground=()=>focused&&doc.visibilityState==='visible';
+  let wasAway=!isForeground();
+  function cancel(){clearTimeout(foregroundTimer.current);}
+  function refresh(){
+   if(!isForeground()||!active.current||!foregroundRefresh.current.allowed||inflight.current)return;
+   const remaining=expiresAt.current-performance.now();
+   if(remaining>0)foregroundTimer.current=setTimeout(refresh,Math.ceil(remaining));
+   else foregroundRefresh.current.scan();
+  }
+  // Electron may remain visible when another application has focus. A true
+  // foreground return needs both signals and only buys one expiry refresh.
+  function transition(){
+   if(!isForeground()){wasAway=true;cancel();return;}
+   if(!wasAway)return;
+   wasAway=false;
+   refresh();
+  }
+  const onFocus=()=>{focused=true;transition();};
+  const onBlur=()=>{focused=false;transition();};
+  const onVisibility=()=>{focused=doc.hasFocus();transition();};
+  win.addEventListener('focus',onFocus);
+  win.addEventListener('blur',onBlur);
+  doc.addEventListener('visibilitychange',onVisibility);
+  return()=>{
+   cancel();
+   win.removeEventListener('focus',onFocus);
+   win.removeEventListener('blur',onBlur);
+   doc.removeEventListener('visibilitychange',onVisibility);
+  };
+ },[]);
  const eligible=adapters.filter(adapter=>quickConnectAdapters([adapter]).length===1||isCursorConnectionGuide(adapter));
  const selected=eligible.find(adapter=>adapter.id===selectedAdapterID);
  const presentation=result?projectLocalToolsScan(result.report.items,selectedAdapterID):undefined;
- const stopBlocked=hasUnverifiedInstallationStop(result?.report.items??[]);
  const shortcuts=compact&&!selectedAdapterID&&result&&!busy&&!expired&&!stopBlocked?result.report.items.flatMap(item=>{
   if(!item.installed||item.diagnostic||!(item.launch_supported||['configuration_required','acp_configuration_required'].includes(item.reason_code)))return [];
   const matches=eligible.filter(adapter=>adapter.id===item.adapter_id&&toolPreparationTarget(adapter));
   return matches.length===1?[{adapter:matches[0],item}]:[];
  }):[];
  useEffect(()=>{
-  if(!onAutoSelect||suggested.current||disabled||busy||inflight.current||!active.current||selectedAdapterID||!result||expired||stopBlocked||performance.now()>=expiresAt.current)return;
+  if(!onAutoSelect||suggested.current||foregroundResult.current||disabled||busy||inflight.current||!active.current||selectedAdapterID||!result||expired||stopBlocked||performance.now()>=expiresAt.current)return;
   const launchable=result.report.items.filter(item=>item.installed&&item.launch_supported&&!item.diagnostic);
   if(launchable.length!==1)return;
   const matches=quickConnectAdapters([...adapters]).filter(adapter=>adapter.id===launchable[0].adapter_id);
@@ -77,19 +149,19 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSe
   <div className="local-tools-scan-item"><div className="local-tools-scan-name"><strong>{adapter&&!isCursorConnectionGuide(adapter)?t('entrypoint_name',{tool:item.product,entrypoint:entrypointLabel(adapter)}):item.product}</strong><span><Search size={14} aria-hidden="true"/>{item.reason_code==='scan_incomplete'?probeText('scan_incomplete'):t(item.installed?expired?'installation_recorded':'installed':'not_observed')}</span></div>
   <p className="local-tools-scan-guidance" {...(diagnostic?{'data-tool-probe-diagnostic':diagnostic.code}:{})}><strong>{diagnostic?probeText('code.'+diagnostic.code):guidance.reason}</strong></p>
   <details data-local-tools-basis={item.adapter_id}><summary><CircleHelp size={14} aria-hidden="true"/>{t('reason')}</summary>{diagnostic?<p>{probeText('hint.'+diagnostic.next_action)}</p>:guidance.hint&&<p>{guidance.hint}</p>}<dl>{diagnostic&&<><dt>{probeText('stage_label')}</dt><dd>{probeText('stage.'+diagnostic.stage)}</dd></>}<dt>{t('protocol')}</dt><dd><code>{adapter?.protocol||item.adapter_id}</code></dd>{item.version&&<><dt>{t('version')}</dt><dd>{item.version}</dd></>}<dt>{t('reason_code')}</dt><dd><code>{item.reason_code}</code></dd></dl></details></div>
-  {(adapter||diagnostic?.next_action==='scan')&&<div className="local-tools-scan-actions">{adapter&&onViewExisting&&<button type="button" className="text-button" data-local-tools-existing={item.adapter_id} disabled={disabled||busy} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onViewExisting(adapter);}}>{t('view_existing')}</button>}{diagnostic?diagnostic.next_action==='guide'&&adapter&&onAdvanced?<button type="button" data-local-tools-diagnostic-action="guide" disabled={disabled||busy} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onAdvanced(adapter);}}>{probeText('action.guide')}</button>:diagnostic.next_action==='scan'?<button type="button" data-local-tools-diagnostic-action="scan" disabled={disabled||busy||stopBlocked} onClick={()=>void scan(true)}>{probeText('action.local_scan')}</button>:null:adapter&&<button type="button" data-local-tools-select={item.adapter_id} aria-pressed={selectedAdapterID===item.adapter_id} disabled={disabled||busy} onClick={event=>{if(active.current&&!disabled&&!inflight.current){focusIntent.current=selectedAdapterID!==item.adapter_id&&event.currentTarget.ownerDocument.activeElement===event.currentTarget?{adapterID:item.adapter_id,button:event.currentTarget}:undefined;onSelect(adapter);if(resultsDisclosure.current)resultsDisclosure.current.open=false;}}}>{t(isCursorConnectionGuide(adapter)?'guide':guidance.install?'install':'configure')}</button>}</div>}
+  {(adapter||diagnostic?.next_action==='scan')&&<div className="local-tools-scan-actions">{adapter&&onViewExisting&&<button type="button" className="text-button" data-local-tools-existing={item.adapter_id} disabled={controlsDisabled} aria-disabled={foregroundBusy||undefined} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onViewExisting(adapter);}}>{t('view_existing')}</button>}{diagnostic?diagnostic.next_action==='guide'&&adapter&&onAdvanced?<button type="button" data-local-tools-diagnostic-action="guide" disabled={controlsDisabled} aria-disabled={foregroundBusy||undefined} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onAdvanced(adapter);}}>{probeText('action.guide')}</button>:diagnostic.next_action==='scan'?<button type="button" data-local-tools-diagnostic-action="scan" disabled={controlsDisabled||stopBlocked} aria-disabled={foregroundBusy||undefined} onClick={()=>void scan('manual')}>{probeText('action.local_scan')}</button>:null:adapter&&<button type="button" data-local-tools-select={item.adapter_id} aria-pressed={selectedAdapterID===item.adapter_id} disabled={controlsDisabled} aria-disabled={foregroundBusy||undefined} onClick={event=>{if(active.current&&!disabled&&!inflight.current){focusIntent.current=selectedAdapterID!==item.adapter_id&&event.currentTarget.ownerDocument.activeElement===event.currentTarget?{adapterID:item.adapter_id,button:event.currentTarget}:undefined;onSelect(adapter);if(resultsDisclosure.current)resultsDisclosure.current.open=false;}}}>{t(isCursorConnectionGuide(adapter)?'guide':guidance.install?'install':'configure')}</button>}</div>}
  </li>;}
  const counts=presentation?t('installation_summary',{detected:formatNumber(presentation.detectedCount),attention:formatNumber(presentation.attentionCount)}):'';
  const details=<>
   <p className="local-tools-scan-boundary">{t('scope_hint',{count:formatNumber(scanAdapterIDs.length)})}</p>
   {result&&presentation&&<>
-   {presentation.primary.length>0?<ul className="local-tools-scan-list" data-local-tools-primary>{presentation.primary.map(row)}</ul>:<div className="local-tools-scan-empty" data-local-tools-empty><p>{t('empty_primary')}</p>{onWorker&&<button type="button" data-local-tools-worker disabled={disabled||busy} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onWorker();}}><Server size={16} aria-hidden="true"/>{t('worker')}</button>}</div>}
+   {presentation.primary.length>0?<ul className="local-tools-scan-list" data-local-tools-primary>{presentation.primary.map(row)}</ul>:<div className="local-tools-scan-empty" data-local-tools-empty><p>{t('empty_primary')}</p>{onWorker&&<button type="button" data-local-tools-worker disabled={controlsDisabled} aria-disabled={foregroundBusy||undefined} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onWorker();}}><Server size={16} aria-hidden="true"/>{t('worker')}</button>}</div>}
    {presentation.other.length>0&&<details className="local-tools-scan-other" data-local-tools-other><summary><ChevronRight className="local-tools-scan-disclosure" size={16} aria-hidden="true"/>{t('other_tools',{count:formatNumber(presentation.other.length)})}</summary><ul className="local-tools-scan-list">{presentation.other.map(row)}</ul></details>}
    <p className="local-tools-scan-boundary">{t('boundary')}</p><details className="local-tools-scan-times"><summary>{t('observation')}</summary><dl><dt>{t('observed_at')}</dt><dd><time dateTime={result.scan.observed_at}>{result.scan.observed_at}</time></dd><dt>{t('expires_at')}</dt><dd><time dateTime={result.scan.expires_at}>{result.scan.expires_at}</time></dd></dl></details></>}
  </>;
  return <section ref={panel} className={'local-tools-scan'+(compact?' local-tools-scan-compact':'')} data-local-tools-scan aria-label={t('title')} aria-busy={busy}>
-  <header><div><h4><Monitor size={18} aria-hidden="true"/>{t(compact?'compact_title':'title')}</h4>{!compact&&<p>{t('intro')}</p>}</div><button type="button" data-local-tools-rescan disabled={disabled||busy||stopBlocked} onClick={()=>void scan(true)}><RefreshCw size={16} aria-hidden="true"/>{t(busy?'scanning':'rescan')}</button></header>
-  {(!compact||!result||expired||busy||failure)&&<p className="local-tools-scan-status" role="status">{t(failure?'failed':busy?'scanning':result?expired?'expired':result.scan.cached?'cached':'observed':disabled?'deferred':'waiting')}</p>}
+  <header><div><h4><Monitor size={18} aria-hidden="true"/>{t(compact?'compact_title':'title')}</h4>{!compact&&<p>{t('intro')}</p>}</div><button type="button" data-local-tools-rescan disabled={controlsDisabled||stopBlocked} aria-disabled={foregroundBusy||undefined} onClick={()=>void scan('manual')}><RefreshCw size={16} aria-hidden="true"/>{t(busy?'scanning':'rescan')}</button></header>
+  {(!compact||!result||expired||busy||failure)&&<p className="local-tools-scan-status" role="status">{t(failure?result?'refresh_failed':'failed':busy?'scanning':result?expired?'expired':result.scan.cached?'cached':'observed':disabled?'deferred':'waiting')}</p>}
   {selected&&!compact&&<p className="local-tools-scan-target" data-local-tools-selected-target>{t('selected_target',{tool:selected.product})}</p>}
   {shortcuts.length>0&&<ul className="local-tools-scan-shortcuts" aria-label={t('shortcuts')}>
    {shortcuts.map(({adapter,item})=><li key={adapter.id}><button type="button" data-local-tools-shortcut={adapter.id} disabled={disabled} onClick={()=>{

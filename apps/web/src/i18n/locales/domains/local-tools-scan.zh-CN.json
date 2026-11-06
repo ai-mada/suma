@@ -12,6 +12,7 @@
  "local-tools-scan.scanning":"正在检测本机工具…",
  "local-tools-scan.rescan":"重新检测",
  "local-tools-scan.failed":"未能确认本次检测结果，请重新检测。",
+ "local-tools-scan.refresh_failed":"未能刷新，下方保留上次检测结果供参考。可重新检测。",
  "local-tools-scan.expired":"检测结果已过期，下列安装信息仅供参考。",
  "local-tools-scan.cached":"显示当前范围内缓存的安装观察。",
  "local-tools-scan.observed":"已读取本次安装观察。",

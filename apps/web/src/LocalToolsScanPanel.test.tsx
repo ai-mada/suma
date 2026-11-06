@@ -22,6 +22,132 @@ async function render(disabled=false,p=project,identity=session,strict=false){co
 const rescan=()=>host.querySelector<HTMLButtonElement>('[data-local-tools-rescan]')!;
 async function click(element:HTMLButtonElement){await act(async()=>element.click());}
 
+function controlForeground(){
+ vi.useFakeTimers({toFake:['Date','setTimeout','clearTimeout','performance']});
+ let visible=true,focused=true;
+ vi.spyOn(document,'visibilityState','get').mockImplementation(()=>visible?'visible':'hidden');
+ vi.spyOn(document,'hidden','get').mockImplementation(()=>!visible);
+ vi.spyOn(document,'hasFocus').mockImplementation(()=>focused);
+ return {
+  focus(value:boolean){focused=value;window.dispatchEvent(new Event(value?'focus':'blur'));},
+  show(value:boolean){visible=value;document.dispatchEvent(new Event('visibilitychange'));},
+  async wait(ms:number){await act(async()=>vi.advanceTimersByTimeAsync(ms));},
+ };
+}
+
+it('refreshes once at the original expiry after returning early, without choosing a newly detected tool',async()=>{
+ const foreground=controlForeground(),onAutoSelect=vi.fn(),cli={...adapter,id:'codex-jsonl',protocol:'codex-jsonl-v1'};
+ scan.mockImplementationOnce(async()=>report()).mockImplementationOnce(async()=>{
+  const value=report();
+  value.report.items[0]={...value.report.items[0],installed:true,launch_supported:true,reason_code:'workspace_required',
+   executable:'C:/tools/codex.exe',version:'0.141.0'} as typeof value.report.items[number];
+  return value;
+ });
+ await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project}
+  adapters={[cli]} compact onSelect={select} onAutoSelect={onAutoSelect}/></ApiViewProvider>));
+ const summary=host.querySelector<HTMLElement>('[data-local-tools-results] > summary')!;
+ summary.focus();
+ await act(async()=>foreground.focus(true));
+ await foreground.wait(10000);
+ await act(async()=>{foreground.focus(false);foreground.show(false);foreground.focus(true);});
+ expect(scan).toHaveBeenCalledOnce();
+ await act(async()=>{foreground.show(true);foreground.focus(true);foreground.focus(true);});
+ await foreground.wait(48999);
+ expect(scan).toHaveBeenCalledOnce();
+ await foreground.wait(2);
+ expect(scan).toHaveBeenCalledTimes(2);
+ expect(scan).toHaveBeenLastCalledWith({action:'scan',project_id:project,user_id:user,tenant_id:tenant,locale:'en-US'});
+ expect(host.querySelector('[data-local-tools-shortcut="codex-jsonl"]')).not.toBeNull();
+ expect(document.activeElement).toBe(summary);
+ expect(onAutoSelect).not.toHaveBeenCalled();
+ expect(select).not.toHaveBeenCalled();
+ await act(async()=>{foreground.focus(true);foreground.show(true);});
+ await foreground.wait(60000);
+ expect(scan).toHaveBeenCalledTimes(2);
+ expect(fetch).not.toHaveBeenCalled();
+});
+
+it('cancels a deferred refresh while hidden and retains stale facts and selection if the return scan fails',async()=>{
+ const foreground=controlForeground(),onAutoSelect=vi.fn();
+ const value=report();
+ value.report.items[6]={...value.report.items[6],installed:true,reason_code:'configuration_required',
+  executable:'C:/tools/codex.exe',version:'0.141.0',executable_sha256:'a'.repeat(64)} as typeof value.report.items[number];
+ let rejectRefresh!:(reason:Error)=>void;
+ scan.mockResolvedValueOnce(value).mockImplementationOnce(()=>new Promise((_,reject)=>{rejectRefresh=reject;}));
+ await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project}
+  adapters={[adapter,cursor]} selectedAdapterID={adapter.id} onSelect={select} onAutoSelect={onAutoSelect}/></ApiViewProvider>));
+ rescan().focus();
+ await act(async()=>{foreground.focus(false);foreground.focus(true);foreground.show(false);});
+ await foreground.wait(59001);
+ expect(scan).toHaveBeenCalledOnce();
+ await act(async()=>{foreground.show(true);foreground.focus(true);});
+ expect(scan).toHaveBeenCalledTimes(2);
+ expect(document.activeElement).toBe(rescan());
+ expect(rescan().getAttribute('aria-disabled')).toBe('true');
+ await click(rescan());
+ expect(scan).toHaveBeenCalledTimes(2);
+ await act(async()=>rejectRefresh(new Error('desktop unavailable')));
+ const retained=host.querySelector('[data-local-tools-primary] [data-local-tools-adapter="codex-app-server"]');
+ expect(retained?.textContent).toContain('0.141.0');
+ expect(retained?.querySelector('[data-local-tools-select="codex-app-server"]')?.getAttribute('aria-pressed')).toBe('true');
+ expect(host.querySelector('.local-tools-scan-status')?.textContent).toContain('The last scan is shown for reference');
+ expect(select).not.toHaveBeenCalled();
+ expect(onAutoSelect).not.toHaveBeenCalled();
+ expect(rescan().disabled).toBe(false);
+ await click(rescan());
+ expect(scan).toHaveBeenCalledTimes(3);
+ expect(scan).toHaveBeenLastCalledWith({action:'scan',project_id:project,user_id:user,tenant_id:tenant,locale:'en-US',force:true});
+ expect(fetch).not.toHaveBeenCalled();
+});
+
+it('clears previous local observations when the desktop rejects the returning scope',async()=>{
+ const foreground=controlForeground();
+ scan.mockResolvedValueOnce(report()).mockResolvedValueOnce({status:'failed',code:'discovery_access_changed'});
+ await render();
+ expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(9);
+ await act(async()=>foreground.focus(false));
+ await foreground.wait(59001);
+ await act(async()=>foreground.focus(true));
+ expect(scan).toHaveBeenCalledTimes(2);
+ expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(0);
+ expect(host.querySelector('.local-tools-scan-status')?.textContent).toContain('could not be verified');
+ expect(select).not.toHaveBeenCalled();
+ expect(fetch).not.toHaveBeenCalled();
+});
+
+it('keeps a replayed observation expired after the wall clock moves backwards',async()=>{
+ const foreground=controlForeground(),originalWall=Date.now(),value=report();
+ scan.mockResolvedValueOnce(value).mockResolvedValueOnce({...value,scan:{...value.scan,cached:true}});
+ await render();
+ await act(async()=>foreground.focus(false));
+ await foreground.wait(59001);
+ vi.setSystemTime(originalWall);
+ await act(async()=>foreground.focus(true));
+ expect(scan).toHaveBeenCalledTimes(2);
+ expect(host.querySelector('.local-tools-scan-status')?.textContent).toContain('This scan has expired');
+ expect(host.querySelectorAll('[data-local-tools-adapter]')).toHaveLength(9);
+ expect(fetch).not.toHaveBeenCalled();
+});
+
+it.each(['disabled','stop-unverified'] as const)('does not refresh on return with a %s scan',async(blocked)=>{
+ const foreground=controlForeground();
+ if(blocked==='stop-unverified'){
+  const value=report();
+  value.report.items[8]={...value.report.items[8],installed:true,reason_code:'probe_failed',
+   diagnostic:{stage:'version',code:'stop_unverified',next_action:'none'}} as typeof value.report.items[number];
+  scan.mockResolvedValueOnce(value);
+ }
+ await render();
+ if(blocked==='disabled')await render(true);
+ await act(async()=>{foreground.focus(false);foreground.show(false);});
+ await foreground.wait(59001);
+ await act(async()=>{foreground.show(true);foreground.focus(true);});
+ expect(rescan().disabled).toBe(true);
+ expect(scan).toHaveBeenCalledOnce();
+ expect(select).not.toHaveBeenCalled();
+ expect(fetch).not.toHaveBeenCalled();
+});
+
 it.each([['unique',true],['ambiguous',false],['expired',false],['unsupported',false],['no exact descriptor',false]] as const)(
  'only suggests a current, uniquely supported catalog entry (%s)',async(state,expected)=>{
   const cli={...adapter,id:'codex-jsonl',protocol:'codex-jsonl-v1'},buddy={...cli,id:'codebuddy-cli',adapter:'codebuddy',protocol:'codebuddy-jsonl-v1'};

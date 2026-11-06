@@ -8,6 +8,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-LOCAL-TOOLS-FOREGROUND-261 验证窗口前后台、缓存到期、未确认停止和真实 Windows Codex 发现。 [阶段报告](local-tools-foreground-refresh-verification.md)
+
 T-CLI-INVENTORY-CONNECT-260 实际共享节点 CLI 联调核对新鲜度与授权撤回，中文窄屏和英文桌面验证原工具审阅。 [阶段报告](tool-inventory-connect-link-verification.md)
 
 T-TOOL-CLI-INVENTORY 核验节点上报的准确范围、有效期、配置复用和共享节点撤权。 [命令与证据](tool-cli-inventory-verification.md)

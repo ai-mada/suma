@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "local_tools_foreground": {
+    "stage": "T-LOCAL-TOOLS-FOREGROUND-261",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "7b6554902a29a75bec6330448005c835f1f4abea",
+    "report": "docs/quality/local-tools-foreground-refresh-verification.md",
+    "actual": "Desktop tool scan refreshes once after returning to the foreground and the original observation expires. It keeps selection, stops on unresolved shutdown, and validates each current scope. The strict CLI scan parser rejects absent installations with executable metadata.",
+    "verification": "42 targeted Web tests, 20 native bridge tests, real Windows Runner/Codex discovery at the cache boundary, and bilingual Chromium lifecycle fixtures passed.",
+    "known_limitations": "Electron window lifecycle and native controller were exercised separately; cross-platform installed-app and live account/model verification remain open.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q261/post-git.json"
+  },
   "cli_inventory_connect": {
     "stage": "T-CLI-INVENTORY-CONNECT-260",
     "version": "1.0.0",

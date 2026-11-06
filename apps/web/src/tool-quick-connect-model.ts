@@ -93,8 +93,8 @@ export function readInstalledToolDiscovery(value:unknown,adapter:string):Install
  const row=value.report.items[0];
  if(!cursorObject(row)||!cursorFields(row,['adapter_id','product','installed','launch_supported','reason_code'],['executable','version','executable_sha256','diagnostic'])||!validToolInstallationProbeDiagnosticField(row)||row.adapter_id!==adapter||row.product!==localProducts[adapter]||typeof row.installed!=='boolean'||typeof row.launch_supported!=='boolean'||typeof row.reason_code!=='string'||!localReasons.has(row.reason_code)||Object.hasOwn(row,'executable')&&!safeText(row.executable,4096)||Object.hasOwn(row,'version')&&!safeText(row.version,256)||Object.hasOwn(row,'executable_sha256')&&(typeof row.executable_sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
  if(row.launch_supported&&(!row.installed||row.reason_code!=='workspace_required'||!safeText(row.version,256)||typeof row.executable!=='string'||!(/^[a-z]:[\\/]/i.test(row.executable)||/^\/(?!\/)/.test(row.executable))))return;
- if(row.reason_code==='workspace_required'&&!row.launch_supported||row.reason_code==='not_installed'&&row.installed)return;
- if(row.reason_code==='scan_incomplete'&&(row.installed||row.launch_supported||['executable','version','executable_sha256'].some(key=>Object.hasOwn(row,key))))return;
+ if(row.reason_code==='workspace_required'&&!row.launch_supported)return;
+ if(['not_installed','scan_incomplete'].includes(row.reason_code)&&(row.installed||row.launch_supported||['executable','version','executable_sha256'].some(key=>Object.hasOwn(row,key))))return;
  return row as InstalledToolFact;
 }
 
