@@ -36,6 +36,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-AUTOMATION-RUN-ORIGIN-276 从运行详情核对原自动化触发及规则修订，打开当前项目原规则。 [验证](../quality/automation-run-origin-verification.md)
+
 T-WAKE-AND-SCAN-RECOVERY-275 异常唤醒独立退避，远程节点检测切换历史和重新读取以当前选择为准。 [验证](../quality/wake-and-scan-recovery-verification.md)
 
 T-FAILURE-PROJECTION-FRONTIER-274 故障回流按持久位点增量处理，重启后继续补记未确认事件。 [验证](../quality/failure-projection-frontier-verification.md)

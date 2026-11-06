@@ -1175,6 +1175,19 @@ export interface AutomationRule {
   last_error: string;
   revisions?: (AutomationRevision)[];
 }
+export interface AutomationRunOrigin {
+  rule_id: string;
+  rule_name: string;
+  occurrence_id: string;
+  revision: number;
+  source: string;
+  scheduled_at: string;
+}
+export interface AutomationRunOriginResult {
+  project_id: string;
+  run_id: string;
+  origin: AutomationRunOrigin | null;
+}
 export interface AutomationSpec {
   name: string;
   workflow_id: string;

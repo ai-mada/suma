@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func automationModels() []any {
-	return []any{platform.AutomationSpec{}, platform.AutomationRevision{}, platform.AutomationRule{}, platform.AutomationOccurrence{}, platform.AutomationCreateRequest{}, platform.AutomationPreviewRequest{}, platform.AutomationCommandRequest{}, platform.AutomationCommandResult{}, platform.AutomationPreview{}, platform.AutomationList{}, platform.AutomationOccurrences{}, platform.AutomationRevisions{}}
+	return []any{platform.AutomationSpec{}, platform.AutomationRevision{}, platform.AutomationRule{}, platform.AutomationOccurrence{}, platform.AutomationCreateRequest{}, platform.AutomationPreviewRequest{}, platform.AutomationCommandRequest{}, platform.AutomationCommandResult{}, platform.AutomationPreview{}, platform.AutomationList{}, platform.AutomationOccurrences{}, platform.AutomationRevisions{}, platform.AutomationRunOriginResult{}, platform.AutomationRunOrigin{}}
 }
 
 func automationContracts(add operationAdder, paths map[string]any) {
@@ -21,6 +21,8 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	get("/automations/{id}", "AutomationRule", false)
 	get("/automations/{id}/occurrences", "AutomationOccurrences", true)
 	get("/automations/{id}/revisions", "AutomationRevisions", true)
+	origin := get("/runs/{id}/automation-origin", "AutomationRunOriginResult", false)
+	origin["description"] = "Reads the original automation trigger and immutable rule revision for this exact current project run. A readable run without automation provenance returns an explicit null origin. Missing or foreign runs return 404."
 	op := add("/automations", "post", "AutomationRule", false, true)
 	browserOnly(op)
 	successStatus(op, "201")
@@ -86,6 +88,9 @@ func enhanceAutomationSchemas(schemas map[string]any) {
 	field("AutomationRule", "state", map[string]any{"enum": []string{"draft", "enabled", "paused", "archived"}})
 	field("AutomationRule", "version", map[string]any{"minimum": 1, "description": "User-command CAS version; scheduler cursor movement does not consume this version."})
 	field("AutomationRule", "revision", map[string]any{"minimum": 1, "description": "Immutable specification revision, incremented only by revise."})
+	field("AutomationRunOrigin", "source", map[string]any{"enum": []string{"cron", "manual", "webhook"}})
+	field("AutomationRunOrigin", "revision", map[string]any{"minimum": 1})
+	field("AutomationRunOrigin", "scheduled_at", map[string]any{"format": "date-time"})
 	field("AutomationOccurrence", "state", map[string]any{"enum": []string{"queued", "started", "skipped", "blocked"}})
 	field("AutomationOccurrence", "source", map[string]any{"enum": []string{"cron", "manual"}})
 }

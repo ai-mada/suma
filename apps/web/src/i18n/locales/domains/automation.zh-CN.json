@@ -1,4 +1,12 @@
 {
+  "automation.run_origin.title": "自动化来源",
+  "automation.run_origin.loading": "正在核对原触发记录…",
+  "automation.run_origin.denied": "当前无法读取此运行的自动化来源。",
+  "automation.run_origin.error": "暂时无法核对原触发记录。",
+  "automation.run_origin.retry": "重新读取",
+  "automation.run_origin.context": "{{source}} · 规则修订 {{revision}}",
+  "automation.run_origin.open": "打开自动化规则",
+  "automation.run_origin.none": "此运行由自动化之外的入口启动。",
   "automation.the_original_operation_still_needs_reconciliation_this_refusal": " 原操作仍待核对，当前拒绝不代表之前未产生触发。",
   "automation.manual_trigger_saved_durably_see_trigger_records_for": "人工触发已持久保存；实际派发与运行结果请查看触发记录。",
   "automation.rule_paused_new_manual_scheduled_and_event_dispatches": "规则已暂停，新的人工、定时及事件派发均已停止。已开始的运行可在运行页单独管理。",

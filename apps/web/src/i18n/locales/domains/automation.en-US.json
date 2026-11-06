@@ -1,4 +1,12 @@
 {
+  "automation.run_origin.title": "Automation source",
+  "automation.run_origin.loading": "Checking the original trigger…",
+  "automation.run_origin.denied": "The automation source is unavailable for this run.",
+  "automation.run_origin.error": "Couldn't verify the original trigger.",
+  "automation.run_origin.retry": "Read again",
+  "automation.run_origin.context": "{{source}} · Rule revision {{revision}}",
+  "automation.run_origin.open": "Open automation rule",
+  "automation.run_origin.none": "This run was not started by an automation.",
   "automation.the_original_operation_still_needs_reconciliation_this_refusal": "The original operation still needs reconciliation; this refusal does not prove that no trigger was created.",
   "automation.manual_trigger_saved_durably_see_trigger_records_for": "Manual trigger saved durably. See trigger records for actual dispatch and run results.",
   "automation.rule_paused_new_manual_scheduled_and_event_dispatches": "Rule paused. New manual, scheduled and event dispatches have stopped. Manage runs already started on the runs page.",

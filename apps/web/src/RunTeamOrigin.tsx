@@ -7,7 +7,7 @@ import {useExpertRead,type ExpertPage} from './expert-team-hooks';
 import {expertID,expertInteger,expertText} from './expert-team-model';
 import {formatNumber,tr,useLocale} from './i18n';
 import {followTaskDeliveryHref,taskDeliveryHref} from './task-delivery-navigation-model';
-import './RunTeamOrigin.css';
+import './RunOrigin.css';
 
 type View=NonNullable<ReturnType<typeof useApiView>>;
 const t=(key:string,values?:Record<string,unknown>)=>tr('team-execution.run_origin.'+key,values);
@@ -40,11 +40,11 @@ function RunTeamOriginScope(props:{project:string;run:string;view:View}){
  useLocale();
  const [open,setOpen]=useState(false);
  const toggle=useRef<HTMLElement>(null);
- return <details className="run-team-origin" onToggle={event=>setOpen(event.currentTarget.open)}>
+ return <details className="run-origin" onToggle={event=>setOpen(event.currentTarget.open)}>
   <summary ref={toggle} data-run-team-origin-toggle>
    <Users size={16} aria-hidden="true"/>
    <span>{t('title')}</span>
-   <ChevronRight size={15} className="run-team-origin-chevron" aria-hidden="true"/>
+   <ChevronRight size={15} className="run-origin-chevron" aria-hidden="true"/>
   </summary>
   {open&&<RunTeamOriginRead {...props} returnFocus={()=>toggle.current?.focus()}/>}
  </details>;
@@ -62,14 +62,14 @@ function RunTeamOriginRead({project,run,view:{userID,organizationID},returnFocus
  const item=plan?.items.find(candidate=>candidate?.run_id===run);
  const href=plan&&taskDeliveryHref(project,{kind:'team',id:plan.id});
  const denied=origin.error instanceof ApiError&&[401,403,404].includes(origin.error.status);
- return <div className="run-team-origin-content" aria-busy={origin.loading} aria-live="polite">
+ return <div className="run-origin-content" aria-busy={origin.loading} aria-live="polite">
   {origin.loading?<p data-run-team-origin-state="loading">{t('loading')}</p>
    :denied?<p data-run-team-origin-state="denied">{t('denied')}</p>
-   :origin.error?<div className="run-team-origin-result">
+   :origin.error?<div className="run-origin-result">
      <p data-run-team-origin-state="error">{t('error')}</p>
      <button type="button" data-run-team-origin-retry onClick={()=>{returnFocus();void origin.read();}}><RefreshCw size={14} aria-hidden="true"/>{t('retry')}</button>
     </div>
-   :item&&plan&&href?<div className="run-team-origin-result" data-run-team-origin-state="found">
+   :item&&plan&&href?<div className="run-origin-result" data-run-team-origin-state="found">
      <div>
       <strong>{plan.team_name}</strong>
       <p>{t('context',{role:item.role_title,revision:formatNumber(plan.revision)})}</p>

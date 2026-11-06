@@ -124,6 +124,7 @@ func (s *Service) InitializeAutomations(ctx context.Context) error {
 		{"suma_automation_occ_frontier", "suma_automation_occurrences", []string{"rule_id", "state", "scheduled_at", "created_at", "id"}},
 		{"suma_automation_occ_scope", "suma_automation_occurrences", []string{"tenant_id", "project_id", "rule_id", "created_at", "id"}},
 		{"suma_automation_occ_active", "suma_automation_occurrences", []string{"tenant_id", "project_id", "rule_id", "run_id"}},
+		{"suma_automation_occ_run", "suma_automation_occurrences", []string{"tenant_id", "project_id", "run_id"}},
 	} {
 		if err := store.EnsureIndex(ctx, s.DB, s.Dialect, index.name, index.table, index.columns...); err != nil {
 			return err
@@ -739,6 +740,20 @@ func (s *Service) automationRevisionsCurrentTx(ctx context.Context, auth *author
 	return out, rows.Err()
 }
 func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
+	if len(parts) == 3 && parts[0] == "runs" && parts[2] == "automation-origin" {
+		w.Header().Set("Cache-Control", "no-store")
+		if scope != "" {
+			writeError(w, forbidden())
+			return true
+		}
+		if r.Method != http.MethodGet {
+			writeError(w, missing())
+			return true
+		}
+		out, err := s.Service.AutomationRunOrigin(r.Context(), actor, project, parts[1])
+		respond(w, http.StatusOK, out, err)
+		return true
+	}
 	if parts[0] != "automations" {
 		return false
 	}

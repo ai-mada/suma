@@ -36,6 +36,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-AUTOMATION-RUN-ORIGIN-276 核验真实触发绑定、改名后原修订、授权和中英文键盘交互。 [阶段报告](automation-run-origin-verification.md)
+
 T-WAKE-AND-SCAN-RECOVERY-275 核验单条批次重启恢复、准确历史读取及中英文键盘交互。 [阶段报告](wake-and-scan-recovery-verification.md)
 
 T-FAILURE-PROJECTION-FRONTIER-274 验证 SQLite 范围索引、记账失败、重启补处理和位点之前的到期重试。 [阶段报告](failure-projection-frontier-verification.md)

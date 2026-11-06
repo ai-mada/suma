@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_run_origin": {
+    "stage": "T-AUTOMATION-RUN-ORIGIN-276",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "0a0290863479390f3cd30d3e6a18d64da1793b5b",
+    "report": "docs/quality/automation-run-origin-verification.md",
+    "actual": "Run detail reads the original authorized automation occurrence and immutable rule revision and links to the current project rule.",
+    "verification": "Five Go, four Web component and two bilingual keyboard browser scenarios passed.",
+    "known_limitations": "HTTP and SQLite locally, browser with synthetic data, multi-host and production acceptance remain open.",
+    "full_platform_complete": false
+  },
   "wake_and_scan_recovery": {
     "stage": "T-WAKE-AND-SCAN-RECOVERY-275",
     "version": "1.0.0",

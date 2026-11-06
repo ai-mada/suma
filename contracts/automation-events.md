@@ -30,6 +30,10 @@
 
 命令统一返回 `{rule,occurrence?}`；人工触发先持久化 queued，由 tick 再派发。未来预演返回 `{items:[{utc,local}]}`；人工规则没有定时时刻，items 为空。所有规则接口仅允许真实组织会话，拒绝 API/Runner/Agent 范围凭证。
 
+### 从运行回查原触发
+
+`GET /runs/{id}/automation-origin?project_id=…` 使用当前浏览器项目读取权限。返回项目、运行及 `origin`。普通运行的 `origin` 为 null，项目范围内不存在的运行返回 404。正式来源包含规则 ID、触发时的规则名称与不可变修订、准确触发 ID、触发方式及 UTC 名义时刻。控制面核对原绑定与运行的固定流程，损坏或歧义的绑定返回错误。修改或暂停规则不改写历史来源。 [操作与验证](../quality/automation-run-origin-verification.md)
+
 ## 持久运行事件
 
 `GET /runs/{id}/events/stream?project_id=...&after=N` 使用同源 HttpOnly 会话或现有 Bearer；不接受 URL 令牌。`Last-Event-ID` 与 after 均为非负安全整数，冲突拒绝。每条已落库事件格式 `id: <sequence>\nevent: run_event\ndata: <Event JSON>\n\n`，按全局持久序号递增，允许其他运行造成的间隙。只发送当前运行已持久事件。

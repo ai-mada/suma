@@ -10,6 +10,7 @@ func TestAutomationAndStreamContractsMatchDistinctFactAndAuthority(t *testing.T)
 		{"/automations/{id}/commands", "post", "AutomationCommandResult"},
 		{"/automations/preview", "post", "AutomationPreview"},
 		{"/automations/{id}/occurrences", "get", "AutomationOccurrences"},
+		{"/runs/{id}/automation-origin", "get", "AutomationRunOriginResult"},
 	} {
 		op := mapAt(paths, pair.path, pair.method)
 		status := "200"
