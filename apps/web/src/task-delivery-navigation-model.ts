@@ -8,9 +8,13 @@ export type TaskAcceptanceConsumption={userID:string;organizationID:string;proje
 const identifier=(value:string)=>typeof value==='string'&&!/[\u0000-\u001f\u007f]/.test(value)&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
 const version=(value:number)=>Number.isSafeInteger(value)&&value>0&&value<=2147483646;
 export const validWorkBuddyProgressTaskID=identifier;
+export type WorkBuddyProgressFilter='attention'|'delivery';
+export function validWorkBuddyProgressFilter(value:unknown):value is WorkBuddyProgressFilter {
+  return value==='attention'||value==='delivery';
+}
 
-export function workBuddyProgressTaskHref(project:string,task:string,filter?:'attention'):string|undefined{
-  if(!identifier(project)||!identifier(task))return undefined;
+export function workBuddyProgressTaskHref(project:string,task:string,filter?:WorkBuddyProgressFilter):string|undefined{
+  if(!identifier(project)||!identifier(task)||filter!==undefined&&!validWorkBuddyProgressFilter(filter))return undefined;
   const fields=new URLSearchParams({project,view:'development',sub:'runs',layout:'workbuddy',workbuddy_task:task});
   if(filter)fields.set('workbuddy_filter',filter);
   return '?'+fields;
@@ -20,7 +24,7 @@ export function isWorkBuddyProgressTaskLocator(params:URLSearchParams):boolean{
   return ['project','view','sub','layout','workbuddy_task'].every(key=>params.getAll(key).length===1)
     &&params.get('view')==='development'&&params.get('sub')==='runs'&&params.get('layout')==='workbuddy'
     &&identifier(params.get('project')||'')&&identifier(params.get('workbuddy_task')||'')
-    &&(!params.has('workbuddy_filter')||params.getAll('workbuddy_filter').length===1&&params.get('workbuddy_filter')==='attention')
+    &&(!params.has('workbuddy_filter')||params.getAll('workbuddy_filter').length===1&&validWorkBuddyProgressFilter(params.get('workbuddy_filter')))
     &&!['record','panel','run','node','attempt','workbuddy_task_invalid','workbuddy_filter_invalid'].some(key=>params.has(key));
 }
 

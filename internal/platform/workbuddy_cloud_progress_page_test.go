@@ -144,6 +144,82 @@ func TestWorkBuddyCloudProgressPageLocatesFormalTaskDelivery(t *testing.T) {
 	}
 }
 
+func TestWorkBuddyCloudProgressDeliveryPreservesFormalAttemptAndCurrentAuthority(t *testing.T) {
+	h := newWorkBuddyTaskDispatchFixture(t)
+	f := h.f
+	f.handler = (&Server{Service: f.s, Engine: f.e, WorkBuddy: h.w}).Handler()
+	assignment, _ := workBuddyTaskParkAtProviderWait(t, h)
+	cloud := &cloudFixture{f: f, w: h.w}
+	path := cloudProgressListPath(f.project) + "&filter=delivery&task_id=" + h.task.ID
+	reader := cloudProgressToken(t, cloud, "api")
+	agent := cloudProgressToken(t, cloud, "agent")
+	creates, queries := h.creates.Load(), h.queries.Load()
+
+	read := func(token string) *httptest.ResponseRecorder {
+		return cloudProgressRequest(cloud, http.MethodGet, path, token)
+	}
+	page := readCloudProgressPage(t, read(reader))
+	if page.Filter != wc.CloudProgressDeliveryFilter || page.TaskID != h.task.ID ||
+		len(page.Items) != 1 || page.Items[0].RunID != assignment.RunID ||
+		page.Items[0].NodeID != assignment.NodeID || page.Items[0].Attempt != assignment.Attempt ||
+		len(page.TaskLinks) != 1 || page.TaskLinks[0].RunRelation != "current" ||
+		page.TaskLinks[0].TaskID != h.task.ID {
+		t.Fatalf("delivery scope did not retain the original formal attempt: %+v", page)
+	}
+	if denied := read(agent); denied.Code != http.StatusForbidden {
+		t.Fatalf("agent accessed the delivery queue: %d", denied.Code)
+	}
+
+	owner := f.cookie
+	const email = "workbuddy-delivery-viewer@example.test"
+	member := governanceAccept(f, governanceInvite(f, email, "member", []any{map[string]any{"project_id": f.project, "role": "viewer"}}), email)
+	viewer := f.cookie
+	if page := readCloudProgressPage(t, read("")); len(page.Items) != 1 {
+		t.Fatal("current project viewer could not locate the delivery attempt")
+	}
+	f.cookie = owner
+	if _, err := f.s.SaveProjectAccess(context.Background(), f.actor, map[string]any{
+		"project_id": f.project, "user_id": member["user"].(map[string]any)["id"], "action": "remove",
+		"expected_version": float64(1), "idempotency_key": newID(),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	f.cookie = viewer
+	if denied := read(""); denied.Code != http.StatusForbidden {
+		t.Fatalf("revoked viewer retained the delivery attempt: %d", denied.Code)
+	}
+	f.cookie = owner
+
+	// Keep the saved submission and wait marker to exercise platform state exclusion.
+	for _, state := range []string{"paused", "succeeded"} {
+		if _, err := f.s.DB.Exec("UPDATE dag_runs SET state=? WHERE id=?", state, assignment.RunID); err != nil {
+			t.Fatal(err)
+		}
+		if page := readCloudProgressPage(t, read(reader)); len(page.Items) != 0 || len(page.TaskLinks) != 0 || page.NextCursor != "" {
+			t.Fatalf("run state %q yielded a delivery row: %+v", state, page)
+		}
+	}
+	if _, err := f.s.DB.Exec("UPDATE dag_runs SET state='running' WHERE id=?", assignment.RunID); err != nil {
+		t.Fatal(err)
+	}
+	for _, binding := range []string{newID(), ""} {
+		if _, err := f.s.DB.Exec("UPDATE suma_tasks SET run_id=? WHERE tenant_id=? AND project_id=? AND id=?", binding, f.user.TenantID, f.project, h.task.ID); err != nil {
+			t.Fatal(err)
+		}
+		if page := readCloudProgressPage(t, read(reader)); len(page.Items) != 0 || len(page.TaskLinks) != 0 {
+			t.Fatalf("superseded or unbound cloud execution remained pending: %+v", page)
+		}
+	}
+	historyPath := cloudProgressListPath(f.project) + "&task_id=" + h.task.ID
+	history := readCloudProgressPage(t, cloudProgressRequest(cloud, http.MethodGet, historyPath, reader))
+	if len(history.Items) != 1 || len(history.TaskLinks) != 1 || history.TaskLinks[0].RunRelation != "unbound" {
+		t.Fatalf("delivery filtering discarded historical cloud progress: %+v", history)
+	}
+	if h.creates.Load() != creates || h.queries.Load() != queries {
+		t.Fatal("delivery reads contacted WorkBuddy")
+	}
+}
+
 func cloudProgressNextSubmission(t *testing.T, h *cloudFixture) wc.CloudSubmission {
 	t.Helper()
 	return cloudProgressCreateFollowingSubmission(t, h, false)
@@ -414,6 +490,21 @@ func TestWorkBuddyCloudProgressAttentionContinuesAcrossScanBoundary(t *testing.T
 			t.Fatalf("continuation must advance only when additional records remain: %+v", page)
 		}
 		cursor = page.NextCursor
+	}
+	delivery := base + "&filter=delivery&limit=1"
+	deliveryPage := readCloudProgressPage(t, read(delivery))
+	if deliveryPage.Filter != wc.CloudProgressDeliveryFilter || len(deliveryPage.Items) != 0 || deliveryPage.NextCursor == "" {
+		t.Fatalf("delivery scan lost the empty batch continuation: %+v", deliveryPage)
+	}
+	deliveryCursor := "&before=" + url.QueryEscape(deliveryPage.NextCursor)
+	for _, path := range []string{filtered + deliveryCursor, taskScope + "&filter=delivery" + deliveryCursor, base + deliveryCursor} {
+		if response := read(path); response.Code != http.StatusBadRequest {
+			t.Fatalf("delivery cursor crossed the filter or task scope: %d", response.Code)
+		}
+	}
+	deliveryPage = readCloudProgressPage(t, read(delivery+deliveryCursor))
+	if len(deliveryPage.Items) != 0 || deliveryPage.NextCursor != "" {
+		t.Fatalf("standalone submissions matched the delivery scope: %+v", deliveryPage)
 	}
 	if h.creates.Load() != candidates || h.queries.Load() != 0 {
 		t.Fatalf("filtered reads contacted provider: %d creates, %d queries", h.creates.Load(), h.queries.Load())

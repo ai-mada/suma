@@ -58,8 +58,34 @@ func (p CloudNodeProgress) Validate() error {
 	return nil
 }
 
-// CloudProgressAttentionFilter selects saved records requiring attention.
-const CloudProgressAttentionFilter = "attention"
+const (
+	// CloudProgressAttentionFilter selects saved records requiring attention.
+	CloudProgressAttentionFilter = "attention"
+	// CloudProgressDeliveryFilter selects saved executions waiting for handoff.
+	CloudProgressDeliveryFilter = "delivery"
+)
+
+// ValidCloudProgressFilter reports whether a nonempty progress filter is supported.
+func ValidCloudProgressFilter(filter string) bool {
+	return filter == CloudProgressAttentionFilter || filter == CloudProgressDeliveryFilter
+}
+
+// MatchesFilter classifies saved platform facts. Delivery is a waiting state,
+// separate from current supplier health, candidate evidence and human acceptance.
+func (p CloudNodeProgress) MatchesFilter(filter string) bool {
+	switch filter {
+	case "":
+		return true
+	case CloudProgressAttentionFilter:
+		return p.NeedsAttention()
+	case CloudProgressDeliveryFilter:
+		// Page readers also require an exact, still-current formal task link.
+		return p.RunState == "running" && p.NodeState == "waiting" &&
+			p.NodeReason == "cloud.delivery_required" && p.Attempt > 0 && p.SubmissionState == "task_known"
+	default:
+		return false
+	}
+}
 
 // ValidCloudProgressTaskID accepts the exact formal task identifiers used in progress links.
 func ValidCloudProgressTaskID(id string) bool {
@@ -124,7 +150,7 @@ func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
 		out.TaskID = *wire.TaskID
 	}
 	if !validID(out.ProjectID, 64) || out.Items == nil || len(out.Items) > 20 ||
-		(out.Filter != "" && out.Filter != CloudProgressAttentionFilter) || len(out.NextCursor) > 1024 ||
+		(out.Filter != "" && !ValidCloudProgressFilter(out.Filter)) || len(out.NextCursor) > 1024 ||
 		out.Filter == "" && out.TaskID == "" && out.NextCursor != "" && len(out.Items) == 0 {
 		return CloudNodeProgressPage{}, ErrInvalid
 	}
@@ -135,19 +161,20 @@ func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
 	for _, p := range out.Items {
 		key := [2]string{p.RunID, p.NodeID}
 		if p.Validate() != nil || p.ProjectID != out.ProjectID || p.SubmissionState == "not_recorded" || seen[key] ||
-			out.Filter == CloudProgressAttentionFilter && !p.NeedsAttention() {
+			!p.MatchesFilter(out.Filter) {
 			return CloudNodeProgressPage{}, ErrInvalid
 		}
 		seen[key] = true
 	}
 	for _, link := range out.TaskLinks {
 		key := [2]string{link.RunID, link.NodeID}
-		if link.Validate() != nil || !seen[key] || out.TaskID != "" && link.TaskID != out.TaskID {
+		if link.Validate() != nil || !seen[key] || out.TaskID != "" && link.TaskID != out.TaskID ||
+			out.Filter == CloudProgressDeliveryFilter && link.RunRelation != "current" {
 			return CloudNodeProgressPage{}, ErrInvalid
 		}
 		delete(seen, key)
 	}
-	if out.TaskID != "" && len(seen) != 0 {
+	if (out.TaskID != "" || out.Filter == CloudProgressDeliveryFilter) && len(seen) != 0 {
 		return CloudNodeProgressPage{}, ErrInvalid
 	}
 	return out, nil

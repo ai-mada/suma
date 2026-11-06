@@ -9518,7 +9518,8 @@
         "properties": {
           "filter": {
             "enum": [
-              "attention"
+              "attention",
+              "delivery"
             ],
             "readOnly": true,
             "type": "string"
@@ -9532,7 +9533,7 @@
             "type": "array"
           },
           "next_cursor": {
-            "description": "Continue the same project, reader, attention filter and exact task. A filtered cursor advances from the last inspected submission, even when no item matches.",
+            "description": "Continue the same project, reader, progress filter and exact task. A filtered cursor advances from the last inspected submission, even when no item matches.",
             "maxLength": 1024,
             "minLength": 1,
             "readOnly": true,
@@ -9553,7 +9554,7 @@
             "type": "string"
           },
           "task_links": {
-            "description": "Formal task context keyed by exact run and node among the returned items. Current task binding is independent of the saved execution.",
+            "description": "Formal task context keyed by exact run and node among the returned items. Delivery-filtered items each require a current formal task link. Other scopes can show historical bindings.",
             "items": {
               "$ref": "#/components/schemas/CloudProgressTaskLink"
             },
@@ -161103,7 +161104,7 @@
     },
     "/workbuddy-cloud-progress": {
       "get": {
-        "description": "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project, attention filter and exact task.",
+        "description": "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project, progress filter and exact task.",
         "operationId": "get_workbuddy-cloud-progress",
         "parameters": [
           {
@@ -161138,18 +161139,19 @@
             }
           },
           {
-            "description": "Filter all saved project submissions for attention. A bounded scan may return a short or empty page with a continuation.",
+            "description": "Filter saved submissions requiring attention or waiting for delivery in the still-current run of a formal task. Delivery is not evidence or acceptance. A bounded scan may return a short or empty page with a continuation.",
             "in": "query",
             "name": "filter",
             "schema": {
               "enum": [
-                "attention"
+                "attention",
+                "delivery"
               ],
               "type": "string"
             }
           },
           {
-            "description": "Exact formal task in the current project. May be combined with attention. A bounded scan may return a short or empty page with a continuation.",
+            "description": "Exact formal task in the current project. May be combined with either progress filter. A bounded scan may return a short or empty page with a continuation.",
             "in": "query",
             "name": "task_id",
             "schema": {

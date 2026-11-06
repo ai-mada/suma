@@ -232,7 +232,7 @@ func workBuddyCloudProgressListHTTP(w http.ResponseWriter, r *http.Request, acto
 			}
 			before = values[0]
 		case "filter":
-			if values[0] != wc.CloudProgressAttentionFilter {
+			if !wc.ValidCloudProgressFilter(values[0]) {
 				writeError(w, cloudInvalid())
 				return
 			}

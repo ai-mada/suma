@@ -1,6 +1,9 @@
 package workbuddycloudcontract
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestDecodeCloudProgressTaskScopeRequiresExactEchoAndLinks(t *testing.T) {
 	const item = `{"project_id":"project","run_id":"run","node_id":"node","run_version":1,"run_state":"running","node_state":"running","attempt":1,"submission_state":"prepared","observation_failed":false}`
@@ -25,5 +28,41 @@ func TestDecodeCloudProgressTaskScopeRequiresExactEchoAndLinks(t *testing.T) {
 				t.Fatalf("unexpected scoped decode: task %q, error %v", page.TaskID, err)
 			}
 		})
+	}
+}
+
+func TestDecodeCloudProgressDeliveryRequiresCurrentPlatformHandoff(t *testing.T) {
+	const saved = `{"project_id":"project","run_id":"run","node_id":"node","run_version":1,"run_state":"running","node_state":"waiting","node_reason":"cloud.delivery_required","attempt":1,"submission_state":"task_known","provider_status":"running","observed_at":"2026-11-06T00:00:00Z","observation_failed":true}`
+	const link = `{"run_id":"run","node_id":"node","task_id":"task","task_version":1,"run_relation":"current"}`
+	for _, tc := range []struct {
+		name, original, replacement string
+	}{
+		{name: "saved observation can be stale"},
+		{name: "paused run", original: `"run_state":"running"`, replacement: `"run_state":"paused"`},
+		{name: "finished run", original: `"run_state":"running"`, replacement: `"run_state":"succeeded"`},
+		{name: "different node state", original: `"node_state":"waiting"`, replacement: `"node_state":"running"`},
+		{name: "different wait reason", original: `"node_reason":"cloud.delivery_required"`, replacement: `"node_reason":"cloud.waiting_input"`},
+		{name: "no attempt", original: `"attempt":1`, replacement: `"attempt":0`},
+		{name: "unconfirmed submission", original: `"submission_state":"task_known","provider_status":"running","observed_at":"2026-11-06T00:00:00Z","observation_failed":true`, replacement: `"submission_state":"unknown","observation_failed":false`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			item := saved
+			if tc.original != "" {
+				item = strings.Replace(saved, tc.original, tc.replacement, 1)
+			}
+			page, err := DecodeCloudNodeProgressPage([]byte(`{"project_id":"project","filter":"delivery","items":[` + item + `],"task_links":[` + link + `]}`))
+			if tc.original == "" {
+				if err != nil || page.Filter != CloudProgressDeliveryFilter || len(page.Items) != 1 {
+					t.Fatalf("valid delivery fact did not survive decode: %+v, %v", page, err)
+				}
+			} else if err == nil {
+				t.Fatal("accepted row outside the delivery scope")
+			}
+		})
+	}
+	for _, links := range []string{"", strings.Replace(link, `"current"`, `"changed"`, 1), strings.Replace(link, `"current"`, `"unbound"`, 1)} {
+		if _, err := DecodeCloudNodeProgressPage([]byte(`{"project_id":"project","filter":"delivery","items":[` + saved + `],"task_links":[` + links + `]}`)); err == nil {
+			t.Fatal("accepted delivery fact without a current formal task link")
+		}
 	}
 }

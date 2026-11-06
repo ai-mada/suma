@@ -191,11 +191,12 @@ func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
 	pageOp["x-read-only"] = true
 	pageOp["x-no-external-effects"] = true
 	pageOp["x-disallowed-token-scopes"] = []string{"agent", "runner"}
-	pageOp["description"] = "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project, attention filter and exact task."
+	pageOp["description"] = "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project, progress filter and exact task."
 	appendQuery(pageOp, queryParameter("limit", "Page size.", map[string]any{"type": "integer", "minimum": 1, "maximum": 20, "default": 10}))
 	appendQuery(pageOp, queryParameter("before", "Opaque continuation from next_cursor.", map[string]any{"type": "string", "minLength": 1, "maxLength": 1024}))
-	appendQuery(pageOp, queryParameter("filter", "Filter all saved project submissions for attention. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "enum": []string{wc.CloudProgressAttentionFilter}}))
-	appendQuery(pageOp, queryParameter("task_id", "Exact formal task in the current project. May be combined with attention. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": `^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$`}))
+	filters := []string{wc.CloudProgressAttentionFilter, wc.CloudProgressDeliveryFilter}
+	appendQuery(pageOp, queryParameter("filter", "Filter saved submissions requiring attention or waiting for delivery in the still-current run of a formal task. Delivery is not evidence or acceptance. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "enum": filters}))
+	appendQuery(pageOp, queryParameter("task_id", "Exact formal task in the current project. May be combined with either progress filter. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": `^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$`}))
 	for _, raw := range pageOp["parameters"].([]any) {
 		p := raw.(map[string]any)
 		if p["name"] == "project_id" {
@@ -223,14 +224,14 @@ func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
 	toolContractMap(pageFields, "project_id")["minLength"], toolContractMap(pageFields, "project_id")["maxLength"] = 1, 64
 	toolContractMap(pageFields, "items")["maxItems"] = 20
 	toolContractMap(pageFields, "next_cursor")["minLength"], toolContractMap(pageFields, "next_cursor")["maxLength"] = 1, 1024
-	toolContractMap(pageFields, "filter")["enum"] = []string{wc.CloudProgressAttentionFilter}
+	toolContractMap(pageFields, "filter")["enum"] = filters
 	taskID := toolContractMap(pageFields, "task_id")
 	taskID["minLength"], taskID["maxLength"], taskID["pattern"] = 1, 64, `^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$`
 	taskID["description"] = "Echoes the exact requested task scope. Each item has a formal link to this task."
-	toolContractMap(pageFields, "next_cursor")["description"] = "Continue the same project, reader, attention filter and exact task. A filtered cursor advances from the last inspected submission, even when no item matches."
+	toolContractMap(pageFields, "next_cursor")["description"] = "Continue the same project, reader, progress filter and exact task. A filtered cursor advances from the last inspected submission, even when no item matches."
 	links := toolContractMap(pageFields, "task_links")
 	links["maxItems"] = 20
-	links["description"] = "Formal task context keyed by exact run and node among the returned items. Current task binding is independent of the saved execution."
+	links["description"] = "Formal task context keyed by exact run and node among the returned items. Delivery-filtered items each require a current formal task link. Other scopes can show historical bindings."
 	link := toolContractMap(api, "components", "schemas", "CloudProgressTaskLink")
 	link["additionalProperties"] = false
 	linkFields := toolContractMap(link, "properties")

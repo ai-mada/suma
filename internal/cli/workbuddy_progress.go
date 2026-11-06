@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	workBuddyProgressListUsage   = "run workbuddy-list accepts --limit 1..20, --filter attention, --task TASK, and the original --before cursor"
+	workBuddyProgressListUsage   = "run workbuddy-list accepts --limit 1..20, --filter attention|delivery, --task TASK, and the original --before cursor"
 	workBuddyProgressCursorLimit = 1024
 	workBuddyProgressUsage       = "run workbuddy-status requires RUN and one --node NODE"
 	workBuddyProgressInvalid     = "invalid WorkBuddy progress response or mismatched request scope"
@@ -63,8 +63,8 @@ func workBuddyProgressListCommand(ctx context.Context, c *client, args []string,
 		limit = n
 		return nil
 	})
-	fs.Func("filter", "attention to show submissions needing attention", func(value string) error {
-		if filter != "" || value != wc.CloudProgressAttentionFilter {
+	fs.Func("filter", "attention for records needing action or delivery for current task runs awaiting handoff", func(value string) error {
+		if filter != "" || !wc.ValidCloudProgressFilter(value) {
 			return errors.New(workBuddyProgressListUsage)
 		}
 		filter = value

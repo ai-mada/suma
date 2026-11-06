@@ -254,6 +254,26 @@ func TestWorkBuddyCloudProgressKeepsExactReadScopeAndClosedProjection(t *testing
 	}
 }
 
+func TestWorkBuddyCloudProgressDeliveryFilterSchema(t *testing.T) {
+	api, _ := generate()
+	want := []string{"attention", "delivery"}
+	page := mapAt(api, "components", "schemas", "CloudNodeProgressPage", "properties", "filter")
+	if !reflect.DeepEqual(page["enum"], want) {
+		t.Fatal("progress response filter values differ", page)
+	}
+	op := mapAt(api, "paths", "/workbuddy-cloud-progress", "get")
+	for _, raw := range op["parameters"].([]any) {
+		parameter := raw.(map[string]any)
+		if parameter["name"] == "filter" {
+			if !reflect.DeepEqual(mapAt(parameter, "schema")["enum"], want) {
+				t.Fatal("progress request filter values differ", parameter)
+			}
+			return
+		}
+	}
+	t.Fatal("missing workbuddy progress filter")
+}
+
 func TestWorkBuddyCloudProgressTaskLinksAreClosedPageMetadata(t *testing.T) {
 	api, _ := generate()
 	schemas := mapAt(api, "components", "schemas")

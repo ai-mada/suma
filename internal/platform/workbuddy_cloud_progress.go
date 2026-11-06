@@ -41,7 +41,7 @@ var cloudProgressSubmissionID = regexp.MustCompile(`^[a-f0-9]{32}$`)
 // view a private submission. Scope is checked again for every continuation.
 func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor Actor, project string, limit int, before, filter, taskID string) (wc.CloudNodeProgressPage, error) {
 	if w == nil || w.s == nil || !handoffID(project, false) || limit < 1 || limit > cloudProgressMaxLimit ||
-		filter != "" && filter != wc.CloudProgressAttentionFilter || taskID != "" && !wc.ValidCloudProgressTaskID(taskID) {
+		filter != "" && !wc.ValidCloudProgressFilter(filter) || taskID != "" && !wc.ValidCloudProgressTaskID(taskID) {
 		return wc.CloudNodeProgressPage{}, cloudInvalid()
 	}
 	if !actor.IsBrowser() && actor.kind != actorProjectAPI {
@@ -56,7 +56,7 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 	tenant, principal := auth.target.tenantID, auth.currentPrincipal
 	collection := "workbuddy_cloud_progress:" + digest(principal.ID)
 	scanLimit := limit
-	if filter == wc.CloudProgressAttentionFilter {
+	if filter != "" {
 		collection += ":" + filter
 	}
 	if taskID != "" {
@@ -117,14 +117,15 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 			return wc.CloudNodeProgressPage{}, err
 		}
 		inspected++
-		if filter != "" && !progress.NeedsAttention() {
+		if !progress.MatchesFilter(filter) {
 			continue
 		}
 		delivery, title, err := w.cloudTaskDeliveryLinkTx(ctx, auth, project, item.run, item.node, n)
 		if err != nil {
 			return wc.CloudNodeProgressPage{}, err
 		}
-		if taskID != "" && (delivery == nil || delivery.TaskID != taskID) {
+		if taskID != "" && (delivery == nil || delivery.TaskID != taskID) ||
+			filter == wc.CloudProgressDeliveryFilter && (delivery == nil || delivery.RunRelation != "current") {
 			continue
 		}
 		if delivery != nil {

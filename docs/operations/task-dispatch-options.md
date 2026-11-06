@@ -158,14 +158,21 @@ suma --project PROJECT run workbuddy-list --filter attention --limit 10
 suma --project PROJECT run workbuddy-list --filter attention --limit 10 --before NEXT_CURSOR
 ```
 
-用 `--task TASK` 查看指定正式任务的已保存提交，可同时限定待处理。续查时保留同一任务、筛选和原游标。空批次仍带游标时可继续查找。
+用 `--task TASK` 查看指定正式任务的已保存提交，可同时限定待处理或待交付。续查时保留同一任务、筛选和原游标。空批次仍带游标时可继续查找。
 
 ```sh
 suma --project PROJECT run workbuddy-list --task TASK --filter attention
 suma --project PROJECT run workbuddy-list --task TASK --filter attention --before NEXT_CURSOR
 ```
 
-`--filter attention` 查当前项目已保存的待处理记录。筛选页有游标时可继续，即使本页条目为空。每次调用读取一个批次，下一次保留同一项目、读者和筛选。
+`--filter attention` 查当前项目已保存的待处理记录。`--filter delivery` 仅显示正式任务当前运行的待交付尝试。独立提交、已改绑和已解绑的历史运行可通过全部或待处理视图核对。按结果中的 `run_id`、`node_id` 和 `attempt` 定位原交付尝试，独立测试与人工验收仍各自核对。读取使用平台保存的记录。
+
+```sh
+suma --project PROJECT run workbuddy-list --filter delivery
+suma --project PROJECT run workbuddy-list --task TASK --filter delivery --before NEXT_CURSOR
+```
+
+筛选页有游标时可继续，即使本页条目为空。每次调用读取一个批次，下一次保留同一项目、读者、筛选和任务范围。
 
 ## IDE 保存回执恢复
 

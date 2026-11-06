@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-DELIVERY-FILTER 核验当前关联、历史改绑、准确尝试深链和 Web／CLI 筛选边界。 [阶段验证](workbuddy-delivery-filter-verification.md)
+
 T-TOOL-DISPATCH-SEARCH 核验越页工具查找、跨搜索与跨操作者游标拒绝、CLI 及真实浏览器。 [阶段验证](tool-dispatch-search-verification.md)
 
 T-TOOL-DISPATCH-ALTERNATIVES 代表验证覆盖暂停配置、键盘查找与采用、按需排查及真实 HTTP 只读范围。 [阶段验证](tool-dispatch-alternatives-verification.md)

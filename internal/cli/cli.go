@@ -43,7 +43,7 @@ Read commands:
   run tool-events RUN --node NODE --attempt N [--limit 1..100] [--cursor CURSOR]
   run inputs RUN --node NODE --attempt N --fence F [--workbench-origin ORIGIN]
   run workbuddy-status RUN --node NODE
-  run workbuddy-list [--limit 1..20] [--filter attention] [--task TASK] [--before NEXT_CURSOR]
+  run workbuddy-list [--limit 1..20] [--filter attention|delivery] [--task TASK] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   usage --help               Read usage attempts and evidence with a login session
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID [--tool ID | --query TEXT]

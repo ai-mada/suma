@@ -8,7 +8,7 @@ import {ExecutionWorkspace} from './ExecutionWorkspace';
 import {WorkBuddyProgressWorkspace} from './WorkBuddyProgressWorkspace';
 import {setLocale} from './i18n';
 import {clearWorkBuddyProgressScope,parseWorkbenchRoute} from './navigation';
-import {taskDeliveryNavigateEvent} from './task-delivery-navigation-model';
+import {taskDeliveryNavigateEvent,type WorkBuddyProgressFilter} from './task-delivery-navigation-model';
 
 const project='project-a';
 const session:Session={
@@ -21,7 +21,7 @@ function known(id:string,reason?:string){
   node_state:'waiting',attempt:2,submission_state:'task_known',provider_status:'completed',
   observed_at:'2026-11-06T06:00:00Z',observation_failed:false,...(reason?{node_reason:reason}:{})};
 }
-function page(items:unknown[],next?:string,filter?:'attention',taskLinks?:unknown,task?:string){
+function page(items:unknown[],next?:string,filter?:WorkBuddyProgressFilter,taskLinks?:unknown,task?:string){
  return Response.json({project_id:project,items,...(next?{next_cursor:next}:{}),...(filter?{filter}:{}),
   ...(taskLinks!==undefined?{task_links:taskLinks}:{}),...(task?{task_id:task}:{})});
 }
@@ -58,7 +58,7 @@ afterEach(async()=>{
 async function settle(){
  for(let i=0;i<5;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
 }
-async function render(identity=session,filter?:'attention',invalidFilter=false,task?:string,invalidTask=false){
+async function render(identity=session,filter?:WorkBuddyProgressFilter,invalidFilter=false,task?:string,invalidTask=false){
  function show(){
   root.render(<ApiViewProvider session={identity}><WorkBuddyProgressWorkspace project={project} session={identity} refresh={0} onRun={onRun}
    filter={filter} invalidFilter={invalidFilter} task={task} invalidTask={invalidTask}
@@ -110,6 +110,90 @@ it('reads only on entry, keeps platform and provider facts separate, and opens t
  expect(Object.fromEntries(params)).toEqual({project,view:'development',sub:'runs',run:'run-a',node:'workbuddy-cloud',attempt:'2'});
  await click('[data-workbuddy-progress-open]');
  expect(onRun).toHaveBeenCalledWith('run-a','workbuddy-cloud',2);
+});
+
+it('scopes delivery to an exact attempt, while retaining task delivery navigation',async()=>{
+ const row=known('run-a','cloud.delivery_required');
+ reply=async url=>url.searchParams.get('filter')==='delivery'
+  ?page([row],undefined,'delivery',[taskLink('run-a','task-a','current','Set up CI')],'task-a')
+  :page([row],undefined,undefined,[taskLink('run-a','task-a','current')],'task-a');
+ await render(session,undefined,false,'task-a');
+ expect(host.querySelector('[data-workbuddy-progress-delivery]')).toBeNull();
+ await click('[data-workbuddy-progress-filter="delivery"]');
+ expect(host.querySelector('[data-workbuddy-progress-filter="delivery"]')?.getAttribute('aria-pressed')).toBe('true');
+ expect(requests.at(-1)?.url.searchParams.get('filter')).toBe('delivery');
+ expect(requests.at(-1)?.url.searchParams.get('task_id')).toBe('task-a');
+ const source=host.querySelector<HTMLAnchorElement>('[data-workbuddy-progress-delivery]')!;
+ expect(source.textContent).toBe('Review delivery source');
+ expect(source.getAttribute('aria-label')).toContain('attempt 2');
+ expect(Object.fromEntries(new URL(source.href).searchParams)).toEqual({
+  project,view:'development',sub:'runs',run:'run-a',node:'workbuddy-cloud',attempt:'2',
+ });
+ expect(host.querySelector('[data-workbuddy-progress-task-link]')).not.toBeNull();
+ await click('[data-workbuddy-progress-delivery]');
+ expect(onRun).toHaveBeenCalledExactlyOnceWith('run-a','workbuddy-cloud',2);
+ expect(requests.every(request=>request.init?.method==='GET')).toBe(true);
+});
+
+it('rejects a delivery response that lacks the exact saved handoff facts',async()=>{
+ const row=known('run-a','cloud.delivery_required');
+ const {provider_status:_status,observed_at:_observed,...unknown}=row;
+ const invalid=[
+  {...row,run_state:'paused'},
+  {...row,node_state:'succeeded'},
+  {...row,node_reason:'cloud.waiting_input'},
+  {...row,attempt:0},
+  {...unknown,submission_state:'unknown'},
+ ];
+ reply=async()=>page([],undefined,'delivery');
+ await render(session,'delivery');
+ for(const item of invalid){
+  reply=async()=>page([item],undefined,'delivery',[taskLink('run-a','task-a','current')]);
+  await click('[data-workbuddy-progress-refresh]');
+  expect(ids()).toEqual([]);
+  expect(host.querySelector('[role="alert"]')?.textContent).toContain('does not match this project or page');
+ }
+ reply=async()=>page([row],undefined,'attention',[taskLink('run-a','task-a','current')]);
+ await click('[data-workbuddy-progress-refresh]');
+ expect(ids()).toEqual([]);
+ expect(host.querySelector('[role="alert"]')?.textContent).toContain('does not match this project or page');
+});
+
+it('rejects a delivery row without a current formal task link',async()=>{
+ const row=known('run-a','cloud.delivery_required');
+ reply=async()=>page([row],undefined,'delivery',[taskLink('run-a','task-a','current')]);
+ await render(session,'delivery');
+ expect(ids()).toEqual(['run-a']);
+ for(const links of [undefined,[taskLink('run-a','task-a','changed')],[taskLink('run-a','task-a','unbound')]]){
+  reply=async()=>page([row],undefined,'delivery',links);
+  await click('[data-workbuddy-progress-refresh]');
+  expect(ids()).toEqual([]);
+  expect(host.querySelector('[data-workbuddy-progress-delivery]')).toBeNull();
+  expect(host.querySelector('[role="alert"]')?.textContent).toContain('does not match this project or page');
+ }
+});
+
+it('continues an empty delivery batch and retries the same cursor before showing exhaustion',async()=>{
+ let failed=false;
+ reply=async url=>{
+  expect(url.searchParams.get('filter')).toBe('delivery');
+  if(url.searchParams.get('before')==='cursor-1'){
+   if(!failed){
+    failed=true;
+    return Response.json({error:'unavailable'},{status:503});
+   }
+   return page([],undefined,'delivery');
+  }
+  return page([],'cursor-1','delivery');
+ };
+ await render(session,'delivery');
+ expect(host.querySelector('[data-workbuddy-progress-empty-batch]')?.textContent).toContain('awaiting delivery');
+ expect(host.querySelector('[data-workbuddy-progress-empty-delivery]')).toBeNull();
+ await click('[data-workbuddy-progress-more]');
+ await click('[role="alert"] button');
+ expect(requests.map(({url})=>url.searchParams.get('before'))).toEqual([null,'cursor-1','cursor-1']);
+ expect(host.querySelector('[data-workbuddy-progress-empty-batch]')).toBeNull();
+ expect(host.querySelector('[data-workbuddy-progress-empty-delivery]')?.textContent).toContain('Search finished');
 });
 
 it('uses the server continuation and clears rows if a later page repeats a scoped item',async()=>{
