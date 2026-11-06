@@ -120,12 +120,35 @@ func TestWorkspaceTerminalCandidateWorkBuddyOrigin(t *testing.T) {
 	if err != nil || bound.RunID != started.ID || bound.Version != task.Version+1 || bound.Status != "in_progress" {
 		t.Fatalf("explicit start failed to bind the local run exactly once: %+v %v", bound, err)
 	}
-	delivery := issueRepairRuntimeDecode[TaskDelivery](t, f.call("GET", "/tasks/"+task.ID+"/delivery?project_id="+f.project, nil, 200))
-	if delivery.FormalAcceptance || delivery.Run == nil || delivery.Run.RunID != started.ID || delivery.Run.WorkBuddyDelivery != nil {
-		t.Fatalf("local run inherited cloud wait or acceptance: %+v", delivery)
+	deliveryPath := "/tasks/" + task.ID + "/delivery?project_id=" + f.project
+	wantHandoff := TaskDeliveryWorkBuddyOrigin{RunID: original.RunID, NodeID: original.NodeID, Attempt: original.Attempt, Kind: "local_candidate"}
+	assertDeliveryHandoff := func() {
+		t.Helper()
+		wire := f.call("GET", deliveryPath, nil, 200)
+		delivery := issueRepairRuntimeDecode[TaskDelivery](t, wire)
+		if delivery.FormalAcceptance || delivery.Run == nil || delivery.Run.RunID != started.ID || delivery.Run.WorkBuddyDelivery != nil {
+			t.Fatalf("local run inherited cloud wait or acceptance: %+v", delivery)
+		}
+		if delivery.Run.WorkBuddyOrigin == nil || *delivery.Run.WorkBuddyOrigin != wantHandoff {
+			t.Fatalf("delivery lost the original cloud handoff: %+v", delivery.Run.WorkBuddyOrigin)
+		}
+		runWire := wire["run"].(map[string]any)
+		if len(runWire["workbuddy_origin"].(map[string]any)) != 4 {
+			t.Fatal("delivery handoff exposed internal cloud assignment fields")
+		}
 	}
+	assertDeliveryHandoff()
 	assertOrigin(f.call("GET", planPath+"?project_id="+f.project, nil, 200))
 	assertOriginalWaiting()
+
+	// The original wait condition is a start gate, not a historical read gate.
+	changeFixture(setWaitReason, "cloud.waiting_input", original.RunID, original.NodeID)
+	changeFixture(setRunVersion, cloudRun.Version+1, original.RunID)
+	assertDeliveryHandoff()
+
+	changeFixture("UPDATE dag_external_assignments SET assignment_sha256=? WHERE run_id=? AND node_id=? AND attempt=?",
+		strings.Repeat("0", 64), original.RunID, original.NodeID, original.Attempt)
+	f.call("GET", deliveryPath, nil, 409)
 	if h.creates.Load() != beforeCreates || h.queries.Load() != beforeQueries {
 		t.Fatal("local candidate operations contacted the cloud supplier")
 	}

@@ -15,3 +15,14 @@ it('keeps a package defect and its feedback requirement readable in task deliver
  const item={issue_id:'package-issue',title:'Sealed package check failed',issue_version:1,issue_status:'open',source:'package_test',source_review_id:'',requirement_id:'repair',requirement_version:1};
  expect(validTaskDelivery({...delivery(),issues:{scope:'current_run',total:1,limit:20,complete:true,items:[item]}},'project-a','task-a')).toBe(true);
 });
+
+it('accepts only a different historical WorkBuddy attempt with a known handoff source',()=>{
+ const valid={run_id:'cloud-run',node_id:'workbuddy-cloud',attempt:2,kind:'repository_source'};
+ for(const kind of ['repository_source','local_candidate']){
+  const value=delivery();expect(validTaskDelivery({...value,run:{...value.run,workbuddy_origin:{...valid,kind}}},'project-a','task-a')).toBe(true);
+ }
+ for(const origin of [null,[],{...valid,run_id:'run-a'},{...valid,run_id:'cloud.run'},{...valid,node_id:'other-node'},{...valid,attempt:0},
+  {...valid,attempt:1.5},{...valid,kind:'unknown'},{...valid,private_id:'secret'}, {...valid,attempt:undefined}]){
+  const value=delivery();expect(validTaskDelivery({...value,run:{...value.run,workbuddy_origin:origin}},'project-a','task-a')).toBe(false);
+ }
+});

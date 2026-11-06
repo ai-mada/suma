@@ -18,6 +18,8 @@ If delivery and graph versions differ, compare or refresh the graph while protec
 
 For team development, mark 1–16 unaccepted tasks in a complete dependency graph. Save dependency edits and resolve conflicts before opening the existing team-dispatch flow. Select a published team configuration, per-task roles and models, review the fixed version preview, then explicitly start. Predecessor acceptance still controls downstream dispatch. Execution, independent tests, formal review and issue intake remain distinct actions.
 
+After a WorkBuddy task starts a repository-source or local-candidate verification run, **WorkBuddy handoff source** provides **Open original WorkBuddy attempt**. The link retains the exact historical run, node and attempt recorded at handoff. Verification and acceptance still describe the current run. The same locator appears as `run.workbuddy_origin` in the terminal JSON.
+
 ## From a team plan or the CLI
 
 Select **Review delivery** or **Open delivery** in a started plan item to open the task's delivery panel. The panel compares the run in the link with the task's current authorized binding. If they differ or the binding cannot be verified, select **Open current delivery** to inspect the current record.

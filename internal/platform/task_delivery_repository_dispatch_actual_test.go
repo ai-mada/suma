@@ -307,6 +307,16 @@ func testTaskDeliveryRepositoryDispatchActualIndependentQuality(t *testing.T, po
 		t.Fatal("dispatch did not reuse the retained approval or replayed as another run")
 	}
 
+	delivery := issueRepairRuntimeDecode[TaskDelivery](t, f.call("GET", "/tasks/"+task.ID+"/delivery?project_id="+f.project, nil, 200))
+	wantHandoff := TaskDeliveryWorkBuddyOrigin{RunID: origin.RunID, NodeID: origin.NodeID, Attempt: origin.Attempt, Kind: "repository_source"}
+	if delivery.Run == nil || delivery.Run.RunID != run.ID || delivery.Run.WorkBuddyDelivery != nil ||
+		delivery.Run.WorkBuddyOrigin == nil || *delivery.Run.WorkBuddyOrigin != wantHandoff || delivery.FormalAcceptance {
+		t.Fatalf("delivery lost the approved repository handoff or inherited cloud acceptance: %+v", delivery)
+	}
+	if providerRequests.Load() != providerReads {
+		t.Fatal("reading the repository handoff contacted the provider")
+	}
+
 	if pooled && os.Getenv(repositoryPoolRunnerExecutableEnv) != "" {
 		runRepositoryPoolProcesses(t, ctx, f, run.ID, intake, producer, producerCfg, independent, independentCfg)
 	} else {

@@ -16,12 +16,13 @@ type TaskDelivery struct {
 }
 
 type TaskDeliveryRun struct {
-	RunID             string                  `json:"run_id"`
-	Version           int                     `json:"version"`
-	State             string                  `json:"state"`
-	Nodes             TaskDeliveryNodeSummary `json:"nodes"`
-	Tests             TaskDeliveryNodeSummary `json:"tests"`
-	WorkBuddyDelivery *TaskDeliveryRunTarget  `json:"workbuddy_delivery,omitempty" wire:"nonnull"`
+	RunID             string                       `json:"run_id"`
+	Version           int                          `json:"version"`
+	State             string                       `json:"state"`
+	Nodes             TaskDeliveryNodeSummary      `json:"nodes"`
+	Tests             TaskDeliveryNodeSummary      `json:"tests"`
+	WorkBuddyDelivery *TaskDeliveryRunTarget       `json:"workbuddy_delivery,omitempty" wire:"nonnull"`
+	WorkBuddyOrigin   *TaskDeliveryWorkBuddyOrigin `json:"workbuddy_origin,omitempty" wire:"nonnull"`
 }
 
 // TaskDeliveryRunTarget locates an exact current node attempt for navigation.
@@ -29,6 +30,15 @@ type TaskDeliveryRunTarget struct {
 	RunID   string `json:"run_id"`
 	NodeID  string `json:"node_id"`
 	Attempt int    `json:"attempt"`
+}
+
+// TaskDeliveryWorkBuddyOrigin identifies the historical cloud attempt that
+// prompted this handoff. The current run owns its own evidence and acceptance.
+type TaskDeliveryWorkBuddyOrigin struct {
+	RunID   string `json:"run_id"`
+	NodeID  string `json:"node_id"`
+	Attempt int    `json:"attempt"`
+	Kind    string `json:"kind"`
 }
 
 // Counts cover every node in the bound run; Items is an explicitly capped

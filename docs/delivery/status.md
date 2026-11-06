@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-HANDOFF-ORIGIN 任务切到仓库或本机候选验证后，交付面板仍可打开准确的 WorkBuddy 原尝试。团队和 CLI 使用同一项目授权摘要。 [操作](../development/task-delivery-chain.md) · [验证](../quality/workbuddy-handoff-origin-verification.md)
+
 T-MODEL-OPENAI-LIVE 修复原生工具的 OpenAI 参数兼容与厂商失败诊断。真实节点登记、目录与项目认证已验证。最新真实调用结果未知，原账本预留待核对。 [联调记录](../quality/openai-model-live-verification.md)
 
 T-TEAM-RUN-RETURN 执行详情按原运行定位团队和分工，可打开准确计划查看同批任务。CLI 使用同一项目查询。 [交互](../development/team-execution.md#从运行返回团队计划) · [验证](../quality/team-run-return-verification.md)

@@ -9,7 +9,7 @@ const taskDeliveryRepositoryIntakePath = "/tasks/{id}/delivery/repository-source
 const taskDeliveryRepositoryDispatchPath = taskDeliveryRepositoryIntakePath + "/{intake}/dispatch-plans"
 
 func taskDeliveryModels() []any {
-	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}, platform.TaskDeliveryRepositoryDispatchPreviewRequest{}, platform.TaskDeliveryRepositorySourceOptions{}, platform.TaskDeliveryRepositorySourceProfile{}}
+	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryWorkBuddyOrigin{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}, platform.TaskDeliveryRepositoryDispatchPreviewRequest{}, platform.TaskDeliveryRepositorySourceOptions{}, platform.TaskDeliveryRepositorySourceProfile{}}
 }
 
 // The selected-task view is separate from the complete editable dependency
@@ -41,7 +41,7 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	taskDeliveryRepositoryIntakeContract(add, schemas)
 	taskDeliveryRepositoryDispatchContracts(add, api, schemas)
 	taskDeliveryRepositoryOptionsContract(add, schemas, source)
-	for _, name := range []string{"TaskDelivery", "TaskDeliveryRun", "TaskDeliveryRunTarget", "TaskDeliveryNodeSummary", "TaskDeliveryNode", "TaskDeliveryExpertPlans", "TaskDeliveryExpertPlan", "TaskDeliveryIssues", "TaskDeliveryIssue", "TaskDeliveryRepositorySource"} {
+	for _, name := range []string{"TaskDelivery", "TaskDeliveryRun", "TaskDeliveryRunTarget", "TaskDeliveryWorkBuddyOrigin", "TaskDeliveryNodeSummary", "TaskDeliveryNode", "TaskDeliveryExpertPlans", "TaskDeliveryExpertPlan", "TaskDeliveryIssues", "TaskDeliveryIssue", "TaskDeliveryRepositorySource"} {
 		model := toolContractMap(schemas, name)
 		model["additionalProperties"] = false
 		for _, value := range toolContractMap(model, "properties") {
@@ -59,6 +59,12 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	toolContractMap(target, "run_id")["minLength"], toolContractMap(target, "run_id")["maxLength"] = 1, 100
 	toolContractMap(target, "node_id")["minLength"], toolContractMap(target, "node_id")["maxLength"] = 1, 150
 	toolContractMap(target, "attempt")["minimum"] = 1
+	toolContractMap(schemas, "TaskDeliveryRun", "properties", "workbuddy_origin")["description"] = "Verified historical WorkBuddy attempt linked to this started continuation. Its repository or local candidate handoff is separate from test and acceptance facts."
+	origin := toolContractMap(schemas, "TaskDeliveryWorkBuddyOrigin", "properties")
+	toolContractMap(origin, "run_id")["pattern"] = `^[A-Za-z0-9_-]{1,100}$`
+	toolContractMap(origin, "node_id")["const"] = "workbuddy-cloud"
+	toolContractMap(origin, "attempt")["minimum"] = 1
+	toolContractMap(origin, "kind")["enum"] = []string{"repository_source", "local_candidate"}
 	for _, name := range []string{"TaskDeliveryNodeSummary", "TaskDeliveryExpertPlans", "TaskDeliveryIssues"} {
 		properties := toolContractMap(schemas, name, "properties")
 		toolContractMap(properties, "total")["minimum"] = 0

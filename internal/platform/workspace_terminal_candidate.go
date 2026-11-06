@@ -364,31 +364,39 @@ func (s *Service) StartWorkspaceTerminalCandidatePlan(ctx context.Context, engin
 	return s.StartTaskDispatchPlan(ctx, engine, actor, project, id, req)
 }
 
-func (s *Service) validateWorkspaceTerminalCandidatePlanTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project string, plan TaskDispatchPlan) error {
-	source, err := s.workspaceTerminalCandidateSourceTx(ctx, tx, auth.target.tenantID, project, plan.ID)
+func (s *Service) workspaceTerminalCandidatePlanSourceTx(ctx context.Context, tx *sql.Tx, tenant, project string, plan TaskDispatchPlan) (*term.TerminalCandidateSource, error) {
+	source, err := s.workspaceTerminalCandidateSourceTx(ctx, tx, tenant, project, plan.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var declared *term.TerminalCandidateSource
 	for _, node := range plan.Workflow.Nodes {
 		if raw, present := node.Config[term.CandidateConfigKey]; present {
 			if declared != nil || node.ID != plan.AgentNodeID || node.Type != "command" {
-				return forbidden()
+				return nil, forbidden()
 			}
 			declared, err = term.DecodeCandidateSource(raw)
 			if err != nil || declared == nil {
-				return conflict(workspaceTerminalCandidateChanged)
+				return nil, conflict(workspaceTerminalCandidateChanged)
 			}
 		}
 	}
 	if source == nil {
 		if declared != nil {
-			return forbidden()
+			return nil, forbidden()
 		}
-		return nil
+		return nil, nil
 	}
 	if declared == nil || stringify(declared) != stringify(source) {
-		return conflict(workspaceTerminalCandidateChanged)
+		return nil, conflict(workspaceTerminalCandidateChanged)
+	}
+	return source, nil
+}
+
+func (s *Service) validateWorkspaceTerminalCandidatePlanTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project string, plan TaskDispatchPlan) error {
+	source, err := s.workspaceTerminalCandidatePlanSourceTx(ctx, tx, auth.target.tenantID, project, plan)
+	if err != nil || source == nil {
+		return err
 	}
 	if err = s.workspaceTerminalCandidateStoppedTx(ctx, tx, auth.target.tenantID, project, *source); err != nil {
 		return err

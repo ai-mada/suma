@@ -34,6 +34,14 @@ func TestTaskDeliveryBoundedReadContract(t *testing.T) {
 	if target["additionalProperties"] != false || len(mapAt(target, "properties")) != 3 || mapAt(target, "properties", "attempt")["minimum"] != 1 {
 		t.Fatal("WorkBuddy trace leaked non-routing fields or allows unstarted attempts")
 	}
+	originRef := mapAt(properties, "workbuddy_origin")
+	origin := mapAt(api, "components", "schemas", "TaskDeliveryWorkBuddyOrigin")
+	originProps := mapAt(origin, "properties")
+	if originRef["$ref"] != "#/components/schemas/TaskDeliveryWorkBuddyOrigin" || originRef["anyOf"] != nil ||
+		origin["additionalProperties"] != false || len(originProps) != 4 || mapAt(originProps, "node_id")["const"] != "workbuddy-cloud" ||
+		mapAt(originProps, "attempt")["minimum"] != 1 {
+		t.Fatal("WorkBuddy handoff origin must expose only a non-null historical locator")
+	}
 	repository := mapAt(api, "paths", "/tasks/{id}/delivery/repository-source", "get")
 	if mapAt(repository, "responses", "200", "content", "application/json", "schema")["$ref"] != "#/components/schemas/TaskDeliveryRepositorySource" || repository["requestBody"] != nil {
 		t.Fatal("Repository observation must remain a typed read-only endpoint")

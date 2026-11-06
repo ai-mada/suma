@@ -1,5 +1,5 @@
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
-import {ChevronDown,CircleAlert,GitPullRequest,Link2,RefreshCw} from 'lucide-react';
+import {ArrowUpRight,ChevronDown,CircleAlert,Cloud,GitPullRequest,Link2,RefreshCw} from 'lucide-react';
 import {type Session} from './api';
 import {tr,useLocale,formatNumber} from './i18n';
 import {Badge,ErrorNotice,Loading} from './ui';
@@ -32,6 +32,8 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
   :undefined;
  const value=!originRunID||originRelation==='current'?snapshot:undefined,run=value?.run;
  const workbuddy=value?.task_version===taskVersion?run?.workbuddy_delivery:undefined;
+ const workbuddyOrigin=!read.loading&&!read.error&&!read.forbidden&&value?.task_version===taskVersion
+  ?run?.workbuddy_origin:undefined;
  const reviewHref=value&&value.task_version===taskVersion&&value.run_basis_state==='current'&&run
   ?taskDeliveryHref(project,{kind:'review',id:taskId,taskVersion:value.task_version,runID:run.run_id}):undefined;
  const repositoryHref=value?.formal_acceptance&&value.task_version===taskVersion&&value.run_basis_state==='current'
@@ -51,6 +53,18 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
    </div>}
    {value&&<><section className="task-delivery-section"><h4>{t('business')}</h4><div className="inline wrap"><Badge state={value.task_status}/><span className="task-delivery-muted">{t('version',{version:formatNumber(value.task_version)})}</span></div>{value.task_version!==taskVersion&&<p className="task-delivery-warning">{t('graph_changed')}</p>}</section>
     <section className="task-delivery-section"><h4>{t('execution')}</h4><p className={value.run_basis_state==='changed'||value.run_basis_state==='unknown'?'task-delivery-warning':'task-delivery-muted'}>{t('basis.'+value.run_basis_state)}</p>{run&&<><div className="inline wrap"><Badge state={run.state}/><code>{run.run_id.slice(0,8)}</code></div><p className="task-delivery-muted">{t('node_counts',{total:formatNumber(run.nodes.total),running:formatNumber(run.nodes.running),failed:formatNumber(run.nodes.failed),unknown:formatNumber(run.nodes.reconciling)})}</p><button type="button" data-task-delivery-run disabled={locked||!onOpenRun} onClick={()=>onOpenRun?.({run:run.run_id})}>{t('open_run')}</button></>}
+     {workbuddyOrigin&&<div className="task-delivery-workbuddy-origin" data-task-delivery-workbuddy-origin={workbuddyOrigin.kind}>
+      <Cloud size={16} aria-hidden="true"/>
+      <div>
+       <strong>{t('workbuddy.origin.title')}</strong>
+       <p>{t('workbuddy.origin.'+workbuddyOrigin.kind)} · {t('attempt',{attempt:formatNumber(workbuddyOrigin.attempt)})}</p>
+       <DeliveryReference kind="workbuddy-origin-link" id={workbuddyOrigin.node_id} href={executionHref(project,workbuddyOrigin.run_id,workbuddyOrigin.node_id,workbuddyOrigin.attempt)}
+        locked={locked||repositoryLocked} canLeave={canLeave}
+        onNavigate={onOpenRun?()=>onOpenRun({run:workbuddyOrigin.run_id,node:workbuddyOrigin.node_id,attempt:String(workbuddyOrigin.attempt)}):undefined}>
+        {t('workbuddy.open_attempt')}<ArrowUpRight size={13} aria-hidden="true"/>
+       </DeliveryReference>
+      </div>
+     </div>}
      {workbuddy&&<div className="inline wrap">
       <p className="task-delivery-warning">{t('workbuddy.pending')}</p>
       <DeliveryReference kind="workbuddy" id={workbuddy.node_id} href={executionHref(project,workbuddy.run_id,workbuddy.node_id,workbuddy.attempt)}
@@ -78,7 +92,7 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
 /** Keep a real URL for copy/new-tab and keyboard use. Only an ordinary current
  * page activation uses the optional SPA callback; locked references have no URL. */
 function DeliveryReference({kind,id,href,locked,canLeave,onNavigate,children}:{
- kind:'plan'|'issue'|'requirement'|'review'|'workbuddy'|'repository'|'current-link';id:string;href?:string;locked:boolean;
+ kind:'plan'|'issue'|'requirement'|'review'|'workbuddy'|'workbuddy-origin-link'|'repository'|'current-link';id:string;href?:string;locked:boolean;
  canLeave:()=>boolean;onNavigate?:()=>void;children:ReactNode;
 }){
  const disabled=locked||!href;

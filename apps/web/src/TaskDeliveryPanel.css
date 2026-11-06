@@ -48,3 +48,20 @@
 .task-delivery-origin[data-relation=current]>svg{color:var(--accent)}
 .task-delivery-origin p{margin-top:3px;color:var(--muted)}
 .task-delivery-origin .task-delivery-reference{text-decoration:underline;text-underline-offset:3px}
+
+.task-delivery-workbuddy-origin {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:start;
+  gap:8px;
+  padding:10px 12px 4px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  background:var(--surface-soft);
+  font-size:12px;
+}
+.task-delivery-workbuddy-origin>svg{margin-top:2px;color:var(--accent)}
+.task-delivery-workbuddy-origin p{margin-top:3px;color:var(--muted)}
+.task-delivery-workbuddy-origin .task-delivery-reference{gap:5px;text-decoration:underline;text-underline-offset:3px}
+.task-delivery-workbuddy-origin .task-delivery-reference[aria-disabled=true]{text-decoration:none}
+.task-delivery-workbuddy-origin .task-delivery-reference>svg{flex:none}

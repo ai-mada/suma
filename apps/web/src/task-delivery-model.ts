@@ -16,6 +16,11 @@ function summary(value:unknown,tests=false):value is TaskDeliveryRun['nodes']{
 }
 export function validTaskDeliveryRun(value:unknown):value is TaskDeliveryRun{
  if(!object(value)||!identifier(value.run_id)||!positive(value.version)||!text(value.state)||!summary(value.nodes)||!summary(value.tests,true)||value.tests.total>value.nodes.total)return false;
+ const origin=value.workbuddy_origin;
+ if(origin!==undefined&&(!object(origin)||Object.keys(origin).length!==4||
+  !text(origin.run_id)||!/^[A-Za-z0-9_-]{1,100}$/.test(origin.run_id)||origin.run_id===value.run_id||
+  origin.node_id!=='workbuddy-cloud'||!positive(origin.attempt)||
+  (origin.kind!=='repository_source'&&origin.kind!=='local_candidate')))return false;
  const trace=value.workbuddy_delivery;
  if(trace===undefined)return true;
  if(!object(trace)||Object.keys(trace).length!==3||trace.run_id!==value.run_id||!identifier(trace.node_id)||!positive(trace.attempt)||value.nodes.waiting===0)return false;

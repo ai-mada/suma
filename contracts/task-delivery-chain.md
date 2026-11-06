@@ -42,6 +42,8 @@
 
 `run.workbuddy_delivery` 可选，含 `run_id, node_id, attempt`。服务端从当前任务绑定的运行按节点 ID 选取首个 WorkBuddy 交付待核对目标，要求节点为 `waiting`、原等待原因是 `cloud.delivery_required`，且当前尝试与持久派发身份和围栏一致。查找范围独立于通用节点列表的 20 项上限。任务依据变化时仍可追溯当前绑定的运行，任务改绑后不再返回原目标。目标只允许定位原尝试，候选、测试和验收继续各自核验。
 
+`run.workbuddy_origin` 是当前已启动续接计划的历史来源，仅返回 `run_id, node_id, attempt, kind`。`kind` 为 `repository_source` 或 `local_candidate`。按当前项目与任务核对原派发、固定交接、云节点及原尝试凭据，任务改绑、原节点等待状态变化或旧账号失效不会抹去已经确认的历史来源。读到不一致的保护记录时返回核对错误。该字段只用于打开原尝试，当前运行的候选、独立测试和人工验收各有自己的证据。
+
 `TaskDeliveryNodeSummary` 包含 `total, waiting, running, succeeded, failed, skipped, reconciling, other, limit, complete, items`。等待类含 pending、ready、人审／事件／定时／重试等待和 paused；running 含 running、cancelling；不认识的状态计入 `other`。各状态计数相加等于 `total`。
 
 每个节点条目仅有 `id, name, type, state, attempt`。未开始节点 `attempt:0` 不是有效执行尝试；下钻此时定位运行和节点，已有尝试才带具体 attempt。响应不包含命令、环境、凭据、日志、输出、错误正文、完整节点 spec 或证据载荷；需要通过已有授权详情接口查看证据。

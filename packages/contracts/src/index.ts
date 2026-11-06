@@ -7457,11 +7457,18 @@ export interface TaskDeliveryRun {
   nodes: TaskDeliveryNodeSummary;
   tests: TaskDeliveryNodeSummary;
   workbuddy_delivery?: TaskDeliveryRunTarget;
+  workbuddy_origin?: TaskDeliveryWorkBuddyOrigin;
 }
 export interface TaskDeliveryRunTarget {
   run_id: string;
   node_id: string;
   attempt: number;
+}
+export interface TaskDeliveryWorkBuddyOrigin {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  kind: string;
 }
 export interface TaskDependencyChange {
   task_id: string;

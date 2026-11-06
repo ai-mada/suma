@@ -238,6 +238,9 @@ func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, p
 	if run.WorkBuddyDelivery, err = s.taskDeliveryWorkBuddyTargetTx(ctx, auth, run.RunID); err != nil {
 		return out, err
 	}
+	if run.WorkBuddyOrigin, err = s.taskDeliveryWorkBuddyOriginTx(ctx, auth, task); err != nil {
+		return out, err
+	}
 	out.Run = &run
 	if out.FormalAcceptance, _, err = s.expertTeamFormalAcceptanceTx(ctx, auth.tx, auth.target.tenantID, project, task.ID, task.RunID); err != nil {
 		return out, err

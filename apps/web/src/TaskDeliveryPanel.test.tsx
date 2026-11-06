@@ -169,6 +169,47 @@ it('opens the exact WorkBuddy delivery attempt only with current, authorized fac
  expect(vi.mocked(fetch).mock.calls.every(([,options])=>options?.method==='GET')).toBe(true);
 });
 
+it('opens the original WorkBuddy handoff while the current candidate remains the delivery basis',async()=>{
+ const original=delivery(),onOpenRun=vi.fn();
+ let kind='local_candidate',denied=false;
+ const handoff={run_id:'cloud-run',node_id:'workbuddy-cloud',attempt:2};
+ transport(async()=>denied?Response.json({error:{code:'forbidden',message:'No access'}},{status:403}):
+  Response.json({...original,run:{...original.run,workbuddy_origin:{...handoff,kind}}}));
+ const card='[data-task-delivery-workbuddy-origin]',action='[data-task-delivery-workbuddy-origin-link]';
+ await render('task-a',{openOnEntry:true,originRunID:'run-a',onOpenRun});
+ expect(host.querySelector(card)?.getAttribute('data-task-delivery-workbuddy-origin')).toBe('local_candidate');
+ expect(host.querySelector(card)?.textContent).toContain('Local candidate');
+ expect(host.querySelector('[data-task-delivery-workbuddy]')).toBeNull();
+ expect(host.querySelector('[data-repository-source-toggle]')).toBeNull();
+ const link=host.querySelector<HTMLAnchorElement>(action)!;
+ link.focus();expect(document.activeElement).toBe(link);
+ expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({project:'project-a',view:'development',sub:'runs',run:'cloud-run',node:'workbuddy-cloud',attempt:'2'});
+ const denyNavigation=(event:Event)=>event.preventDefault();
+ window.addEventListener('suma:navigate',denyNavigation);
+ try{await click(action);expect(onOpenRun).not.toHaveBeenCalled();}
+ finally{window.removeEventListener('suma:navigate',denyNavigation);}
+ const beforeNavigation=reads.length;
+ await click(action);expect(onOpenRun).toHaveBeenCalledExactlyOnceWith({run:'cloud-run',node:'workbuddy-cloud',attempt:'2'});
+ await click('[data-task-delivery-run]');expect(onOpenRun).toHaveBeenLastCalledWith({run:'run-a'});expect(reads).toHaveLength(beforeNavigation);
+ expect(host.querySelector('[data-task-delivery-test="verify"]')).not.toBeNull();
+ await render('task-a',{openOnEntry:true,originRunID:'run-a',onOpenRun,navigationDisabled:true});
+ expect(host.querySelector(action)?.hasAttribute('href')).toBe(false);
+ expect(host.querySelector(action)?.getAttribute('tabindex')).toBe('-1');
+ await render('task-a',{openOnEntry:true,originRunID:'run-a',onOpenRun,taskVersion:4});
+ expect(host.querySelector(card)).toBeNull();
+ await render('task-a',{openOnEntry:true,originRunID:'cloud-run',onOpenRun});
+ expect(host.querySelector('[data-task-delivery-origin]')?.getAttribute('data-relation')).toBe('changed');
+ expect(host.querySelector(card)).toBeNull();
+ await render('task-a',{openOnEntry:true,onOpenRun});
+ kind='repository_source';await click('[data-task-delivery-refresh]');
+ expect(host.querySelector(card)?.textContent).toContain('Repository source');
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});
+ expect(host.querySelector(card)?.textContent).toContain('仓库来源');
+ expect(host.querySelector(action)?.textContent).toBe('打开 WorkBuddy 原始尝试');
+ denied=true;await click('[data-task-delivery-refresh]');expect(host.querySelector(card)).toBeNull();
+ expect(writes).toBe(0);
+});
+
 it('checks the current registered repository only on demand and hides stale, denied or late source facts',async()=>{
  const value=delivery(),trace={run_id:'run-a',node_id:'develop',attempt:2};
  const nodes={...summary(),waiting:1,succeeded:0,items:[{id:trace.node_id,name:'Develop',type:'external_workflow',state:'waiting',attempt:trace.attempt}]};
