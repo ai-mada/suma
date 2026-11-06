@@ -40,3 +40,44 @@ func TestTaskDispatchOptionsHTTPCurrentScopedReadAndExactQuery(t *testing.T) {
 		t.Fatal("read created execution state")
 	}
 }
+
+func TestTaskDispatchOptionsHTTPExactProfileRead(t *testing.T) {
+	f, _, preview, task := taskDispatchFixture(t)
+	id := preview["tool_profile_id"].(string)
+	version := preview["expected_tool_version"].(int)
+	path := "/tasks/" + task["id"].(string) + "/dispatch-options"
+	q := url.Values{"project_id": {f.project}, "expected_task_version": {"1"}, "workflow_id": {preview["workflow_id"].(string)}, "workflow_version": {"1"}, "agent_node_id": {"develop"}, "tool_profile_id": {id}}
+	read := func(status int) map[string]any { return f.call("GET", path+"?"+q.Encode(), nil, status) }
+	assertProfile := func(state string, eligible bool, reason, recommended string) {
+		t.Helper()
+		out := read(200)
+		items := out["items"].([]any)
+		if len(items) != 1 || out["task_id"] != task["id"] || out["total"] != float64(1) ||
+			out["next_cursor"] != "" || out["recommended_tool_profile_id"] != recommended {
+			t.Fatal(out)
+		}
+		option := items[0].(map[string]any)
+		tool := option["tool"].(map[string]any)
+		if tool["id"] != id || tool["state"] != state || option["eligible"] != eligible || option["reason_code"] != reason {
+			t.Fatal(option)
+		}
+	}
+	assertProfile("enabled", true, "eligible", id)
+	for key, value := range map[string]string{"limit": "1", "before": "wrong-cursor"} {
+		q.Set(key, value)
+		read(400)
+		q.Del(key)
+	}
+	f.call("GET", path+"?"+q.Encode()+"&tool_profile_id="+id, nil, 400)
+	q.Set("tool_profile_id", "bad/profile")
+	read(400)
+	q.Set("tool_profile_id", newID())
+	read(404)
+	q.Set("tool_profile_id", id)
+	for i, change := range []struct{ action, state string }{{"pause", "paused"}, {"revoke", "revoked"}} {
+		f.call("POST", "/tool-profiles/"+id+"/commands", f.body(map[string]any{
+			"action": change.action, "expected_version": version + i,
+		}), 200)
+		assertProfile(change.state, false, "tool_unavailable", "")
+	}
+}

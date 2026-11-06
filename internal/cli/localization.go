@@ -70,7 +70,7 @@ var cliMessages = map[string]cliMessage{
 	compositionCLIUsage:            {"cli.candidate_composition.action_required", "candidate-compositions 需要 options、list、get、conflict、revision-context、create、repair、revise-repair、start 或 command；task-code-baseline 需要 get 或 bind，请查看 --help"},
 	compositionCLIRevisionInvalid:  {"cli.candidate_composition.revision_basis_required", "修复计划修订需要准确计划、任务、冲突和所选流程／工具版本、明确确认、理由及原操作标识"},
 	modelOptionsUsage:              {"cli.model_execution.usage", "模型选项需要：models options --tool 工具ID --expected-tool-version 当前版本"},
-	dispatchOptionsCLIUsage:        {"cli.task_dispatch_options.usage", "任务工具推荐需要：tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID；可选 --limit 1..200 与 --before 原分页游标"},
+	dispatchOptionsCLIUsage:        {"cli.task_dispatch_options.usage", "使用 tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID。指定工具请用 --tool ID，分页可用 --limit 1..200 和 --before 原分页游标。"},
 	dispatchTestOptionCLIUsage:     {"cli.task_dispatch.test_option_usage", "独立测试预检须提供任务、流程、开发节点和两个工具的准确标识与版本，请查看 tasks dispatch-test-option --help"},
 	dispatchPreviewCLIUsage:        {"cli.task_dispatch.preview_usage", "派发预览须提供 --file 请求JSON|- 及正文中的明确 idempotency_key，长度为 8–128 个 UTF-8 字节"},
 	dispatchPreviewCLIJSON:         {"cli.task_dispatch.preview_json", "派发预览须提供一个键名唯一的 UTF-8 JSON 对象及明确的原 idempotency_key"},
@@ -367,7 +367,7 @@ const helpZH = `suma — 速码控制面客户端
   run workbuddy-list [--limit 1..20] [--filter attention] [--task TASK] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   usage --help               使用登录会话读取用量尝试及证据
-  tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID [--tool ID]
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
        [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]
   tasks recommendations TASK [--limit 1..100] [--before 原游标]

@@ -11,7 +11,7 @@ func taskDispatchOptionsContracts(add operationAdder, api map[string]any) {
 	op := add("/tasks/{id}/dispatch-options", "get", "TaskDispatchOptions", false, false)
 	op["x-read-only"], op["x-response-cache-control"] = true, "no-store"
 	op["x-disallowed-token-scopes"] = []string{"runner", "agent"}
-	op["description"] = "Read current tool observations and fixed workflow compatibility only. The first eligible tool on this stable ID-ordered page is suggested, without quality/cost/slot claims. Adoption never creates or starts work; explicit preview and Start recheck current authority, context, route and budget. Model stays fixed by tool; cost remains unknown."
+	op["description"] = "Read current tool observations and fixed workflow compatibility for one exact profile or a page. The first eligible tool on this stable ID-ordered page is suggested, without quality/cost/slot claims. Adoption never creates or starts work; explicit preview and Start recheck current authority, context, route and budget. Model stays fixed by tool; cost remains unknown."
 	for _, field := range []string{"expected_task_version", "workflow_version"} {
 		p := queryParameter(field, "Exact current version; canonical positive decimal.", map[string]any{"type": "integer", "minimum": 1, "maximum": 2147483646})
 		p["required"] = true
@@ -25,6 +25,7 @@ func taskDispatchOptionsContracts(add operationAdder, api map[string]any) {
 		p["required"] = true
 		appendQuery(op, p)
 	}
+	appendQuery(op, queryParameter("tool_profile_id", "Check the exact profile in the current project, including paused or revoked profiles. Returns one item without a continuation cursor, or 404. Cannot be combined with limit or before.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64}))
 	appendQuery(op, queryParameter("limit", "Current page size; recommendation is page-local.", map[string]any{"type": "integer", "minimum": 1, "maximum": 200, "default": 50}))
 	appendQuery(op, queryParameter("before", "Original actor/project/task/workflow/node-bound cursor.", map[string]any{"type": "string", "maxLength": 4096}))
 	for field, value := range map[string]any{"reason_code": []string{"eligible", "tool_unavailable", "workflow_incompatible", "route_incompatible"}, "model_state": []string{"fixed_by_tool"}, "cost_state": []string{"unknown"}, "eligible_basis": []string{"current_observation_and_compatibility"}} {

@@ -14,13 +14,13 @@ The picker and dispatch form use one Modal at a time. Closing returns to the exa
 
 ## Exact intent and current authority
 
-The in-memory pin contains only `project_id`, `id`, `version`, `worker_id`, `profile_sha256` and `name`. It contains no model, budget, credential or full configuration and never enters the URL or browser storage. Adoption rereads the original single-tool endpoint and reuses the complete profile/observation validators. An exact tool outside the first directory page remains selectable.
+The in-memory pin contains only `project_id`, `id`, `version`, `worker_id`, `profile_sha256` and `name`. It contains no model, budget, credential or full configuration and never enters the URL or browser storage. Adoption reads the exact tool through the current dispatch-options endpoint. The same task, workflow node and project execution route must accept that tool. The browser checks the returned identity, version, worker and profile digest against the pin. An exact tool outside the first directory page remains selectable.
 
 Current actor, organization, project, API caller, task version, workflow version and Agent node scope all asynchronous results. Monotonic ownership rejects A→B→A callbacks. Task records follow the current `RecordItem` contract, including its legitimate empty values.
 
 The parent tracks whether the handoff still owns the selected tool. Rechecking removes only the exact handoff-owned A and its model binding before reading again. Failure cannot leave that old A previewable. An explicit manual or candidate selection B keeps its ownership; an old A callback cannot replace or clear it. The adopted label follows the actual parent selection.
 
-Task compatibility, execution route and budget remain responsibilities of the existing options, preview and Start paths. Tool availability alone is not task authorization. An uncertain original write retains its path, body, operation key and caller; recovery takes precedence over handoff actions.
+Tool observation, workflow incompatibility and route mismatch have separate messages before adoption. Preview and Start independently recheck authority, budget and the fixed execution context. An uncertain original write retains its path, body, operation key and caller; recovery takes precedence over handoff actions.
 
 ## Implementation and experience
 

@@ -1,8 +1,51 @@
-.task-dispatch-tool-handoff{--control-height:44px;display:grid;gap:10px;min-width:0;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft)}
-.task-dispatch-tool-handoff :is(h3,p){margin:0;overflow-wrap:anywhere}
-.task-dispatch-tool-handoff h3{font-size:14px;font-weight:600}
-.task-dispatch-tool-handoff p{font-size:14px;line-height:1.6}
-.task-dispatch-tool-handoff>button{justify-self:start;min-height:44px;white-space:normal;max-width:100%}
-.task-dispatch-tool-handoff small{font-size:13px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
-.task-dispatch-tool-handoff button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-@media(max-width:600px){.task-dispatch-tool-handoff>button{width:100%;justify-self:stretch}}
+.task-dispatch-tool-handoff {
+  --control-height: 44px;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+.task-dispatch-tool-handoff-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.task-dispatch-tool-handoff-heading > div { min-width: 0; }
+.task-dispatch-tool-handoff :is(h3, p) { margin: 0; overflow-wrap: anywhere; }
+.task-dispatch-tool-handoff h3 { font-size: 14px; font-weight: 600; }
+.task-dispatch-tool-handoff p { font-size: 14px; line-height: 1.55; }
+.task-dispatch-tool-handoff-heading p,
+.task-dispatch-tool-handoff small { color: var(--muted); }
+.task-dispatch-tool-handoff button {
+  justify-self: start;
+  max-width: 100%;
+  min-height: 44px;
+  white-space: normal;
+}
+.task-dispatch-tool-handoff button[aria-disabled=true] { cursor: wait; }
+.task-dispatch-tool-handoff [role=status] {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 24px;
+}
+.task-dispatch-tool-handoff [role=status] svg {
+  position: relative;
+  top: 2px;
+  flex-shrink: 0;
+  color: var(--amber);
+}
+.task-dispatch-tool-handoff [data-dispatch-handoff-status=adopted] svg { color: var(--green); }
+.task-dispatch-tool-handoff :is([data-dispatch-handoff-status=unknown], [data-dispatch-handoff-status=reading]) svg { color: var(--muted); }
+.task-dispatch-tool-handoff-reason summary { color: var(--muted); cursor: pointer; }
+.task-dispatch-tool-handoff-reason p { margin-top: 4px; }
+.task-dispatch-tool-handoff small { font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .task-dispatch-tool-handoff-heading { display: grid; }
+  .task-dispatch-tool-handoff-heading > button { width: 100%; justify-self: stretch; }
+}

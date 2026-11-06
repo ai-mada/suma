@@ -64,6 +64,11 @@ func TestTaskDispatchOptionsAndTestOptionProjectAPIUseCurrentAuthority(t *testin
 			t.Fatal("API preflight resolved the wrong task or independent test tool", got)
 		}
 	})
+	readQuery.Set("tool_profile_id", preview.ToolProfileID)
+	exact := read(t, optionsPath+"?"+readQuery.Encode())
+	if exact["total"] != float64(1) || exact["next_cursor"] != "" || exact["recommended_tool_profile_id"] != preview.ToolProfileID {
+		t.Fatal("exact API preflight resolved the wrong profile", exact)
+	}
 	for _, blocked := range []string{runner, agent} {
 		f.bearer(http.MethodGet, optionsPath+"?"+readQuery.Encode(), blocked, nil, http.StatusForbidden)
 		f.bearer(http.MethodGet, testPath+"?"+q.Encode(), blocked, nil, http.StatusForbidden)

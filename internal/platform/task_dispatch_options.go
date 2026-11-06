@@ -21,6 +21,7 @@ type TaskDispatchOptionsRequest struct {
 	WorkflowID          string `json:"workflow_id"`
 	WorkflowVersion     int    `json:"workflow_version"`
 	AgentNodeID         string `json:"agent_node_id"`
+	ToolProfileID       string `json:"tool_profile_id,omitempty"`
 	Limit               int    `json:"limit,omitempty"`
 	Before              string `json:"before,omitempty"`
 }
@@ -59,7 +60,7 @@ func taskDispatchOptionsCursorScope(req TaskDispatchOptionsRequest) string {
 	return "task_dispatch_options:" + digest(stringify(map[string]any{"task_id": req.TaskID, "task_version": req.ExpectedTaskVersion, "workflow_id": req.WorkflowID, "workflow_version": req.WorkflowVersion, "agent_node_id": req.AgentNodeID}))
 }
 
-// GetTaskDispatchOptions evaluates a single page in the same current-authority
+// GetTaskDispatchOptions evaluates a page or an exact profile in a current-authority
 // read transaction. It never creates a plan/run, changes a template, reserves
 // budget, probes an executable, invokes a model, or claims a worker slot.
 //
@@ -69,6 +70,9 @@ func taskDispatchOptionsCursorScope(req TaskDispatchOptionsRequest) string {
 // model selection stays fixed by the administrator's exact tool profile.
 func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine, actor Actor, project, taskID string, req TaskDispatchOptionsRequest) (out TaskDispatchOptions, err error) {
 	out.Items = []TaskDispatchToolOption{}
+	if req.ToolProfileID != "" && (!handoffID(req.ToolProfileID, false) || req.Limit != 0 || req.Before != "") {
+		return out, invalid(taskDispatchOptionsInvalid)
+	}
 	if req.Limit == 0 {
 		req.Limit = 50
 	}
@@ -98,34 +102,15 @@ func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine
 		if e != nil {
 			return e
 		}
-		cursorScope := taskDispatchOptionsCursorScope(req)
-		position, e := automationDecodeCursor(p, project, cursorScope, req.Before)
+		profiles, e := s.taskDispatchOptionProfiles(auth, project, req)
 		if e != nil {
 			return e
-		}
-		profileQuery := ToolProfileListQuery{State: "active", Limit: req.Limit}
-		profileCursorScope := toolProfileListCursorScope(p, profileQuery)
-		innerCursor := ""
-		if position != "" {
-			innerCursor = automationEncodeCursor(p, project, profileCursorScope, position)
-		}
-		profiles, e := s.listToolProfilesForProjectTx(bounded, auth, project, ToolProfileListQuery{State: "active", Limit: req.Limit, Cursor: innerCursor})
-		if e != nil {
-			return e
-		}
-		nextCursor := ""
-		if profiles.NextCursor != "" {
-			last, cursorErr := automationDecodeCursor(p, project, profileCursorScope, profiles.NextCursor)
-			if cursorErr != nil {
-				return cursorErr
-			}
-			nextCursor = automationEncodeCursor(p, project, cursorScope, last)
 		}
 		clock, e := s.automationClock(bounded, tx)
 		if e != nil {
 			return e
 		}
-		out = TaskDispatchOptions{ProjectID: project, TaskID: taskID, TaskVersion: task.Task.Version, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, AgentNodeID: req.AgentNodeID, ObservedAt: automationStamp(clock), Context: task, ExecutionRoute: route, Total: profiles.Total, NextCursor: nextCursor, Items: []TaskDispatchToolOption{}}
+		out = TaskDispatchOptions{ProjectID: project, TaskID: taskID, TaskVersion: task.Task.Version, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, AgentNodeID: req.AgentNodeID, ObservedAt: automationStamp(clock), Context: task, ExecutionRoute: route, Total: profiles.Total, NextCursor: profiles.NextCursor, Items: []TaskDispatchToolOption{}}
 		for _, profile := range profiles.Items {
 			option := TaskDispatchToolOption{Tool: profile, ReasonCode: "eligible", ModelState: "fixed_by_tool", CostState: "unknown", EligibleBasis: "current_observation_and_compatibility"}
 			switch {
@@ -156,4 +141,50 @@ func (s *Service) GetTaskDispatchOptions(ctx context.Context, engine *dag.Engine
 		return nil
 	})
 	return out, err
+}
+
+func (s *Service) taskDispatchOptionProfiles(auth *authorizedCommand, project string, req TaskDispatchOptionsRequest) (ToolProfileList, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return ToolProfileList{}, err
+	}
+	ctx, tx, p := auth.ctx, auth.tx, auth.currentPrincipal
+	if req.ToolProfileID != "" {
+		// Match the scoped row and observation used by browser profile detail,
+		// while retaining the current project API authority of dispatch options.
+		profile, err := s.toolProfileTx(ctx, tx, p, project, req.ToolProfileID)
+		if err != nil {
+			return ToolProfileList{}, err
+		}
+		if profile.ID != req.ToolProfileID || profile.ProjectID != project {
+			return ToolProfileList{}, missing()
+		}
+		profile, err = s.toolProfileObservationTx(ctx, tx, p, project, profile)
+		if err != nil {
+			return ToolProfileList{}, err
+		}
+		return ToolProfileList{Items: []ToolProfile{profile}, Total: 1}, nil
+	}
+
+	cursorScope := taskDispatchOptionsCursorScope(req)
+	position, err := automationDecodeCursor(p, project, cursorScope, req.Before)
+	if err != nil {
+		return ToolProfileList{}, err
+	}
+	query := ToolProfileListQuery{State: "active", Limit: req.Limit}
+	profileCursorScope := toolProfileListCursorScope(p, query)
+	if position != "" {
+		query.Cursor = automationEncodeCursor(p, project, profileCursorScope, position)
+	}
+	profiles, err := s.listToolProfilesForProjectTx(ctx, auth, project, query)
+	if err != nil {
+		return ToolProfileList{}, err
+	}
+	if profiles.NextCursor != "" {
+		last, cursorErr := automationDecodeCursor(p, project, profileCursorScope, profiles.NextCursor)
+		if cursorErr != nil {
+			return ToolProfileList{}, cursorErr
+		}
+		profiles.NextCursor = automationEncodeCursor(p, project, cursorScope, last)
+	}
+	return profiles, nil
 }

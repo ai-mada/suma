@@ -4,7 +4,9 @@
 
 ## 领域边界
 
-交接是 UI 内存中的准确目标意图。正式权限、任务版本、工具档案、项目路由、派发计划、执行和质量证据继续由原领域负责。无新后端接口、数据库表、调度器或模型配置权威。
+交互参考 Multica 在事项中保留具体智能体与运行环境的关联。速码把这一关联落实为任务、流程节点、工具档案和当前执行路径的同一授权读取，适用于项目节点及共享池。参考本地 Multica `e8b6a9764` 的运行环境说明，代码继续复用速码原派发服务。[Multica](https://github.com/multica-ai/multica)
+
+交接是 UI 内存中的准确目标意图。正式权限、任务版本、工具档案、项目路由、派发计划、执行和质量证据继续由原领域负责。预检扩展原派发选项查询，沿现有数据库表、调度器和模型配置权威。
 
 | 模块 | 职责与复用边界 |
 |---|---|
@@ -12,7 +14,7 @@
 | `ToolTaskHandoffDialog` | 复用 `useTaskWorkspacePage` 有界任务读取；选择后准确重读任务和工具 |
 | `tool-task-handoff-model` | 公开六字段 pin、当前完整工具／观察校验、准确任务读取；任务沿当前 `RecordItem` 合同处理合法空值 |
 | `TaskDispatchDialog` | 原任务／流程／节点选择、工具选择、模型预算、知识、预览和 Start |
-| `TaskDispatchToolHandoff` | 用户明确发起原单工具 GET；核对 pin 后采用；显示短状态和边界 |
+| `TaskDispatchToolHandoff` | 用户明确发起准确派发选项 GET；按同一任务、流程和执行路径核对 pin 后采用 |
 
 pin 固定 `project_id`、`id`、`version`、`worker_id`、`profile_sha256`、`name`。名称用于展示；采用依赖准确 ID、版本、执行节点及完整摘要。原完整配置解析器和观察匹配规则仍是配置合法性依据。
 
@@ -28,7 +30,7 @@ sequenceDiagram
   P->>A: 原有界列表／准确任务与工具 GET
   P->>D: 当前任务 + 内存 pin
   U->>D: 选择流程／节点，明确核对采用
-  D->>A: GET 原单工具并核对 pin
+  D->>A: GET 当前任务的准确派发选项并核对 pin
   U->>D: 模型预算配置，预览
   D->>A: 原 POST task-dispatch-plans
   Note over D,A: 正式 Start、执行和质量门禁独立推进
@@ -40,7 +42,7 @@ sequenceDiagram
 
 派发父组件记录“由交接采用”的选择归属。重新核对先清除仍由交接拥有的准确 A 及模型选择；失败不保留旧 A 可预览。用户手工或原候选面板选择 B 会移交选择归属并推进意图代次，旧 A 回调不得覆盖或清除 B。卡片“已采用”状态由父组件实际选择决定。
 
-原 `selectionScope`、`modelKey` 和模型组件继续绑定实际派发依据。完整任务兼容性、路由及预算由原候选／预览／Start执行检查。原未知写入保留 body、path、操作标识和 caller，交接不能绕过恢复锁；形成正式计划前不持久化 UI pin。
+原 `selectionScope`、`modelKey` 和模型组件继续绑定实际派发依据。准确预检与候选共用当前工具观察、路由与流程构建规则。预览和 Start 保留授权、预算及完整依据重检。原未知写入保留 body、path、操作标识和 caller，交接不能绕过恢复锁；形成正式计划前不持久化 UI pin。
 
 ## AI 开发与维护 SOP
 

@@ -15,6 +15,14 @@ func TestTaskDispatchOptionsUsesScopedReadCredentials(t *testing.T) {
 	if len(denied) != 2 || denied[0] != "runner" || denied[1] != "agent" {
 		t.Fatal("dispatch options must deny Runner and Agent token scopes")
 	}
+	for _, raw := range op["parameters"].([]any) {
+		parameter := mapAt(raw)
+		if parameter["name"] == "tool_profile_id" && parameter["in"] == "query" && parameter["required"] != true &&
+			mapAt(parameter, "schema")["maxLength"] == 64 {
+			return
+		}
+	}
+	t.Fatal("dispatch options must publish the optional exact profile query")
 }
 
 func TestTaskDispatchTestOptionContract(t *testing.T) {

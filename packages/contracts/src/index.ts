@@ -7649,6 +7649,7 @@ export interface TaskDispatchOptionsRequest {
   workflow_id: string;
   workflow_version: number;
   agent_node_id: string;
+  tool_profile_id?: string;
   limit?: number;
   before?: string;
 }

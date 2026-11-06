@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOL-TASK-PREFLIGHT 核验准确工具、当前授权、流程和执行路径，覆盖 CLI 与窄屏浏览器采用。 [阶段验证](tool-task-preflight-verification.md)
+
 T-CODEX-PREP-TEMPLATE-CHOICE 核验普通节点和共享池的准确模板、撤下与回执重放，以及 390px 浏览器和真实 Codex 库存交接。 [阶段验证](codex-prep-template-choice-verification.md)
 
 T-CODEX-MANAGED-REPIN 核验普通节点和共享池维护授权、空回执、真实 Codex 模型目录和 390px 浏览器确认。 [阶段验证](codex-managed-repin-verification.md)

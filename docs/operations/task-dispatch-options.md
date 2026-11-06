@@ -13,12 +13,15 @@
 
 CLI只读查询：`suma --project PROJECT tasks dispatch-options TASK --expected-version VERSION --workflow WORKFLOW --workflow-version VERSION --node NODE`。使用现有身份与项目范围；`--limit`为1–200，`--before`只能复用该任务／流程／节点依据的原分页游标。HTTP、CLI和浏览器使用同一领域服务。
 
+已知工具配置 ID 时，可追加 `--tool TOOL` 直接核对该配置，无需逐页查找。该参数与 `--limit`、`--before` 互斥。授权范围内的配置返回一项，`eligible` 和 `reason_code` 分别给出当前兼容性和原因，`tool.version`、`tool.profile.profile_sha256` 用于核对所读版本。停用和撤销也会返回当前诊断。当前项目无法读取的配置返回读取错误。预览与启动仍需各自显式操作。
+
 ## 终端任务派发
 
 将项目 API 凭证放入进程环境的 `SUMA_TOKEN`，所有命令使用同一个 `--project`。工具选项要求当前项目读取资格。独立测试核对、正式预览和启动要求当前项目写权限。CLI 输出 JSON 及可供脚本判断的退出状态。
 
 ```text
 suma --project PROJECT tasks dispatch-options TASK --expected-version TASK_VERSION --workflow WORKFLOW --workflow-version FLOW_VERSION --node DEV_NODE
+suma --project PROJECT tasks dispatch-options TASK --expected-version TASK_VERSION --workflow WORKFLOW --workflow-version FLOW_VERSION --node DEV_NODE --tool DEV_TOOL
 suma --project PROJECT tasks dispatch-test-option TASK --expected-version TASK_VERSION --workflow WORKFLOW --workflow-version FLOW_VERSION --node DEV_NODE --tool DEV_TOOL --expected-tool-version DEV_VERSION --test-node TEST_NODE --test-tool TEST_TOOL --expected-test-tool-version TEST_VERSION
 suma --project PROJECT tasks dispatch-preview --file request.json
 suma --project PROJECT tasks dispatch-plan PLAN

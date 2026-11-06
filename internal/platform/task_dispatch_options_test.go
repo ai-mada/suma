@@ -117,6 +117,7 @@ func TestTaskDispatchOptionsPagingAndCurrentProfileChanges(t *testing.T) {
 func TestTaskDispatchOptionsRouteAndWorkflowExclusions(t *testing.T) {
 	f, _, request, _ := taskDispatchFixture(t)
 	req, ctx := dispatchOptionsRequest(f, request), context.Background()
+	req.ToolProfileID = request["tool_profile_id"].(string)
 	flow, _, _ := taskDispatchBuildFixture()
 	flow.ID = newID()
 	flow.Version = 1

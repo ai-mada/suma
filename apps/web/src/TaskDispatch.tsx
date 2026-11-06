@@ -12,7 +12,7 @@ import {RequirementDesignFacts} from './RequirementDesignFacts';
 import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
 import {TaskDispatchToolHandoff} from './TaskDispatchToolHandoff';
 import {TaskDispatchTestBindings,type TestBindingsChoice} from './TaskDispatchTestBindings';
-import type {ToolTaskHandoffPin} from './tool-task-handoff-model';
+import {readToolTaskHandoffTask,type ToolTaskHandoffPin} from './tool-task-handoff-model';
 import {DispatchRecommendation} from './DispatchRecommendation';
 import {UiError} from './i18n';
 import './knowledge.css';
@@ -153,6 +153,10 @@ function TaskDispatchScope({
   const testScope=JSON.stringify([testBasis,testEpoch]);
   const currentTests=testChoice.key===testScope?testChoice:{ready:true,hasIntent:false,selections:[]};
   const updateTests=useCallback((value:TestBindingsChoice)=>{if(testOwner.current.api===api&&testOwner.current.key===testBasis&&testOwner.current.epoch===testEpoch)setTestChoice({...value,key:testScope});},[api,testBasis,testScope,testEpoch]);
+  const dispatchScope = currentTask && flow?.nodes.some(node => node.id === agentID && node.type === 'agent')
+    ? { project_id: project, task_id: currentTask.id, expected_task_version: currentTask.version,
+        workflow_id: flow.id, workflow_version: flow.version, agent_node_id: agentID }
+    : undefined;
   const handoffScope=JSON.stringify([selectionScope,manualToolIntent]);
   const actualProfileKey=profile?JSON.stringify([selectionScope,profile.id,profile.version,profile.profile.profile_sha256]):'';
   const handoffAdopted=!!actualProfileKey&&handoffSelectionKey===actualProfileKey;
@@ -189,6 +193,8 @@ function TaskDispatchScope({
       if (!id) throw Error(t("development.dispatch.the_current_task_is_missing_reopen_from"));
       const refreshed=await api<RecordItem>("/tasks/"+encodeURIComponent(id)+query(project));
       if(!owns())return;
+      if (handoffTool && !readToolTaskHandoffTask(refreshed, project, id))
+        throw new UiError('tool-task-handoff-dispatch.refresh_mismatch');
       const [profilesAccepted,workflowsAccepted]=await Promise.all([profiles.read(),workflows.read()]);
       if(!owns())return;
       if(!profilesAccepted||!workflowsAccepted){setKnowledgeAccessBlocked(true);return;}
@@ -325,13 +331,14 @@ function TaskDispatchScope({
                     ))}
                 </select>
               </Field>
-              {handoffTool&&currentTask&&flow&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<TaskDispatchToolHandoff
-                project={project} pin={handoffTool} scopeKey={handoffScope} disabled={blocked} adopted={handoffAdopted}
+              {handoffTool&&dispatchScope&&<TaskDispatchToolHandoff
+                scope={dispatchScope} pin={handoffTool} scopeKey={handoffScope} disabled={blocked||accessRefreshing} adopted={handoffAdopted}
+                onRefreshContext={() => void refreshTask()} onReturn={onClose}
                 onInvalidate={()=>{const owner=handoffOwner.current;if(owner.api!==api||owner.scope!==handoffScope||owner.epoch!==handoffEpoch||owner.blocked||!owner.adopted)return;setProfileID('');setAdoptedProfile(undefined);setHandoffSelectionKey('');setModelChoice({key:'',ready:false});}}
                 onAdopt={tool=>{const owner=handoffOwner.current;if(owner.api!==api||owner.scope!==handoffScope||owner.epoch!==handoffEpoch||owner.blocked)return;setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);setHandoffSelectionKey(JSON.stringify([selectionScope,tool.id,tool.version,tool.profile.profile_sha256]));}} />}
-              {currentTask&&flow&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<TaskDispatchOptionsPanel
+              {dispatchScope&&<TaskDispatchOptionsPanel
                 session={session}
-                scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID}}
+                scope={dispatchScope}
                 disabled={blocked}
                 onAdopt={tool=>{if(!blocked){setManualToolIntent(value=>value+1);setHandoffSelectionKey('');setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);}}}
                 onUnavailable={()=>{if(!blocked){setProfileID('');setAdoptedProfile(undefined);}}}

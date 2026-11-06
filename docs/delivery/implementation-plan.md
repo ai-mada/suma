@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-TASK-PREFLIGHT 推进团队统一工具与任务交接。网页和命令行共用准确配置预检，沿原调度、模型和质量门禁。 [合同](../../contracts/task-dispatch-options.md#exact-tool-handoff) · [阶段验证](../quality/tool-task-preflight-verification.md)
+
 T-TOOL-NODE-MATCH-273 [添加工具](../design/tool-quick-connect.md)在多个已授权节点间查找当前工具的可用配置，选中节点后重新核对库存和已有配置。 [限定验证](../quality/tool-node-match-verification.md)
 
 T-TOOL-QUICK-RECOVERY-266 [添加工具](../design/tool-quick-connect.md)分开呈现本机异常、节点配置问题、明确保存失败和未知写入。已在真实 Windows 桌面验证常用入口检测与原请求恢复。 [限定验证](../quality/tool-quick-recovery-verification.md)

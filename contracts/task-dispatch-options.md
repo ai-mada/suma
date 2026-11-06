@@ -13,7 +13,7 @@ After selecting a fixed workflow version and its development Agent node, a task 
 `GET /tasks/{id}/dispatch-options`
 
 Required query: `project_id`, `expected_task_version`, `workflow_id`, `workflow_version`, `agent_node_id`.
-Optional: `limit` (canonical decimal 1..200, default50), `before` (original actor/project/task/workflow/node-bound cursor, maximum4096 bytes). Unknown/repeated/empty query parameters, noncanonical versions or extra scope are rejected. Task and workflow versions must still match.
+Optional: `limit` (canonical decimal 1..200, default50), `before` (original actor/project/task/workflow/node-bound cursor, maximum4096 bytes). Exact alternative: tool_profile_id selects one tool in the same project and cannot be combined with limit or before. Unknown/repeated/empty query parameters, noncanonical versions or extra scope are rejected. Task and workflow versions must still match.
 
 `TaskDispatchOptionsRequest`: those fields plus server-selected `task_id`.
 
@@ -35,6 +35,10 @@ Optional: `limit` (canonical decimal 1..200, default50), `before` (original acto
 Read the complete selected task context, including protected design and code baseline. Additional knowledge references are frozen/rechecked in the existing explicit preview. Tool availability must reuse authenticated real inventory, profile activation and current private/Pool execution identity; workflow compatibility must reuse the actual dispatch builder and DAG compiler. Declared capability is insufficient.
 
 The current project read accepts a browser session or an API credential bound to that project. Responses use `Cache-Control: no-store`. All returned records use current organization/project authorization. The read must not invoke quota reservation or attempt accounting, insert dispatch rows, or alter any workflow/template. Errors in a candidate can exclude that candidate; database/authority failures must not be silently converted into a healthy recommendation.
+
+## Exact tool handoff
+
+Exact mode uses the same authorized task, published workflow, project route, current tool observation and compiler within one read transaction. It returns the existing envelope with one item, total 1 and no continuation cursor. A missing or out-of-scope tool returns 404. A paused or revoked tool can be returned for diagnosis. The browser checks the exact ID, version, worker and profile digest against the carried tool and only adopts an eligible match. A newer profile or another route never substitutes for the selected tool.
 
 ## Ranking and model boundary
 
