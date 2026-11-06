@@ -76,4 +76,9 @@ func TestAutomationAndStreamContractsMatchDistinctFactAndAuthority(t *testing.T)
 	if failedRuns["minItems"] != 2 || failedRuns["maxItems"] != 10 || mapAt(failedRuns, "items")["$ref"] != "#/components/schemas/AutomationFailurePauseRun" {
 		t.Fatal("pause evidence must describe a bounded list of exact failed runs")
 	}
+	origin := mapAt(schemas, "AutomationRunOrigin")
+	pause := mapAt(origin, "properties", "failure_pause")
+	if pause["$ref"] != "#/components/schemas/AutomationRunFailurePause" || pause["readOnly"] != true || slices.Contains(origin["required"].([]string), "failure_pause") {
+		t.Fatal("a pause backlink must remain optional and read-only on the run origin")
+	}
 }

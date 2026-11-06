@@ -131,6 +131,7 @@ func (s *Service) InitializeAutomations(ctx context.Context) error {
 		{"suma_automation_occ_scope", "suma_automation_occurrences", []string{"tenant_id", "project_id", "rule_id", "created_at", "id"}},
 		{"suma_automation_occ_active", "suma_automation_occurrences", []string{"tenant_id", "project_id", "rule_id", "run_id"}},
 		{"suma_automation_occ_run", "suma_automation_occurrences", []string{"tenant_id", "project_id", "run_id"}},
+		{"suma_automation_pause_scope", automationPauseEvidenceTable, []string{"tenant_id", "project_id", "rule_id", "revision"}},
 	} {
 		if err := store.EnsureIndex(ctx, s.DB, s.Dialect, index.name, index.table, index.columns...); err != nil {
 			return err

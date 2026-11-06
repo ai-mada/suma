@@ -1187,6 +1187,11 @@ export interface AutomationRule {
   last_error: string;
   revisions?: (AutomationRevision)[];
 }
+export interface AutomationRunFailurePause {
+  occurrence_id: string;
+  observed_at: string;
+  threshold: number;
+}
 export interface AutomationRunOrigin {
   rule_id: string;
   rule_name: string;
@@ -1194,6 +1199,7 @@ export interface AutomationRunOrigin {
   revision: number;
   source: string;
   scheduled_at: string;
+  failure_pause?: AutomationRunFailurePause;
 }
 export interface AutomationRunOriginResult {
   project_id: string;

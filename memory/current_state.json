@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_run_pause_trace": {
+    "stage": "T-AUTOMATION-RUN-PAUSE-TRACE-290",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "f49a5b05ea63a570a49f5dbb11dcbe50ec0f1172",
+    "report": "docs/quality/automation-run-pause-trace-verification.md",
+    "actual": "Run origin links to the exact original trigger and separately to a later blocked trigger when immutable pause evidence names this run and its trigger.",
+    "verification": "SQLite HTTP checks exact membership, ambiguity, revision and access. Real Chrome verifies both destinations in English desktop and Chinese 390px.",
+    "known_limitations": "Only recorded pause evidence provides backlinks. External channels, distributed load and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "automation_pause_evidence": {
     "stage": "T-AUTOMATION-PAUSE-EVIDENCE-289",
     "version": "1.0.0",

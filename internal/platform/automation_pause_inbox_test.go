@@ -57,7 +57,8 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	var failed []AutomationOccurrence
 	// The original owner triggers the failures and the pause, but the separate
 	// account that enabled this revision owns the resulting notification.
-	for i := 0; i < 2; i++ {
+	startAndDecide := func(decision, state string) AutomationOccurrence {
+		t.Helper()
 		queued := command("trigger", rule.Version, nil)
 		rule = queued.Rule
 		if queued.Occurrence == nil {
@@ -72,8 +73,17 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		resolveAutomationTestApproval(t, f, run, "reject", "failed")
-		failed = append(failed, started)
+		resolveAutomationTestApproval(t, f, run, decision, state)
+		return started
+	}
+	unselected := startAndDecide("approve", "succeeded")
+	// Keep the older dispatch out of the newest two even when the test runs
+	// within a single database timestamp tick.
+	if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_automation_occurrences SET created_at='2000-01-01T00:00:00Z' WHERE id=?`, unselected.ID); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 2; i++ {
+		failed = append(failed, startAndDecide("reject", "failed"))
 	}
 	slices.SortFunc(failed, func(left, right AutomationOccurrence) int {
 		return cmp.Or(cmp.Compare(right.CreatedAt, left.CreatedAt), cmp.Compare(right.ID, left.ID))
@@ -152,6 +162,36 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 		}
 	}
 	assertEvidence()
+	runOriginPath := func(runID, project string) string {
+		return "/runs/" + runID + "/automation-origin?project_id=" + project
+	}
+	assertRunOrigin := func(record AutomationOccurrence, expectPause bool) {
+		t.Helper()
+		out := f.call(http.MethodGet, runOriginPath(record.RunID, f.project), nil, http.StatusOK)
+		origin, ok := out["origin"].(map[string]any)
+		if !ok || out["project_id"] != f.project || out["run_id"] != record.RunID ||
+			origin["occurrence_id"] != record.ID || origin["rule_id"] != paused.ID ||
+			origin["rule_name"] != paused.Name || origin["revision"] != float64(paused.Revision) {
+			t.Fatalf("incorrect original run provenance: %+v", out)
+		}
+		pause, present := origin["failure_pause"]
+		if !expectPause {
+			if present {
+				t.Fatalf("run exposed an unverified pause backlink: %+v", origin)
+			}
+			return
+		}
+		link, ok := pause.(map[string]any)
+		if !ok || len(link) != 3 || link["occurrence_id"] != triggerID ||
+			link["observed_at"] != paused.UpdatedAt || link["threshold"] != float64(2) {
+			t.Fatalf("incorrect historical pause backlink: %+v", origin)
+		}
+	}
+	for _, record := range failed {
+		assertRunOrigin(record, true)
+	}
+	assertRunOrigin(unselected, false)
+	f.call(http.MethodGet, runOriginPath(failed[0].RunID, otherProject), nil, http.StatusNotFound)
 	if record := detail(siblingID); record.FailurePauseEvidence != nil {
 		t.Fatalf("blocked sibling was incorrectly credited with the pause decision: %+v", record)
 	}
@@ -231,6 +271,21 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertEvidence()
+	assertRunOrigin(failed[0], true)
+
+	// A second retained decision for the same revision makes a backlink
+	// ambiguous, even if both candidates contain the exact original run.
+	if _, err := f.s.DB.ExecContext(ctx, `INSERT INTO suma_automation_pause_evidence(
+		occurrence_id,tenant_id,project_id,rule_id,revision,workflow_id,workflow_version,threshold,observed_at,failed_runs)
+		SELECT ?,tenant_id,project_id,rule_id,revision,workflow_id,workflow_version,threshold,observed_at,failed_runs
+		FROM suma_automation_pause_evidence WHERE occurrence_id=?`, siblingID, triggerID); err != nil {
+		t.Fatal(err)
+	}
+	assertRunOrigin(failed[0], false)
+	if _, err := f.s.DB.ExecContext(ctx, `DELETE FROM suma_automation_pause_evidence WHERE occurrence_id=?`, siblingID); err != nil {
+		t.Fatal(err)
+	}
+	assertRunOrigin(failed[0], true)
 
 	// A damaged or foreign run binding must not expose old evidence links.
 	if _, err := f.s.DB.ExecContext(ctx, `UPDATE dag_runs SET project_id=? WHERE id=?`, otherProject, wantRuns[0].RunID); err != nil {
@@ -239,6 +294,7 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	if record := detail(triggerID); record.FailurePauseEvidence != nil {
 		t.Fatalf("foreign run binding leaked saved evidence: %+v", record)
 	}
+	assertRunOrigin(failed[1], false)
 	if _, err := f.s.DB.ExecContext(ctx, `UPDATE dag_runs SET project_id=? WHERE id=?`, f.project, wantRuns[0].RunID); err != nil {
 		t.Fatal(err)
 	}
@@ -251,6 +307,7 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	if record := detail(triggerID); record.FailurePauseEvidence != nil {
 		t.Fatalf("mismatched trigger leaked saved evidence: %+v", record)
 	}
+	assertRunOrigin(failed[0], false)
 	for _, path := range []string{projectInbox, orgInbox} {
 		item := readNotice(path, 1)
 		if _, hasTarget := item["automation_target"]; item["source_available"] != false || hasTarget {

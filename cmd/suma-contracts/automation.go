@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func automationModels() []any {
-	return []any{platform.AutomationSpec{}, platform.AutomationRevision{}, platform.AutomationRule{}, platform.AutomationOccurrence{}, platform.AutomationFailurePauseEvidence{}, platform.AutomationFailurePauseRun{}, platform.AutomationCreateRequest{}, platform.AutomationPreviewRequest{}, platform.AutomationCommandRequest{}, platform.AutomationCommandResult{}, platform.AutomationPreview{}, platform.AutomationList{}, platform.AutomationOccurrences{}, platform.AutomationRevisions{}, platform.AutomationRunOriginResult{}, platform.AutomationRunOrigin{}}
+	return []any{platform.AutomationSpec{}, platform.AutomationRevision{}, platform.AutomationRule{}, platform.AutomationOccurrence{}, platform.AutomationFailurePauseEvidence{}, platform.AutomationFailurePauseRun{}, platform.AutomationCreateRequest{}, platform.AutomationPreviewRequest{}, platform.AutomationCommandRequest{}, platform.AutomationCommandResult{}, platform.AutomationPreview{}, platform.AutomationList{}, platform.AutomationOccurrences{}, platform.AutomationRevisions{}, platform.AutomationRunOriginResult{}, platform.AutomationRunOrigin{}, platform.AutomationRunFailurePause{}}
 }
 
 func automationContracts(add operationAdder, paths map[string]any) {
@@ -26,7 +26,7 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	trigger["responses"].(map[string]any)["404"] = map[string]any{"description": "The rule or trigger is missing or outside the requested project"}
 	get("/automations/{id}/revisions", "AutomationRevisions", true)
 	origin := get("/runs/{id}/automation-origin", "AutomationRunOriginResult", false)
-	origin["description"] = "Reads the original automation trigger and immutable rule revision for this exact current project run. A readable run without automation provenance returns an explicit null origin. Missing or foreign runs return 404."
+	origin["description"] = "Reads the original automation trigger and immutable rule revision for this exact current project run. When retained pause evidence names this exact run and originating trigger, returns a separate locator for the blocked trigger that paused the rule. A readable run without automation provenance returns an explicit null origin. Missing or foreign runs return 404."
 	op := add("/automations", "post", "AutomationRule", false, true)
 	browserOnly(op)
 	successStatus(op, "201")
@@ -96,6 +96,10 @@ func enhanceAutomationSchemas(schemas map[string]any) {
 	field("AutomationRunOrigin", "source", map[string]any{"enum": []string{"cron", "manual", "webhook"}})
 	field("AutomationRunOrigin", "revision", map[string]any{"minimum": 1})
 	field("AutomationRunOrigin", "scheduled_at", map[string]any{"format": "date-time"})
+	field("AutomationRunOrigin", "failure_pause", map[string]any{"readOnly": true, "description": "Historical pause trigger locator from exact scoped failure evidence. Its occurrence is separate from this run's original trigger. Omitted when membership cannot be verified."})
+	field("AutomationRunFailurePause", "occurrence_id", map[string]any{"minLength": 1, "maxLength": 64})
+	field("AutomationRunFailurePause", "observed_at", map[string]any{"format": "date-time"})
+	field("AutomationRunFailurePause", "threshold", map[string]any{"minimum": 2, "maximum": 10})
 	field("AutomationOccurrence", "state", map[string]any{"enum": []string{"queued", "started", "skipped", "blocked"}})
 	field("AutomationOccurrence", "source", map[string]any{"enum": []string{"cron", "manual"}})
 	field("AutomationOccurrence", "run_id", map[string]any{"description": "The linked run in the current organization and project, or an empty string when no such run is visible."})

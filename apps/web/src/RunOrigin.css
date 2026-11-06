@@ -54,6 +54,12 @@
 }
 
 .run-origin-result > div { min-width: 0; }
+.run-origin-pause {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
 .run-origin-result details { margin-top: 6px; font-size: 12px; }
 .run-origin-result details summary {
   display: list-item;

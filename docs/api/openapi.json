@@ -5571,8 +5571,37 @@
         ],
         "type": "object"
       },
+      "AutomationRunFailurePause": {
+        "properties": {
+          "observed_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "occurrence_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "threshold": {
+            "maximum": 10,
+            "minimum": 2,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "occurrence_id",
+          "observed_at",
+          "threshold"
+        ],
+        "type": "object"
+      },
       "AutomationRunOrigin": {
         "properties": {
+          "failure_pause": {
+            "$ref": "#/components/schemas/AutomationRunFailurePause",
+            "description": "Historical pause trigger locator from exact scoped failure evidence. Its occurrence is separate from this run's original trigger. Omitted when membership cannot be verified.",
+            "readOnly": true
+          },
           "occurrence_id": {
             "type": "string"
           },
@@ -130290,7 +130319,7 @@
     },
     "/runs/{id}/automation-origin": {
       "get": {
-        "description": "Reads the original automation trigger and immutable rule revision for this exact current project run. A readable run without automation provenance returns an explicit null origin. Missing or foreign runs return 404.",
+        "description": "Reads the original automation trigger and immutable rule revision for this exact current project run. When retained pause evidence names this exact run and originating trigger, returns a separate locator for the blocked trigger that paused the rule. A readable run without automation provenance returns an explicit null origin. Missing or foreign runs return 404.",
         "operationId": "get_runs_id_automation-origin",
         "parameters": [
           {
