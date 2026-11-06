@@ -44,6 +44,8 @@ func toolInputContracts(add operationAdder, api map[string]any) {
 			browserOnly(op)
 		}
 		if route.method == "get" {
+			op["description"] = "Read questions and delivery facts for the exact durable run, node, attempt and fence using the current browser session. An authorized existing attempt without questions returns an empty list. Saved answers, reply writes and native closure are distinct."
+			toolContractMap(op, "responses")["404"] = map[string]any{"description": "No authorized execution attempt matches the run, node, attempt and fence."}
 			op["x-read-only"], op["x-no-agent-effects"] = true, true
 			for _, field := range []string{"attempt", "fence"} {
 				p := queryParameter(field, "Original execution scope, including historical read-only questions.", map[string]any{"type": "integer", "minimum": 1, "maximum": cc.MaxSafeInteger})

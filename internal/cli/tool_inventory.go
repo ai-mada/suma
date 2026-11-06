@@ -70,11 +70,9 @@ func toolInventoryConnectLink(ctx context.Context, c *client, worker, command, w
 	if workbenchOrigin == "" {
 		workbenchOrigin = c.base
 	}
-	origin, err := url.Parse(workbenchOrigin)
-	if err != nil || (origin.Scheme != "http" && origin.Scheme != "https") || origin.Hostname() == "" ||
-		origin.User != nil || origin.ForceQuery || origin.RawQuery != "" || strings.Contains(workbenchOrigin, "#") ||
-		origin.RawPath != "" || (origin.Path != "" && origin.Path != "/") {
-		return usage(toolInventoryOriginInvalid)
+	origin, err := parseWorkbenchOrigin(workbenchOrigin)
+	if err != nil {
+		return err
 	}
 	report, deadline, err := readToolInventory(ctx, c, worker)
 	if err != nil {

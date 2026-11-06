@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "cli_tool_input_status": {
+    "stage": "T-CLI-TOOL-INPUT-STATUS-263",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "8a62bd8d8308596c3e0e2d3045f2b1ed35a2a80a",
+    "report": "docs/quality/cli-tool-input-status-verification.md",
+    "actual": "The current browser session reads only durable exact tool-input attempts. The CLI exposes status and delivery metadata plus a scoped workbench link.",
+    "verification": "Focused ordinary and Pool HTTP cases, CLI boundary checks and isolated actual CLI/HTTP/SQLite evidence are recorded in the stage report.",
+    "known_limitations": "The stage does not call an external provider, exercise a live cross-machine agent or validate OceanBase.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q263/post-git.json"
+  },
   "cli_attempt_history": {
     "stage": "T-CLI-ATTEMPT-HISTORY-262",
     "version": "1.0.0",

@@ -130801,7 +130801,7 @@
     },
     "/runs/{run}/nodes/{node}/tool-inputs": {
       "get": {
-        "description": "Exact original Codex question or Cursor ACP question/plan, attempt/fence, current identity and protected runtime capability. Saved human decision, Runner observation, response write and execution closure remain distinct. Plan confirmation grants no command permission or formal baseline. Original answer operation replay recovers its receipt before fresh execution checks.",
+        "description": "Read questions and delivery facts for the exact durable run, node, attempt and fence using the current browser session. An authorized existing attempt without questions returns an empty list. Saved answers, reply writes and native closure are distinct.",
         "operationId": "get_runs_run_nodes_node_tool-inputs",
         "parameters": [
           {
@@ -130945,6 +130945,21 @@
               }
             },
             "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No authorized execution attempt matches the run, node, attempt and fence.",
             "headers": {
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",

@@ -120,6 +120,16 @@ suma --project PROJECT run tool-events RUN --node NODE --attempt 2 --limit 20
 
 命令输出 JSON，可使用当前项目 API 凭证。当前登录会话可用 `--expected-user` 和 `--expected-organization` 核对原账号与组织。指定尝试不存在时显示服务端拒绝结果。待核对的执行继续在工作台按原操作处理。
 
+### 核对智能体等待的问题
+
+从 `run attempt` 的响应取得准确尝试号与 fence。使用当前登录会话查询该次尝试。
+
+```sh
+suma --project PROJECT --expected-user USER --expected-organization ORG run inputs RUN --node NODE --attempt 2 --fence 7
+```
+
+结果包含问题 ID、状态、答复是否已保存，以及已观察到的写入阶段和关闭状态。打印内容只包含诊断摘要。打开 `workbench_url` 可按当前网页权限阅读原问题和提交答复。前后端分开部署时可加 `--workbench-origin`。如果尝试号或 fence 不匹配，请重新读取原尝试。 [工具问题合同](../../contracts/tool-inputs.md#从终端核对工具问题)
+
 [持久事件合同](../../contracts/automation-events.md#持久运行事件) · [调度工作台](../design/scheduling-workspace.md)
 
 ## IDE 保存回执恢复

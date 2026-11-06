@@ -28,6 +28,12 @@ internal/toolinputcontract定义独立ToolInputRequest（operation key、protoco
 
 当前人权限、原问题scope、版本、pending／截止与native闭合事实先核验，再保存答案及原receipt。回复截止取数据库时间、原节点deadline及15分钟上限，不采用客户端时钟。重复写恢复原回执，不能覆盖答案或较新观察。机器poll与实际写前复核当前执行资格；历史答案回执不意味着仍可发送。原结果／停止观察与新输入授权分别处理。
 
+### 从终端核对工具问题
+
+读取问题时，控制面在当前授权事务内核对持久化的原运行、节点、尝试号与 fence。错误的尝试或 fence 返回 404，准确尝试尚无问题时返回空列表。原历史尝试仍可在当前权限下查看。
+
+`suma run inputs` 使用已有登录会话读取该范围，在终端输出问题标识、状态、已保存答复和送达阶段。题目、选项、答案和原始证据正文留在工作台。链接只定位原项目、运行、节点和尝试，浏览器沿当前授权读取。终端诊断与问题答复、运行续接及正式验收各用原流程。 [终端操作](../docs/operations/task-dispatch-options.md#核对智能体等待的问题)
+
 ## 真实写入与恢复
 
 复用原typed RPCID、单writer与enqueueReply写前／写后回调。Runtime同attempt共用轻量ID→method／paramsSHA注册表，完全相同重复帧忽略，改正文／跨类型复用拒绝。原请求先持久化，再发平台；用户答案保存、执行器观察、入队、write开始、完整write及native resolved分别留证，入队不能算已回答。

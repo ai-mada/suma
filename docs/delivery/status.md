@@ -10,6 +10,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-CLI-TOOL-INPUT-STATUS-263 终端按准确尝试和 fence 核对工具问题与送达状态，可返回原工作台。 [操作](../operations/task-dispatch-options.md#核对智能体等待的问题) · [验证](../quality/cli-tool-input-status-verification.md)
+
 T-CLI-ATTEMPT-HISTORY-262 终端可核对准确尝试、执行结果来源和原工具事件，并沿持久游标续页。 [操作](../operations/task-dispatch-options.md#核对某次执行尝试) · [验证](../quality/cli-attempt-history-verification.md)
 
 T-LOCAL-TOOLS-FOREGROUND-261 桌面回到前台后刷新过期工具观测，保留现有选择与手动重检。 [交互](../design/local-tools-discovery-experience.md#状态与操作) · [验证](../quality/local-tools-foreground-refresh-verification.md)

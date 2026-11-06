@@ -38,6 +38,8 @@ func runObservationCommand(ctx context.Context, c *client, action string, args [
 		return runWatchCommand(ctx, c, args, out)
 	case "attempts", "attempt", "tool-events":
 		return runAttemptReadCommand(ctx, c, action, args, out)
+	case "inputs":
+		return runInputsCommand(ctx, c, args, out)
 	case "workbuddy-status":
 		return workBuddyProgressCommand(ctx, c, args, out)
 	case "scheduling":
@@ -207,12 +209,15 @@ const runObservationHelpEN = `Follow and inspect a run in the current --project.
   run attempts RUN --node NODE [--limit 1..100] [--cursor CURSOR]
   run attempt RUN --node NODE --attempt N
   run tool-events RUN --node NODE --attempt N [--limit 1..100] [--cursor CURSOR]
+  run inputs RUN --node NODE --attempt N --fence F [--workbench-origin ORIGIN]
   run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
 
 Watch writes one complete JSON event per line. Stop with Ctrl+C or an explicit
 event limit. Resume from the last printed sequence of the same run.
 workbuddy-status reads the platform state and the saved WorkBuddy observation.
+inputs uses a login session to report exact question and delivery states without
+printing the question or answer. Open workbench_url to review the original.
 `
 
 const runObservationHelpZH = `跟踪和查看当前 --project 的运行。
@@ -222,10 +227,13 @@ const runObservationHelpZH = `跟踪和查看当前 --project 的运行。
   run attempts RUN --node NODE [--limit 1..100] [--cursor 原游标]
   run attempt RUN --node NODE --attempt 尝试号
   run tool-events RUN --node NODE --attempt 尝试号 [--limit 1..100] [--cursor 原游标]
+  run inputs RUN --node NODE --attempt 尝试号 --fence 租约令牌 [--workbench-origin 工作台地址]
   run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
 
 watch 每行输出一条完整 JSON 事件。按 Ctrl+C 或设置事件数量上限结束。
 续传使用同一运行最后一条已输出事件的序号。
 workbuddy-status 读取平台状态和已保存的 WorkBuddy 观察。
+inputs 使用登录会话核对指定尝试的问题及送达状态，不输出问答正文。
+打开 workbench_url 可在工作台核对原问题。
 `

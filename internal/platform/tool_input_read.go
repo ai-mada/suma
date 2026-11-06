@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 
@@ -42,9 +43,25 @@ func (s *Service) ListToolInputs(ctx context.Context, actor Actor, project, run,
 	if err = dag.GuardExecutionScopeTx(ctx, tx, s.Dialect, auth.target.tenantID, project, run); err != nil {
 		return out, err
 	}
-	var nodeRaw string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT n.spec FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id WHERE r.tenant_id=? AND r.project_id=? AND n.run_id=? AND n.id=?`), auth.target.tenantID, project, run, node).Scan(&nodeRaw); err != nil {
+	var storedTenant, storedProject, storedRun, storedNode, nodeRaw string
+	// A valid empty list must refer to a durable attempt. Historical attempts
+	// retain their own fence even after the current node advances.
+	err = tx.QueryRowContext(ctx, s.q(`
+		SELECT r.tenant_id,r.project_id,r.id,n.id,n.spec
+		FROM dag_runs r
+		JOIN dag_nodes n ON n.run_id=r.id
+		JOIN dag_attempts a ON a.run_id=n.run_id AND a.node_id=n.id
+		WHERE r.tenant_id=? AND r.project_id=? AND n.run_id=? AND n.id=? AND a.attempt=? AND a.fence=?
+	`), auth.target.tenantID, project, run, node, attempt, fence).Scan(&storedTenant, &storedProject, &storedRun, &storedNode, &nodeRaw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return out, missing()
+	}
+	if err != nil {
 		return out, err
+	}
+	// SQL text equality can ignore case on some deployments.
+	if storedTenant != auth.target.tenantID || storedProject != project || storedRun != run || storedNode != node {
+		return out, missing()
 	}
 	var spec dag.Node
 	if json.Unmarshal([]byte(nodeRaw), &spec) != nil {

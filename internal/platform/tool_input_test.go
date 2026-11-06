@@ -12,7 +12,6 @@ import (
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ic "github.com/ai-mada/suma/internal/toolinputcontract"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -118,6 +117,17 @@ func TestToolInputHTTPRegistersExactCurrentCodexRequest(t *testing.T) {
 			h, binding := newCodexToolInteractionFixture(t, pooled, true)
 			f := h.f
 			ctx := context.Background()
+			listPath := func(attempt int, fence int64) string {
+				return fmt.Sprintf("/runs/%s/nodes/%s/tool-inputs?project_id=%s&attempt=%d&fence=%d", h.assignment.RunID, h.assignment.NodeID, f.project, attempt, fence)
+			}
+			currentListPath := listPath(h.assignment.Attempt, h.assignment.Fence)
+			if empty := f.call("GET", currentListPath, nil, 200); empty["protocol"] != cc.UserInputProtocol || len(empty["items"].([]any)) != 0 {
+				t.Fatal(empty)
+			}
+			f.call("GET", listPath(h.assignment.Attempt+1, h.assignment.Fence), nil, 404)
+			f.call("GET", listPath(h.assignment.Attempt, h.assignment.Fence+1), nil, 404)
+			wrongNode := strings.Replace(currentListPath, "/nodes/"+h.assignment.NodeID+"/", "/nodes/"+strings.ToUpper(h.assignment.NodeID)+"/", 1)
+			f.call("GET", wrongNode, nil, 404)
 			request := toolInputRequest187(binding, "input187")
 			var body any
 			prefix := "/runner"
@@ -140,8 +150,7 @@ func TestToolInputHTTPRegistersExactCurrentCodexRequest(t *testing.T) {
 			if expires.Sub(created) <= 30*time.Second || expires.Sub(created) > 15*time.Minute {
 				t.Fatal("reply TTL used short assignment lease", input)
 			}
-			listPath := "/runs/" + h.assignment.RunID + "/nodes/" + h.assignment.NodeID + "/tool-inputs?project_id=" + f.project + "&attempt=" + strconv.Itoa(h.assignment.Attempt) + "&fence=" + strconv.FormatInt(h.assignment.Fence, 10)
-			listed := f.call("GET", listPath, nil, 200)
+			listed := f.call("GET", currentListPath, nil, 200)
 			if listed["protocol"] != cc.UserInputProtocol || len(listed["items"].([]any)) != 1 {
 				t.Fatal(listed)
 			}
@@ -200,7 +209,7 @@ func TestToolInputHTTPRegistersExactCurrentCodexRequest(t *testing.T) {
 			if pooled {
 				denied = 401
 			}
-			f.bearer("GET", listPath, h.token, nil, denied)
+			f.bearer("GET", currentListPath, h.token, nil, denied)
 			result := toolInputResult187(h, binding, input, o)
 			forged := toolInputResult187(h, binding, input, o)
 			forged.ToolEvidence.CodexExecution.UserInputs[0].Observation.Sequence++
@@ -214,6 +223,10 @@ func TestToolInputHTTPRegistersExactCurrentCodexRequest(t *testing.T) {
 				body := f.body(map[string]any{"result": result})
 				f.bearer("POST", "/runner/results", h.token, body, 200)
 				f.bearer("POST", "/runner/results", h.token, body, 200)
+			}
+			var history ic.ToolInputList
+			if err = json.Unmarshal([]byte(stringify(f.call("GET", currentListPath, nil, 200))), &history); err != nil || len(history.Items) != 1 || history.Items[0].ID != input.ID || history.Items[0].State != "closed" || history.Items[0].Observation == nil || !history.Items[0].Observation.ReplyWritten || len(history.Items[0].AllowedActions) != 0 {
+				t.Fatal("terminal attempt did not retain read-only original input history", history, err)
 			}
 		})
 	}
