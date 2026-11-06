@@ -40,6 +40,12 @@
 
 写入绑定原页面账户／组织，保持原 key／body／caller 的未知结果恢复；严格 DTO 拒绝额外可信字段、分数或指数版本。与全平台一致，权限在回执之前核验。
 
+## 从 SKILL.md 创建草稿
+
+浏览器将用户选择的单个本地 `SKILL.md` 作为草稿输入。按 UTF-8 读取，文件上限 32 KiB。校验 YAML 前置信息中的 `name` 和 `description`，拒绝重复键、别名、无效名称和空正文。说明和 Markdown 正文分别受当前知识合同的 1,000 和 16,000 字节上限约束。名称映射为标题，说明映射为摘要，正文保留 Markdown 并将 CRLF 统一为 LF。附加元数据和文件留在原技能包。
+
+用户在导入编辑器复核并明确保存后，沿 `POST /api/v1/project-knowledge` 创建 `kind=skill` 的人工草稿。文件路径、原文件及外部工具授权字段不进入请求。发布、修订和执行引用继续由现有知识权限及事务控制。
+
 ## 任务与智能体消费
 
 `TaskDispatchPreviewRequest.knowledge` 显式选择最多十六个 `ProjectKnowledgeReference{id,revision,sha256}`，默认空。服务端从批准的不可变版本解析出 `TaskContext.knowledge`；前端或外部工具不能提供正文快照冒充已批准输入。

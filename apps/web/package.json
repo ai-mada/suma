@@ -22,7 +22,8 @@
     "monaco-editor": "0.52.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-i18next": "17.0.15"
+    "react-i18next": "17.0.15",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "@types/react": "19.0.3",

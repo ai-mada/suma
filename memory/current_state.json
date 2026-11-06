@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "project_skill_import": {
+    "stage": "T-PROJECT-SKILL-IMPORT-283",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "d7c253dd29280ab994516567ec38a45ff7b5702a",
+    "report": "docs/quality/project-skill-import-verification.md",
+    "actual": "Import a local SKILL.md into an editable skill draft, using the existing authenticated knowledge creation and separate publication paths.",
+    "verification": "11 parser checks and 3 interaction checks passed. Real Chrome in two layouts used an isolated Go control and SQLite, and reload preserved the draft without publication.",
+    "known_limitations": "Remote packages, supporting files, and production distribution remain unverified. Frozen offline install could not complete its repository-wide metadata check.",
+    "full_platform_complete": false
+  },
   "organization_inbox_unread": {
     "stage": "T-ORGANIZATION-INBOX-UNREAD-282",
     "version": "1.0.0",

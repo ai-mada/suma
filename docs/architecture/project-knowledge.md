@@ -25,6 +25,12 @@ erDiagram
     DISPATCH_PLAN ||--o| IMMUTABLE_RUN : starts
 ```
 
+## 本地技能文件解析
+
+导入采用工作台已有草稿编辑器和知识写入合同。浏览器用固定版本的 YAML 解析器读取有界 UTF-8 文本，避免手工拆解多行说明、引号或注释。只有名称、说明和正文进入可编辑草稿。保存使用现有项目授权和原操作标识，解析不会发起写请求。
+
+导入交互参考 Multica 的技能接入入口，速码按自己的项目草稿权限和发布门禁独立实现。 [Multica 技能命令](https://github.com/multica-ai/multica/blob/ee8604de4741d71d2f51e5ced7f0eb126b03ea0e/server/cmd/multica/cmd_skill.go) · [Agent Skills 文件规范](https://agentskills.io/specification)
+
 ## 修订与发布状态
 
 创建 v1／revision1 为草稿；每次编辑、发布、退役都追加新修订，并原子推进聚合版本。
