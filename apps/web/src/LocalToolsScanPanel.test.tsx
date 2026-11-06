@@ -167,6 +167,25 @@ it.each([['unique',true],['ambiguous',false],['expired',false],['unsupported',fa
   expect(select).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
  });
 
+it.each(['not_installed','unsupported_launcher'] as const)('shows a next step for the selected entry (%s) and retains it during retry',async(reason)=>{
+ const cli={...adapter,id:'codex-jsonl',protocol:'codex-jsonl-v1'},advanced=vi.fn();
+ const value=report();
+ value.report.items[0]={...value.report.items[0],installed:reason==='unsupported_launcher',reason_code:reason};
+ scan.mockResolvedValueOnce(value);
+ const target=document.createElement('div');host.before(target);
+ try{
+  await act(async()=>root.render(<ApiViewProvider session={session}><LocalToolsScanPanel project={project} adapters={[cli]} selectedAdapterID={cli.id} compact feedbackTarget={target} onSelect={select} onAdvanced={advanced}/></ApiViewProvider>));
+  expect(target.querySelector('[data-local-tools-next]')?.textContent).toContain(reason==='not_installed'?'Not detected on this computer':'Launch method not supported');
+  await click(target.querySelector('[data-local-tools-next-guide]')!);expect(advanced).toHaveBeenCalledExactlyOnceWith(cli);
+  let finish!:(response:unknown)=>void;scan.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+  const retry=target.querySelector<HTMLButtonElement>('[data-local-tools-next-rescan]')!;retry.focus();await click(retry);
+  expect(retry.getAttribute('aria-disabled')).toBe('true');expect(document.activeElement).toBe(retry);
+  expect(scan).toHaveBeenLastCalledWith(expect.objectContaining({force:true}));
+  await act(async()=>finish(value));
+  expect(document.activeElement).toBe(retry);expect(select).not.toHaveBeenCalled();
+ }finally{target.remove();}
+});
+
 it('offers fresh local shortcuts for distinct protocols and never auto-selects a setup-only entry',async()=>{
  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});
  const cli={...adapter,id:'codex-jsonl',protocol:'codex-jsonl-v1'};

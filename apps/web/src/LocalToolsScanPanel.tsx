@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import {ChevronRight,CircleHelp,Monitor,RefreshCw,Search,Server} from 'lucide-react';
 import type {AdapterDescriptor} from './AdapterConnections';
 import {useApi,useApiView} from './api-context';
@@ -12,7 +13,7 @@ import {hasUnverifiedInstallationStop} from './tool-installation-probe-diagnosti
 import {formatNumber,tr,useLocale} from './i18n';
 import './LocalToolsScanPanel.css';
 
-export type LocalToolsScanPanelProps={project:string;adapters:readonly AdapterDescriptor[];selectedAdapterID?:string;disabled?:boolean;compact?:boolean;onSelect:(adapter:AdapterDescriptor)=>void;onAutoSelect?:(adapter:AdapterDescriptor)=>void;onAdvanced?:(adapter:AdapterDescriptor)=>void;onWorker?:()=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void};
+export type LocalToolsScanPanelProps={project:string;adapters:readonly AdapterDescriptor[];selectedAdapterID?:string;disabled?:boolean;compact?:boolean;feedbackTarget?:HTMLElement|null;onSelect:(adapter:AdapterDescriptor)=>void;onAutoSelect?:(adapter:AdapterDescriptor)=>void;onAdvanced?:(adapter:AdapterDescriptor)=>void;onWorker?:()=>void;onViewExisting?:(adapter:AdapterDescriptor)=>void};
 const t=(key:string,values?:Record<string,unknown>)=>tr('local-tools-scan.'+key,values);
 const probeText=(key:string)=>tr('tool-installation-probe-diagnostics.'+key);
 const entrypointLabel=(adapter:AdapterDescriptor)=>tr('adapter-connections.entrypoint.'+adapter.entrypoint_kind,{defaultValue:adapter.entrypoint_kind.toUpperCase()});
@@ -32,7 +33,7 @@ export function LocalToolsScanPanel(props:LocalToolsScanPanelProps){
  if(!validLocalToolsScanScope(scope))return null;
  return <ScanScope key={JSON.stringify(scope)+owner.current.epoch} {...props} scope={scope} bridge={bridge}/>;
 }
-function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSelect,onAutoSelect,onAdvanced,onWorker,onViewExisting,scope,bridge}:LocalToolsScanPanelProps&{scope:LocalToolsScanScope;bridge:NonNullable<ReturnType<typeof localToolsScanBridge>>}){
+function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,feedbackTarget,onSelect,onAutoSelect,onAdvanced,onWorker,onViewExisting,scope,bridge}:LocalToolsScanPanelProps&{scope:LocalToolsScanScope;bridge:NonNullable<ReturnType<typeof localToolsScanBridge>>}){
  const locale=useLocale(),[result,setResult]=useState<Extract<LocalToolsScanResult,{status:'observed'}>>(),[scanTrigger,setScanTrigger]=useState<'initial'|'manual'|'foreground'>(),[failure,setFailure]=useState(false),[expired,setExpired]=useState(false);
  const busy=scanTrigger!==undefined;
  // Keep the keyboard's current button mounted and focusable on a passive
@@ -123,6 +124,12 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSe
  },[]);
  const eligible=adapters.filter(adapter=>quickConnectAdapters([adapter]).length===1||isCursorConnectionGuide(adapter));
  const selected=eligible.find(adapter=>adapter.id===selectedAdapterID);
+ const selectedFact=result?.report.items.find(item=>item.adapter_id===selectedAdapterID);
+ const selectedIssue=selectedFact?.reason_code==='not_installed'?'missing':
+  selectedFact?.reason_code==='cursor_editor_only'?'editor_only':
+  selectedFact?.reason_code==='unsupported_launcher'||selectedFact?.reason_code==='cursor_launcher_unsupported'?'unsupported':undefined;
+ const nextStep=busy&&scanTrigger==='manual'?'checking':failure?'failed':
+  selectedIssue&&expired?'expired':selectedIssue;
  const presentation=result?projectLocalToolsScan(result.report.items,selectedAdapterID):undefined;
  const shortcuts=compact&&!selectedAdapterID&&result&&!busy&&!expired&&!stopBlocked?result.report.items.flatMap(item=>{
   if(!item.installed||item.diagnostic||!(item.launch_supported||['configuration_required','acp_configuration_required'].includes(item.reason_code)))return [];
@@ -160,6 +167,13 @@ function ScanScope({adapters,selectedAdapterID,disabled=false,compact=false,onSe
    <p className="local-tools-scan-boundary">{t('boundary')}</p><details className="local-tools-scan-times"><summary>{t('observation')}</summary><dl><dt>{t('observed_at')}</dt><dd><time dateTime={result.scan.observed_at}>{result.scan.observed_at}</time></dd><dt>{t('expires_at')}</dt><dd><time dateTime={result.scan.expires_at}>{result.scan.expires_at}</time></dd></dl></details></>}
  </>;
  return <section ref={panel} className={'local-tools-scan'+(compact?' local-tools-scan-compact':'')} data-local-tools-scan aria-label={t('title')} aria-busy={busy}>
+  {feedbackTarget&&selected&&nextStep&&createPortal(<div className="tool-quick-next" data-local-tools-next={nextStep}>
+   <div role="status"><strong>{t('next.'+nextStep)}</strong><p>{t('next_hint.'+nextStep,{tool:selected.product})}</p></div>
+   <div className="tool-quick-next-actions">
+    {onAdvanced&&!isCursorConnectionGuide(selected)&&<button type="button" data-local-tools-next-guide className={nextStep==='unsupported'||nextStep==='editor_only'?'primary':'text-button'} disabled={disabled} aria-disabled={busy||undefined} onClick={()=>{if(active.current&&!disabled&&!inflight.current)onAdvanced(selected);}}>{t('next_guide')}</button>}
+    <button type="button" data-local-tools-next-rescan className={nextStep==='missing'||nextStep==='expired'||nextStep==='failed'?'primary':''} disabled={disabled||stopBlocked} aria-disabled={busy||undefined} onClick={()=>void scan('manual')}><RefreshCw size={14} aria-hidden="true"/>{t(busy?'scanning':'rescan')}</button>
+   </div>
+  </div>,feedbackTarget)}
   <header><div><h4><Monitor size={18} aria-hidden="true"/>{t(compact?'compact_title':'title')}</h4>{!compact&&<p>{t('intro')}</p>}</div><button type="button" data-local-tools-rescan disabled={controlsDisabled||stopBlocked} aria-disabled={foregroundBusy||undefined} onClick={()=>void scan('manual')}><RefreshCw size={16} aria-hidden="true"/>{t(busy?'scanning':'rescan')}</button></header>
   {(!compact||!result||expired||busy||failure)&&<p className="local-tools-scan-status" role="status">{t(failure?result?'refresh_failed':'failed':busy?'scanning':result?expired?'expired':result.scan.cached?'cached':'observed':disabled?'deferred':'waiting')}</p>}
   {selected&&!compact&&<p className="local-tools-scan-target" data-local-tools-selected-target>{t('selected_target',{tool:selected.product})}</p>}

@@ -8,15 +8,16 @@ export function ToolRecoveryNotice({
   action: ToolAction;
   onRestored: (path: string, value: unknown) => void;
 }) { useLocale();
+  const pendingSave=action.pending?.path==='/tool-profiles';
   return (
     <>
-      {action.error && <ErrorNotice error={action.error} />}{" "}
+      {!pendingSave&&action.error && <ErrorNotice error={action.error} />}{" "}
       {action.pending && (
-        <section className="panel tool-notice tool-recovery">
-          <strong>{t("development.recovery.the_original_tool_operation_s_result_is")}</strong>
+        <section className="panel tool-notice tool-recovery" data-tool-save-recovery={pendingSave||undefined}>
+          <strong>{t(pendingSave?'tool-quick-connect.save_unknown':'development.recovery.the_original_tool_operation_s_result_is')}</strong>
           <p>
-            {t("development.recovery.the_complete_non_secret_request_original_version")}</p>
-          <code>{action.pending.idempotency_key}</code>
+            {t(pendingSave?'tool-quick-connect.save_unknown_hint':'development.recovery.the_complete_non_secret_request_original_version')}</p>
+          {pendingSave?<details><summary>{t('tool-quick-connect.technical')}</summary>{action.error&&<ErrorNotice error={action.error}/>}<code>{action.pending.idempotency_key}</code></details>:<code>{action.pending.idempotency_key}</code>}
           <div className="inline wrap">
             <button
               className="primary"

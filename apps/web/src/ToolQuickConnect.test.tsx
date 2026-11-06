@@ -64,6 +64,18 @@ it('saves paused and opens enable review once for the exact receipt when request
  expect(vi.mocked(props.onRegistered).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(props.onEnable).mock.invocationCallOrder[0]);
  await render();expect(props.onEnable).toHaveBeenCalledOnce();
 });
+it('offers an explicit retry after a confirmed refusal and retains the authored name and fixed configuration',async()=>{
+ await render();await change('[data-quick-tool]','codex-jsonl');await change('[data-quick-name]','My retained name');
+ const run=vi.mocked(props.action.run);run.mockResolvedValueOnce(undefined);
+ await click('[data-quick-register]');
+ props.action={...props.action,error:'Validation rejected',errorStatus:422};await render();
+ expect(host.querySelector('[data-quick-save-problem]')?.textContent).toContain('Your configuration and name are kept');
+ expect(host.querySelector<HTMLInputElement>('[data-quick-name]')?.value).toBe('My retained name');
+ expect(host.querySelector('[data-quick-register]')?.textContent).toBe('Retry save');
+ await click('[data-quick-register]');
+ expect(run).toHaveBeenCalledTimes(2);expect(run.mock.calls[0]).toEqual(run.mock.calls[1]);expect(props.onEnable).not.toHaveBeenCalled();
+});
+
 it('does not open enable review from an unconfirmed or mismatched save response',async()=>{
  vi.mocked(props.action.run).mockResolvedValueOnce({id:'wrong',project_id:'p',worker_id:'other',name:'codex-team',profile,state:'paused',version:1});
  await render();await change('[data-quick-tool]','codex-jsonl');

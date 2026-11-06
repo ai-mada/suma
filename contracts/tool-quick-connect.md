@@ -12,6 +12,8 @@
 
 T-TOOL-QUICK-DESKTOP-251 为当前可用配置提供「保存并核对启用」。仅在本次保存直接返回同作用域、同配置的暂停回执后，进入原启用确认。只保存和名称框回车仍停在暂停结果。未知写入沿原操作恢复，核对动作独立确认后才发起启用请求。
 
+T-TOOL-QUICK-RECOVERY-266 在已选入口旁提示本机未检测到、启动方式不受支持、仅检测到 Cursor 编辑器或检测请求失败。过期信息提示重新检测。重新检测只读取本机安装状态，保留已选工具、节点及名称。节点未上报、无匹配和过期独立提示。确认拒绝后可以明确重试；冲突需核对已有配置；结果未知时以原请求和原操作标识核对，禁止发起新保存。
+
 ## 桌面安装观察
 
 preload只开放 `discoverInstalledTools({project_id,user_id,tenant_id,adapter_id,locale})`。项目、人员与组织标识均为32位小写hex；adapter_id只允许 `codex-jsonl`、`codebuddy-cli`、`dsh-multica`，locale为zh-CN／en-US。主进程核验准确父窗口、主frame和本机服务origin；探测前后分别读取真实会话、准确项目及真实会话。普通GET的Expected头不充当凭据或身份选择权。

@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-QUICK-RECOVERY-266 [添加工具](../design/tool-quick-connect.md)分开呈现本机异常、节点配置问题、明确保存失败和未知写入。已在真实 Windows 桌面验证常用入口检测与原请求恢复。 [限定验证](../quality/tool-quick-recovery-verification.md)
+
 T-TOOL-QUICK-DESKTOP-251 [添加工具](../design/tool-quick-connect.md)提供保存后直达启用确认与首屏审阅，并在实际 Windows 桌面核对 Codex 检测、双配置选择、暂停保存和独立启用。 [限定验证](../quality/tool-quick-desktop-verification.md)
 
 T-TOOL-QUICK-CHOICES-241 [添加工具](../design/tool-quick-connect.md)在首屏提供本机确认入口，多配置在选用前展示读写范围，单份已有配置直接复用原操作。 [限定验证](../quality/tool-quick-choices-verification.md)

@@ -49,6 +49,7 @@ function QuickConnectScope(props:ToolQuickConnectProps){
  const drafts=useRef(new Map<string,QuickToolDraft>(props.draft?[[props.draft.adapterID,{chosenWorker:props.draft.workerID,chosenCommand:props.draft.commandID,name:props.draft.name,nameEdited:props.draft.nameEdited,...(props.draft.observationPin!==undefined?{observationPin:props.draft.observationPin}:{})}]]:[])),toolChoice=useRef<HTMLSelectElement>(null),draftOwner=useRef({api,callback:props.onDraftChange}),lastPublished=useRef('');draftOwner.current={api,callback:props.onDraftChange};
  const choiceMade=useRef(!!(props.adapter||props.draft?.adapterID||props.preferredWorkerID||props.replacementSource));
  const [autoSelected,setAutoSelected]=useState(false);
+ const [scanFeedback,setScanFeedback]=useState<HTMLDivElement|null>(null);
  const rememberDraft=useCallback((adapterID:string,draft:QuickToolDraft)=>{
   if(draftOwner.current.api!==api)return;drafts.current.set(adapterID,draft);
   const value:ToolConnectDraft={adapterID,workerID:draft.chosenWorker,commandID:draft.chosenCommand,name:draft.name,nameEdited:draft.nameEdited,...(draft.observationPin!==undefined?{observationPin:draft.observationPin}:{})},key=JSON.stringify(value);
@@ -77,13 +78,14 @@ function QuickConnectScope(props:ToolQuickConnectProps){
  }
  const pickerHint=autoSelected?t('auto_selected'):!adapter?guide?tr('cursor-connection.picker_hint'):t('intro'):undefined;
  const configuration=adapter&&(cursorGuide?<CursorConnectionGuide key={adapter.id} project={props.project} disabled={blocked}/>:<QuickToolConfiguration {...props} key={adapter.id} adapter={adapter} initialDraft={drafts.current.get(adapter.id)} onConfigurationDraftChange={rememberConfiguration} onLocalBlockedChange={setLocalBlocked}/>);
- const scanPanel=<LocalToolsScanPanel key="local-scan" compact project={props.project} adapters={adapters} selectedAdapterID={adapter?.id} disabled={blocked} onAutoSelect={choiceMade.current?undefined:item=>choose(item.id,true)} onSelect={item=>{if(choose(item.id)){toolChoice.current?.focus({preventScroll:true});toolChoice.current?.scrollIntoView?.({block:'start',behavior:'auto'});}}} onAdvanced={item=>openAdvanced(item)} onWorker={props.onWorker} onViewExisting={props.onViewExisting}/>;
+ const scanPanel=<LocalToolsScanPanel key="local-scan" compact feedbackTarget={scanFeedback} project={props.project} adapters={adapters} selectedAdapterID={adapter?.id} disabled={blocked} onAutoSelect={choiceMade.current?undefined:item=>choose(item.id,true)} onSelect={item=>{if(choose(item.id)){toolChoice.current?.focus({preventScroll:true});toolChoice.current?.scrollIntoView?.({block:'start',behavior:'auto'});}}} onAdvanced={item=>openAdvanced(item)} onWorker={props.onWorker} onViewExisting={props.onViewExisting}/>;
  return <div className="tool-quick-connect">
   {!current?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={()=>setRevision(value=>value+1)}/>:<>
    <div className="tool-quick-picker">
     <Field label={t('tool')}><select ref={toolChoice} data-quick-tool value={adapter?.id||''} disabled={blocked} onChange={event=>choose(event.target.value)} aria-describedby={pickerHint?id:undefined}><option value="">{t('choose_tool')}</option>{adapters.map(item=><option key={item.id} value={item.id}>{isCursorConnectionGuide(item)?tr('cursor-connection.title'):tr('local-tools-scan.entrypoint_name',{tool:item.product,entrypoint:tr('adapter-connections.entrypoint.'+item.entrypoint_kind,{defaultValue:item.entrypoint_kind.toUpperCase()})})}</option>)}</select></Field>
     {pickerHint&&<p id={id} className="tool-quick-muted" aria-live="polite">{pickerHint}</p>}
    </div>
+   <div ref={setScanFeedback} className="tool-quick-feedback-slot"/>
    {[configuration,scanPanel]}
   </>}
   {adapter?.id==='qoder-acp'&&!desktopACPBridge()&&<p className="tool-quick-muted">{tr('acp-runtime.setup_no_scan')}</p>}
@@ -102,7 +104,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
  const [remoteScanOpen,setRemoteScanOpen]=useState(false),[remoteScanBlocked,setRemoteScanBlocked]=useState(false),[localOperationBlocked,setLocalOperationBlocked]=useState(false),[nativeRegistrationReady,setNativeRegistrationReady]=useState(true),[nativeConnection,setNativeConnection]=useState<{caller:typeof api;connection:DesktopCodexConnectedProof|DesktopOpenCodeConnectedProof|DesktopClaudeSDKConnectedProof}>(),currentCaller=useRef(api);currentCaller.current=api;
  const [lockedWorker,setLockedWorker]=useState(preferredWorkerID||initialDraft?.chosenWorker||''),[nativeMismatch,setNativeMismatch]=useState<{caller:typeof api;target:string;worker:string}>(),workerChoice=useRef<HTMLSelectElement>(null),target=useRef({api,worker:lockedWorker}),lastNativeWorker=useRef(''),reportedNativeReady=useRef(true);target.current={api,worker:lockedWorker};
  const [acpConnection,setACPConnection]=useState<{caller:typeof api;workerID:string}>();
- const [matchRevision,setMatchRevision]=useState(0),[matchSnapshot,setMatchSnapshot]=useState<MatchSnapshot>(),[existingChoice,setExistingChoice]=useState<{key:string;id:string}>(),[createAttempt,setCreateAttempt]=useState<{key:string;ticket:number}>();
+ const [matchRevision,setMatchRevision]=useState(0),[matchSnapshot,setMatchSnapshot]=useState<MatchSnapshot>(),[existingChoice,setExistingChoice]=useState<{key:string;id:string}>(),[createAttempt,setCreateAttempt]=useState<{key:string;ticket:number;caller:typeof api;worker:string;command:string}>();
  const createSequence=useRef(0),recheckedConflict=useRef(0);
  const [replacementPlan,setReplacementPlan]=useState<{caller:typeof api;key:string;draft:ToolProfileReplacementDraft}>(),replacementBusy=useRef(false);
  useEffect(()=>()=>onLocalBlockedChange(false),[onLocalBlockedChange]);
@@ -218,6 +220,8 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
  },[receipt,registration,blocked,onRegistered,onEnable]);
  const showSaveReview=selected?.available===true;
  const saveDisabled=blocked||action.conflict||!canCreate||!usable||!suggestedName.trim();
+ const saveFailed=!receipt&&!writeBlocked&&!!action.error&&createAttempt?.caller===api&&createAttempt.worker===worker&&createAttempt.command===chosenCommand;
+ const inventoryIssue=!receipt&&view?(view.state==='unreported'?'unreported':expired||view.state!=='fresh'?'expired':!rows.length?'no_matching':undefined):undefined;
  async function register(review:boolean){
   if(blocked||action.conflict||!canCreate||!usable||!suggestedName.trim()||!selected||!current||performance.now()>=current.deadline){if(current&&performance.now()>=current.deadline)setExpired(true);return;}
   if(review&&!showSaveReview)return;
@@ -225,7 +229,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
   // A deliberate registration fixes the original operation's public target.
   // Later automatic local status cannot move its pending write or receipt.
   lockTarget(worker);
-  setCreateAttempt({key:matchKey,ticket:++createSequence.current});
+  setCreateAttempt({key:matchKey,ticket:++createSequence.current,caller:api,worker,command:selected.profile.command_id});
   const result=await action.run<ToolProfile>('/tool-profiles',body);
   // A transient node read must not erase an already matched original receipt.
   // The scoped component owns it; current authorization still guards display.
@@ -241,6 +245,17 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
   {prepareTarget&&<button type="button" className="text-button" data-quick-prepare-runner disabled={blocked} onClick={()=>{const target=prepareTarget;if(!blocked&&alive.current&&currentCaller.current===api&&target&&target===pairedRunner&&target.worker_id===worker)onPrepareRunner?.(target,adapter);}}>{tr('remote-runner-setup.prepare_node')}<ArrowRight size={15} aria-hidden="true"/></button>}
  </div>;
  return <section className="tool-quick-configuration">
+  {saveFailed&&<div className="tool-quick-next" data-quick-save-problem>
+   <div role="alert"><strong>{t(action.conflict?'save_conflict':'save_failed')}</strong><p>{t(action.conflict?'save_conflict_hint':[401,403,404].includes(action.errorStatus??0)?'save_access_hint':'save_retry_hint')}</p></div>
+   {action.conflict&&<div className="tool-quick-next-actions">{matchesRefresh}</div>}
+  </div>}
+  {inventoryIssue&&<div className="tool-quick-next" data-quick-node-problem={inventoryIssue}>
+   <div role="status"><strong>{t('node_problem.'+inventoryIssue)}</strong><p>{t(inventoryIssue)}</p></div>
+   <div className="tool-quick-next-actions">
+    {inventoryIssue!=='expired'&&<button type="button" data-quick-configure-node className="primary" disabled={blocked} onClick={openAdvanced}>{t('configure_node')}</button>}
+    {inventoryRefresh}
+   </div>
+  </div>}
   {adapter.id==='qoder-acp'&&<details className="tool-quick-muted"><summary>{tr('acp-quick-connect.native_policy')}</summary><p>{tr('acp-runtime.setup_policy')}</p></details>}
    {adapter.id==='claude-code-sdk'?<ClaudeSDKLocalConnector project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onGuide={openAdvanced} onConnected={proof=>acceptNative(proof.worker_id,()=>setNativeConnection({caller:api,connection:{...proof}}))}/>:acpAdapterID?<QoderLocalConnector adapterID={acpAdapterID} project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onConnected={workerID=>acceptNative(workerID,()=>setACPConnection({caller:api,workerID}))}/>:adapter.id==='codex-app-server'?<CodexLocalConnector project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onConnected={proof=>acceptNative(proof.worker_id,()=>setNativeConnection({caller:api,connection:{...proof}}))}/>:adapter.id==='opencode-sdk'?<OpenCodeLocalConnector project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onGuide={openAdvanced} onConnected={proof=>acceptNative(proof.worker_id,()=>setNativeConnection({caller:api,connection:{...proof}}))}/>:<DesktopToolConnector project={project} adapterID={adapter.id} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onGuide={openAdvanced} onConnected={workerID=>acceptNative(workerID)}/>}
   {mismatch&&<div className="tool-quick-target-mismatch" data-quick-native-target-mismatch role="status"><p>{t('native_target_mismatch',{node:mismatch.worker,target:mismatch.target})}</p><button type="button" className="text-button" data-quick-target-picker disabled={blocked||!!receipt||!nodes.length} onClick={()=>workerChoice.current?.focus()}>{t('choose_target')}</button></div>}
@@ -249,13 +264,13 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
    {nodes.length>1||!!mismatch||!!(preferredWorkerID||chosenWorker||localWorker)&&!worker?<Field label={t('node')}><select ref={workerChoice} data-quick-worker value={worker} disabled={blocked||!!receipt} onChange={event=>{lockTarget(event.target.value);setNativeMismatch(undefined);setNativeRegistrationReady(false);setNativeConnection(undefined);setACPConnection(undefined);setObservationPin(undefined);setChosenCommand('');setChosenWorker(event.target.value);}}><option value="">{t('choose_node')}</option>{nodes.map(node=><option key={node} value={node}>{node}</option>)}</select></Field>:<p className="tool-quick-node"><Server size={15} aria-hidden="true"/>{t('using_node',{node:worker})}</p>}
    {receipt?<div className="tool-quick-saved"><CheckCircle2 size={22} aria-hidden="true"/><div><strong ref={savedHeading} tabIndex={-1}>{t('registered',{name:receipt.name})}</strong><p>{t('paused_hint')}</p><button data-quick-enable type="button" className="primary" disabled={blocked} onClick={()=>onEnable(receipt)}>{t('enable')}<ArrowRight size={15} aria-hidden="true"/></button></div></div>:worker&&<>
     {!current?<Loading/>:current.error?<ErrorNotice error={toolError(current.error)} onRetry={()=>setRevision(value=>value+1)}/>:view&&<>
-     {!usable&&<div className="tool-quick-inventory-heading"><strong>{t('detected')}</strong>{inventoryRefresh}</div>}
+     {!usable&&!inventoryIssue&&<div className="tool-quick-inventory-heading"><strong>{t('detected')}</strong>{inventoryRefresh}</div>}
      {view.state==='fresh'&&!expired&&pinned&&!pinCurrent&&<p className="tool-quick-warning" data-quick-observation-changed role="status">{tr('managed-tool-preparation.pin_changed')}</p>}
      {preparedID&&!preparation&&pinCurrent&&candidate&&<Loading/>}
      {preparation?.error&&<ErrorNotice error={preparation.error} onRetry={()=>setRevision(value=>value+1)}/>}
      {preparedID&&!preparationDenied&&candidate?.available===false&&<p className="tool-quick-warning" data-quick-prepared-paused-only role="status">{tr('managed-tool-preparation.paused_only')} {candidate.reason}</p>}
      {view.state==='fresh'&&!expired&&chosenCommand&&!candidate&&<p className="tool-quick-warning" data-quick-command-missing role="status">{t('saved_configuration_missing',{command:chosenCommand})}</p>}
-     {(expired||view.state!=='fresh')?<p className="tool-quick-warning" role="status">{t(view.state==='unreported'?'unreported':'expired')}</p>:!rows.length?<p className="tool-quick-warning" role="status">{t('no_matching')}</p>:<>
+     {!inventoryIssue&&<>
       {(available.length>1||!!chosenCommand&&!selected)&&<Field label={t('configuration')}><select data-quick-configuration value={selected?.profile.command_id||''} disabled={blocked} onChange={event=>chooseConfiguration(event.target.value)}><option value="">{t('choose_configuration')}</option>{available.map(item=><option key={item.profile.command_id} value={item.profile.command_id}>{item.profile.command_id} · {item.profile.tool_version} · {t(item.profile.read_only?'access_read_only':'access_write')}</option>)}</select></Field>}
        {rows.filter(item=>!item.available).map(item=><div className="tool-quick-unavailable" data-quick-unavailable={item.profile.command_id} key={item.profile.command_id} role="status"><strong>{t('unavailable',{command:item.profile.command_id})}</strong><span className="tool-quick-muted" data-quick-reason-source>{t('node_reason')}</span><p data-quick-unavailable-reason={item.profile.command_id}>{item.reason}</p><button type="button" className="text-button" data-quick-configure={item.profile.command_id} disabled={blocked} onClick={openAdvanced}>{t('configure_tool')}<ArrowRight size={15} aria-hidden="true"/></button></div>)}
       {selected&&(replacementSource||!reusable.length)&&<div className="tool-quick-facts">
@@ -276,8 +291,8 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
       <div className="tool-quick-save-actions">
        {selected&&<p className="tool-quick-muted">{t(showSaveReview?'review_hint':'register_hint')}</p>}
        <div className="tool-quick-save-buttons">
-        <button data-quick-register type="submit" className={showSaveReview?'':'primary'} disabled={saveDisabled}>{preparedID&&!action.busy?tr('managed-tool-preparation.save_paused'):t(action.busy?'registering':'register')}</button>
-        {showSaveReview&&<button data-quick-save-review type="submit" className="primary" disabled={saveDisabled}>{t('save_review')}<ArrowRight size={15} aria-hidden="true"/></button>}
+        <button data-quick-register type="submit" className={showSaveReview?'':'primary'} disabled={saveDisabled}>{action.busy?t('registering'):saveFailed&&!action.conflict?t('retry_save'):preparedID?tr('managed-tool-preparation.save_paused'):t('register')}</button>
+        {showSaveReview&&<button data-quick-save-review type="submit" className="primary" disabled={saveDisabled}>{t(saveFailed&&!action.conflict?'retry_save_review':'save_review')}<ArrowRight size={15} aria-hidden="true"/></button>}
        </div>
       </div>
      </form>}
@@ -289,7 +304,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
      <p>{selected.available?t('probe_confirmed'):tr('managed-tool-preparation.configuration_reported')}</p>
      <p>{adapter.adapter} / {adapter.protocol}</p>
      <code>{selected.profile.profile_sha256}</code>
-     <div className="tool-quick-node-actions">{inventoryRefresh}{matches?.data&&matchesRefresh}</div>
+     <div className="tool-quick-node-actions">{inventoryRefresh}{matches?.data&&!(saveFailed&&action.conflict)&&matchesRefresh}</div>
      {nodeActions}
     </div>
    </details>:nodeActions}
