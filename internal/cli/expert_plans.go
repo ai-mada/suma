@@ -311,9 +311,9 @@ func expertPlansCommand(ctx context.Context, c *client, args []string, in io.Rea
 	return writeJSON(out, raw, c.token)
 }
 
-// Decode only the direct page and plan fields. The request already checked the
-// bounded JSON document; nested plan details stay opaque and keep their shape.
-func expertPlanListFields(raw json.RawMessage) map[string]json.RawMessage {
+// Decode only the immediate object fields. The request already checked the
+// bounded JSON document; nested details stay opaque and keep their shape.
+func responseObjectFields(raw json.RawMessage) map[string]json.RawMessage {
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	if token, err := decoder.Token(); err != nil || token != json.Delim('{') {
 		return nil
@@ -332,7 +332,7 @@ func expertPlanListFields(raw json.RawMessage) map[string]json.RawMessage {
 }
 
 func validExpertPlanTeamPage(raw json.RawMessage, project, team, before string, limit int) bool {
-	fields := expertPlanListFields(raw)
+	fields := responseObjectFields(raw)
 	var items []json.RawMessage
 	var total *int
 	if !tc.ValidJSONUnicode(raw) || json.Unmarshal(fields["items"], &items) != nil || items == nil || len(items) > limit ||
@@ -350,7 +350,7 @@ func validExpertPlanTeamPage(raw json.RawMessage, project, team, before string, 
 	}
 	seen := make(map[string]bool, len(items))
 	for _, item := range items {
-		fields := expertPlanListFields(item)
+		fields := responseObjectFields(item)
 		var id, projectID, teamID string
 		if !recommendationHistoryCanonicalFields(fields, "id", "project_id", "team_id") ||
 			json.Unmarshal(fields["id"], &id) != nil || !handoffCLIIdentifier(id, false) || seen[id] ||

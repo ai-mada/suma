@@ -54,6 +54,9 @@ func (s *Service) InitializeTestPlans(ctx context.Context) error {
 	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_test_plan_page", "suma_test_plans", "tenant_id", "project_id", "created_at", "id"); err != nil {
 		return err
 	}
+	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_test_plan_defect_issue", "suma_test_plan_defects", "tenant_id", "project_id", "issue_id"); err != nil {
+		return err
+	}
 	return store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_test_package_defect_issue", "suma_test_plan_package_defects", "tenant_id", "project_id", "issue_id")
 }
 func (s *Service) testPlanTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (out testPlanAggregate, err error) {

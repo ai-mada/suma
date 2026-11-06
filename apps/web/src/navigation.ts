@@ -1,5 +1,5 @@
 import {mondayOf} from './planning-model';
-import {isTestPlanState,planID,type TestPlanState} from './test-plans-model';
+import {isTestPlanState,planID,originalTestCasePanelPrefix,validOriginalTestCaseRoute,type TestPlanState} from './test-plans-model';
 import {parseAttempt,validQueueRun,type QueueRoute} from './scheduling-model';
 import {validNotificationToolInputTarget,type NotificationToolInputTarget} from './notification-inbox-model';
 import {isTaskDeliveryLocator,taskDeliveryPanel} from './task-delivery-navigation-model';
@@ -16,6 +16,7 @@ export function toolInputPanelID(panel:string):string|undefined {
  * Parsing never opens, marks read or decides the source. */
 function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string{
  const panel=params.get('panel')||'',review=panel.startsWith('task-review:'),handoff=panel.startsWith('task-handoff:');
+ if(params.getAll('panel').some(value=>value.startsWith(originalTestCasePanelPrefix)))return validOriginalTestCaseRoute(params)?panel:'';
  if(panel.startsWith(toolInputPanelPrefix)){
   const input=toolInputPanelID(panel),project=params.get('project')||'';
   const exact=['panel','project','view','sub','run','node','attempt'].every(key=>params.getAll(key).length===1);

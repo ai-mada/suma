@@ -355,4 +355,40 @@ func TestTestPlanDefectUsesProtectedCaseLineageAndOriginalReceipt(t *testing.T) 
 	if err == nil {
 		t.Fatal("unreported case created a defect")
 	}
+
+	wantOrigin := IssueRepairCaseOrigin{PlanID: h.plan.ID, RunID: a.RunID, CaseKey: "contract", PlanRevision: h.plan.Published.Revision, PlanSHA256: h.plan.Published.SHA256}
+	readOrigin := func(id string) *IssueRepairCaseOrigin {
+		t.Helper()
+		var view IssueRepairView
+		body := f.call("GET", "/issues/"+id+"/repair?project_id="+f.project, nil, 200)
+		if err := json.Unmarshal([]byte(stringify(body)), &view); err != nil {
+			t.Fatal(err)
+		}
+		return view.OriginalCase
+	}
+	if got := readOrigin(issue.ID); got == nil || *got != wantOrigin {
+		t.Fatal("issue could not locate its exact originating failure", got)
+	}
+	forged, err := f.s.Create(ctx, f.actor, f.project, "issues", f.body(map[string]any{"title": "Manually reported failure", "data": issue.Data}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := readOrigin(forged.ID); got != nil {
+		t.Fatal("editable metadata forged a protected origin", got)
+	}
+	current, err := f.s.Get(ctx, f.actor, f.project, "tasks", h.task.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	draft, err := f.s.SaveTestPlan(ctx, f.actor, f.project, h.plan.ID, TestPlanSaveRequest{ProjectID: f.project, ExpectedVersion: h.plan.Version, ExpectedTaskVersion: current.Version, Title: "Replacement reviewed plan", Cases: []QualityTestCase{qualityCase()}, IdempotencyKey: newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	published, err := f.s.CommandTestPlan(ctx, f.actor, f.project, draft.ID, TestPlanCommandRequest{ProjectID: f.project, ExpectedVersion: draft.Version, Action: "publish", Reason: "Publish a new basis for future runs", IdempotencyKey: newID()})
+	if err != nil || published.Published == nil || published.Published.SHA256 == wantOrigin.PlanSHA256 {
+		t.Fatal("could not establish a distinct current plan", published, err)
+	}
+	if got := readOrigin(issue.ID); got == nil || *got != wantOrigin {
+		t.Fatal("republishing the plan replaced the historical failure origin", got)
+	}
 }

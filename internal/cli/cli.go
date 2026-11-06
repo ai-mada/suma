@@ -33,6 +33,7 @@ Read commands:
   task-status --help          Preview or apply a task planning-status batch
   task delivery TASK          Read current task delivery evidence
   test-plan --help            List and show test plans
+  issue-repair show ISSUE     Read repair and its original case reference
   run show ID
   run events ID [--after SEQUENCE]
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]
@@ -212,6 +213,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	}
 	if len(args) > 0 && args[0] == "failure-diagnosis" {
 		return failureDiagnosisCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 0 && args[0] == "issue-repair" {
+		return issueRepairCommand(ctx, c, args[1:], out)
 	}
 	if len(args) > 0 && args[0] == "test-plan" {
 		return testPlanCatalogCommand(ctx, c, args[1:], out)

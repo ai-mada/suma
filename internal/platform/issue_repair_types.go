@@ -47,6 +47,15 @@ type IssueRepairClosure struct {
 	PackageRegression *IssueRepairPackageProof `json:"package_regression,omitempty"`
 }
 
+// IssueRepairCaseOrigin locates the failed case in its original run snapshot.
+type IssueRepairCaseOrigin struct {
+	PlanID       string `json:"plan_id"`
+	RunID        string `json:"run_id"`
+	CaseKey      string `json:"case_key"`
+	PlanRevision int    `json:"plan_revision"`
+	PlanSHA256   string `json:"plan_sha256"`
+}
+
 // IssueRepairPackageOrigin is read from the protected defect and original
 // build evidence. It remains historical when the application advances.
 type IssueRepairPackageOrigin struct {
@@ -116,6 +125,7 @@ type IssueRepairView struct {
 	CanClose        bool                       `json:"can_close"`
 	CanReopen       bool                       `json:"can_reopen"`
 	Blockers        []IssueRepairBlocker       `json:"blockers"`
+	OriginalCase    *IssueRepairCaseOrigin     `json:"original_case,omitempty"`
 	OriginalPackage *IssueRepairPackageOrigin  `json:"original_package,omitempty"`
 	ReleaseHandoff  *IssueRepairReleaseHandoff `json:"release_handoff,omitempty"`
 }

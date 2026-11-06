@@ -18542,6 +18542,45 @@
         ],
         "type": "object"
       },
+      "IssueRepairCaseOrigin": {
+        "additionalProperties": false,
+        "properties": {
+          "case_key": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "plan_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "plan_revision": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "plan_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "pattern": "^[A-Za-z0-9_.-]{1,100}$",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan_id",
+          "run_id",
+          "case_key",
+          "plan_revision",
+          "plan_sha256"
+        ],
+        "type": "object"
+      },
       "IssueRepairCloseRequest": {
         "additionalProperties": false,
         "properties": {
@@ -19034,6 +19073,18 @@
           },
           "issue": {
             "$ref": "#/components/schemas/Record"
+          },
+          "original_case": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IssueRepairCaseOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Protected original failed case locator from the frozen execution. Independent of editable issue metadata and current plan publication.",
+            "readOnly": true
           },
           "original_package": {
             "anyOf": [

@@ -27,7 +27,7 @@ func (s *Service) issueRepairSelectedCasesTx(ctx context.Context, auth *authoriz
 			return conflict(issueRepairRegression)
 		}
 		seen[key] = true
-		if original != nil && key == original.Key && stringify(item.Selector) == stringify(original.Selector) {
+		if original != nil && key == original.CaseKey && item.Selector == original.selector {
 			containsOriginal = true
 		}
 	}
@@ -181,6 +181,13 @@ func (s *Service) issueRepairViewTx(ctx context.Context, auth *authorizedCommand
 	out.Issue, err = s.getRecordTx(ctx, auth, project, "issues", issueID)
 	if err != nil {
 		return out, err
+	}
+	caseOrigin, err := s.issueRepairOriginalCaseTx(ctx, auth, project, issueID)
+	if err != nil {
+		return out, err
+	}
+	if caseOrigin != nil {
+		out.OriginalCase = &caseOrigin.IssueRepairCaseOrigin
 	}
 	packageOrigin, err := s.issueRepairOriginalPackageTx(ctx, auth, project, issueID)
 	if err != nil {

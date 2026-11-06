@@ -4,6 +4,8 @@ T-MODEL-DIRECTORY 补齐网关部署、Codex 与工具固定模型的目录展�
 
 T-TOOL-QUICK-RECOVERY-266 添加工具在所选入口旁显示本机和节点问题的下一步，明确保存失败保留草稿，结果未知核对原回执。实际 Windows 桌面已验证 9 个入口检测及 Codex 保存恢复。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-recovery-verification.md)
 
+T-QUALITY-CASE-ORIGIN 从缺陷修复定位原始失败用例，固定运行与计划修订，支持同运行恢复和终端读取。 [操作](../development/issue-repair.md#查看原始失败用例) · [验证](../quality/quality-case-origin-verification.md)
+
 T-QUALITY-CATALOG 测试计划按状态及准确任务筛选，网页和 CLI 共享分页。创建冲突按原任务定位现有计划并保留草稿。 [操作](../development/test-plans.md#定位测试计划) · [验证](../quality/quality-catalog-verification.md)
 
 T-TEAM-DELIVERY 团队计划可按原运行直接打开交付与质量面板，运行不匹配时明确切换。CLI 使用同一交付摘要。 [操作](../development/team-execution.md#从团队计划核对交付) · [验证](../quality/team-delivery-verification.md)

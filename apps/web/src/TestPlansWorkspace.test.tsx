@@ -15,12 +15,13 @@ const revision={revision:1,state:'draft',title:'Existing plan',description:'Draf
 const plan={id:'plan-a',project_id:project,task_id:task.id,version:1,state:'draft',latest_revision:1,published_revision:0,has_draft:true,basis_current:true,eligibility:'none',latest:revision,allowed_actions:['save','publish'],created_at:revision.created_at,updated_at:revision.created_at};
 const execution={plan_id:'plan-a',task_id:'task-a',revision:1,plan_sha256:sha,run_id:'run-a',run_state:'succeeded',created_at:revision.created_at,state:'incomplete',basis_current:true,source_commits:[],total:1,passed:0,failed:0,errors:0,skipped:0,not_run:1,cases:[{case_key:'authorize',title:'Authorization case',status:'not_run',covers:[1],evidence:[],issue_id:''}],reports:[],package_evidence:[]};
 const session:Session={user:{id:'user-a',name:'Owner',email:'owner@example.test',role:'owner'},organization:{id:'org-a',name:'Org'},projects:[{id:project,version:1,title:'Project',role:'admin'}]};
+const selectExecution=vi.fn();
 let root:Root|undefined,host:HTMLDivElement,writes:{path:string;body:Record<string,unknown>}[],reads:string[],reply:(path:string,init?:RequestInit)=>Promise<Response>,changed:ReturnType<typeof vi.fn>,select:ReturnType<typeof vi.fn>,openRun:ReturnType<typeof vi.fn>,openIssue:ReturnType<typeof vi.fn>,filterPlan:ReturnType<typeof vi.fn>;
 function defaults(path:string){if(path.startsWith('/tasks?'))return Response.json({items:[task],total:1,next_cursor:''});if(path.startsWith('/tasks/task-a?'))return Response.json(task);if(path.includes('/executions/run-a?'))return Response.json(execution);if(path.includes('/executions?'))return Response.json({items:[execution],total:1,next_cursor:''});if(path.startsWith('/test-plans?'))return Response.json({items:[plan],total:1,next_cursor:''});return Response.json(plan);}
 beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();writes=[];reads=[];changed=vi.fn();select=vi.fn();openRun=vi.fn();openIssue=vi.fn();filterPlan=vi.fn();host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);reply=async path=>defaults(path);vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(init?.body)writes.push({path,body:JSON.parse(String(init.body))});else reads.push(path);return reply(path,init);}));});
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function settle(){for(let i=0;i<4;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
-async function render(planID='',tab:'cases'|'results'='cases',runID='',actor=session,refresh=0,catalogFilter?:TestPlanCatalogFilter){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={actor}><TestPlansWorkspace session={actor} project={project} refresh={refresh} planID={planID} runID={runID} tab={tab} catalogFilter={catalogFilter} onCatalogFilter={filterPlan} onSelectPlan={select} onSelectExecution={()=>{}} onTab={()=>{}} onOpenTask={()=>{}} onOpenRun={openRun} onOpenIssue={openIssue} onChanged={changed}/></ApiViewProvider>);});await settle();}
+async function render(planID='',tab:'cases'|'results'='cases',runID='',actor=session,refresh=0,catalogFilter?:TestPlanCatalogFilter,caseLocator?:{revision:number;sha256:string;caseKey:string;issueID:string}){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={actor}><TestPlansWorkspace session={actor} project={project} refresh={refresh} planID={planID} runID={runID} tab={tab} caseLocator={caseLocator} catalogFilter={catalogFilter} onCatalogFilter={filterPlan} onSelectPlan={select} onSelectExecution={selectExecution} onTab={()=>{}} onOpenTask={()=>{}} onOpenRun={openRun} onOpenIssue={openIssue} onChanged={changed}/></ApiViewProvider>);});await settle();}
 async function change(selector:string,value:string){const element=(host.querySelector<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>(selector)||document.querySelector<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('[role=dialog] '+selector))!;expect(element,selector).not.toBeNull();const prototype=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(prototype,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});await settle();}
 async function click(selector:string){const element=(host.querySelector<HTMLElement>(selector)||document.querySelector<HTMLElement>('[role=dialog] '+selector))!;expect(element,selector).not.toBeNull();await act(async()=>element.click());await settle();}
 
@@ -262,4 +263,51 @@ it('looks up the exact task plan after a create conflict, bypasses no external g
   expect(host.querySelector<HTMLTextAreaElement>('.tp-form-heading textarea')?.value).toBe('My unsaved description');
   expect(writes).toHaveLength(1);
  }finally{window.removeEventListener('suma:navigate',prevent);}
+});
+
+it('opens the original failure only when its fixed run revision, digest and issue all match',async()=>{
+ const locator={revision:1,sha256:sha,caseKey:'authorize',issueID:'issue-a'};
+ const failure={...execution.cases[0],status:'failed',issue_id:'issue-a',evidence:[{report_id:'report-a',node_id:'test',attempt:1,fence:1,worker_id:'worker-a',source_commit:'f'.repeat(40),status:'failed',message:'Original assertion failed',duration_ms:12}]};
+ const report={id:'report-a',run_id:'run-a',node_id:'test',attempt:1,fence:1,worker_id:'worker-a',source_commit:'f'.repeat(40),sha256:sha,protocol:'suma-junit-report-v1',eligibility:'source_changed',process_exit_code:1,outcome_unknown:false,reported_at:revision.created_at,total:1,passed:0,failed:1,errors:0,skipped:0,unmapped:0};
+ const failed={...execution,state:'source_changed',basis_current:false,total:2,failed:1,cases:[failure,{...execution.cases[0],case_key:'another'}],reports:[report]};
+ let response=failed;
+ reply=async path=>path.includes('/executions/run-a?')?Response.json(response):defaults(path);
+ await render('plan-a','results','run-a',session,0,undefined,locator);
+ const spotlight=host.querySelector('[data-test-case-spotlight]');
+ expect(spotlight?.querySelector('[data-test-case-result=authorize] details')?.hasAttribute('open')).toBe(true);
+ expect(spotlight?.textContent).toContain('Original assertion failed');
+ expect(document.activeElement).toBe(spotlight?.querySelector('h3'));
+ expect(host.querySelector('[data-test-case-result=another]')).toBeNull();
+ selectExecution.mockClear();await click('[data-test-case-all]');
+ expect(selectExecution).toHaveBeenCalledExactlyOnceWith('run-a');
+ expect(document.activeElement).toBe(host.querySelector('[role=tab][aria-selected=true]'));
+
+ let refreshCaseOrigin=0;
+ for(const different of [
+  {...failed,revision:2},
+  {...failed,plan_sha256:'b'.repeat(64)},
+  {...failed,cases:[{...failure,issue_id:'another-issue'},failed.cases[1]]},
+  {...failed,cases:[{...failure,case_key:'other-key'},failed.cases[1]]},
+  {...failed,cases:[{...failure,status:'passed'},failed.cases[1]]},
+  {...failed,cases:[{...failure,evidence:[]},failed.cases[1]]},
+ ]){
+  response=different;await render('plan-a','results','run-a',session,++refreshCaseOrigin,undefined,locator);
+  expect(host.querySelector('[data-test-case-spotlight]')).toBeNull();
+  expect(host.querySelector('[data-test-case-result=authorize]')).toBeNull();
+  expect(host.querySelector('[data-test-case-unavailable]')?.querySelector('[data-test-case-all]')).not.toBeNull();
+ }
+ expect(writes).toHaveLength(0);
+});
+
+it('accepts an original-case locator only with a unique, exact test-results route',()=>{
+ const route=new URLSearchParams({project,view:'quality',sub:'tests',record:'plan-a',run:'run-a',panel:['test-results','1',sha,'authorize','issue-a'].join(':')});
+ expect(parseWorkbenchRoute(route.toString()).panel).toBe(route.get('panel'));
+ for(const [key,value] of [['record','different-plan'],['run','different-run'],['panel','test-results'],['project','other-project'],['view','quality'],['sub','tests'],['node','test'],['attempt','1']]){
+  const ambiguous=new URLSearchParams(route);ambiguous.append(key,value);
+  expect(parseWorkbenchRoute(ambiguous.toString()).panel).toBe('');
+ }
+ route.set('run','run.v1');
+ expect(parseWorkbenchRoute(route.toString()).panel).toBe(route.get('panel'));
+ route.set('panel',['test-results','01',sha,'authorize','issue-a'].join(':'));
+ expect(parseWorkbenchRoute(route.toString()).panel).toBe('');
 });

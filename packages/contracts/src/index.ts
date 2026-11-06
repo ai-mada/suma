@@ -3512,6 +3512,13 @@ export interface IssueRepairBlocker {
   code: string;
   ref_id?: string;
 }
+export interface IssueRepairCaseOrigin {
+  plan_id: string;
+  run_id: string;
+  case_key: string;
+  plan_revision: number;
+  plan_sha256: string;
+}
 export interface IssueRepairCloseRequest {
   project_id: string;
   expected_issue_version: number;
@@ -3605,6 +3612,7 @@ export interface IssueRepairView {
   can_close: boolean;
   can_reopen: boolean;
   blockers: (IssueRepairBlocker)[];
+  original_case?: IssueRepairCaseOrigin | null;
   original_package?: IssueRepairPackageOrigin | null;
   release_handoff?: IssueRepairReleaseHandoff | null;
 }

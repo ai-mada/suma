@@ -81,6 +81,8 @@ var cliMessages = map[string]cliMessage{
 	taskDiscussionsCLIInput:        {"cli.task_discussions.input", "讨论发送须保留与 --project 一致的 project_id、任务ID、正整数任务版本、非空原正文和明确原操作标识；可选唯一人员资源ID或准确知识引用，不能指定作者或角色"},
 	inboxCLIUsage:                  {"cli.notification_inbox.usage", "个人收件箱命令：inbox list 支持 --filter inbox、unread 或 archived、--limit 1–50 与 --cursor；inbox read／unread／archive／restore 需要通知ID、--version 原版本与明确 --operation 原操作标识；均须提供 --project"},
 	taskDeliveryUsage:              {"cli.task_delivery.usage", "task delivery 需要一个准确任务 ID，并在命令前提供 --project"},
+	issueRepairCLIUsage:            {"cli.issue_repair.usage", "issue-repair 需要 show ISSUE，且须在命令前提供 --project。请查看 issue-repair --help"},
+	issueRepairCLIResponse:         {"cli.issue_repair.response", "缺陷修复响应的项目、缺陷或原始用例引用不符合请求"},
 	testPlanCatalogUsage:           {"cli.test_plan.usage", "test-plan 需要 list 或 show PLAN。list 支持 --state draft、published 或 retired、--task TASK、--limit 1–100 和原 --before。请查看 test-plan --help"},
 	taskCollectionCLIUsage:         {"cli.task_collection.usage", "任务集合参数无效：通用参数为 --q、--status 或 --status-unset、--owner 或 --unassigned、--priority 或 --priority-unset、--requirement；tasks list 接受 --sort、--limit 1–100 与 --cursor 原游标；tasks groups 接受 --group-by status、owner 或 priority、--group-limit 1–100 与 --group-cursor 原分组游标"},
 	workspaceWriteUsage:            {"cli.workspace_save.usage", "工作区保存需要：save --file JSON [--wait]、save-status ID [--wait] 或 inspect-save ID --expected-version 版本 [--operation 原操作标识] [--wait]"},
@@ -335,6 +337,7 @@ const helpZH = `suma — 速码控制面客户端
   task-status --help          预览或提交任务计划状态批量变更
   task delivery TASK          读取当前项目的任务交付证据
   test-plan --help            查询测试计划列表和详情
+  issue-repair show ISSUE     读取缺陷修复及原始用例引用
   run show ID
   run events ID [--after SEQUENCE]
   run watch RUN [--after SEQUENCE] [--max-events 1..100000]

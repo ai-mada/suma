@@ -1,4 +1,4 @@
-import type {QualityTestCase,TaskContextRecord,TestPlanView,TestPlanRevision,TestPlanExecution,TestPlanReport,TestPlanReportRef,TestCaseResult} from '../../../packages/contracts/src';
+import type {QualityTestCase,TaskContextRecord,TestPlanView,TestPlanRevision,TestPlanExecution,TestPlanReport,TestPlanReportRef,TestCaseResult,IssueRepairCaseOrigin} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
 
 export const planStates=['draft','published','retired'] as const;
@@ -33,6 +33,35 @@ const bytes=(value:string)=>new TextEncoder().encode(value).length;
 export const planText=(value:unknown,max:number,empty=false):value is string=>text(value)&&(empty||!!value.trim())&&bytes(value)<=max;
 const unique=(values:unknown[])=>new Set(values).size===values.length;
 const knownKeys=(value:Record<string,unknown>,keys:readonly string[])=>Object.keys(value).every(key=>keys.includes(key));
+
+export const originalTestCasePanelPrefix='test-results:';
+export type OriginalTestCaseLocator={revision:number;sha256:string;caseKey:string;issueID:string};
+const testRunID=(value:unknown):value is string=>text(value)&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,100}$/.test(value);
+export function validIssueRepairCaseOrigin(value:unknown):value is IssueRepairCaseOrigin{
+ return object(value)&&knownKeys(value,['plan_id','run_id','case_key','plan_revision','plan_sha256'])&&
+  planID(value.plan_id)&&testRunID(value.run_id)&&planID(value.case_key)&&positive(value.plan_revision)&&planHash(value.plan_sha256);
+}
+export function parseOriginalTestCasePanel(panel:string):OriginalTestCaseLocator|undefined{
+ if(!panel.startsWith(originalTestCasePanelPrefix))return;
+ const parts=panel.slice(originalTestCasePanelPrefix.length).split(':');
+ const [version,sha256,caseKey,issueID]=parts,revision=Number(version);
+ if(parts.length===4&&String(revision)===version&&positive(revision)&&planHash(sha256)&&planID(caseKey)&&planID(issueID))return {revision,sha256,caseKey,issueID};
+}
+export function validOriginalTestCaseRoute(params:URLSearchParams):boolean{
+ return ['project','view','sub','record','run','panel'].every(key=>params.getAll(key).length===1)&&
+  params.get('view')==='quality'&&params.get('sub')==='tests'&&!params.has('node')&&!params.has('attempt')&&
+  planID(params.get('project'))&&planID(params.get('record'))&&testRunID(params.get('run'))&&
+  !!parseOriginalTestCasePanel(params.get('panel')||'');
+}
+export function originalTestCaseHref(project:string,issue:string,origin:IssueRepairCaseOrigin):string{
+ const panel=originalTestCasePanelPrefix+[origin.plan_revision,origin.plan_sha256,origin.case_key,issue].join(':');
+ return '?'+new URLSearchParams({project,view:'quality',sub:'tests',record:origin.plan_id,run:origin.run_id,panel});
+}
+export function originalFailedCase(execution:TestPlanExecution,locator:OriginalTestCaseLocator):TestCaseResult|undefined{
+ if(execution.revision!==locator.revision||execution.plan_sha256!==locator.sha256)return;
+ return execution.cases.find(item=>item.case_key===locator.caseKey&&item.issue_id===locator.issueID&&
+  (item.status==='failed'||item.status==='error')&&item.evidence.length>0);
+}
 
 export function newQualityCase():QualityTestCase{return {key:'case-'+crypto.randomUUID().slice(0,12),title:'',description:'',preconditions:'',steps:[],expected_result:'',priority:'medium',covers:[],selector:{class_name:'',name:''}};}
 export function taskCriteria(value:unknown):string[]{return Array.isArray(value)?value.filter(text):typeof value==='string'?value.split('\n').filter(value=>value.trim()):[];}

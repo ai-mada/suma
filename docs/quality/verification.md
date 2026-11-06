@@ -4,6 +4,8 @@ T-MODEL-DIRECTORY 核验模型目录类型、准确来源及费率、切换和�
 
 T-TOOL-QUICK-RECOVERY-266 核验真实桌面缺失和启动方式异常、明确失败保留草稿、原保存回执恢复与去重。 [阶段验证](tool-quick-recovery-verification.md)
 
+T-QUALITY-CASE-ORIGIN 核验失败用例的受保护来源、发布变更、网页定位和 CLI 读取。 [命令与证据](quality-case-origin-verification.md)
+
 T-QUALITY-CATALOG 核验筛选总数、游标隔离、创建冲突的精确恢复及桌面与窄屏。 [命令与证据](quality-catalog-verification.md)
 
 T-TEAM-DELIVERY 核验团队原运行定位、当前运行关系、键盘与窄屏导航，以及 CLI 精确读取。 [命令与证据](team-delivery-verification.md)

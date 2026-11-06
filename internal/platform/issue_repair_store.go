@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+
+	tr "github.com/ai-mada/suma/internal/testreportcontract"
 )
 
 const (
@@ -84,43 +86,48 @@ func (s *Service) updateIssueRepairStateTx(ctx context.Context, auth *authorized
 	return nil
 }
 
+type issueRepairCaseOrigin struct {
+	IssueRepairCaseOrigin
+	selector tr.TestCaseSelector
+}
+
 // Only the protected plan/run/case relation establishes an originating failed
 // test. Issue metadata is intentionally ignored, including a forged origin tag.
-func (s *Service) issueRepairOriginalCaseTx(ctx context.Context, auth *authorizedCommand, project, issue string) (*QualityTestCase, error) {
-	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT plan_id,run_id,case_key FROM suma_test_plan_defects WHERE tenant_id=? AND project_id=? AND issue_id=?`), auth.target.tenantID, project, issue)
+func (s *Service) issueRepairOriginalCaseTx(ctx context.Context, auth *authorizedCommand, project, issue string) (*issueRepairCaseOrigin, error) {
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT plan_id,run_id,case_key FROM suma_test_plan_defects WHERE tenant_id=? AND project_id=? AND issue_id=? LIMIT 2`), auth.target.tenantID, project, issue)
 	if err != nil {
 		return nil, err
 	}
-	type origin struct{ plan, run, key string }
-	origins := []origin{}
-	for rows.Next() {
-		var item origin
-		if err = rows.Scan(&item.plan, &item.run, &item.key); err != nil {
-			rows.Close()
-			return nil, err
-		}
-		origins = append(origins, item)
-		if len(origins) > 1 {
-			rows.Close()
-			return nil, conflict(issueRepairSource)
-		}
+	if !rows.Next() {
+		err = rows.Err()
+		rows.Close()
+		return nil, err
 	}
-	err = rows.Err()
+	var original issueRepairCaseOrigin
+	err = rows.Scan(&original.PlanID, &original.RunID, &original.CaseKey)
+	duplicate := err == nil && rows.Next()
+	if err == nil {
+		err = rows.Err()
+	}
 	rows.Close()
-	if err != nil || len(origins) == 0 {
-		return nil, err
-	}
-	original := origins[0]
-	fixed, found, err := s.testPlanRunTx(ctx, auth.tx, auth.target.tenantID, project, original.run)
 	if err != nil {
 		return nil, err
 	}
-	if !found || fixed.PlanID != original.plan || fixed.Revision == nil {
+	if duplicate {
+		return nil, conflict(issueRepairSource)
+	}
+	fixed, found, err := s.testPlanRunTx(ctx, auth.tx, auth.target.tenantID, project, original.RunID)
+	if err != nil {
+		return nil, err
+	}
+	if !found || fixed.PlanID != original.PlanID || fixed.Revision == nil {
 		return nil, conflict(issueRepairSource)
 	}
 	for _, item := range fixed.Revision.Cases {
-		if item.Key == original.key {
-			return &item, nil
+		if item.Key == original.CaseKey {
+			original.PlanRevision, original.PlanSHA256 = fixed.Revision.Revision, fixed.Revision.SHA256
+			original.selector = item.Selector
+			return &original, nil
 		}
 	}
 	return nil, conflict(issueRepairSource)

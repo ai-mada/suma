@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useId,useRef,useState,type MouseEvent} from 'react';
-import {ArrowUpRight,ChevronDown,RefreshCw,Wrench} from 'lucide-react';
-import type {IssueRepair,IssueRepairView,TestPlanView} from '../../../packages/contracts/src';
+import {ArrowUpRight,ChevronDown,FlaskConical,RefreshCw,Wrench} from 'lucide-react';
+import type {IssueRepair,IssueRepairCaseOrigin,IssueRepairView,TestPlanView} from '../../../packages/contracts/src';
 import {ApiError,query,stateLabel,type Session} from './api';
 import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
@@ -8,7 +8,7 @@ import {toolError,toolSessionStorage} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useLeaveGuard,useWriteAction,WriteButton,WriteFields,WriteNotice,type WriteRecoveryRequest} from './write-action';
 import {useTestPlanPage,useTestPlanRead} from './test-plans-hooks';
-import {validPlanPage,validTestPlan} from './test-plans-model';
+import {originalTestCaseHref,planID,validIssueRepairCaseOrigin,validPlanPage,validTestPlan} from './test-plans-model';
 import './IssueRepairPanel.css';
 import {issueRepairCycleTarget,repairReleaseHref,repairReleaseReview} from './repair-release-handoff';
 
@@ -54,6 +54,17 @@ function PackageEvidenceCard({project,run,evidence,kind,scope}:{project:string;r
   </dl></details>
  </section>;
 }
+function CaseOriginCard({project,issue,origin}:{project:string;issue:string;origin:IssueRepairCaseOrigin}){
+ const heading=useId();
+ return <section className="ir-case-origin" data-ir-case-origin aria-labelledby={heading}>
+  <FlaskConical size={16} aria-hidden="true"/>
+  <div>
+   <h4 id={heading}>{t('case_origin')}</h4>
+   <p className="ir-muted"><code>{origin.case_key}</code> · {t('case_origin_revision',{revision:formatNumber(origin.plan_revision)})}</p>
+   <a href={originalTestCaseHref(project,issue,origin)} data-ir-case-origin-link onClick={followEvidence}>{t('case_origin_open')}<ArrowUpRight size={13} aria-hidden="true"/></a>
+  </div>
+ </section>;
+}
 function validCycle(value:unknown,project:string,issue:string):value is IssueRepair{
  if(!object(value)||!id(value.id)||value.project_id!==project||value.issue_id!==issue||!positive(value.cycle)||!positive(value.version)||!id(value.requirement_id)||!id(value.task_id)||typeof value.prepared_by!=='string'||typeof value.created_at!=='string'||typeof value.updated_at!=='string')return false;
  if(value.regression!=null){const r=value.regression;if(!object(r)||!id(r.plan_id)||!positive(r.plan_revision)||!hash(r.plan_sha256)||!caseKeys(r.case_keys)||typeof r.bound_by!=='string'||typeof r.bound_at!=='string')return false;}
@@ -71,6 +82,7 @@ export function validIssueRepairView(value:unknown,project:string,issue:string):
  if(!object(value)||!record(value.issue,project,issue)||!['open','in_progress','closed'].includes(value.issue.status)||!integer(value.cycle)||!Array.isArray(value.history)||value.history.length>10||!integer(value.history_total)||value.history_total<value.history.length||typeof value.history_complete!=='boolean'||value.history_complete&&value.history_total!==value.history.length||!['can_prepare','can_bind','can_close','can_reopen'].every(key=>typeof value[key]==='boolean')||!Array.isArray(value.blockers)||value.blockers.length>100||!value.blockers.every(item=>object(item)&&typeof item.code==='string'&&item.code.length>0&&item.code.length<=150&&(item.ref_id===undefined||id(item.ref_id))))return false;
  if(value.current!=null&&(!validCycle(value.current,project,issue)||value.current.cycle!==value.cycle))return false;
  if(value.task!=null&&(!object(value.current)||!record(value.task,project,String(value.current.task_id))))return false;
+ if(value.original_case!=null&&(!planID(project)||!planID(issue)||!validIssueRepairCaseOrigin(value.original_case)))return false;
  const pkg=value.original_package;
  if(pkg!=null&&(!object(pkg)||!validPackageEvidence(pkg)||!id(pkg.run_id)||!['application_id','scope_id','repository_id'].every(key=>pkg[key]===undefined||id(pkg[key]))||pkg.scope_root!==undefined&&!text(pkg.scope_root,1024)))return false;
  return value.history.every(item=>validCycle(item,project,issue))&&new Set(value.history.map(item=>item.id)).size===value.history.length;
@@ -160,6 +172,7 @@ function RepairScope({project,issueId,issueVersion,panel='',refresh,onChanged,on
      <div className="ir-state"><strong>{t('cycle',{cycle:formatNumber(view.cycle)})}</strong><span className={'ir-status state-'+view.issue.status}>{t('state.'+view.issue.status)}</span></div>
      {targetCycle!==undefined&&matchedCycle===undefined&&<p className="ir-muted" role="status">{t('linked_cycle_unavailable',{cycle:formatNumber(targetCycle)})}</p>}
      {view.issue.version!==issueVersion&&<p className="ir-muted">{t('current_version',{version:formatNumber(view.issue.version)})}</p>}
+     {view.original_case&&<CaseOriginCard project={project} issue={issueId} origin={view.original_case}/>}
      {view.original_package&&<PackageEvidenceCard project={project} run={view.original_package.run_id} evidence={view.original_package} kind="origin" scope={view.original_package.scope_root}/>}
      {!!view.blockers.length&&view.issue.status!=='closed'&&<div className="ir-warning" data-ir-blockers><p>{t('blocked')}</p><ul>{view.blockers.map((item,index)=><li key={item.code+':'+index}>{blockerCodes.has(item.code)?t('blocker.'+item.code):<>{t('unknown_blocker')} <code>{item.code}</code></>}{item.ref_id&&<small> · <code>{item.ref_id}</code></small>}</li>)}</ul></div>}
      {current?<section className="ir-cycle" data-ir-cycle={current.cycle}><div className="ir-actions"><a href={link('task',current.task_id)} onClick={event=>follow(event,'task',current.task_id)}>{t('open_task')}<ArrowUpRight size={13}/></a><a href={link('requirement',current.requirement_id)} onClick={event=>follow(event,'requirement',current.requirement_id)}>{t('open_requirement')}<ArrowUpRight size={13}/></a></div>

@@ -5,3 +5,11 @@
 .ir-package-evidence details .ir-facts{padding-top:4px}
 @media(max-width:600px){.ir-package-evidence{padding:10px}.ir-package-evidence .ir-actions>a{min-height:44px}}
 @media(max-width:600px){.ir-actions>[data-ir-release]{min-height:44px}}
+
+.ir-case-origin{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:9px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft)}
+.ir-case-origin>svg{margin-top:2px;color:var(--accent)}
+.ir-case-origin>div{display:grid;min-width:0;gap:3px;justify-items:start}
+.ir-case-origin h4,.ir-case-origin code{font-size:13px}
+.ir-case-origin a{font-size:13px}
+.ir-case-origin a>svg{flex:none}
+@media(max-width:600px){.ir-case-origin a{min-height:44px}}

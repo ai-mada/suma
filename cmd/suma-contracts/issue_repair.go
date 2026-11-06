@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func issueRepairModels() []any {
-	return []any{platform.IssueRepair{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairPackageOrigin{}, platform.IssueRepairPackageProof{}, platform.IssueRepairReleaseHandoff{}, platform.IssueRepairReleaseHandoffInput{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
+	return []any{platform.IssueRepair{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairCaseOrigin{}, platform.IssueRepairPackageOrigin{}, platform.IssueRepairPackageProof{}, platform.IssueRepairReleaseHandoff{}, platform.IssueRepairReleaseHandoffInput{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
 }
 
 func issueRepairContracts(add operationAdder, api map[string]any) {
@@ -31,7 +31,7 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 		}
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"IssueRepair", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairPackageOrigin", "IssueRepairPackageProof", "IssueRepairReleaseHandoff", "IssueRepairReleaseHandoffInput", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
+	for _, name := range []string{"IssueRepair", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairCaseOrigin", "IssueRepairPackageOrigin", "IssueRepairPackageProof", "IssueRepairReleaseHandoff", "IssueRepairReleaseHandoffInput", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
 		toolContractMap(schemas, name)["additionalProperties"] = false
 	}
 	field := func(model, name string, attributes map[string]any) {
@@ -58,6 +58,13 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 	field("IssueRepairBindRequest", "case_keys", map[string]any{"minItems": 1, "maxItems": 100, "uniqueItems": true, "items": map[string]any{"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}})
 	field("IssueRepairCloseRequest", "run_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,100}$"})
 	field("IssueRepairView", "history", map[string]any{"maxItems": 10, "description": "Most recent bounded repair cycles. history_total/history_complete explicitly disclose omitted history; this window never determines closure authority."})
+	field("IssueRepairView", "original_case", map[string]any{"readOnly": true, "description": "Protected original failed case locator from the frozen execution. Independent of editable issue metadata and current plan publication."})
+	for _, name := range []string{"plan_id", "case_key"} {
+		field("IssueRepairCaseOrigin", name, map[string]any{"readOnly": true, "pattern": "^[A-Za-z0-9_-]{1,64}$"})
+	}
+	field("IssueRepairCaseOrigin", "run_id", map[string]any{"readOnly": true, "pattern": "^[A-Za-z0-9_.-]{1,100}$"})
+	field("IssueRepairCaseOrigin", "plan_revision", map[string]any{"readOnly": true, "minimum": 1, "maximum": 2147483646})
+	field("IssueRepairCaseOrigin", "plan_sha256", map[string]any{"readOnly": true, "pattern": "^[a-f0-9]{64}$"})
 	field("IssueRepairView", "original_package", map[string]any{"readOnly": true, "description": "Historical source of an issue from a protected failed package attempt, independent of editable issue metadata."})
 	field("IssueRepairView", "release_handoff", map[string]any{"readOnly": true, "description": "Current closed and releasable package repair. Omitted when the current user or current evidence does not permit this handoff."})
 	for _, property := range toolContractMap(schemas, "IssueRepairReleaseHandoff", "properties") {

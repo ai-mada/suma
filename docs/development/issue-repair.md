@@ -2,6 +2,16 @@
 
 适用：速码 **1.0.0**，**T-QUALITY-119**。负责人：质量领域与工作台。关联：[领域架构](../architecture/issue-repair.md)、[接口合同](../../contracts/issue-repair.md)、[测试计划指南](test-plans.md)、[任务交付链](task-delivery-chain.md)、[English](../en/issue-repair.md)。本文说明当前操作合同，不表示你的项目已通过修复、生产或规模验收。
 
+## 查看原始失败用例
+
+从失败用例创建缺陷后，打开该缺陷的「问题修复」并选择「查看原用例结果」。质量页核对原计划、运行、修订、用例及缺陷关联，打开对应失败结果和当前可核对的证据。「查看全部结果」保留同一次运行。链接过期或重试改变了结果时，可从提示进入该运行的全部结果。
+
+已有当前项目 API 凭证时，也可在终端读取修复状态和原用例定位。
+
+```text
+suma --control URL --project PROJECT issue-repair show ISSUE
+```
+
 ## 一次修复如何完成
 
 在当前项目的问题详情内完成准备、回归绑定及关闭，无需额外问题控制台。开发仍进入原任务工作台，测试仍使用原测试计划和质量页，Review仍由当前有权者完成。界面操作资格来自最新 `IssueRepairView` 的 `can_*` 和 `blockers`。

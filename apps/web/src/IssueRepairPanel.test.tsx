@@ -97,3 +97,19 @@ it('reveals the exact linked historical closure and discloses unavailable cycles
  expect(host.querySelector('[data-ir-cycle="2"]')).toBeNull();
  expect(writes).toHaveLength(0);
 });
+
+it('links the protected original failure to its fixed test run and ignores editable origin fields',async()=>{
+ const original_case={plan_id:'plan-source',run_id:'run-source',case_key:'case-source',plan_revision:2,plan_sha256:digest};
+ const item=view();
+ item.issue.data={origin:'test_plan_case',...original_case,case_key:'forged'};
+ let response:IssueRepairView&{original_case?:typeof original_case}={...item,original_case};
+ transport(async()=>Response.json(response));
+ await render();await click('[data-ir-toggle]');
+ const href=host.querySelector('[data-ir-case-origin-link]')?.getAttribute('href');
+ expect(Object.fromEntries(new URLSearchParams(href??''))).toEqual({project,view:'quality',sub:'tests',record:'plan-source',run:'run-source',panel:['test-results','2',digest,'case-source',issue].join(':')});
+ expect(host.querySelector('[data-ir-case-origin]')?.textContent).not.toContain('forged');
+ response={...item,original_case:undefined};
+ await click('[data-ir-refresh]');
+ expect(host.querySelector('[data-ir-case-origin]')).toBeNull();
+ expect(writes).toHaveLength(0);
+});

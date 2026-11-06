@@ -23,6 +23,8 @@
 
 `IssueRepair` 是领域拥有的修复轮次，不通过可编辑 `Record.Data` 推断。它记录 `issue_id/cycle/version`、唯一需求、该轮新任务、准备人、回归绑定及关闭记录。一个问题可有多个历史轮次；同一轮不会因重放创建第二个任务。
 
+测试计划生成的问题通过 `suma_test_plan_defects` 保留项目、计划、运行、用例和问题的正式关系。修复视图在当前项目授权事务中按问题查索引，再核对该次运行冻结的修订与内容摘要。原用例选择器继续服务于回归绑定检查。用例定位不新增报告副本或批准状态。
+
 `IssueRegressionBinding` 固定 `plan_id/plan_revision/plan_sha256/case_keys` 和绑定人、时间。请求只选择已有计划与用例，服务在事务内固定其当前已发布修订，不接受调用方指定正文、selector 或通过状态。
 
 `IssueRepairClosure` 保存本次关闭实际使用的 `run_id/task_version/review_id`、回归修订与用例、受测 `source_commits`、关闭人、时间和原因。重新打开保留这份关闭快照；不把新任务或新测试覆盖到旧轮次中。
