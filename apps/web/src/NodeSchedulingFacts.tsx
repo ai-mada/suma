@@ -46,34 +46,35 @@ export function NodeSchedulingFacts({
   const base =
       "/runs/" + encodeURIComponent(run) + "/nodes/" + encodeURIComponent(node),
     snapshotKey = [runVersion, currentAttempt, nodeFence, nodeState].join(":"),
-    diagnostic = useToolRead<NodeAdmission>(
-      base + "/scheduling" + query(project),
-      runVersion,
-    ),
     page = useSchedulingPage<ExecutionAttempt>(
       base + "/attempts" + query(project),
       (item) => String(item.attempt),
       snapshotKey,
       true,
     ),
+    diagnostic = useToolRead<NodeAdmission>(
+      page.accessLost ? "" : base + "/scheduling" + query(project),
+      runVersion,
+    ),
     attempt = parseAttempt(selectedAttempt || ""),
     exact = useToolRead<ExecutionAttempt>(
-      attempt ? base + "/attempts/" + attempt + query(project) : "",
+      attempt && !page.accessLost ? base + "/attempts/" + attempt + query(project) : "",
       snapshotKey,
     );
   useEffect(() => {
+    if (page.accessLost) return;
     const timer = setInterval(() => void diagnostic.read(), 10000);
     return () => clearInterval(timer);
-  }, [diagnostic.read]);
+  }, [diagnostic.read, page.accessLost]);
   useEffect(() => {
-    if (attempt && exact.data?.attempt === attempt) {
+    if (!page.accessLost && attempt && exact.data?.attempt === attempt) {
       detailRoot.current?.scrollIntoView?.({
         block: "start",
         behavior: "auto",
       });
       detailRoot.current?.focus({ preventScroll: true });
     }
-  }, [attempt, exact.data?.attempt]);
+  }, [attempt, exact.data?.attempt, page.accessLost]);
   // A retry cannot revive a denied cached record before authorization succeeds.
   if (exact.failure instanceof ApiError && [401,403,404].includes(exact.failure.status)) detailAccessLost.current = true;
   else if (!exact.loading && !exact.error) detailAccessLost.current = false;
@@ -83,6 +84,7 @@ export function NodeSchedulingFacts({
     record = detailAccessLost.current ? undefined : exact.data;
   return (
     <div className="node-scheduling-facts">
+      {!page.accessLost && <>
       {diagnostic.error && (
         <>
           <ErrorNotice
@@ -107,6 +109,7 @@ export function NodeSchedulingFacts({
         onClick={() => void diagnostic.read()}
       >
         {t("development.attempts.recheck_current_conditions")}</button>
+      </>}
       <section
         ref={listRoot}
         tabIndex={-1}
@@ -116,19 +119,22 @@ export function NodeSchedulingFacts({
         <h4>{t("development.attempts.recorded_executions")}</h4>
         <p className="muted">{t("development.attempts.attempts_come_from_a_persistent_table_independent")}</p>
         <button
-          disabled={page.loading}
-          onClick={() => void page.read("", true)}
+          type="button"
+          aria-disabled={page.loading}
+          onClick={() => {
+            if (!page.loading) void (page.error ? page.retry() : page.read("", true));
+          }}
         >
-          {t("development.attempts.reload_attempt_history")}</button>
+          {t(page.error ? "common.retry" : "development.attempts.reload_attempt_history")}</button>
         {page.loading && page.items.length > 0 && (
           <p role="status">{t("development.attempts.updating_attempt_history_the_previous_read_is")}</p>
         )}
-        {page.error && (
+        {page.error && page.hasSnapshot && (
           <p className="warning">
             {t("development.attempts.history_could_not_be_refreshed_any_records")}</p>
         )}
         {page.error && (
-          <ErrorNotice error={page.error} onRetry={() => void page.read()} />
+          <ErrorNotice error={page.failure||page.error} />
         )}
         <ul>
           {page.items.map((item) => (
@@ -157,19 +163,19 @@ export function NodeSchedulingFacts({
           ))}
         </ul>
         {page.loading && !page.items.length && <Loading />}
-        {!page.loading && !page.error && !page.items.length && (
+        {page.hasSnapshot && !page.loading && !page.error && !page.items.length && (
           <p>{t("development.attempts.no_claimed_attempts_yet_waiting_does_not")}</p>
         )}
-        <small>
-          {t("development.attempts.loaded_count",{count:formatNumber(page.items.length),total:formatNumber(page.total)})}</small>
-        {page.next && (
+        {page.hasSnapshot && <small>
+          {t("development.attempts.loaded_count",{count:formatNumber(page.items.length),total:formatNumber(page.total)})}</small>}
+        {page.next && !page.error && (
           <button
             disabled={page.loading}
             onClick={() => void page.read(page.next)}
           >
             {t("development.attempts.load_earlier_attempts")}</button>
         )}
-        {attempt && (
+        {attempt && !page.accessLost && (
           <>
             <button disabled={exact.loading} onClick={() => void exact.read()}>
               {t("development.attempts.reload_selected_attempt")}</button>

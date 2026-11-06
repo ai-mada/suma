@@ -30,19 +30,20 @@ export function SchedulingQueue({
           <h2>{t('workspace.queue.title')}</h2>
           <p>{t('workspace.queue.description')}</p>
         </div>
-        <button disabled={page.loading} onClick={() => void page.read()}>
-          <RefreshCw size={15} />
-          {t('workspace.queue.reload')}
+        <button type="button" aria-disabled={page.loading} onClick={() => {
+          if (!page.loading) void (page.error ? page.retry() : page.read());
+        }}>
+          <RefreshCw size={15} aria-hidden="true" />
+          {t(page.error ? 'workspace.queue.retry' : 'workspace.queue.reload')}
         </button>
       </div>
       {page.error && (
         <>
-          <ErrorNotice error={page.failure||page.error} onRetry={() => void page.read()} />
-          <p className="warning">
-            {t('workspace.queue.unconfirmed')}
-          </p>
+          <ErrorNotice error={page.failure||page.error} />
+          {page.hasSnapshot && <p className="warning">{t('workspace.queue.unconfirmed')}</p>}
         </>
       )}
+      {page.loading && page.hasSnapshot && <p role="status">{t('workspace.queue.refreshing')}</p>}
       {page.loading && !page.items.length ? (
         <Loading />
       ) : page.items.length ? (
@@ -95,13 +96,13 @@ export function SchedulingQueue({
             </li>
           ))}
         </ul>
-      ) : !page.error && !page.loading ? (
+      ) : page.hasSnapshot && !page.error && !page.loading ? (
         <p>{t('workspace.queue.empty')}</p>
       ) : null}
-      <p className="loaded-scope">
+      {page.hasSnapshot && <p className="loaded-scope">
         {t('workspace.queue.loaded',{loaded:formatNumber(page.items.length),total:formatNumber(page.total)})}
-      </p>
-      {page.next && (
+      </p>}
+      {page.next && !page.error && (
         <button
           disabled={page.loading}
           onClick={() => void page.read(page.next)}

@@ -381,6 +381,122 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     expect(container.textContent).toContain("已加载 2 / 2");
     expect(document.activeElement).toBe(older);
   });
+  it("removes protected attempt evidence on list access denial and reloads the same selection after recovery", async () => {
+    let denied = false;
+    let exactReads = 0;
+    const selected = vi.fn();
+    const identity = {
+      run_id: "run-exact",
+      node_id: "map[2]",
+      attempt: 1,
+      fence: 2,
+      worker_id: "worker",
+    };
+    const attempt: ExecutionAttempt = {
+      ...identity,
+      state: "failed",
+      result_source: "runner_result",
+      started_at: "",
+      completed_at: "2026-10-24T06:01:00Z",
+      result: {
+        ...identity,
+        exit_code: 2,
+        output: "已选尝试受保护输出",
+        error: "",
+        operation_id: "original-attempt",
+        stopped: false,
+        outcome_unknown: false,
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: unknown) => {
+        const route = path(input);
+        if (route.endsWith("/scheduling"))
+          return response({
+            ...identity,
+            run_version: 7,
+            node_state: "failed",
+            policy_version: 1,
+            evaluated_at: "",
+            status: "not_pending",
+            blockers: [],
+            requests: [],
+            reservations: [],
+          });
+        if (route.endsWith("/attempts/1")) {
+          exactReads++;
+          return response(attempt);
+        }
+        if (route.endsWith("/attempts/1/tool-events")) {
+          const data = { ...identity, tool_event: { legacy: "受保护的工具历史" } };
+          return response({
+            ...identity,
+            schema_version: 1,
+            project_id: "p",
+            page_cursor: "saved-attempt",
+            watermark: 1,
+            scanned_through: 1,
+            has_more: false,
+            items: [{
+              sequence: 1,
+              run_id: identity.run_id,
+              node_id: identity.node_id,
+              type: "tool_progress",
+              at: "2026-10-24T06:01:00Z",
+              data,
+              raw_data: JSON.stringify(data),
+            }],
+          });
+        }
+        expect(route).toMatch(/\/attempts$/);
+        if (denied) return response({ error: { code: "forbidden" } }, 403);
+        return response({
+          items: [{ ...attempt, result_source: "not_loaded", result: undefined }],
+          total: 2,
+          next_cursor: "earlier-attempts",
+        });
+      }),
+    );
+    await render(
+      <NodeSchedulingFacts
+        project="p"
+        run={identity.run_id}
+        node={identity.node_id}
+        runVersion={7}
+        currentAttempt={1}
+        selectedAttempt="1"
+        onAttempt={selected}
+      />,
+    );
+    await flush(() => container.textContent!.includes("受保护的工具历史"));
+    expect(container.textContent).toContain("已选尝试受保护输出");
+    expect(container.textContent).toContain("已加载 1 / 2 次正式尝试");
+    const reloadButton = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent?.trim() === "重新读取尝试历史",
+    );
+
+    denied = true;
+    await click("重新读取尝试历史");
+    await flush(() => !!container.querySelector('[role="alert"]'));
+    expect([...container.querySelectorAll("button")].filter(
+      (button) => button.textContent?.trim() === "重新读取",
+    )).toEqual([reloadButton]);
+    expect(container.querySelector('a[aria-current="page"]')).toBeNull();
+    expect(container.querySelector(".attempt-tool-history")).toBeNull();
+    expect(container.textContent).not.toContain("已选尝试受保护输出");
+    expect(container.textContent).not.toContain("次正式尝试");
+    expect(container.textContent).not.toContain("加载更早尝试");
+    expect(exactReads).toBe(1);
+    expect(selected).not.toHaveBeenCalled();
+
+    denied = false;
+    await click("重新读取");
+    await flush(() => container.textContent!.includes("受保护的工具历史"));
+    expect(exactReads).toBe(2);
+    expect(container.querySelector('a[aria-current="page"]')).not.toBeNull();
+    expect(selected).not.toHaveBeenCalled();
+  });
   it("focuses only the newly created ready preview once, and announces commit without stealing focus", async () => {
     let committed = false;
     const selected = vi.fn();

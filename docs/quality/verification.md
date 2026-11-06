@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-SCHEDULING-READ-RECOVERY 核验同项目身份切换、暂时失败续读、权限失效后的清理和原尝试恢复。 [命令与证据](scheduling-read-recovery-verification.md)
+
 T-WORKBUDDY-CLI-PROGRESS 核验闭合输出、项目授权与撤权，并通过实际终端和 SQLite 的四次只读查询。 [命令与证据](workbuddy-cli-progress-verification.md)
 
 T-WORKBUDDY-TEAM-READS 核验团队读取、本人账号延迟与拒绝后的内容清理。37 项定向检查和 4 项隔离 Chrome 交互通过。 [命令与证据](workbuddy-cloud-status-verification.md#团队进度读取补充验证)

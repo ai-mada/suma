@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-SCHEDULING-READ-RECOVERY 调度队列可重试原续页，撤权后清理旧记录与计数。尝试详情在恢复访问后沿原深链重新读取。 [交互](../design/scheduling-workspace.md#队列与尝试读取恢复) · [验证](../quality/scheduling-read-recovery-verification.md)
+
 T-WORKBUDDY-CLI-PROGRESS 可用项目凭证在终端查询准确 WorkBuddy 节点的已保存进度。真实终端联调验证跨项目拒绝、撤权和零供应方调用。 [操作](../operations/task-dispatch-options.md#终端运行跟踪) · [验证](../quality/workbuddy-cli-progress-verification.md)
 
 T-WORKBUDDY-TEAM-READS 团队成员可直接查看原云任务共享进度。原授权人核对私人账号时可先看进度，确认权限后再操作。 [交互](../design/workbuddy-cloud-task.md#更新记录与查询供应方) · [验证](../quality/workbuddy-cloud-status-verification.md#团队进度读取补充验证)

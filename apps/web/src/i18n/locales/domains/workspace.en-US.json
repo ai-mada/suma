@@ -107,6 +107,8 @@
   "workspace.queue.description": "Inspect nodes awaiting dispatch, their blockers and run details.",
   "workspace.queue.reload": "Reload queue",
   "workspace.queue.unconfirmed": "The current queue is unconfirmed. Any records below are from the last successful read.",
+  "workspace.queue.refreshing": "Reading the queue. Previously loaded records remain visible.",
+  "workspace.queue.retry": "Retry queue read",
   "workspace.queue.waiting": "Awaiting dispatch",
   "workspace.queue.ready_at": "Ready {{at}} · Attempts so far {{attempts}}",
   "workspace.queue.open_run": "View actual run and node <code>{{node}}</code>",

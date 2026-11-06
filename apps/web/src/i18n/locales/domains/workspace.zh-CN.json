@@ -107,6 +107,8 @@
   "workspace.queue.description": "查看等待派发的节点、阻塞原因和运行详情。",
   "workspace.queue.reload": "重新读取队列",
   "workspace.queue.unconfirmed": "当前队列未确认；以下如有记录，仅为上次成功读取。",
+  "workspace.queue.refreshing": "正在读取队列，已加载的记录仍可查看。",
+  "workspace.queue.retry": "重试读取队列",
   "workspace.queue.waiting": "等待派发",
   "workspace.queue.ready_at": "就绪于 {{at}} · 已发生尝试 {{attempts}}",
   "workspace.queue.open_run": "查看真实运行与节点 <code>{{node}}</code>",
