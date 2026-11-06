@@ -1,4 +1,4 @@
-import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
+import {useEffect,useId,useRef,useState} from 'react';
 import {ArrowUpRight,ChevronDown,CircleAlert,Cloud,GitPullRequest,Link2,RefreshCw} from 'lucide-react';
 import {type Session} from './api';
 import {tr,useLocale,formatNumber} from './i18n';
@@ -8,6 +8,8 @@ import {FailureDiagnosisLauncher} from './FailureDiagnosisLauncher';
 import {TaskDeliveryRepositorySource} from './TaskDeliveryRepositorySource';
 import type {TaskDeliveryRunTarget} from './TaskDependenciesWorkspace';
 import {followTaskDeliveryHref,taskDeliveryHref,workBuddyProgressTaskHref} from './task-delivery-navigation-model';
+import {TaskRepairContext} from './TaskRepairContext';
+import {canLeave,DeliveryReference} from './TaskDeliveryReference';
 import {executionHref} from './scheduling-model';
 import './TaskDeliveryPanel.css';
 export type TaskDeliveryPanelProps={session:Session;project:string;taskId:string;taskVersion:number;refresh:number;openOnEntry?:boolean;originRunID?:string;navigationDisabled?:boolean;onOpenCurrentDelivery?:()=>void;onOpenRun?:(target:TaskDeliveryRunTarget)=>void;onOpenReview?:()=>void;onOpenRepository?:()=>void;onOpenIssue?:(id:string)=>void;onOpenRequirement?:(id:string)=>void;onTeamPlan?:(id:string)=>void;onExtractAcceptedDelivery?:(taskID:string)=>void;onVersionMismatch?:()=>void;onForbidden?:()=>void};
@@ -39,7 +41,7 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
  const repositoryHref=value?.formal_acceptance&&value.task_version===taskVersion&&value.run_basis_state==='current'
   ?taskDeliveryHref(project,{kind:'repository',id:taskId}):undefined;
  const workbuddyHistoryHref=(workbuddyOrigin||workbuddy)&&snapshot?.task_version===taskVersion?workBuddyProgressTaskHref(project,taskId):undefined;
- const canLeave=()=>window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));
+ const repair=!read.loading&&!read.error&&!read.forbidden&&value?.task_version===taskVersion?value.repair:undefined;
  const scope=(total:number,loaded:number)=>t('scope',{loaded:formatNumber(loaded),total:formatNumber(total)});
  return <section className="task-delivery" aria-label={t('title')}><button type="button" className="task-delivery-toggle" ref={toggle} data-task-delivery-toggle aria-expanded={open} aria-controls={body} onClick={()=>{if(!open||canLeave())setOpen(current=>!current);}}><span>{t('title')}</span><ChevronDown size={15}/></button>
   {open&&<div id={body} className="task-delivery-body"><p className="task-delivery-muted">{t('intro')}</p><div className="task-delivery-actions"><button type="button" data-task-delivery-refresh disabled={repositoryLocked||read.loading||read.forbidden} onClick={()=>void read.read()}><RefreshCw size={13}/>{t('refresh')}</button></div>{read.loading&&<Loading/>}{Boolean(read.error)&&<ErrorNotice error={read.error}/>}
@@ -53,6 +55,7 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
     </div>
    </div>}
    {value&&<><section className="task-delivery-section"><h4>{t('business')}</h4><div className="inline wrap"><Badge state={value.task_status}/><span className="task-delivery-muted">{t('version',{version:formatNumber(value.task_version)})}</span></div>{value.task_version!==taskVersion&&<p className="task-delivery-warning">{t('graph_changed')}</p>}</section>
+    {repair&&<TaskRepairContext project={project} repair={repair} locked={locked||repositoryLocked} onOpenIssue={onOpenIssue} onOpenRun={onOpenRun}/>}
     <section className="task-delivery-section"><h4>{t('execution')}</h4><p className={value.run_basis_state==='changed'||value.run_basis_state==='unknown'?'task-delivery-warning':'task-delivery-muted'}>{t('basis.'+value.run_basis_state)}</p>{run&&<><div className="inline wrap"><Badge state={run.state}/><code>{run.run_id.slice(0,8)}</code></div><p className="task-delivery-muted">{t('node_counts',{total:formatNumber(run.nodes.total),running:formatNumber(run.nodes.running),failed:formatNumber(run.nodes.failed),unknown:formatNumber(run.nodes.reconciling)})}</p><button type="button" data-task-delivery-run disabled={locked||!onOpenRun} onClick={()=>onOpenRun?.({run:run.run_id})}>{t('open_run')}</button></>}
      {workbuddyOrigin&&<div className="task-delivery-workbuddy-origin" data-task-delivery-workbuddy-origin={workbuddyOrigin.kind}>
       <Cloud size={16} aria-hidden="true"/>
@@ -90,21 +93,4 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
    </>}
   </div>}
  </section>;
-}
-
-/** Keep a real URL for copy/new-tab and keyboard use. Only an ordinary current
- * page activation uses the optional SPA callback; locked references have no URL. */
-function DeliveryReference({kind,id,href,locked,canLeave,onNavigate,children}:{
- kind:'plan'|'issue'|'requirement'|'review'|'workbuddy'|'workbuddy-origin-link'|'repository'|'current-link';id:string;href?:string;locked:boolean;
- canLeave:()=>boolean;onNavigate?:()=>void;children:ReactNode;
-}){
- const disabled=locked||!href;
- return <a className="task-delivery-reference" {...{['data-task-delivery-'+kind]:id}}
-  href={disabled?undefined:href} aria-disabled={disabled||undefined} tabIndex={disabled?-1:undefined}
-  onClick={event=>{
-   if(disabled){event.preventDefault();return;}
-   if(event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
-   if(!canLeave()){event.preventDefault();return;}
-   if(onNavigate){event.preventDefault();onNavigate();}
-  }}>{children}</a>;
 }

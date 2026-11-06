@@ -14,6 +14,10 @@ func TestTaskDeliveryBoundedReadContract(t *testing.T) {
 	if mapAt(op, "responses", "200", "content", "application/json", "schema")["$ref"] != "#/components/schemas/TaskDelivery" || op["requestBody"] != nil {
 		t.Fatal("delivery must remain a typed read-only endpoint")
 	}
+	repair := mapAt(api, "components", "schemas", "TaskDelivery", "properties", "repair")
+	if repair["$ref"] != "#/components/schemas/TaskDeliveryRepair" || repair["readOnly"] != true {
+		t.Fatal("task repair handoff lost its read-only scope")
+	}
 	for _, name := range []string{"TaskDeliveryNodeSummary", "TaskDeliveryExpertPlans", "TaskDeliveryIssues"} {
 		model := mapAt(api, "components", "schemas", name)
 		if model["additionalProperties"] != false || mapAt(model, "properties", "items")["maxItems"] != 20 || mapAt(model, "properties", "limit")["const"] != 20 {

@@ -38638,6 +38638,11 @@
             "readOnly": true,
             "type": "string"
           },
+          "repair": {
+            "$ref": "#/components/schemas/TaskDeliveryRepair",
+            "description": "Protected repair context for this exact task, independently of its bound run. Omitted when no current project repair relation is verified.",
+            "readOnly": true
+          },
           "run": {
             "anyOf": [
               {
@@ -38975,6 +38980,45 @@
           "limit",
           "complete",
           "items"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryRepair": {
+        "additionalProperties": false,
+        "properties": {
+          "automation_source": {
+            "$ref": "#/components/schemas/IssueRepairAutomationSource",
+            "description": "Frozen automation source, included only for an authorized browser.",
+            "readOnly": true
+          },
+          "cycle": {
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "issue_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "regression": {
+            "$ref": "#/components/schemas/IssueRegressionBinding",
+            "description": "Bound plan revision and selected cases. It does not report a test result.",
+            "readOnly": true
+          },
+          "state": {
+            "enum": [
+              "active",
+              "closed",
+              "reopened"
+            ],
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "issue_id",
+          "cycle",
+          "state"
         ],
         "type": "object"
       },
@@ -145223,7 +145267,7 @@
     },
     "/tasks/{id}/delivery": {
       "get": {
-        "description": "Read one currently authorized task and its exact bound run in one snapshot. Counts are execution facts, not independent test or human acceptance eligibility. Team plans and trusted issues cover only current_run, with at most 20 references per collection. No logs, output, commands, credentials, implicit dispatch, review or issue creation.",
+        "description": "Read one currently authorized task and its exact bound run in one snapshot. A protected repair task also returns its original issue and bound regression even before dispatch. Counts are execution facts, not independent test or human acceptance eligibility. Team plans and trusted issues cover only current_run, with at most 20 references per collection. No logs, output, commands, credentials, implicit dispatch, review or issue creation.",
         "operationId": "get_tasks_id_delivery",
         "parameters": [
           {

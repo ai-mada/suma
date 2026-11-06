@@ -7396,6 +7396,7 @@ export interface TaskDelivery {
   run: TaskDeliveryRun | null;
   expert_plans: TaskDeliveryExpertPlans;
   issues: TaskDeliveryIssues;
+  repair?: TaskDeliveryRepair;
 }
 export interface TaskDeliveryExpertPlan {
   plan_id: string;
@@ -7449,6 +7450,13 @@ export interface TaskDeliveryNodeSummary {
   limit: number;
   complete: boolean;
   items: (TaskDeliveryNode)[];
+}
+export interface TaskDeliveryRepair {
+  issue_id: string;
+  cycle: number;
+  state: string;
+  automation_source?: IssueRepairAutomationSource;
+  regression?: IssueRegressionBinding;
 }
 export interface TaskDeliveryRepositoryDispatchPreviewRequest {
   project_id: string;

@@ -207,8 +207,14 @@ func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, p
 	if err != nil {
 		return out, err
 	}
+	if task.ID != taskID || task.TenantID != auth.target.tenantID || task.ProjectID != project {
+		return out, missing()
+	}
 	out = TaskDelivery{ProjectID: project, TaskID: task.ID, TaskVersion: task.Version, TaskStatus: task.Status, RunBasisState: "not_dispatched", ExpertPlans: TaskDeliveryExpertPlans{Scope: "current_run", Limit: taskDeliveryReferenceLimit, Complete: true, Items: []TaskDeliveryExpertPlan{}}, Issues: TaskDeliveryIssues{Scope: "current_run", Limit: taskDeliveryReferenceLimit, Complete: true, Items: []TaskDeliveryIssue{}}}
 	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_test_plans WHERE tenant_id=? AND project_id=? AND task_id=?`), auth.target.tenantID, project, taskID).Scan(&out.TestPlanID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return out, err
+	}
+	if out.Repair, err = s.taskDeliveryRepairTx(ctx, auth, taskID, out.TestPlanID); err != nil {
 		return out, err
 	}
 	if task.RunID == "" {

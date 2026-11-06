@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "task_repair_handoff": {
+    "stage": "T-TASK-REPAIR-HANDOFF-294",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "99bb40a9dd5487ae5f323d939c60c88984ba8e9d",
+    "report": "docs/quality/task-repair-handoff-verification.md",
+    "actual": "Task delivery and IDE context show the protected repair cycle, original issue, authorized automation evidence and bound regression, including before dispatch.",
+    "verification": "SQLite HTTP checks exact lineage, bound scope, reopening and API redaction. Real Chrome verifies desktop issue navigation and Chinese 390px IDE origin navigation with one task context read.",
+    "known_limitations": "Read-only handoff. Distributed load, external notifications and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "issue_repair_automation_basis": {
     "stage": "T-REPAIR-AUTOMATION-BASIS-293",
     "version": "1.0.0",

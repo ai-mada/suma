@@ -25,6 +25,48 @@ it('reads one task only when opened, separates execution/tests/acceptance and dr
  await render('task-a',{navigationDisabled:true});const locked=host.querySelector<HTMLAnchorElement>('[data-task-delivery-test-plan]')!;expect(locked.getAttribute('aria-disabled')).toBe('true');expect(locked.tabIndex).toBe(-1);const lockedClick=new MouseEvent('click',{bubbles:true,cancelable:true});await act(async()=>{locked.dispatchEvent(lockedClick);});expect(lockedClick.defaultPrevented).toBe(true);
 });
 
+it('shows protected repair handoff before dispatch and keeps optional evidence separate from delivery gates',async()=>{
+ const basis={...delivery(),task_status:'todo',run:null,run_basis_state:'not_dispatched'};
+ const stamp='2026-11-01T00:00:00Z';
+ const automation={run_id:'original-run',origin:{rule_id:'rule-a',rule_name:'Nightly checks',revision:3,source:'manual',occurrence_id:'original-trigger',scheduled_at:stamp,
+  failure_pause:{occurrence_id:'pause-trigger',observed_at:stamp,threshold:2}}};
+ const regression={plan_id:'repair-plan',plan_revision:4,plan_sha256:'a'.repeat(64),case_keys:['smoke','reproduce'],bound_at:stamp,bound_by:'user-a'};
+ let repair:unknown={issue_id:'original-issue',cycle:2,state:'active',automation_source:automation,regression};
+ transport(async()=>Response.json({...basis,repair}));
+ const onOpenIssue=vi.fn(),onOpenRun=vi.fn();
+ await render('task-a',{onOpenIssue,onOpenRun});await click('[data-task-delivery-toggle]');
+ const card=()=>host.querySelector<HTMLElement>('[data-task-delivery-repair]')!;
+ const ref=(kind:string)=>host.querySelector<HTMLAnchorElement>('[data-task-delivery-repair-'+kind+']')!;
+ const search=(kind:string)=>Object.fromEntries(new URL(ref(kind).href).searchParams);
+ expect(card().textContent).toContain('Repair cycle 2');
+ expect(card().textContent).toContain('Published revision 4 · 2 selected cases');
+ expect(card().textContent).toContain('Check test results separately');
+ expect(host.textContent).toContain('Not accepted');
+ expect(host.querySelector('[data-task-delivery-run]')).toBeNull();
+ expect(search('issue')).toMatchObject({project:'project-a',view:'quality',sub:'issues',record:'original-issue'});
+ expect(search('run')).toEqual({project:'project-a',view:'development',sub:'runs',run:'original-run'});
+ expect(search('trigger')).toMatchObject({project:'project-a',record:'rule-a',panel:'automation-trigger:original-trigger'});
+ expect(search('pause')).toMatchObject({project:'project-a',record:'rule-a',panel:'automation-trigger:pause-trigger'});
+ expect(search('plan')).toEqual({project:'project-a',view:'quality',sub:'tests',record:'repair-plan'});
+ await click('[data-task-delivery-repair-issue]');expect(onOpenIssue).toHaveBeenCalledWith('original-issue');
+ await click('[data-task-delivery-repair-run]');expect(onOpenRun).toHaveBeenCalledWith({run:'original-run'});
+ const deny=(event:Event)=>event.preventDefault();window.addEventListener('suma:navigate',deny);
+ try{
+  const event=new MouseEvent('click',{bubbles:true,cancelable:true});
+  await act(async()=>{ref('pause').dispatchEvent(event);});
+  expect(event.defaultPrevented).toBe(true);
+ }finally{window.removeEventListener('suma:navigate',deny);}
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(card().textContent).toContain('修复上下文');
+ repair={issue_id:'original-issue',cycle:2,state:'reopened',automation_source:{...automation,origin:{...automation.origin,failure_pause:{...automation.origin.failure_pause,occurrence_id:'../pause'}}},
+  regression:{...regression,case_keys:['smoke','smoke']}};
+ await click('[data-task-delivery-refresh]');
+ expect(ref('issue')).not.toBeNull();expect(ref('trigger')).not.toBeNull();expect(ref('pause')).toBeNull();expect(ref('plan')).toBeNull();
+ repair={issue_id:'../original-issue',cycle:2,state:'active'};
+ await click('[data-task-delivery-refresh]');
+ expect(card()).toBeNull();expect(host.querySelector('[data-task-delivery-review]')).not.toBeNull();
+ expect(reads.every(read=>read.path==='/tasks/task-a/delivery?project_id=project-a')).toBe(true);expect(writes).toBe(0);
+});
+
 it('keeps delivery actions tied to the verified original run until explicitly switching to current delivery',async()=>{
  const original=delivery(),openCurrent=vi.fn(),runID='run-a';
  let reply:()=>Promise<Response>=async()=>Response.json(original);

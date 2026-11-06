@@ -528,6 +528,40 @@ func verifyAutomationRepairPreparation(t *testing.T, f *fixture, issue, manual, 
 	original := assertBasis(f.call(http.MethodPost, preparePath, request, http.StatusCreated), expected)
 	f.call(http.MethodGet, repairPath+"?project_id="+otherProject, nil, http.StatusNotFound)
 	repairs := autoCount(t, f, "suma_issue_repairs")
+	deliveryPath := func(taskID, projectID string) string {
+		return "/tasks/" + taskID + "/delivery?project_id=" + projectID
+	}
+	taskID := original["task_id"].(string)
+	assertDelivery := func(result, basis map[string]any) {
+		t.Helper()
+		if result["project_id"] != f.project || result["task_id"] != taskID ||
+			result["run_basis_state"] != "not_dispatched" || result["run"] != nil || result["formal_acceptance"] != false {
+			t.Fatalf("repair context changed the task's execution or acceptance state: %+v", result)
+		}
+		repair, ok := result["repair"].(map[string]any)
+		if !ok || repair["issue_id"] != issue["id"] || repair["cycle"] != original["cycle"] || repair["state"] != "active" || repair["regression"] != nil {
+			t.Fatalf("wrong repair cycle for undispatched task: %+v", result)
+		}
+		observed, present := repair["automation_source"]
+		if basis == nil && present || basis != nil && (!present || stringify(observed) != stringify(basis)) {
+			t.Fatalf("wrong automation source in repair task handoff: got %+v want %+v", observed, basis)
+		}
+	}
+	readDelivery := func() {
+		t.Helper()
+		delivery := deliveryPath(taskID, f.project)
+		assertDelivery(f.call(http.MethodGet, delivery, nil, http.StatusOK), expected)
+		assertDelivery(f.bearer(http.MethodGet, delivery, api, nil, http.StatusOK), nil)
+	}
+	readDelivery()
+	f.call(http.MethodGet, deliveryPath(taskID, otherProject), nil, http.StatusNotFound)
+	forged := f.call(http.MethodPost, "/tasks", f.body(map[string]any{
+		"title": "Ordinary task with editable repair metadata", "requirement_id": original["requirement_id"],
+		"data": map[string]any{"repair": map[string]any{"issue_id": issue["id"], "cycle": 1, "state": "active", "automation_source": expected}},
+	}), http.StatusCreated)
+	if result := f.call(http.MethodGet, deliveryPath(forged["id"].(string), f.project), nil, http.StatusOK); result["repair"] != nil {
+		t.Fatalf("editable task metadata produced a protected repair association: %+v", result)
+	}
 
 	// These reads and replays run after the live automation source is damaged.
 	// The browser gets the original frozen basis, and a token for the same
@@ -547,6 +581,7 @@ func verifyAutomationRepairPreparation(t *testing.T, f *fixture, issue, manual, 
 				t.Fatalf("the existing repair was replaced on read or replay: %+v", current)
 			}
 		}
+		readDelivery()
 		if autoCount(t, f, "dag_runs") != runs || autoCount(t, f, "suma_issue_repairs") != repairs {
 			t.Fatal("repair preparation or replay started a run or duplicated a repair")
 		}

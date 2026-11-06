@@ -9,7 +9,7 @@ const taskDeliveryRepositoryIntakePath = "/tasks/{id}/delivery/repository-source
 const taskDeliveryRepositoryDispatchPath = taskDeliveryRepositoryIntakePath + "/{intake}/dispatch-plans"
 
 func taskDeliveryModels() []any {
-	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryWorkBuddyOrigin{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}, platform.TaskDeliveryRepositoryDispatchPreviewRequest{}, platform.TaskDeliveryRepositorySourceOptions{}, platform.TaskDeliveryRepositorySourceProfile{}}
+	return []any{platform.TaskDelivery{}, platform.TaskDeliveryRepair{}, platform.TaskDeliveryRun{}, platform.TaskDeliveryRunTarget{}, platform.TaskDeliveryWorkBuddyOrigin{}, platform.TaskDeliveryNodeSummary{}, platform.TaskDeliveryNode{}, platform.TaskDeliveryExpertPlans{}, platform.TaskDeliveryExpertPlan{}, platform.TaskDeliveryIssues{}, platform.TaskDeliveryIssue{}, platform.TaskDeliveryRepositorySource{}, platform.TaskDeliveryRepositoryIntakeRequest{}, platform.TaskDeliveryRepositoryIntake{}, platform.TaskDeliveryRepositoryDispatchPreviewRequest{}, platform.TaskDeliveryRepositorySourceOptions{}, platform.TaskDeliveryRepositorySourceProfile{}}
 }
 
 // The selected-task view is separate from the complete editable dependency
@@ -17,7 +17,7 @@ func taskDeliveryModels() []any {
 func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	read := add("/tasks/{id}/delivery", "get", "TaskDelivery", false, false)
 	successStatus(read, "200")
-	read["description"] = "Read one currently authorized task and its exact bound run in one snapshot. Counts are execution facts, not independent test or human acceptance eligibility. Team plans and trusted issues cover only current_run, with at most 20 references per collection. No logs, output, commands, credentials, implicit dispatch, review or issue creation."
+	read["description"] = "Read one currently authorized task and its exact bound run in one snapshot. A protected repair task also returns its original issue and bound regression even before dispatch. Counts are execution facts, not independent test or human acceptance eligibility. Team plans and trusted issues cover only current_run, with at most 20 references per collection. No logs, output, commands, credentials, implicit dispatch, review or issue creation."
 	read["x-request-schema-coverage"] = "exact id and required project_id; current authorization, complete snapshot and trusted operation provenance enforced by server"
 	source := add("/tasks/{id}/delivery/repository-source", "get", "TaskDeliveryRepositorySource", false, false)
 	successStatus(source, "200")
@@ -41,7 +41,7 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	taskDeliveryRepositoryIntakeContract(add, schemas)
 	taskDeliveryRepositoryDispatchContracts(add, api, schemas)
 	taskDeliveryRepositoryOptionsContract(add, schemas, source)
-	for _, name := range []string{"TaskDelivery", "TaskDeliveryRun", "TaskDeliveryRunTarget", "TaskDeliveryWorkBuddyOrigin", "TaskDeliveryNodeSummary", "TaskDeliveryNode", "TaskDeliveryExpertPlans", "TaskDeliveryExpertPlan", "TaskDeliveryIssues", "TaskDeliveryIssue", "TaskDeliveryRepositorySource"} {
+	for _, name := range []string{"TaskDelivery", "TaskDeliveryRepair", "TaskDeliveryRun", "TaskDeliveryRunTarget", "TaskDeliveryWorkBuddyOrigin", "TaskDeliveryNodeSummary", "TaskDeliveryNode", "TaskDeliveryExpertPlans", "TaskDeliveryExpertPlan", "TaskDeliveryIssues", "TaskDeliveryIssue", "TaskDeliveryRepositorySource"} {
 		model := toolContractMap(schemas, name)
 		model["additionalProperties"] = false
 		for _, value := range toolContractMap(model, "properties") {
@@ -54,6 +54,11 @@ func taskDeliveryContracts(add operationAdder, api map[string]any) {
 	toolContractMap(observed, "observed_at")["format"] = "date-time"
 	toolContractMap(schemas, "TaskDelivery", "properties", "run_basis_state")["enum"] = []string{"not_dispatched", "current", "changed", "unknown"}
 	toolContractMap(schemas, "TaskDelivery", "properties", "formal_acceptance")["description"] = "True only for current formal acceptance checked against the exact task, dependency and run evidence. Not a can-review grant."
+	toolContractMap(schemas, "TaskDelivery", "properties", "repair")["description"] = "Protected repair context for this exact task, independently of its bound run. Omitted when no current project repair relation is verified."
+	toolContractMap(schemas, "TaskDeliveryRepair", "properties", "cycle")["minimum"] = 1
+	toolContractMap(schemas, "TaskDeliveryRepair", "properties", "state")["enum"] = []string{"active", "closed", "reopened"}
+	toolContractMap(schemas, "TaskDeliveryRepair", "properties", "automation_source")["description"] = "Frozen automation source, included only for an authorized browser."
+	toolContractMap(schemas, "TaskDeliveryRepair", "properties", "regression")["description"] = "Bound plan revision and selected cases. It does not report a test result."
 	toolContractMap(schemas, "TaskDeliveryRun", "properties", "workbuddy_delivery")["description"] = "First exact waiting WorkBuddy assignment in this bound run that requires code delivery verification. Omitted when unavailable. A read-only navigation target, independent of the bounded node list."
 	target := toolContractMap(schemas, "TaskDeliveryRunTarget", "properties")
 	toolContractMap(target, "run_id")["minLength"], toolContractMap(target, "run_id")["maxLength"] = 1, 100

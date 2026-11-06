@@ -36,10 +36,16 @@ it('T126 validates one exact task projection and keeps test counts distinct from
 });
 
 it('T126 restores a selected task outside the picker with one exact read and switches complete bilingual facts without another request',async()=>{
- const contextRead=vi.fn(async(url:URL)=>{expect(url.pathname).toBe('/api/v1/workspace/task-context');expect(url.searchParams.get('project_id')).toBe('p');expect(url.searchParams.get('task_id')).toBe('task-a');return Response.json(designedContext());});
+ const selected=designedContext();
+ selected.delivery.repair={issue_id:'issue-source',cycle:2,state:'active'};
+ const contextRead=vi.fn(async(url:URL)=>{expect(url.pathname).toBe('/api/v1/workspace/task-context');expect(url.searchParams.get('project_id')).toBe('p');expect(url.searchParams.get('task_id')).toBe('task-a');return Response.json(selected);});
  const subscriptionRead=vi.fn(async(url:URL)=>{expect(url.pathname).toBe('/api/v1/tasks/task-a/subscription');expect(url.searchParams.get('project_id')).toBe('p');return Response.json({project_id:'p',task_id:'task-a',user_id:'u',version:0,following:false,updated_at:''});});
  const fetch=vi.fn(async(input:string,init?:RequestInit)=>{const url=new URL(String(input),location.href);expect(init?.method).toBe('GET');return url.pathname==='/api/v1/tasks/task-a/subscription'?subscriptionRead(url):contextRead(url);});vi.stubGlobal('fetch',fetch);
  await render();await settle(()=>!!host.querySelector('.workbench-task-summary'));expect(contextRead).toHaveBeenCalledTimes(1);expect(subscriptionRead).toHaveBeenCalledTimes(1);expect(fetch).toHaveBeenCalledTimes(2);expect(host.textContent).toContain('Plan cases passed');expect(host.textContent).toContain('Not formally accepted');expect(host.querySelector<HTMLDetailsElement>('.workbench-task-details')?.open).toBe(false);expect(host.textContent).toContain('Independent code sources');expect(host.textContent).toContain('does not bind this editor');
+ await click(host.querySelector<HTMLElement>('.workbench-task-details > summary')??undefined);
+ const issue=host.querySelector<HTMLAnchorElement>('[data-task-delivery-repair-issue]');
+ expect(new URL(issue!.href).searchParams.get('record')).toBe('issue-source');
+ expect(contextRead).toHaveBeenCalledTimes(1);
  expect(host.querySelector<HTMLDetailsElement>('.workbench-task-requirement')?.open).toBe(false);expect(host.textContent).toContain('Original requirement objective');expect(host.textContent).toContain('Requirement criterion');expect(host.textContent).toContain('Requirement version: 4');
  await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('计划用例通过');expect(host.textContent).toContain('尚未正式验收');expect(host.textContent).toContain('不会将编辑器目录绑定');expect(contextRead).toHaveBeenCalledTimes(1);expect(subscriptionRead).toHaveBeenCalledTimes(1);expect(fetch).toHaveBeenCalledTimes(2);
 });

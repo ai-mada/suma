@@ -13,6 +13,17 @@ type TaskDelivery struct {
 	Run              *TaskDeliveryRun        `json:"run"`
 	ExpertPlans      TaskDeliveryExpertPlans `json:"expert_plans"`
 	Issues           TaskDeliveryIssues      `json:"issues"`
+	Repair           *TaskDeliveryRepair     `json:"repair,omitempty" wire:"nonnull"`
+}
+
+// TaskDeliveryRepair is the retained repair context for this task. The cycle
+// state and pinned regression do not grant dispatch or approval authority.
+type TaskDeliveryRepair struct {
+	IssueID          string                       `json:"issue_id"`
+	Cycle            int                          `json:"cycle"`
+	State            string                       `json:"state"`
+	AutomationSource *IssueRepairAutomationSource `json:"automation_source,omitempty" wire:"nonnull"`
+	Regression       *IssueRegressionBinding      `json:"regression,omitempty" wire:"nonnull"`
 }
 
 type TaskDeliveryRun struct {

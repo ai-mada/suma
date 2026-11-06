@@ -68,6 +68,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-TASK-REPAIR-HANDOFF-294 未派发的修复任务也可在任务交付和 IDE 查看来源与回归范围。 [指南](../development/issue-repair.md#从任务接手修复) · [验证](../quality/task-repair-handoff-verification.md)
+
 T-REPAIR-AUTOMATION-BASIS-293 准备修复时固定原自动化来源，修复轮次可打开原证据。 [指南](../development/issue-repair.md#自动化故障的修复依据) · [验证](../quality/issue-repair-automation-basis-verification.md)
 
 T-ISSUE-AUTOMATION-ORIGIN-292 问题分诊可返回原触发及可核对的暂停依据。 [交互](../design/automation-workspace.md#从问题分诊返回暂停依据) · [验证](../quality/issue-automation-origin-verification.md)

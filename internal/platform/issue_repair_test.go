@@ -203,6 +203,27 @@ func TestIssueRepairOriginalCaseGateCloseReopenAndReceipts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	binding := v.Current.Regression
+	deliveryPath := "/tasks/" + v.Task.ID + "/delivery?project_id=" + f.project
+	assertRepairDelivery := func(state string) map[string]any {
+		t.Helper()
+		delivery := f.call("GET", deliveryPath, nil, 200)
+		repair, ok := delivery["repair"].(map[string]any)
+		if !ok || repair["issue_id"] != issue.ID || repair["cycle"] != float64(1) || repair["state"] != state || repair["automation_source"] != nil {
+			t.Fatalf("wrong %s repair task context: %+v", state, delivery)
+		}
+		regression, ok := repair["regression"].(map[string]any)
+		if !ok || regression["bound_at"] != binding.BoundAt || regression["bound_by"] != binding.BoundBy ||
+			regression["plan_id"] != binding.PlanID || regression["plan_revision"] != float64(binding.PlanRevision) ||
+			regression["plan_sha256"] != binding.PlanSHA256 || stringify(regression["case_keys"]) != stringify(binding.CaseKeys) {
+			t.Fatalf("task context did not retain the selected regression scope: %+v", repair)
+		}
+		return delivery
+	}
+	if delivery := assertRepairDelivery("active"); delivery["run_basis_state"] != "not_dispatched" ||
+		delivery["run"] != nil || delivery["formal_acceptance"] != false {
+		t.Fatalf("binding regression changed the task's execution or acceptance state: %+v", delivery)
+	}
 	// Generic task Review permits non-code test-only work. Even an accepted
 	// green test-only task must not close a defect without a repair producer.
 	self := h.run(t)
@@ -241,6 +262,7 @@ func TestIssueRepairOriginalCaseGateCloseReopenAndReceipts(t *testing.T) {
 	if err != nil || closed.Issue.Status != "closed" || closed.Current.Closure.RunID != a.RunID {
 		t.Fatal("close lost exact evidence", closed, err)
 	}
+	assertRepairDelivery("closed")
 	replay, err := f.s.CloseIssueRepair(ctx, f.actor, f.project, issue.ID, closeRequest)
 	if err != nil || replay.Issue.Version != closed.Issue.Version {
 		t.Fatal("close receipt failed before stale checks", replay, err)
@@ -250,6 +272,7 @@ func TestIssueRepairOriginalCaseGateCloseReopenAndReceipts(t *testing.T) {
 	if err != nil || opened.Issue.Status != "open" || opened.Current != nil || opened.Cycle != 2 || len(opened.History) != 1 || opened.History[0].Closure == nil {
 		t.Fatal("reopen rewrote accepted history", opened, err)
 	}
+	assertRepairDelivery("reopened")
 	next, _ := issueRepairPrepareFixture(t, f, opened.Issue)
 	if next.Current.Cycle != 2 || next.Task.ID == task.ID {
 		t.Fatal("new cycle reused old task", next)

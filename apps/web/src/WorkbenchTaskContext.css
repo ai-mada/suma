@@ -39,6 +39,7 @@
 .workbench-task-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; padding: 8px 12px; box-sizing: border-box; cursor: pointer; font-size: 12px; }
 .workbench-task-details > summary svg { flex-shrink: 0; transition: transform .15s; }
 .workbench-task-details[open] > summary svg { transform: rotate(180deg); }
+.workbench-task-details > [data-task-delivery-repair] { margin: 0 12px 12px; }
 .workbench-task-details[open], .workbench-task > .task-conversation:has([data-conversation-toggle][aria-expanded=true]) { grid-column: 1 / -1; }
 .workbench-task > .task-conversation { min-width: 0; }
 .workbench-task > .task-conversation .task-conversation-toggle { min-height: 36px; padding: 8px 12px; }
