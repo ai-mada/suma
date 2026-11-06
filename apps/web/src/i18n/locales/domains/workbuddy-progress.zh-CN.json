@@ -8,13 +8,13 @@
   "workbuddy-progress.invalid": "返回的进度与当前项目或页次不匹配。请重新读取已保存进度。",
   "workbuddy-progress.failed": "无法读取已保存的 WorkBuddy 进度。请重试。",
   "workbuddy-progress.stale": "正在显示上次加载的记录。重新读取后可核对当前进度并打开执行。",
-  "workbuddy-progress.loaded": "已加载 {{count}} 条 · 筛选仅针对已加载记录",
-  "workbuddy-progress.filter_label": "筛选已加载的 WorkBuddy 进度",
-  "workbuddy-progress.filter_all": "已加载全部",
+  "workbuddy-progress.loaded": "已加载 {{count}} 条提交",
+  "workbuddy-progress.filter_label": "筛选项目中的 WorkBuddy 提交",
+  "workbuddy-progress.filter_all": "全部提交",
   "workbuddy-progress.filter_attention": "待处理",
   "workbuddy-progress.empty_title": "暂无已保存的 WorkBuddy 提交",
   "workbuddy-progress.empty_detail": "本项目保存提交记录后，可在此查看进度。",
-  "workbuddy-progress.empty_attention": "已加载记录中暂无待处理事项。",
+  "workbuddy-progress.empty_attention": "查找已结束，暂无待处理的已保存提交。",
   "workbuddy-progress.rows": "已保存的 WorkBuddy 提交",
   "workbuddy-progress.more": "加载更多提交",
   "workbuddy-progress.attempt": "第 {{count}} 次尝试",
@@ -35,5 +35,8 @@
   "workbuddy-progress.provider_failed": "失败",
   "workbuddy-progress.provider_cancelled": "已取消",
   "workbuddy-progress.provider_unknown": "未知",
-  "workbuddy-progress.observation_failed": "上次 WorkBuddy 查询失败，当前显示此前的观察。"
+  "workbuddy-progress.observation_failed": "上次 WorkBuddy 查询失败，当前显示此前的观察。",
+  "workbuddy-progress.empty_batch": "本批没有待处理的提交。可继续查找本项目的记录。",
+  "workbuddy-progress.more_attention": "继续查找",
+  "workbuddy-progress.invalid_filter": "此 WorkBuddy 筛选链接无效。请选择项目筛选后继续。"
 }

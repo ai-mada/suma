@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-PROJECT-ATTENTION 网页和 CLI 按项目查询已保存的待处理 WorkBuddy 提交。空批次可续查，链接可分享。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-project-attention-verification.md)
+
 T-WORKBUDDY-TEAM-PROGRESS 执行中心集中查看当前项目已保存的 WorkBuddy 提交、平台状态与供应方观察，支持授权分页和原节点定位。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-team-progress-verification.md)
 
 T-WORKBUDDY-HANDOFF-ORIGIN 任务切到仓库或本机候选验证后，交付面板仍可打开准确的 WorkBuddy 原尝试。团队和 CLI 使用同一项目授权摘要。 [操作](../development/task-delivery-chain.md) · [验证](../quality/workbuddy-handoff-origin-verification.md)

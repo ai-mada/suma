@@ -210,7 +210,7 @@ func workBuddyCloudProgressListHTTP(w http.ResponseWriter, r *http.Request, acto
 	if !ok {
 		return
 	}
-	limit, before := cloudProgressDefaultLimit, ""
+	limit, before, filter := cloudProgressDefaultLimit, "", ""
 	for key, values := range query {
 		if len(values) != 1 || values[0] == "" {
 			writeError(w, cloudInvalid())
@@ -231,6 +231,12 @@ func workBuddyCloudProgressListHTTP(w http.ResponseWriter, r *http.Request, acto
 				return
 			}
 			before = values[0]
+		case "filter":
+			if values[0] != wc.CloudProgressAttentionFilter {
+				writeError(w, cloudInvalid())
+				return
+			}
+			filter = values[0]
 		default:
 			writeError(w, cloudInvalid())
 			return
@@ -244,7 +250,7 @@ func workBuddyCloudProgressListHTTP(w http.ResponseWriter, r *http.Request, acto
 		writeError(w, &APIError{503, workBuddyUnavailable, workBuddyUnavailable, nil})
 		return
 	}
-	out, err := c.ListCloudNodeProgress(r.Context(), actor, project, limit, before)
+	out, err := c.ListCloudNodeProgress(r.Context(), actor, project, limit, before, filter)
 	respond(w, http.StatusOK, out, err)
 }
 

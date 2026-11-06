@@ -58,17 +58,35 @@ func (p CloudNodeProgress) Validate() error {
 	return nil
 }
 
+// CloudProgressAttentionFilter selects saved records requiring attention.
+const CloudProgressAttentionFilter = "attention"
+
+// NeedsAttention classifies the same public facts displayed in the workbench.
+func (p CloudNodeProgress) NeedsAttention() bool {
+	if p.NodeReason != "" || p.SubmissionState == "unknown" || p.ObservationFailed {
+		return true
+	}
+	switch p.ProviderStatus {
+	case "waiting_input", "failed", "unknown":
+		return true
+	default:
+		return false
+	}
+}
+
 // CloudNodeProgressPage contains only saved submissions in the current project.
 type CloudNodeProgressPage struct {
 	ProjectID  string              `json:"project_id"`
 	Items      []CloudNodeProgress `json:"items"`
 	NextCursor string              `json:"next_cursor,omitempty"`
+	Filter     string              `json:"filter,omitempty"`
 }
 
 func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
 	var out CloudNodeProgressPage
 	if strictjson.Decode(raw, &out, 64<<10) != nil || !validID(out.ProjectID, 64) || out.Items == nil || len(out.Items) > 20 ||
-		len(out.NextCursor) > 1024 || out.NextCursor != "" && len(out.Items) == 0 {
+		(out.Filter != "" && out.Filter != CloudProgressAttentionFilter) || len(out.NextCursor) > 1024 ||
+		out.Filter == "" && out.NextCursor != "" && len(out.Items) == 0 {
 		return CloudNodeProgressPage{}, ErrInvalid
 	}
 	if _, err := base64.RawURLEncoding.Strict().DecodeString(out.NextCursor); err != nil {
@@ -77,7 +95,8 @@ func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
 	seen := make(map[[2]string]bool, len(out.Items))
 	for _, p := range out.Items {
 		key := [2]string{p.RunID, p.NodeID}
-		if p.Validate() != nil || p.ProjectID != out.ProjectID || p.SubmissionState == "not_recorded" || seen[key] {
+		if p.Validate() != nil || p.ProjectID != out.ProjectID || p.SubmissionState == "not_recorded" || seen[key] ||
+			out.Filter == CloudProgressAttentionFilter && !p.NeedsAttention() {
 			return CloudNodeProgressPage{}, ErrInvalid
 		}
 		seen[key] = true

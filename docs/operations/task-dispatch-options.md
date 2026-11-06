@@ -143,6 +143,13 @@ suma --project PROJECT run workbuddy-list --limit 10 --before NEXT_CURSOR
 
 输出中的平台状态、提交状态和最近供应方观察来自已保存记录。打开对应节点使用 `run workbuddy-status` 核对单条详情。
 
+```sh
+suma --project PROJECT run workbuddy-list --filter attention --limit 10
+suma --project PROJECT run workbuddy-list --filter attention --limit 10 --before NEXT_CURSOR
+```
+
+`--filter attention` 查当前项目已保存的待处理记录。筛选页有游标时可继续，即使本页条目为空。每次调用读取一个批次，下一次保留同一项目、读者和筛选。
+
 ## IDE 保存回执恢复
 
 1. 保存请求固定当前项目、路径、原文件hash、提交内容、操作标识和原API调用者。请求结果未确定时保留它们；后续编辑只是新的草稿。

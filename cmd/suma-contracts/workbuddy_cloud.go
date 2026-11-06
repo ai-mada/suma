@@ -191,9 +191,10 @@ func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
 	pageOp["x-read-only"] = true
 	pageOp["x-no-external-effects"] = true
 	pageOp["x-disallowed-token-scopes"] = []string{"agent", "runner"}
-	pageOp["description"] = "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader and project."
+	pageOp["description"] = "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project and filter."
 	appendQuery(pageOp, queryParameter("limit", "Page size.", map[string]any{"type": "integer", "minimum": 1, "maximum": 20, "default": 10}))
 	appendQuery(pageOp, queryParameter("before", "Opaque continuation from next_cursor.", map[string]any{"type": "string", "minLength": 1, "maxLength": 1024}))
+	appendQuery(pageOp, queryParameter("filter", "Filter all saved project submissions for attention. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "enum": []string{wc.CloudProgressAttentionFilter}}))
 	for _, raw := range pageOp["parameters"].([]any) {
 		p := raw.(map[string]any)
 		if p["name"] == "project_id" {
@@ -220,6 +221,8 @@ func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
 	toolContractMap(pageFields, "project_id")["minLength"], toolContractMap(pageFields, "project_id")["maxLength"] = 1, 64
 	toolContractMap(pageFields, "items")["maxItems"] = 20
 	toolContractMap(pageFields, "next_cursor")["minLength"], toolContractMap(pageFields, "next_cursor")["maxLength"] = 1, 1024
+	toolContractMap(pageFields, "filter")["enum"] = []string{wc.CloudProgressAttentionFilter}
+	toolContractMap(pageFields, "next_cursor")["description"] = "Continue the same project, reader and filter. A filtered cursor advances from the last inspected submission, even when no item matches."
 
 	op := add("/runs/{id}/nodes/{node}/workbuddy-status", "get", "CloudNodeProgress", false, false)
 	successStatus(op, "200")

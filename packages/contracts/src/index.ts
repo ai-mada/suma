@@ -1888,6 +1888,7 @@ export interface CloudNodeProgressPage {
   project_id: string;
   items: (CloudNodeProgress)[];
   next_cursor?: string;
+  filter?: string;
 }
 export interface CloudNodeView {
   project_id: string;

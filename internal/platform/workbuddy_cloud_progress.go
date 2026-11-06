@@ -28,8 +28,9 @@ func (w *WorkBuddyConnections) GetCloudNodeProgress(ctx context.Context, actor A
 }
 
 const (
-	cloudProgressDefaultLimit = 10
-	cloudProgressMaxLimit     = 20
+	cloudProgressDefaultLimit       = 10
+	cloudProgressMaxLimit           = 20
+	cloudProgressAttentionScanLimit = 40
 )
 
 var cloudProgressSubmissionID = regexp.MustCompile(`^[a-f0-9]{32}$`)
@@ -37,8 +38,9 @@ var cloudProgressSubmissionID = regexp.MustCompile(`^[a-f0-9]{32}$`)
 // ListCloudNodeProgress reads project-visible progress from the submissions
 // index. It has no dependency on the provider, owner account, or permissions to
 // view a private submission. Scope is checked again for every continuation.
-func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor Actor, project string, limit int, before string) (wc.CloudNodeProgressPage, error) {
-	if w == nil || w.s == nil || !handoffID(project, false) || limit < 1 || limit > cloudProgressMaxLimit {
+func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor Actor, project string, limit int, before, filter string) (wc.CloudNodeProgressPage, error) {
+	if w == nil || w.s == nil || !handoffID(project, false) || limit < 1 || limit > cloudProgressMaxLimit ||
+		filter != "" && filter != wc.CloudProgressAttentionFilter {
 		return wc.CloudNodeProgressPage{}, cloudInvalid()
 	}
 	if !actor.IsBrowser() && actor.kind != actorProjectAPI {
@@ -52,19 +54,24 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 
 	tenant, principal := auth.target.tenantID, auth.currentPrincipal
 	collection := "workbuddy_cloud_progress:" + digest(principal.ID)
+	scanLimit := limit
+	if filter == wc.CloudProgressAttentionFilter {
+		collection += ":" + filter
+		scanLimit = cloudProgressAttentionScanLimit
+	}
 	last, err := automationDecodeCursor(principal, project, collection, before)
 	if err != nil {
 		return wc.CloudNodeProgressPage{}, err
 	}
 	rows, err := auth.tx.QueryContext(ctx, w.s.q(`SELECT id,run_id,node_id FROM suma_workbuddy_cloud_submissions
-		WHERE tenant_id=? AND project_id=? AND id>? ORDER BY id LIMIT ?`), tenant, project, last, limit+1)
+		WHERE tenant_id=? AND project_id=? AND id>? ORDER BY id LIMIT ?`), tenant, project, last, scanLimit+1)
 	if err != nil {
 		return wc.CloudNodeProgressPage{}, err
 	}
 	defer rows.Close()
 
 	type reference struct{ id, run, node string }
-	refs := make([]reference, 0, limit+1)
+	refs := make([]reference, 0, scanLimit+1)
 	for rows.Next() {
 		var item reference
 		if err = rows.Scan(&item.id, &item.run, &item.node); err != nil {
@@ -79,12 +86,9 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 		return wc.CloudNodeProgressPage{}, err
 	}
 
-	out := wc.CloudNodeProgressPage{ProjectID: project, Items: make([]wc.CloudNodeProgress, 0, limit)}
-	if len(refs) > limit {
-		refs = refs[:limit]
-		out.NextCursor = automationEncodeCursor(principal, project, collection, refs[limit-1].id)
-	}
-	for _, item := range refs {
+	out := wc.CloudNodeProgressPage{ProjectID: project, Filter: filter, Items: make([]wc.CloudNodeProgress, 0, limit)}
+	inspected := 0
+	for _, item := range refs[:min(len(refs), scanLimit)] {
 		if !cloudProgressSubmissionID.MatchString(item.id) {
 			return wc.CloudNodeProgressPage{}, cloudConflict()
 		}
@@ -96,7 +100,18 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 			}
 			return wc.CloudNodeProgressPage{}, err
 		}
-		out.Items = append(out.Items, progress)
+		inspected++
+		if filter == "" || progress.NeedsAttention() {
+			out.Items = append(out.Items, progress)
+			if len(out.Items) == limit {
+				break
+			}
+		}
+	}
+	if inspected < len(refs) {
+		// A filtered page can be empty. Advance past the last inspected
+		// record, preserving every unread record for the continuation.
+		out.NextCursor = automationEncodeCursor(principal, project, collection, refs[inspected-1].id)
 	}
 	return out, nil
 }

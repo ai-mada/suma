@@ -31,15 +31,35 @@ func readCloudProgressPage(t *testing.T, response *httptest.ResponseRecorder) wc
 	if page.NextCursor != "" {
 		expectedFields++
 	}
+	if page.Filter != "" {
+		expectedFields++
+	}
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(response.Body.Bytes(), &fields); err != nil || len(fields) != expectedFields ||
-		fields["items"] == nil || page.Items == nil || fields["project_id"] == nil || (fields["next_cursor"] != nil) != (page.NextCursor != "") {
+		fields["items"] == nil || page.Items == nil || fields["project_id"] == nil || (fields["next_cursor"] != nil) != (page.NextCursor != "") ||
+		(fields["filter"] != nil) != (page.Filter != "") {
 		t.Fatal("progress page contains fields outside the public contract")
 	}
 	return page
 }
 
 func cloudProgressNextSubmission(t *testing.T, h *cloudFixture) wc.CloudSubmission {
+	t.Helper()
+	return cloudProgressCreateFollowingSubmission(t, h, false)
+}
+
+func cloudProgressParkSubmission(t *testing.T, h *cloudFixture, submission wc.CloudSubmission) {
+	t.Helper()
+	a, r := cloudResultFixture(t, h)
+	r.WorkBuddyCloudWait.SubmissionID = submission.ID
+	r.WorkBuddyCloudWait.SubmissionVersion = submission.Version
+	r.WorkBuddyCloudWait.Cause = "observation_unconfirmed"
+	if err := completeCloudFixture(t, h, a, r); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func cloudProgressCreateFollowingSubmission(t *testing.T, h *cloudFixture, park bool) wc.CloudSubmission {
 	t.Helper()
 	ctx, f := context.Background(), h.f
 	first, err := f.e.GetRun(ctx, f.user.TenantID, f.project, h.delegation.RunID)
@@ -65,12 +85,19 @@ func cloudProgressNextSubmission(t *testing.T, h *cloudFixture) wc.CloudSubmissi
 	if a == nil || a.RunID != run.ID {
 		t.Fatal("second saved progress must come from a separate authoritative run")
 	}
-	sub, err := h.w.CreateCloudTask(ctx, h.actor, f.project, wc.CloudCreateRequest{
+	request := wc.CloudCreateRequest{
 		ProjectID: f.project, DelegationID: delegation.ID, ExpectedVersion: delegation.Version,
 		Assignment: repositoryTestRef(*a), IdempotencyKey: newID(),
-	})
+	}
+	sub, err := h.w.CreateCloudTask(ctx, h.actor, f.project, request)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if park {
+		original := h.request
+		h.request = request
+		defer func() { h.request = original }()
+		cloudProgressParkSubmission(t, h, sub)
 	}
 	return sub
 }
@@ -88,13 +115,7 @@ func TestWorkBuddyCloudProgressPageUsesSavedScopedFacts(t *testing.T) {
 	}
 
 	first := createCloudFixture(t, h)
-	a, r := cloudResultFixture(t, h)
-	r.WorkBuddyCloudWait.SubmissionID = first.ID
-	r.WorkBuddyCloudWait.SubmissionVersion = first.Version
-	r.WorkBuddyCloudWait.Cause = "observation_unconfirmed"
-	if err := completeCloudFixture(t, h, a, r); err != nil {
-		t.Fatal(err)
-	}
+	cloudProgressParkSubmission(t, h, first)
 	second := cloudProgressNextSubmission(t, h)
 	subs := []wc.CloudSubmission{first, second}
 	slices.SortFunc(subs, func(a, b wc.CloudSubmission) int { return strings.Compare(a.ID, b.ID) })
@@ -183,5 +204,98 @@ func TestWorkBuddyCloudProgressPageUsesSavedScopedFacts(t *testing.T) {
 	}
 	if h.creates.Load() != 2 || h.queries.Load() != 0 {
 		t.Fatalf("progress reads contacted provider: %d creates, %d queries", h.creates.Load(), h.queries.Load())
+	}
+}
+
+func TestWorkBuddyCloudProgressAttentionContinuesAcrossScanBoundary(t *testing.T) {
+	h := newCloudFixture(t, nil)
+	f := h.f
+	f.handler = (&Server{Service: f.s, Engine: f.e, WorkBuddy: h.w}).Handler()
+	token := cloudProgressToken(t, h, "api")
+	base := cloudProgressListPath(f.project)
+	read := func(path string) *httptest.ResponseRecorder {
+		return cloudProgressRequest(h, http.MethodGet, path, token)
+	}
+
+	filtered := base + "&filter=attention&limit=1"
+	empty := readCloudProgressPage(t, read(filtered))
+	if empty.Filter != "attention" || len(empty.Items) != 0 || empty.NextCursor != "" {
+		t.Fatalf("empty project unexpectedly contains saved progress: %+v", empty)
+	}
+
+	const candidates = 43
+	subs := make([]wc.CloudSubmission, 0, candidates)
+	firstSubmission := createCloudFixture(t, h)
+	subs = append(subs, firstSubmission)
+	cloudProgressParkSubmission(t, h, firstSubmission)
+	for len(subs) < candidates {
+		subs = append(subs, cloudProgressCreateFollowingSubmission(t, h, true))
+	}
+	if _, err := f.s.DB.Exec("UPDATE dag_nodes SET reason='' WHERE run_id IN (SELECT run_id FROM suma_workbuddy_cloud_submissions WHERE tenant_id=? AND project_id=?)", f.user.TenantID, f.project); err != nil {
+		t.Fatal(err)
+	}
+	slices.SortFunc(subs, func(a, b wc.CloudSubmission) int { return strings.Compare(a.ID, b.ID) })
+	subs[40].Task.Status = "waiting_input"
+	subs[41].LastError = "workbuddy_cloud_upstream"
+	for _, i := range []int{40, 41} {
+		if _, err := f.s.DB.Exec("UPDATE suma_workbuddy_cloud_submissions SET payload=? WHERE id=?", stringify(subs[i]), subs[i].ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.s.DB.Exec("UPDATE dag_nodes SET reason=? WHERE run_id=? AND id=?", "cloud.delivery_required", subs[42].RunID, subs[42].NodeID); err != nil {
+		t.Fatal(err)
+	}
+
+	first := readCloudProgressPage(t, read(filtered))
+	if len(first.Items) != 0 || first.NextCursor == "" {
+		t.Fatalf("first forty inspected records should yield an empty page and continuation: %+v", first)
+	}
+	all := readCloudProgressPage(t, read(base+"&limit=1"))
+	if all.Filter != "" || all.NextCursor == "" || len(all.Items) != 1 {
+		t.Fatal("unfiltered page lost its first record or continuation")
+	}
+	for _, path := range []string{
+		base + "&filter=",
+		base + "&filter=all",
+		base + "&filter=attention&filter=attention",
+		base + "&before=" + url.QueryEscape(first.NextCursor),
+		filtered + "&before=" + url.QueryEscape(all.NextCursor),
+	} {
+		if response := read(path); response.Code != http.StatusBadRequest {
+			t.Fatalf("malformed filter or cross-filter cursor accepted: %d", response.Code)
+		}
+	}
+
+	cursor := first.NextCursor
+	for i, sub := range subs[40:] {
+		page := readCloudProgressPage(t, read(filtered+"&before="+url.QueryEscape(cursor)))
+		if page.Filter != "attention" {
+			t.Fatal("page did not confirm its exact filter")
+		}
+		if len(page.Items) != 1 || page.Items[0].RunID != sub.RunID || page.Items[0].NodeID != sub.NodeID {
+			t.Fatalf("expected matching projected record at offset %d, got %+v", i, page)
+		}
+		item := page.Items[0]
+		switch i {
+		case 0:
+			if item.ProviderStatus != "waiting_input" || item.NodeReason != "" {
+				t.Fatal("supplier observation alone should yield a match", item)
+			}
+		case 1:
+			if !item.ObservationFailed {
+				t.Fatal("latest failed observation should yield a match", item)
+			}
+		case 2:
+			if item.NodeReason != "cloud.delivery_required" {
+				t.Fatal("platform delivery reason should yield a match", item)
+			}
+		}
+		if page.NextCursor == cursor || (page.NextCursor != "") != (i < 2) {
+			t.Fatalf("continuation must advance only when additional records remain: %+v", page)
+		}
+		cursor = page.NextCursor
+	}
+	if h.creates.Load() != candidates || h.queries.Load() != 0 {
+		t.Fatalf("filtered reads contacted provider: %d creates, %d queries", h.creates.Load(), h.queries.Load())
 	}
 }

@@ -11,6 +11,9 @@ type Props={
  project:string;
  session:Session;
  refresh:number;
+ filter?:'attention';
+ invalidFilter?:boolean;
+ onFilter?:(filter?:'attention')=>void;
  onRun:(run:string,node:string,attempt?:number)=>void;
 };
 const pageSize=10;
@@ -52,83 +55,98 @@ function readItem(value:unknown,project:string):value is CloudNodeProgress{
   value.provider_status===undefined&&value.observed_at===undefined&&!value.observation_failed;
 }
 
-function readPage(value:unknown,project:string):value is CloudNodeProgressPage{
- if(!record(value)||value.project_id!==project||
-    !Object.keys(value).every(field=>['project_id','items','next_cursor'].includes(field))||
-    !Array.isArray(value.items)||value.items.length>pageSize||
-    !value.items.every(item=>readItem(item,project))||new Set(value.items.map(key)).size!==value.items.length)return false;
- return value.next_cursor===undefined||typeof value.next_cursor==='string'&&/^[A-Za-z0-9_-]{1,1024}$/.test(value.next_cursor)&&value.items.length===pageSize;
-}
-
 const needsAttention=(item:CloudNodeProgress)=>!!item.node_reason||item.submission_state==='unknown'||item.observation_failed||
  ['waiting_input','failed','unknown'].includes(item.provider_status||'');
 
-type Snapshot={items:CloudNodeProgress[];next?:string;};
-type ReadState={snapshot?:Snapshot;loading:boolean;error?:UiError};
+function readPage(value:unknown,project:string,filter:Props['filter']):value is CloudNodeProgressPage{
+ if(!record(value)||value.project_id!==project||value.filter!==filter||
+    !Object.keys(value).every(field=>['project_id','items','next_cursor','filter'].includes(field))||
+    !Array.isArray(value.items)||value.items.length>pageSize||
+    !value.items.every(item=>readItem(item,project)&&(!filter||needsAttention(item)))||
+    new Set(value.items.map(key)).size!==value.items.length)return false;
+ return value.next_cursor===undefined||typeof value.next_cursor==='string'&&/^[A-Za-z0-9_-]{1,1024}$/.test(value.next_cursor)&&
+  (filter==='attention'||value.items.length===pageSize);
+}
+
+type ReadScope='all'|'attention'|'invalid';
+type Snapshot={scope:ReadScope;items:CloudNodeProgress[];next?:string;lastBatchCount:number;cursors:Set<string>};
+type ReadState={scope:ReadScope;snapshot?:Snapshot;loading:boolean;error?:UiError};
 
 export function WorkBuddyProgressWorkspace(props:Props){
  return <WorkBuddyProgressScope key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project])} {...props}/>;
 }
 
-function WorkBuddyProgressScope({project,session,refresh,onRun}:Props){
+function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFilter,onFilter}:Props){
  useLocale();
  const api=useApi(),user=session.user.id,organization=session.organization.id;
- const [current,setCurrent]=useState<ReadState>({loading:true});
- const [facet,setFacet]=useState<'all'|'attention'>('all');
+ const scope:ReadScope=invalidFilter?'invalid':filter||'all';
+ const [state,setState]=useState<ReadState>({scope,loading:scope!=='invalid'});
  const snapshot=useRef<Snapshot|undefined>(undefined),controller=useRef<AbortController|undefined>(undefined);
  const read=useCallback(async (append=false)=>{
-  const previous=snapshot.current,before=append?previous?.next:undefined;
+  if(scope==='invalid')return;
+  const previous=snapshot.current?.scope===scope?snapshot.current:undefined,before=append?previous?.next:undefined;
   if(append&&!before)return;
   controller.current?.abort();
   const abort=new AbortController();
   controller.current=abort;
-  setCurrent({snapshot:previous,loading:true});
+  setState({scope,snapshot:previous,loading:true});
   try{
-   const value=await api<unknown>('/workbuddy-cloud-progress'+query(project)+'&limit='+pageSize+(before?'&before='+encodeURIComponent(before):''),undefined,'GET',{
+   const url='/workbuddy-cloud-progress'+query(project)+'&limit='+pageSize+
+    (filter?'&filter='+filter:'')+(before?'&before='+encodeURIComponent(before):'');
+   const value=await api<unknown>(url,undefined,'GET',{
     'X-Suma-Expected-User':user,'X-Suma-Expected-Organization':organization,
    },abort.signal);
    if(abort.signal.aborted)return;
-   if(!readPage(value,project))throw new UiError('workbuddy-progress.invalid');
+   if(!readPage(value,project,filter))throw new UiError('workbuddy-progress.invalid');
    const loaded=new Set(append?previous?.items.map(key):[]);
-   if((before&&value.next_cursor===before)||value.items.some(item=>loaded.has(key(item))))throw new UiError('workbuddy-progress.invalid');
-   const next={items:append&&previous?[...previous.items,...value.items]:value.items,next:value.next_cursor};
+   const cursors=new Set(append?previous?.cursors:[]);
+   if(value.next_cursor&&cursors.has(value.next_cursor)||value.items.some(item=>loaded.has(key(item))))throw new UiError('workbuddy-progress.invalid');
+   if(value.next_cursor)cursors.add(value.next_cursor);
+   const next={scope,items:append&&previous?[...previous.items,...value.items]:value.items,next:value.next_cursor,lastBatchCount:value.items.length,cursors};
    snapshot.current=next;
-   setCurrent({snapshot:next,loading:false});
+   setState({scope,snapshot:next,loading:false});
   }catch(error){
    if(abort.signal.aborted)return;
    const denied=error instanceof ApiError&&[401,403,404].includes(error.status);
    const invalid=error instanceof UiError;
-   if(denied||invalid)snapshot.current=undefined;
-   setCurrent({snapshot:snapshot.current,loading:false,error:new UiError(denied?'workbuddy-progress.denied':invalid?'workbuddy-progress.invalid':'workbuddy-progress.failed')});
+   snapshot.current=denied||invalid?undefined:previous;
+   setState({scope,snapshot:snapshot.current,loading:false,error:new UiError(denied?'workbuddy-progress.denied':invalid?'workbuddy-progress.invalid':'workbuddy-progress.failed')});
   }
- },[api,project,user,organization]);
- useEffect(()=>{void read();return()=>controller.current?.abort();},[read,refresh]);
+ },[api,project,user,organization,scope,filter]);
+ useEffect(()=>{
+  if(snapshot.current?.scope!==scope)snapshot.current=undefined;
+  void read();
+  return()=>controller.current?.abort();
+ },[read,refresh,scope]);
 
- const rows=current.snapshot?.items??[],attention=rows.filter(needsAttention);
- const visible=facet==='attention'?attention:rows;
- // A retained snapshot is display-only until the current read succeeds.
+ // Never show another filter's snapshot while the new query is starting.
+ const current=state.scope===scope?state:{scope,loading:scope!=='invalid'};
+ const rows=current.snapshot?.items??[];
  const available=!!current.snapshot&&!current.loading&&!current.error;
+ const emptyBatch=available&&scope==='attention'&&current.snapshot?.lastBatchCount===0;
  return <section className="workbuddy-progress" aria-label={t('title')} aria-busy={current.loading} data-workbuddy-progress>
   <header className="workbuddy-progress-heading">
    <div><h2><Cloud size={18} aria-hidden="true"/>{t('title')}</h2><p>{t('intro')}</p></div>
-   <button type="button" data-workbuddy-progress-refresh disabled={current.loading} onClick={()=>void read()}><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button>
+   <button type="button" data-workbuddy-progress-refresh disabled={current.loading||scope==='invalid'} onClick={()=>void read()}><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button>
   </header>
   <p className="workbuddy-progress-boundary">{t('boundary')}</p>
+  <div className="workbuddy-progress-facets" role="group" aria-label={t('filter_label')}>
+   <button type="button" data-workbuddy-progress-filter="all" aria-pressed={scope==='all'} disabled={!onFilter} onClick={()=>{if(scope!=='all')onFilter?.();}}>{t('filter_all')}</button>
+   <button type="button" data-workbuddy-progress-filter="attention" aria-pressed={scope==='attention'} disabled={!onFilter} onClick={()=>{if(scope!=='attention')onFilter?.('attention');}}>{t('filter_attention')}</button>
+  </div>
+  {scope==='invalid'&&<div data-workbuddy-progress-invalid-filter><ErrorNotice error={new UiError('workbuddy-progress.invalid_filter')}/></div>}
   {current.error&&<ErrorNotice error={current.error} onRetry={()=>void read()}/>}
   {current.error&&current.snapshot&&<p className="workbuddy-progress-note" role="status">{t('stale')}</p>}
   {current.loading&&!current.snapshot&&<Loading/>}
   {current.snapshot&&<>
-   <p className="workbuddy-progress-note" role="status">{t('loaded',{count:formatNumber(rows.length)})}</p>
-   {rows.length>0&&<div className="workbuddy-progress-facets" role="group" aria-label={t('filter_label')}>
-    <button type="button" data-workbuddy-progress-filter="all" aria-pressed={facet==='all'} disabled={!available} onClick={()=>setFacet('all')}>{t('filter_all')}<strong>{formatNumber(rows.length)}</strong></button>
-    <button type="button" data-workbuddy-progress-filter="attention" aria-pressed={facet==='attention'} disabled={!available} onClick={()=>setFacet('attention')}>{t('filter_attention')}<strong>{formatNumber(attention.length)}</strong></button>
-   </div>}
-   {available&&rows.length===0&&<Empty title={t('empty_title')} description={t('empty_detail')}/>}
-   {available&&rows.length>0&&visible.length===0&&<p className="workbuddy-progress-note" role="status">{t('empty_attention')}</p>}
-   {visible.length>0&&<ul className="workbuddy-progress-rows" aria-label={t('rows')}>{visible.map(item=>
+   {rows.length>0&&<p className="workbuddy-progress-note" role="status">{t('loaded',{count:formatNumber(rows.length)})}</p>}
+   {available&&scope==='all'&&rows.length===0&&<Empty title={t('empty_title')} description={t('empty_detail')}/>}
+   {rows.length>0&&<ul className="workbuddy-progress-rows" aria-label={t('rows')}>{rows.map(item=>
     <ProgressRow key={key(item)} project={project} item={item} available={available} onRun={onRun}/>
    )}</ul>}
-   {current.snapshot.next&&<div className="workbuddy-progress-more"><button type="button" data-workbuddy-progress-more disabled={!available} onClick={()=>void read(true)}>{t('more')}</button></div>}
+   {emptyBatch&&current.snapshot.next&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-batch>{t('empty_batch')}</p>}
+   {available&&scope==='attention'&&!current.snapshot.next&&rows.length===0&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-attention>{t('empty_attention')}</p>}
+   {current.snapshot.next&&<div className="workbuddy-progress-more"><button type="button" data-workbuddy-progress-more disabled={!available} onClick={()=>void read(true)}>{t(scope==='attention'?'more_attention':'more')}</button></div>}
   </>}
  </section>;
 }

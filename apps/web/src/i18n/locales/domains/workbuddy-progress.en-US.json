@@ -8,13 +8,13 @@
   "workbuddy-progress.invalid": "The returned progress does not match this project or page. Read the saved progress again.",
   "workbuddy-progress.failed": "Saved WorkBuddy progress could not be read. Try again.",
   "workbuddy-progress.stale": "Showing the last loaded records. Read again to confirm progress and open executions.",
-  "workbuddy-progress.loaded": "{{count}} loaded · filters apply to loaded records",
-  "workbuddy-progress.filter_label": "Filter loaded WorkBuddy progress",
-  "workbuddy-progress.filter_all": "All loaded",
+  "workbuddy-progress.loaded": "{{count}} submissions loaded",
+  "workbuddy-progress.filter_label": "Filter WorkBuddy submissions in this project",
+  "workbuddy-progress.filter_all": "All submissions",
   "workbuddy-progress.filter_attention": "Needs attention",
   "workbuddy-progress.empty_title": "No saved WorkBuddy submissions",
   "workbuddy-progress.empty_detail": "Once a submission is recorded for this project, its saved progress will appear here.",
-  "workbuddy-progress.empty_attention": "None of the loaded records need attention.",
+  "workbuddy-progress.empty_attention": "Search finished. No saved submissions in this search need attention.",
   "workbuddy-progress.rows": "Saved WorkBuddy submissions",
   "workbuddy-progress.more": "Load more submissions",
   "workbuddy-progress.attempt": "Attempt {{count}}",
@@ -35,5 +35,8 @@
   "workbuddy-progress.provider_failed": "Failed",
   "workbuddy-progress.provider_cancelled": "Cancelled",
   "workbuddy-progress.provider_unknown": "Unknown",
-  "workbuddy-progress.observation_failed": "The last WorkBuddy query failed. The previous observation is shown."
+  "workbuddy-progress.observation_failed": "The last WorkBuddy query failed. The previous observation is shown.",
+  "workbuddy-progress.empty_batch": "No submissions in this batch need attention. Continue searching this project.",
+  "workbuddy-progress.more_attention": "Continue searching",
+  "workbuddy-progress.invalid_filter": "This WorkBuddy filter link is invalid. Select a project filter to continue."
 }
