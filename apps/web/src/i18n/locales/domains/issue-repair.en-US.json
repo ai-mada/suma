@@ -28,6 +28,7 @@
   "issue-repair.ready": "The server reports the current closure conditions are met. They will be checked again when you confirm.",
   "issue-repair.readiness_boundary": "Closing requires current formal acceptance of the repair task and passing independent evidence for every selected regression case. Missing or stale evidence remains unresolved.",
   "issue-repair.cycle_basis": "Repair basis",
+  "issue-repair.automation_basis": "Automation source at preparation",
   "issue-repair.issue": "Source issue",
   "issue-repair.repair_version": "Repair version",
   "issue-repair.prepared_at": "Prepared at",

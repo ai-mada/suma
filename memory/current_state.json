@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "issue_repair_automation_basis": {
+    "stage": "T-REPAIR-AUTOMATION-BASIS-293",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "4659eae9b4462cb945ddac40d8c9c8ad1b4891f0",
+    "report": "docs/quality/issue-repair-automation-basis-verification.md",
+    "actual": "Repair preparation records verified original automation provenance in the protected cycle alongside the repair task. Browser views link the exact records; project API responses redact the basis.",
+    "verification": "SQLite HTTP checks capture, stable replay, manual issue isolation, API redaction and existing gates. Real Chrome verifies explicit prepare and history navigation.",
+    "known_limitations": "Only verified provenance at prepare is captured. Distributed load, external notifications and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "issue_automation_origin": {
     "stage": "T-ISSUE-AUTOMATION-ORIGIN-292",
     "version": "1.0.0",

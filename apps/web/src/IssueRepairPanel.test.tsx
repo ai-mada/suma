@@ -56,6 +56,45 @@ it('T119 aborts late reads on scope changes and hides protected repair facts whe
  let release!:(value:Response)=>void;transport(async()=>new Promise(resolve=>{release=resolve;}));await render();await click('[data-ir-toggle]');const signal=reads[0].signal,old=release;const other={...session,user:{...session.user,id:'other-user'},organization:{id:'other-org',name:'Other'}};await render(other,'other-project','other-issue');expect(signal?.aborted).toBe(true);await act(async()=>old(Response.json(bound())));await settle();expect(host.textContent).not.toContain('Repair task');expect(host.querySelector('[data-ir-close]')).toBeNull();transport(async()=>Response.json({error:{code:'forbidden',message:'Current project access denied'}},{status:403}));await click('[data-ir-toggle]');expect(host.textContent).toContain('Current project access denied');expect(host.querySelector('[data-ir-prepare]')).toBeNull();expect(writes).toHaveLength(0);
 });
 
+it('keeps preparation-time automation evidence scoped to its repair cycle and ignores malformed locators',async()=>{
+ const current=view(true);
+ const snapshot={run_id:'original-failed-run',origin:{
+  rule_id:'rule-a',rule_name:'Release checks',occurrence_id:'failed-trigger',revision:4,source:'cron',scheduled_at:stamp,
+  failure_pause:{occurrence_id:'paused-trigger',observed_at:stamp,threshold:2},
+ }};
+ current.current={...current.current!,automation_source:snapshot};
+ current.issue.data={automation_source:{...snapshot,run_id:'forged-run'}};
+ transport(async()=>Response.json(current));
+ await render();await click('[data-ir-toggle]');
+ expect(host.querySelector('[data-ir-automation-source]')?.textContent).toContain('Release checks');
+ expect(host.querySelector('[data-ir-automation-source]')?.textContent).toContain('Rule revision 4');
+ const run=host.querySelector<HTMLAnchorElement>('[data-ir-automation-run]');
+ const trigger=host.querySelector<HTMLAnchorElement>('[data-ir-automation-trigger]');
+ const pause=host.querySelector<HTMLAnchorElement>('[data-ir-automation-pause]');
+ expect(run?.getAttribute('href')).toBe('?project=project-a&view=development&sub=runs&run=original-failed-run');
+ expect(trigger?.getAttribute('href')).toBe('?project=project-a&view=development&sub=automations&record=rule-a&panel=automation-trigger%3Afailed-trigger');
+ expect(pause?.getAttribute('href')).toBe('?project=project-a&view=development&sub=automations&record=rule-a&panel=automation-trigger%3Apaused-trigger');
+ const veto=(event:Event)=>event.preventDefault();
+ window.addEventListener('suma:navigate',veto);
+ try{
+  for(const link of [run,trigger,pause]){
+   const event=new MouseEvent('click',{bubbles:true,cancelable:true});
+   expect(link?.dispatchEvent(event)).toBe(false);
+  }
+ }finally{window.removeEventListener('suma:navigate',veto);}
+ current.current.automation_source={...snapshot,origin:{...snapshot.origin,failure_pause:{...snapshot.origin.failure_pause,occurrence_id:'failed-trigger'}}};
+ await click('[data-ir-refresh]');
+ expect(host.querySelector('[data-ir-automation-trigger]')).not.toBeNull();
+ expect(host.querySelector('[data-ir-automation-pause]')).toBeNull();
+ current.current.automation_source={...snapshot,run_id:'../forged-run'};
+ await click('[data-ir-refresh]');
+ expect(host.querySelector('[data-ir-automation-source]')).toBeNull();
+ expect(host.textContent).toContain('Repair task');
+ expect(host.querySelector('[data-ir-bind]')).not.toBeNull();
+ expect(host.querySelector('[data-ir-close]')).toBeNull();
+ expect(writes).toHaveLength(0);
+});
+
 it('opens protected package evidence and keeps closure blocked without independent verification',async()=>{
  const original={run_id:'run-failed',node_id:'package.test',attempt:2,fence:8,artifact_id:'failed-package',manifest_sha256:digest,source_commit:'b'.repeat(40),scope_root:'apps/catalog'};
  const current={...bound(),original_package:original,can_close:false,blockers:[{code:'package_regression_missing'}]};

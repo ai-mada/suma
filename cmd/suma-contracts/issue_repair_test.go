@@ -29,4 +29,9 @@ func TestIssueRepairContractKeepsClosureAsCurrentHumanCommand(t *testing.T) {
 	if props["status"] != nil || props["closure"] != nil || props["passed"] != nil {
 		t.Fatal("caller can supply their own closure facts")
 	}
+	source := mapAt(api, "components", "schemas", "IssueRepair", "properties", "automation_source")
+	prepare := mapAt(api, "components", "schemas", "IssueRepairPrepareRequest", "properties")
+	if source["$ref"] != "#/components/schemas/IssueRepairAutomationSource" || source["readOnly"] != true || prepare["automation_source"] != nil {
+		t.Fatal("automation provenance must be a server-owned repair snapshot")
+	}
 }

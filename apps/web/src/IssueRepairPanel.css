@@ -13,3 +13,6 @@
 .ir-case-origin a{font-size:13px}
 .ir-case-origin a>svg{flex:none}
 @media(max-width:600px){.ir-case-origin a{min-height:44px}}
+.ir-automation-source .ir-muted{overflow-wrap:anywhere}
+.ir-automation-source .ir-actions{column-gap:12px;row-gap:2px}
+@media(max-width:600px){.ir-automation-source .ir-actions>a{justify-content:flex-start}}

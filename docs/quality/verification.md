@@ -66,6 +66,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-REPAIR-AUTOMATION-BASIS-293 核验修复轮次的自动化来源固定、授权、重放和界面。 [阶段报告](issue-repair-automation-basis-verification.md)
+
 T-ISSUE-AUTOMATION-ORIGIN-292 核验问题来源回溯、浏览器授权和真实双入口。 [阶段报告](issue-automation-origin-verification.md)
 
 T-AUTOMATION-PAUSE-ISSUE-LINK-291 核验暂停证据到现有失败问题的授权定位和真实界面。 [阶段报告](automation-pause-issue-link-verification.md)

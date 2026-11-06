@@ -18678,6 +18678,11 @@
       "IssueRepair": {
         "additionalProperties": false,
         "properties": {
+          "automation_source": {
+            "$ref": "#/components/schemas/IssueRepairAutomationSource",
+            "description": "Original failed run and verified automation provenance retained when this repair cycle was prepared. Visible to authorized browser sessions. Does not establish acceptance or closure eligibility.",
+            "readOnly": true
+          },
           "closure": {
             "anyOf": [
               {
@@ -18753,6 +18758,26 @@
           "prepared_by",
           "created_at",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "IssueRepairAutomationSource": {
+        "additionalProperties": false,
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/AutomationRunOrigin",
+            "readOnly": true
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "origin"
         ],
         "type": "object"
       },

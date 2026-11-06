@@ -19,6 +19,15 @@ type IssueRepair struct {
 	ReopenedAt    string                  `json:"reopened_at,omitempty"`
 	ReopenedBy    string                  `json:"reopened_by,omitempty"`
 	ReopenReason  string                  `json:"reopen_reason,omitempty"`
+
+	AutomationSource *IssueRepairAutomationSource `json:"automation_source,omitempty" wire:"nonnull"`
+}
+
+// IssueRepairAutomationSource freezes the verified automation provenance at
+// preparation. It provides context without granting execution or review rights.
+type IssueRepairAutomationSource struct {
+	RunID  string              `json:"run_id"`
+	Origin AutomationRunOrigin `json:"origin"`
 }
 
 type IssueRegressionBinding struct {

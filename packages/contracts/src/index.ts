@@ -3547,6 +3547,11 @@ export interface IssueRepair {
   reopened_at?: string;
   reopened_by?: string;
   reopen_reason?: string;
+  automation_source?: IssueRepairAutomationSource;
+}
+export interface IssueRepairAutomationSource {
+  run_id: string;
+  origin: AutomationRunOrigin;
 }
 export interface IssueRepairBindRequest {
   project_id: string;

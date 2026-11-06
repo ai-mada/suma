@@ -28,6 +28,7 @@
   "issue-repair.ready": "服务端已核对当前关闭条件，确认提交时仍会再次校验。",
   "issue-repair.readiness_boundary": "关闭要求修复任务具有当前正式验收，且所有选定用例均有独立复测通过证据。缺失或过期依据仍需处理。",
   "issue-repair.cycle_basis": "修复依据",
+  "issue-repair.automation_basis": "准备修复时记录的自动化来源",
   "issue-repair.issue": "来源问题",
   "issue-repair.repair_version": "修复版本",
   "issue-repair.prepared_at": "准备时间",

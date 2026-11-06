@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useId,useRef,useState,type MouseEvent} from 'react';
-import {ArrowUpRight,ChevronDown,FlaskConical,RefreshCw,Wrench} from 'lucide-react';
+import {ArrowUpRight,ChevronDown,FlaskConical,RefreshCw,Workflow,Wrench} from 'lucide-react';
 import type {IssueRepair,IssueRepairCaseOrigin,IssueRepairView,TestPlanView} from '../../../packages/contracts/src';
 import {ApiError,query,stateLabel,type Session} from './api';
 import {useApi} from './api-context';
@@ -11,6 +11,7 @@ import {useTestPlanPage,useTestPlanRead} from './test-plans-hooks';
 import {originalTestCaseHref,planID,validIssueRepairCaseOrigin,validPlanPage,validTestPlan} from './test-plans-model';
 import './IssueRepairPanel.css';
 import {issueRepairCycleTarget,repairReleaseHref,repairReleaseReview} from './repair-release-handoff';
+import {automationTriggerPanelPrefix} from './navigation';
 
 type Props={session:Session;project:string;issueId:string;issueVersion:number;panel?:string;refresh:number;onChanged:()=>void|Promise<void>;onOpenTask?:(id:string)=>void;onOpenRequirement?:(id:string)=>void};
 type Command='prepare'|'regression'|'close'|'reopen';
@@ -62,6 +63,41 @@ function CaseOriginCard({project,issue,origin}:{project:string;issue:string;orig
    <h4 id={heading}>{t('case_origin')}</h4>
    <p className="ir-muted"><code>{origin.case_key}</code> · {t('case_origin_revision',{revision:formatNumber(origin.plan_revision)})}</p>
    <a href={originalTestCaseHref(project,issue,origin)} data-ir-case-origin-link onClick={followEvidence}>{t('case_origin_open')}<ArrowUpRight size={13} aria-hidden="true"/></a>
+  </div>
+ </section>;
+}
+const automationID=(value:unknown):value is string=>id(value)&&value.length<=64;
+function recordedAutomationTime(value:unknown):value is string{
+ if(typeof value!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(value))return false;
+ const stamp=Date.parse(value);
+ return Number.isFinite(stamp)&&new Date(stamp).toISOString().replace('.000Z','Z')===value;
+}
+function AutomationRepairSource({project,snapshot}:{project:string;snapshot:unknown}){
+ const heading=useId();
+ // Automation context is supplemental. A malformed locator cannot discard
+ // the protected repair cycle or affect its eligibility checks.
+ if(!automationID(project)||!object(snapshot)||!id(snapshot.run_id)||!object(snapshot.origin))return null;
+ const origin=snapshot.origin;
+ const {rule_id:ruleID,occurrence_id:occurrenceID}=origin;
+ if(!automationID(ruleID)||!automationID(occurrenceID)||!text(origin.rule_name,200)||
+  !positive(origin.revision)||!recordedAutomationTime(origin.scheduled_at)||
+  (origin.source!=='cron'&&origin.source!=='manual'&&origin.source!=='webhook'))return null;
+ const source=tr(origin.source==='cron'?'automation.scheduled_trigger':origin.source==='manual'?'automation.manual_trigger':'automation.signed_event_trigger');
+ const runHref='?'+new URLSearchParams({project,view:'development',sub:'runs',run:snapshot.run_id});
+ const triggerHref=(trigger:string)=>'?'+new URLSearchParams({project,view:'development',sub:'automations',record:ruleID,panel:automationTriggerPanelPrefix+trigger});
+ const pause=origin.failure_pause;
+ const pauseID=object(pause)&&automationID(pause.occurrence_id)&&pause.occurrence_id!==occurrenceID&&
+  positive(pause.threshold)&&pause.threshold>=2&&pause.threshold<=10&&recordedAutomationTime(pause.observed_at)?pause.occurrence_id:undefined;
+ return <section className="ir-case-origin ir-automation-source" data-ir-automation-source aria-labelledby={heading}>
+  <Workflow size={16} aria-hidden="true"/>
+  <div>
+   <h4 id={heading}>{t('automation_basis')}</h4>
+   <p className="ir-muted"><strong>{origin.rule_name}</strong> · {tr('automation.run_origin.context',{source,revision:formatNumber(origin.revision)})}</p>
+   <div className="ir-actions">
+    <a data-ir-automation-run href={runHref} onClick={followEvidence}>{tr('failure-diagnosis.open_source_run')}<ArrowUpRight size={13} aria-hidden="true"/></a>
+    <a data-ir-automation-trigger href={triggerHref(occurrenceID)} onClick={followEvidence}>{tr('automation.run_origin.open')}<ArrowUpRight size={13} aria-hidden="true"/></a>
+    {pauseID&&<a data-ir-automation-pause href={triggerHref(pauseID)} onClick={followEvidence}>{tr('automation.run_origin.pause_open')}<ArrowUpRight size={13} aria-hidden="true"/></a>}
+   </div>
   </div>
  </section>;
 }
@@ -177,6 +213,7 @@ function RepairScope({project,issueId,issueVersion,panel='',refresh,onChanged,on
      {!!view.blockers.length&&view.issue.status!=='closed'&&<div className="ir-warning" data-ir-blockers><p>{t('blocked')}</p><ul>{view.blockers.map((item,index)=><li key={item.code+':'+index}>{blockerCodes.has(item.code)?t('blocker.'+item.code):<>{t('unknown_blocker')} <code>{item.code}</code></>}{item.ref_id&&<small> · <code>{item.ref_id}</code></small>}</li>)}</ul></div>}
      {current?<section className="ir-cycle" data-ir-cycle={current.cycle}><div className="ir-actions"><a href={link('task',current.task_id)} onClick={event=>follow(event,'task',current.task_id)}>{t('open_task')}<ArrowUpRight size={13}/></a><a href={link('requirement',current.requirement_id)} onClick={event=>follow(event,'requirement',current.requirement_id)}>{t('open_requirement')}<ArrowUpRight size={13}/></a></div>
       {view.task&&<p className="ir-copy">{view.task.title} · {stateLabel(view.task.status)}</p>}
+      {current.automation_source&&<AutomationRepairSource project={project} snapshot={current.automation_source}/>}
       {current.regression?<><p>{t('bound_revision',{revision:formatNumber(current.regression.plan_revision),count:formatNumber(current.regression.case_keys.length)})}</p><a href={link('plan',current.regression.plan_id,view.task?.run_id||'')} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('open_regression')}<ArrowUpRight size={13}/></a><details><summary>{t('binding_details')}</summary><dl className="ir-facts"><dt>{t('plan_sha')}</dt><dd><code>{current.regression.plan_sha256}</code></dd><dt>{t('case_keys')}</dt><dd>{current.regression.case_keys.join(', ')}</dd></dl></details></>:<p className="ir-muted">{t('no_regression')}</p>}
       {view.task?.run_id&&<a href={link('run',view.task.run_id)} onClick={event=>{if(!canNavigate())event.preventDefault();}}>{t('open_run')}<ArrowUpRight size={13}/></a>}
       {view.issue.status!=='closed'&&<p className={view.can_close?'ir-success':'ir-muted'}>{t(view.can_close?'ready':'readiness_boundary')}</p>}

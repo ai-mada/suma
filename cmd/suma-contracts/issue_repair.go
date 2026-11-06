@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func issueRepairModels() []any {
-	return []any{platform.IssueRepair{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairCaseOrigin{}, platform.IssueRepairPackageOrigin{}, platform.IssueRepairPackageProof{}, platform.IssueRepairReleaseHandoff{}, platform.IssueRepairReleaseHandoffInput{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
+	return []any{platform.IssueRepair{}, platform.IssueRepairAutomationSource{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairCaseOrigin{}, platform.IssueRepairPackageOrigin{}, platform.IssueRepairPackageProof{}, platform.IssueRepairReleaseHandoff{}, platform.IssueRepairReleaseHandoffInput{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
 }
 
 func issueRepairContracts(add operationAdder, api map[string]any) {
@@ -31,7 +31,7 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 		}
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"IssueRepair", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairCaseOrigin", "IssueRepairPackageOrigin", "IssueRepairPackageProof", "IssueRepairReleaseHandoff", "IssueRepairReleaseHandoffInput", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
+	for _, name := range []string{"IssueRepair", "IssueRepairAutomationSource", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairCaseOrigin", "IssueRepairPackageOrigin", "IssueRepairPackageProof", "IssueRepairReleaseHandoff", "IssueRepairReleaseHandoffInput", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
 		toolContractMap(schemas, name)["additionalProperties"] = false
 	}
 	field := func(model, name string, attributes map[string]any) {
@@ -57,6 +57,9 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 	field("IssueRepairBindRequest", "plan_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,64}$"})
 	field("IssueRepairBindRequest", "case_keys", map[string]any{"minItems": 1, "maxItems": 100, "uniqueItems": true, "items": map[string]any{"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}})
 	field("IssueRepairCloseRequest", "run_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,100}$"})
+	field("IssueRepair", "automation_source", map[string]any{"readOnly": true, "description": "Original failed run and verified automation provenance retained when this repair cycle was prepared. Visible to authorized browser sessions. Does not establish acceptance or closure eligibility."})
+	field("IssueRepairAutomationSource", "run_id", map[string]any{"readOnly": true, "minLength": 1, "maxLength": 100})
+	field("IssueRepairAutomationSource", "origin", map[string]any{"readOnly": true})
 	field("IssueRepairView", "history", map[string]any{"maxItems": 10, "description": "Most recent bounded repair cycles. history_total/history_complete explicitly disclose omitted history; this window never determines closure authority."})
 	field("IssueRepairView", "original_case", map[string]any{"readOnly": true, "description": "Protected original failed case locator from the frozen execution. Independent of editable issue metadata and current plan publication."})
 	for _, name := range []string{"plan_id", "case_key"} {

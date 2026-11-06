@@ -46,54 +46,72 @@ func (s *Service) GetFailureDiagnosisIssueSource(ctx context.Context, actor Acto
 		return out, missing()
 	}
 	out = FailureDiagnosisIssueSource{ProjectID: project, IssueID: issue}
+	out.RunID, err = s.failureDiagnosisIssueRunTx(ctx, auth)
+	if err != nil || out.RunID == "" || !auth.actor.IsBrowser() {
+		return out, err
+	}
+	out.AutomationOrigin, err = s.verifiedIssueAutomationOriginTx(ctx, auth, out.RunID)
+	return out, err
+}
+
+// A caller checks the current issue in this authority transaction before
+// resolving its original run. Editable issue fields do not establish lineage.
+func (s *Service) failureDiagnosisIssueRunTx(ctx context.Context, auth *authorizedCommand) (string, error) {
+	if auth == nil {
+		return "", forbidden()
+	}
+	tenant, project, issue := auth.target.tenantID, auth.target.projectID, auth.target.resourceID
+	if err := assertProjectRead(auth, project); err != nil {
+		return "", err
+	}
 	query := `SELECT r.id,o.operation_id FROM suma_operations o
 		JOIN dag_runs r ON r.tenant_id=o.tenant_id AND r.project_id=o.project_id AND r.id=SUBSTR(o.operation_id,LENGTH('failure-')+1)
 		WHERE o.tenant_id=? AND o.project_id=? AND o.operation_id LIKE 'failure-%' AND (` + s.failureIssueReceiptIDSQL() + `)=?
 		ORDER BY r.id LIMIT 2`
-	rows, err := auth.tx.QueryContext(ctx, s.q(query), auth.target.tenantID, project, issue)
+	rows, err := auth.tx.QueryContext(ctx, s.q(query), tenant, project, issue)
 	if err != nil {
-		return out, err
+		return "", err
 	}
 	defer rows.Close()
 	if !rows.Next() {
-		return out, rows.Err()
+		return "", rows.Err()
 	}
 	var run, operation string
 	if err = rows.Scan(&run, &operation); err != nil {
-		return out, err
+		return "", err
 	}
-	if rows.Next() || operation != failureIssueKey(run) {
-		return out, conflict(diagnosisIssue)
+	if rows.Next() {
+		return "", conflict(diagnosisIssue)
 	}
 	if err = rows.Err(); err != nil {
-		return out, err
+		return "", err
 	}
 	if err = rows.Close(); err != nil {
-		return out, err
+		return "", err
 	}
-	id, found, err := s.failureIssueIDTx(ctx, auth.tx, auth.target.tenantID, project, run)
+	if operation != failureIssueKey(run) {
+		return "", conflict(diagnosisIssue)
+	}
+	id, found, err := s.failureIssueIDTx(ctx, auth.tx, tenant, project, run)
 	if err != nil {
-		return out, err
+		return "", err
 	}
 	if !found || id != issue {
-		return out, conflict(diagnosisIssue)
+		return "", conflict(diagnosisIssue)
 	}
-	out.RunID = run
-	if !auth.actor.IsBrowser() {
-		return out, nil
-	}
-	// The issue's canonical run remains useful even if its optional automation
-	// binding cannot be verified. Database and transaction failures still fail
-	// the read, and project API credentials do not read this browser provenance.
-	origin, err := s.automationRunOriginCurrent(ctx, auth.tx, auth.target.tenantID, project, run)
+	return run, nil
+}
+
+// An unverified automation binding does not invalidate a canonical failed run.
+// Database and transaction failures still fail the enclosing operation.
+func (s *Service) verifiedIssueAutomationOriginTx(ctx context.Context, auth *authorizedCommand, run string) (*AutomationRunOrigin, error) {
+	origin, err := s.automationRunOriginCurrent(ctx, auth.tx, auth.target.tenantID, auth.target.projectID, run)
 	if err != nil {
 		var invalidOrigin invalidAutomationRunOrigin
 		var apiError *APIError
 		if errors.As(err, &invalidOrigin) || errors.As(err, &apiError) && apiError.Status == http.StatusNotFound {
-			return out, nil
+			return nil, nil
 		}
-		return out, err
 	}
-	out.AutomationOrigin = origin
-	return out, nil
+	return origin, err
 }

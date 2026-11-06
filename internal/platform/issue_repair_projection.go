@@ -176,7 +176,22 @@ func (s *Service) issueRepairClosureTx(ctx context.Context, auth *authorizedComm
 	return &IssueRepairClosure{RunID: runID, TaskVersion: task.Version, ReviewID: review, PlanID: plan.ID, PlanRevision: revision.Revision, PlanSHA256: revision.SHA256, CaseKeys: append([]string{}, repair.Regression.CaseKeys...), SourceCommits: append([]string{}, execution.SourceCommits...), PackageRegression: packageRegression}, blockers, nil
 }
 
+// Apply the browser-only provenance boundary to views and recovered receipts.
+// Current and history are decoded snapshots, so redaction cannot change storage.
+func (view *IssueRepairView) restrictAutomationSource(actor Actor) {
+	if actor.IsBrowser() {
+		return
+	}
+	if view.Current != nil {
+		view.Current.AutomationSource = nil
+	}
+	for i := range view.History {
+		view.History[i].AutomationSource = nil
+	}
+}
+
 func (s *Service) issueRepairViewTx(ctx context.Context, auth *authorizedCommand, project, issueID string) (out IssueRepairView, err error) {
+	defer out.restrictAutomationSource(auth.actor)
 	out = IssueRepairView{Cycle: 1, History: []IssueRepair{}, HistoryComplete: true, Blockers: []IssueRepairBlocker{}}
 	out.Issue, err = s.getRecordTx(ctx, auth, project, "issues", issueID)
 	if err != nil {

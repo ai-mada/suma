@@ -375,9 +375,10 @@ func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, trigge
 		t.Fatal(err)
 	}
 	// Editable issue metadata cannot manufacture the execution projector's link.
-	manual := f.call(http.MethodPost, "/issues", f.body(map[string]any{
+	manualIssue := f.call(http.MethodPost, "/issues", f.body(map[string]any{
 		"title": "Manually reported failure", "data": map[string]any{"run_id": runID, "origin": "execution"},
-	}), http.StatusCreated)["id"].(string)
+	}), http.StatusCreated)
+	manual := manualIssue["id"].(string)
 	if source := f.call(http.MethodGet, issueSourcePath(f.project, manual), nil, http.StatusOK); source["issue_id"] != manual || len(source) != 2 {
 		t.Fatalf("manual issue returned execution provenance: %+v", source)
 	}
@@ -394,7 +395,7 @@ func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, trigge
 		t.Fatalf("invalid canonical issue receipt: %v", err)
 	}
 	assertLink(issue.ID)
-	f.call(http.MethodPatch, "/issues/"+issue.ID, f.body(map[string]any{
+	editedIssue := f.call(http.MethodPatch, "/issues/"+issue.ID, f.body(map[string]any{
 		"expected_version": issue.Version, "data": map[string]any{"run_id": newID()},
 	}), http.StatusOK)
 	assertLink(issue.ID)
@@ -430,13 +431,12 @@ func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, trigge
 			t.Fatalf("wrong historical pause decision: %+v", source)
 		}
 	}
-	assertIssueSource(f.call(http.MethodGet, sourcePath, nil, http.StatusOK), true, true)
+	browserSource := f.call(http.MethodGet, sourcePath, nil, http.StatusOK)
+	assertIssueSource(browserSource, true, true)
 	f.call(http.MethodGet, issueSourcePath(otherProject, issue.ID), nil, http.StatusNotFound)
-	api, err := f.s.IssueProjectCredential(ctx, f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: "api", IdempotencyKey: newID()})
-	if err != nil {
-		t.Fatal(err)
-	}
-	assertIssueSource(f.bearer(http.MethodGet, sourcePath, api.Token, nil, http.StatusOK), false, false)
+	api := f.call(http.MethodPost, "/auth/tokens", f.body(map[string]any{"scope": "api"}), http.StatusCreated)["token"].(string)
+	assertIssueSource(f.bearer(http.MethodGet, sourcePath, api, nil, http.StatusOK), false, false)
+	assertFrozenRepair := verifyAutomationRepairPreparation(t, f, editedIssue, manualIssue, browserSource, api, otherProject)
 
 	// Invalid optional links cannot remove the formally projected run source.
 	setTriggerTime := func(value string) {
@@ -447,6 +447,7 @@ func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, trigge
 	}
 	setTriggerTime("invalid")
 	assertIssueSource(f.call(http.MethodGet, sourcePath, nil, http.StatusOK), false, false)
+	assertFrozenRepair()
 	setTriggerTime(run.ScheduledAt)
 	setPauseReason := func(reason string) {
 		t.Helper()
@@ -481,5 +482,73 @@ func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, trigge
 	}
 	if retained != stored {
 		t.Fatal("read-time issue projection changed the stored failure evidence")
+	}
+}
+
+func verifyAutomationRepairPreparation(t *testing.T, f *fixture, issue, manual, source map[string]any, api, otherProject string) func() {
+	t.Helper()
+	path := func(record map[string]any) string { return "/issues/" + record["id"].(string) + "/repair" }
+	body := func(record map[string]any) map[string]any {
+		return f.body(map[string]any{
+			"expected_issue_version": record["version"],
+			"title":                  "Repair the reported workflow failure",
+			"description":            "Keep the original failure evidence and independently verify the fix.",
+			"owner_id":               "",
+			"acceptance_criteria":    []string{"The failed workflow can be independently verified"},
+			"reason":                 "Explicit fixture repair preparation",
+		})
+	}
+	assertBasis := func(response, expected map[string]any) map[string]any {
+		t.Helper()
+		view := issueRepairRuntimeDecode[IssueRepairView](t, response)
+		if view.Current == nil || view.Task == nil || view.Task.ID != view.Current.TaskID || view.Task.RunID != "" ||
+			view.Issue.Status != "in_progress" || view.Current.Regression != nil || view.Current.Closure != nil || view.CanClose {
+			t.Fatalf("preparation must leave a normal task and enforce regression and review: %+v", view)
+		}
+		current := response["current"].(map[string]any)
+		basis, present := current["automation_source"]
+		if expected == nil {
+			if present {
+				t.Fatalf("unverified or unauthorized repair source was exposed: %+v", basis)
+			}
+		} else if !present || stringify(basis) != stringify(expected) {
+			t.Fatalf("repair did not retain the verified source: got %+v want %+v", basis, expected)
+		}
+		return current
+	}
+	runs := autoCount(t, f, "dag_runs")
+	manualRepair := f.call(http.MethodPost, path(manual)+"/prepare", body(manual), http.StatusCreated)
+	assertBasis(manualRepair, nil)
+
+	repairPath := path(issue)
+	preparePath := repairPath + "/prepare"
+	readPath := repairPath + "?project_id=" + f.project
+	request := body(issue)
+	expected := map[string]any{"run_id": source["run_id"], "origin": source["automation_origin"]}
+	original := assertBasis(f.call(http.MethodPost, preparePath, request, http.StatusCreated), expected)
+	f.call(http.MethodGet, repairPath+"?project_id="+otherProject, nil, http.StatusNotFound)
+	repairs := autoCount(t, f, "suma_issue_repairs")
+
+	// These reads and replays run after the live automation source is damaged.
+	// The browser gets the original frozen basis, and a token for the same
+	// actor can replay the operation without gaining browser-only evidence.
+	return func() {
+		t.Helper()
+		for _, result := range []struct {
+			response map[string]any
+			basis    map[string]any
+		}{
+			{f.call(http.MethodGet, readPath, nil, http.StatusOK), expected},
+			{f.call(http.MethodPost, preparePath, request, http.StatusCreated), expected},
+			{f.bearer(http.MethodGet, readPath, api, nil, http.StatusOK), nil},
+			{f.bearer(http.MethodPost, preparePath, api, request, http.StatusCreated), nil},
+		} {
+			if current := assertBasis(result.response, result.basis); current["id"] != original["id"] || current["task_id"] != original["task_id"] {
+				t.Fatalf("the existing repair was replaced on read or replay: %+v", current)
+			}
+		}
+		if autoCount(t, f, "dag_runs") != runs || autoCount(t, f, "suma_issue_repairs") != repairs {
+			t.Fatal("repair preparation or replay started a run or duplicated a repair")
+		}
 	}
 }

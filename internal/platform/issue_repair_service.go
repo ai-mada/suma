@@ -3,6 +3,8 @@ package platform
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"net/http"
 	"strings"
 )
 
@@ -26,6 +28,7 @@ func (s *Service) issueRepairCommand(ctx context.Context, actor Actor, project, 
 	}
 	if replay {
 		err = json.Unmarshal([]byte(hash), &out)
+		out.restrictAutomationSource(auth.actor)
 		return out, err
 	}
 	if err = change(ctx, auth); err != nil {
@@ -74,6 +77,9 @@ func (s *Service) PrepareIssueRepair(ctx context.Context, actor Actor, project, 
 		if err != nil {
 			return err
 		}
+		if issue.ID != issueID || issue.TenantID != auth.target.tenantID || issue.ProjectID != project {
+			return missing()
+		}
 		if issue.Version != request.ExpectedIssueVersion {
 			return conflict(issueRepairVersion)
 		}
@@ -85,6 +91,10 @@ func (s *Service) PrepareIssueRepair(ctx context.Context, actor Actor, project, 
 			return conflict(issueRepairState)
 		}
 		if _, err = s.issueRepairOriginalCaseTx(ctx, auth, project, issueID); err != nil {
+			return err
+		}
+		automationSource, err := s.issueRepairAutomationSourceTx(ctx, auth)
+		if err != nil {
 			return err
 		}
 		criteria := append([]string{}, request.AcceptanceCriteria...)
@@ -113,6 +123,7 @@ func (s *Service) PrepareIssueRepair(ctx context.Context, actor Actor, project, 
 			cycle = previous.Cycle + 1
 		}
 		repair := IssueRepair{ID: newID(), TenantID: auth.target.tenantID, ProjectID: project, IssueID: issueID, Cycle: cycle, Version: 1, RequirementID: requirement.ID, TaskID: task.ID, PreparedBy: auth.currentPrincipal.ID, CreatedAt: now(), UpdatedAt: now()}
+		repair.AutomationSource = automationSource
 		if err = s.saveIssueRepairTx(ctx, auth, repair, 0); err != nil {
 			return err
 		}
@@ -121,6 +132,25 @@ func (s *Service) PrepareIssueRepair(ctx context.Context, actor Actor, project, 
 		}
 		return s.commandActivity(ctx, auth, "issue.repair_prepared", issueID, request.Reason)
 	})
+}
+
+func (s *Service) issueRepairAutomationSourceTx(ctx context.Context, auth *authorizedCommand) (*IssueRepairAutomationSource, error) {
+	run, err := s.failureDiagnosisIssueRunTx(ctx, auth)
+	if err != nil {
+		var apiError *APIError
+		if errors.As(err, &apiError) && apiError.Status == http.StatusConflict {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if run == "" {
+		return nil, nil
+	}
+	origin, err := s.verifiedIssueAutomationOriginTx(ctx, auth, run)
+	if err != nil || origin == nil {
+		return nil, err
+	}
+	return &IssueRepairAutomationSource{RunID: run, Origin: *origin}, nil
 }
 
 func (s *Service) BindIssueRegression(ctx context.Context, actor Actor, project, issueID string, request IssueRepairBindRequest) (IssueRepairView, error) {
