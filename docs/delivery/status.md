@@ -20,6 +20,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-FAILURE-ISSUE-PROVENANCE-268 失败投影、任务交付和诊断通过正式事件及原问题回执统一核对来源。 [架构](../architecture/failure-diagnosis.md) · [验证](../quality/failure-issue-provenance-verification.md)
+
 T-RUNNER-PROGRESS-RECOVERY-267 普通和共享执行节点持久记录确定失效的旧进度，继续发送原尝试的停止回执。 [运行说明](../agents/tool-execution-runtime.md) · [验证](../quality/runner-progress-stale-verification.md)
 
 T-RUNNER-EXECUTABLE-DIGEST-266 执行节点在一次库存扫描中复用相同主程序的指纹，检测到文件变化后标为不可用，正式运行前独立校验。 [执行合同](../../contracts/tool-execution.md#administrator-profiles-and-live-observations) · [验证](../quality/runner-executable-digest-verification.md)

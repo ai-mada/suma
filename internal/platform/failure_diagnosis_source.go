@@ -37,24 +37,24 @@ func diagnosisEvidence(kind, text string) (FailureDiagnosisEvidence, error) {
 	return e, nil
 }
 func (s *Service) failureIssueForRunTx(ctx context.Context, auth *authorizedCommand, project, run string) (issue Record, found bool, err error) {
-	var raw string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), auth.target.tenantID, project, "failure-"+run).Scan(&raw)
-	if errors.Is(err, sql.ErrNoRows) {
-		return issue, false, nil
-	}
-	if err != nil {
+	id, found, err := s.failureIssueIDTx(ctx, auth.tx, auth.target.tenantID, project, run)
+	if err != nil || !found {
 		return issue, false, err
 	}
-	var ref struct {
-		ID string `json:"id"`
-	}
-	if json.Unmarshal([]byte(raw), &ref) != nil || !handoffID(ref.ID, false) {
-		return issue, false, conflict(diagnosisIssue)
-	}
-	issue, err = s.getRecordTx(ctx, auth, project, "issues", ref.ID)
+	issue, err = s.getRecordTx(ctx, auth, project, "issues", id)
 	return issue, err == nil, err
 }
 func (s *Service) failureDiagnosisSourceTx(ctx context.Context, tx *sql.Tx, tenant, project, issueID, run, node string, attempt int) (out FailureDiagnosisSource, err error) {
+	canonicalID, found, err := s.failureIssueIDTx(ctx, tx, tenant, project, run)
+	if err != nil {
+		return out, err
+	}
+	if !found {
+		return out, conflict(diagnosisIssue)
+	}
+	if canonicalID != issueID {
+		return out, conflict(diagnosisSource)
+	}
 	issue, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_issues WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, issueID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, missing()
@@ -62,9 +62,11 @@ func (s *Service) failureDiagnosisSourceTx(ctx context.Context, tx *sql.Tx, tena
 	if err != nil {
 		return out, err
 	}
-	if issue.Data["run_id"] != run {
-		return out, conflict(diagnosisSource)
-	}
+	return s.failureDiagnosisEvidenceTx(ctx, tx, tenant, project, issue, run, node, attempt)
+}
+
+// The caller must obtain issue from the scoped run-failure receipt first.
+func (s *Service) failureDiagnosisEvidenceTx(ctx context.Context, tx *sql.Tx, tenant, project string, issue Record, run, node string, attempt int) (out FailureDiagnosisSource, err error) {
 	var output, errorText, attemptState, raw string
 	var storedFence int64
 	var storedWorker string

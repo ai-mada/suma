@@ -215,8 +215,7 @@ func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, p
 		return out, nil
 	}
 	var run TaskDeliveryRun
-	var workflow string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id,version,state,workflow_name FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, project, task.RunID).Scan(&run.RunID, &run.Version, &run.State, &workflow)
+	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id,version,state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, project, task.RunID).Scan(&run.RunID, &run.Version, &run.State)
 	if errors.Is(err, sql.ErrNoRows) {
 		out.RunBasisState = "unknown"
 		return out, nil
@@ -246,7 +245,7 @@ func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, p
 	if out.ExpertPlans, err = s.taskDeliveryExpertPlansTx(ctx, auth, task); err != nil {
 		return out, err
 	}
-	if out.Issues, err = s.taskDeliveryIssuesTx(ctx, auth, task, workflow); err != nil {
+	if out.Issues, err = s.taskDeliveryIssuesTx(ctx, auth, task); err != nil {
 		return out, err
 	}
 	if err = s.appendTaskDeliveryQualityDefectsTx(ctx, auth, task, &out.Issues); err != nil {

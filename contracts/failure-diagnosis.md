@@ -33,6 +33,7 @@
 `FailureDiagnosisSource`：sha256、issue_id/issue_version、run_id/run_version/run_state、node_id/node_state、
 attempt/fence/worker_id、可选 task_id/task_version/task_title、可选 requirement_id/requirement_version、evidence数组。
 只能从当前 tenant/project 的原 issue 关联 run、已持久准确节点及相应任务读取，不接受调用方自造输出或来源正文。
+运行与问题的正式关系由同一作用域内的持久 `run_failed` 事件、故障投影操作摘要和原问题创建快照共同证明。任务交付和诊断共用这项校验。手工问题的运行编号可用于展示，提交诊断仍须匹配正式投影的问题 ID。来源复核沿用当前问题版本和实际节点证据。
 节点必须 failed 且是当前所选 attempt，结果已知；原 run 不得 reconciling，也不得以一次旧失败覆盖新尝试。
 固定 issue/task/requirement/节点原内容与实际执行身份；下次执行／任务或问题依据变化使采用失效。
 

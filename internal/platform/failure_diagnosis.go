@@ -50,7 +50,7 @@ func (s *Service) FailureDiagnosisContext(ctx context.Context, engine *dag.Engin
 		out.Blockers = append(out.Blockers, diagnosisIssue)
 		return out, nil
 	}
-	source, err := s.failureDiagnosisSourceTx(ctx, auth.tx, auth.target.tenantID, project, issue.ID, run, node, attempt)
+	source, err := s.failureDiagnosisEvidenceTx(ctx, auth.tx, auth.target.tenantID, project, issue, run, node, attempt)
 	if err != nil {
 		var api *APIError
 		if errors.As(err, &api) {

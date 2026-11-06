@@ -2,9 +2,7 @@ package platform
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 )
 
 // The slot is created atomically with its authoritative review. Editable issue
@@ -29,7 +27,12 @@ func (s *Service) taskDeliveryIssueRefTx(ctx context.Context, auth *authorizedCo
 	if err := json.Unmarshal([]byte(raw), &original); err != nil {
 		return out, err
 	}
-	issue, err := s.getRecordTx(ctx, auth, project, "issues", original.ID)
+	return s.taskDeliveryIssueByIDTx(ctx, auth, project, original.ID, source, review)
+}
+
+func (s *Service) taskDeliveryIssueByIDTx(ctx context.Context, auth *authorizedCommand, project, issueID, source, review string) (TaskDeliveryIssue, error) {
+	var out TaskDeliveryIssue
+	issue, err := s.getRecordTx(ctx, auth, project, "issues", issueID)
 	if err != nil {
 		return out, err
 	}
@@ -42,20 +45,17 @@ func (s *Service) taskDeliveryIssueRefTx(ctx context.Context, auth *authorizedCo
 	return out, nil
 }
 
-func (s *Service) taskDeliveryIssuesTx(ctx context.Context, auth *authorizedCommand, task Record, workflow string) (out TaskDeliveryIssues, err error) {
+func (s *Service) taskDeliveryIssuesTx(ctx context.Context, auth *authorizedCommand, task Record) (out TaskDeliveryIssues, err error) {
 	out = TaskDeliveryIssues{Scope: "current_run", Limit: taskDeliveryReferenceLimit, Complete: true, Items: []TaskDeliveryIssue{}}
 	if task.RunID == "" {
 		return out, nil
 	}
-	var stored, raw string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT o.request_hash,o.response FROM suma_operations o WHERE o.tenant_id=? AND o.project_id=? AND o.operation_id=? AND EXISTS(SELECT 1 FROM dag_events e WHERE e.tenant_id=o.tenant_id AND e.project_id=o.project_id AND e.run_id=? AND e.event_type='run_failed')`), auth.target.tenantID, task.ProjectID, "failure-"+task.RunID, task.RunID).Scan(&stored, &raw)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	issueID, found, err := s.failureIssueIDTx(ctx, auth.tx, auth.target.tenantID, task.ProjectID, task.RunID)
+	if err != nil {
 		return out, err
 	}
-	if err == nil {
-		body := map[string]any{"title": "执行失败：" + workflow, "description": "运行 " + task.RunID + " 失败，请查看节点证据并分诊。", "status": "open", "priority": "high", "idempotency_key": "failure-" + task.RunID, "data": map[string]any{"run_id": task.RunID, "origin": "execution"}}
-		expected := digest("system" + stringify(map[string]any{"kind": "issues", "body": body}))
-		ref, e := s.taskDeliveryIssueRefTx(ctx, auth, task.ProjectID, stored, raw, expected, "execution_failure", "")
+	if found {
+		ref, e := s.taskDeliveryIssueByIDTx(ctx, auth, task.ProjectID, issueID, "execution_failure", "")
 		if e != nil {
 			return out, e
 		}

@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "failure_issue_provenance": {
+    "stage": "T-FAILURE-ISSUE-PROVENANCE-268",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "3c1af014f385dd0efeadc5c24c5453bb1faee7ba",
+    "report": "docs/quality/failure-issue-provenance-verification.md",
+    "actual": "Failure projection, task delivery and diagnosis bind the same scoped run_failed event and original issue receipt. Editable issue run IDs cannot grant diagnosis authority.",
+    "verification": "17 Windows Go checks with actual SQLite. Tested forged source, missing facts, edited issue display fields, task delivery HTTP and original intake/adoption.",
+    "known_limitations": "The issue detail reverse link still starts from editable display data. Model and physical distributed validation are separate.",
+    "full_platform_complete": false
+  },
   "runner_progress_recovery": {
     "stage": "T-RUNNER-PROGRESS-RECOVERY-267",
     "version": "1.0.0",

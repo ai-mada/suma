@@ -3,7 +3,6 @@ package platform
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -93,17 +92,14 @@ func (s *Service) insertFailureIssueTx(ctx context.Context, tx *sql.Tx, proof *f
 	if err := proof.assertTx(tx); err != nil {
 		return err
 	}
-	key := "failure-" + proof.run
-	m := map[string]any{"title": "执行失败：" + proof.workflow, "description": "运行 " + proof.run + " 失败，请查看节点证据并分诊。", "status": "open", "priority": "high", "idempotency_key": key, "data": map[string]any{"run_id": proof.run, "origin": "execution"}}
-	hash := digest("system" + stringify(map[string]any{"kind": "issues", "body": m}))
+	key := failureIssueKey(proof.run)
+	m := failureIssueBody(proof.run, proof.workflow)
+	hash := failureIssueHash(m)
 	var previous, response string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT request_hash,response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), proof.tenant, proof.project, key).Scan(&previous, &response)
 	if err == nil {
-		if previous != hash {
-			return &APIError{409, "idempotency_conflict", "该操作标识已用于其他内容", nil}
-		}
-		var existing Record
-		return json.Unmarshal([]byte(response), &existing)
+		_, err = failureIssueReceiptID(response, previous, hash, proof.tenant, proof.project, proof.run)
+		return err
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return err
