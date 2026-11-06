@@ -53,6 +53,31 @@ func TestToolProfileDriftRefusesBeforeCommandLaunch(t *testing.T) {
 	}
 }
 
+func TestToolInventorySharesExecutableButKeepsDistinctProfiles(t *testing.T) {
+	exe, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("git is required as the installed executable")
+	}
+	cfg := ExecConfig{AllowExec: true, Commands: map[string]CommandSpec{
+		"branch": {Executable: exe, Args: []string{"branch"}, ReadOnly: true},
+		"status": {Executable: exe, Args: []string{"status"}, ReadOnly: true},
+	}}
+	items := describeForTest(t, cfg)
+	if len(items) != 2 || !items[0].Available || !items[1].Available {
+		t.Fatalf("profiles were not independently available: %+v", items)
+	}
+	first, second := items[0].Profile, items[1].Profile
+	if len(first.ExecutableSHA256) != 64 || first.ExecutableSHA256 != second.ExecutableSHA256 || first.ProfileSHA256 == second.ProfileSHA256 {
+		t.Fatalf("unexpected profile bindings: %+v, %+v", first, second)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if partial, err := DescribeTools(ctx, cfg); err != context.Canceled || partial != nil {
+		t.Fatalf("canceled scan returned %v, %v", partial, err)
+	}
+}
+
 func TestToolInventoryDoesNotAdvertiseMissingIsolationOrUnsupportedTerminal(t *testing.T) {
 	exe, _ := os.Executable()
 	items := describeForTest(t, ExecConfig{AllowExec: true, Commands: map[string]CommandSpec{"write": {Executable: exe}}})

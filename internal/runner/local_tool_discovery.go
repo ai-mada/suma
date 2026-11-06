@@ -217,7 +217,7 @@ func discoverInstalledEntries(ctx context.Context, entries []localToolDirectoryE
 }
 
 func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, error) {
-	exe, _, err := commandExecutable(spec)
+	exe, _, err := commandExecutableContext(ctx, spec)
 	if err != nil {
 		return "", newProbeFailure("source", "source_unavailable", err)
 	}

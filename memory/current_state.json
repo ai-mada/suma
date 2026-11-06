@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "runner_executable_digest": {
+    "stage": "T-RUNNER-EXECUTABLE-DIGEST-266",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "e4d9c9d6dd27faef847d377a21b971c17337543b",
+    "report": "docs/quality/runner-executable-digest-verification.md",
+    "actual": "Bounded and cancellable primary executable fingerprinting, one digest per resolved path in each Runner inventory scan, and independent launch checks.",
+    "verification": "11 targeted Windows tests passed with two symlink subtests skipped. Actual Codex CLI version/help probes returned two available profiles, one executable digest, and two distinct configuration digests. Linux amd64 test binary cross-compiled.",
+    "known_limitations": "No Linux runtime, model calls, or live distributed execution verified in this stage.",
+    "full_platform_complete": false
+  },
   "tool_input_locator": {
     "stage": "T-TOOL-INPUT-LOCATOR-265",
     "version": "1.0.0",

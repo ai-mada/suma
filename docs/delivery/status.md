@@ -16,6 +16,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-RUNNER-EXECUTABLE-DIGEST-266 执行节点在一次库存扫描中复用相同主程序的指纹，检测到文件变化后标为不可用，正式运行前独立校验。 [执行合同](../../contracts/tool-execution.md#administrator-profiles-and-live-observations) · [验证](../quality/runner-executable-digest-verification.md)
+
 T-TOOL-INPUT-LOCATOR-265 工具输入通知定位到原尝试内的准确问题，支持重试后回查与键盘定位。 [交互](../design/notification-inbox.md#工具问题的处理入口) · [验证](../quality/tool-input-exact-locator-verification.md)
 
 T-TOOL-INPUT-INBOX-264 正式任务的交互输入通知可在项目或组织收件箱打开原尝试。 [交互](../design/notification-inbox.md#工具问题的处理入口) · [验证](../quality/tool-input-inbox-verification.md)

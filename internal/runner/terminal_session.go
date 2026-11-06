@@ -86,7 +86,7 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 	}
 	// Recheck the executable bytes and complete profile after preparation. An
 	// administrator edit between inventory and launch cannot silently change it.
-	latestExecutable, latestSHA, err := commandExecutable(spec)
+	latestExecutable, latestSHA, err := commandExecutableContext(ctx, spec)
 	if err != nil {
 		return fail(err)
 	}

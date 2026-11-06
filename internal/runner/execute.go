@@ -964,7 +964,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if ctx.Err() != nil {
 		return fail(ctx.Err().Error())
 	}
-	latestExecutable, latestSHA, digestErr := commandExecutable(spec)
+	latestExecutable, latestSHA, digestErr := commandExecutableContext(ctx, spec)
 	if digestErr != nil {
 		return fail("tool profile executable became unavailable before launch")
 	}

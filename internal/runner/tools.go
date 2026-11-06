@@ -83,35 +83,22 @@ func decodeCommandProfiles(raw []byte) (map[string]CommandSpec, error) {
 }
 
 func commandExecutable(spec CommandSpec) (string, string, error) {
-	exe, err := exec.LookPath(spec.Executable)
+	return commandExecutableContext(context.Background(), spec)
+}
+
+func commandExecutableContext(ctx context.Context, spec CommandSpec) (string, string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", "", err
+	}
+	exe, err := resolveCommandExecutable(spec)
 	if err != nil {
-		return "", "", fmt.Errorf("configured executable is not installed")
+		return "", "", err
 	}
-	exe, err = filepath.Abs(exe)
+	snapshot, err := digestExecutable(ctx, exe)
 	if err != nil {
-		return "", "", fmt.Errorf("executable path unavailable")
+		return "", "", err
 	}
-	exe, err = resolveExecutableTarget(exe)
-	if err != nil {
-		return "", "", fmt.Errorf("executable target unavailable")
-	}
-	if strings.EqualFold(filepath.Ext(exe), ".cmd") || strings.EqualFold(filepath.Ext(exe), ".bat") {
-		return "", "", fmt.Errorf("shell wrapper is not enabled as a native executable")
-	}
-	f, err := os.Open(exe)
-	if err != nil {
-		return "", "", fmt.Errorf("executable cannot be read")
-	}
-	defer f.Close()
-	st, err := f.Stat()
-	if err != nil || !st.Mode().IsRegular() || st.Size() > 1<<30 {
-		return "", "", fmt.Errorf("executable is not a bounded regular file")
-	}
-	h := sha256.New()
-	if _, err = io.Copy(h, f); err != nil {
-		return "", "", fmt.Errorf("executable digest unavailable")
-	}
-	return exe, hex.EncodeToString(h.Sum(nil)), nil
+	return exe, snapshot.sha256, nil
 }
 
 // Pin each interpreter and its reviewed entry. Cursor additionally checks its
@@ -554,6 +541,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 }
 
 func describeTools(ctx context.Context, cfg ExecConfig, poolArtifacts bool) ([]tc.Observation, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if err := ValidateToolConfiguration(cfg); err != nil {
 		return nil, err
 	}
@@ -563,6 +553,14 @@ func describeTools(ctx context.Context, cfg ExecConfig, poolArtifacts bool) ([]t
 	}
 	sort.Strings(names)
 	results := make([]tc.Observation, len(names))
+	// A single scan can contain many configurations for one binary. Share only
+	// its file digest; each profile still proves its own protocol and settings.
+	var executableDigests inventoryExecutableDigests
+	type observedExecutable struct {
+		path string
+		base tc.Profile
+	}
+	observed := make([]observedExecutable, len(names))
 	var readErr error
 	var writeErr error
 	if cfg.AllowExec {
@@ -578,8 +576,13 @@ func describeTools(ctx context.Context, cfg ExecConfig, poolArtifacts bool) ([]t
 	done := make(chan int, len(names))
 	for i, id := range names {
 		go func(i int, id string) {
-			sem <- struct{}{}
-			defer func() { <-sem; done <- i }()
+			defer func() { done <- i }()
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-ctx.Done():
+				return
+			}
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
 			if spec.ACP != nil && spec.ACP.Runtime == "cursor" {
@@ -619,11 +622,12 @@ func describeTools(ctx context.Context, cfg ExecConfig, poolArtifacts bool) ([]t
 				fail(writeErr.Error())
 				return
 			}
-			exe, sha, err := commandExecutable(spec)
+			exe, snapshot, err := executableDigests.get(ctx, spec)
 			if err != nil {
 				fail(err.Error())
 				return
 			}
+			sha := snapshot.sha256
 			o.Profile.ExecutableSHA256 = sha
 			digest, err := effectiveCommandProfileDigest(cfg, spec, sha)
 			if err != nil {
@@ -746,11 +750,25 @@ func describeTools(ctx context.Context, cfg ExecConfig, poolArtifacts bool) ([]t
 			if spec.ACP != nil {
 				o.Reason = "reviewed native executable version; ACP session, model selection, login and task success unverified"
 			}
+			observed[i] = observedExecutable{path: exe, base: p}
 			results[i] = o
 		}(i, id)
 	}
 	for range names {
 		<-done
+	}
+	// Check again after all probes. A later profile might observe a change to
+	// a binary whose first profile finished earlier in the same scan.
+	for i, file := range observed {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if file.path != "" && !executableDigests.current(normalizedCommand(cfg.Commands[names[i]]), file.path) {
+			results[i] = tc.Observation{Profile: file.base, Reason: "executable digest unavailable"}
+		}
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 	return results, nil
 }
@@ -799,7 +817,7 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 			return tc.Profile{}, "", err
 		}
 	}
-	exe, sha, err := commandExecutable(spec)
+	exe, sha, err := commandExecutableContext(ctx, spec)
 	if err != nil {
 		return tc.Profile{}, "", err
 	}
