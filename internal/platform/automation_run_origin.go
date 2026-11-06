@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"strings"
 	"time"
 )
@@ -30,6 +29,12 @@ type AutomationRunFailurePause struct {
 	ObservedAt   string `json:"observed_at"`
 	Threshold    int    `json:"threshold"`
 }
+
+// An invalid origin is distinguishable from a query failure when an already
+// verified run is being enriched with optional automation provenance.
+type invalidAutomationRunOrigin string
+
+func (err invalidAutomationRunOrigin) Error() string { return string(err) }
 
 func (s *Service) AutomationRunOrigin(ctx context.Context, actor Actor, project, runID string) (AutomationRunOriginResult, error) {
 	var out AutomationRunOriginResult
@@ -83,7 +88,7 @@ func (s *Service) automationRunOriginCurrent(ctx context.Context, tx *sql.Tx, te
 		return nil, err
 	}
 	if rows.Next() {
-		return nil, errors.New("multiple automation occurrences are bound to the same run")
+		return nil, invalidAutomationRunOrigin("multiple automation occurrences are bound to the same run")
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -101,17 +106,17 @@ func (s *Service) automationRunOriginCurrent(ctx context.Context, tx *sql.Tx, te
 	if !handoffID(occurrenceID.String, false) || !handoffID(origin.RuleID, false) || origin.Revision < 1 || state != "started" || !revisionSpec.Valid ||
 		occurrenceTenant != tenant || occurrenceProject != project || occurrenceRunID != runID ||
 		ruleID != origin.RuleID || ruleTenant != tenant || ruleProject != project || revisionRuleID != origin.RuleID {
-		return nil, errors.New("invalid automation run binding")
+		return nil, invalidAutomationRunOrigin("invalid automation run binding")
 	}
 	if origin.Source != "cron" && origin.Source != "manual" && origin.Source != "webhook" {
-		return nil, errors.New("invalid automation occurrence source")
+		return nil, invalidAutomationRunOrigin("invalid automation occurrence source")
 	}
 	if scheduled, err := time.Parse(time.RFC3339, origin.ScheduledAt); err != nil || automationStamp(scheduled) != origin.ScheduledAt {
-		return nil, errors.New("invalid automation occurrence time")
+		return nil, invalidAutomationRunOrigin("invalid automation occurrence time")
 	}
 	var spec AutomationSpec
 	if err := json.Unmarshal([]byte(revisionSpec.String), &spec); err != nil || strings.TrimSpace(spec.Name) == "" || spec.WorkflowID != workflowID || spec.WorkflowVersion != workflowVersion {
-		return nil, errors.New("invalid automation rule revision for run")
+		return nil, invalidAutomationRunOrigin("invalid automation rule revision for run")
 	}
 	origin.OccurrenceID = occurrenceID.String
 	origin.RuleName = spec.Name

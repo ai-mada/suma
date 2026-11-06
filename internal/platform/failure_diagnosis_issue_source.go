@@ -1,14 +1,19 @@
 package platform
 
-import "context"
+import (
+	"context"
+	"errors"
+	"net/http"
+)
 
 // FailureDiagnosisIssueSource locates the original run of a projected issue.
 // The run is absent for an ordinary issue. The locator does not select an
 // attempt or grant permission to diagnose or execute anything.
 type FailureDiagnosisIssueSource struct {
-	ProjectID string `json:"project_id"`
-	IssueID   string `json:"issue_id"`
-	RunID     string `json:"run_id,omitempty"`
+	ProjectID        string               `json:"project_id"`
+	IssueID          string               `json:"issue_id"`
+	RunID            string               `json:"run_id,omitempty"`
+	AutomationOrigin *AutomationRunOrigin `json:"automation_origin,omitempty" wire:"nonnull"`
 }
 
 // Select only string IDs from the immutable operation response. The Go
@@ -37,7 +42,7 @@ func (s *Service) GetFailureDiagnosisIssueSource(ctx context.Context, actor Acto
 	if err != nil {
 		return out, err
 	}
-	if record.ID != issue {
+	if record.ID != issue || record.TenantID != auth.target.tenantID || record.ProjectID != project {
 		return out, missing()
 	}
 	out = FailureDiagnosisIssueSource{ProjectID: project, IssueID: issue}
@@ -74,5 +79,21 @@ func (s *Service) GetFailureDiagnosisIssueSource(ctx context.Context, actor Acto
 		return out, conflict(diagnosisIssue)
 	}
 	out.RunID = run
+	if !auth.actor.IsBrowser() {
+		return out, nil
+	}
+	// The issue's canonical run remains useful even if its optional automation
+	// binding cannot be verified. Database and transaction failures still fail
+	// the read, and project API credentials do not read this browser provenance.
+	origin, err := s.automationRunOriginCurrent(ctx, auth.tx, auth.target.tenantID, project, run)
+	if err != nil {
+		var invalidOrigin invalidAutomationRunOrigin
+		var apiError *APIError
+		if errors.As(err, &invalidOrigin) || errors.As(err, &apiError) && apiError.Status == http.StatusNotFound {
+			return out, nil
+		}
+		return out, err
+	}
+	out.AutomationOrigin = origin
 	return out, nil
 }

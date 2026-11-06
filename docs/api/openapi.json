@@ -16944,6 +16944,11 @@
       },
       "FailureDiagnosisIssueSource": {
         "properties": {
+          "automation_origin": {
+            "$ref": "#/components/schemas/AutomationRunOrigin",
+            "description": "Exact automation trigger and optional historical pause for the verified original run. Returned only to a current browser session when the provenance is available.",
+            "readOnly": true
+          },
           "issue_id": {
             "type": "string"
           },
@@ -80090,7 +80095,7 @@
     },
     "/failure-diagnosis/issue-source": {
       "get": {
-        "description": "Read the original failed run for a current project issue using the verified failure projection. An issue without a formal failure source omits run_id.",
+        "description": "Read the original failed run for a current project issue using the verified failure projection. A browser session can also receive verified automation provenance for that run. An issue without a formal failure source omits run_id.",
         "operationId": "get_failure-diagnosis_issue-source",
         "parameters": [
           {

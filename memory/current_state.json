@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "issue_automation_origin": {
+    "stage": "T-ISSUE-AUTOMATION-ORIGIN-292",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "9af1e471968ed3aa3a8be925b89315fe505f0c84",
+    "report": "docs/quality/issue-automation-origin-verification.md",
+    "actual": "Projected failure issues show their verified original automation trigger and optional pause decision in the existing diagnosis launcher.",
+    "verification": "SQLite HTTP verifies browser scope, exact failure evidence and partial provenance handling. Real Chrome verifies both links in English desktop and Chinese 390px.",
+    "known_limitations": "Issue-side automation context requires a browser session and verifiable historical source. External channels, distributed load and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "automation_pause_issue_link": {
     "stage": "T-AUTOMATION-PAUSE-ISSUE-LINK-291",
     "version": "1.0.0",

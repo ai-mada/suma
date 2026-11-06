@@ -301,7 +301,7 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	}
 	assertEvidence()
 
-	verifyAutomationPauseIssueProjection(t, f, detailPath(triggerID, f.project), triggerID, wantRuns[1].RunID, otherProject)
+	verifyAutomationPauseIssueProjection(t, f, detailPath(triggerID, f.project), triggerID, failed[1], paused, otherProject)
 
 	// A mismatched occurrence retains its inbox history but exposes no locator.
 	if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_automation_occurrences SET reason='workflow_unavailable' WHERE id=?`, triggerID); err != nil {
@@ -334,9 +334,13 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	checkUnread(0)
 }
 
-func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, triggerID, runID, otherProject string) {
+func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, triggerID string, run AutomationOccurrence, rule AutomationRule, otherProject string) {
 	t.Helper()
 	ctx := context.Background()
+	runID := run.RunID
+	issueSourcePath := func(project, id string) string {
+		return "/failure-diagnosis/issue-source?project_id=" + project + "&issue_id=" + id
+	}
 	read := func() AutomationFailurePauseEvidence {
 		t.Helper()
 		result := issueRepairRuntimeDecode[AutomationOccurrence](t, f.call(http.MethodGet, path, nil, http.StatusOK))
@@ -371,9 +375,12 @@ func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, trigge
 		t.Fatal(err)
 	}
 	// Editable issue metadata cannot manufacture the execution projector's link.
-	f.call(http.MethodPost, "/issues", f.body(map[string]any{
+	manual := f.call(http.MethodPost, "/issues", f.body(map[string]any{
 		"title": "Manually reported failure", "data": map[string]any{"run_id": runID, "origin": "execution"},
-	}), http.StatusCreated)
+	}), http.StatusCreated)["id"].(string)
+	if source := f.call(http.MethodGet, issueSourcePath(f.project, manual), nil, http.StatusOK); source["issue_id"] != manual || len(source) != 2 {
+		t.Fatalf("manual issue returned execution provenance: %+v", source)
+	}
 	assertLink("")
 	if err := f.s.projectFailureIssue(ctx, f.user.TenantID, f.project, runID); err != nil {
 		t.Fatal(err)
@@ -391,6 +398,66 @@ func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, trigge
 		"expected_version": issue.Version, "data": map[string]any{"run_id": newID()},
 	}), http.StatusOK)
 	assertLink(issue.ID)
+	sourcePath := issueSourcePath(f.project, issue.ID)
+	assertIssueSource := func(source map[string]any, withOrigin, withPause bool) {
+		t.Helper()
+		if source["project_id"] != f.project || source["issue_id"] != issue.ID || source["run_id"] != runID {
+			t.Fatalf("wrong canonical issue source: %+v", source)
+		}
+		origin, present := source["automation_origin"]
+		if !withOrigin {
+			if present {
+				t.Fatalf("unverified automation origin was returned: %+v", source)
+			}
+			return
+		}
+		facts, ok := origin.(map[string]any)
+		if !ok || facts["rule_id"] != rule.ID || facts["rule_name"] != rule.Name ||
+			facts["occurrence_id"] != run.ID || facts["revision"] != float64(rule.Revision) ||
+			facts["source"] != run.Source || facts["scheduled_at"] != run.ScheduledAt {
+			t.Fatalf("wrong original automation facts: %+v", source)
+		}
+		pause, present := facts["failure_pause"]
+		if !withPause {
+			if present {
+				t.Fatalf("unverified pause decision was returned: %+v", source)
+			}
+			return
+		}
+		decision, ok := pause.(map[string]any)
+		if !ok || decision["occurrence_id"] != triggerID || decision["observed_at"] != before.ObservedAt ||
+			decision["threshold"] != float64(before.Threshold) {
+			t.Fatalf("wrong historical pause decision: %+v", source)
+		}
+	}
+	assertIssueSource(f.call(http.MethodGet, sourcePath, nil, http.StatusOK), true, true)
+	f.call(http.MethodGet, issueSourcePath(otherProject, issue.ID), nil, http.StatusNotFound)
+	api, err := f.s.IssueProjectCredential(ctx, f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: "api", IdempotencyKey: newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertIssueSource(f.bearer(http.MethodGet, sourcePath, api.Token, nil, http.StatusOK), false, false)
+
+	// Invalid optional links cannot remove the formally projected run source.
+	setTriggerTime := func(value string) {
+		t.Helper()
+		if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_automation_occurrences SET scheduled_at=? WHERE id=?`, value, run.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	setTriggerTime("invalid")
+	assertIssueSource(f.call(http.MethodGet, sourcePath, nil, http.StatusOK), false, false)
+	setTriggerTime(run.ScheduledAt)
+	setPauseReason := func(reason string) {
+		t.Helper()
+		if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_automation_occurrences SET reason=? WHERE id=?`, reason, triggerID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	setPauseReason("workflow_unavailable")
+	assertIssueSource(f.call(http.MethodGet, sourcePath, nil, http.StatusOK), true, false)
+	setPauseReason(automationFailurePauseReason)
+
 	setReceipt := func(response string) {
 		t.Helper()
 		if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_operations SET response=? WHERE tenant_id=? AND project_id=? AND operation_id=?`, response, f.user.TenantID, f.project, failureIssueKey(runID)); err != nil {

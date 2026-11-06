@@ -66,6 +66,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-ISSUE-AUTOMATION-ORIGIN-292 问题分诊可返回原触发及可核对的暂停依据。 [交互](../design/automation-workspace.md#从问题分诊返回暂停依据) · [验证](../quality/issue-automation-origin-verification.md)
+
 T-AUTOMATION-PAUSE-ISSUE-LINK-291 暂停依据可直接打开已有的失败问题，复用正式问题投影。 [交互](../design/automation-workspace.md#查看失败运行对应的问题) · [验证](../quality/automation-pause-issue-link-verification.md)
 
 T-AUTOMATION-RUN-PAUSE-TRACE-290 运行详情可以分别打开原触发及实际参与的暂停依据。 [交互](../design/automation-workspace.md#运行详情的自动化回溯) · [验证](../quality/automation-run-pause-trace-verification.md)

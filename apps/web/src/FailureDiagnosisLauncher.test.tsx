@@ -30,6 +30,45 @@ it('aborts and clears old scope reads then explains forbidden and empty current 
 
 const issueSource=(issueID:string)=>'/failure-diagnosis/issue-source?project_id=project-a&issue_id='+issueID;
 
+it('links verified automation triggers from the issue source and preserves run diagnosis when optional evidence is invalid',async()=>{
+ const origin={rule_id:'rule-a',rule_name:'Nightly checks',occurrence_id:'original-trigger',revision:4,source:'cron',scheduled_at:'2026-11-06T00:00:00Z',failure_pause:{occurrence_id:'blocked-trigger',threshold:2,observed_at:'2026-11-06T01:00:00Z'}};
+ let automationOrigin:unknown=origin;
+ const source=issueSource('issue-a'),runPath='/runs/run-a?project_id=project-a';
+ reply=async path=>path===source?Response.json({project_id:'project-a',issue_id:'issue-a',run_id:'run-a',automation_origin:automationOrigin}):Response.json(run());
+ await renderSource({issueID:'issue-a'});
+ await click('[data-fd-launch-toggle]');
+ expect(reads.map(read=>read.path)).toEqual([source,runPath]);
+ expect(host.textContent).toContain('Nightly checks');
+ expect(host.textContent).toContain('Rule revision 4');
+ const original=host.querySelector<HTMLAnchorElement>('[data-fd-automation-trigger]')!;
+ const pause=host.querySelector<HTMLAnchorElement>('[data-fd-automation-pause]')!;
+ const route=(trigger:string)=>'?'+new URLSearchParams({project:'project-a',view:'development',sub:'automations',record:'rule-a',panel:'automation-trigger:'+trigger});
+ expect(original.getAttribute('href')).toBe(route('original-trigger'));
+ expect(pause.getAttribute('href')).toBe(route('blocked-trigger'));
+ const dirty=(event:Event)=>event.preventDefault();
+ window.addEventListener('suma:navigate',dirty);
+ try{
+  for(const link of [original,pause]){
+   const activate=new MouseEvent('click',{bubbles:true,cancelable:true});
+   link.dispatchEvent(activate);
+   expect(activate.defaultPrevented).toBe(true);
+  }
+ }finally{window.removeEventListener('suma:navigate',dirty);}
+
+ automationOrigin={...origin,failure_pause:{...origin.failure_pause,occurrence_id:origin.occurrence_id}};
+ await click('[data-fd-launch-refresh]');
+ expect(host.querySelector('[data-fd-automation-pause]')).toBeNull();
+ expect(host.querySelector('[data-fd-automation-trigger]')).not.toBeNull();
+ automationOrigin={...origin,rule_id:'../foreign-rule'};
+ await click('[data-fd-launch-refresh]');
+ expect(host.querySelector('[data-fd-automation-trigger]')).toBeNull();
+ expect(host.querySelector('[data-fd-launch-run]')?.getAttribute('href')).toContain('run=run-a');
+ await select('failed.node');
+ expect(JSON.parse(host.querySelector('[data-launch-diagnosis]')!.getAttribute('data-source')!)).toEqual({run_id:'run-a',node_id:'failed.node',attempt:3});
+ expect(reads.map(read=>read.path)).toEqual([source,runPath,source,runPath,source,runPath]);
+ expect(writes).toBe(0);
+});
+
 it('checks the issue projection before linking to its exact run and preserves the draft guard on refresh',async()=>{
  let resolveSource!:(response:Response)=>void;
  reply=async path=>path===issueSource('issue-a')?new Promise<Response>(resolve=>{resolveSource=resolve;}):Response.json({...run(),id:'authoritative-run'});

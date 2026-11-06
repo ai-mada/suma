@@ -3247,6 +3247,7 @@ export interface FailureDiagnosisIssueSource {
   project_id: string;
   issue_id: string;
   run_id?: string;
+  automation_origin?: AutomationRunOrigin;
 }
 export interface FailureDiagnosisObservation {
   statement: string;

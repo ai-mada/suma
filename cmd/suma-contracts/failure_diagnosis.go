@@ -11,7 +11,7 @@ func failureDiagnosisModels() []any {
 
 func failureDiagnosisContracts(add operationAdder, api map[string]any) {
 	issueSource := add("/failure-diagnosis/issue-source", "get", "FailureDiagnosisIssueSource", false, false)
-	issueSource["description"] = "Read the original failed run for a current project issue using the verified failure projection. An issue without a formal failure source omits run_id."
+	issueSource["description"] = "Read the original failed run for a current project issue using the verified failure projection. A browser session can also receive verified automation provenance for that run. An issue without a formal failure source omits run_id."
 	issueID := queryParameter("issue_id", "Exact issue ID in the current project.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64})
 	issueID["required"] = true
 	appendQuery(issueSource, issueID)
@@ -58,6 +58,7 @@ func failureDiagnosisContracts(add operationAdder, api map[string]any) {
 	field("Record", "failure_diagnosis_adoption", map[string]any{"readOnly": true, "description": "Authoritative immutable relation loaded from the adoption table; generic writes cannot manufacture it."})
 	field("FailureDiagnosisContext", "blocker_diagnostics", map[string]any{"readOnly": true, "description": "Positionally aligned optional display metadata. Canonical blocker bytes remain unchanged; clients render message_key in their current language."})
 	field("FailureDiagnosisIssueSource", "run_id", map[string]any{"description": "Verified original failed run. Absent for an issue with no formal execution failure projection."})
+	field("FailureDiagnosisIssueSource", "automation_origin", map[string]any{"readOnly": true, "description": "Exact automation trigger and optional historical pause for the verified original run. Returned only to a current browser session when the provenance is available."})
 	field("FailureDiagnosisAnalysis", "reason_diagnostic", map[string]any{"readOnly": true, "description": "Present only for platform warnings; absent for literal human decision reasons."})
 	field("FailureDiagnosisCapability", "protocol", map[string]any{"const": toolcontract.FailureDiagnosisProtocol})
 	field("FailureDiagnosisCapability", "model", map[string]any{"minLength": 1, "maxLength": 200})

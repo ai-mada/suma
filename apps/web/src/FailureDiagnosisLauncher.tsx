@@ -1,9 +1,11 @@
 import {useCallback,useEffect,useId,useRef,useState} from 'react';
 import {ChevronDown} from 'lucide-react';
-import type {FailureDiagnosisIssueSource} from '../../../packages/contracts/src';
+import type {AutomationRunOrigin,FailureDiagnosisIssueSource} from '../../../packages/contracts/src';
 import {ApiError,query,stateLabel,type Run,type Session} from './api';
 import {useApi} from './api-context';
+import {expertID,expertText} from './expert-team-model';
 import {formatNumber,tr,UiError,useLocale} from './i18n';
+import {automationTriggerPanelPrefix} from './navigation';
 import {toolError} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useDiagnosisRead} from './failure-diagnosis-hooks';
@@ -17,6 +19,31 @@ const t=(key:string,values?:Record<string,unknown>)=>tr('failure-diagnosis.'+key
 const validRunID=(value:unknown):value is string=>typeof value==='string'&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,100}$/.test(value);
 const canLeave=()=>window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));
 const ignoreReadFailure=()=>{};
+
+function isRecordedAutomationTime(value:unknown):value is string{
+ if(typeof value!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(value))return false;
+ const time=Date.parse(value);
+ return Number.isFinite(time)&&new Date(time).toISOString().replace('.000Z','Z')===value;
+}
+
+function IssueAutomationOrigin({project,origin}:{project:string;origin?:AutomationRunOrigin}){
+ if(!origin||!expertID(project)||!expertID(origin.rule_id)||!expertID(origin.occurrence_id)||!expertText(origin.rule_name,200)||
+  !Number.isSafeInteger(origin.revision)||origin.revision<1||!['cron','manual','webhook'].includes(origin.source)||!isRecordedAutomationTime(origin.scheduled_at))return null;
+ const pause=origin.failure_pause;
+ const validPause=pause&&expertID(pause.occurrence_id)&&pause.occurrence_id!==origin.occurrence_id&&
+  Number.isSafeInteger(pause.threshold)&&pause.threshold>=2&&pause.threshold<=10&&isRecordedAutomationTime(pause.observed_at);
+ const source=tr(origin.source==='cron'?'automation.scheduled_trigger':origin.source==='manual'?'automation.manual_trigger':'automation.signed_event_trigger');
+ const href=(trigger:string)=>'?'+new URLSearchParams({project,view:'development',sub:'automations',record:origin.rule_id,panel:automationTriggerPanelPrefix+trigger});
+ return <div className="fd-callout fd-automation-origin">
+  <h4>{tr('automation.run_origin.title')}</h4>
+  <p><strong>{origin.rule_name}</strong> · {tr('automation.run_origin.context',{source,revision:formatNumber(origin.revision)})}</p>
+  {validPause&&<p className="fd-muted">{tr('automation.run_origin.pause_context',{threshold:formatNumber(pause.threshold)})}</p>}
+  <div className="fd-actions">
+   <a data-fd-automation-trigger href={href(origin.occurrence_id)} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr('automation.run_origin.open')}</a>
+   {validPause&&<a data-fd-automation-pause href={href(pause.occurrence_id)} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr('automation.run_origin.pause_open')}</a>}
+  </div>
+ </div>;
+}
 
 export function FailureDiagnosisLauncher(props:FailureDiagnosisLauncherProps){
  const {session,project,issueID,runID}=props;
@@ -48,7 +75,10 @@ function LauncherIssue({issueID,focusToggle,...view}:LauncherView&{issueID:strin
  const recheck=()=>{focusToggle();void source.read();};
  if(!validID)return <p className="warning">{t('launcher_issue_invalid')}</p>;
  if(source.loading)return <p className="fd-muted" role="status">{t('launcher_issue_loading')}</p>;
- if(source.value?.run_id&&!source.error)return <LauncherRun key={source.value.run_id} {...view} runID={source.value.run_id} onRecheck={recheck}/>;
+ if(source.value?.run_id&&!source.error)return <>
+  <IssueAutomationOrigin project={project} origin={source.value.automation_origin}/>
+  <LauncherRun key={source.value.run_id} {...view} runID={source.value.run_id} onRecheck={recheck}/>
+ </>;
  return <>
   {source.error?<ErrorNotice error={source.error instanceof UiError?t('launcher_issue_invalid'):toolError(source.error)}/>:<p className="fd-muted" role="status">{t('launcher_issue_empty')}</p>}
   <div className="fd-actions"><button data-fd-launch-refresh type="button" onClick={()=>{if(canLeave())recheck();}}>{t('refresh')}</button></div>
