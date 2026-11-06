@@ -193,7 +193,7 @@ var cliMessages = map[string]cliMessage{
 	runAttemptResponseInvalid: {"cli.run.attempt_response_invalid", "尝试或工具事件响应无效，或与所选项目、运行、节点、尝试不符"},
 	runInputsUsage:            {"cli.run.inputs_usage", "run inputs 需要运行 ID、--node、正整数 --attempt 和 --fence，可用 --workbench-origin 指定工作台地址"},
 	runInputsResponseInvalid:  {"cli.run.inputs_response_invalid", "工具问题响应无效，或与所选项目、运行、节点和执行尝试不符"},
-	runQueueUsage:             {"cli.run.queue_usage", "run queue 可指定 1–100 的 --limit 和原 --cursor"},
+	runQueueUsage:             {"cli.run.queue_usage", "run queue 可指定 --route project|pool、--run 运行 ID、1–100 的 --limit 和原 --cursor"},
 	runWatchRetryExhausted:    {"cli.run.watch_retry_exhausted", "实时事件重连次数已达上限，可从最后一条已输出事件续传"},
 	runWatchOutputFailed:      {"cli.run.watch_output_failed", "无法完整写出运行事件"},
 	"live run event response must be a UTF-8 event stream": {"cli.run.watch_content_type", "实时运行事件响应须为 UTF-8 事件流"},
@@ -340,7 +340,7 @@ const helpZH = `suma — 速码控制面客户端
   run tool-events RUN --node NODE --attempt 尝试号 [--limit 1..100] [--cursor 原游标]
   run inputs RUN --node NODE --attempt 尝试号 --fence 租约令牌 [--workbench-origin 工作台地址]
   run workbuddy-status RUN --node NODE
-  run queue [--limit 1..100] [--cursor CURSOR]
+  run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
        [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]

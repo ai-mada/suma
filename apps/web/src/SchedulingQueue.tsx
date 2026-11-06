@@ -1,17 +1,25 @@
-import { useState } from "react";
+import { useId, useRef, useState, type RefObject } from "react";
 import { ArrowRight, CircleAlert, CircleCheck, CircleHelp, RefreshCw } from "lucide-react";
 import { query, time } from "./api";
 import { useApiView } from "./api-context";
-import { tr as t, useLocale, formatNumber } from "./i18n";
+import { tr as t, useLocale, formatNumber, UiError } from "./i18n";
 import { AdmissionFacts, schedulingBlockerTitle } from "./SchedulingFacts";
-import { executionHref, type ReadyEntry } from "./scheduling-model";
+import { executionHref, validQueueRun, type QueueRoute, type ReadyEntry } from "./scheduling-model";
 import { useSchedulingPage } from "./scheduling-hooks";
 import { ErrorNotice, Loading, Empty } from "./ui";
 import "./scheduling.css";
 
 const filters = ["all", "blocked", "unknown", "checked"] as const;
 type QueueFilter = (typeof filters)[number];
-type Props = { project: string; refresh: number; onRun: (run: string, node: string) => void };
+type Props = {
+  project: string;
+  refresh: number;
+  onRun: (run: string, node: string) => void;
+  queueRoute?: QueueRoute;
+  queueRun?: string;
+  invalidQueue?: boolean;
+  onQueueScope?: (route?: QueueRoute, run?: string) => void;
+};
 const statusIcons = { blocked: CircleAlert, unknown: CircleHelp, checked: CircleCheck };
 
 function isQueueEntry(project: string) {
@@ -37,6 +45,75 @@ function admissionFor(item: ReadyEntry) {
   return admission;
 }
 
+function frozenRoute(admission: ReadyEntry["admission"]): QueueRoute | undefined {
+  if (!admission) return;
+  const pool = admission.execution_pool_id;
+  if (pool === undefined || pool === "") return "project";
+  if (typeof pool === "string") return "pool";
+}
+
+function QueueScopeForm({
+  route, run, invalid, input, onChange,
+}: {
+  route?: QueueRoute;
+  run?: string;
+  invalid: boolean;
+  input: RefObject<HTMLInputElement | null>;
+  onChange: NonNullable<Props["onQueueScope"]>;
+}) {
+  const errorID = useId();
+  const source = JSON.stringify([run, invalid]);
+  const initial: { source: string; text: string; invalidRoute?: QueueRoute; submitted: boolean } = { source, text: run ?? "", submitted: false };
+  const [draft, setDraft] = useState(initial);
+  // Back/forward can change the committed run without remounting the form.
+  if (draft.source !== source) setDraft(initial);
+  const current = draft.source === source ? draft : initial;
+  const invalidRun = current.submitted && !validQueueRun(current.text);
+  const selected = invalid ? current.invalidRoute : route;
+
+  return (
+    <form className="scheduling-queue-scope" aria-label={t("workspace.queue.scope_label")} onSubmit={event => {
+      event.preventDefault();
+      if (current.text && !validQueueRun(current.text)) {
+        setDraft({ ...current, submitted: true });
+        input.current?.focus();
+        return;
+      }
+      setDraft({ ...current, submitted: false });
+      if (invalid || current.text !== (run ?? "")) onChange(selected, current.text || undefined);
+    }}>
+      <label>
+        <span>{t("workspace.queue.route_label")}</span>
+        <select data-queue-route value={selected ?? ""} onChange={event => {
+          const next = event.target.value === "project" || event.target.value === "pool" ? event.target.value : undefined;
+          if (invalid) setDraft({ ...current, invalidRoute: next });
+          else onChange(next, run);
+        }}>
+          <option value="">{t("workspace.queue.route_all")}</option>
+          <option value="project">{t("workspace.queue.route_project")}</option>
+          <option value="pool">{t("workspace.queue.route_pool")}</option>
+        </select>
+      </label>
+      <label className="scheduling-queue-run-field">
+        <span>{t("workspace.queue.run_label")}</span>
+        <input ref={input} type="text" data-queue-run-filter value={current.text} maxLength={100}
+          autoComplete="off" spellCheck={false} aria-invalid={invalidRun || undefined}
+          aria-describedby={invalidRun ? errorID : undefined} placeholder={t("workspace.queue.run_placeholder")}
+          onChange={event => setDraft({ ...current, text: event.target.value, submitted: false })} />
+      </label>
+      <div className="scheduling-queue-scope-actions">
+        <button type="submit" data-queue-apply>{t("workspace.queue.scope_apply")}</button>
+        <button type="button" data-queue-clear onClick={() => {
+          setDraft({ ...initial, text: "" });
+          if (invalid || route || run) onChange();
+          input.current?.focus();
+        }}>{t("workspace.queue.scope_clear")}</button>
+      </div>
+      {invalidRun && <p id={errorID} className="scheduling-queue-scope-error" role="alert">{t("workspace.queue.run_invalid")}</p>}
+    </form>
+  );
+}
+
 export function SchedulingQueue(props: Props) {
   useLocale();
   const view = useApiView();
@@ -45,20 +122,34 @@ export function SchedulingQueue(props: Props) {
   return <ProjectSchedulingQueue key={scope || props.project} scope={scope} {...props} />;
 }
 
-function ProjectSchedulingQueue({ project, refresh, onRun, scope }: Props & { scope: string }) {
-  const [filter, setFilter] = useState<QueueFilter>(() => {
-    const saved = scope && isQueueEntry(project) ? history.state?.sumaQueueFilter : undefined;
-    return saved?.scope === scope ? filters.find(value => value === saved.filter) ?? "all" : "all";
-  });
+function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, queueRun, invalidQueue, onQueueScope }: Props & { scope: string }) {
+  const input = useRef<HTMLInputElement>(null);
+  const invalid = !!invalidQueue || queueRun !== undefined && !validQueueRun(queueRun);
+  const filterScope = JSON.stringify([scope, queueRoute, queueRun]);
+  const [facet, setFacet] = useState<{ scope: string; filter: QueueFilter }>();
+  const saved = scope && isQueueEntry(project) ? history.state?.sumaQueueFilter : undefined;
+  const filter = facet?.scope === filterScope ? facet.filter
+    : saved?.scope === filterScope ? filters.find(value => value === saved.filter) ?? "all" : "all";
   function chooseFilter(value: QueueFilter) {
-    setFilter(value);
-    // Store only the selected facet on this exact history entry. Going back
-    // restores the choice and the queue still reads fresh authorized records.
-    if (scope && isQueueEntry(project)) history.replaceState({ ...history.state, sumaQueueFilter: { scope, filter: value } }, "");
+    const next = { scope: filterScope, filter: value };
+    setFacet(next);
+    // Only the local status facet is stored in history state. Execution path
+    // and run use the shareable URL, which is also the queue read scope.
+    if (scope && isQueueEntry(project)) history.replaceState({ ...history.state, sumaQueueFilter: next }, "");
   }
+  const params = new URLSearchParams();
+  if (queueRoute) params.set("route", queueRoute);
+  if (queueRun) params.set("run_id", queueRun);
+  const selection = params.toString();
   const page = useSchedulingPage<ReadyEntry>(
-    "/scheduling/queue" + query(project),
-    (item) => item.run_id + "\0" + item.node_id,
+    invalid ? "" : "/scheduling/queue" + query(project) + (selection ? "&" + selection : ""),
+    item => {
+      if (!item || typeof item.run_id !== "string" || typeof item.node_id !== "string" ||
+          queueRun && item.run_id !== queueRun || queueRoute && frozenRoute(admissionFor(item)) !== queueRoute) {
+        throw new UiError("development.errors.page_scope_invalid");
+      }
+      return item.run_id + "\0" + item.node_id;
+    },
     refresh,
   );
   const confirmed = page.hasSnapshot && !page.loading && !page.failure;
@@ -79,13 +170,15 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope }: Props & { sc
           <h2>{t("workspace.queue.title")}</h2>
           <p>{t("workspace.queue.description")}</p>
         </div>
-        <button type="button" aria-disabled={page.loading} onClick={() => {
-          if (!page.loading) void (page.error ? page.retry() : page.read());
+        <button type="button" aria-disabled={invalid || page.loading} onClick={() => {
+          if (!invalid && !page.loading) void (page.error ? page.retry() : page.read());
         }}>
           <RefreshCw size={15} aria-hidden="true" />
           {t(page.error ? "workspace.queue.retry" : "workspace.queue.reload")}
         </button>
       </div>
+      {onQueueScope && <QueueScopeForm route={queueRoute} run={queueRun} invalid={invalid} input={input} onChange={onQueueScope} />}
+      {invalid && <p className="warning" role="alert">{t("workspace.queue.scope_invalid")}</p>}
       {page.error && <>
         <ErrorNotice error={page.failure || page.error} />
         {page.hasSnapshot && <p className="warning">{t("workspace.queue.unconfirmed")}</p>}
@@ -111,12 +204,15 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope }: Props & { sc
             const hasPolicyBlocker = status === "blocked" && admission?.blockers.some(blocker =>
               blocker.source === "policy" && (blocker.code === "resource_capacity" || blocker.code === "budget_exhausted"));
             const StatusIcon = statusIcons[status];
+            const route = frozenRoute(admission);
             return <li key={item.run_id + "\0" + item.node_id} data-queue-entry data-queue-status={status}>
               <article>
                 <header>
                   <div>
                     <h3>{item.node_name || item.node_id}</h3>
-                    <p>{item.workflow_name || item.run_id} · {item.type}</p>
+                    <p>{item.workflow_name || item.run_id} · {item.type}
+                      {route && <> · {t("workspace.queue.route_" + route)}</>}
+                    </p>
                   </div>
                   <span className="scheduling-queue-status">
                     <StatusIcon size={15} aria-hidden="true" />
@@ -139,6 +235,13 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope }: Props & { sc
                     }}>
                     {t("workspace.queue.open_node")} <ArrowRight size={15} aria-hidden="true" />
                   </a>
+                  {confirmed && onQueueScope && !queueRun && validQueueRun(item.run_id) &&
+                    <button className="scheduling-queue-focus-run" type="button" data-queue-focus-run
+                      aria-label={t("workspace.queue.focus_named_run", { run: item.run_id })}
+                      onClick={() => {
+                        onQueueScope(queueRoute, item.run_id);
+                        input.current?.focus();
+                      }}>{t("workspace.queue.focus_run")}</button>}
                   {hasPolicyBlocker && <a className="scheduling-policy-link" data-queue-policy href={policyHref}
                     onClick={event => {
                       if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey &&

@@ -81,6 +81,23 @@ type NodeAdmissionSnapshot struct {
 	Reservations      []ResourceReservationSnapshot `json:"reservations"`
 }
 
+const (
+	ReadyQueueProjectRoute = "project"
+	ReadyQueuePoolRoute    = "pool"
+)
+
+// ReadyQueueFilter narrows the persisted ready list before pagination.
+// Empty fields leave their corresponding predicates unrestricted.
+type ReadyQueueFilter struct {
+	Route string
+	RunID string
+}
+
+func (filter ReadyQueueFilter) Valid() bool {
+	return (filter.Route == "" || filter.Route == ReadyQueueProjectRoute || filter.Route == ReadyQueuePoolRoute) &&
+		(filter.RunID == "" || identifier.MatchString(filter.RunID))
+}
+
 type ReadyEntry struct {
 	RunID        string                 `json:"run_id"`
 	NodeID       string                 `json:"node_id"`

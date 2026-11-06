@@ -129815,7 +129815,7 @@
             }
           },
           {
-            "description": "Opaque keyset cursor bound to tenant, project and collection (including run/node for attempts).",
+            "description": "Opaque keyset cursor bound to tenant, project, run and node.",
             "in": "query",
             "name": "cursor",
             "schema": {
@@ -132090,10 +132090,32 @@
             }
           },
           {
-            "description": "Opaque keyset cursor bound to tenant, project and collection (including run/node for attempts).",
+            "description": "Opaque keyset cursor bound to tenant, project, route and run_id filters.",
             "in": "query",
             "name": "cursor",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter the ready queue by each run's frozen project or shared pool route. Omit to include both.",
+            "in": "query",
+            "name": "route",
+            "schema": {
+              "enum": [
+                "project",
+                "pool"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by the exact run ID within the authorized project. Both filters bind continuation and total.",
+            "in": "query",
+            "name": "run_id",
+            "schema": {
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
               "type": "string"
             }
           },

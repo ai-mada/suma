@@ -1,5 +1,6 @@
 import {lazy,Suspense,type ReactNode} from "react";
 import { SchedulingQueue } from "./SchedulingQueue";
+import type { QueueRoute } from "./scheduling-model";
 import type {Session} from './api';
 import {Loading} from './ui';
 import {ErrorBoundary} from './ErrorBoundary';
@@ -15,6 +16,10 @@ export function ExecutionWorkspace({
   onRun,
   onPlan,
   onTasks,
+  queueRoute,
+  queueRun,
+  invalidQueue,
+  onQueueScope,
   team,
   invalidTeam,
   onTeam,
@@ -29,6 +34,10 @@ export function ExecutionWorkspace({
   onRun: (run: string, node: string) => void;
   onPlan: (id: string) => void;
   onTasks: () => void;
+  queueRoute?: QueueRoute;
+  queueRun?: string;
+  invalidQueue?: boolean;
+  onQueueScope?: (route?: QueueRoute, run?: string) => void;
   team?: string;
   invalidTeam?: boolean;
   onTeam?: (id: string) => void;
@@ -55,7 +64,7 @@ export function ExecutionWorkspace({
         </button>
       </div>
       {layout === 'team' ? <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><TeamExecutionWorkspace session={session} project={project} refresh={refresh} panel={panel} team={team} invalidTeam={invalidTeam} onTeam={onTeam} onPlan={onPlan} onTasks={onTasks}/></Suspense></ErrorBoundary> : layout === "queue" ? (
-        <SchedulingQueue project={project} refresh={refresh} onRun={onRun} />
+        <SchedulingQueue project={project} refresh={refresh} onRun={onRun} queueRoute={queueRoute} queueRun={queueRun} invalidQueue={invalidQueue} onQueueScope={onQueueScope} />
       ) : (
         children
       )}

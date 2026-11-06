@@ -1,9 +1,9 @@
 import {mondayOf} from './planning-model';
-import {parseAttempt} from './scheduling-model';
+import {parseAttempt,validQueueRun,type QueueRoute} from './scheduling-model';
 import {validNotificationToolInputTarget,type NotificationToolInputTarget} from './notification-inbox-model';
 import {isTaskDeliveryLocator,taskDeliveryPanel} from './task-delivery-navigation-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
-export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_scope?:'organization';inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;execution_team?:string;execution_team_invalid?:'1';project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
+export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_scope?:'organization';inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;execution_team?:string;execution_team_invalid?:'1';queue_route?:QueueRoute;queue_run?:string;queue_invalid?:'1';project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 const toolInputPanelPrefix='tool-input:';
@@ -36,6 +36,16 @@ function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string
 export function parseWorkbenchRoute(search:string):WorkbenchRoute{
  const p=new URLSearchParams(search),view=views.includes(p.get('view') as WorkbenchView)?p.get('view') as WorkbenchView:'overview';
  const project=p.get('project')||'',sub=p.get('sub')||defaultSub[view]||'',layout=p.get('layout')||'list',run=p.get('run')||'';
+ const queueFields:Pick<WorkbenchRoute,'queue_route'|'queue_run'|'queue_invalid'>={};
+ if(isQueueExecutionRoute({view,sub,layout,run})&&['queue_route','queue_run','queue_invalid'].some(key=>p.has(key))){
+  const route=p.get('queue_route'),exactRun=p.get('queue_run');
+  const repeated=['project','view','sub','layout','run','queue_route','queue_run'].some(key=>p.getAll(key).length>1);
+  if(!project||repeated||p.has('queue_invalid')||route!==null&&route!=='project'&&route!=='pool'||exactRun!==null&&!validQueueRun(exactRun))queueFields.queue_invalid='1';
+  else{
+   if(route!==null)queueFields.queue_route=route;
+   if(exactRun!==null)queueFields.queue_run=exactRun;
+  }
+ }
  const team=p.get('execution_team'),teamFields:Pick<WorkbenchRoute,'execution_team'|'execution_team_invalid'>={};
  if(isTeamExecutionRoute({project,view,sub,layout,run})&&(p.has('execution_team')||p.has('execution_team_invalid'))){
   if(!team||!/^[A-Za-z0-9_-]{1,64}$/.test(team)||p.has('execution_team_invalid')||['project','view','sub','layout','run','execution_team'].some(key=>p.getAll(key).length>1))teamFields.execution_team_invalid='1';
@@ -79,10 +89,16 @@ export function parseWorkbenchRoute(search:string):WorkbenchRoute{
   task_group:['status','owner','priority','iteration'].includes(p.get('task_group')||'')?p.get('task_group')!:undefined,
  }:{};
 
- return {...messageFields,...inboxFields,...taskFields,...teamFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project,view,sub,record:p.get('record')||'',run,node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout,week:p.get('week')||mondayOf(),panel:taskDetailLocatorPanel(p,taskScope)};
+ return {...messageFields,...inboxFields,...taskFields,...teamFields,...queueFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project,view,sub,record:p.get('record')||'',run,node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout,week:p.get('week')||mondayOf(),panel:taskDetailLocatorPanel(p,taskScope)};
 }
 export function isTeamExecutionRoute(route:Pick<WorkbenchRoute,'project'|'view'|'sub'|'layout'|'run'>):boolean{
  return !!route.project&&route.view==='development'&&route.sub==='runs'&&route.layout==='team'&&!route.run;
+}
+export function isQueueExecutionRoute(route:Pick<WorkbenchRoute,'view'|'sub'|'layout'|'run'>):boolean{
+ return route.view==='development'&&route.sub==='runs'&&route.layout==='queue'&&!route.run;
+}
+export function clearQueueScope(route:WorkbenchRoute):WorkbenchRoute{
+ return {...route,queue_route:undefined,queue_run:undefined,queue_invalid:undefined};
 }
 export function initializeSessionRoute(route:WorkbenchRoute,projects:{id:string}[]):WorkbenchRoute{return route.project||!projects.length?route:{...route,project:projects[0].id};}
 

@@ -40,7 +40,7 @@ Read commands:
   run tool-events RUN --node NODE --attempt N [--limit 1..100] [--cursor CURSOR]
   run inputs RUN --node NODE --attempt N --fence F [--workbench-origin ORIGIN]
   run workbuddy-status RUN --node NODE
-  run queue [--limit 1..100] [--cursor CURSOR]
+  run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
        [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]

@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestSchedulingContractsExposeActualAdmissionAndDurableAttempts(t *testing.T) {
 	api, _ := generate()
@@ -22,5 +25,26 @@ func TestSchedulingContractsExposeActualAdmissionAndDurableAttempts(t *testing.T
 	usage := mapAt(schemas, "ToolUsage", "properties", "input_tokens")
 	if usage["type"] != "integer" || usage["maximum"] != int64(9007199254740991) || usage["anyOf"] != nil {
 		t.Fatal("optional reported zero is not a strict safe integer", usage)
+	}
+}
+
+func TestSchedulingQueueFilterContract(t *testing.T) {
+	api, _ := generate()
+	params := map[string]map[string]any{}
+	for _, raw := range mapAt(api, "paths", "/scheduling/queue", "get")["parameters"].([]any) {
+		entry := raw.(map[string]any)
+		name, _ := entry["name"].(string)
+		params[name] = entry
+	}
+	for _, name := range []string{"route", "run_id"} {
+		if param := params[name]; param["in"] != "query" || (param["required"] != nil && param["required"] != false) {
+			t.Fatalf("missing optional queue filter %s: %#v", name, param)
+		}
+	}
+	if route := mapAt(params["route"], "schema"); !reflect.DeepEqual(route["enum"], []string{"project", "pool"}) {
+		t.Fatalf("wrong frozen route filter: %#v", route)
+	}
+	if run := mapAt(params["run_id"], "schema"); run["pattern"] != "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$" || run["maxLength"] != 100 {
+		t.Fatalf("wrong exact run filter: %#v", run)
 	}
 }

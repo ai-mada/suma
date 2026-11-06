@@ -70,6 +70,14 @@ NodeAdmissionSnapshot {run_id,node_id,run_version,node_state,attempt,fence,polic
 - Attempt列表不读取完整result，`result_source=not_loaded`；精确详情区分unreported、runner_result、manual_reconciliation、child_workflow与managed_observation。人工核对带独立outcome/reason；子流程带child_run_id；提供方独立观察由dag_managed_resolutions明确定位，不能称Runner进程退出事实。
 - generation1旧运行迁移只新增投影，保留旧已发生状态/版本/事件/汇合和超时解释，不自动推进；新运行使用generation2语义。迁移不能把未记录的历史预算回补成默认1，明确标partial；旧unknown占用与fence保留。
 
+### 按执行路径和运行定位待派发队列
+
+`GET /scheduling/queue` 支持可选 `route=project|pool` 和 `run_id`。运行 ID 使用 `[A-Za-z0-9][A-Za-z0-9_.-]{0,99}` 精确匹配。两条件取交集，省略条件表示不限，显式空值、重复参数和非法值均拒绝。
+
+路径以当前授权事务内的原运行固定路由判定。固定到非空池 ID 的运行为共享池路径，其他为项目路径。撤回项目授予或暂停池后，原共享池路径继续可查，当前阻塞按原准入诊断显示。不存在或不属于当前授权项目的运行 ID 返回空结果。
+
+总数和有序分页使用相同条件。游标绑定租户、项目及两项筛选，不能在变更条件后继续使用旧游标。查询使用原队列和准入模型，不变更运行、领取、预算或池状态。
+
 ## 真实用量与原生过程额度
 
 1. `ToolUsage`每个计数字段保存presence，已报告0必须序列化为0，未报告字段省略；整数范围0..9007199254740991。空usage不是零用量，拒绝错型、负数、小数及溢出。

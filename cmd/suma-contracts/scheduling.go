@@ -27,7 +27,15 @@ func schedulingContracts(add operationAdder, paths map[string]any) {
 		op["x-disallowed-token-scopes"] = []string{"agent", "runner"}
 		if route.paged {
 			appendQuery(op, queryParameter("limit", "Default50; maximum100. No invented queue rank or ETA.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 50}))
-			appendQuery(op, queryParameter("cursor", "Opaque keyset cursor bound to tenant, project and collection (including run/node for attempts).", map[string]any{"type": "string"}))
+			cursorScope := "Opaque keyset cursor bound to tenant, project, run and node."
+			if route.path == "/scheduling/queue" {
+				cursorScope = "Opaque keyset cursor bound to tenant, project, route and run_id filters."
+			}
+			appendQuery(op, queryParameter("cursor", cursorScope, map[string]any{"type": "string"}))
+		}
+		if route.path == "/scheduling/queue" {
+			appendQuery(op, queryParameter("route", "Filter the ready queue by each run's frozen project or shared pool route. Omit to include both.", map[string]any{"type": "string", "enum": []string{dag.ReadyQueueProjectRoute, dag.ReadyQueuePoolRoute}}))
+			appendQuery(op, queryParameter("run_id", "Filter by the exact run ID within the authorized project. Both filters bind continuation and total.", map[string]any{"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$", "maxLength": 100}))
 		}
 	}
 	op := add("/scheduling/policy-previews", "post", "SchedulingPolicyPreview", false, true)

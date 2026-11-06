@@ -4,6 +4,8 @@ T-MODEL-DIRECTORY 核验模型目录类型、准确来源及费率、切换和�
 
 T-TOOL-QUICK-RECOVERY-266 核验真实桌面缺失和启动方式异常、明确失败保留草稿、原保存回执恢复与去重。 [阶段验证](tool-quick-recovery-verification.md)
 
+T-QUEUE-SCOPE 核验待派发队列的固定路径、准确运行、过滤后总数、游标范围、CLI 和浏览器交互。 [命令与证据](queue-scope-verification.md)
+
 T-TOOL-DECISION-IMPACT 核验停用和移除的当前影响、冲突后重新确认、撤权阻断及实际移除后保留原运行。 [命令与证据](tool-decision-impact-verification.md)
 
 T-WORKBUDDY-DELIVERY-RETURN 核验准确派发来源、当前权限和原任务深链，并使用 Chrome 与 SQLite 检查桌面及窄屏操作。 [命令与证据](workbuddy-delivery-return-verification.md)

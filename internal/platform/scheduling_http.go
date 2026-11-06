@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/ai-mada/suma/internal/dag"
@@ -62,6 +63,24 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		out, err := s.Service.CommitSchedulingPreview(r.Context(), s.Engine, actor, project, parts[2], request)
 		respond(w, 200, out, err)
 	case path == "scheduling/queue" && r.Method == "GET":
+		query, err := url.ParseQuery(r.URL.RawQuery)
+		if err != nil {
+			writeError(w, invalid("队列查询参数无效"))
+			return true
+		}
+		filter := dag.ReadyQueueFilter{Route: query.Get("route"), RunID: query.Get("run_id")}
+		if route, present := query["route"]; present && (len(route) != 1 || filter.Route == "") {
+			writeError(w, invalid("route 必须是单个 project 或 pool"))
+			return true
+		}
+		if runID, present := query["run_id"]; present && (len(runID) != 1 || filter.RunID == "") {
+			writeError(w, invalid("run_id 必须是单个运行 ID"))
+			return true
+		}
+		if !filter.Valid() {
+			writeError(w, invalid("队列筛选参数无效"))
+			return true
+		}
 		limit, err := schedulingPageLimit(r)
 		if err != nil {
 			writeError(w, err)
@@ -71,7 +90,7 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		err = s.Service.schedulingRead(r.Context(), actor, project, "scheduling-queue", purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
 			tenant := auth.target.tenantID
 			var err error
-			out, err = s.Engine.QueuePageTx(ctx, auth.tx, tenant, project, limit, r.URL.Query().Get("cursor"))
+			out, err = s.Engine.QueuePageTx(ctx, auth.tx, tenant, project, filter, limit, query.Get("cursor"))
 			if err != nil {
 				return err
 			}

@@ -150,6 +150,68 @@ func TestRunWatchCommandSchedulingReads(t *testing.T) {
 	}
 }
 
+func TestRunQueueSendsExactFiltersWithOriginalCursor(t *testing.T) {
+	for _, tc := range []struct {
+		name, route, run, cursor string
+		args                     []string
+	}{
+		{
+			name:  "pool and exact run continuation",
+			args:  []string{"--route=pool", "--run", "Abc_12.v-1", "--limit", "3", "--cursor", "Original_Cursor-9"},
+			route: "pool", run: "Abc_12.v-1", cursor: "Original_Cursor-9",
+		},
+		{
+			name: "project route only", args: []string{"--route", "project", "--limit", "3"}, route: "project",
+		},
+		{
+			name: "run across routes", args: []string{"--run=" + strings.Repeat("r", 100), "--limit", "3"}, run: strings.Repeat("r", 100),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				q := r.URL.Query()
+				if r.Method != http.MethodGet || r.URL.Path != "/api/v1/scheduling/queue" ||
+					q.Get("project_id") != "project-one" || q.Get("limit") != "3" || r.Header.Get("Authorization") != "Bearer test-secret" {
+					t.Errorf("incorrect queue read: %s %s", r.Method, r.URL)
+				}
+				for key, want := range map[string]string{"route": tc.route, "run_id": tc.run, "cursor": tc.cursor} {
+					if want == "" && q.Has(key) || want != "" && (len(q[key]) != 1 || q.Get(key) != want) {
+						t.Errorf("queue query %q = %v, want %q", key, q[key], want)
+					}
+				}
+				fmt.Fprint(w, "{\"items\":[],\"total\":8,\"next_cursor\":\"next-in-same-scope\"}")
+			}))
+			defer server.Close()
+			code, stdout, stderr := invoke(t, server.URL, append([]string{"run", "queue"}, tc.args...)...)
+			if code != 0 || stderr != "" || calls.Load() != 1 || !strings.Contains(stdout, "\"next-in-same-scope\"") || !strings.Contains(stdout, "\"total\": 8") {
+				t.Fatalf("exit=%d calls=%d stdout=%q stderr=%q", code, calls.Load(), stdout, stderr)
+			}
+		})
+	}
+}
+
+func TestRunQueueRejectsInvalidFiltersWithoutReading(t *testing.T) {
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		fmt.Fprint(w, "{\"items\":[],\"total\":0}")
+	}))
+	defer server.Close()
+	for _, flags := range [][]string{
+		{"--route"}, {"--route="}, {"--route", "all"}, {"--route", "Pool"}, {"--route", "pool "},
+		{"--route", "project", "--route=pool"}, {"--run"}, {"--run="}, {"--run", "_leading"},
+		{"--run", "bad/run"}, {"--run", "two words"}, {"--run", "运行"}, {"--run", strings.Repeat("r", 101)},
+		{"--run", "same", "--run=same"},
+	} {
+		code, stdout, _ := invoke(t, server.URL, append([]string{"run", "queue"}, flags...)...)
+		if code != 2 || stdout != "" || calls.Load() != 0 {
+			t.Fatalf("invalid filters %v sent a request or returned exit=%d stdout=%q", flags, code, stdout)
+		}
+	}
+}
+
 type incompleteRunWatchWriter struct{}
 
 func (incompleteRunWatchWriter) Write(p []byte) (int, error) { return len(p) - 1, nil }

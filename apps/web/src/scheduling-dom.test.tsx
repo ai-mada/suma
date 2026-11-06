@@ -1003,12 +1003,20 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     await flush(() => rows().length === 0);
     expect(container.querySelector('[data-queue-filter]')).toBeNull();
   });
-  it("uses the App queue link to preserve exact node then browser-back restores the queue", async () => {
+  it("uses the App queue link to open the exact node and browser Back restores the shared queue scope", async () => {
     history.replaceState(
       null,
       "",
-      "/?project=p&view=development&sub=runs&layout=queue",
+      "/?project=p&view=development&sub=runs&layout=queue&queue_route=pool&queue_run=run-exact",
     );
+    const poolEntry = {
+      ...entry,
+      admission: {
+        execution_pool_id: "pool-a", run_id: entry.run_id, node_id: entry.node_id,
+        run_version: entry.run_version, node_state: entry.node_state, attempt: entry.attempt, fence: entry.fence,
+        policy_version: 1, evaluated_at: entry.ready_at, status: "unknown", blockers: [], requests: [], reservations: [],
+      },
+    };
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: unknown) => {
@@ -1016,8 +1024,12 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
         if (route === "/auth/session") return response(session);
         if (route === "/overview")
           return response({ counts: {}, activity: [] });
-        if (route === "/scheduling/queue")
-          return response({ items: [entry], total: 1 });
+        if (route === "/scheduling/queue") {
+          const params = new URL(String(input), location.origin).searchParams;
+          expect(params.get("route")).toBe("pool");
+          expect(params.get("run_id")).toBe("run-exact");
+          return response({ items: [poolEntry], total: 1 });
+        }
         throw Error("Unexpected " + route);
       }),
     );
@@ -1040,6 +1052,7 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
       node: "map[2]",
       attempt: "",
     });
+    expect(new URLSearchParams(location.search).has("queue_run")).toBe(false);
     await act(async () => {
       history.back();
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -1049,8 +1062,101 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
         container.textContent!.includes("就绪队列") &&
         !container.querySelector('[data-testid="route-consumer"]'),
     );
-    expect(parseWorkbenchRoute(location.search).layout).toBe("queue");
+    expect(parseWorkbenchRoute(location.search)).toMatchObject({
+      layout: "queue", queue_route: "pool", queue_run: "run-exact",
+    });
     await flush(() => container.querySelector('[data-queue-filter="unknown"]')?.getAttribute('aria-pressed') === 'true');
+  });
+
+  it("requires a fresh scope for an invalid link and rejects a mismatched continuation", async () => {
+    const queue = "?project=p&view=development&sub=runs&layout=queue";
+    expect(parseWorkbenchRoute(queue + "&queue_route=pool&queue_route=project").queue_invalid).toBe("1");
+    expect(parseWorkbenchRoute(queue + "&queue_run=").queue_invalid).toBe("1");
+    history.replaceState(null, "", "/?view=development&sub=runs&layout=queue&queue_run=run-exact");
+    const reads: URLSearchParams[] = [];
+    const poolEntry = {
+      ...entry,
+      admission: {
+        execution_pool_id: "pool-a", run_id: entry.run_id, node_id: entry.node_id,
+        run_version: entry.run_version, node_state: entry.node_state, attempt: entry.attempt, fence: entry.fence,
+        policy_version: 1, evaluated_at: entry.ready_at, status: "unknown", blockers: [], requests: [], reservations: [],
+      },
+    };
+    let resolveOld: (result: Response) => void = () => {};
+    const old = new Promise<Response>(resolve => { resolveOld = resolve; });
+    vi.stubGlobal("fetch", vi.fn(async (input: unknown) => {
+      const route = path(input);
+      if (route === "/auth/session") return response(session);
+      if (route === "/overview") return response({ counts: {}, activity: [] });
+      if (route === "/scheduling/queue") {
+        const params = new URL(String(input), location.origin).searchParams;
+        reads.push(params);
+        if (params.get("cursor") === "scoped-next") {
+          const wrongRun = { ...poolEntry, run_id: "different-run", node_name: "范围外记录" };
+          return response({ items: [wrongRun], total: 2, next_cursor: "foreign" });
+        }
+        if (params.get("run_id") === entry.run_id) {
+          return response({ items: [poolEntry], total: 2, next_cursor: "scoped-next" });
+        }
+        if (params.get("route") === "pool") return old;
+        return response({ items: [{ ...entry, node_name: "原范围记录" }], total: 14, next_cursor: "old-next" });
+      }
+      throw Error("Unexpected " + route);
+    }));
+
+    await render(<App />);
+    await flush(() => !!container.querySelector('[data-queue-clear]'));
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain("链接中的队列范围无效");
+    expect(reads).toHaveLength(0);
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-queue-clear]')!.click());
+    await flush(() => container.textContent!.includes("原范围记录"));
+    expect(document.activeElement?.hasAttribute('data-queue-run-filter')).toBe(true);
+
+    const route = container.querySelector<HTMLSelectElement>('[data-queue-route]')!;
+    await act(async () => {
+      route.value = "pool";
+      route.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(reads.at(-1)?.get("route")).toBe("pool");
+    expect(reads.at(-1)?.has("cursor")).toBe(false);
+    expect(container.textContent).not.toContain("原范围记录");
+    expect(container.querySelector(".loaded-scope")).toBeNull();
+
+    const filter = container.querySelector<HTMLInputElement>('[data-queue-run-filter]')!;
+    const apply = container.querySelector<HTMLButtonElement>('[data-queue-apply]')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(filter, "run /bad");
+      filter.dispatchEvent(new Event("input", { bubbles: true }));
+      apply.click();
+    });
+    expect(filter.getAttribute("aria-invalid")).toBe("true");
+    expect(reads).toHaveLength(2);
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(filter, entry.run_id);
+      filter.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => apply.click());
+    await flush(() => container.textContent!.includes("当前范围已加载 1 / 2"));
+    expect(reads.at(-1)?.get("run_id")).toBe(entry.run_id);
+    expect(reads.at(-1)?.get("route")).toBe("pool");
+    await act(async () => resolveOld(response({ items: [], total: 51, next_cursor: "stale" })));
+    expect(container.textContent).not.toContain("51");
+    await click("加载更多就绪节点");
+    await flush(() => !!container.querySelector('[role="alert"]'));
+    expect(reads.at(-1)?.get("cursor")).toBe("scoped-next");
+    expect(container.textContent).not.toContain("范围外记录");
+    expect(container.querySelectorAll("[data-queue-entry]")).toHaveLength(1);
+
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-queue-clear]')!.click());
+    await flush(() => container.textContent!.includes("原范围记录"));
+    const focusRun = container.querySelector<HTMLButtonElement>('[data-queue-focus-run]')!;
+    await act(async () => {
+      focusRun.focus();
+      focusRun.click();
+    });
+    await flush(() => filter.value === entry.run_id);
+    expect(document.activeElement).toBe(filter);
+    expect(reads.at(-1)?.get("run_id")).toBe(entry.run_id);
   });
   it("validates attempt URL and clears it when an inaccessible project is replaced", () => {
     const route = parseWorkbenchRoute(

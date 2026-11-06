@@ -29,11 +29,11 @@ func TestSchedulingReadersUseCallerTransaction(t *testing.T) {
 	bounded, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	reader := e
-	queue, err := reader.QueuePageTx(bounded, tx, "t", "p", 1, "")
+	queue, err := reader.QueuePageTx(bounded, tx, "t", "p", ReadyQueueFilter{}, 1, "")
 	if err != nil || queue.Total != 2 || len(queue.Items) != 1 || queue.Items[0].ReadyAt != "uncommitted-ready" || queue.Items[0].Admission == nil || queue.NextCursor == "" {
 		t.Fatalf("queue did not share caller transaction: %+v %v", queue, err)
 	}
-	if _, err := reader.QueuePageTx(bounded, tx, "t", "other", 1, queue.NextCursor); !errors.Is(err, ErrInvalid) {
+	if _, err := reader.QueuePageTx(bounded, tx, "t", "other", ReadyQueueFilter{}, 1, queue.NextCursor); !errors.Is(err, ErrInvalid) {
 		t.Fatalf("foreign queue cursor: %v", err)
 	}
 	page, err := reader.AttemptsPageTx(bounded, tx, "t", "p", run.ID, assignment.NodeID, 1, "")
@@ -74,7 +74,7 @@ func TestSchedulingReadersRemainReadOnlyAndRejectNil(t *testing.T) {
 	}
 	defer tx.Rollback()
 	reader := e
-	if _, err := reader.QueuePageTx(ctx, tx, "t", "p", 1, ""); err != nil {
+	if page, err := reader.QueuePageTx(ctx, tx, "t", "p", ReadyQueueFilter{Route: ReadyQueueProjectRoute, RunID: run.ID}, 1, ""); err != nil || page.Total != 1 {
 		t.Fatal(err)
 	}
 	if _, err := reader.AttemptsPageTx(ctx, tx, "t", "p", run.ID, a.NodeID, 1, ""); err != nil {
@@ -93,7 +93,7 @@ func TestSchedulingReadersRemainReadOnlyAndRejectNil(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, check := range []func() error{
-		func() error { _, e := reader.QueuePageTx(ctx, nil, "t", "p", 1, ""); return e },
+		func() error { _, e := reader.QueuePageTx(ctx, nil, "t", "p", ReadyQueueFilter{}, 1, ""); return e },
 		func() error { _, e := reader.AttemptsPageTx(ctx, nil, "t", "p", run.ID, a.NodeID, 1, ""); return e },
 		func() error { _, e := reader.GetAttemptTx(ctx, nil, "t", "p", run.ID, a.NodeID, a.Attempt); return e },
 	} {

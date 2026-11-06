@@ -203,19 +203,19 @@ func encodeSchedulingCursor(c schedulingCursor) string {
 }
 
 func (e *Engine) QueuePage(ctx context.Context, tenant, project string, limit int, cursor string) (ReadyPage, error) {
-	return e.queuePage(ctx, nil, tenant, project, limit, cursor)
+	return e.queuePage(ctx, nil, tenant, project, ReadyQueueFilter{}, limit, cursor)
 }
 
 // QueuePageTx shares the caller's current-authority transaction and does not
 // commit, roll back, or advance persisted execution state.
-func (e *Engine) QueuePageTx(ctx context.Context, tx *sql.Tx, tenant, project string, limit int, cursor string) (ReadyPage, error) {
+func (e *Engine) QueuePageTx(ctx context.Context, tx *sql.Tx, tenant, project string, filter ReadyQueueFilter, limit int, cursor string) (ReadyPage, error) {
 	if tx == nil {
 		return ReadyPage{}, ErrInvalid
 	}
-	return e.queuePage(ctx, tx, tenant, project, limit, cursor)
+	return e.queuePage(ctx, tx, tenant, project, filter, limit, cursor)
 }
 
-func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project string, limit int, cursor string) (ReadyPage, error) {
+func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project string, filter ReadyQueueFilter, limit int, cursor string) (ReadyPage, error) {
 	out := ReadyPage{Items: []ReadyEntry{}}
 	if err := scopeValid(tenant, project); err != nil {
 		return out, err
@@ -226,7 +226,14 @@ func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project stri
 	if limit > 100 {
 		limit = 100
 	}
-	c, err := decodeSchedulingCursor(cursor, tenant, project, "ready")
+	if !filter.Valid() {
+		return out, ErrInvalid
+	}
+	kind := "ready"
+	if filter != (ReadyQueueFilter{}) {
+		kind += ":" + filter.Route + ":" + filter.RunID
+	}
+	c, err := decodeSchedulingCursor(cursor, tenant, project, kind)
 	if err != nil {
 		return out, err
 	}
@@ -238,11 +245,38 @@ func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project stri
 		}
 		defer tx.Rollback()
 	}
-	if err = tx.QueryRowContext(ctx, e.q(`SELECT COUNT(*) FROM dag_ready q JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`), tenant, project).Scan(&out.Total); err != nil {
+	// Use one predicate for both the authorized total and the rows. The
+	// project route can change; only the run's frozen route classifies it.
+	from := ` FROM dag_ready q JOIN dag_runs r ON r.id=q.run_id AND r.tenant_id=q.tenant_id AND r.project_id=q.project_id JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`
+	params := []any{tenant, project}
+	if filter.RunID != "" {
+		// Compare the returned ID as well so case-folding storage collations
+		// cannot turn an inexact ID into a match.
+		var storedRunID string
+		err := tx.QueryRowContext(ctx, e.q(`SELECT id FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, filter.RunID).Scan(&storedRunID)
+		if err == sql.ErrNoRows {
+			return out, nil
+		}
+		if err != nil {
+			return out, err
+		}
+		if storedRunID != filter.RunID {
+			return out, nil
+		}
+		from += ` AND q.run_id=?`
+		params = append(params, filter.RunID)
+	}
+	const poolRoute = `EXISTS(SELECT 1 FROM dag_run_execution_routes rr WHERE rr.run_id=q.run_id AND rr.tenant_id=q.tenant_id AND rr.project_id=q.project_id AND rr.pool_id<>'')`
+	switch filter.Route {
+	case ReadyQueueProjectRoute:
+		from += " AND NOT " + poolRoute
+	case ReadyQueuePoolRoute:
+		from += " AND " + poolRoute
+	}
+	if err = tx.QueryRowContext(ctx, e.q("SELECT COUNT(*)"+from), params...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	query := `SELECT q.run_id,q.node_id,r.version,n.state,n.attempt,n.fence,q.ready_at,q.sequence,q.command_id,q.node_type,r.workflow_name,n.spec FROM dag_ready q JOIN dag_runs r ON r.id=q.run_id JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`
-	params := []any{tenant, project}
+	query := `SELECT q.run_id,q.node_id,r.version,n.state,n.attempt,n.fence,q.ready_at,q.sequence,q.command_id,q.node_type,r.workflow_name,n.spec` + from
 	if cursor != "" {
 		query += ` AND (q.sequence>? OR (q.sequence=? AND (q.run_id>? OR (q.run_id=? AND q.node_id>?))))`
 		params = append(params, c.Sequence, c.Sequence, c.Run, c.Run, c.Node)
@@ -280,7 +314,7 @@ func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project stri
 	if len(out.Items) > limit {
 		out.Items = out.Items[:limit]
 		last := out.Items[len(out.Items)-1]
-		out.NextCursor = encodeSchedulingCursor(schedulingCursor{Tenant: tenant, Project: project, Kind: "ready", Run: last.RunID, Node: last.NodeID, Sequence: last.Sequence})
+		out.NextCursor = encodeSchedulingCursor(schedulingCursor{Tenant: tenant, Project: project, Kind: kind, Run: last.RunID, Node: last.NodeID, Sequence: last.Sequence})
 	}
 	for i := range out.Items {
 		snapshot, err := e.AdmissionSnapshotTx(ctx, tx, tenant, project, out.Items[i].RunID, out.Items[i].NodeID)
