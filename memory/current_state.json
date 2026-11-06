@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "usage_evidence_order": {
+    "stage": "T-USAGE-EVIDENCE-ORDER-280",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "16ed82b8ed5954938168c02c754d88d0dce891ac",
+    "report": "docs/quality/usage-evidence-order-verification.md",
+    "actual": "Usage evidence orders and paginates by padded UTC nanoseconds and stable ID. The scoped query selects candidate keys before loading bounded payloads.",
+    "verification": "A real HTTP and SQLite regression failed against the old reader and passed with one-row mixed precision and tied-time pages. The late settlement regression also passed.",
+    "known_limitations": "PostgreSQL, OceanBase and sustained production load remain unverified.",
+    "full_platform_complete": false
+  },
   "usage_evidence": {
     "stage": "T-USAGE-EVIDENCE-279",
     "version": "1.0.0",

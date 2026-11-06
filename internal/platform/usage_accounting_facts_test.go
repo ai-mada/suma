@@ -149,6 +149,40 @@ func TestUsageAttemptFactsHTTP(t *testing.T) {
 	invitation := governanceInvite(f, viewerEmail, "member", []any{map[string]any{"project_id": f.project, "role": "viewer"}})
 	viewerID := governanceAccept(f, invitation, viewerEmail)["user"].(map[string]any)["id"].(string)
 	assertPage(path, attempt.ID, "", []any{lateFact, tied[0], tied[1], tied[2]})
+	// The persisted RFC3339Nano strings differ in length. Across a one-row
+	// cursor boundary, .11 must precede .1, and a fractional time must
+	// precede the exact second. Two facts at .11 still break ties by ID.
+	const secondOnly = "2026-11-06T02:00:00Z"
+	const tenth = "2026-11-06T02:00:00.1Z"
+	const elevenHundredths = "2026-11-06T02:00:00.11Z"
+	ordered := []map[string]any{lateFact, {}, {}, {}}
+	for _, item := range tied {
+		switch item["kind"] {
+		case "confirmation":
+			ordered[1] = item
+		case "resolution":
+			ordered[2] = item
+		case "result":
+			ordered[3] = item
+		}
+	}
+	for i, at := range []string{elevenHundredths, elevenHundredths, tenth, secondOnly} {
+		item := ordered[i]
+		if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_usage_facts SET created_at=? WHERE attempt_id=? AND id=?`, at, attempt.ID, item["id"]); err != nil {
+			t.Fatal(err)
+		}
+		item["created_at"] = at
+	}
+	sort.Slice(ordered[:2], func(i, j int) bool { return ordered[i]["id"].(string) > ordered[j]["id"].(string) })
+	before := ""
+	for i, item := range ordered {
+		next := ""
+		if i+1 < len(ordered) {
+			next = item["id"].(string)
+		}
+		assertPage(path+"&limit=1"+before, attempt.ID, next, []any{item})
+		before = "&before=" + url.QueryEscape(next)
+	}
 	if _, err := f.s.DB.ExecContext(ctx, `DELETE FROM suma_project_members WHERE project_id=? AND user_id=?`, f.project, viewerID); err != nil {
 		t.Fatal(err)
 	}

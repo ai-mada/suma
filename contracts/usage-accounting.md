@@ -53,7 +53,7 @@ UsageConfirmRequest{project_id,expected_version,usage:toolcontract.Usage,source_
 - POST /usage/rates →UsageRateRevision；WriteUsageRate(ctx,actor,project,req)。
 - GET /usage/attempts?project_id&month&state(optional)&limit=20&before=id →UsageAttemptPage；ListUsageAttempts(ctx,actor,project,month,state,limit,before)。limit1..100稳定created_at/id keyset。
 - POST /usage/attempts/{id}/confirm →UsageAttempt；ConfirmUsageAttempt(ctx,actor,project,id,req)。
-- GET /usage/attempts/{id}/facts?project_id&limit&before →UsageAttemptFactPage。授权及游标绑定当前项目和精确尝试，limit 默认 20、上限 100。仅返回证据 ID、类别、存档时间、摘要、原始结果标记及可公开计数和覆盖状态。该接口用于核对观察与人工确认，无写操作。 [验收](../docs/quality/usage-evidence-verification.md)
+- GET /usage/attempts/{id}/facts?project_id&limit&before →UsageAttemptFactPage。授权及游标绑定当前项目和精确尝试，limit 默认 20、上限 100。排序按实际 UTC 时间降序，纳秒相同按事实 ID 降序。仅返回证据 ID、类别、存档时间、摘要、原始结果标记及可公开计数和覆盖状态。该接口用于核对观察与人工确认，无写操作。 [验收](../docs/quality/usage-evidence-verification.md)
 
 当前权限在receipt replay前重核；Runner/Agent token不能访问管理读写。严格未知字段/null/完整显式nullable字段与月份/游标范围校验。金额只显示各自币种，不用汇率。宿主诊断中文/英文成对，原用量、模型ID、用户reason原样保存。
 

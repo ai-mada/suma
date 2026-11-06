@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ai-mada/suma/internal/toolcontract"
@@ -28,6 +29,17 @@ type UsageAttemptFactPage struct {
 }
 
 var errInvalidUsageFact = errors.New("invalid stored usage fact")
+
+const usageFactSecondLayout = "2006-01-02T15:04:05"
+
+func usageFactStamp(value string) (time.Time, error) {
+	stamp, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil || len(value) < 20 || len(value) > 30 || value[len(value)-1] != 'Z' ||
+		value[:19] != stamp.Format(usageFactSecondLayout) || len(value) > 20 && value[19] != '.' {
+		return time.Time{}, errInvalidUsageFact
+	}
+	return stamp, nil
+}
 
 func (s *Service) ListUsageAttemptFacts(ctx context.Context, actor Actor, project, id string, limit int, before string) (page UsageAttemptFactPage, err error) {
 	if limit == 0 {
@@ -62,24 +74,37 @@ func (s *Service) ListUsageAttemptFacts(ctx context.Context, actor Actor, projec
 	}
 
 	const scope = ` FROM suma_usage_facts WHERE tenant_id=? AND project_id=? AND attempt_id=?`
-	query := `SELECT id,kind,created_at,identity_sha256,payload` + scope
+	// RFC3339Nano can omit trailing zeros and the entire fraction. Pad the
+	// fraction to nine digits so equivalent UTC instants share the same key.
+	const sortKey = `SUBSTR(REPLACE(REPLACE(created_at,'.',''),'Z','000000000'),1,28)`
+	pageQuery := `SELECT id,` + sortKey + ` AS sort_key` + scope
 	args := []any{tenant, project, id}
 	if before != "" {
-		var cursorID, stamp string
-		err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id,created_at`+scope+` AND id=?`), tenant, project, id, before).Scan(&cursorID, &stamp)
+		var cursorID, rawStamp string
+		err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id,created_at`+scope+` AND id=?`), tenant, project, id, before).Scan(&cursorID, &rawStamp)
 		if errors.Is(err, sql.ErrNoRows) || err == nil && cursorID != before {
 			return page, invalid(usageInvalid)
 		}
 		if err != nil {
 			return page, err
 		}
-		if _, err := time.Parse(time.RFC3339Nano, stamp); err != nil {
-			return page, errInvalidUsageFact
+		stamp, err := usageFactStamp(rawStamp)
+		if err != nil {
+			return page, err
 		}
-		query += ` AND created_at<=? AND (created_at<? OR id<?)`
-		args = append(args, stamp, stamp, before)
+		// The raw upper bound keeps later seconds outside the indexed range.
+		// The padded key and ID then locate the exact boundary within it.
+		upper := stamp.Add(time.Second).Format(usageFactSecondLayout)
+		key := stamp.Format(usageFactSecondLayout) + fmt.Sprintf("%09d", stamp.Nanosecond())
+		pageQuery += ` AND created_at<? AND (` + sortKey + `<? OR (` + sortKey + `=? AND id<?))`
+		args = append(args, upper, key, key, before)
 	}
-	rows, err := auth.tx.QueryContext(ctx, s.q(query+` ORDER BY created_at DESC,id DESC LIMIT ?`), append(args, limit+1)...)
+	// The index covers candidate keys. Read private payloads only for the
+	// bounded page selected by the normalized ordering.
+	query := `SELECT f.id,f.kind,f.created_at,f.identity_sha256,f.payload FROM (` + pageQuery +
+		` ORDER BY sort_key DESC,id DESC LIMIT ?) fact_page JOIN suma_usage_facts f ON f.id=fact_page.id` +
+		` ORDER BY fact_page.sort_key DESC,fact_page.id DESC`
+	rows, err := auth.tx.QueryContext(ctx, s.q(query), append(args, limit+1)...)
 	if err != nil {
 		return page, err
 	}
@@ -109,7 +134,7 @@ func (s *Service) ListUsageAttemptFacts(ctx context.Context, actor Actor, projec
 }
 
 func (f *UsageAttemptFact) projectUsage(raw, originalResultSHA256 string) error {
-	if _, err := time.Parse(time.RFC3339Nano, f.CreatedAt); err != nil ||
+	if _, err := usageFactStamp(f.CreatedAt); err != nil ||
 		!handoffID(f.ID, false) || !toolcontract.ValidDigest(f.IdentitySHA256) {
 		return errInvalidUsageFact
 	}

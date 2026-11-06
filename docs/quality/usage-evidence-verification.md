@@ -15,7 +15,7 @@
 - 10 项 Go 顶层检查及 5 项子场景通过。真实 HTTP 与 SQLite 读取原始回执、核对、人工确认及后续回执，检查准确分页、权限撤销、私有内容边界和零值。
 - 7 项 Web 组件检查通过。覆盖按需展开、继续读取、切换尝试、撤权和现有用量操作。生成合同通过一致性检查。
 - Chrome 使用带模拟接口的完整用量工作台，验证中文 390px、英文 1280px、键盘展开与续页、UTC 时分秒，以及汇总 14 与回执观察 25 并存。浏览器用例无写请求。
-- 分页沿现有存档时间键和 ID 稳定排序。历史时间戳在同一秒内的分数位长不同，可能与真实先后顺序有细微差异。差额调整、分布式数据库和实际厂商账单仍待交付或验证。
+- 本阶段记录的同秒精度排序缺口已由 T-USAGE-EVIDENCE-ORDER-280 补齐。 [精度与分页验证](usage-evidence-order-verification.md)差额调整、分布式数据库和实际厂商账单仍待交付或验证。
 
 ```powershell
 go test -p 2 ./internal/platform -run '^(TestUsageAttemptFactsHTTP|TestUsageAccounting|TestAuthorityUsage)' -count=1
