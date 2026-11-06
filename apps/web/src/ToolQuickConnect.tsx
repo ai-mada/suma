@@ -13,7 +13,8 @@ import {ArrowRight,CheckCircle2,ChevronRight,Monitor,RefreshCw,Server,ShieldChec
 import {useApi,useApiView} from './api-context';
 import {ApiError} from './api';
 import {readAdapterCatalog,type AdapterDescriptor,type AdapterCatalogPage} from './AdapterConnections';
-import {parseToolDiscovery,toolDiscoveryTimestampNs,type ToolDiscoveryView} from './tool-discovery-model';
+import {readToolInventory,toolDiscoveryTimestampNs,type ToolDiscoveryView} from './tool-discovery-model';
+import {QuickNodeMatch,quickNodeLookupLimit} from './QuickNodeMatch';
 import {isCursorConnectionGuide,localDiscoveryAdapters,matchingQuickTools,quickConnectAdapters,quickConnectWorkers,readInstalledToolDiscovery,validQuickConnectReceipt,type InstalledToolFact,type ConfirmedNativeToolProof,type ConfirmedOpenCodeToolProof,type ConfirmedClaudeSDKToolProof} from './tool-quick-connect-model';
 import {tr,useLocale,UiError} from './i18n';
 import {ErrorNotice,Field,Loading} from './ui';
@@ -121,6 +122,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
  if(onPrepareRunner&&toolPreparationTarget(adapter)&&pairedRunner?.project_id===project&&pairedRunner.worker_id===worker)try{const value=readRunnerPairing(pairedRunner,project);if(value.state==='approved')prepareTarget=value;}catch{/* Only an exact approved public source can seed the remote guide. */}
  const key=JSON.stringify([worker,active,revision]),reportedReceipt=useRef('');
  const alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const nativeChoiceRevision=useRef(0);
  function lockTarget(workerID:string){target.current={api,worker:workerID};setLockedWorker(workerID);}
  function reportNativeReady(ready:boolean){
   if(!alive.current||currentCaller.current!==api||target.current.api!==api)return;
@@ -129,6 +131,7 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
  function acceptNative(workerID:string,commit?:()=>void){
   if(!alive.current||currentCaller.current!==api||target.current.api!==api)return;
   lastNativeWorker.current=workerID;const expected=target.current.worker;
+  nativeChoiceRevision.current++;
   if(expected&&workerID!==expected){
    setNativeRegistrationReady(false);setNativeMismatch(previous=>previous?.caller===api&&previous.target===expected&&previous.worker===workerID?previous:{caller:api,target:expected,worker:workerID});return;
   }
@@ -136,8 +139,8 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
  }
  useEffect(()=>{
   const controller=new AbortController();let current=true;setSnapshot(undefined);setExpired(false);
-  if(active){const started=performance.now();void api<unknown>('/tool-discovery?project_id='+encodeURIComponent(project)+'&worker_id='+encodeURIComponent(worker),undefined,'GET',undefined,controller.signal).then(value=>{
-   if(!current)return;const view=parseToolDiscovery(value,project,worker),remaining=Math.max(0,view.remainingMs-(performance.now()-started));setSnapshot({caller:api,key,view,deadline:performance.now()+remaining});setExpired(view.state==='fresh'&&remaining<=0);
+  if(active){void readToolInventory(api,project,worker,controller.signal).then(({view,deadline})=>{
+   if(!current)return;setSnapshot({caller:api,key,view,deadline});setExpired(view.state==='fresh'&&performance.now()>=deadline);
   }).catch(error=>{if(current&&!controller.signal.aborted)setSnapshot({caller:api,key,deadline:0,error});});}
   return()=>{current=false;controller.abort();};
  },[api,project,worker,active,key]);
@@ -178,6 +181,14 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
  }
  const matchKey=matchRequest?JSON.stringify([adapter.id,key,current!.deadline,toolProfileMatchKey(matchRequest),matchRevision]):'',matchEligible=!!matchRequest&&!receipt&&!writeBlocked&&!localOperationBlocked&&!remoteScanBlocked;
  const matches=matchEligible&&matchSnapshot?.caller===api&&matchSnapshot.key===matchKey?matchSnapshot:undefined,lookupBusy=matchEligible&&!matches,blocked=writeBlocked||localOperationBlocked||remoteScanBlocked||lookupBusy;
+ const showWorkerPicker=identitiesKnown&&(nodes.length>1||!!mismatch||!!(preferredWorkerID||chosenWorker||localWorker)&&!worker);
+ const nativeRevisionBeforeLookup=nativeChoiceRevision.current;
+ const findNodes=nodes.length>1&&showWorkerPicker&&!blocked&&!worker&&!chosenTarget&&!reportedWorker&&!preferredWorkerID&&!replacementSource&&!observationPin&&nodes.length<=quickNodeLookupLimit;
+ function chooseWorker(workerID:string){
+  if(blocked||receipt||!identitiesKnown||workerID&&!nodes.includes(workerID))return false;
+  lockTarget(workerID);setNativeMismatch(undefined);setNativeRegistrationReady(false);setNativeConnection(undefined);setACPConnection(undefined);setObservationPin(undefined);setChosenCommand('');setChosenWorker(workerID);
+  return true;
+ }
  const advancedTarget=useRef({caller:api,worker:worker||chosenTarget,blocked});advancedTarget.current={caller:api,worker:worker||chosenTarget,blocked};
  function openAdvanced(){
   const source=advancedTarget.current;
@@ -256,12 +267,18 @@ function QuickToolConfiguration({project,adapter,replacementSource,replacementDi
     {inventoryRefresh}
    </div>
   </div>}
+  {showWorkerPicker&&<Field label={t('node')}><select ref={workerChoice} data-quick-worker value={worker} disabled={blocked||!!receipt} onChange={event=>chooseWorker(event.target.value)}><option value="">{t('choose_node')}</option>{nodes.map(node=><option key={node} value={node}>{node}</option>)}</select></Field>}
+  {findNodes&&<QuickNodeMatch key={JSON.stringify([adapter.adapter,adapter.protocol,nodes])} project={project} adapter={adapter} nodes={nodes} onUse={id=>{
+   if(!findNodes||target.current.worker||target.current.api!==api||nativeChoiceRevision.current!==nativeRevisionBeforeLookup||!chooseWorker(id))return false;
+   workerChoice.current?.focus({preventScroll:true});
+   return true;
+  }}/>}
   {adapter.id==='qoder-acp'&&<details className="tool-quick-muted"><summary>{tr('acp-quick-connect.native_policy')}</summary><p>{tr('acp-runtime.setup_policy')}</p></details>}
    {adapter.id==='claude-code-sdk'?<ClaudeSDKLocalConnector project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onGuide={openAdvanced} onConnected={proof=>acceptNative(proof.worker_id,()=>setNativeConnection({caller:api,connection:{...proof}}))}/>:acpAdapterID?<QoderLocalConnector adapterID={acpAdapterID} project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onConnected={workerID=>acceptNative(workerID,()=>setACPConnection({caller:api,workerID}))}/>:adapter.id==='codex-app-server'?<CodexLocalConnector project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onConnected={proof=>acceptNative(proof.worker_id,()=>setNativeConnection({caller:api,connection:{...proof}}))}/>:adapter.id==='opencode-sdk'?<OpenCodeLocalConnector project={project} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={reportNativeReady} onGuide={openAdvanced} onConnected={proof=>acceptNative(proof.worker_id,()=>setNativeConnection({caller:api,connection:{...proof}}))}/>:<DesktopToolConnector project={project} adapterID={adapter.id} disabled={writeBlocked||remoteScanBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onGuide={openAdvanced} onConnected={workerID=>acceptNative(workerID)}/>}
   {mismatch&&<div className="tool-quick-target-mismatch" data-quick-native-target-mismatch role="status"><p>{t('native_target_mismatch',{node:mismatch.worker,target:mismatch.target})}</p><button type="button" className="text-button" data-quick-target-picker disabled={blocked||!!receipt||!nodes.length} onClick={()=>workerChoice.current?.focus()}>{t('choose_target')}</button></div>}
   {preferredMissing?<p className="tool-quick-warning" data-quick-preferred-worker-missing role="status">{tr('runner-pairing.worker_not_current')}</p>:targetMissing&&<p className="tool-quick-warning" data-quick-worker-missing role="status">{t('saved_node_missing',{node:targetWorker})}</p>}
   {!identitiesKnown?<div className="tool-quick-node-state" role="status"><p>{t('reading_nodes')}</p>{workers.error&&<ErrorNotice error={workers.error} onRetry={()=>void workers.read()}/>} {sharedWorkers.error&&<ErrorNotice error={sharedWorkers.error} onRetry={()=>void sharedWorkers.read()}/>}</div>:!nodes.length&&!preferredWorkerID?<div className="tool-quick-empty"><Server size={22} aria-hidden="true"/><div><strong>{t('no_node')}</strong><p>{onWorker?t('no_node_hint'):tr('tool-worker-identities.request_node')}</p>{onWorker&&<button data-quick-connect-worker type="button" className={managesLocal?'text-button':'primary'} disabled={blocked} onClick={onWorker}>{t('connect_node')}<ArrowRight size={15} aria-hidden="true"/></button>}</div>{!managesLocal&&!scansLocal&&<LocalInstallation project={project} adapter={adapter} onGuide={openAdvanced}/>}</div>:<>
-   {nodes.length>1||!!mismatch||!!(preferredWorkerID||chosenWorker||localWorker)&&!worker?<Field label={t('node')}><select ref={workerChoice} data-quick-worker value={worker} disabled={blocked||!!receipt} onChange={event=>{lockTarget(event.target.value);setNativeMismatch(undefined);setNativeRegistrationReady(false);setNativeConnection(undefined);setACPConnection(undefined);setObservationPin(undefined);setChosenCommand('');setChosenWorker(event.target.value);}}><option value="">{t('choose_node')}</option>{nodes.map(node=><option key={node} value={node}>{node}</option>)}</select></Field>:<p className="tool-quick-node"><Server size={15} aria-hidden="true"/>{t('using_node',{node:worker})}</p>}
+   {!showWorkerPicker&&<p className="tool-quick-node"><Server size={15} aria-hidden="true"/>{t('using_node',{node:worker})}</p>}
    {receipt?<div className="tool-quick-saved"><CheckCircle2 size={22} aria-hidden="true"/><div><strong ref={savedHeading} tabIndex={-1}>{t('registered',{name:receipt.name})}</strong><p>{t('paused_hint')}</p><button data-quick-enable type="button" className="primary" disabled={blocked} onClick={()=>onEnable(receipt)}>{t('enable')}<ArrowRight size={15} aria-hidden="true"/></button></div></div>:worker&&<>
     {!current?<Loading/>:current.error?<ErrorNotice error={toolError(current.error)} onRetry={()=>setRevision(value=>value+1)}/>:view&&<>
      {!usable&&!inventoryIssue&&<div className="tool-quick-inventory-heading"><strong>{t('detected')}</strong>{inventoryRefresh}</div>}

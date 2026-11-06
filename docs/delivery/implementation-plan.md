@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-NODE-MATCH-273 [添加工具](../design/tool-quick-connect.md)在多个已授权节点间查找当前工具的可用配置，选中节点后重新核对库存和已有配置。 [限定验证](../quality/tool-node-match-verification.md)
+
 T-TOOL-QUICK-RECOVERY-266 [添加工具](../design/tool-quick-connect.md)分开呈现本机异常、节点配置问题、明确保存失败和未知写入。已在真实 Windows 桌面验证常用入口检测与原请求恢复。 [限定验证](../quality/tool-quick-recovery-verification.md)
 
 T-TOOL-QUICK-DESKTOP-251 [添加工具](../design/tool-quick-connect.md)提供保存后直达启用确认与首屏审阅，并在实际 Windows 桌面核对 Codex 检测、双配置选择、暂停保存和独立启用。 [限定验证](../quality/tool-quick-desktop-verification.md)

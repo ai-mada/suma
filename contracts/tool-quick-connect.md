@@ -4,9 +4,11 @@
 
 ## 已登记节点上的自动配置
 
-“添加工具”仅展示目录中 `suma_to_tool`、`implemented`、`runner_profile` 的执行入口。读取当前项目的 `/api/v1/release-workers` 与 `/api/v1/project-execution/runners`；两个来源均完成当前读取后，唯一活动节点自动选中，多个节点由用户选择。登记状态不能推断在线状态。
+“添加工具”仅展示目录中 `suma_to_tool`、`implemented`、`runner_profile` 的执行入口。读取当前项目的 `/api/v1/release-workers` 与 `/api/v1/project-execution/runners`；两个来源均完成当前读取后，唯一活动节点自动选中。多个节点可手动选择，或在未指定目标时明确发起查找。登记状态不能推断在线状态。
 
 所选节点沿 `GET /api/v1/tool-discovery?project_id=P&worker_id=W` 读取原上报；仅在原60秒期限内采用匹配 adapter／protocol 的可用观察。唯一匹配配置自动选择并建议名称，多个配置明确选择。重新读取不触发远程探测或延长原报告期限。
+
+T-TOOL-NODE-MATCH-273 的明确查找最多读取 8 个已授权候选节点的原上报。仅当全部读取成功且唯一节点仍有匹配的可用配置时自动选中。多个匹配或部分读取失败时只列出已确认节点，过期结果失效。选中后照常重新读取该节点并查重。固定目标、替换配置或已选目标继续使用原路径。
 
 登记沿原 `POST /api/v1/tool-profiles`，保留原稳定操作标识及准确项目、节点、名称、固定Profile；响应必须匹配原请求且为暂停配置。启用另走原 `/tool-profiles/{id}/commands`，使用当前版本及独立确认。注册、启用、当前可派发、模型认证与任务成功分别成立。
 

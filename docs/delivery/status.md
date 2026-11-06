@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-NODE-MATCH-273 添加工具可一次查找当前项目的可用执行节点。完整核对后唯一匹配自动选中，多个匹配或读取不完整时由用户选择。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-node-match-verification.md)
+
 T-MODEL-DIRECTORY 补齐网关部署、Codex 与工具固定模型的目录展示，支持搜索、来源链接、分页及当前配置重读。 [交互](../design/management-and-tool-discovery.md#模型目录与来源恢复) · [验证](../quality/model-directory-verification.md)
 
 T-TOOL-QUICK-RECOVERY-266 添加工具在所选入口旁显示本机和节点问题的下一步，明确保存失败保留草稿，结果未知核对原回执。实际 Windows 桌面已验证 9 个入口检测及 Codex 保存恢复。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-quick-recovery-verification.md)

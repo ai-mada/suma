@@ -88,6 +88,38 @@ it('requires a node choice when several are authorized and never fans out reads'
  props.workers=identity(['one','two']);await render();await change('[data-quick-tool]','codex-jsonl');expect(paths).toHaveLength(1);
  await change('[data-quick-worker]','two');expect(paths).toHaveLength(3);expect(paths[1]).toContain('worker_id=two');expect(paths[2]).toBe('/tool-profiles/matches');
 });
+it('finds the only matching node on request and reads that node again before offering save',async()=>{
+ props.workers=identity(['one','two']);
+ const base=reply;reply=async path=>path.endsWith('worker_id=one')?Response.json({...report('one'),items:[]}):base(path);
+ await render();await change('[data-quick-tool]',adapter.id);
+ expect(paths).toEqual(['/adapter-catalog?project_id=p']);
+ await click('[data-quick-find-nodes]');
+ expect(host.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('two');
+ expect(paths.filter(path=>path.endsWith('worker_id=two'))).toHaveLength(2);
+ expect(host.querySelector<HTMLInputElement>('[data-quick-name]')?.value).toBe('codex-team');
+ expect(props.action.run).not.toHaveBeenCalled();
+});
+it('leaves selection explicit when a node could not be checked',async()=>{
+ props.workers=identity(['one','two']);
+ const base=reply;reply=async path=>path.endsWith('worker_id=one')?new Response(null,{status:503}):base(path);
+ await render();await change('[data-quick-tool]',adapter.id);await click('[data-quick-find-nodes]');
+ expect(host.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('');
+ expect(host.querySelector('[data-quick-node-matches]')?.textContent).toContain('Some nodes could not be checked');
+ await click('[data-quick-use-node="two"]');
+ expect(host.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('two');
+ expect(props.action.run).not.toHaveBeenCalled();
+});
+it('does not replace a manual node choice when an earlier lookup finishes late',async()=>{
+ props.workers=identity(['one','two']);
+ let finish!:(value:Response)=>void;const base=reply;
+ reply=path=>path.endsWith('worker_id=two')?new Promise(resolve=>{finish=resolve;}):base(path);
+ await render();await change('[data-quick-tool]',adapter.id);await click('[data-quick-find-nodes]');
+ await change('[data-quick-worker]','one');await act(async()=>finish(Response.json(report('two'))));await settle();
+ expect(host.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe('one');
+ expect(host.querySelector('[data-quick-node-matches]')).toBeNull();
+ expect(props.action.run).not.toHaveBeenCalled();
+});
+
 it('expires inventory and refuses registration without silently reading again',async()=>{
  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});await render();await change('[data-quick-tool]','codex-jsonl');
  expect(host.querySelector<HTMLButtonElement>('[data-quick-register]')?.disabled).toBe(false);

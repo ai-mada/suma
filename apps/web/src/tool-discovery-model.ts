@@ -1,4 +1,5 @@
 import {UiError} from './i18n';
+import type {ApiCaller} from './api';
 import {parseToolManifest} from './tool-model';
 
 const identity=/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
@@ -43,3 +44,10 @@ export function parseToolDiscovery(value:unknown,project:string,worker:string){
 }
 
 export type ToolDiscoveryView=ReturnType<typeof parseToolDiscovery>;
+
+export async function readToolInventory(api:ApiCaller,project:string,worker:string,signal:AbortSignal){
+ const started=performance.now();
+ const value=await api<unknown>('/tool-discovery?project_id='+encodeURIComponent(project)+'&worker_id='+encodeURIComponent(worker),undefined,'GET',undefined,signal);
+ const view=parseToolDiscovery(value,project,worker);
+ return {view,deadline:started+view.remainingMs};
+}
