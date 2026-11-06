@@ -135,6 +135,9 @@ func (s *Service) candidateReceipt(ctx context.Context, a *candidateAuthority, o
 	if len(op) < 8 || len(op) > 128 {
 		return "", false, invalid("Invalid candidate transfer operation ID")
 	}
+	if err := s.checkFailureIssueKeyReservation(op); err != nil {
+		return "", false, err
+	}
 	hash := digest(a.subject.hash() + stringify(body))
 	var previous, response string
 	err := a.tx.QueryRowContext(ctx, s.q(`SELECT request_hash,response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), a.subject.tenant, a.subject.project, op).Scan(&previous, &response)
@@ -151,6 +154,9 @@ func (s *Service) candidateReceipt(ctx context.Context, a *candidateAuthority, o
 }
 func (s *Service) saveCandidateReceipt(ctx context.Context, a *candidateAuthority, op, hash string, response any) error {
 	if err := a.assert(); err != nil {
+		return err
+	}
+	if err := s.checkFailureIssueKeyReservation(op); err != nil {
 		return err
 	}
 	_, err := a.tx.ExecContext(ctx, s.q(`INSERT INTO suma_operations(tenant_id,project_id,operation_id,request_hash,response)VALUES(?,?,?,?,?)`), a.subject.tenant, a.subject.project, op, hash, stringify(response))

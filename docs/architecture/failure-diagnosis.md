@@ -28,6 +28,8 @@
 
 故障投影最多每批处理 50 条。首次处理按事件序号排序，到期重试按数据库时间与事件序号排序；两类都有待办时保留最多 10 个重试名额，空余名额可互补。投影或确认失败按事件记录重试代次，退避从 1 秒递增至最多 300 秒。投影成功才写确认并在同一事务清理重试；若问题已提交但确认失败，沿原回执重放。运维通过 `control.failure_projection` 日志定位事件序号。 [验证记录](../quality/failure-projection-retry-verification.md)
 
+系统投影使用 `failure-<run_id>` 回执键。通用项目命令和候选制品传输在读取和保存原始键前均拒绝该前缀及大小写变体。OceanBase 上这两类原始项目键采用无空格的可见 ASCII，避免 Unicode 变体进入共享主键。系统投影、验收退回和问题回流各自保留原有回执规则。 [验证记录](../quality/failure-issue-key-reservation-verification.md)
+
 证据最多六项，每项 8000 UTF-8 字节，超限取 UTF-8 边界安全末段并记录 `selection=tail`、selected／total 字节。
 单项摘要保留完整原字节身份，source SHA 绑定身份、版本及实际片段；整个 prompt 超过 32000 字节时拒绝。
 不能把片段 digest 与完整源 digest 混为一谈，也不能用浏览器提供的输出文本替代事实。

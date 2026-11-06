@@ -5,10 +5,31 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
+const failureIssueKeyPrefix = "failure-"
+
 func failureIssueKey(run string) string {
-	return "failure-" + run
+	return failureIssueKeyPrefix + run
+}
+
+// Raw project operation keys share a storage key with the failure projector.
+// OceanBase VARCHAR collations can equate Unicode aliases with ASCII keys, so
+// accept only visible ASCII at these raw-key boundaries on that dialect.
+func (s *Service) checkFailureIssueKeyReservation(key string) error {
+	if s.Dialect == "oceanbase" {
+		for i := 0; i < len(key); i++ {
+			b := key[i]
+			if b < '!' || b > '~' {
+				return invalid("Operation key must use visible ASCII characters on OceanBase")
+			}
+		}
+	}
+	if len(key) >= len(failureIssueKeyPrefix) && strings.EqualFold(key[:len(failureIssueKeyPrefix)], failureIssueKeyPrefix) {
+		return invalid(reservedRecordOperationKey)
+	}
+	return nil
 }
 
 // Keep the original system command and its receipt identity in one place so

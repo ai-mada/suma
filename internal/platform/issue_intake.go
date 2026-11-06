@@ -16,7 +16,7 @@ type issueRequirementReceipt struct {
 }
 
 func rejectReservedRecordOperationKey(key string) error {
-	for _, prefix := range []string{"issue-intake-", "failure-", "review-rejected-"} {
+	for _, prefix := range []string{"issue-intake-", failureIssueKeyPrefix, "review-rejected-"} {
 		if strings.HasPrefix(key, prefix) {
 			return invalid(reservedRecordOperationKey)
 		}

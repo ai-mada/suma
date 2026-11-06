@@ -218,6 +218,11 @@ func (s *Service) commandReceipt(ctx context.Context, a *authorizedCommand, key 
 	if len(key) < 8 || len(key) > 128 {
 		return "", false, invalid("请提供 8–128 字符的 idempotency_key")
 	}
+	if a.target.projectID != organizationScope {
+		if err := s.checkFailureIssueKeyReservation(key); err != nil {
+			return "", false, err
+		}
+	}
 	hash := digest(a.currentPrincipal.ID + stringify(body))
 	var stored, response string
 	err := a.tx.QueryRowContext(ctx, s.q(`SELECT request_hash,response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), a.target.tenantID, a.target.projectID, key).Scan(&stored, &response)
@@ -242,6 +247,11 @@ func (s *Service) saveCommandReceipt(ctx context.Context, a *authorizedCommand, 
 	}
 	if err := a.assertTx(a.tx, a.target, a.purpose); err != nil {
 		return err
+	}
+	if a.target.projectID != organizationScope {
+		if err := s.checkFailureIssueKeyReservation(key); err != nil {
+			return err
+		}
 	}
 	ctx, cancel := context.WithDeadline(ctx, a.deadline)
 	defer cancel()

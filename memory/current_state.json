@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "failure_issue_key_reservation": {
+    "stage": "T-FAILURE-ISSUE-KEY-RESERVATION-271",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "fd87d9de6df1a8251c08ffbda49ec1bac0f81b38",
+    "report": "docs/quality/failure-issue-key-reservation-verification.md",
+    "actual": "Raw project command and candidate receipt slots reject the case-insensitive system failure prefix. OceanBase raw keys use visible ASCII.",
+    "verification": "Four focused SQLite/HTTP and policy tests plus a real local managed release projection run passed.",
+    "known_limitations": "Live OceanBase collation and physical distributed acceptance remain unverified; existing conflicting receipts retain evidence.",
+    "full_platform_complete": false
+  },
   "failure_projection_retry": {
     "stage": "T-FAILURE-PROJECTION-RETRY-270",
     "version": "1.0.0",
