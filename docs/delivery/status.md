@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-PROGRESS-TASKS 进度条目可按正式任务标题识别，直接打开该次或当前交付，原执行入口独立保留。网页和 CLI 共用授权分页。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-progress-tasks-verification.md)
+
 T-WORKBUDDY-PROJECT-ATTENTION 网页和 CLI 按项目查询已保存的待处理 WorkBuddy 提交。空批次可续查，链接可分享。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-project-attention-verification.md)
 
 T-WORKBUDDY-TEAM-PROGRESS 执行中心集中查看当前项目已保存的 WorkBuddy 提交、平台状态与供应方观察，支持授权分页和原节点定位。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-team-progress-verification.md)

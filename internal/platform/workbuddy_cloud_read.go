@@ -30,7 +30,7 @@ func (w *WorkBuddyConnections) GetCloudNode(ctx context.Context, actor Actor, pr
 	if err != nil {
 		return wc.CloudNodeView{}, err
 	}
-	taskDelivery, err := w.cloudTaskDeliveryLinkTx(ctx, auth, project, run, node, n)
+	taskDelivery, _, err := w.cloudTaskDeliveryLinkTx(ctx, auth, project, run, node, n)
 	if err != nil {
 		return wc.CloudNodeView{}, err
 	}
@@ -99,23 +99,23 @@ func (w *WorkBuddyConnections) GetCloudNode(ctx context.Context, actor Actor, pr
 	return out, nil
 }
 
-func (w *WorkBuddyConnections) cloudTaskDeliveryLinkTx(ctx context.Context, auth *authorizedCommand, project, run, node string, n cloudNode) (*wc.CloudTaskDeliveryLink, error) {
+func (w *WorkBuddyConnections) cloudTaskDeliveryLinkTx(ctx context.Context, auth *authorizedCommand, project, run, node string, n cloudNode) (*wc.CloudTaskDeliveryLink, string, error) {
 	tenant := auth.target.tenantID
 	plan, found, err := w.s.workBuddyTaskDispatchRunSourceTx(ctx, auth.tx, tenant, project, run)
 	if err != nil || !found || plan.State != "started" {
-		return nil, err
+		return nil, "", err
 	}
 	if plan.RunID != run || plan.NodeID != node || plan.NodeSpecSHA256 != n.specHash || plan.RequestSHA256 != n.requestHash {
-		return nil, cloudConflict()
+		return nil, "", cloudConflict()
 	}
 	link := &wc.CloudTaskDeliveryLink{TaskID: plan.TaskID}
-	var currentRun string
-	err = auth.tx.QueryRowContext(ctx, w.s.q(`SELECT version,run_id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, plan.TaskID).Scan(&link.TaskVersion, &currentRun)
+	var currentRun, title string
+	err = auth.tx.QueryRowContext(ctx, w.s.q(`SELECT version,run_id,title FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, plan.TaskID).Scan(&link.TaskVersion, &currentRun, &title)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, "", nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	switch currentRun {
 	case run:
@@ -125,7 +125,10 @@ func (w *WorkBuddyConnections) cloudTaskDeliveryLinkTx(ctx context.Context, auth
 	default:
 		link.RunRelation = "changed"
 	}
-	return link, nil
+	if len(title) > 500 || strings.TrimSpace(title) == "" || !taskWorkspaceText(title) {
+		title = ""
+	}
+	return link, title, nil
 }
 
 func cloudReadID(value string, max int) bool {

@@ -20,8 +20,8 @@ func cloudProgressListPath(project string) string {
 
 func readCloudProgressPage(t *testing.T, response *httptest.ResponseRecorder) wc.CloudNodeProgressPage {
 	t.Helper()
-	var page wc.CloudNodeProgressPage
-	if response.Code != http.StatusOK || json.Unmarshal(response.Body.Bytes(), &page) != nil {
+	page, err := wc.DecodeCloudNodeProgressPage(response.Body.Bytes())
+	if response.Code != http.StatusOK || err != nil {
 		t.Fatalf("invalid progress page: %d %s", response.Code, response.Body.String())
 	}
 	if response.Header().Get("Cache-Control") != "no-store" || response.Header().Get("Referrer-Policy") != "no-referrer" {
@@ -34,13 +34,86 @@ func readCloudProgressPage(t *testing.T, response *httptest.ResponseRecorder) wc
 	if page.Filter != "" {
 		expectedFields++
 	}
+	if len(page.TaskLinks) > 0 {
+		expectedFields++
+	}
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(response.Body.Bytes(), &fields); err != nil || len(fields) != expectedFields ||
 		fields["items"] == nil || page.Items == nil || fields["project_id"] == nil || (fields["next_cursor"] != nil) != (page.NextCursor != "") ||
-		(fields["filter"] != nil) != (page.Filter != "") {
+		(fields["filter"] != nil) != (page.Filter != "") || (fields["task_links"] != nil) != (len(page.TaskLinks) > 0) {
 		t.Fatal("progress page contains fields outside the public contract")
 	}
 	return page
+}
+
+func TestWorkBuddyCloudProgressPageLocatesFormalTaskDelivery(t *testing.T) {
+	h := newWorkBuddyTaskDispatchFixtureWithCreateStatus(t, "running")
+	f := h.f
+	f.handler = (&Server{Service: f.s, Engine: f.e, WorkBuddy: h.w}).Handler()
+	assignment, _ := workBuddyTaskParkAtProviderWait(t, h)
+	cloud := &cloudFixture{f: f, w: h.w}
+	reader := cloudProgressToken(t, cloud, "api")
+	path := cloudProgressListPath(f.project)
+	read := func(path string) *httptest.ResponseRecorder {
+		return cloudProgressRequest(cloud, http.MethodGet, path, reader)
+	}
+	creates, queries := h.creates.Load(), h.queries.Load()
+	assertLink := func(relation, title string, version int) {
+		t.Helper()
+		page := readCloudProgressPage(t, read(path+"&filter=attention"))
+		want := wc.CloudProgressTaskLink{RunID: assignment.RunID, NodeID: assignment.NodeID, TaskID: h.task.ID,
+			TaskVersion: version, RunRelation: relation, TaskTitle: title}
+		if len(page.Items) != 1 || page.Items[0].RunID != assignment.RunID || page.Items[0].NodeID != assignment.NodeID ||
+			len(page.TaskLinks) != 1 || page.TaskLinks[0] != want {
+			t.Fatalf("formal task locator differs from current task and saved progress: %+v", page)
+		}
+		exact := read("/runs/" + assignment.RunID + "/nodes/" + assignment.NodeID + "/workbuddy-status?project_id=" + f.project)
+		progress, err := wc.DecodeCloudNodeProgress(exact.Body.Bytes())
+		if exact.Code != http.StatusOK || err != nil || progress != page.Items[0] {
+			t.Fatalf("exact node progress changed shape or facts: %d %v", exact.Code, err)
+		}
+	}
+	assertLink("current", h.task.Title, h.task.Version+1)
+	const renamed = "团队交付任务"
+	if _, err := f.s.DB.Exec(`UPDATE suma_tasks SET run_id=?,title=?,version=version+1 WHERE tenant_id=? AND project_id=? AND id=?`, newID(), renamed, f.user.TenantID, f.project, h.task.ID); err != nil {
+		t.Fatal(err)
+	}
+	assertLink("changed", renamed, h.task.Version+2)
+	if _, err := f.s.DB.Exec(`UPDATE suma_tasks SET run_id='',title=?,version=version+1 WHERE tenant_id=? AND project_id=? AND id=?`, "unsafe\x01title", f.user.TenantID, f.project, h.task.ID); err != nil {
+		t.Fatal(err)
+	}
+	assertLink("unbound", "", h.task.Version+3)
+
+	if _, err := f.s.DB.Exec(`DELETE FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, f.user.TenantID, f.project, h.task.ID); err != nil {
+		t.Fatal(err)
+	}
+	if page := readCloudProgressPage(t, read(path)); len(page.Items) != 1 || len(page.TaskLinks) != 0 {
+		t.Fatalf("deleted task changed saved progress or retained a link: %+v", page)
+	}
+
+	// A valid request can still be attached to a node specification that differs
+	// from the formal dispatch. An attention page only resolves its returned rows.
+	var spec string
+	if err := f.s.DB.QueryRow(`SELECT spec FROM dag_nodes WHERE run_id=? AND id=?`, assignment.RunID, assignment.NodeID).Scan(&spec); err != nil {
+		t.Fatal(err)
+	}
+	var changedSpec map[string]any
+	if err := json.Unmarshal([]byte(spec), &changedSpec); err != nil {
+		t.Fatal(err)
+	}
+	changedSpec["name"] = "Changed after dispatch"
+	if _, err := f.s.DB.Exec(`UPDATE dag_nodes SET spec=?,reason='' WHERE run_id=? AND id=?`, stringify(changedSpec), assignment.RunID, assignment.NodeID); err != nil {
+		t.Fatal(err)
+	}
+	if page := readCloudProgressPage(t, read(path+"&filter=attention")); len(page.Items) != 0 || len(page.TaskLinks) != 0 {
+		t.Fatalf("filtered row unexpectedly contributed task facts: %+v", page)
+	}
+	if response := read(path); response.Code != http.StatusConflict {
+		t.Fatalf("corrupted formal binding returned %d: %s", response.Code, response.Body.String())
+	}
+	if h.creates.Load() != creates || h.queries.Load() != queries {
+		t.Fatal("progress reads contacted WorkBuddy")
+	}
 }
 
 func cloudProgressNextSubmission(t *testing.T, h *cloudFixture) wc.CloudSubmission {
@@ -128,6 +201,9 @@ func TestWorkBuddyCloudProgressPageUsesSavedScopedFacts(t *testing.T) {
 	secondPage := readCloudProgressPage(t, read(path+continuation, token))
 	if len(secondPage.Items) != 1 || secondPage.NextCursor != "" {
 		t.Fatalf("invalid final progress page: %+v", secondPage)
+	}
+	if len(firstPage.TaskLinks)+len(secondPage.TaskLinks) != 0 {
+		t.Fatal("manual workflow submissions acquired formal task locators")
 	}
 	for i, item := range append(firstPage.Items, secondPage.Items...) {
 		sub := subs[i]

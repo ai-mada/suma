@@ -24,7 +24,8 @@ func (w *WorkBuddyConnections) GetCloudNodeProgress(ctx context.Context, actor A
 	}
 	defer close()
 
-	return w.cloudNodeProgressTx(ctx, auth.tx, auth.target.tenantID, project, run, node, "")
+	progress, _, err := w.cloudNodeProgressTx(ctx, auth.tx, auth.target.tenantID, project, run, node, "")
+	return progress, err
 }
 
 const (
@@ -92,7 +93,7 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 		if !cloudProgressSubmissionID.MatchString(item.id) {
 			return wc.CloudNodeProgressPage{}, cloudConflict()
 		}
-		progress, err := w.cloudNodeProgressTx(ctx, auth.tx, tenant, project, item.run, item.node, item.id)
+		progress, n, err := w.cloudNodeProgressTx(ctx, auth.tx, tenant, project, item.run, item.node, item.id)
 		if err != nil {
 			var api *APIError
 			if errors.As(err, &api) && (api.Status == 400 || api.Status == 404) {
@@ -102,6 +103,20 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 		}
 		inspected++
 		if filter == "" || progress.NeedsAttention() {
+			delivery, title, err := w.cloudTaskDeliveryLinkTx(ctx, auth, project, item.run, item.node, n)
+			if err != nil {
+				return wc.CloudNodeProgressPage{}, err
+			}
+			if delivery != nil {
+				link := wc.CloudProgressTaskLink{
+					RunID: item.run, NodeID: item.node, TaskID: delivery.TaskID,
+					TaskVersion: delivery.TaskVersion, RunRelation: delivery.RunRelation, TaskTitle: title,
+				}
+				if link.Validate() != nil {
+					return wc.CloudNodeProgressPage{}, cloudConflict()
+				}
+				out.TaskLinks = append(out.TaskLinks, link)
+			}
 			out.Items = append(out.Items, progress)
 			if len(out.Items) == limit {
 				break
@@ -116,13 +131,13 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 	return out, nil
 }
 
-func (w *WorkBuddyConnections) cloudNodeProgressTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node, submissionID string) (wc.CloudNodeProgress, error) {
+func (w *WorkBuddyConnections) cloudNodeProgressTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node, submissionID string) (wc.CloudNodeProgress, cloudNode, error) {
 	n, err := w.cloudNodeTx(ctx, tx, tenant, project, run, node)
 	if err != nil {
-		return wc.CloudNodeProgress{}, err
+		return wc.CloudNodeProgress{}, cloudNode{}, err
 	}
 	if n.spec.ID != node {
-		return wc.CloudNodeProgress{}, cloudConflict()
+		return wc.CloudNodeProgress{}, cloudNode{}, cloudConflict()
 	}
 	out := wc.CloudNodeProgress{
 		ProjectID: project, RunID: run, NodeID: node, RunVersion: n.runVersion,
@@ -132,19 +147,19 @@ func (w *WorkBuddyConnections) cloudNodeProgressTx(ctx context.Context, tx *sql.
 	if submissionID == "" {
 		err = tx.QueryRowContext(ctx, w.s.q(w.s.currentSQL(`SELECT id FROM suma_workbuddy_cloud_submissions WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=?`)), tenant, project, run, node).Scan(&submissionID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return wc.CloudNodeProgress{}, err
+			return wc.CloudNodeProgress{}, cloudNode{}, err
 		}
 		if err == nil && submissionID == "" {
-			return wc.CloudNodeProgress{}, cloudConflict()
+			return wc.CloudNodeProgress{}, cloudNode{}, cloudConflict()
 		}
 	}
 	if submissionID != "" {
 		sub, err := w.cloudSubmissionTx(ctx, tx, tenant, project, submissionID, true)
 		if err != nil {
-			return wc.CloudNodeProgress{}, err
+			return wc.CloudNodeProgress{}, cloudNode{}, err
 		}
 		if sub.ProjectID != project || sub.RunID != run || sub.NodeID != node || sub.RequestSHA256 != n.requestHash {
-			return wc.CloudNodeProgress{}, cloudConflict()
+			return wc.CloudNodeProgress{}, cloudNode{}, cloudConflict()
 		}
 		out.SubmissionState = sub.State
 		if sub.State == "task_known" {
@@ -154,7 +169,7 @@ func (w *WorkBuddyConnections) cloudNodeProgressTx(ctx context.Context, tx *sql.
 		}
 	}
 	if out.Validate() != nil {
-		return wc.CloudNodeProgress{}, cloudConflict()
+		return wc.CloudNodeProgress{}, cloudNode{}, cloudConflict()
 	}
-	return out, nil
+	return out, n, nil
 }

@@ -140,6 +140,18 @@ func (r CloudObserveRequest) Validate() error {
 	return nil
 }
 
+func (link CloudTaskDeliveryLink) Validate() error {
+	if !cloudDeliveryTaskIDPattern.MatchString(link.TaskID) || link.TaskID == "." || link.TaskID == ".." || !validVersion(link.TaskVersion) {
+		return ErrInvalid
+	}
+	switch link.RunRelation {
+	case "current", "changed", "unbound":
+		return nil
+	default:
+		return ErrInvalid
+	}
+}
+
 func (v CloudNodeView) Validate() error {
 	if !validID(v.ProjectID, 64) || !validID(v.RunID, 100) || !validID(v.NodeID, 150) || !validVersion(v.RunVersion) || !cc.ValidHash(v.NodeSpecSHA256) || !cc.ValidHash(v.RequestSHA256) || v.AllowedActions == nil {
 		return ErrInvalid
@@ -158,15 +170,8 @@ func (v CloudNodeView) Validate() error {
 			return ErrInvalid
 		}
 	}
-	if link := v.TaskDelivery; link != nil {
-		if !cloudDeliveryTaskIDPattern.MatchString(link.TaskID) || link.TaskID == "." || link.TaskID == ".." || !validVersion(link.TaskVersion) {
-			return ErrInvalid
-		}
-		switch link.RunRelation {
-		case "current", "changed", "unbound":
-		default:
-			return ErrInvalid
-		}
+	if link := v.TaskDelivery; link != nil && link.Validate() != nil {
+		return ErrInvalid
 	}
 	previous := 0
 	for _, action := range v.AllowedActions {

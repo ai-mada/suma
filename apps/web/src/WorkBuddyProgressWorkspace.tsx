@@ -1,10 +1,12 @@
 import {useCallback,useEffect,useRef,useState,type MouseEvent} from 'react';
 import {ArrowRight,Cloud,RefreshCw} from 'lucide-react';
-import type {CloudNodeProgress,CloudNodeProgressPage} from '../../../packages/contracts/src';
+import type {CloudNodeProgress,CloudProgressTaskLink} from '../../../packages/contracts/src';
 import {ApiError,query,type Session} from './api';
 import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
+import {wellFormed} from './i18n/catalog';
 import {executionHref} from './scheduling-model';
+import {followTaskDeliveryHref,taskDeliveryHref} from './task-delivery-navigation-model';
 import {Badge,Empty,ErrorNotice,Loading} from './ui';
 
 type Props={
@@ -41,7 +43,7 @@ const integer=(value:unknown,min:number):value is number=>typeof value==='number
 const state=(value:unknown):value is string=>typeof value==='string'&&/^[a-z][a-z0-9_]{0,79}$/.test(value);
 const timestamp=(value:unknown):value is string=>typeof value==='string'&&value.length<=40&&
  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z$/.test(value)&&Number.isFinite(Date.parse(value));
-const key=(item:CloudNodeProgress)=>JSON.stringify([item.run_id,item.node_id]);
+const key=(item:Pick<CloudNodeProgress,'run_id'|'node_id'>)=>JSON.stringify([item.run_id,item.node_id]);
 
 function readItem(value:unknown,project:string):value is CloudNodeProgress{
  if(!record(value)||!required.every(field=>Object.hasOwn(value,field))||
@@ -58,18 +60,53 @@ function readItem(value:unknown,project:string):value is CloudNodeProgress{
 const needsAttention=(item:CloudNodeProgress)=>!!item.node_reason||item.submission_state==='unknown'||item.observation_failed||
  ['waiting_input','failed','unknown'].includes(item.provider_status||'');
 
-function readPage(value:unknown,project:string,filter:Props['filter']):value is CloudNodeProgressPage{
+type ProgressTask=CloudProgressTaskLink & {href:string};
+type ProgressEntry={item:CloudNodeProgress;task?:ProgressTask};
+type ProgressPage={entries:ProgressEntry[];next?:string};
+const requiredTaskFields=['run_id','node_id','task_id','task_version','run_relation'];
+
+function readTaskLink(value:unknown,project:string):ProgressTask|undefined{
+ if(!record(value)||!requiredTaskFields.every(field=>Object.hasOwn(value,field))||
+    !Object.keys(value).every(field=>requiredTaskFields.includes(field)||field==='task_title')||
+    !identifier(value.run_id,100)||!identifier(value.node_id,150)||typeof value.task_id!=='string'||!integer(value.task_version,1)||
+    value.run_relation!=='current'&&value.run_relation!=='changed'&&value.run_relation!=='unbound')return;
+ let title:string|undefined;
+ if(Object.hasOwn(value,'task_title')){
+  if(typeof value.task_title!=='string'||!wellFormed(value.task_title)||
+     new TextEncoder().encode(value.task_title).length>500||/[\u0000-\u001f\u007f-\u009f]/.test(value.task_title))return;
+  title=value.task_title;
+ }
+ const href=taskDeliveryHref(project,{kind:'delivery',id:value.task_id,runID:value.run_relation==='current'?value.run_id:undefined});
+ if(href)return {run_id:value.run_id,node_id:value.node_id,task_id:value.task_id,task_version:value.task_version,
+  run_relation:value.run_relation,task_title:title,href};
+}
+
+function readPage(value:unknown,project:string,filter:Props['filter']):ProgressPage|undefined{
  if(!record(value)||value.project_id!==project||value.filter!==filter||
-    !Object.keys(value).every(field=>['project_id','items','next_cursor','filter'].includes(field))||
+    !Object.keys(value).every(field=>['project_id','items','next_cursor','filter','task_links'].includes(field))||
     !Array.isArray(value.items)||value.items.length>pageSize||
-    !value.items.every(item=>readItem(item,project)&&(!filter||needsAttention(item)))||
-    new Set(value.items.map(key)).size!==value.items.length)return false;
- return value.next_cursor===undefined||typeof value.next_cursor==='string'&&/^[A-Za-z0-9_-]{1,1024}$/.test(value.next_cursor)&&
-  (filter==='attention'||value.items.length===pageSize);
+    !value.items.every((item):item is CloudNodeProgress=>readItem(item,project)&&(!filter||needsAttention(item)))||
+    new Set(value.items.map(key)).size!==value.items.length)return;
+ const next=value.next_cursor;
+ if(next!==undefined&&(typeof next!=='string'||!/^[A-Za-z0-9_-]{1,1024}$/.test(next)||
+    filter!=='attention'&&value.items.length!==pageSize))return;
+ const entries:ProgressEntry[]=value.items.map(item=>({item}));
+ if(Object.hasOwn(value,'task_links')){
+  if(!Array.isArray(value.task_links)||value.task_links.length>entries.length)return;
+  const byPair=new Map(entries.map(entry=>[key(entry.item),entry]));
+  for(const row of value.task_links){
+   const task=readTaskLink(row,project);
+   if(!task)return;
+   const entry=byPair.get(key(task));
+   if(!entry||entry.task)return;
+   entry.task=task;
+  }
+ }
+ return {entries,next};
 }
 
 type ReadScope='all'|'attention'|'invalid';
-type Snapshot={scope:ReadScope;items:CloudNodeProgress[];next?:string;lastBatchCount:number;cursors:Set<string>};
+type Snapshot=ProgressPage & {scope:ReadScope;lastBatchCount:number;cursors:Set<string>};
 type ReadState={scope:ReadScope;snapshot?:Snapshot;loading:boolean;error?:UiError};
 
 export function WorkBuddyProgressWorkspace(props:Props){
@@ -97,12 +134,13 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
     'X-Suma-Expected-User':user,'X-Suma-Expected-Organization':organization,
    },abort.signal);
    if(abort.signal.aborted)return;
-   if(!readPage(value,project,filter))throw new UiError('workbuddy-progress.invalid');
-   const loaded=new Set(append?previous?.items.map(key):[]);
+   const page=readPage(value,project,filter);
+   if(!page)throw new UiError('workbuddy-progress.invalid');
+   const loaded=new Set(append?previous?.entries.map(({item})=>key(item)):[]);
    const cursors=new Set(append?previous?.cursors:[]);
-   if(value.next_cursor&&cursors.has(value.next_cursor)||value.items.some(item=>loaded.has(key(item))))throw new UiError('workbuddy-progress.invalid');
-   if(value.next_cursor)cursors.add(value.next_cursor);
-   const next={scope,items:append&&previous?[...previous.items,...value.items]:value.items,next:value.next_cursor,lastBatchCount:value.items.length,cursors};
+   if(page.next&&cursors.has(page.next)||page.entries.some(({item})=>loaded.has(key(item))))throw new UiError('workbuddy-progress.invalid');
+   if(page.next)cursors.add(page.next);
+   const next={scope,entries:append&&previous?[...previous.entries,...page.entries]:page.entries,next:page.next,lastBatchCount:page.entries.length,cursors};
    snapshot.current=next;
    setState({scope,snapshot:next,loading:false});
   }catch(error){
@@ -121,7 +159,7 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
 
  // Never show another filter's snapshot while the new query is starting.
  const current=state.scope===scope?state:{scope,loading:scope!=='invalid'};
- const rows=current.snapshot?.items??[];
+ const rows=current.snapshot?.entries??[];
  const available=!!current.snapshot&&!current.loading&&!current.error;
  const emptyBatch=available&&scope==='attention'&&current.snapshot?.lastBatchCount===0;
  return <section className="workbuddy-progress" aria-label={t('title')} aria-busy={current.loading} data-workbuddy-progress>
@@ -141,8 +179,8 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
   {current.snapshot&&<>
    {rows.length>0&&<p className="workbuddy-progress-note" role="status">{t('loaded',{count:formatNumber(rows.length)})}</p>}
    {available&&scope==='all'&&rows.length===0&&<Empty title={t('empty_title')} description={t('empty_detail')}/>}
-   {rows.length>0&&<ul className="workbuddy-progress-rows" aria-label={t('rows')}>{rows.map(item=>
-    <ProgressRow key={key(item)} project={project} item={item} available={available} onRun={onRun}/>
+   {rows.length>0&&<ul className="workbuddy-progress-rows" aria-label={t('rows')}>{rows.map(({item,task})=>
+    <ProgressRow key={key(item)} project={project} item={item} task={task} available={available} onRun={onRun}/>
    )}</ul>}
    {emptyBatch&&current.snapshot.next&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-batch>{t('empty_batch')}</p>}
    {available&&scope==='attention'&&!current.snapshot.next&&rows.length===0&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-attention>{t('empty_attention')}</p>}
@@ -151,7 +189,7 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
  </section>;
 }
 
-function ProgressRow({project,item,available,onRun}:{project:string;item:CloudNodeProgress;available:boolean;onRun:Props['onRun']}){
+function ProgressRow({project,item,task,available,onRun}:ProgressEntry & {project:string;available:boolean;onRun:Props['onRun']}){
  const href=executionHref(project,item.run_id,item.node_id,item.attempt||undefined);
  const follow=(event:MouseEvent<HTMLAnchorElement>)=>{
   if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
@@ -159,13 +197,31 @@ function ProgressRow({project,item,available,onRun}:{project:string;item:CloudNo
   onRun(item.run_id,item.node_id,item.attempt||undefined);
  };
  const vendor=item.provider_status==='canceled'?'cancelled':item.provider_status;
+ const runTitle=tr('workbuddy-cloud-task.source_run',{id:item.run_id.slice(0,12)});
+ const taskTitle=task?.task_title?.trim();
+ const deliveryAction=task?.run_relation==='current'?'task_open':'task_open_current';
  return <li className="workbuddy-progress-row" data-workbuddy-progress-row={item.run_id} data-workbuddy-progress-node={item.node_id} data-attention={needsAttention(item)||undefined}>
   <div className="workbuddy-progress-row-heading">
    <div>
-    <h3>{tr('workbuddy-cloud-task.source_run',{id:item.run_id.slice(0,12)})}</h3>
-    <p><code>{item.node_id}</code> · {item.attempt?t('attempt',{count:formatNumber(item.attempt)}):t('no_attempt')}</p>
+    <h3 data-workbuddy-progress-task={task?.task_id}>{task?<bdi>{taskTitle||t('task_id',{id:task.task_id})}</bdi>:runTitle}</h3>
+    {task&&<>
+     <p className="workbuddy-progress-meta">
+      {taskTitle&&<code>{task.task_id}</code>}
+      <span>{tr('workbuddy-cloud-task.delivery_version',{version:formatNumber(task.task_version)})}</span>
+     </p>
+     <p data-workbuddy-progress-task-relation={task.run_relation}>{tr('workbuddy-cloud-task.delivery_relation_'+task.run_relation)}</p>
+    </>}
+    <p className="workbuddy-progress-meta">
+     {task&&<span>{runTitle}</span>}
+     <span><code>{item.node_id}</code> · {item.attempt?t('attempt',{count:formatNumber(item.attempt)}):t('no_attempt')}</span>
+    </p>
    </div>
-   {available&&<a data-workbuddy-progress-open href={href} onClick={follow} aria-label={t('open_label',{run:item.run_id,node:item.node_id})}>{t('open')}<ArrowRight size={15} aria-hidden="true"/></a>}
+   {available&&<div className="workbuddy-progress-row-actions">
+    {task&&<a className="workbuddy-progress-task-action" data-workbuddy-progress-task-link href={task.href}
+     onClick={event=>followTaskDeliveryHref(event,task.href)}
+     aria-label={t(deliveryAction+'_label',{task:taskTitle||task.task_id})}>{t(deliveryAction)}<ArrowRight size={15} aria-hidden="true"/></a>}
+    <a data-workbuddy-progress-open href={href} onClick={follow} aria-label={t('open_label',{run:item.run_id,node:item.node_id})}>{t('open')}<ArrowRight size={15} aria-hidden="true"/></a>
+   </div>}
   </div>
   <dl className="workbuddy-progress-facts">
    <div><dt>{tr('workbuddy-cloud-task.platform_run_state')}</dt><dd><Badge state={item.run_state}/></dd></div>

@@ -1889,6 +1889,7 @@ export interface CloudNodeProgressPage {
   items: (CloudNodeProgress)[];
   next_cursor?: string;
   filter?: string;
+  task_links?: (CloudProgressTaskLink)[];
 }
 export interface CloudNodeView {
   project_id: string;
@@ -1907,6 +1908,14 @@ export interface CloudObserveRequest {
   project_id: string;
   expected_version: number;
   idempotency_key: string;
+}
+export interface CloudProgressTaskLink {
+  run_id: string;
+  node_id: string;
+  task_id: string;
+  task_version: number;
+  run_relation: string;
+  task_title?: string;
 }
 export interface CloudRefreshRequest {
   project_id: string;

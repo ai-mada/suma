@@ -13,12 +13,15 @@ import (
 	"testing"
 )
 
+const workBuddyProgressTaskLinkJSON = `{"run_id":"run-1","node_id":"node-1","task_id":"task-1","task_version":3,"run_relation":"current","task_title":"修复同步冲突"}`
+
 func TestWorkBuddyProgressListCLIReadsExactPage(t *testing.T) {
 	for _, tc := range []struct {
 		name, limit, before, filter, response string
 		args                                  []string
 	}{
 		{"first page", "10", "", "", `{"project_id":"project-one","items":[` + workBuddyProgressJSON + `]}`, nil},
+		{"formal task link", "10", "", "", `{"project_id":"project-one","items":[` + workBuddyProgressJSON + `],"task_links":[` + workBuddyProgressTaskLinkJSON + `]}`, nil},
 		{"first page with continuation", "1", "", "", `{"project_id":"project-one","items":[` + workBuddyProgressJSON + `],"next_cursor":"first-cursor"}`, []string{"--limit", "1"}},
 		{"continuation", "1", "first-cursor", "", `{"project_id":"project-one","items":[` + workBuddyProgressJSON + `]}`, []string{"--limit", "1", "--before", "first-cursor"}},
 		{"empty page", "20", "", "", `{"project_id":"project-one","items":[]}`, []string{"--limit=20"}},
@@ -61,6 +64,7 @@ func TestWorkBuddyProgressListCLIReadsExactPage(t *testing.T) {
 func TestWorkBuddyProgressListCLIRejectsUnverifiedPage(t *testing.T) {
 	const basePage = `{"project_id":"project-one","items":[` + workBuddyProgressJSON + `]}`
 	const filteredPage = `{"project_id":"project-one","filter":"attention","items":[` + workBuddyProgressJSON + `]}`
+	const linkedPage = `{"project_id":"project-one","items":[` + workBuddyProgressJSON + `],"task_links":[` + workBuddyProgressTaskLinkJSON + `]}`
 	for _, tc := range []struct {
 		name, response string
 		status         int
@@ -70,6 +74,9 @@ func TestWorkBuddyProgressListCLIRejectsUnverifiedPage(t *testing.T) {
 		{"wrong project", strings.Replace(basePage, "project-one", "secret-marker", 1), 200, "workbuddy_progress_invalid", false},
 		{"foreign item", strings.Replace(basePage, workBuddyProgressJSON, strings.Replace(workBuddyProgressJSON, "project-one", "secret-marker", 1), 1), 200, "workbuddy_progress_invalid", false},
 		{"unexpected private field", strings.ReplaceAll(basePage, `"run_id":"run-1"`, `"run_id":"run-1","connection_id":"secret-marker"`), 200, "workbuddy_progress_invalid", false},
+		{"orphan task link", strings.Replace(linkedPage, workBuddyProgressTaskLinkJSON, strings.Replace(workBuddyProgressTaskLinkJSON, "node-1", "node-2", 1), 1), 200, "workbuddy_progress_invalid", false},
+		{"duplicate task link", strings.Replace(linkedPage, workBuddyProgressTaskLinkJSON, workBuddyProgressTaskLinkJSON+","+workBuddyProgressTaskLinkJSON, 1), 200, "workbuddy_progress_invalid", false},
+		{"private task link field", strings.Replace(linkedPage, `"task_id":"task-1"`, `"task_id":"task-1","connection_id":"secret-marker"`, 1), 200, "workbuddy_progress_invalid", false},
 		{"missing observation fact", strings.Replace(basePage, `,"observation_failed":false`, "", 1), 200, "workbuddy_progress_invalid", false},
 		{"page exceeds requested size", `{"project_id":"project-one","items":[` + workBuddyProgressJSON + "," + strings.Replace(workBuddyProgressJSON, "run-1", "run-2", 1) + `]}`, 200, "workbuddy_progress_invalid", false},
 		{"empty continuation", `{"project_id":"project-one","items":[],"next_cursor":"new-cursor"}`, 200, "workbuddy_progress_invalid", false},

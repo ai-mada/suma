@@ -9423,6 +9423,15 @@
             "minLength": 1,
             "readOnly": true,
             "type": "string"
+          },
+          "task_links": {
+            "description": "Formal task context keyed by exact run and node among the returned items. Current task binding is independent of the saved execution.",
+            "items": {
+              "$ref": "#/components/schemas/CloudProgressTaskLink"
+            },
+            "maxItems": 20,
+            "readOnly": true,
+            "type": "array"
           }
         },
         "required": [
@@ -9551,6 +9560,59 @@
           "project_id",
           "expected_version",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CloudProgressTaskLink": {
+        "additionalProperties": false,
+        "properties": {
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_relation": {
+            "enum": [
+              "current",
+              "changed",
+              "unbound"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_title": {
+            "maxLength": 500,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 500
+          },
+          "task_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "task_id",
+          "task_version",
+          "run_relation"
         ],
         "type": "object"
       },

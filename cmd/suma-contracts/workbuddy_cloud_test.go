@@ -254,6 +254,21 @@ func TestWorkBuddyCloudProgressKeepsExactReadScopeAndClosedProjection(t *testing
 	}
 }
 
+func TestWorkBuddyCloudProgressTaskLinksAreClosedPageMetadata(t *testing.T) {
+	api, _ := generate()
+	schemas := mapAt(api, "components", "schemas")
+	page := mapAt(schemas, "CloudNodeProgressPage", "properties", "task_links")
+	if page["maxItems"] != 20 || page["readOnly"] != true ||
+		mapAt(page, "items")["$ref"] != "#/components/schemas/CloudProgressTaskLink" {
+		t.Fatal("progress task links must be bounded read-only page metadata")
+	}
+	origin := mapAt(schemas, "CloudProgressTaskLink")
+	if origin["additionalProperties"] != false || len(mapAt(origin, "properties")) != 6 ||
+		mapAt(schemas, "CloudNodeProgress", "properties")["task_links"] != nil {
+		t.Fatal("progress task context leaked outside its closed page type")
+	}
+}
+
 func TestWorkBuddyCloudLookupGeneratedRoutesAreMachineOnlyLocalReads(t *testing.T) {
 	api, _ := generate()
 	for _, prefix := range []string{"/runner", "/pool-runner"} {

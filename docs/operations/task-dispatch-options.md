@@ -143,6 +143,8 @@ suma --project PROJECT run workbuddy-list --limit 10 --before NEXT_CURSOR
 
 输出中的平台状态、提交状态和最近供应方观察来自已保存记录。打开对应节点使用 `run workbuddy-status` 核对单条详情。
 
+分页输出可携带 `task_links`。按 `run_id`、`node_id` 匹配条目，可读取原正式任务编号、当前任务版本、运行关系及可用的任务标题。`current` 表示仍关联该运行，`changed` 表示已改绑，`unbound` 表示已解绑。该链接定位任务和交付，节点进度仍以对应条目为准。
+
 ```sh
 suma --project PROJECT run workbuddy-list --filter attention --limit 10
 suma --project PROJECT run workbuddy-list --filter attention --limit 10 --before NEXT_CURSOR

@@ -8,7 +8,7 @@ import (
 )
 
 func workBuddyCloudModels() []any {
-	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudTaskDeliveryLink{}, wc.CloudNodeProgress{}, wc.CloudNodeProgressPage{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
+	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudTaskDeliveryLink{}, wc.CloudNodeProgress{}, wc.CloudNodeProgressPage{}, wc.CloudProgressTaskLink{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
 }
 
 func workBuddyCloudContracts(add operationAdder, api map[string]any) {
@@ -223,6 +223,23 @@ func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
 	toolContractMap(pageFields, "next_cursor")["minLength"], toolContractMap(pageFields, "next_cursor")["maxLength"] = 1, 1024
 	toolContractMap(pageFields, "filter")["enum"] = []string{wc.CloudProgressAttentionFilter}
 	toolContractMap(pageFields, "next_cursor")["description"] = "Continue the same project, reader and filter. A filtered cursor advances from the last inspected submission, even when no item matches."
+	links := toolContractMap(pageFields, "task_links")
+	links["maxItems"] = 20
+	links["description"] = "Formal task context keyed by exact run and node among the returned items. Current task binding is independent of the saved execution."
+	link := toolContractMap(api, "components", "schemas", "CloudProgressTaskLink")
+	link["additionalProperties"] = false
+	linkFields := toolContractMap(link, "properties")
+	for _, field := range linkFields {
+		field.(map[string]any)["readOnly"] = true
+	}
+	for name, max := range map[string]int{"run_id": 100, "node_id": 150, "task_id": 64} {
+		toolContractMap(linkFields, name)["minLength"], toolContractMap(linkFields, name)["maxLength"] = 1, max
+	}
+	toolContractMap(linkFields, "task_version")["minimum"], toolContractMap(linkFields, "task_version")["maximum"] = 1, wc.MaxVersion
+	toolContractMap(linkFields, "run_relation")["enum"] = []string{"current", "changed", "unbound"}
+	toolContractMap(linkFields, "task_title")["minLength"] = 1
+	toolContractMap(linkFields, "task_title")["maxLength"] = 500
+	toolContractMap(linkFields, "task_title")["x-max-utf8-bytes"] = 500
 
 	op := add("/runs/{id}/nodes/{node}/workbuddy-status", "get", "CloudNodeProgress", false, false)
 	successStatus(op, "200")

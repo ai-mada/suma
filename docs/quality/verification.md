@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-PROGRESS-TASKS 核验正式来源、改绑与解绑、分页关联约束、只读权限，以及桌面键盘和 390px 触屏的交付往返。 [阶段验证](workbuddy-progress-tasks-verification.md)
+
 T-WORKBUDDY-PROJECT-ATTENTION 核验有界筛选、空批次游标、范围隔离及桌面和 390px 分享链接。 [阶段验证](workbuddy-project-attention-verification.md)
 
 T-WORKBUDDY-TEAM-PROGRESS 核验项目进度分页、权限、供应方与平台状态区分及桌面和 390px 操作。 [阶段验证](workbuddy-team-progress-verification.md)

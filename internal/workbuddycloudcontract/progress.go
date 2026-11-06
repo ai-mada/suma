@@ -74,12 +74,32 @@ func (p CloudNodeProgress) NeedsAttention() bool {
 	}
 }
 
+// CloudProgressTaskLink describes the formal task behind an exact progress row.
+// The current task binding can differ from the historical cloud execution.
+type CloudProgressTaskLink struct {
+	RunID       string `json:"run_id"`
+	NodeID      string `json:"node_id"`
+	TaskID      string `json:"task_id"`
+	TaskVersion int    `json:"task_version"`
+	RunRelation string `json:"run_relation"`
+	TaskTitle   string `json:"task_title,omitempty"`
+}
+
+func (link CloudProgressTaskLink) Validate() error {
+	target := CloudTaskDeliveryLink{TaskID: link.TaskID, TaskVersion: link.TaskVersion, RunRelation: link.RunRelation}
+	if !validID(link.RunID, 100) || !validID(link.NodeID, 150) || !validText(link.TaskTitle, 500, true) {
+		return ErrInvalid
+	}
+	return target.Validate()
+}
+
 // CloudNodeProgressPage contains only saved submissions in the current project.
 type CloudNodeProgressPage struct {
-	ProjectID  string              `json:"project_id"`
-	Items      []CloudNodeProgress `json:"items"`
-	NextCursor string              `json:"next_cursor,omitempty"`
-	Filter     string              `json:"filter,omitempty"`
+	ProjectID  string                  `json:"project_id"`
+	Items      []CloudNodeProgress     `json:"items"`
+	NextCursor string                  `json:"next_cursor,omitempty"`
+	Filter     string                  `json:"filter,omitempty"`
+	TaskLinks  []CloudProgressTaskLink `json:"task_links,omitempty"`
 }
 
 func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
@@ -100,6 +120,13 @@ func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
 			return CloudNodeProgressPage{}, ErrInvalid
 		}
 		seen[key] = true
+	}
+	for _, link := range out.TaskLinks {
+		key := [2]string{link.RunID, link.NodeID}
+		if link.Validate() != nil || !seen[key] {
+			return CloudNodeProgressPage{}, ErrInvalid
+		}
+		delete(seen, key)
 	}
 	return out, nil
 }
