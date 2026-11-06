@@ -94,13 +94,16 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 			if err != nil {
 				return err
 			}
-			poolBlockers := make(map[string][]dag.SchedulingBlocker)
+			poolCache := poolAdmissionReadCache{
+				byRun:        make(map[string][]dag.SchedulingBlocker),
+				runnerByPool: make(map[string]dag.SchedulingBlocker),
+			}
 			toolProfiles := make(map[string]schedulingToolProfile)
 			for _, item := range out.Items {
 				if item.Admission == nil {
 					continue
 				}
-				if err = s.Service.decoratePoolAdmissionTx(ctx, auth.tx, tenant, project, item.Admission, poolBlockers); err != nil {
+				if err = s.Service.decoratePoolAdmissionTx(ctx, auth.tx, tenant, project, item.Admission, poolCache); err != nil {
 					return err
 				}
 				if err = s.Service.decorateToolAdmissionTx(ctx, auth.tx, tenant, project, item.Admission, toolProfiles); err != nil {
@@ -119,7 +122,7 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 				return err
 			}
 			tenant := auth.target.tenantID
-			if err = s.Service.decoratePoolAdmissionTx(ctx, auth.tx, tenant, project, &out, nil); err != nil {
+			if err = s.Service.decoratePoolAdmissionTx(ctx, auth.tx, tenant, project, &out, poolAdmissionReadCache{}); err != nil {
 				return err
 			}
 			return s.Service.decorateToolAdmissionTx(ctx, auth.tx, tenant, project, &out, nil)

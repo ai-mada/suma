@@ -132,6 +132,8 @@
   "workspace.queue.open_named_node": "View run node {{node}}",
   "workspace.queue.open_policy": "View project quotas",
   "workspace.queue.open_tool_diagnostics": "Check tool configuration",
+  "workspace.queue.open_pool_resources": "View project execution resources",
+  "workspace.queue.open_named_pool_resources": "View project execution resources for {{node}}",
   "workspace.queue.open_named_tool_diagnostics": "Check tool configuration for {{node}}",
   "workspace.queue.diagnostic_details": "Diagnostic details",
   "workspace.queue.reload": "Reload queue",

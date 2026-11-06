@@ -199,6 +199,7 @@
 }
 .scheduling-open-link,
 .scheduling-tool-link,
+.scheduling-pool-link,
 .scheduling-policy-link {
   display: inline-flex;
   flex-wrap: wrap;
@@ -208,7 +209,13 @@
   min-height: 36px;
   overflow-wrap: anywhere;
 }
-.scheduling-tool-link svg { flex: none; }
+.scheduling-tool-link svg,
+.scheduling-pool-link svg { flex: none; }
+.scheduling-queue-next-step {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+}
 .scheduling-blockers {
   list-style: none;
   padding: 0;

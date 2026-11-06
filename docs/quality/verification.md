@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-QUEUE-POOL-CREDENTIALS 核验共享池凭证阻塞、授权优先、项目数据隔离和中英文队列返回。 [阶段验证](queue-pool-credentials-verification.md)
+
 T-QUEUE-TOOL-BLOCKERS 核验档案状态、项目隔离、固定依据、授权响应和中英文队列往返。 [阶段验证](queue-tool-blockers-verification.md)
 
 T-TOOL-DIAGNOSTIC-HANDOFF 核验当前配置范围、诊断定位、原操作优先、运行影响尝试及中英文浏览器往返。 [阶段验证](tool-diagnostic-handoff-verification.md)

@@ -1054,6 +1054,65 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     expect(container.querySelector("[data-queue-tool-diagnostics]")).toBeNull();
     expect(container.querySelector(".scheduling-open-link")).not.toBeNull();
   });
+  it("distinguishes shared Runner registration and credentials and offers the current project's resources", async () => {
+    const row = (node_id: string, code: string) => ({
+      ...entry, node_id, node_name: node_id,
+      admission: {
+        run_id: entry.run_id, node_id, run_version: entry.run_version,
+        node_state: entry.node_state, attempt: entry.attempt, fence: entry.fence,
+        execution_pool_id: "pool-a", policy_version: 1, evaluated_at: entry.ready_at,
+        requests: [], reservations: [], status: "blocked",
+        blockers: [{ code, source: "pool", message: "source pool reason", run_id: entry.run_id, node_id }],
+      },
+    });
+    const registration = row("registration", "pool_runner_registration_missing");
+    const credential = row("credential", "pool_runner_credential_unavailable");
+    credential.admission.blockers.unshift({
+      code: "resource_capacity", source: "policy", message: "policy reason", run_id: entry.run_id, node_id: "credential",
+    });
+    const paused = row("paused", "pool_paused");
+    const wrongNode = row("wrong-node", "pool_runner_credential_unavailable");
+    wrongNode.admission.blockers[0].node_id = "credential";
+    const noPool = row("no-pool", "pool_runner_registration_missing");
+    noPool.admission.execution_pool_id = "";
+    const wrongSource = row("wrong-source", "pool_runner_registration_missing");
+    wrongSource.admission.blockers[0].source = "worker";
+    let fail = false;
+    vi.stubGlobal("fetch", vi.fn(async () => fail
+      ? response({ error: { message: "Read unavailable" } }, 503)
+      : response({ items: [registration, credential, paused, wrongNode, noPool, wrongSource], total: 6 })));
+
+    await render(<SchedulingQueue project="p" refresh={0} onRun={() => {}} />);
+    await flush(() => !!container.querySelector("[data-queue-pool-resources]"));
+    const links = container.querySelectorAll<HTMLAnchorElement>("[data-queue-pool-resources]");
+    expect(links).toHaveLength(3);
+    const [registrationCard, credentialCard] = Array.from(links, link => link.closest("[data-queue-entry]")!);
+    expect(registrationCard.querySelector(".scheduling-queue-reason")?.textContent).toBe("共享池没有启用的执行节点登记");
+    expect(registrationCard.querySelector(".scheduling-queue-next-step")?.textContent).toBe("请联系共享池管理员登记执行节点。");
+    expect(credentialCard.querySelectorAll(".scheduling-queue-reason")[1]?.textContent).toBe("共享池没有可用的节点凭证");
+    expect(credentialCard.querySelector(".scheduling-queue-next-step")?.textContent).toBe("请联系共享池管理员核对并恢复节点凭证。");
+    expect(credentialCard.querySelector(".scheduling-blockers")?.textContent).toContain("共享池没有可用的节点凭证");
+    expect(credentialCard.querySelector("[data-queue-policy]")).not.toBeNull();
+    expect(registrationCard.querySelector(".scheduling-open-link")).not.toBeNull();
+    expect(Object.fromEntries(new URL(links[0].href).searchParams)).toEqual({
+      project: "p", view: "settings", sub: "project-execution",
+    });
+
+    const guard = vi.fn((event: Event) => event.preventDefault());
+    window.addEventListener("suma:navigate", guard);
+    try {
+      expect(links[0].dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))).toBe(false);
+      expect(guard).toHaveBeenCalledOnce();
+    } finally {
+      window.removeEventListener("suma:navigate", guard);
+    }
+
+    fail = true;
+    await click("重新读取队列");
+    await flush(() => !!container.querySelector('[role="alert"]'));
+    expect(container.querySelector("[data-queue-pool-resources], .scheduling-queue-next-step")).toBeNull();
+    expect(container.querySelector(".scheduling-open-link")).not.toBeNull();
+  });
   it("uses the App queue link to open the exact node and browser Back restores the shared queue scope", async () => {
     history.replaceState(
       null,

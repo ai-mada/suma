@@ -112,7 +112,10 @@ export function schedulingBlockerTitle(blocker: SchedulingBlocker) {
       pool_budget_exhausted: t("development.scheduling.shared_pool_cumulative_execution_budget_exhausted"),
       pool_paused: t("development.scheduling.shared_pool_paused_new_dispatch"),
       pool_metadata_missing: t("development.scheduling.shared_pool_metadata_needs_reconciliation"),
+      pool_policy_missing: t("development.scheduling.shared_pool_policy_missing"),
       pool_grant_not_current: t("development.scheduling.shared_pool_current_project_grant_needs_reconciliation"),
+      pool_runner_registration_missing: t("development.scheduling.pool_runner_registration_missing"),
+      pool_runner_credential_unavailable: t("development.scheduling.pool_runner_credential_unavailable"),
     };
     if (blocker.code === "pool_resource_capacity")
       return blocker.resource==="execution_slots"?t("development.scheduling.shared_pool_slots_exhausted"):t("development.scheduling.pool_resource_exhausted",{resource:blocker.resource?schedulingResourceLabel(blocker.resource):t("development.scheduling.execution_resource")});
@@ -139,6 +142,16 @@ export function schedulingBlockerTitle(blocker: SchedulingBlocker) {
     return t("development.scheduling.resource_exhausted",{resource:name});
   }
   return names[blocker.code] || blocker.message || blocker.code;
+}
+
+export function poolRunnerRecoveryHint(blocker: SchedulingBlocker) {
+  if (blocker.source !== "pool") return;
+  switch (blocker.code) {
+    case "pool_runner_registration_missing":
+      return t("development.scheduling.pool_runner_registration_next");
+    case "pool_runner_credential_unavailable":
+      return t("development.scheduling.pool_runner_credential_next");
+  }
 }
 const standardPolicyNotes = new Set([
   "容量为项目执行准入额度，并非实测硬件或操作系统硬限制",
@@ -316,9 +329,11 @@ export function AdmissionFacts({
         </p>
       )}
       <ul className="scheduling-blockers">
-        {snapshot.blockers.map((blocker, index) => (
-          <li key={index}>
+        {snapshot.blockers.map((blocker, index) => {
+          const recoveryHint = poolRunnerRecoveryHint(blocker);
+          return <li key={index}>
             <strong>{schedulingBlockerTitle(blocker)}</strong>
+            {recoveryHint && <span>{recoveryHint}</span>}
             {blocker.resource && (
               <span>{schedulingResourceLabel(blocker.resource)}</span>
             )}
@@ -354,8 +369,8 @@ export function AdmissionFacts({
               <a href={executionHref(project, blocker.run_id, blocker.node_id)}>
                 {t("development.scheduling.view_related_execution_node")}</a>
             )}
-          </li>
-        ))}
+          </li>;
+        })}
       </ul>
       {!snapshot.blockers.length && (
         <p>

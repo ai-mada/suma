@@ -1,9 +1,9 @@
 import { useId, useRef, useState, type MouseEvent, type RefObject } from "react";
-import { ArrowRight, CircleAlert, CircleCheck, CircleHelp, RefreshCw, Wrench } from "lucide-react";
+import { ArrowRight, CircleAlert, CircleCheck, CircleHelp, RefreshCw, Server, Wrench } from "lucide-react";
 import { query, time } from "./api";
 import { useApiView } from "./api-context";
 import { tr as t, useLocale, formatNumber, UiError } from "./i18n";
-import { AdmissionFacts, schedulingBlockerTitle } from "./SchedulingFacts";
+import { AdmissionFacts, poolRunnerRecoveryHint, schedulingBlockerTitle } from "./SchedulingFacts";
 import { executionHref, validQueueRun, type QueueRoute, type ReadyEntry, type SchedulingBlocker } from "./scheduling-model";
 import { useSchedulingPage } from "./scheduling-hooks";
 import { toolReturnPanel } from "./tool-model";
@@ -23,6 +23,11 @@ type Props = {
 };
 const statusIcons = { blocked: CircleAlert, unknown: CircleHelp, checked: CircleCheck };
 const actionableToolBlockers = new Set(["tool_profile_changed", "tool_profile_paused", "tool_profile_revoked", "tool_activation_revoked"]);
+const actionablePoolBlockers = new Set([
+  "pool_scope_inactive", "pool_scope_version_mismatch", "pool_budget_exhausted", "pool_resource_capacity",
+  "pool_paused", "pool_metadata_missing", "pool_policy_missing", "pool_grant_not_current",
+  "pool_runner_registration_missing", "pool_runner_credential_unavailable",
+]);
 const toolIdentity = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
 const profileDigest = /^[a-f0-9]{64}$/;
 
@@ -184,6 +189,7 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
   });
   const visible = filter === "all" || !confirmed ? rows : rows.filter(row => row.status === filter);
   const policyHref = "?" + new URLSearchParams({ project, view: "settings", sub: "scheduling" });
+  const poolResourcesHref = "?" + new URLSearchParams({ project, view: "settings", sub: "project-execution" });
 
   return (
     <section className="panel scheduling-workspace scheduling-queue-workspace" aria-label={t("workspace.queue.label")}>
@@ -225,6 +231,13 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
             const primary = admission?.blockers.find(blocker => blocker.code !== "worker_capability_unknown") ?? admission?.blockers[0];
             const toolBlocker = admission?.blockers.find(blocker => blocker.source === "tool");
             const toolHref = toolDiagnosticsHref(project, item, admission, toolBlocker);
+            const poolID = admission?.execution_pool_id;
+            const poolBlockers = admission?.status === "blocked" && typeof poolID === "string" && validQueueRun(poolID)
+              ? admission.blockers.filter(blocker => blocker.source === "pool" && actionablePoolBlockers.has(blocker.code) &&
+                blocker.run_id === item.run_id && blocker.node_id === item.node_id)
+              : [];
+            const poolBlocker = poolBlockers.find(blocker => poolRunnerRecoveryHint(blocker)) ?? poolBlockers[0];
+            const poolHint = poolBlocker && poolRunnerRecoveryHint(poolBlocker);
             const hasPolicyBlocker = status === "blocked" && admission?.blockers.some(blocker =>
               blocker.source === "policy" && (blocker.code === "resource_capacity" || blocker.code === "budget_exhausted"));
             const StatusIcon = statusIcons[status];
@@ -247,6 +260,8 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
                   {primary ? schedulingBlockerTitle(primary) : t(status === "checked" ? "workspace.queue.next_dispatch" : "workspace.queue.conditions_unknown")}
                 </p>
                 {toolBlocker && toolBlocker !== primary && <p className="scheduling-queue-reason">{schedulingBlockerTitle(toolBlocker)}</p>}
+                {poolBlocker && poolBlocker !== primary && <p className="scheduling-queue-reason">{schedulingBlockerTitle(poolBlocker)}</p>}
+                {poolHint && <small className="scheduling-queue-next-step">{poolHint}</small>}
                 <small className="muted">
                   {t("workspace.queue.ready_at", { at: time(item.ready_at), attempts: formatNumber(item.attempt) })}
                 </small>
@@ -264,6 +279,11 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
                     aria-label={t("workspace.queue.open_named_tool_diagnostics", { node: item.node_name || item.node_id })}
                     onClick={guardQueueNavigation}>
                     <Wrench size={15} aria-hidden="true" /> {t("workspace.queue.open_tool_diagnostics")}
+                  </a>}
+                  {poolBlocker && <a className="scheduling-pool-link" data-queue-pool-resources href={poolResourcesHref}
+                    aria-label={t("workspace.queue.open_named_pool_resources", { node: item.node_name || item.node_id })}
+                    onClick={guardQueueNavigation}>
+                    <Server size={15} aria-hidden="true" /> {t("workspace.queue.open_pool_resources")}
                   </a>}
                   {confirmed && onQueueScope && !queueRun && validQueueRun(item.run_id) &&
                     <button className="scheduling-queue-focus-run" type="button" data-queue-focus-run
