@@ -4,3 +4,4 @@
 .ir-package-evidence a>svg{flex:none}
 .ir-package-evidence details .ir-facts{padding-top:4px}
 @media(max-width:600px){.ir-package-evidence{padding:10px}.ir-package-evidence .ir-actions>a{min-height:44px}}
+@media(max-width:600px){.ir-actions>[data-ir-release]{min-height:44px}}

@@ -26,6 +26,20 @@ async function change(selector:string,value:string){const element=host.querySele
 async function submit(){await act(async()=>host.querySelector('[data-ir-form]')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();}
 const submitButton=()=>host.querySelector<HTMLButtonElement>('[data-ir-form] button.primary')!;
 
+it('shows release review only from a protected closed cycle with the matching sealed regression',async()=>{
+ const current=closed();
+ current.current!.closure!.package_regression={node_id:'package.test',attempt:2,fence:4,artifact_id:'artifact-a',manifest_sha256:digest,source_commit:'b'.repeat(40),proof_id:'proof-package'};
+ current.release_handoff={issue_id:issue,issue_version:5,repair_id:'repair-a',repair_version:3,cycle:1,task_id:'task-a',task_version:4,run_id:'run-a',review_id:'review-a',artifact_id:'artifact-a',build_attestation_id:'proof-build',package_test_attestation_id:'proof-package'};
+ transport(async()=>Response.json(current));
+ await render();
+ await click('[data-ir-toggle]');
+ expect(host.querySelector('[data-ir-release]')?.getAttribute('href')).toBe('?project=project-a&view=operations&sub=release-candidates&panel=repair-release%3Aissue-a%3A1');
+ expect(writes).toHaveLength(0);
+ current.release_handoff.repair_version=4;
+ await click('[data-ir-refresh]');
+ expect(host.querySelector('[data-ir-release]')).toBeNull();
+});
+
 it('T119 prepares the canonical requirement and an ordinary repair task only after explicit criteria, without dispatching',async()=>{
  let current=view();const changed=vi.fn();transport(async(_path,init)=>{if(init?.body){current=view(true);current.issue.version=4;return Response.json(current);}return Response.json(current);});await render(session,project,issue,changed);expect(reads).toHaveLength(0);await click('[data-ir-toggle]');expect(reads).toHaveLength(1);await click('[data-ir-prepare]');expect(submitButton().disabled).toBe(true);await change('[name=ir_criteria]','Reproduce the failure\nVerify independent regression');await change('[name=ir_reason]','Repair the reported behavior');await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.querySelector<HTMLTextAreaElement>('[name=ir_reason]')?.value).toBe('Repair the reported behavior');expect(host.textContent).toContain('准备需求与修复任务');await submit();expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({path:'/issues/issue-a/repair/prepare',body:{project_id:project,expected_issue_version:3,owner_id:'',acceptance_criteria:['Reproduce the failure','Verify independent regression'],reason:'Repair the reported behavior'}});expect(writes.every(item=>!item.path.includes('dispatch')&&!item.path.includes('/runs'))).toBe(true);expect(host.querySelector('script')).toBeNull();expect(host.querySelector('a[href*="record=task-a"]')).not.toBeNull();expect(changed).toHaveBeenCalledTimes(1);
 });

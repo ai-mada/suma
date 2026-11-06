@@ -97,5 +97,6 @@
   "issue-repair.package_open_artifact": "View sealed artifact",
   "issue-repair.package_bind_hint": "Choose the repair task’s published plan and regression cases. Closing also requires independent package verification for the original application scope.",
   "issue-repair.blocker.package_regression_missing": "Run an independent package check for the repair and verify the sealed artifact before closing.",
-  "issue-repair.blocker.package_regression_scope_changed": "The regression does not match the original package check. Verify the test profile, application, source scope, and Git target."
+  "issue-repair.blocker.package_regression_scope_changed": "The regression does not match the original package check. Verify the test profile, application, source scope, and Git target.",
+  "issue-repair.review_release_candidate": "Review release candidate"
 }

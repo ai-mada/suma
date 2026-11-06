@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "package_repair_release": {
+    "stage": "T-PACKAGE-REPAIR-RELEASE-255",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "faa2e7827af098cbefe17e24edc5946aad619d7a",
+    "report": "docs/quality/package-repair-release-verification.md",
+    "actual": "Closed package repair can hand off the exact accepted task and sealed package proofs to the existing release candidate action. The candidate retains its repair lineage. Reopen preserves history and revokes its future forward eligibility.",
+    "verification": "Real Windows Pool journey through issue close, exact release handoff, rejected mismatched proof, candidate create/replay, reopen and invalidated eligibility. Browser uses isolated fixture; targeted regression evidence in report.",
+    "known_limitations": "No repair-linked production deployment or historical rollback was carried out. Physical multihost and OceanBase remain open. Ordinary candidate requests keep the existing release semantics.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q255/post-git.json"
+  },
   "package_test_repair": {
     "stage": "T-PACKAGE-TEST-REPAIR-254",
     "version": "1.0.0",

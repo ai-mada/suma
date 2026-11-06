@@ -352,5 +352,17 @@
   "release.artifact.receiving": "Receiving bytes",
   "release.capability.unknown": "Unrecognized capability state: {{state}}",
   "release.plan.deploy": "Deployment plan",
-  "release.dialog.candidate": "Fix release candidate"
+  "release.dialog.candidate": "Fix release candidate",
+  "release.repair_handoff.title": "Review candidate from a closed repair",
+  "release.repair_handoff.help": "Review the repair task and sealed package, then name the release candidate. Deployment follows its own approval process.",
+  "release.repair_handoff.basis": "Verified repair evidence",
+  "release.repair_handoff.cycle": "Repair cycle {{cycle}}",
+  "release.repair_handoff.open_issue": "Open source issue",
+  "release.repair_handoff.open_task": "Open accepted repair task",
+  "release.repair_handoff.open_artifact": "View sealed artifact",
+  "release.repair_handoff.proofs": "Show Review and proof IDs",
+  "release.repair_handoff.review": "Formal Review ID",
+  "release.repair_handoff.unavailable": "This repair cycle is no longer available for release handoff. Return to the source issue to check the current repair.",
+  "release.repair_handoff.conflict": "The repair evidence changed. Reload it before creating a candidate.",
+  "release.repair_handoff.invalid_receipt": "The returned candidate could not be matched to this repair. Recover the original request before trying again."
 }

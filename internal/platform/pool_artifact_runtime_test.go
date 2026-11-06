@@ -568,6 +568,9 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		if !ready.CanClose || len(ready.Blockers) != 0 || ready.Task == nil || ready.Task.RunID != fullRun {
 			t.Fatal("current reviewed repair with independent proofs could not close", ready)
 		}
+		if ready.ReleaseHandoff != nil {
+			t.Fatal("formal review alone authorized a closed-repair release handoff", ready.ReleaseHandoff)
+		}
 		closeReq := closeRepair(ready, fullRun)
 		closed := issueRepairRuntimeDecode[IssueRepairView](t, f.call("POST", repairPath+"/close", closeReq, 200))
 		if closed.Issue.Status != "closed" || closed.Current == nil || closed.Current.Closure == nil || closed.Current.Closure.RunID != fullRun ||
@@ -589,5 +592,64 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 		t.Logf("package_repair_run=%s issue=%s original_artifact=%s repaired_artifact=%s original_manifest=%s repaired_manifest=%s source_commit=%s package_proof=%s review=%s",
 			fullRun, issue.ID, built.ArtifactEvidence.ArtifactID, repairedBuild.ArtifactEvidence.ArtifactID, built.ArtifactEvidence.ManifestSHA256,
 			repairedBuild.ArtifactEvidence.ManifestSHA256, basis.SourceCommit, packageRegression.ProofID, closed.Current.Closure.ReviewID)
+
+		currentClosed := readRepair()
+		handoff := currentClosed.ReleaseHandoff
+		if handoff == nil || handoff.IssueID != issue.ID || handoff.IssueVersion != closed.Issue.Version ||
+			handoff.RepairID != closed.Current.ID || handoff.RepairVersion != closed.Current.Version || handoff.Cycle != closed.Current.Cycle ||
+			handoff.TaskID != repairTask.ID || handoff.TaskVersion != closed.Current.Closure.TaskVersion || handoff.RunID != fullRun ||
+			handoff.ReviewID != closed.Current.Closure.ReviewID || handoff.ArtifactID != packageRegression.ArtifactID ||
+			handoff.PackageTestAttestationID != packageRegression.ProofID || handoff.BuildAttestationID == "" {
+			t.Fatal("release handoff did not derive the exact closed repair and its accepted evidence", handoff)
+		}
+		repairReference := map[string]any{"issue_id": issue.ID, "expected_issue_version": handoff.IssueVersion, "expected_repair_version": handoff.RepairVersion}
+		// The earlier ordinary release uses the same source and manifest, but
+		// its otherwise valid proof tuple is for a different run and task.
+		f.call("POST", "/release-candidates", f.body(map[string]any{
+			"name": "Wrong repair release handoff", "artifact_id": artifact.ID, "build_attestation_id": buildProof.ID,
+			"package_test_attestation_id": testProof.ID, "tasks": []any{map[string]any{"id": task.ID, "expected_version": reviewed["version"]}},
+			"repair_handoff": repairReference,
+		}), 409)
+		releaseRequest := f.body(map[string]any{
+			"name": "Closed package repair candidate", "artifact_id": handoff.ArtifactID, "build_attestation_id": handoff.BuildAttestationID,
+			"package_test_attestation_id": handoff.PackageTestAttestationID, "tasks": []any{map[string]any{"id": handoff.TaskID, "expected_version": handoff.TaskVersion}},
+			"repair_handoff": repairReference,
+		})
+		releaseRequest["repair_handoff"] = nil
+		f.call("POST", "/release-candidates", releaseRequest, 400)
+		releaseRequest["repair_handoff"] = repairReference
+		created := issueRepairRuntimeDecode[ReleaseCandidateView](t, f.call("POST", "/release-candidates", releaseRequest, 201))
+		issued := created.Candidate
+		if !created.Eligibility || issued.RepairHandoff == nil || *issued.RepairHandoff != *handoff ||
+			issued.ArtifactID != packageRegression.ArtifactID || issued.ArtifactSHA256 != packageRegression.ManifestSHA256 ||
+			issued.SourceCommit != packageRegression.SourceCommit || issued.BuildProof.Assignment.RunID != fullRun ||
+			issued.PackageTestProof.Assignment.RunID != fullRun || issued.BuildProof.Assignment.WorkerID == issued.PackageTestProof.Assignment.WorkerID ||
+			len(issued.Tasks) != 1 || issued.Tasks[0].ID != repairTask.ID || issued.Tasks[0].ReviewID != handoff.ReviewID {
+			t.Fatal("candidate did not retain the exact repair handoff and independent artifact proofs", created)
+		}
+		replayed := issueRepairRuntimeDecode[ReleaseCandidateView](t, f.call("POST", "/release-candidates", releaseRequest, 201))
+		if !replayed.Eligibility || replayed.Candidate.ID != issued.ID {
+			t.Fatal("candidate replay changed the original release handoff", replayed)
+		}
+		reopened := issueRepairRuntimeDecode[IssueRepairView](t, f.call("POST", repairPath+"/reopen", IssueRepairReopenRequest{
+			ProjectID: f.project, ExpectedIssueVersion: closed.Issue.Version, ExpectedRepairVersion: closed.Current.Version,
+			Reason: "Fixture owner confirms the defect has resurfaced.", IdempotencyKey: newID(),
+		}, 200))
+		if reopened.Issue.Status != "open" || reopened.Cycle != closed.Cycle+1 || reopened.ReleaseHandoff != nil {
+			t.Fatal("reopening retained authority to create another candidate from the old repair", reopened)
+		}
+		staleReplay := issueRepairRuntimeDecode[ReleaseCandidateView](t, f.call("POST", "/release-candidates", releaseRequest, 201))
+		if staleReplay.Eligibility || staleReplay.Candidate.ID != issued.ID || len(staleReplay.Blockers) == 0 {
+			t.Fatal("replay after reopen lost the candidate receipt or retained release eligibility", staleReplay)
+		}
+		candidatePath := "/release-candidates/" + issued.ID + "?project_id=" + f.project
+		historicalCandidate := issueRepairRuntimeDecode[ReleaseCandidateView](t, f.call("GET", candidatePath, nil, 200))
+		if historicalCandidate.Eligibility || historicalCandidate.Candidate.RepairHandoff == nil || *historicalCandidate.Candidate.RepairHandoff != *handoff {
+			t.Fatal("candidate read did not preserve history separately from release eligibility", historicalCandidate)
+		}
+		releaseRequest["idempotency_key"] = newID()
+		f.call("POST", "/release-candidates", releaseRequest, 409)
+		t.Logf("package_repair_release_candidate=%s repair=%s artifact=%s build_proof=%s package_proof=%s review=%s reopened_cycle=%d",
+			issued.ID, handoff.RepairID, issued.ArtifactID, issued.BuildAttestationID, issued.PackageTestAttestationID, handoff.ReviewID, reopened.Cycle)
 	})
 }

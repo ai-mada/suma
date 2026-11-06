@@ -53,6 +53,7 @@ command生产者只接受正式 `command/text-v1` 档案绑定；领取和回写
 | `can_prepare, can_bind, can_close, can_reopen` | 当前授权及当前事实下的界面操作资格；实际命令再次核验 |
 | `blockers` | `IssueRepairBlocker{code,ref_id?}`；稳定代码与可定位原事实 |
 | `original_package?` | 保护记录中的原失败运行、节点、尝试、fence、制品、清单与源码；应用范围存在时附应用和 Git 目标标识 |
+| `release_handoff?` | 当前有写权限、当前关闭轮次且证据仍有效时返回。固定问题与修复版本、轮次、已验收任务版本、运行、Review、制品、构建证明和包测试证明 |
 
 `IssueRepair`：`id, tenant_id, project_id, issue_id, cycle, version, requirement_id, task_id, prepared_by, created_at, updated_at, regression?, closure?, reopened_at?, reopened_by?, reopen_reason?`。
 
@@ -61,6 +62,8 @@ command生产者只接受正式 `command/text-v1` 档案绑定；领取和回写
 `IssueRepairClosure`：`run_id, task_version, review_id, plan_id, plan_revision, plan_sha256, case_keys, source_commits, closed_by, closed_at, reason, package_regression?`。包测试关单快照包含复验的节点、尝试、fence、制品、清单、源码与证明标识，运行取同一关闭快照的 `run_id`。这些字段由已复核事实生成，不接受调用方自行构造。
 
 关闭状态为问题的 `closed`；修复过程使用 `open/in_progress/closed`，任务、回归和验收阶段从各自正式事实投影。关闭后的轮次仍为current并带closure；重开后保留旧 `closure`，记录原轮次重开人／时间／原因并移入history，新cycle在Prepare前没有current任务。原已关闭运行有保护索引，不可作为新轮次的关闭依据。
+
+包测试关单可以交接到原发布候选表单。链接只携带原问题和轮次定位，表单重新读取当前问题修复视图。创建时随原候选正文携带 `repair_handoff={issue_id,expected_issue_version,expected_repair_version}`，交付范围必须是本轮唯一验收任务。候选创建事务重核关闭状态、人工 Review、准确制品和两份证明。候选保存原交接快照，问题重开后旧候选的后续正向发布资格失效。参见[发布控制合同](release-control.md#修复交接到发布候选)。
 
 ## 资格、阻断与失效
 

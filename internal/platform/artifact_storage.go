@@ -582,37 +582,50 @@ func (s *Service) sealArtifactUpload(ctx context.Context, subject candidateSubje
 	return out, tx.Commit()
 }
 
-func (s *Service) releaseArtifactManifestTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (releasecontract.ArtifactManifest, error) {
+// sealedArtifactManifestTx validates the sealed metadata. Release actions also
+// verify the actual bytes through releaseArtifactManifestTx.
+func (s *Service) sealedArtifactManifestTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (releasecontract.ArtifactManifest, string, string, error) {
 	var m releasecontract.ArtifactManifest
 	var raw, hash, upload string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT manifest,manifest_sha256,upload_id FROM suma_release_artifacts WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&raw, &hash, &upload)
+	if err == sql.ErrNoRows {
+		return m, "", "", missing()
+	}
 	if err != nil {
-		return m, missing()
+		return m, "", "", err
 	}
 	if err = json.Unmarshal([]byte(raw), &m); err != nil {
-		return m, err
+		return m, "", "", err
 	}
 	canonical, digest, err := releasecontract.CanonicalManifest(m)
 	if err != nil || digest != hash {
-		return m, conflict("封存清单已变化")
+		return m, "", "", conflict("封存清单已变化")
+	}
+	return canonical, hash, upload, nil
+}
+
+func (s *Service) releaseArtifactManifestTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (releasecontract.ArtifactManifest, error) {
+	canonical, _, upload, err := s.sealedArtifactManifestTx(ctx, tx, p, project, id)
+	if err != nil {
+		return canonical, err
 	}
 	refs := []artifactReadRef{}
 	for _, f := range canonical.Files {
 		var path string
 		var size int64
 		if err = tx.QueryRowContext(ctx, s.q(`SELECT storage_path,size_bytes FROM suma_artifact_blobs WHERE upload_id=? AND digest=?`), upload, f.SHA256).Scan(&path, &size); err != nil || size != f.SizeBytes {
-			return m, conflict("制品不完整")
+			return canonical, conflict("制品不完整")
 		}
 		refs = append(refs, artifactReadRef{path: path, hash: f.SHA256, size: size})
 	}
 	if batch, ok := ctx.Value(artifactReadKey{}).(*artifactReadBatch); ok {
 		if err = batch.record(refs); err != nil {
-			return m, err
+			return canonical, err
 		}
 	} else {
 		for _, r := range refs {
 			if _, err = s.readArtifactBlob(r.path, r.hash, r.size); err != nil {
-				return m, err
+				return canonical, err
 			}
 		}
 	}

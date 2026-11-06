@@ -45,12 +45,12 @@ func (s *Service) releaseTaskBasisReadTx(ctx context.Context, tx *sql.Tx, p Prin
 }
 
 func (s *Service) validateReleaseCandidateTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidate, error) {
-	return s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, false)
+	return s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, false, false)
 }
 func (s *Service) validateCurrentReleaseCandidateTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidate, error) {
-	return s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, true)
+	return s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, true, true)
 }
-func (s *Service) validateReleaseCandidateReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, current bool) (ReleaseCandidate, error) {
+func (s *Service) validateReleaseCandidateReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, current, forward bool) (ReleaseCandidate, error) {
 	var out ReleaseCandidate
 	var raw string
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_release_candidates WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&raw); err != nil {
@@ -88,6 +88,20 @@ func (s *Service) validateReleaseCandidateReadTx(ctx context.Context, tx *sql.Tx
 	if digest(stringify(out.Tasks)) != out.AcceptedTaskBasisSHA256 {
 		return out, conflict("候选范围摘要不一致")
 	}
+	if out.RepairHandoff != nil {
+		if !out.RepairHandoff.matchesCandidate(out) {
+			return out, releaseConflict("release_basis_changed", issueRepairReleaseStale)
+		}
+		if forward {
+			actual, err := s.issueRepairReleaseHandoffTx(ctx, tx, p, project, out.RepairHandoff.IssueID, current)
+			if err != nil {
+				return out, err
+			}
+			if *actual != *out.RepairHandoff {
+				return out, releaseConflict("release_basis_changed", issueRepairReleaseStale)
+			}
+		}
+	}
 	return out, nil
 }
 
@@ -105,10 +119,18 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, actor Actor, proje
 			ID              string `json:"id"`
 			ExpectedVersion int    `json:"expected_version"`
 		} `json:"tasks"`
-		IdempotencyKey string `json:"idempotency_key"`
+		IdempotencyKey string                          `json:"idempotency_key"`
+		RepairHandoff  *IssueRepairReleaseHandoffInput `json:"repair_handoff,omitempty"`
 	}
 	if err := releaseDecode(m, &request); err != nil {
 		return out, err
+	}
+	if _, supplied := m["repair_handoff"]; supplied {
+		ref := request.RepairHandoff
+		if ref == nil || !handoffID(ref.IssueID, false) || !designVersion(ref.ExpectedIssueVersion) ||
+			!designVersion(ref.ExpectedRepairVersion) || ref.ExpectedIssueVersion < 1 || ref.ExpectedRepairVersion < 1 {
+			return out, invalid(issueRepairInvalid)
+		}
 	}
 	name := strings.TrimSpace(str(m, "name"))
 	if name == "" || len(name) > 200 {
@@ -141,6 +163,19 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, actor Actor, proje
 			return out, err
 		}
 		return s.currentCandidateViewTx(ctx, tx, p, project, out.Candidate.ID)
+	}
+	var handoff *IssueRepairReleaseHandoff
+	if ref := request.RepairHandoff; ref != nil {
+		handoff, err = s.issueRepairReleaseHandoffTx(ctx, tx, p, project, ref.IssueID, true)
+		if err != nil {
+			return out, err
+		}
+		if handoff.IssueVersion != ref.ExpectedIssueVersion || handoff.RepairVersion != ref.ExpectedRepairVersion ||
+			handoff.ArtifactID != request.ArtifactID || handoff.BuildAttestationID != request.BuildAttestationID ||
+			handoff.PackageTestAttestationID != request.PackageTestAttestationID || len(request.Tasks) != 1 ||
+			handoff.TaskID != request.Tasks[0].ID || handoff.TaskVersion != request.Tasks[0].ExpectedVersion {
+			return out, staleIssueRepairReleaseBasis(nil)
+		}
 	}
 	build, err := s.currentArtifactProofTx(ctx, tx, p, project, str(m, "build_attestation_id"))
 	if err != nil {
@@ -183,6 +218,12 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, actor Actor, proje
 	}
 	sort.Slice(bases, func(i, j int) bool { return bases[i].ID < bases[j].ID })
 	candidate := ReleaseCandidate{ID: newID(), ProjectID: project, Name: name, ArtifactID: artifact, ArtifactSHA256: build.ManifestSHA256, SourceCommit: build.SourceCommit, BuildAttestationID: build.ID, PackageTestAttestationID: test.ID, AcceptedTaskBasisSHA256: digest(stringify(bases)), BuildProof: build, PackageTestProof: test, Tasks: bases, CreatedAt: now()}
+	if handoff != nil {
+		if !handoff.matchesCandidate(candidate) {
+			return out, staleIssueRepairReleaseBasis(nil)
+		}
+		candidate.RepairHandoff = handoff
+	}
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_candidates(id,tenant_id,project_id,name,payload,created_at)VALUES(?,?,?,?,?,?)`), candidate.ID, p.TenantID, project, name, stringify(candidate), candidate.CreatedAt); err != nil {
 		return out, err
 	}
@@ -212,7 +253,7 @@ func (s *Service) candidateViewReadTx(ctx context.Context, tx *sql.Tx, p Princip
 		return out, err
 	}
 	out.Blockers = []ReleaseBlocker{}
-	_, err := s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, current)
+	_, err := s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, current, true)
 	out.Eligibility = err == nil
 	if err != nil {
 		if api, ok := err.(*APIError); ok {

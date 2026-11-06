@@ -1,5 +1,6 @@
 import {tr,UiError} from './i18n';
 import {api,ApiError,operation} from './api';
+import {matchingRepairReleaseReceipt} from './repair-release-handoff';
 
 export type ReleasePendingRequest={path:string;method:'POST'|'PATCH';body:Record<string,unknown>;idempotency_key:string};
 type RecoveryStorage=Pick<Storage,'getItem'|'setItem'|'removeItem'>;
@@ -39,6 +40,7 @@ export class ReleaseWriteRecovery{
   const request=this.value;this.busy=true;
   try{
    const result=await this.send<T>(request.path,{...request.body,idempotency_key:request.idempotency_key},request.method);
+   if(request.path==='/release-candidates'&&request.body.repair_handoff!==undefined&&!matchingRepairReleaseReceipt(result,request.body))throw new UiError('release.repair_handoff.invalid_receipt');
    this.clear();return result;
   }catch(error){
    // A later denial cannot prove that the original unknown request had no effect.

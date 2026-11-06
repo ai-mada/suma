@@ -60,7 +60,9 @@ func (s *Service) releasePreviewTx(ctx context.Context, tx *sql.Tx, p Principal,
 	if _, err = s.releaseProviderSite(p.TenantID, project, env.ProviderID, env.SiteID); err != nil {
 		return view, content, err
 	}
-	candidate, err := s.validateCurrentReleaseCandidateTx(ctx, tx, p, project, in.CandidateID)
+	// A rollback relies on the immutable source deployment and candidate.
+	// Forward release additionally requires the repair's current closure.
+	candidate, err := s.validateReleaseCandidateReadTx(ctx, tx, p, project, in.CandidateID, true, in.Action == "deploy")
 	if err != nil {
 		return view, content, err
 	}
@@ -225,7 +227,7 @@ func (s *Service) releasePlanBasisReadTx(ctx context.Context, tx *sql.Tx, p Prin
 	if _, err = s.releaseProviderSite(p.TenantID, project, plan.Content.ProviderID, plan.Content.SiteID); err != nil {
 		return err
 	}
-	candidate, err := s.validateReleaseCandidateReadTx(ctx, tx, p, project, plan.Content.CandidateID, current)
+	candidate, err := s.validateReleaseCandidateReadTx(ctx, tx, p, project, plan.Content.CandidateID, current, plan.Content.Action != "rollback")
 	if err != nil {
 		return err
 	}

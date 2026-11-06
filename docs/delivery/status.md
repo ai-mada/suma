@@ -20,6 +20,8 @@ T-POOL-RUNNER-OCCUPANCY 从共享资源池的执行节点页查看已保留槽�
 
 T-PORTFOLIO-CAPACITY 从项目管理按周对照已分摊任务工时与组织工作日历。可筛选已超配或待核对人员，展开任务依据，跳转原任务和有权工作日历。已验证跨周分摊、当前撤权和桌面／窄屏交互。 [交互](../design/project-portfolio.md#跨项目周负荷与容量) · [验证](../quality/project-portfolio-capacity-verification.md)
 
+T-PACKAGE-REPAIR-RELEASE-255 可从已关闭包测试修复进入原候选表单，冻结本轮任务和制品证明。重开后保留候选历史并阻止旧候选继续正向发布。 [合同](../../contracts/release-control.md#修复交接到发布候选) · [验证](../quality/package-repair-release-verification.md)
+
 T-PACKAGE-TEST-REPAIR-254 包测试问题沿原修复流程关单，核对原测试档案和应用源码范围，保留独立复验与原失败两份证据。 [合同](../../contracts/issue-repair.md) · [验证](../quality/package-test-repair-verification.md)
 
 T-PACKAGE-TEST-ISSUE-253 当前独立包测试失败可从质量页登记正式问题，经原任务交付回流需求，按准确尝试去重。 [合同](../../contracts/test-plans.md) · [验证](../quality/package-test-issue-verification.md)

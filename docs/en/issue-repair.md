@@ -43,6 +43,8 @@ The closure records the actual run, task version, Review ID, plan revision and S
 
 For a package-test issue, use the original run and artifact links to inspect the failure. Rebuild and seal the repair artifact, then run the original package test profile on a separate Runner alongside the JUnit plan. An application-scoped repair can use a new source revision for the same application, code scope and Git target. The repair must retain verified package evidence as well as the current formal Review. A closed cycle keeps links to the verified package attempt and artifact, including after reopening.
 
+When a closed cycle remains eligible, open its release candidate form from the issue. The form loads the current accepted task and sealed artifact proofs for that exact cycle. Enter a candidate name and confirm creation. The candidate links back to the issue and preserves the handoff. Reopening the issue makes that candidate ineligible for future forward releases, while historical deployments keep their original records.
+
 ## Reopen without rewriting history
 
 A browser user with Review authority can reopen a closed issue with a reason. The original closure, task and evidence remain. The cycle increases and has no current repair task until another explicit Prepare. That next Prepare creates a new task while preserving the same canonical intake requirement. An already accepted task is not reused as a mutable repair container.

@@ -34,6 +34,14 @@ state：`pending_approval,approved,rejected,revoked,executing,completed`。appro
 
 Deployment：`{operation_id,project_id,version,plan_id,plan_revision,plan_sha256,environment_id,provider_id,generation,artifact_id,artifact_sha256,run_id,node_id,state,effect_state,health_state,observation,observations,issue_id,created_at,updated_at,allowed_actions,blockers}`。初始 state=`queued`；后续来自真实提供方。effect=`not_started|applied|unknown`，health=`not_checked|passed|failed|unknown`，组合投影 `deployed_healthy|deployed_unhealthy|failed|cancelled|reconciling`。观察缺失、网络不明、停止请求或旧 attempt 不能自动成功。变更内容复用幂等 key 返回409；重放前必须复核当前权限。
 
+## 修复交接到发布候选
+
+`POST /api/v1/release-candidates` 可携带 `repair_handoff={issue_id,expected_issue_version,expected_repair_version}`。服务端在候选创建事务内重新读取当前关闭的包测试修复轮次。请求中的任务必须唯一且版本相同，制品、构建证明和包测试证明必须与该轮关闭依据完全一致。成功候选保留完整交接快照，供原问题和正式 Review 回查。
+
+未提供 `repair_handoff` 的普通候选沿用其任务、构建和测试门禁。问题来源与重开联动只适用于明确保存了修复交接的候选。
+
+问题重开或交接依据漂移时，原候选仍可读取，但不可用于新的正向发布。候选列表和已存在的正向计划都按当前证据表达资格。历史部署和回滚继续按原同环境、健康记录和原制品规则核对。
+
 ## Runner/Provider API 与共享 DTO
 
 Runner 请求携带管理员登记的专属 worker 发布凭证；只对真实 managed run/node/current attempt/fence/worker + 未停止有效租约发放授权。

@@ -19,9 +19,13 @@ const (
 )
 
 func (s *Service) issueRepairLatestTx(ctx context.Context, auth *authorizedCommand, project, issue string) (*IssueRepair, error) {
+	return s.issueRepairLatestReadTx(ctx, auth.tx, auth.target.tenantID, project, issue, false)
+}
+
+func (s *Service) issueRepairLatestReadTx(ctx context.Context, tx *sql.Tx, tenant, project, issue string, current bool) (*IssueRepair, error) {
 	var id, task, closedRun, raw string
 	var cycle, version int
-	err := auth.tx.QueryRowContext(ctx, s.q(`SELECT id,task_id,cycle,version,closed_run_id,snapshot FROM suma_issue_repairs WHERE tenant_id=? AND project_id=? AND issue_id=? ORDER BY cycle DESC LIMIT 1`), auth.target.tenantID, project, issue).Scan(&id, &task, &cycle, &version, &closedRun, &raw)
+	err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT id,task_id,cycle,version,closed_run_id,snapshot FROM suma_issue_repairs WHERE tenant_id=? AND project_id=? AND issue_id=? ORDER BY cycle DESC LIMIT 1`, current)), tenant, project, issue).Scan(&id, &task, &cycle, &version, &closedRun, &raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -32,7 +36,7 @@ func (s *Service) issueRepairLatestTx(ctx context.Context, auth *authorizedComma
 	if err = json.Unmarshal([]byte(raw), &out); err != nil {
 		return nil, err
 	}
-	if out.ID != id || out.TaskID != task || out.Cycle != cycle || out.Version != version || out.TenantID != auth.target.tenantID || out.ProjectID != project || out.IssueID != issue {
+	if out.ID != id || out.TaskID != task || out.Cycle != cycle || out.Version != version || out.TenantID != tenant || out.ProjectID != project || out.IssueID != issue {
 		return nil, conflict(issueRepairSource)
 	}
 	if out.Closure == nil && closedRun != "" || out.Closure != nil && out.Closure.RunID != closedRun {

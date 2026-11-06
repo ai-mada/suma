@@ -352,5 +352,17 @@
   "release.artifact.receiving": "正在接收字节",
   "release.capability.unknown": "未识别能力状态：{{state}}",
   "release.plan.deploy": "部署计划",
-  "release.dialog.candidate": "固定发布候选"
+  "release.dialog.candidate": "固定发布候选",
+  "release.repair_handoff.title": "审阅已关单修复的发布候选",
+  "release.repair_handoff.help": "核对修复任务和封存包后，为发布候选命名。部署仍需独立审批。",
+  "release.repair_handoff.basis": "已核验的修复依据",
+  "release.repair_handoff.cycle": "第 {{cycle}} 轮修复",
+  "release.repair_handoff.open_issue": "打开来源问题",
+  "release.repair_handoff.open_task": "打开已验收修复任务",
+  "release.repair_handoff.open_artifact": "查看封存制品",
+  "release.repair_handoff.proofs": "查看验收和证明标识",
+  "release.repair_handoff.review": "正式验收标识",
+  "release.repair_handoff.unavailable": "该修复轮次目前无法交接发布候选。请返回来源问题核对当前修复。",
+  "release.repair_handoff.conflict": "修复依据已变化。请重新读取依据后再创建候选。",
+  "release.repair_handoff.invalid_receipt": "返回的候选与该修复无法核对。请先恢复原请求，再继续操作。"
 }

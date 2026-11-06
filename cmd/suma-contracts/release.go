@@ -32,13 +32,14 @@ type ReleaseCandidateTaskInput struct {
 	ExpectedVersion int    `json:"expected_version"`
 }
 type ReleaseCandidateCreateRequest struct {
-	ProjectID                string                      `json:"project_id"`
-	Name                     string                      `json:"name"`
-	ArtifactID               string                      `json:"artifact_id"`
-	BuildAttestationID       string                      `json:"build_attestation_id"`
-	PackageTestAttestationID string                      `json:"package_test_attestation_id"`
-	Tasks                    []ReleaseCandidateTaskInput `json:"tasks"`
-	IdempotencyKey           string                      `json:"idempotency_key"`
+	ProjectID                string                                  `json:"project_id"`
+	Name                     string                                  `json:"name"`
+	ArtifactID               string                                  `json:"artifact_id"`
+	BuildAttestationID       string                                  `json:"build_attestation_id"`
+	PackageTestAttestationID string                                  `json:"package_test_attestation_id"`
+	Tasks                    []ReleaseCandidateTaskInput             `json:"tasks"`
+	IdempotencyKey           string                                  `json:"idempotency_key"`
+	RepairHandoff            platform.IssueRepairReleaseHandoffInput `json:"repair_handoff,omitempty"`
 }
 type ReleaseProviderOption struct {
 	ID              string   `json:"id"`
@@ -165,7 +166,7 @@ func releaseContracts(add operationAdder) {
 	single("/release-candidates/{id}", "get", "ReleaseCandidateView", false, "200")
 	op = single("/release-candidates", "post", "ReleaseCandidateView", true, "201")
 	request(op, "ReleaseCandidateCreateRequest")
-	op["description"] = "Atomically freezes sealed bytes, current successful build/package-test proofs for the same source/digest/run and current formally accepted task review basis. Immutable; current eligibility/blockers are returned separately. No browser passed/upload conclusion is accepted."
+	op["description"] = "Atomically freezes sealed bytes, successful build/package-test proofs, and formal Review for the same run. An optional issue repair handoff freezes the current closed cycle and requires its exact task and proof identifiers. Immutable content and current eligibility are returned separately."
 	completeList("/release-providers", "ReleaseProviderOption")
 	single("/environments", "get", "ReleaseEnvironmentList", false, "200")
 	single("/environments/{id}", "get", "ReleaseEnvironment", false, "200")
@@ -334,6 +335,8 @@ func enhanceReleaseSchemas(schemas map[string]any) {
 	field("ReleaseWorkerRegisterRequest", "profiles", map[string]any{"maxItems": 32, "description": "Unique administrator-owned profile IDs and real configuration digests. An empty list supports a general execution node without release capability."})
 	field("ReleaseProfileRegistration", "kind", map[string]any{"enum": []string{"build", "package_test"}})
 	field("ReleaseCandidateCreateRequest", "tasks", map[string]any{"minItems": 1, "maxItems": 100, "description": "Unique current accepted tasks actually delivered by the same run as both selected proofs; versions and real review basis are validated atomically."})
+	field("ReleaseCandidateCreateRequest", "repair_handoff", map[string]any{"description": "Optional exact issue repair reference. When present, tasks must contain only the current closed repair task and all artifact proof IDs must match its closure."})
+	field("ReleaseCandidate", "repair_handoff", map[string]any{"readOnly": true, "description": "Immutable provenance of this candidate's verified closed issue repair. Forward release eligibility is checked separately."})
 	field("ReleaseCandidateTaskInput", "expected_version", map[string]any{"minimum": 1})
 	field("ReleaseCandidateCreateRequest", "name", map[string]any{"minLength": 1, "maxLength": 200, "x-max-utf8-bytes": 200})
 	field("ReleaseEnvironment", "generation", map[string]any{"minimum": 0, "description": "Highest reserved fencing generation. May exceed active_generation after failed/unknown attempts."})

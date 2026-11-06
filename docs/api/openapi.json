@@ -18780,6 +18780,107 @@
         "type": "object",
         "x-max-json-utf8-bytes": 262144
       },
+      "IssueRepairReleaseHandoff": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "build_attestation_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "cycle": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "issue_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "issue_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "package_test_attestation_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "repair_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "repair_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "review_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "issue_id",
+          "issue_version",
+          "repair_id",
+          "repair_version",
+          "cycle",
+          "task_id",
+          "task_version",
+          "run_id",
+          "review_id",
+          "artifact_id",
+          "build_attestation_id",
+          "package_test_attestation_id"
+        ],
+        "type": "object"
+      },
+      "IssueRepairReleaseHandoffInput": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_issue_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_repair_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "issue_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "issue_id",
+          "expected_issue_version",
+          "expected_repair_version"
+        ],
+        "type": "object"
+      },
       "IssueRepairReopenRequest": {
         "additionalProperties": false,
         "properties": {
@@ -18882,6 +18983,18 @@
               }
             ],
             "description": "Historical source of an issue from a protected failed package attempt, independent of editable issue metadata.",
+            "readOnly": true
+          },
+          "release_handoff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IssueRepairReleaseHandoff"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Current closed and releasable package repair. Omitted when the current user or current evidence does not permit this handoff.",
             "readOnly": true
           },
           "task": {
@@ -29573,6 +29686,18 @@
           "project_id": {
             "type": "string"
           },
+          "repair_handoff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IssueRepairReleaseHandoff"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Immutable provenance of this candidate's verified closed issue repair. Forward release eligibility is checked separately.",
+            "readOnly": true
+          },
           "source_commit": {
             "type": "string"
           },
@@ -29623,6 +29748,10 @@
           },
           "project_id": {
             "type": "string"
+          },
+          "repair_handoff": {
+            "$ref": "#/components/schemas/IssueRepairReleaseHandoffInput",
+            "description": "Optional exact issue repair reference. When present, tasks must contain only the current closed repair task and all artifact proof IDs must match its closure."
           },
           "tasks": {
             "description": "Unique current accepted tasks actually delivered by the same run as both selected proofs; versions and real review basis are validated atomically.",
@@ -107136,7 +107265,7 @@
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       },
       "post": {
-        "description": "Atomically freezes sealed bytes, current successful build/package-test proofs for the same source/digest/run and current formally accepted task review basis. Immutable; current eligibility/blockers are returned separately. No browser passed/upload conclusion is accepted.",
+        "description": "Atomically freezes sealed bytes, successful build/package-test proofs, and formal Review for the same run. An optional issue repair handoff freezes the current closed cycle and requires its exact task and proof identifiers. Immutable content and current eligibility are returned separately.",
         "operationId": "post_release-candidates",
         "parameters": [
           {

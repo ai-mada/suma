@@ -3555,6 +3555,25 @@ export interface IssueRepairPrepareRequest {
   reason: string;
   idempotency_key: string;
 }
+export interface IssueRepairReleaseHandoff {
+  issue_id: string;
+  issue_version: number;
+  repair_id: string;
+  repair_version: number;
+  cycle: number;
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  review_id: string;
+  artifact_id: string;
+  build_attestation_id: string;
+  package_test_attestation_id: string;
+}
+export interface IssueRepairReleaseHandoffInput {
+  issue_id: string;
+  expected_issue_version: number;
+  expected_repair_version: number;
+}
 export interface IssueRepairReopenRequest {
   project_id: string;
   expected_issue_version: number;
@@ -3576,6 +3595,7 @@ export interface IssueRepairView {
   can_reopen: boolean;
   blockers: (IssueRepairBlocker)[];
   original_package?: IssueRepairPackageOrigin | null;
+  release_handoff?: IssueRepairReleaseHandoff | null;
 }
 export interface KnowledgeExtractionCapability {
   protocol: string;
@@ -5590,6 +5610,7 @@ export interface ReleaseCandidate {
   package_test_proof: ArtifactProof;
   tasks: (ReleaseTaskBasis)[];
   created_at: string;
+  repair_handoff?: IssueRepairReleaseHandoff | null;
 }
 export interface ReleaseCandidateCreateRequest {
   project_id: string;
@@ -5599,6 +5620,7 @@ export interface ReleaseCandidateCreateRequest {
   package_test_attestation_id: string;
   tasks: (ReleaseCandidateTaskInput)[];
   idempotency_key: string;
+  repair_handoff?: IssueRepairReleaseHandoffInput;
 }
 export interface ReleaseCandidateTaskInput {
   id: string;

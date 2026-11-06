@@ -1,6 +1,6 @@
 import {tr,UiError} from './i18n';
 import type {RecordItem} from './api';
-import type {ApplicationReleaseSetRef} from '../../../packages/contracts/src';
+import type {ApplicationReleaseSetRef,IssueRepairReleaseHandoff} from '../../../packages/contracts/src';
 
 export type ReleaseBlocker={code:string;message:string};
 export type AssignmentRef={run_id:string;node_id:string;attempt:number;fence:number;worker_id:string};
@@ -9,7 +9,7 @@ export type ArtifactManifest={schema_version:number;kind:string;files:ArtifactFi
 export type ArtifactProof={id:string;project_id:string;assignment:AssignmentRef;kind:string;artifact_id:string;manifest_sha256:string;source_commit:string;profile_id:string;profile_sha256:string;workspace_sha256:string;created_at:string};
 export type ReleaseArtifact={id:string;project_id:string;manifest_sha256:string;manifest:ArtifactManifest;size_bytes:number;state:string;created_at:string;proofs:ArtifactProof[]};
 export type ReleaseTaskBasis={id:string;version:number;run_id:string;review_id:string;sha256:string};
-export type ReleaseCandidate={id:string;project_id:string;name:string;artifact_id:string;artifact_sha256:string;source_commit:string;build_attestation_id:string;package_test_attestation_id:string;accepted_task_basis_sha256:string;build_proof:ArtifactProof;package_test_proof:ArtifactProof;tasks:ReleaseTaskBasis[];created_at:string};
+export type ReleaseCandidate={id:string;project_id:string;name:string;artifact_id:string;artifact_sha256:string;source_commit:string;build_attestation_id:string;package_test_attestation_id:string;accepted_task_basis_sha256:string;build_proof:ArtifactProof;package_test_proof:ArtifactProof;tasks:ReleaseTaskBasis[];created_at:string;repair_handoff?:IssueRepairReleaseHandoff};
 export type CandidateDetail={candidate:ReleaseCandidate;eligibility:boolean;blockers:ReleaseBlocker[]};
 export type HealthCheck={path:string;expected_status:number;expected_file:string;expected_sha256?:string};
 export type HealthPolicy={checks:HealthCheck[];timeout_ms:number;attempts:number};

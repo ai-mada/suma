@@ -272,6 +272,13 @@ func (s *Service) issueRepairViewTx(ctx context.Context, auth *authorizedCommand
 	if out.Issue.Status == "closed" {
 		out.CanReopen = approve && out.Current.Closure != nil
 		out.Blockers = append(out.Blockers, IssueRepairBlocker{Code: "issue_closed", RefID: issueID})
+		if write && out.Current.Closure != nil && out.Current.Closure.PackageRegression != nil {
+			out.ReleaseHandoff, err = s.issueRepairReleaseHandoffTx(ctx, auth.tx, auth.currentPrincipal, project, issueID, true)
+			var api *APIError
+			if err != nil && (!errors.As(err, &api) || api.Status != 404 && api.Status != 409) {
+				return out, err
+			}
+		}
 		return out, nil
 	}
 	out.CanBind = write && out.Issue.Status == "in_progress" && out.Current.Closure == nil

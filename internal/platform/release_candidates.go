@@ -24,19 +24,20 @@ type ReleaseTaskBasis struct {
 	SHA256   string `json:"sha256"`
 }
 type ReleaseCandidate struct {
-	ID                       string             `json:"id"`
-	ProjectID                string             `json:"project_id"`
-	Name                     string             `json:"name"`
-	ArtifactID               string             `json:"artifact_id"`
-	ArtifactSHA256           string             `json:"artifact_sha256"`
-	SourceCommit             string             `json:"source_commit"`
-	BuildAttestationID       string             `json:"build_attestation_id"`
-	PackageTestAttestationID string             `json:"package_test_attestation_id"`
-	AcceptedTaskBasisSHA256  string             `json:"accepted_task_basis_sha256"`
-	BuildProof               ArtifactProof      `json:"build_proof"`
-	PackageTestProof         ArtifactProof      `json:"package_test_proof"`
-	Tasks                    []ReleaseTaskBasis `json:"tasks"`
-	CreatedAt                string             `json:"created_at"`
+	ID                       string                     `json:"id"`
+	ProjectID                string                     `json:"project_id"`
+	Name                     string                     `json:"name"`
+	ArtifactID               string                     `json:"artifact_id"`
+	ArtifactSHA256           string                     `json:"artifact_sha256"`
+	SourceCommit             string                     `json:"source_commit"`
+	BuildAttestationID       string                     `json:"build_attestation_id"`
+	PackageTestAttestationID string                     `json:"package_test_attestation_id"`
+	AcceptedTaskBasisSHA256  string                     `json:"accepted_task_basis_sha256"`
+	BuildProof               ArtifactProof              `json:"build_proof"`
+	PackageTestProof         ArtifactProof              `json:"package_test_proof"`
+	Tasks                    []ReleaseTaskBasis         `json:"tasks"`
+	CreatedAt                string                     `json:"created_at"`
+	RepairHandoff            *IssueRepairReleaseHandoff `json:"repair_handoff,omitempty"`
 }
 
 type ReleaseArtifact struct {

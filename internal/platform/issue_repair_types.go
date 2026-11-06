@@ -80,20 +80,44 @@ type IssueRepairBlocker struct {
 	RefID string `json:"ref_id,omitempty"`
 }
 
+// IssueRepairReleaseHandoff identifies the exact current closed repair and
+// accepted release evidence. A candidate retains this snapshot as provenance.
+type IssueRepairReleaseHandoff struct {
+	IssueID                  string `json:"issue_id"`
+	IssueVersion             int    `json:"issue_version"`
+	RepairID                 string `json:"repair_id"`
+	RepairVersion            int    `json:"repair_version"`
+	Cycle                    int    `json:"cycle"`
+	TaskID                   string `json:"task_id"`
+	TaskVersion              int    `json:"task_version"`
+	RunID                    string `json:"run_id"`
+	ReviewID                 string `json:"review_id"`
+	ArtifactID               string `json:"artifact_id"`
+	BuildAttestationID       string `json:"build_attestation_id"`
+	PackageTestAttestationID string `json:"package_test_attestation_id"`
+}
+
+type IssueRepairReleaseHandoffInput struct {
+	IssueID               string `json:"issue_id"`
+	ExpectedIssueVersion  int    `json:"expected_issue_version"`
+	ExpectedRepairVersion int    `json:"expected_repair_version"`
+}
+
 type IssueRepairView struct {
-	Issue           Record                    `json:"issue"`
-	Cycle           int                       `json:"cycle"`
-	Current         *IssueRepair              `json:"current,omitempty"`
-	Task            *Record                   `json:"task,omitempty"`
-	History         []IssueRepair             `json:"history"`
-	HistoryTotal    int                       `json:"history_total"`
-	HistoryComplete bool                      `json:"history_complete"`
-	CanPrepare      bool                      `json:"can_prepare"`
-	CanBind         bool                      `json:"can_bind"`
-	CanClose        bool                      `json:"can_close"`
-	CanReopen       bool                      `json:"can_reopen"`
-	Blockers        []IssueRepairBlocker      `json:"blockers"`
-	OriginalPackage *IssueRepairPackageOrigin `json:"original_package,omitempty"`
+	Issue           Record                     `json:"issue"`
+	Cycle           int                        `json:"cycle"`
+	Current         *IssueRepair               `json:"current,omitempty"`
+	Task            *Record                    `json:"task,omitempty"`
+	History         []IssueRepair              `json:"history"`
+	HistoryTotal    int                        `json:"history_total"`
+	HistoryComplete bool                       `json:"history_complete"`
+	CanPrepare      bool                       `json:"can_prepare"`
+	CanBind         bool                       `json:"can_bind"`
+	CanClose        bool                       `json:"can_close"`
+	CanReopen       bool                       `json:"can_reopen"`
+	Blockers        []IssueRepairBlocker       `json:"blockers"`
+	OriginalPackage *IssueRepairPackageOrigin  `json:"original_package,omitempty"`
+	ReleaseHandoff  *IssueRepairReleaseHandoff `json:"release_handoff,omitempty"`
 }
 
 type IssueRepairPrepareRequest struct {

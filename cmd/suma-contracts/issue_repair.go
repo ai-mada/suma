@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func issueRepairModels() []any {
-	return []any{platform.IssueRepair{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairPackageOrigin{}, platform.IssueRepairPackageProof{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
+	return []any{platform.IssueRepair{}, platform.IssueRegressionBinding{}, platform.IssueRepairClosure{}, platform.IssueRepairPackageOrigin{}, platform.IssueRepairPackageProof{}, platform.IssueRepairReleaseHandoff{}, platform.IssueRepairReleaseHandoffInput{}, platform.IssueRepairBlocker{}, platform.IssueRepairView{}, platform.IssueRepairPrepareRequest{}, platform.IssueRepairBindRequest{}, platform.IssueRepairCloseRequest{}, platform.IssueRepairReopenRequest{}}
 }
 
 func issueRepairContracts(add operationAdder, api map[string]any) {
@@ -31,7 +31,7 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 		}
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"IssueRepair", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairPackageOrigin", "IssueRepairPackageProof", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
+	for _, name := range []string{"IssueRepair", "IssueRegressionBinding", "IssueRepairClosure", "IssueRepairPackageOrigin", "IssueRepairPackageProof", "IssueRepairReleaseHandoff", "IssueRepairReleaseHandoffInput", "IssueRepairBlocker", "IssueRepairView", "IssueRepairPrepareRequest", "IssueRepairBindRequest", "IssueRepairCloseRequest", "IssueRepairReopenRequest"} {
 		toolContractMap(schemas, name)["additionalProperties"] = false
 	}
 	field := func(model, name string, attributes map[string]any) {
@@ -59,6 +59,17 @@ func issueRepairContracts(add operationAdder, api map[string]any) {
 	field("IssueRepairCloseRequest", "run_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,100}$"})
 	field("IssueRepairView", "history", map[string]any{"maxItems": 10, "description": "Most recent bounded repair cycles. history_total/history_complete explicitly disclose omitted history; this window never determines closure authority."})
 	field("IssueRepairView", "original_package", map[string]any{"readOnly": true, "description": "Historical source of an issue from a protected failed package attempt, independent of editable issue metadata."})
+	field("IssueRepairView", "release_handoff", map[string]any{"readOnly": true, "description": "Current closed and releasable package repair. Omitted when the current user or current evidence does not permit this handoff."})
+	for _, property := range toolContractMap(schemas, "IssueRepairReleaseHandoff", "properties") {
+		property.(map[string]any)["readOnly"] = true
+	}
+	for _, name := range []string{"issue_version", "repair_version", "cycle", "task_version"} {
+		field("IssueRepairReleaseHandoff", name, map[string]any{"minimum": 1, "maximum": 2147483646})
+	}
+	for _, name := range []string{"expected_issue_version", "expected_repair_version"} {
+		field("IssueRepairReleaseHandoffInput", name, map[string]any{"minimum": 1, "maximum": 2147483646})
+	}
+	field("IssueRepairReleaseHandoffInput", "issue_id", map[string]any{"pattern": "^[A-Za-z0-9_-]{1,64}$"})
 	field("IssueRepairClosure", "package_regression", map[string]any{"readOnly": true, "description": "Exact sealed package proof retained by this closure cycle. The closure's run_id identifies the parent run."})
 	for _, name := range []string{"IssueRepairPackageOrigin", "IssueRepairPackageProof"} {
 		for _, property := range toolContractMap(schemas, name, "properties") {
