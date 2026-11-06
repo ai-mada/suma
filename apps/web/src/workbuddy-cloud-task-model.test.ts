@@ -23,6 +23,18 @@ it('keeps shared submission facts readable without exposing another persons priv
  expect(await readCloudNode({...node,submission:submission(node),allowed_actions:['delegate']},scope)).toBeUndefined();
 });
 
+it('only accepts the closed task delivery locator for the scoped node',async()=>{
+ const node={...await base(),allowed_actions:[]};
+ const delivery={task_id:'task-a',task_version:2,run_relation:'current'};
+ for(const run_relation of ['current','changed','unbound']){
+  const source={...node,task_delivery:{...delivery,run_relation}};
+  expect(await readCloudNode(source,scope)).toEqual(source);
+ }
+ for(const task_delivery of [null,{...delivery,accepted:true},{...delivery,task_id:'..'},{...delivery,task_id:'a/b'},{...delivery,task_version:0},{...delivery,run_relation:'accepted'}]){
+  expect(await readCloudNode({...node,task_delivery},scope)).toBeUndefined();
+ }
+});
+
 it('refuses changed assignment, supplier identity material and invented usage facts',async()=>{
  const node=await base(),item=submission(node);
  expect(readCloudSubmission(item,scope)).toBeDefined();

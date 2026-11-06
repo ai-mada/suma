@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-DELIVERY-RETURN 从正式 WorkBuddy 云运行打开原任务的交付与质量面板。已授权团队成员可核对任务版本及当前运行关系。 [交互](../design/workbuddy-cloud-task.md#返回原任务交付) · [验证](../quality/workbuddy-delivery-return-verification.md)
+
 T-TEAM-PLAN-FILTER 团队执行可按准确团队查询、分享及续页，并从已加载计划筛选需处理和待验收。CLI 使用相同项目授权与团队条件。 [操作](../development/team-execution.md) · [验证](../quality/team-plan-filter-verification.md)
 
 T-QUEUE-TRIAGE 待派发队列可按已加载节点的准入状态筛选，直接打开准确运行与节点。共享池暂停与项目授权变化在队列和节点详情使用同一诊断。 [交互](../design/scheduling-workspace.md#队列分诊) · [验证](../quality/queue-triage-verification.md)

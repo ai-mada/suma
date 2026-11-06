@@ -76,20 +76,29 @@ type CloudObserveRequest struct {
 }
 
 type CloudNodeView struct {
-	ProjectID      string           `json:"project_id"`
-	RunID          string           `json:"run_id"`
-	NodeID         string           `json:"node_id"`
-	RunVersion     int              `json:"run_version"`
-	NodeSpecSHA256 string           `json:"node_spec_sha256"`
-	RequestSHA256  string           `json:"request_sha256"`
-	Binding        NodeBinding      `json:"binding"`
-	Delegation     *CloudDelegation `json:"delegation,omitempty"`
-	Submission     *CloudSubmission `json:"submission,omitempty"`
-	AllowedActions []string         `json:"allowed_actions"`
+	ProjectID      string                 `json:"project_id"`
+	RunID          string                 `json:"run_id"`
+	NodeID         string                 `json:"node_id"`
+	RunVersion     int                    `json:"run_version"`
+	NodeSpecSHA256 string                 `json:"node_spec_sha256"`
+	RequestSHA256  string                 `json:"request_sha256"`
+	Binding        NodeBinding            `json:"binding"`
+	Delegation     *CloudDelegation       `json:"delegation,omitempty"`
+	Submission     *CloudSubmission       `json:"submission,omitempty"`
+	TaskDelivery   *CloudTaskDeliveryLink `json:"task_delivery,omitempty" wire:"nonnull"`
+	AllowedActions []string               `json:"allowed_actions"`
 }
 
 func (CloudNodeView) Format(s fmt.State, verb rune) {
 	_, _ = io.WriteString(s, "workbuddycloudcontract.CloudNodeView{request:redacted}")
+}
+
+// CloudTaskDeliveryLink locates the original formal task and reports its
+// current association with this cloud run.
+type CloudTaskDeliveryLink struct {
+	TaskID      string `json:"task_id"`
+	TaskVersion int    `json:"task_version"`
+	RunRelation string `json:"run_relation"`
 }
 
 type CloudDelegation struct {

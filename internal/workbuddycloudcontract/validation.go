@@ -16,6 +16,7 @@ import (
 
 var ErrInvalid = errors.New("invalid WorkBuddy cloud execution contract")
 var taskIDPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,200}$`)
+var cloudDeliveryTaskIDPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]{1,64}$`)
 var errorCodePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,79}$`)
 
 // Decode rejects unknown/case-aliased fields, duplicate keys, invalid Unicode
@@ -154,6 +155,16 @@ func (v CloudNodeView) Validate() error {
 	}
 	if s := v.Submission; s != nil {
 		if s.Validate() != nil || s.ProjectID != v.ProjectID || s.RunID != v.RunID || s.NodeID != v.NodeID || s.RequestSHA256 != v.RequestSHA256 || v.Delegation != nil && s.DelegationID != v.Delegation.ID {
+			return ErrInvalid
+		}
+	}
+	if link := v.TaskDelivery; link != nil {
+		if !cloudDeliveryTaskIDPattern.MatchString(link.TaskID) || link.TaskID == "." || link.TaskID == ".." || !validVersion(link.TaskVersion) {
+			return ErrInvalid
+		}
+		switch link.RunRelation {
+		case "current", "changed", "unbound":
+		default:
 			return ErrInvalid
 		}
 	}

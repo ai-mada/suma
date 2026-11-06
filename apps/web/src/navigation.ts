@@ -1,6 +1,7 @@
 import {mondayOf} from './planning-model';
 import {parseAttempt} from './scheduling-model';
 import {validNotificationToolInputTarget,type NotificationToolInputTarget} from './notification-inbox-model';
+import {isTaskDeliveryLocator,taskDeliveryPanel} from './task-delivery-navigation-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
 export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_scope?:'organization';inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;execution_team?:string;execution_team_invalid?:'1';project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
@@ -9,6 +10,7 @@ const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',qu
  * Parsing never opens, marks read or decides the source. */
 function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string{
  const panel=params.get('panel')||'',review=panel.startsWith('task-review:'),handoff=panel.startsWith('task-handoff:');
+ if(panel===taskDeliveryPanel)return isTaskDeliveryLocator(params)?panel:'';
  if(panel.startsWith('tool-inventory-connect:')){
   const unique=['panel','project','view','sub'].every(key=>params.getAll(key).length===1);
   return unique&&params.get('view')==='settings'&&params.get('sub')==='tools'&&!params.has('record')?panel:'';

@@ -38,6 +38,13 @@
 .workbuddy-cloud-task .cloud-task-facts code{font-size:inherit;white-space:normal;overflow-wrap:anywhere}
 .cloud-task-provider-state{font-weight:600}
 .cloud-task-observation{display:grid;gap:8px;min-width:0}
+.cloud-task-delivery{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;padding:10px 12px;border:1px solid var(--border,#dce1ea);border-radius:8px;background:var(--surface-soft,var(--panel,#f7f8fc));min-width:0}
+.cloud-task-delivery>div{flex:1 1 180px;min-width:0;overflow-wrap:anywhere}
+.cloud-task-delivery h4{margin:0;font-size:14px}
+.cloud-task-delivery p{margin:2px 0;color:var(--text,#172033)}
+.cloud-task-delivery small{font-size:12px;color:var(--muted,#596579)}
+.cloud-task-delivery a{display:inline-flex;align-items:center;gap:6px;min-height:44px;max-width:100%;color:var(--accent,#7057d9);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.cloud-task-delivery a>svg{flex:none}
 .cloud-task-platform-paused{display:flex;align-items:flex-start;gap:9px;padding-inline-start:12px;border-inline-start:2px solid var(--border,#dce1ea);min-width:0}
 .cloud-task-platform-paused>svg{flex:none;margin-top:3px;color:var(--muted,#596579)}
 .cloud-task-platform-paused>div{min-width:0;overflow-wrap:anywhere}
@@ -58,6 +65,6 @@
 .cloud-task-confirmation{display:flex;align-items:flex-start;gap:8px;margin:0;font-size:14px}
 .cloud-task-confirmation svg{flex:none;margin-top:3px;color:var(--accent,#7057d9)}
 .cloud-task-confirmed{display:grid;gap:10px;justify-items:start}
-.workbuddy-cloud-task :is(button,select,input,summary,[tabindex]):focus-visible{outline:2px solid var(--accent,#7057d9);outline-offset:3px}
+.workbuddy-cloud-task :is(a[href],button,select,input,summary,[tabindex]):focus-visible{outline:2px solid var(--accent,#7057d9);outline-offset:3px}
 @media(max-width:640px){.cloud-task-context,.cloud-task-form-footer{flex-direction:column;align-items:stretch;gap:12px}.cloud-task-status{max-width:none;align-self:flex-start}.cloud-task-fields,.workbuddy-cloud-task .cloud-task-facts{grid-template-columns:minmax(0,1fr)}.cloud-task-form-footer button{width:100%}.cloud-task-request summary{padding-block:8px}.cloud-task-actions{align-items:stretch}.cloud-task-actions button{flex:1 1 100%;margin-top:4px}}
 @media(prefers-reduced-motion:reduce){.workbuddy-cloud-task *{scroll-behavior:auto;transition:none}}

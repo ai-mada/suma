@@ -8,6 +8,7 @@ import {tr,UiError,useLocale} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {useWriteAction,WriteNotice} from './write-action';
 import {Loading} from './ui';
+import {taskDeliveryHref} from './task-delivery-navigation-model';
 import {WorkBuddyCloudTaskPanel,type WorkBuddyCloudActionResult,type WorkBuddyCloudDelegateDraft,type WorkBuddyCloudTaskModel} from './WorkBuddyCloudTaskPanel';
 import {cloudDelegateBody,cloudNodePath,cloudRecoveryAction,readCloudConnection,readCloudNode,validCloudReceipt,validCloudRecovery,validCloudScope,type CloudTaskScope,type CloudRunFacts} from './workbuddy-cloud-task-model';
 
@@ -152,11 +153,16 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
   if(!original||!mayRecover||!validCloudRecovery(original,scope,current.current?.node))return {kind:'unknown'};
   return run(original.path,original.body,original.method);
  };
+ const sourceBusy=!!current.current?.reading||!!current.current?.sourceFailed;
+ const delivery=node&&!denied&&!sourceBusy&&!parentRefreshFailed&&(revision===undefined||node.run_version>=revision)
+  ?node.task_delivery:undefined;
+ const deliveryHref=delivery?taskDeliveryHref(project,{kind:'delivery',id:delivery.task_id}):undefined;
  const model:WorkBuddyCloudTaskModel={
   scopeKey,sourceVersion,state:!validCloudScope(scope)?'unavailable':denied?'denied':!node?(current.current?.reading||!current.current?'loading':'unavailable'):'ready',unavailableReason:validCloudScope(scope)?'source_missing':'permission_changed',
   sharedOnly:!!node&&!node.delegation&&!node.allowed_actions.includes('delegate'),
   execution:execution?.runVersion===node?.run_version?execution:undefined,
   task:{title:taskTitle||node?.binding.request.name||t('source_task'),runLabel:t('source_run',{id:runID}),nodeLabel:t('source_node',{id:nodeID}),prompt:node?.binding.request.prompt||'',name:node?.binding.request.name,requestDigest:node?.request_sha256||'',nodeDigest:node?.node_spec_sha256||''},
+  delivery:delivery&&deliveryHref?{href:deliveryHref,taskVersion:delivery.task_version,relation:delivery.run_relation}:undefined,
   connections:connection?[{id:connection.id,label:connection.open_id||connection.id,version:connection.version,grantGeneration:connection.grant_generation,eligible:eligible&&!!node?.allowed_actions.includes('delegate'),unavailableReason:connection.grant_generation!==node?.binding.grant_generation?'node_mismatch':'connection_unavailable'}]:[],
   actions:{delegate:writesAllowed&&eligible&&!!node?.allowed_actions.includes('delegate')&&node.run_version<2147483647&&connection!.version<2147483647,revoke:writesAllowed&&!!node?.allowed_actions.includes('revoke'),refresh:writesAllowed&&eligible&&!!node?.allowed_actions.includes('observe')},
   delegation:node?.delegation?{id:node.delegation.id,version:node.delegation.version,state:node.delegation.state as 'active'|'revoked',expiresAt:node.delegation.expires_at,connectionLabel:connection?.open_id||t('fixed_connection',{id:node.delegation.connection_id}),createsConsumed:node.delegation.creates_consumed as 0|1}:undefined,
@@ -167,7 +173,6 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
  const privateSource=!denied&&node?.delegation&&submission?.state==='task_known'&&submission.task?{
   project_id:project,run_id:runID,node_id:nodeID,submission_id:submission.id,submission_version:submission.version,task_id:submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256,
  }:undefined;
- const sourceBusy=!!current.current?.reading||!!current.current?.sourceFailed;
  return <div className="workbuddy-cloud-workspace">
   {!denied&&current.current?.reading&&node&&<p className="cloud-task-hint" role="status">{t('reading_current')}</p>}
   {!denied&&(current.current?.sourceFailed||parentRefreshFailed)&&node&&<p className="cloud-task-inline-error" role="alert">{t('source_read_failed')}</p>}

@@ -9406,6 +9406,11 @@
               }
             ],
             "readOnly": true
+          },
+          "task_delivery": {
+            "$ref": "#/components/schemas/CloudTaskDeliveryLink",
+            "description": "Current locator for the project task that formally dispatched this exact WorkBuddy node. Absent when there is no matching started plan or visible task. This locator does not establish task acceptance or grant command authority.",
+            "readOnly": true
           }
         },
         "required": [
@@ -9653,6 +9658,44 @@
           "usage_state",
           "created_at",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "CloudTaskDeliveryLink": {
+        "additionalProperties": false,
+        "properties": {
+          "run_relation": {
+            "description": "Whether the original task currently references this run, a different run, or no run. A different run's identity is not returned.",
+            "enum": [
+              "current",
+              "changed",
+              "unbound"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "not": {
+              "enum": [
+                ".",
+                ".."
+              ]
+            },
+            "pattern": "^[A-Za-z0-9_.-]{1,64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "task_id",
+          "task_version",
+          "run_relation"
         ],
         "type": "object"
       },

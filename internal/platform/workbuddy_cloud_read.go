@@ -30,7 +30,11 @@ func (w *WorkBuddyConnections) GetCloudNode(ctx context.Context, actor Actor, pr
 	if err != nil {
 		return wc.CloudNodeView{}, err
 	}
-	out := wc.CloudNodeView{ProjectID: project, RunID: run, NodeID: node, RunVersion: n.runVersion, NodeSpecSHA256: n.specHash, RequestSHA256: n.requestHash, Binding: n.binding, AllowedActions: []string{}}
+	taskDelivery, err := w.cloudTaskDeliveryLinkTx(ctx, auth, project, run, node, n)
+	if err != nil {
+		return wc.CloudNodeView{}, err
+	}
+	out := wc.CloudNodeView{ProjectID: project, RunID: run, NodeID: node, RunVersion: n.runVersion, NodeSpecSHA256: n.specHash, RequestSHA256: n.requestHash, Binding: n.binding, TaskDelivery: taskDelivery, AllowedActions: []string{}}
 	var delegationID string
 	err = auth.tx.QueryRowContext(ctx, w.s.q(`SELECT id FROM suma_workbuddy_cloud_delegations WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=?`), auth.target.tenantID, project, run, node).Scan(&delegationID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -93,6 +97,35 @@ func (w *WorkBuddyConnections) GetCloudNode(ctx context.Context, actor Actor, pr
 		return wc.CloudNodeView{}, cloudConflict()
 	}
 	return out, nil
+}
+
+func (w *WorkBuddyConnections) cloudTaskDeliveryLinkTx(ctx context.Context, auth *authorizedCommand, project, run, node string, n cloudNode) (*wc.CloudTaskDeliveryLink, error) {
+	tenant := auth.target.tenantID
+	plan, found, err := w.s.workBuddyTaskDispatchRunSourceTx(ctx, auth.tx, tenant, project, run)
+	if err != nil || !found || plan.State != "started" {
+		return nil, err
+	}
+	if plan.RunID != run || plan.NodeID != node || plan.NodeSpecSHA256 != n.specHash || plan.RequestSHA256 != n.requestHash {
+		return nil, cloudConflict()
+	}
+	link := &wc.CloudTaskDeliveryLink{TaskID: plan.TaskID}
+	var currentRun string
+	err = auth.tx.QueryRowContext(ctx, w.s.q(`SELECT version,run_id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, plan.TaskID).Scan(&link.TaskVersion, &currentRun)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	switch currentRun {
+	case run:
+		link.RunRelation = "current"
+	case "":
+		link.RunRelation = "unbound"
+	default:
+		link.RunRelation = "changed"
+	}
+	return link, nil
 }
 
 func cloudReadID(value string, max int) bool {

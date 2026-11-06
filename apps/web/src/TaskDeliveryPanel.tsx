@@ -10,12 +10,13 @@ import type {TaskDeliveryRunTarget} from './TaskDependenciesWorkspace';
 import {taskDeliveryHref} from './task-delivery-navigation-model';
 import {executionHref} from './scheduling-model';
 import './TaskDeliveryPanel.css';
-export type TaskDeliveryPanelProps={session:Session;project:string;taskId:string;taskVersion:number;refresh:number;navigationDisabled?:boolean;onOpenRun?:(target:TaskDeliveryRunTarget)=>void;onOpenReview?:()=>void;onOpenRepository?:()=>void;onOpenIssue?:(id:string)=>void;onOpenRequirement?:(id:string)=>void;onTeamPlan?:(id:string)=>void;onExtractAcceptedDelivery?:(taskID:string)=>void;onVersionMismatch?:()=>void;onForbidden?:()=>void};
+export type TaskDeliveryPanelProps={session:Session;project:string;taskId:string;taskVersion:number;refresh:number;openOnEntry?:boolean;navigationDisabled?:boolean;onOpenRun?:(target:TaskDeliveryRunTarget)=>void;onOpenReview?:()=>void;onOpenRepository?:()=>void;onOpenIssue?:(id:string)=>void;onOpenRequirement?:(id:string)=>void;onTeamPlan?:(id:string)=>void;onExtractAcceptedDelivery?:(taskID:string)=>void;onVersionMismatch?:()=>void;onForbidden?:()=>void};
 export function TaskDeliveryPanel(props:TaskDeliveryPanelProps){return <DeliveryOwner key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project,props.taskId])} {...props}/>;}
 function DeliveryOwner(props:TaskDeliveryPanelProps){const [retry,setRetry]=useState(0);return <DeliveryScope key={retry} {...props} initiallyOpen={retry>0} retryRead={()=>setRetry(value=>value+1)}/>;}
 const t=(key:string,values?:Record<string,unknown>)=>tr('task-delivery.'+key,values);
-function DeliveryScope({session,project,taskId,taskVersion,refresh,navigationDisabled,onOpenRun,onOpenReview,onOpenRepository,onOpenIssue,onOpenRequirement,onTeamPlan,onExtractAcceptedDelivery,onVersionMismatch,onForbidden,initiallyOpen,retryRead}:TaskDeliveryPanelProps&{initiallyOpen:boolean;retryRead:()=>void}){
- useLocale();const [open,setOpen]=useState(initiallyOpen),[repositoryLocked,setRepositoryLocked]=useState(false),body=useId(),read=useTaskDeliveryRead(project,taskId,open,refresh),value=read.value;
+function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,navigationDisabled,onOpenRun,onOpenReview,onOpenRepository,onOpenIssue,onOpenRequirement,onTeamPlan,onExtractAcceptedDelivery,onVersionMismatch,onForbidden,initiallyOpen,retryRead}:TaskDeliveryPanelProps&{initiallyOpen:boolean;retryRead:()=>void}){
+ useLocale();const [open,setOpen]=useState(initiallyOpen||!!openOnEntry),[repositoryLocked,setRepositoryLocked]=useState(false),body=useId(),read=useTaskDeliveryRead(project,taskId,open,refresh),value=read.value;
+ useEffect(()=>{if(openOnEntry)setOpen(true);},[openOnEntry]);
  const callbacks=useRef({onVersionMismatch,onForbidden});callbacks.current={onVersionMismatch,onForbidden};
  useEffect(()=>{if(value&&value.task_version!==taskVersion)callbacks.current.onVersionMismatch?.();},[value,taskVersion]);
  useEffect(()=>{if(read.forbidden)callbacks.current.onForbidden?.();},[read.forbidden]);

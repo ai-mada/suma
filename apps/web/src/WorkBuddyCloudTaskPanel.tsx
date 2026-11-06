@@ -1,5 +1,6 @@
 import {useEffect,useId,useRef,useState,type FormEvent} from 'react';
-import {CircleAlert,Cloud,FileText,PauseCircle,RefreshCw,ShieldCheck} from 'lucide-react';
+import {ArrowRight,CircleAlert,Cloud,FileText,PauseCircle,RefreshCw,ShieldCheck} from 'lucide-react';
+import type {CloudTaskDeliveryLink} from '../../../packages/contracts/src';
 import {formatDateTime,formatNumber,tr,useLocale} from './i18n';
 import {stateLabel} from './api';
 import {cloudRunnerPhase,type CloudRunFacts} from './workbuddy-cloud-task-model';
@@ -21,6 +22,7 @@ export type WorkBuddyCloudTaskModel={
  unavailableReason?:WorkBuddyCloudReason;
  sharedOnly?:boolean;
  task:{title:string;runLabel:string;nodeLabel:string;prompt:string;name?:string;requestDigest:string;nodeDigest:string};
+ delivery?:{href:string;taskVersion:number;relation:CloudTaskDeliveryLink['run_relation']};
  connections:{id:string;label:string;version:number;grantGeneration:number;eligible:boolean;unavailableReason?:WorkBuddyCloudReason}[];
  actions:{delegate:boolean;revoke:boolean;refresh:boolean};
  delegation?:{id:string;version:number;state:'active'|'revoked';expiresAt:string;connectionLabel:string;createsConsumed:0|1};
@@ -122,6 +124,13 @@ function CloudTaskWorkspace({model,onDelegate,onRevoke,onRefresh,onReload,onReco
     {model.submission.state==='task_known'&&<dl className="cloud-task-facts"><div><dt>{t('provider_status')}</dt><dd className="cloud-task-provider-state">{model.submission.providerStatus||t('not_reported')}</dd></div><div><dt>{t('last_observed')}</dt><dd>{model.submission.observedAt?<time dateTime={model.submission.observedAt}>{formatDateTime(model.submission.observedAt,{dateStyle:'medium',timeStyle:'short'})}</time>:t('not_verified')}</dd></div></dl>}
     {model.submission.lastError&&<p className="cloud-task-inline-error">{t('last_read_failed')}</p>}
    </div>}
+   {model.delivery&&<section className="cloud-task-delivery" aria-labelledby={id+'-delivery'} data-cloud-task-delivery data-run-relation={model.delivery.relation}>
+    <div><h4 id={id+'-delivery'}>{t('delivery_title')}</h4><p>{t('delivery_relation_'+model.delivery.relation)}</p><small>{t('delivery_version',{version:formatNumber(model.delivery.taskVersion)})}</small></div>
+    <a href={model.delivery.href} data-cloud-task-delivery-link onClick={event=>{
+     if(event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+     if(!window.dispatchEvent(new Event('suma:navigate',{cancelable:true})))event.preventDefault();
+    }}>{t('delivery_open')}<ArrowRight size={16} aria-hidden="true"/></a>
+   </section>}
    {!unknown&&!conflict&&outcome!=='confirmed'&&<div className="cloud-task-record-refresh">{canRefresh?<button type="button" className="primary" data-cloud-action="refresh" disabled={locked} onClick={()=>void execute('refresh',onRefresh)}><RefreshCw size={16} aria-hidden="true"/>{t(pending==='refresh'?'refreshing':'refresh')}</button>:<><p className="cloud-task-hint">{t(model.sharedOnly?'shared_record_refresh_hint':'record_refresh_hint')}</p>{reloadButton}</>}</div>}
    {(unknown||conflict)&&<div ref={errorSummary} tabIndex={-1} className="cloud-task-notice is-warning" role="alert"><CircleAlert size={19} aria-hidden="true"/><div><strong>{t(unknown?'operation_unknown':'source_conflict')}</strong><p>{t(unknown?'do_not_repeat':'review_current')}</p>{resultReason&&<p>{reason(resultReason)}</p>}<div className="cloud-task-actions">{reloadButton}{unknown&&onReconcile&&canReconcile&&<button type="button" data-cloud-action="reconcile" className="primary" disabled={!!pending} onClick={()=>void execute('reconcile',onReconcile)}>{t(pending==='reconcile'?'reconciling':'reconcile')}</button>}</div></div></div>}
    {outcome==='failed'&&<div ref={errorSummary} className="cloud-task-notice is-warning" role="alert" tabIndex={-1}><CircleAlert size={19} aria-hidden="true"/><div><strong>{t('command_failed')}</strong><p>{resultReason?reason(resultReason):t('draft_retained')}</p></div></div>}

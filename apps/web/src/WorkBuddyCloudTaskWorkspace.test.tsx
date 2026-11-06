@@ -82,6 +82,53 @@ it('shows exact project-readable progress without requesting another member’s 
  expect(host.querySelector('[data-collaboration-source],.workbuddy-cloud-turns')).toBeNull();
 });
 
+it('opens the exact task delivery route for a teammate and hides the locator until the latest read succeeds',async()=>{
+ const teammate={...session,user:{id:'user-b',name:'B',email:'b@example.test'}};
+ node={...node,allowed_actions:[],submission:submission(),task_delivery:{task_id:'task-a',task_version:2,run_relation:'current'}};
+ let response:Promise<Response>|undefined;
+ transport(async()=>response??Response.json(node));
+ await render('project-a','run-a','node-a',teammate,undefined,3);
+ const delivery=()=>host.querySelector('[data-cloud-task-delivery]');
+ const link=host.querySelector<HTMLAnchorElement>('[data-cloud-task-delivery-link]')!;
+ expect(link).not.toBeNull();
+ expect(new URLSearchParams(link.getAttribute('href')!)).toEqual(new URLSearchParams({project:'project-a',view:'development',sub:'tasks',record:'task-a',layout:'list',panel:'task-delivery'}));
+ expect(delivery()?.getAttribute('data-run-relation')).toBe('current');
+ expect(delivery()?.textContent).toContain('This run is currently linked to the task.');
+ expect(delivery()?.textContent).toContain('Task version 2');
+
+ const prevent=vi.fn((event:Event)=>event.preventDefault());
+ window.addEventListener('suma:navigate',prevent);
+ try{expect(link.dispatchEvent(new MouseEvent('click',{button:0,bubbles:true,cancelable:true}))).toBe(false);}
+ finally{window.removeEventListener('suma:navigate',prevent);}
+ expect(prevent).toHaveBeenCalledOnce();
+
+ let finish!:(value:Response)=>void;
+ response=new Promise(resolve=>{finish=resolve;});
+ await render('project-a','run-a','node-a',teammate,undefined,4);
+ expect(delivery()).toBeNull();
+ await act(async()=>finish(Response.json({error:{code:'temporary',message:'Try again'}},{status:503})));await settle();
+ expect(delivery()).toBeNull();
+ expect(host.querySelector('[data-cloud-observation] .cloud-task-provider-state')?.textContent).toBe('working');
+
+ response=undefined;
+ await click('[data-cloud-action="reload"]');
+ expect(delivery()).toBeNull();
+ node={...node,run_version:4,task_delivery:{task_id:'task-a',task_version:3,run_relation:'changed'}};
+ await click('[data-cloud-action="reload"]');
+ expect(delivery()?.getAttribute('data-run-relation')).toBe('changed');
+ expect(delivery()?.textContent).toContain('The task is now linked to a different run.');
+
+ node={...node,task_delivery:{task_id:'task-a',task_version:4,run_relation:'unbound'}};
+ await click('[data-cloud-action="reload"]');
+ expect(delivery()?.getAttribute('data-run-relation')).toBe('unbound');
+ expect(delivery()?.textContent).toContain('The task currently has no linked run.');
+
+ response=Promise.resolve(Response.json({error:{code:'forbidden',message:'Access changed'}},{status:403}));
+ await click('[data-cloud-action="reload"]');
+ expect(delivery()).toBeNull();
+ expect(calls.every(call=>!call.body&&call.path.startsWith('/workbuddy-cloud-nodes?'))).toBe(true);
+});
+
 it('shows saved progress during the owner’s account check and retires it on a current refusal',async()=>{
  node={...node,delegation:delegation(),submission:submission(),allowed_actions:['revoke','observe']};
  let resolveAccount:(response:Response)=>void;

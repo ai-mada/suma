@@ -8,7 +8,7 @@ import (
 )
 
 func workBuddyCloudModels() []any {
-	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudNodeProgress{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
+	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudTaskDeliveryLink{}, wc.CloudNodeProgress{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
 }
 
 func workBuddyCloudContracts(add operationAdder, api map[string]any) {
@@ -92,7 +92,7 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 			raw.(map[string]any)["headers"] = map[string]any{"Cache-Control": map[string]any{"schema": map[string]any{"type": "string", "const": "no-store"}}, "Referrer-Policy": map[string]any{"schema": map[string]any{"type": "string", "const": "no-referrer"}}}
 		}
 	}
-	models := []string{"NodeBinding", "CloudNodeView", "CloudDelegateRequest", "CloudCreateRequest", "CloudRefreshRequest", "CloudRevokeRequest", "CloudObserveRequest", "CloudLookupRequest", "CloudLookupResult", "CloudAssignmentBinding", "CloudWaitEvidence", "CloudDelegation", "CloudSubmission", "Task", "CreateRequest"}
+	models := []string{"NodeBinding", "CloudNodeView", "CloudTaskDeliveryLink", "CloudDelegateRequest", "CloudCreateRequest", "CloudRefreshRequest", "CloudRevokeRequest", "CloudObserveRequest", "CloudLookupRequest", "CloudLookupResult", "CloudAssignmentBinding", "CloudWaitEvidence", "CloudDelegation", "CloudSubmission", "Task", "CreateRequest"}
 	schemas := toolContractMap(api, "components", "schemas")
 	field := func(model, key string, attrs map[string]any) {
 		for k, v := range attrs {
@@ -104,11 +104,11 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 		model["additionalProperties"] = false
 		for key, raw := range toolContractMap(model, "properties") {
 			p := raw.(map[string]any)
-			if name == "CloudNodeView" || name == "CloudLookupResult" || name == "CloudDelegation" || name == "CloudSubmission" || name == "Task" {
+			if name == "CloudNodeView" || name == "CloudTaskDeliveryLink" || name == "CloudLookupResult" || name == "CloudDelegation" || name == "CloudSubmission" || name == "Task" {
 				p["readOnly"] = true
 			}
 			switch key {
-			case "version", "run_version", "connection_version_at_issue", "grant_generation":
+			case "version", "run_version", "task_version", "connection_version_at_issue", "grant_generation":
 				p["minimum"], p["maximum"] = 1, 2147483647
 			case "expected_version", "expected_run_version", "expected_connection_version":
 				p["minimum"], p["maximum"] = 1, 2147483646
@@ -153,6 +153,9 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 	field("CloudSubmission", "usage_state", map[string]any{"const": "unreported", "description": "No trustworthy supplier usage/bill; absent counters and costs are not zero."})
 	field("CloudSubmission", "last_error", map[string]any{"pattern": "^$|^[a-z][a-z0-9_]{0,79}$"})
 	field("CloudSubmission", "observed_at", map[string]any{"description": "UTC time of the last persisted exact supplier Task observation; empty until task_known."})
+	field("CloudNodeView", "task_delivery", map[string]any{"description": "Current locator for the project task that formally dispatched this exact WorkBuddy node. Absent when there is no matching started plan or visible task. This locator does not establish task acceptance or grant command authority."})
+	field("CloudTaskDeliveryLink", "task_id", map[string]any{"pattern": "^[A-Za-z0-9_.-]{1,64}$", "not": map[string]any{"enum": []string{".", ".."}}})
+	field("CloudTaskDeliveryLink", "run_relation", map[string]any{"enum": []string{"current", "changed", "unbound"}, "description": "Whether the original task currently references this run, a different run, or no run. A different run's identity is not returned."})
 	field("CloudNodeView", "allowed_actions", map[string]any{"maxItems": 3, "uniqueItems": true, "items": map[string]any{"type": "string", "enum": []string{"delegate", "revoke", "observe"}}, "description": "Current-authorized subset in this order. Revoke requires own active delegation; observe requires own known task and current original grant. No machine execution action."})
 	toolContractMap(schemas, "CloudSubmission")["allOf"] = []any{
 		map[string]any{"if": map[string]any{"properties": map[string]any{"state": map[string]any{"const": "task_known"}}}, "then": map[string]any{"required": []string{"task"}, "properties": map[string]any{"task": map[string]any{"$ref": "#/components/schemas/Task"}, "observed_at": map[string]any{"type": "string", "format": "date-time", "minLength": 1}}}, "else": map[string]any{"properties": map[string]any{"task": map[string]any{"type": "null"}, "observed_at": map[string]any{"const": ""}}}},

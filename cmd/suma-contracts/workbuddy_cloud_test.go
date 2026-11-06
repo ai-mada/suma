@@ -185,6 +185,37 @@ func TestWorkBuddyCloudSchemasKeepOnceOnlyAndUnknownFacts(t *testing.T) {
 	}
 }
 
+func TestWorkBuddyCloudNodeDeliveryLinkIsOptionalClosedProjectMetadata(t *testing.T) {
+	api, _ := generate()
+	schemas := mapAt(api, "components", "schemas")
+	node := mapAt(schemas, "CloudNodeView")
+	field := mapAt(node, "properties", "task_delivery")
+	if field["$ref"] != "#/components/schemas/CloudTaskDeliveryLink" || field["anyOf"] != nil || field["readOnly"] != true {
+		t.Fatal("node locator is not a nonnull read-only reference")
+	}
+	for _, name := range node["required"].([]string) {
+		if name == "task_delivery" {
+			t.Fatal("manual and unlinked cloud nodes must omit the locator")
+		}
+	}
+	link := mapAt(schemas, "CloudTaskDeliveryLink")
+	fields := mapAt(link, "properties")
+	if link["additionalProperties"] != false || len(fields) != 3 ||
+		!reflect.DeepEqual(link["required"], []string{"task_id", "task_version", "run_relation"}) {
+		t.Fatal("locator projects fields beyond the safe task identity, version and relation")
+	}
+	version := mapAt(fields, "task_version")
+	if version["minimum"] != 1 || version["maximum"] != 2147483647 ||
+		!reflect.DeepEqual(mapAt(fields, "run_relation")["enum"], []string{"current", "changed", "unbound"}) ||
+		mapAt(fields, "task_id")["pattern"] != "^[A-Za-z0-9_.-]{1,64}$" ||
+		!reflect.DeepEqual(mapAt(fields, "task_id", "not")["enum"], []string{".", ".."}) {
+		t.Fatal("locator's version, relation or task path constraints drifted")
+	}
+	if mapAt(schemas, "CloudNodeProgress", "properties")["task_delivery"] != nil {
+		t.Fatal("browser-only locator appeared in CLI progress")
+	}
+}
+
 func TestWorkBuddyCloudProgressKeepsExactReadScopeAndClosedProjection(t *testing.T) {
 	api, _ := generate()
 	path := mapAt(api, "paths", "/runs/{id}/nodes/{node}/workbuddy-status")

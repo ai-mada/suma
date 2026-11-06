@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-DELIVERY-RETURN 核验准确派发来源、当前权限和原任务深链，并使用 Chrome 与 SQLite 检查桌面及窄屏操作。 [命令与证据](workbuddy-delivery-return-verification.md)
+
 T-TEAM-PLAN-FILTER 核验准确团队查询、游标隔离、网页和终端的只读操作及窄屏交互。 [命令与证据](team-plan-filter-verification.md)
 
 T-QUEUE-TRIAGE 核验共享池诊断一致性、队列筛选范围、准确节点入口与浏览器返回。 [命令与证据](queue-triage-verification.md)

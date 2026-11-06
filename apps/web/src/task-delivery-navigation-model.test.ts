@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {consumeTaskAcceptancePanel,parseTaskAcceptancePanel,taskAcceptancePanel,taskDeliveryHref} from './task-delivery-navigation-model';
-import type {WorkbenchRoute} from './navigation';
+import {parseWorkbenchRoute,type WorkbenchRoute} from './navigation';
 
 describe('task delivery navigation targets',()=>{
   it('round-trips only canonical three-part acceptance locators with exact bounded public identifiers',()=>{
@@ -30,6 +30,7 @@ describe('task delivery navigation targets',()=>{
       {target:{kind:'issue' as const,id},fields:{project,view:'quality',sub:'issues',record:id,layout:'list'}},
       {target:{kind:'requirement' as const,id},fields:{project,view:'requirements',sub:'',record:id,layout:'list'}},
       {target:{kind:'team' as const,id},fields:{project,view:'development',sub:'runs',layout:'team',panel:'expert-team:'+id}},
+      {target:{kind:'delivery' as const,id},fields:{project,view:'development',sub:'tasks',record:id,layout:'list',panel:'task-delivery'}},
       {target:{kind:'review' as const,id,taskVersion:7,runID:'run-Exact_7'},fields:{project,view:'development',sub:'tasks',record:id,layout:'list',panel:'task-acceptance:7:run-Exact_7'}},
     ];
     for(const {target,fields} of targets){
@@ -45,6 +46,25 @@ describe('task delivery navigation targets',()=>{
     // arbitrary task: review always retains its original version and run.
     for(const target of [{kind:'review' as const,id},{kind:'review' as const,id,taskVersion:0,runID:'run'},{kind:'review' as const,id,taskVersion:7,runID:'../other'}]){
       expect(taskDeliveryHref(project,target)).toBeUndefined();
+    }
+  });
+
+  it('keeps a delivery locator only for one exact task detail without a competing scope',()=>{
+    const params=new URLSearchParams(taskDeliveryHref('project-Exact_1.2',{kind:'delivery',id:'task-Exact_1.2'}));
+    const parse=(p:URLSearchParams)=>parseWorkbenchRoute('?'+p.toString());
+    expect(parse(params)).toMatchObject({project:'project-Exact_1.2',view:'development',sub:'tasks',record:'task-Exact_1.2',layout:'list',panel:'task-delivery',run:'',node:'',attempt:''});
+    const defaultLayout=new URLSearchParams(params);
+    defaultLayout.delete('layout');
+    expect(parse(defaultLayout).panel).toBe('task-delivery');
+    for(const key of ['project','record','view','sub','layout','panel']){
+      const ambiguous=new URLSearchParams(params);
+      ambiguous.append(key,ambiguous.get(key)!);
+      expect(parse(ambiguous).panel,key).toBe('');
+    }
+    for(const [key,value] of [['project',''],['project','foreign/project'],['record',''],['record','..'],['record','task\n'],['view','quality'],['sub','runs'],['sub',''],['layout','dependencies'],['layout','board'],['run','run-a'],['node','node-a'],['attempt','0']]){
+      const conflicting=new URLSearchParams(params);
+      conflicting.set(key,value);
+      expect(parse(conflicting).panel,key+'='+value).toBe('');
     }
   });
 

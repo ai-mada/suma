@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { normalizeResponse } from "./api";
 import { RecordRequirementReference } from "./RecordLineage";
+import { taskDeliveryHref } from "./task-delivery-navigation-model";
 const project = "project-a",
   taskID = "task-exact",
   requirementID = "requirement-outside-loaded-window";
@@ -143,6 +144,53 @@ function currentDetail(title: string) {
     (node) => node.textContent === title,
   );
 }
+
+it("opens only an authorized task's delivery projection and keeps the close guard", async () => {
+  history.replaceState(null, "", taskDeliveryHref(project, { kind: "delivery", id: taskID })!);
+  const requests = vi.mocked(fetch);
+  const defaultReply = requests.getMockImplementation()!;
+  const exactTask = "/tasks/" + taskID;
+  let allowTask!: (response: Response) => void;
+  requests.mockImplementation(async (input, options) => {
+    const url = new URL(String(input), location.href);
+    const path = url.pathname.replace(/^\/api\/v1/, "");
+    if (path === "/task-workspace") return Response.json({ items: [], task_plans: [], total: 0 });
+    if (path === exactTask) return new Promise<Response>((resolve) => { allowTask = resolve; });
+    if (path === exactTask + "/delivery") {
+      expect(url.searchParams.get("project_id")).toBe(project);
+      expect(options?.method).toBe("GET");
+      const empty = { scope: "current_run", total: 0, limit: 20, complete: true, items: [] };
+      return Response.json({
+        project_id: project, task_id: taskID, task_version: task.version, task_status: task.status,
+        run_basis_state: "not_dispatched", run: null, formal_acceptance: false, expert_plans: empty, issues: empty,
+      });
+    }
+    return defaultReply(input, options);
+  });
+  const deliveryReads = () => requests.mock.calls.filter(([input]) => String(input).includes(exactTask + "/delivery"));
+  const selector = "[data-task-delivery-toggle]";
+  await renderConsumer(<App />);
+  await settle(() => !!allowTask);
+  expect(container.querySelector(selector)).toBeNull();
+  expect(deliveryReads()).toHaveLength(0);
+  await act(async () => allowTask(Response.json(task)));
+  await settle(() => container.querySelector(selector)?.getAttribute("aria-expanded") === "true" && deliveryReads().length === 1);
+  expect(currentDetail(task.title)).toBe(true);
+  const toggle = container.querySelector<HTMLButtonElement>(selector)!;
+  const guard = (event: Event) => event.preventDefault();
+  window.addEventListener("suma:navigate", guard);
+  try {
+    await act(async () => toggle.click());
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+  } finally {
+    window.removeEventListener("suma:navigate", guard);
+  }
+  await act(async () => toggle.click());
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  expect(deliveryReads()).toHaveLength(1);
+  expect(requests.mock.calls.every(([, options]) => !options?.body)).toBe(true);
+});
+
 describe("actual React consumer requirement navigation", () => {
   it("uses one wrapping clickable box for the label, icon and long requirement identifier", async () => {
     await renderConsumer(

@@ -96,7 +96,13 @@ export function readCloudSubmission(value:unknown,scope:CloudTaskScope):CloudSub
 }
 export async function readCloudNode(value:unknown,scope:CloudTaskScope):Promise<CloudNodeView|undefined>{
  const keys=['project_id','run_id','node_id','run_version','node_spec_sha256','request_sha256','binding','allowed_actions'];
- if(!validCloudScope(scope)||!object(value)||!fields(value,keys,['delegation','submission'])||!sameScope(value,scope)||!version(value.run_version)||!hash(value.node_spec_sha256)||!hash(value.request_sha256)||!object(value.binding)||!fields(value.binding,['connection_id','grant_generation','request'])||!identifier(value.binding.connection_id)||!version(value.binding.grant_generation)||!strings(value.allowed_actions,['delegate','revoke','observe']))return;
+ if(!validCloudScope(scope)||!object(value)||!fields(value,keys,['delegation','submission','task_delivery'])||!sameScope(value,scope)||!version(value.run_version)||!hash(value.node_spec_sha256)||!hash(value.request_sha256)||!object(value.binding)||!fields(value.binding,['connection_id','grant_generation','request'])||!identifier(value.binding.connection_id)||!version(value.binding.grant_generation)||!strings(value.allowed_actions,['delegate','revoke','observe']))return;
+ if(Object.hasOwn(value,'task_delivery')){
+  const delivery=value.task_delivery;
+  if(!object(delivery)||!fields(delivery,['task_id','task_version','run_relation'])||
+   !identifier(delivery.task_id)||!/^(?!\.{1,2}$)[A-Za-z0-9_.-]+$/.test(delivery.task_id)||!version(delivery.task_version)||
+   delivery.run_relation!=='current'&&delivery.run_relation!=='changed'&&delivery.run_relation!=='unbound')return;
+ }
  try{if(await cloudRequestDigest(value.binding.request as CloudNodeView['binding']['request'])!==value.request_sha256)return;}catch{return;}
  let delegation:CloudDelegation|undefined,submission:CloudSubmission|undefined;
  if(Object.hasOwn(value,'delegation')){

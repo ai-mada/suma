@@ -1881,6 +1881,7 @@ export interface CloudNodeView {
   binding: NodeBinding;
   delegation?: CloudDelegation | null;
   submission?: CloudSubmission | null;
+  task_delivery?: CloudTaskDeliveryLink;
   allowed_actions: (string)[];
 }
 export interface CloudObserveRequest {
@@ -1915,6 +1916,11 @@ export interface CloudSubmission {
   usage_state: string;
   created_at: string;
   updated_at: string;
+}
+export interface CloudTaskDeliveryLink {
+  task_id: string;
+  task_version: number;
+  run_relation: string;
 }
 export interface CloudTurn {
   id: string;
