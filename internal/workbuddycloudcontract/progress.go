@@ -63,25 +63,37 @@ const (
 	CloudProgressAttentionFilter = "attention"
 	// CloudProgressDeliveryFilter selects saved executions waiting for handoff.
 	CloudProgressDeliveryFilter = "delivery"
+	// CloudProgressInputFilter selects saved executions waiting for input.
+	CloudProgressInputFilter = "input"
 )
 
 // ValidCloudProgressFilter reports whether a nonempty progress filter is supported.
 func ValidCloudProgressFilter(filter string) bool {
-	return filter == CloudProgressAttentionFilter || filter == CloudProgressDeliveryFilter
+	return filter == CloudProgressAttentionFilter || CloudProgressRequiresCurrentTask(filter)
 }
 
-// MatchesFilter classifies saved platform facts. Delivery is a waiting state,
-// separate from current supplier health, candidate evidence and human acceptance.
+// CloudProgressRequiresCurrentTask identifies the queues that exclude historical or independent runs.
+func CloudProgressRequiresCurrentTask(filter string) bool {
+	return filter == CloudProgressDeliveryFilter || filter == CloudProgressInputFilter
+}
+
+// MatchesFilter classifies saved facts. A provider observation is neither an
+// input request nor evidence of candidate delivery or human acceptance.
 func (p CloudNodeProgress) MatchesFilter(filter string) bool {
 	switch filter {
 	case "":
 		return true
 	case CloudProgressAttentionFilter:
 		return p.NeedsAttention()
-	case CloudProgressDeliveryFilter:
+	case CloudProgressDeliveryFilter, CloudProgressInputFilter:
 		// Page readers also require an exact, still-current formal task link.
-		return p.RunState == "running" && p.NodeState == "waiting" &&
-			p.NodeReason == "cloud.delivery_required" && p.Attempt > 0 && p.SubmissionState == "task_known"
+		if p.RunState != "running" || p.NodeState != "waiting" || p.Attempt < 1 || p.SubmissionState != "task_known" {
+			return false
+		}
+		if filter == CloudProgressDeliveryFilter {
+			return p.NodeReason == "cloud.delivery_required"
+		}
+		return p.NodeReason == "cloud.waiting_input" && p.ProviderStatus == "waiting_input" && !p.ObservationFailed
 	default:
 		return false
 	}
@@ -166,15 +178,16 @@ func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
 		}
 		seen[key] = true
 	}
+	requiresCurrentTask := CloudProgressRequiresCurrentTask(out.Filter)
 	for _, link := range out.TaskLinks {
 		key := [2]string{link.RunID, link.NodeID}
 		if link.Validate() != nil || !seen[key] || out.TaskID != "" && link.TaskID != out.TaskID ||
-			out.Filter == CloudProgressDeliveryFilter && link.RunRelation != "current" {
+			requiresCurrentTask && link.RunRelation != "current" {
 			return CloudNodeProgressPage{}, ErrInvalid
 		}
 		delete(seen, key)
 	}
-	if (out.TaskID != "" || out.Filter == CloudProgressDeliveryFilter) && len(seen) != 0 {
+	if (out.TaskID != "" || requiresCurrentTask) && len(seen) != 0 {
 		return CloudNodeProgressPage{}, ErrInvalid
 	}
 	return out, nil

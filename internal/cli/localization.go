@@ -210,7 +210,7 @@ var cliMessages = map[string]cliMessage{
 	"live run event frame exceeds 16 MiB":                  {"cli.run.watch_frame_limit", "实时运行事件帧超过 16 MiB"},
 	"live run event stream reported an error":              {"cli.run.watch_stream_error", "实时运行事件流报告错误"},
 
-	workBuddyProgressListUsage: {"cli.run.workbuddy_list_usage", "run workbuddy-list 支持 --limit 1–20、--filter attention|delivery、--task 任务 ID 和原 --before 游标"},
+	workBuddyProgressListUsage: {"cli.run.workbuddy_list_usage", "run workbuddy-list 支持 --limit 1–20、--filter attention|delivery|input、--task 任务 ID 和原 --before 游标"},
 	workBuddyProgressUsage:     {"cli.run.workbuddy_status_usage", "run workbuddy-status 需要运行 ID 和一个 --node 节点 ID"},
 	workBuddyProgressInvalid:   {"cli.run.workbuddy_status_invalid", "WorkBuddy 进度响应无效或与请求的范围不一致"},
 	workBuddyProgressRejected:  {"cli.run.workbuddy_status_rejected", "控制面拒绝读取 WorkBuddy 进度"},
@@ -364,7 +364,7 @@ const helpZH = `suma — 速码控制面客户端
   run tool-events RUN --node NODE --attempt 尝试号 [--limit 1..100] [--cursor 原游标]
   run inputs RUN --node NODE --attempt 尝试号 --fence 租约令牌 [--workbench-origin 工作台地址]
   run workbuddy-status RUN --node NODE
-  run workbuddy-list [--limit 1..20] [--filter attention|delivery] [--task TASK] [--before NEXT_CURSOR]
+  run workbuddy-list [--limit 1..20] [--filter attention|delivery|input] [--task TASK] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   usage --help               使用登录会话读取用量尝试及证据
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID [--tool ID | --query 检索文本]

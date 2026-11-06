@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-INPUT-TRIAGE 核验保存观察、当前任务及原尝试，验证团队只读与原授权人协作入口。 [阶段验证](workbuddy-input-triage-verification.md)
+
 T-WORKBUDDY-DELIVERY-FILTER 核验当前关联、历史改绑、准确尝试深链和 Web／CLI 筛选边界。 [阶段验证](workbuddy-delivery-filter-verification.md)
 
 T-TOOL-DISPATCH-SEARCH 核验越页工具查找、跨搜索与跨操作者游标拒绝、CLI 及真实浏览器。 [阶段验证](tool-dispatch-search-verification.md)

@@ -9,10 +9,13 @@ describe('task delivery navigation targets',()=>{
     const exact=parseWorkbenchRoute(href);
     expect(exact).toMatchObject({project:'project-a',view:'development',sub:'runs',layout:'workbuddy',workbuddy_task:'task-a',workbuddy_filter:'attention'});
     expect(clearWorkBuddyProgressScope(exact)).toMatchObject({workbuddy_task:undefined,workbuddy_filter:undefined});
-    const delivery=workBuddyProgressTaskHref('project-a','task-a','delivery')!;
-    expect(isWorkBuddyProgressTaskLocator(new URLSearchParams(delivery))).toBe(true);
-    expect(parseWorkbenchRoute(delivery)).toMatchObject({workbuddy_task:'task-a',workbuddy_filter:'delivery'});
-    expect(parseWorkbenchRoute(delivery+'&workbuddy_filter=attention')).toMatchObject({workbuddy_filter_invalid:'1'});
+    for(const filter of ['delivery','input'] as const){
+      const scoped=workBuddyProgressTaskHref('project-a','task-a',filter)!;
+      expect(isWorkBuddyProgressTaskLocator(new URLSearchParams(scoped))).toBe(true);
+      expect(parseWorkbenchRoute(scoped)).toMatchObject({workbuddy_task:'task-a',workbuddy_filter:filter});
+      expect(isWorkBuddyProgressTaskLocator(new URLSearchParams(scoped+'&workbuddy_filter=attention'))).toBe(false);
+      expect(parseWorkbenchRoute(scoped+'&workbuddy_filter=attention')).toMatchObject({workbuddy_filter_invalid:'1'});
+    }
     for(const suffix of ['&workbuddy_task=other','&project=other','&run=','&node=node-a','&record=task-a','&panel=other']){
       const conflicting=href+suffix;
       expect(isWorkBuddyProgressTaskLocator(new URLSearchParams(conflicting))).toBe(false);

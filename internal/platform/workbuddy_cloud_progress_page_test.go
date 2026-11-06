@@ -220,6 +220,70 @@ func TestWorkBuddyCloudProgressDeliveryPreservesFormalAttemptAndCurrentAuthority
 	}
 }
 
+func TestWorkBuddyCloudProgressInputShowsOnlyCurrentSavedWait(t *testing.T) {
+	h := newWorkBuddyTaskDispatchFixtureWithCreateStatus(t, "waiting_input")
+	f := h.f
+	f.handler = (&Server{Service: f.s, Engine: f.e, WorkBuddy: h.w}).Handler()
+	assignment, submission := workBuddyTaskParkAtProviderWait(t, h)
+	cloud := &cloudFixture{f: f, w: h.w}
+	reader := cloudProgressToken(t, cloud, "api")
+	base := cloudProgressListPath(f.project)
+	path := base + "&filter=input&task_id=" + h.task.ID
+	read := func(path string) wc.CloudNodeProgressPage {
+		t.Helper()
+		return readCloudProgressPage(t, cloudProgressRequest(cloud, http.MethodGet, path, reader))
+	}
+	creates, queries := h.creates.Load(), h.queries.Load()
+	original := read(path)
+	if original.Filter != wc.CloudProgressInputFilter || original.TaskID != h.task.ID ||
+		len(original.Items) != 1 || len(original.TaskLinks) != 1 || original.TaskLinks[0].RunRelation != "current" {
+		t.Fatalf("waiting input lost current formal task scope: %+v", original)
+	}
+	row := original.Items[0]
+	if row.RunID != assignment.RunID || row.NodeID != assignment.NodeID || row.Attempt != assignment.Attempt ||
+		row.NodeReason != "cloud.waiting_input" || row.ProviderStatus != "waiting_input" || row.ObservationFailed {
+		t.Fatalf("waiting input lost original attempt or saved facts: %+v", row)
+	}
+
+	// The platform wait can outlive the last successful supplier observation.
+	for _, tc := range []struct{ status, lastError string }{
+		{status: "waiting_input", lastError: "workbuddy_cloud_upstream"},
+		{status: "running"},
+	} {
+		submission.Task.Status, submission.LastError = tc.status, tc.lastError
+		if _, err := f.s.DB.Exec("UPDATE suma_workbuddy_cloud_submissions SET payload=? WHERE id=?", stringify(submission), submission.ID); err != nil {
+			t.Fatal(err)
+		}
+		if page := read(path); len(page.Items) != 0 || len(page.TaskLinks) != 0 || page.NextCursor != "" {
+			t.Fatalf("stale or unmatched provider observation entered input queue: %+v", page)
+		}
+		if page := read(base + "&filter=attention&task_id=" + h.task.ID); len(page.Items) != 1 ||
+			page.Items[0].ProviderStatus != tc.status || page.Items[0].ObservationFailed != (tc.lastError != "") {
+			t.Fatalf("attention lost saved observation: %+v", page)
+		}
+	}
+
+	submission.Task.Status = "waiting_input"
+	if _, err := f.s.DB.Exec("UPDATE suma_workbuddy_cloud_submissions SET payload=? WHERE id=?", stringify(submission), submission.ID); err != nil {
+		t.Fatal(err)
+	}
+	for _, binding := range []string{newID(), ""} {
+		if _, err := f.s.DB.Exec("UPDATE suma_tasks SET run_id=? WHERE tenant_id=? AND project_id=? AND id=?", binding, f.user.TenantID, f.project, h.task.ID); err != nil {
+			t.Fatal(err)
+		}
+		if page := read(base + "&filter=input"); len(page.Items) != 0 || len(page.TaskLinks) != 0 {
+			t.Fatalf("superseded or unbound execution entered project input queue: %+v", page)
+		}
+	}
+	history := read(base + "&task_id=" + h.task.ID)
+	if len(history.Items) != 1 || len(history.TaskLinks) != 1 || history.TaskLinks[0].RunRelation != "unbound" {
+		t.Fatalf("input filtering changed historical read: %+v", history)
+	}
+	if h.creates.Load() != creates || h.queries.Load() != queries {
+		t.Fatal("input progress reads contacted WorkBuddy")
+	}
+}
+
 func cloudProgressNextSubmission(t *testing.T, h *cloudFixture) wc.CloudSubmission {
 	t.Helper()
 	return cloudProgressCreateFollowingSubmission(t, h, false)
@@ -505,6 +569,25 @@ func TestWorkBuddyCloudProgressAttentionContinuesAcrossScanBoundary(t *testing.T
 	deliveryPage = readCloudProgressPage(t, read(delivery+deliveryCursor))
 	if len(deliveryPage.Items) != 0 || deliveryPage.NextCursor != "" {
 		t.Fatalf("standalone submissions matched the delivery scope: %+v", deliveryPage)
+	}
+	// An independent execution with both wait facts still has no formal task.
+	if _, err := f.s.DB.Exec("UPDATE dag_nodes SET reason=? WHERE run_id=? AND id=?", "cloud.waiting_input", subs[40].RunID, subs[40].NodeID); err != nil {
+		t.Fatal(err)
+	}
+	input := base + "&filter=input&limit=1"
+	inputPage := readCloudProgressPage(t, read(input))
+	if inputPage.Filter != wc.CloudProgressInputFilter || len(inputPage.Items) != 0 || inputPage.NextCursor == "" {
+		t.Fatalf("input scan lost the empty batch continuation: %+v", inputPage)
+	}
+	inputCursor := "&before=" + url.QueryEscape(inputPage.NextCursor)
+	for _, path := range []string{filtered + inputCursor, delivery + inputCursor, taskScope + "&filter=input" + inputCursor, input + deliveryCursor} {
+		if response := read(path); response.Code != http.StatusBadRequest {
+			t.Fatalf("input cursor crossed the filter or task scope: %d", response.Code)
+		}
+	}
+	inputPage = readCloudProgressPage(t, read(input+inputCursor))
+	if len(inputPage.Items) != 0 || inputPage.NextCursor != "" {
+		t.Fatalf("standalone submissions matched the input scope: %+v", inputPage)
 	}
 	if h.creates.Load() != candidates || h.queries.Load() != 0 {
 		t.Fatalf("filtered reads contacted provider: %d creates, %d queries", h.creates.Load(), h.queries.Load())

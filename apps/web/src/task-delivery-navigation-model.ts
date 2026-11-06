@@ -8,9 +8,9 @@ export type TaskAcceptanceConsumption={userID:string;organizationID:string;proje
 const identifier=(value:string)=>typeof value==='string'&&!/[\u0000-\u001f\u007f]/.test(value)&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
 const version=(value:number)=>Number.isSafeInteger(value)&&value>0&&value<=2147483646;
 export const validWorkBuddyProgressTaskID=identifier;
-export type WorkBuddyProgressFilter='attention'|'delivery';
+export type WorkBuddyProgressFilter='attention'|'delivery'|'input';
 export function validWorkBuddyProgressFilter(value:unknown):value is WorkBuddyProgressFilter {
-  return value==='attention'||value==='delivery';
+  return value==='attention'||value==='delivery'||value==='input';
 }
 
 export function workBuddyProgressTaskHref(project:string,task:string,filter?:WorkBuddyProgressFilter):string|undefined{

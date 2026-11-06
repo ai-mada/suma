@@ -194,9 +194,9 @@ func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
 	pageOp["description"] = "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project, progress filter and exact task."
 	appendQuery(pageOp, queryParameter("limit", "Page size.", map[string]any{"type": "integer", "minimum": 1, "maximum": 20, "default": 10}))
 	appendQuery(pageOp, queryParameter("before", "Opaque continuation from next_cursor.", map[string]any{"type": "string", "minLength": 1, "maxLength": 1024}))
-	filters := []string{wc.CloudProgressAttentionFilter, wc.CloudProgressDeliveryFilter}
-	appendQuery(pageOp, queryParameter("filter", "Filter saved submissions requiring attention or waiting for delivery in the still-current run of a formal task. Delivery is not evidence or acceptance. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "enum": filters}))
-	appendQuery(pageOp, queryParameter("task_id", "Exact formal task in the current project. May be combined with either progress filter. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": `^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$`}))
+	filters := []string{wc.CloudProgressAttentionFilter, wc.CloudProgressDeliveryFilter, wc.CloudProgressInputFilter}
+	appendQuery(pageOp, queryParameter("filter", "Filter saved submissions by attention, delivery or input. Delivery and input require the current waiting run of a formal task. Input also requires a saved waiting_input observation without a failed refresh. Neither filter grants an action. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "enum": filters}))
+	appendQuery(pageOp, queryParameter("task_id", "Exact formal task in the current project. May be combined with a progress filter. A bounded scan may return a short or empty page with a continuation.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": `^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$`}))
 	for _, raw := range pageOp["parameters"].([]any) {
 		p := raw.(map[string]any)
 		if p["name"] == "project_id" {
@@ -231,7 +231,7 @@ func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
 	toolContractMap(pageFields, "next_cursor")["description"] = "Continue the same project, reader, progress filter and exact task. A filtered cursor advances from the last inspected submission, even when no item matches."
 	links := toolContractMap(pageFields, "task_links")
 	links["maxItems"] = 20
-	links["description"] = "Formal task context keyed by exact run and node among the returned items. Delivery-filtered items each require a current formal task link. Other scopes can show historical bindings."
+	links["description"] = "Formal task context keyed by exact run and node among the returned items. Delivery- and input-filtered items each require a current formal task link. Other scopes can show historical bindings."
 	link := toolContractMap(api, "components", "schemas", "CloudProgressTaskLink")
 	link["additionalProperties"] = false
 	linkFields := toolContractMap(link, "properties")

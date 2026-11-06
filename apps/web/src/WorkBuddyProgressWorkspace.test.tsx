@@ -135,6 +135,69 @@ it('scopes delivery to an exact attempt, while retaining task delivery navigatio
  expect(requests.every(request=>request.init?.method==='GET')).toBe(true);
 });
 
+it('filters current input waits and opens the original attempt without performing a write',async()=>{
+ const row={...known('run-input','cloud.waiting_input'),provider_status:'waiting_input'};
+ const links=[taskLink('run-input','task-input','current','Waiting for clarification')];
+ reply=async url=>url.searchParams.get('filter')==='input'
+  ?page([row],undefined,'input',links,'task-input')
+  :page([row],undefined,undefined,links,'task-input');
+ await render(session,undefined,false,'task-input');
+ await click('[data-workbuddy-progress-filter="input"]');
+ expect(host.querySelector('[data-workbuddy-progress-filter="input"]')?.getAttribute('aria-pressed')).toBe('true');
+ expect(requests.at(-1)?.url.searchParams.get('filter')).toBe('input');
+ expect(requests.at(-1)?.url.searchParams.get('task_id')).toBe('task-input');
+ const source=host.querySelector<HTMLAnchorElement>('[data-workbuddy-progress-input]')!;
+ expect(source.textContent).toBe('Review waiting attempt');
+ expect(source.getAttribute('aria-label')).toContain('attempt 2');
+ expect(Object.fromEntries(new URL(source.href).searchParams)).toEqual({
+  project,view:'development',sub:'runs',run:'run-input',node:'workbuddy-cloud',attempt:'2',
+ });
+ expect(host.querySelector('[data-workbuddy-progress-task-link]')).not.toBeNull();
+ await click('[data-workbuddy-progress-input]');
+ expect(onRun).toHaveBeenCalledExactlyOnceWith('run-input','workbuddy-cloud',2);
+ expect(requests.every(request=>request.init?.method==='GET')).toBe(true);
+});
+
+it('clears input links when a response lacks current saved waiting facts',async()=>{
+ const row={...known('run-input','cloud.waiting_input'),provider_status:'waiting_input'};
+ const current=[taskLink('run-input','task-input','current')];
+ const cases:[typeof row,ReturnType<typeof taskLink>[]|undefined][]=[
+  [{...row,provider_status:'running'},current],
+  [{...row,observation_failed:true},current],
+  [{...row,run_state:'paused'},current],
+  [{...row,node_state:'running'},current],
+  [{...row,node_reason:'cloud.delivery_required'},current],
+  [{...row,attempt:0},current],
+  [row,undefined],
+  [row,[taskLink('run-input','task-input','changed')]],
+  [row,[taskLink('run-input','task-input','unbound')]],
+ ];
+ reply=async()=>page([row],undefined,'input',current);
+ await render(session,'input');
+ expect(ids()).toEqual(['run-input']);
+ for(const [item,links] of cases){
+  reply=async()=>page([item],undefined,'input',links);
+  await click('[data-workbuddy-progress-refresh]');
+  expect(ids()).toEqual([]);
+  expect(host.querySelector('[data-workbuddy-progress-input]')).toBeNull();
+  expect(host.querySelector('[role="alert"]')?.textContent).toContain('does not match this project or page');
+ }
+});
+
+it('continues an empty input batch before reporting no current waiting runs',async()=>{
+ reply=async url=>{
+  expect(url.searchParams.get('filter')).toBe('input');
+  return page([],url.searchParams.has('before')?undefined:'input-cursor','input');
+ };
+ await render(session,'input');
+ expect(host.querySelector('[data-workbuddy-progress-empty-batch]')?.textContent).toContain('Continue searching');
+ expect(host.querySelector('[data-workbuddy-progress-empty-input]')).toBeNull();
+ await click('[data-workbuddy-progress-more]');
+ expect(requests.at(-1)?.url.searchParams.get('before')).toBe('input-cursor');
+ expect(host.querySelector('[data-workbuddy-progress-empty-batch]')).toBeNull();
+ expect(host.querySelector('[data-workbuddy-progress-empty-input]')?.textContent).toContain('No current task runs');
+});
+
 it('rejects a delivery response that lacks the exact saved handoff facts',async()=>{
  const row=known('run-a','cloud.delivery_required');
  const {provider_status:_status,observed_at:_observed,...unknown}=row;

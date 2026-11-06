@@ -158,7 +158,7 @@ suma --project PROJECT run workbuddy-list --filter attention --limit 10
 suma --project PROJECT run workbuddy-list --filter attention --limit 10 --before NEXT_CURSOR
 ```
 
-用 `--task TASK` 查看指定正式任务的已保存提交，可同时限定待处理或待交付。续查时保留同一任务、筛选和原游标。空批次仍带游标时可继续查找。
+用 `--task TASK` 查看指定正式任务的已保存提交，可同时限定待处理、待交付或等待输入。续查时保留同一任务、筛选和原游标。空批次仍带游标时可继续查找。
 
 ```sh
 suma --project PROJECT run workbuddy-list --task TASK --filter attention
@@ -170,6 +170,13 @@ suma --project PROJECT run workbuddy-list --task TASK --filter attention --befor
 ```sh
 suma --project PROJECT run workbuddy-list --filter delivery
 suma --project PROJECT run workbuddy-list --task TASK --filter delivery --before NEXT_CURSOR
+```
+
+使用 `--filter input` 查找等待输入的当前任务运行。平台等待原因和最近一次成功的供应方观察都须表明等待输入。最近观察失败的记录可在待处理视图核对。按原运行、节点和尝试定位后续核对。此查询只读平台记录，可发送的协作操作由原工作区按当前权限显示。
+
+```sh
+suma --project PROJECT run workbuddy-list --filter input
+suma --project PROJECT run workbuddy-list --task TASK --filter input --before NEXT_CURSOR
 ```
 
 筛选页有游标时可继续，即使本页条目为空。每次调用读取一个批次，下一次保留同一项目、读者、筛选和任务范围。

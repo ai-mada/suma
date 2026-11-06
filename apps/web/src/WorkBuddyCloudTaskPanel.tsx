@@ -38,6 +38,7 @@ export type WorkBuddyCloudTaskPanelProps={
  onReload:()=>Promise<void>;
  /** Resolve the original persisted operation, never manufacture a new one. */
  onReconcile?:()=>Promise<WorkBuddyCloudActionResult>;
+ onOpenWaitingTurn?:()=>void;
 };
 const t=(key:string,values?:Record<string,unknown>)=>tr('workbuddy-cloud-task.'+key,values);
 const durations=[15,60,240,1440] as const;
@@ -49,7 +50,7 @@ export function WorkBuddyCloudTaskPanel(props:WorkBuddyCloudTaskPanelProps){
  return <CloudTaskWorkspace key={props.model.scopeKey} {...props}/>;
 }
 
-function CloudTaskWorkspace({model,onDelegate,onRevoke,onRefresh,onReload,onReconcile}:WorkBuddyCloudTaskPanelProps){
+function CloudTaskWorkspace({model,onDelegate,onRevoke,onRefresh,onReload,onReconcile,onOpenWaitingTurn}:WorkBuddyCloudTaskPanelProps){
  useLocale();const id=useId();
  const [connectionID,setConnectionID]=useState(''),[duration,setDuration]=useState(''),[ack,setAck]=useState(false);
  const [pending,setPending]=useState<CloudAction|'reload'|'reconcile'>(),[outcome,setOutcome]=useState<WorkBuddyCloudActionResult['kind']>();
@@ -117,7 +118,9 @@ function CloudTaskWorkspace({model,onDelegate,onRevoke,onRefresh,onReload,onReco
   <header className="cloud-task-header"><Cloud size={21} aria-hidden="true"/><div><h3 id={id+'-title'}>{t('title')}</h3><p>{t(model.sharedOnly?'intro_shared':'intro')}</p></div></header>
   {model.state==='loading'?<p className="cloud-task-notice" role="status">{t('loading')}</p>:denied?<div className="cloud-task-notice" role="alert"><CircleAlert size={19} aria-hidden="true"/><div><strong>{t('denied_title')}</strong><p>{t('denied_detail')}</p>{reloadButton}</div></div>:model.state==='unavailable'?<div className="cloud-task-notice"><FileText size={19} aria-hidden="true"/><div><strong>{t('unavailable_title')}</strong><p>{reason(model.unavailableReason)}</p>{reloadButton}</div></div>:<>
    <div className="cloud-task-context"><div><strong>{model.task.title}</strong><p title={model.task.runLabel+' / '+model.task.nodeLabel}>{model.task.runLabel}<span aria-hidden="true"> / </span>{model.task.nodeLabel}</p></div><span className={'cloud-task-status '+(phase==='unknown'||phase==='stop_unconfirmed'||phase==='runner_disconnected'?'is-unknown':'')} data-cloud-runner-phase={phase} role="status"><span aria-hidden="true"/>{t(status)}</span></div>
-   {hint&&<p className="cloud-task-hint">{t(hint)}</p>}
+   {hint&&<p className="cloud-task-hint">{t(phase==='waiting_input'&&onOpenWaitingTurn?'runner_hint_waiting_input_owner':hint)}</p>}
+   {phase==='waiting_input'&&onOpenWaitingTurn&&<button type="button" data-cloud-action="open-waiting-turn" disabled={!!pending}
+    onClick={onOpenWaitingTurn}>{t('open_waiting_turn')}<ArrowRight size={16} aria-hidden="true"/></button>}
    {/* Platform pause and provider observations are independent facts; neither replaces the original critical phase. */}
    {model.submission&&model.execution?.runState==='paused'&&<div className="cloud-task-platform-paused" data-cloud-platform-paused><PauseCircle size={18} aria-hidden="true"/><div><strong>{t('runner_status_run_paused')}</strong><p>{t('platform_paused_boundary')}</p></div></div>}
    {model.submission&&(model.submission.state==='task_known'||model.submission.lastError)&&<div className="cloud-task-observation" data-cloud-observation>

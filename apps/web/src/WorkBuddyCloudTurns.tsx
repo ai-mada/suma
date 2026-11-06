@@ -1,4 +1,4 @@
-import {useCallback,useEffect,useId,useRef,useState} from 'react';
+import {useCallback,useEffect,useId,useRef,useState,type Ref} from 'react';
 import {ChevronDown,MessagesSquare,RefreshCw,Send,ShieldCheck,Square} from 'lucide-react';
 import type {CloudCollaborationSource,CloudTurn,CloudTurnCommand,CloudTurnPage,CloudTurnPermission,CloudTurnPermissionOption,CloudTurnView} from '../../../packages/contracts/src';
 import {ApiError} from './api';
@@ -11,7 +11,7 @@ import {cloudTurnControlPath,cloudTurnPagePath,cloudTurnPermissionPath,cloudTurn
 import {wellFormed} from './i18n/catalog';
 import './WorkBuddyCloudTurns.css';
 
-export type WorkBuddyCloudTurnsProps={source:CloudCollaborationSource;revision?:number;disabled?:boolean;runVersion?:number;onChanged?:()=>void|Promise<void>};
+export type WorkBuddyCloudTurnsProps={source:CloudCollaborationSource;revision?:number;disabled?:boolean;runVersion?:number;disclosureRef?:Ref<HTMLButtonElement>;onChanged?:()=>void|Promise<void>};
 const t=(key:string,values?:Record<string,unknown>)=>tr('workbuddy-cloud-turns.'+key,values);
 const encoder=new TextEncoder(),maximum=2147483647;
 const active=(turn?:CloudTurn)=>!!turn&&['prepared','running','waiting_permission'].includes(turn.state);
@@ -28,7 +28,7 @@ export function WorkBuddyCloudTurns(props:WorkBuddyCloudTurnsProps){
  return <TurnsController {...props} key={identity+':'+owner.current.epoch} scope={scope} identity={identity} allowed={allowed}/>;
 }
 type Snapshot={view?:CloudTurnView;page?:CloudTurnPage;loading:boolean;error?:unknown};
-function TurnsController({source,revision,disabled=false,runVersion,onChanged,scope,identity,allowed}:WorkBuddyCloudTurnsProps&{scope:CloudTurnsScope;identity:string;allowed:boolean}){
+function TurnsController({source,revision,disabled=false,runVersion,disclosureRef,onChanged,scope,identity,allowed}:WorkBuddyCloudTurnsProps&{scope:CloudTurnsScope;identity:string;allowed:boolean}){
  useLocale();const api=useApi(),panelID=useId(),inputID=useId(),hintID=useId();
  const [open,setOpen]=useState(false),[prompt,setPrompt]=useState(''),[snapshot,setSnapshot]=useState<Snapshot>({loading:false}),[denial,setDenial]=useState<unknown>(),[confirmed,setConfirmed]=useState<'prompt'|'command'>();
  const alive=useRef(true),epoch=useRef(0),abort=useRef<AbortController|undefined>(undefined),current=useRef(snapshot),pinned=useRef<string|undefined>(undefined),commandBusy=useRef(false),readBusy=useRef(false),notified=useRef(false),deniedNow=useRef(false),changed=useRef(onChanged),scopeNow=useRef(scope);
@@ -138,7 +138,7 @@ function TurnsController({source,revision,disabled=false,runVersion,onChanged,sc
   {pending&&<div className="cloud-turns-recovery"><p role="status">{t(pendingPrompt?'unknown_prompt':'unknown_command')}</p><button type="button" data-cloud-turns-recover disabled={action.busy||denied||!!originalTurn&&page?.turn.id!==originalTurn} onClick={recover}>{t('recover')}</button></div>}
  </div>;
  return <section className="workbuddy-cloud-turns" aria-label={t('title')}>
-  <button type="button" className="cloud-turns-disclosure" data-cloud-turns-toggle aria-expanded={open} aria-controls={panelID} onClick={()=>setOpen(value=>!value)}><MessagesSquare size={17} aria-hidden="true"/><span>{t('title')}</span><ChevronDown size={15} aria-hidden="true" className={open?'is-open':''}/></button>
+  <button ref={disclosureRef} type="button" className="cloud-turns-disclosure" data-cloud-turns-toggle aria-expanded={open} aria-controls={panelID} onClick={()=>setOpen(value=>!value)}><MessagesSquare size={17} aria-hidden="true"/><span>{t('title')}</span><ChevronDown size={15} aria-hidden="true" className={open?'is-open':''}/></button>
   {!open&&(pending||action.error||denied||confirmed)&&feedback}
   <div id={panelID} data-cloud-turns-panel hidden={!open} className="cloud-turns-panel">
    <p className="cloud-turns-hint">{t('intro')}</p><p className="cloud-turns-hint">{t('read_scope')}</p>{feedback}

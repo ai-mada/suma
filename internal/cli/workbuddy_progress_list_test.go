@@ -107,6 +107,8 @@ func TestWorkBuddyProgressListCLIRejectsUnverifiedPage(t *testing.T) {
 
 func TestWorkBuddyProgressListCLIPreservesFormalTaskScope(t *testing.T) {
 	const items = `"items":[` + workBuddyProgressJSON + `]`
+	inputItem := strings.NewReplacer("cloud.delivery_required", "cloud.waiting_input", "completed", "waiting_input").Replace(workBuddyProgressJSON)
+	inputItems := `"items":[` + inputItem + `]`
 	const links = `"task_links":[` + workBuddyProgressTaskLinkJSON + `]`
 	for _, tc := range []struct {
 		name, task, filter, before, fields string
@@ -124,6 +126,12 @@ func TestWorkBuddyProgressListCLIPreservesFormalTaskScope(t *testing.T) {
 		{"attention still includes rebound task", "task-1", "attention", "", `"task_id":"task-1","filter":"attention",` + items + "," + strings.Replace(links, `"run_relation":"current"`, `"run_relation":"changed"`, 1), true},
 		{"delivery returned attention", "task-1", "delivery", "", `"task_id":"task-1","filter":"attention",` + items + "," + links, false},
 		{"delivery returned paused run", "task-1", "delivery", "", `"task_id":"task-1","filter":"delivery",` + strings.Replace(items, `"run_state":"running"`, `"run_state":"paused"`, 1) + "," + links, false},
+		{"task input continuation", "task-1", "input", "first-cursor", `"task_id":"task-1","filter":"input","next_cursor":"dGVzdC1uZXh0",` + inputItems + "," + links, true},
+		{"project input empty batch", "", "input", "first-cursor", `"filter":"input","items":[],"next_cursor":"dGVzdC1uZXh0"`, true},
+		{"input response with stale observation", "", "input", "", `"filter":"input",` + strings.Replace(inputItems, `"observation_failed":false`, `"observation_failed":true`, 1) + "," + links, false},
+		{"input response echoed attention", "", "input", "", `"filter":"attention",` + inputItems + "," + links, false},
+		{"input response with rebound task", "", "input", "", `"filter":"input",` + inputItems + "," + strings.Replace(links, `"run_relation":"current"`, `"run_relation":"changed"`, 1), false},
+		{"input response with running provider", "", "input", "", `"filter":"input",` + strings.Replace(inputItems, `"provider_status":"waiting_input"`, `"provider_status":"running"`, 1) + "," + links, false},
 		{"missing task echo", "task-1", "", "", items + "," + links, false},
 		{"unrequested task echo", "", "", "", `"task_id":"task-1",` + items + "," + links, false},
 		{"explicit empty task echo", "", "", "", `"task_id":"","items":[]`, false},
@@ -188,6 +196,7 @@ func TestWorkBuddyProgressListCLIStrictOptionsAndHelp(t *testing.T) {
 		{"run-1"}, {"--limit", "0"}, {"--limit", "21"}, {"--limit", "0x10"}, {"--limit", "1", "--limit", "2"},
 		{"--filter", ""}, {"--filter", "all"}, {"--filter", "Attention"}, {"--filter", "attention", "--filter", "attention"},
 		{"--filter", "Delivery"}, {"--filter", "delivery", "--filter", "attention"},
+		{"--filter", "Input"}, {"--filter", "input", "--filter", "input"},
 		{"--task", ""}, {"--task", ".."}, {"--task", "task/other"}, {"--task", "task 1"},
 		{"--task", strings.Repeat("a", 65)}, {"--task", "one", "--task", "two"},
 		{"--before", ""}, {"--before", "bad+cursor"}, {"--before", strings.Repeat("a", 1025)}, {"--before", "one", "--before", "two"},
@@ -205,7 +214,7 @@ func TestWorkBuddyProgressListCLIStrictOptionsAndHelp(t *testing.T) {
 	for _, locale := range []string{"en-US", "zh-CN"} {
 		for _, args := range [][]string{{"--help"}, {"run", "workbuddy-list", "--help"}} {
 			code, stdout, stderr := invoke(t, server.URL, append([]string{"--language", locale}, args...)...)
-			if code != 0 || stderr != "" || calls.Load() != 0 || !strings.Contains(stdout, "run workbuddy-list [--limit 1..20] [--filter attention|delivery] [--task TASK] [--before NEXT_CURSOR]") {
+			if code != 0 || stderr != "" || calls.Load() != 0 || !strings.Contains(stdout, "run workbuddy-list [--limit 1..20] [--filter attention|delivery|input] [--task TASK] [--before NEXT_CURSOR]") {
 				t.Fatalf("help %s %v exit=%d stdout=%q stderr=%q", locale, args, code, stdout, stderr)
 			}
 		}

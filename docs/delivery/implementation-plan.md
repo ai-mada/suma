@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-WORKBUDDY-INPUT-TRIAGE 推进团队云任务人工接手。等待输入、待核对和交付各有范围，复用原协作权限与回执。 [合同](../../contracts/workbuddy-cloud-status-ui.md#项目进度列表) · [阶段验证](../quality/workbuddy-input-triage-verification.md)
+
 T-WORKBUDDY-DELIVERY-FILTER 推进团队云任务交接。当前任务来源、已保存观察和正式交付门禁各自保留，历史改绑记录仍可查询。 [合同](../../contracts/workbuddy-cloud-status-ui.md#项目进度列表) · [阶段验证](../quality/workbuddy-delivery-filter-verification.md)
 
 T-TOOL-DISPATCH-SEARCH 为多节点和大量工具配置补齐授权目录搜索与准确候选采用。 [合同](../../contracts/task-dispatch-options.md#filtered-candidates) · [阶段验证](../quality/tool-dispatch-search-verification.md)

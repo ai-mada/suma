@@ -254,9 +254,9 @@ func TestWorkBuddyCloudProgressKeepsExactReadScopeAndClosedProjection(t *testing
 	}
 }
 
-func TestWorkBuddyCloudProgressDeliveryFilterSchema(t *testing.T) {
+func TestWorkBuddyCloudProgressFilterSchema(t *testing.T) {
 	api, _ := generate()
-	want := []string{"attention", "delivery"}
+	want := []string{"attention", "delivery", "input"}
 	page := mapAt(api, "components", "schemas", "CloudNodeProgressPage", "properties", "filter")
 	if !reflect.DeepEqual(page["enum"], want) {
 		t.Fatal("progress response filter values differ", page)

@@ -9526,7 +9526,8 @@
           "filter": {
             "enum": [
               "attention",
-              "delivery"
+              "delivery",
+              "input"
             ],
             "readOnly": true,
             "type": "string"
@@ -9561,7 +9562,7 @@
             "type": "string"
           },
           "task_links": {
-            "description": "Formal task context keyed by exact run and node among the returned items. Delivery-filtered items each require a current formal task link. Other scopes can show historical bindings.",
+            "description": "Formal task context keyed by exact run and node among the returned items. Delivery- and input-filtered items each require a current formal task link. Other scopes can show historical bindings.",
             "items": {
               "$ref": "#/components/schemas/CloudProgressTaskLink"
             },
@@ -161146,19 +161147,20 @@
             }
           },
           {
-            "description": "Filter saved submissions requiring attention or waiting for delivery in the still-current run of a formal task. Delivery is not evidence or acceptance. A bounded scan may return a short or empty page with a continuation.",
+            "description": "Filter saved submissions by attention, delivery or input. Delivery and input require the current waiting run of a formal task. Input also requires a saved waiting_input observation without a failed refresh. Neither filter grants an action. A bounded scan may return a short or empty page with a continuation.",
             "in": "query",
             "name": "filter",
             "schema": {
               "enum": [
                 "attention",
-                "delivery"
+                "delivery",
+                "input"
               ],
               "type": "string"
             }
           },
           {
-            "description": "Exact formal task in the current project. May be combined with either progress filter. A bounded scan may return a short or empty page with a continuation.",
+            "description": "Exact formal task in the current project. May be combined with a progress filter. A bounded scan may return a short or empty page with a continuation.",
             "in": "query",
             "name": "task_id",
             "schema": {

@@ -104,6 +104,7 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 
 	out := wc.CloudNodeProgressPage{ProjectID: project, Filter: filter, TaskID: taskID, Items: make([]wc.CloudNodeProgress, 0, limit)}
 	inspected := 0
+	requiresCurrentTask := wc.CloudProgressRequiresCurrentTask(filter)
 	for _, item := range refs[:min(len(refs), scanLimit)] {
 		if !cloudProgressSubmissionID.MatchString(item.id) {
 			return wc.CloudNodeProgressPage{}, cloudConflict()
@@ -125,7 +126,7 @@ func (w *WorkBuddyConnections) ListCloudNodeProgress(ctx context.Context, actor 
 			return wc.CloudNodeProgressPage{}, err
 		}
 		if taskID != "" && (delivery == nil || delivery.TaskID != taskID) ||
-			filter == wc.CloudProgressDeliveryFilter && (delivery == nil || delivery.RunRelation != "current") {
+			requiresCurrentTask && (delivery == nil || delivery.RunRelation != "current") {
 			continue
 		}
 		if delivery != nil {

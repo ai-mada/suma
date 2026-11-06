@@ -30,6 +30,7 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
  const scopeKey=JSON.stringify([scope.userID,scope.organizationID,project,runID,nodeID]);
  const [snapshot,setSnapshot]=useState<Snapshot>(),[classification,setClassification]=useState(0),[parentRefreshFailed,setParentRefreshFailed]=useState(false);
  const [shareSelection,setShareSelection]=useState<CloudHistoryShareSelection>(),[shareReset,setShareReset]=useState(0);
+ const [turnsDisclosure,setTurnsDisclosure]=useState<HTMLButtonElement|null>(null);
  const clearShareSelection=useCallback(()=>{setShareSelection(undefined);setShareReset(value=>value+1);},[]);
  const alive=useRef(true),epoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),activeCaller=useRef(caller),current=useRef<Snapshot|undefined>(undefined),commandBusy=useRef(false);
  const waiting=useRef<((result:WorkBuddyCloudActionResult)=>void)|undefined>(undefined);
@@ -173,14 +174,23 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
  const privateSource=!denied&&node?.delegation&&submission?.state==='task_known'&&submission.task?{
   project_id:project,run_id:runID,node_id:nodeID,submission_id:submission.id,submission_version:submission.version,task_id:submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256,
  }:undefined;
+ const mayOpenWaitingTurn=!!privateSource&&!!turnsDisclosure?.isConnected&&!sourceBusy&&!parentRefreshFailed&&!action.busy&&!pending&&
+  model.execution?.runState==='running'&&model.execution.nodeState==='waiting'&&model.execution.reason==='cloud.waiting_input'&&model.execution.attempt>0&&
+  model.submission?.providerStatus==='waiting_input'&&!model.submission.lastError;
+ const openWaitingTurn=mayOpenWaitingTurn?()=>{
+  const disclosure=turnsDisclosure;
+  if(!disclosure?.isConnected)return;
+  disclosure.focus();
+  if(disclosure.getAttribute('aria-expanded')==='false')disclosure.click();
+ }:undefined;
  return <div className="workbuddy-cloud-workspace">
   {!denied&&current.current?.reading&&node&&<p className="cloud-task-hint" role="status">{t('reading_current')}</p>}
   {!denied&&(current.current?.sourceFailed||parentRefreshFailed)&&node&&<p className="cloud-task-inline-error" role="alert">{t('source_read_failed')}</p>}
   {!denied&&current.current?.connectionFailed&&node&&<p className="cloud-task-hint" role="status">{t('connection_read_failed')}</p>}
   {!denied&&<WriteNotice action={action}/>}
-  <WorkBuddyCloudTaskPanel model={model} onDelegate={delegate} onRevoke={revoke} onRefresh={observe} onReload={reload} onReconcile={reconcile}/>
+  <WorkBuddyCloudTaskPanel model={model} onDelegate={delegate} onRevoke={revoke} onRefresh={observe} onReload={reload} onReconcile={reconcile} onOpenWaitingTurn={openWaitingTurn}/>
   {privateSource&&<WorkBuddyCloudCollaboration source={privateSource} revision={revision} disabled={sourceBusy} onShareSelection={setShareSelection} shareReset={shareReset}/>}
-  {privateSource&&<Suspense fallback={<Loading/>}><WorkBuddyCloudTurns source={privateSource} revision={revision} runVersion={execution?.runVersion} disabled={sourceBusy} onChanged={onChanged}/></Suspense>}
+  {privateSource&&<Suspense fallback={<Loading/>}><WorkBuddyCloudTurns source={privateSource} revision={revision} runVersion={execution?.runVersion} disclosureRef={setTurnsDisclosure} disabled={sourceBusy} onChanged={onChanged}/></Suspense>}
   <CloudHistorySharing project={project} runID={runID} nodeID={nodeID} selection={privateSource?shareSelection:undefined} onClearSelection={clearShareSelection}/>
  </div>;
 }

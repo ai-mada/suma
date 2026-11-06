@@ -27,8 +27,8 @@
 .workbuddy-progress-row-heading a{min-height:34px;color:var(--accent);font-size:13px;text-decoration:underline;text-underline-offset:2px}
 .workbuddy-progress-row-heading a svg{flex:none}
 .workbuddy-progress-row-heading .workbuddy-progress-task-scope-action{margin-top:2px;max-width:100%;line-height:1.4}
-.workbuddy-progress-row-heading :is(.workbuddy-progress-task-action,.workbuddy-progress-delivery-action){padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface-soft);text-decoration:none;font-weight:600}
-:is(.workbuddy-progress-task-action,.workbuddy-progress-delivery-action):hover{text-decoration:underline}
+.workbuddy-progress-row-heading :is(.workbuddy-progress-task-action,.workbuddy-progress-source-action){padding:0 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface-soft);text-decoration:none;font-weight:600}
+:is(.workbuddy-progress-task-action,.workbuddy-progress-source-action):hover{text-decoration:underline}
 .workbuddy-progress-facts{margin:0;padding-top:10px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px 14px;border-top:1px solid var(--border)}
 .workbuddy-progress-facts>div{min-width:0;overflow-wrap:anywhere}
 .workbuddy-progress-facts dt{color:var(--muted);font-size:11px;line-height:1.4}
@@ -40,6 +40,9 @@
 @media(max-width:600px){
  .workbuddy-progress-heading,.workbuddy-progress-row-heading{flex-wrap:wrap;gap:6px}
  .workbuddy-progress-row{padding:12px}
+ .workbuddy-progress-facets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+ .workbuddy-progress-facets>button{justify-content:center;min-width:0;padding-inline:6px;text-align:center;white-space:normal;overflow-wrap:anywhere}
+ .workbuddy-progress-task-scope{grid-column:1/-1}
  .workbuddy-progress-row-heading>div{flex-basis:100%}
  .workbuddy-progress-row-actions{justify-content:flex-start}
  .workbuddy-progress-facts{grid-template-columns:repeat(2,minmax(0,1fr))}

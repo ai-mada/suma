@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-INPUT-TRIAGE 团队可按当前任务查看已确认的等待输入尝试并打开准确来源，原授权人在运行详情查看继续协作。 [交互](../design/workbuddy-cloud-task.md#等待输入筛选) · [验证](../quality/workbuddy-input-triage-verification.md)
+
 T-WORKBUDDY-DELIVERY-FILTER 团队进度可筛选当前任务仍关联的待交付尝试，按准确运行、节点和尝试核对交付来源。网页与 CLI 共用分页。 [交互](../design/workbuddy-cloud-task.md#待交付筛选) · [验证](../quality/workbuddy-delivery-filter-verification.md)
 
 T-TOOL-DISPATCH-SEARCH 派发候选可在项目授权目录搜索，跨过首屏找到工具，网页与终端共用范围及分页。 [交互](../design/task-dispatch-options.md#在候选目录内搜索) · [验证](../quality/tool-dispatch-search-verification.md)
