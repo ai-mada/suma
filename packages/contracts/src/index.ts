@@ -9053,6 +9053,21 @@ export interface UsageAttempt {
   updated_at: string;
   allowed_actions: (string)[];
 }
+export interface UsageAttemptFact {
+  id: string;
+  kind: string;
+  created_at: string;
+  identity_sha256: string;
+  original_result: boolean;
+  usage?: ToolUsage;
+  usage_state?: string;
+}
+export interface UsageAttemptFactPage {
+  project_id: string;
+  attempt_id: string;
+  items: (UsageAttemptFact)[];
+  next_cursor: string;
+}
 export interface UsageAttemptPage {
   items: (UsageAttempt)[];
   total: number;

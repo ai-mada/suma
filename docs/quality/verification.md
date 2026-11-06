@@ -40,6 +40,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-USAGE-EVIDENCE-279 核验私有内容边界、准确分页、撤权及中英文键盘交互。 [阶段报告](usage-evidence-verification.md)
+
 T-AUTOMATION-MANUAL-AUTHORITY-278 核验入队后降权、授权开发者派发、缺证阻止和中英文原因。 [阶段报告](automation-manual-authority-verification.md)
 
 T-USAGE-CONFIRMED-RECEIPTS-277 核验真实停止回执、过期后首条回执、重复提交及两级余额。 [阶段报告](usage-confirmed-receipts-verification.md)

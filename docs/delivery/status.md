@@ -40,6 +40,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-USAGE-EVIDENCE-279 用量尝试可展开原始／后续回执、核对和人工确认，按当前授权续读。 [验证](../quality/usage-evidence-verification.md)
+
 T-AUTOMATION-MANUAL-AUTHORITY-278 人工触发在实际派发前复核发起人项目写权限，失权或缺证只阻止对应触发。 [验证](../quality/automation-manual-authority-verification.md)
 
 T-USAGE-CONFIRMED-RECEIPTS-277 用量人工结算后，晚到 Runner 回执追加审计事实，保留原决定和项目／组织额度。 [验证](../quality/usage-confirmed-receipts-verification.md)

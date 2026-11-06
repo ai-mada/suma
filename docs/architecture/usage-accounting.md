@@ -52,6 +52,10 @@ Check只锁和检查，不收费。Reserve失败回滚项目及共享池资源�
 
 晚到回执经过原执行资格与证据校验后，在同一事务保存独立结果事实。人工结算完成时保留其已确认的金额、额度和依据。先确认后收结果的尝试会登记原结果摘要；已有摘要的尝试保留原修订。该规则同时适用于项目和共享池收到的有效回执。 [阶段验证](../quality/usage-confirmed-receipts-verification.md)
 
+## 用量证据
+
+尝试记录下的「用量证据」复用不可变事实表和现有复合索引。项目授权与读取同事务，按 `(created_at, id)` 倒序分页，游标只接受该项目当前尝试的事实。浏览器按需读取，关掉或切换范围时中止旧请求。原始与后续回执展示已报告的计数，人工确认展示审核的计数。原结果依据 `source_result_sha256` 标记，核对只显示事实类型和摘要。已确认汇总仍来自账本投影。 [验证](../quality/usage-evidence-verification.md)
+
 ## 数据与读取
 
 新增policy、rate、account_guard、account、attempt、fact六表及有界查询索引。账户按tenant/scope/project/UTCmonth/resource隔离，resource分别tokens、cost:CNY、cost:USD。每笔attempt固定run/node/attempt/fence/worker/profile及费率；原结果、业务核对和人工确认进入独立不可变fact。

@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func usageAccountingModels() []any {
-	return []any{platform.UsagePolicy{}, platform.UsagePolicyWriteRequest{}, platform.UsageRateRevision{}, platform.UsageRateWriteRequest{}, platform.UsageMoneyBalance{}, platform.UsageBalance{}, platform.UsageDashboard{}, platform.UsageAttempt{}, platform.UsageAttemptPage{}, platform.UsageConfirmRequest{}}
+	return []any{platform.UsagePolicy{}, platform.UsagePolicyWriteRequest{}, platform.UsageRateRevision{}, platform.UsageRateWriteRequest{}, platform.UsageMoneyBalance{}, platform.UsageBalance{}, platform.UsageDashboard{}, platform.UsageAttempt{}, platform.UsageAttemptPage{}, platform.UsageConfirmRequest{}, platform.UsageAttemptFact{}, platform.UsageAttemptFactPage{}}
 }
 
 func usageAccountingContracts(add operationAdder, api map[string]any) {
@@ -12,6 +12,7 @@ func usageAccountingContracts(add operationAdder, api map[string]any) {
 		{"/usage/policies", "post", "UsagePolicyWriteRequest", "UsagePolicy", "200"},
 		{"/usage/rates", "post", "UsageRateWriteRequest", "UsageRateRevision", "201"},
 		{"/usage/attempts", "get", "", "UsageAttemptPage", "200"},
+		{"/usage/attempts/{id}/facts", "get", "", "UsageAttemptFactPage", "200"},
 		{"/usage/attempts/{id}/confirm", "post", "UsageConfirmRequest", "UsageAttempt", "200"},
 	} {
 		op := add(route.path, route.method, route.output, false, route.input != "")
@@ -20,6 +21,10 @@ func usageAccountingContracts(add operationAdder, api map[string]any) {
 		op["description"] = "Current-authorized execution usage and operator-priced estimates. An attempt freezes its profile/model/rate and monthly organization/project allowance in the same transaction as dispatch. Final evidence is counted once; missing values are unknown, cache/reasoning counters are not additive, unknown outcomes retain holds. Currency balances remain separate. Estimates are not vendor invoices or a hard provider spend cap. Manual confirmation preserves the original evidence and cannot lower known usage."
 		if route.input != "" {
 			request(op, route.input)
+		} else if route.output == "UsageAttemptFactPage" {
+			op["description"] = "Current-authorized exact attempt evidence. Each item contains only accounting metadata and safe counters. The first accepted result is identified separately from subsequent observations and manual settlement."
+			appendQuery(op, queryParameter("limit", "Exact decimal integer page size.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
+			appendQuery(op, queryParameter("before", "Existing fact ID in this exact authorized attempt; created_at/id descending keyset.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64}))
 		} else {
 			appendQuery(op, queryParameter("month", "UTC natural month; omitted means the current database month.", map[string]any{"type": "string", "pattern": `^[0-9]{4}-(0[1-9]|1[0-2])$`}))
 			if route.output == "UsageAttemptPage" {
@@ -60,7 +65,11 @@ func usageAccountingContracts(add operationAdder, api map[string]any) {
 	field("UsageAttempt", "state", map[string]any{"enum": []string{"reserved", "settled", "partial", "unreported", "reconciling", "confirmed", "unpriced"}})
 	field("UsageAttempt", "usage_source", map[string]any{"enum": []string{"none", "tool_evidence", "manual_confirmation", "host_startup_proof"}})
 	field("UsageAttempt", "usage_state", map[string]any{"enum": []string{"complete", "partial", "unreported"}})
-	for _, model := range []string{"UsagePolicy", "UsageRateRevision", "UsageMoneyBalance", "UsageBalance", "UsageDashboard", "UsageAttempt", "UsageAttemptPage"} {
+	field("UsageAttemptFact", "kind", map[string]any{"enum": []string{"result", "resolution", "confirmation"}})
+	field("UsageAttemptFact", "usage_state", map[string]any{"enum": []string{"complete", "partial", "unreported"}})
+	field("UsageAttemptFact", "identity_sha256", map[string]any{"pattern": "^[a-f0-9]{64}$"})
+	field("UsageAttemptFact", "created_at", map[string]any{"format": "date-time"})
+	for _, model := range []string{"UsagePolicy", "UsageRateRevision", "UsageMoneyBalance", "UsageBalance", "UsageDashboard", "UsageAttempt", "UsageAttemptPage", "UsageAttemptFact", "UsageAttemptFactPage"} {
 		for _, value := range toolContractMap(schemas, model, "properties") {
 			value.(map[string]any)["readOnly"] = true
 		}

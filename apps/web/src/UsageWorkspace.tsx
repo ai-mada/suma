@@ -7,6 +7,7 @@ import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {toolError,toolSessionStorage} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useWriteAction,WriteButton,WriteFields,WriteNotice,type WriteRecoveryRequest} from './write-action';
+import {UsageAttemptFacts} from './UsageAttemptFacts';
 import './UsageWorkspace.css';
 
 type Props={session:Session;project:string;refresh:number};
@@ -155,6 +156,7 @@ function UsageView({session,project,refresh}:Props){
      <dl className="ua-facts"><div data-attempt-total><dt>{t('reported_tokens')}</dt><dd>{count(item.reported_tokens)}</dd></div><div><dt>{t('estimated_cost')}</dt><dd>{money(item.estimated_cost_micros,item.currency,locale)}</dd></div><div><dt>{t('held_tokens')}</dt><dd>{count(item.held_tokens)}</dd></div><div><dt>{t('held_cost')}</dt><dd>{money(item.held_cost_micros,item.currency,locale)}</dd></div></dl>
      {item.overrun&&<p className="ua-warning">{t('overrun')}</p>}<p className="ua-muted">{t('source.'+item.usage_source)}</p>
      <details className="ua-disclosure"><summary data-usage-attempt-details>{t('source_details')}</summary><dl className="ua-facts">{counters.map(key=><div data-counter={key} key={key}><dt>{t('counter.'+key)}</dt><dd>{count(item.usage?.[key])}</dd></div>)}</dl><p>{t('usage_state')}: {['complete','partial','unreported'].includes(item.usage_state)?t('coverage.'+item.usage_state):item.usage_state}</p><p>{t('reserved_tokens')}: {count(item.reserved_tokens)} · {t('reserved_cost')}: {money(item.reserved_cost_micros,item.currency,locale)}</p><p className="ua-raw">{item.tool_profile_id} · {item.worker_id}</p><code>{item.profile_sha256}</code><code>{item.source_result_sha256}</code>{item.rate&&<p>{t('frozen_rate',{version:formatNumber(item.rate.version),currency:item.rate.currency,model:item.rate.model})}</p>}{item.source_ref&&<p className="ua-raw">{item.source_ref}</p>}{item.decision_reason&&<p className="ua-raw">{item.decision_reason}</p>}{item.decision_by&&<p>{item.decision_by} · {formatDateTime(item.decision_at)}</p>}</details>
+     <UsageAttemptFacts project={project} attempt={item.id}/>
      {item.allowed_actions.includes('confirm')&&<button data-usage-confirm type="button" disabled={locked} onClick={()=>openConfirm(item)}>{t('confirm')}</button>}
     </article>)}
     {attempts.page.next_cursor&&<button data-usage-more type="button" disabled={attempts.loading||locked} onClick={()=>void attempts.read(true)}>{t('more')}</button>}

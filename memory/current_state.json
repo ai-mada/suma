@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "usage_evidence": {
+    "stage": "T-USAGE-EVIDENCE-279",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "305119a058ea92857f8dada27cbb2faf3206c1a6",
+    "report": "docs/quality/usage-evidence-verification.md",
+    "actual": "Read-only scoped attempt evidence paging and a bilingual keyboard disclosure show original receipt, additional receipts, reconciliation and confirmation separately.",
+    "verification": "10 targeted Go tests, five subtests, seven Web tests, TypeScript, i18n and generated contracts passed. Chrome fixtures verified 390px zh-CN and 1280px en-US.",
+    "known_limitations": "Stored variable fractional timestamp keys can order historical records within one second differently from real time. Multi-host, provider billing and adjustment remain open.",
+    "full_platform_complete": false
+  },
   "automation_manual_authority": {
     "stage": "T-AUTOMATION-MANUAL-AUTHORITY-278",
     "version": "1.0.0",

@@ -12,6 +12,11 @@ func (s *Server) usageAccountingHTTP(w http.ResponseWriter, r *http.Request, act
 	if len(parts) == 0 || parts[0] != "usage" {
 		return false
 	}
+	attempts := len(parts) == 2 && parts[1] == "attempts"
+	facts := len(parts) == 4 && parts[1] == "attempts" && parts[3] == "facts"
+	if facts {
+		w.Header().Set("Cache-Control", "no-store")
+	}
 	if scope != "" && scope != "api" {
 		writeError(w, forbidden())
 		return true
@@ -22,7 +27,8 @@ func (s *Server) usageAccountingHTTP(w http.ResponseWriter, r *http.Request, act
 		err = invalid("Invalid usage query")
 	}
 	for key, items := range values {
-		allowed := key == "project_id" || r.Method == http.MethodGet && (key == "month" || len(parts) == 2 && parts[1] == "attempts" && (key == "state" || key == "limit" || key == "before"))
+		allowed := key == "project_id" || r.Method == http.MethodGet &&
+			(!facts && key == "month" || attempts && key == "state" || (attempts || facts) && (key == "limit" || key == "before"))
 		if !allowed || len(items) != 1 {
 			err = invalid("Invalid usage query")
 		}
@@ -49,7 +55,7 @@ func (s *Server) usageAccountingHTTP(w http.ResponseWriter, r *http.Request, act
 			}
 		}
 	}
-	if len(values.Get("before")) > 64 {
+	if raw, ok := values["before"]; ok && (len(raw[0]) > 64 || facts && raw[0] == "") {
 		err = invalid("Invalid usage query")
 	}
 	if err != nil {
@@ -92,8 +98,11 @@ func (s *Server) usageAccountingHTTP(w http.ResponseWriter, r *http.Request, act
 		}
 		out, err := s.Service.WriteUsageRate(r.Context(), actor, project, req)
 		respond(w, http.StatusCreated, out, err)
-	case len(parts) == 2 && parts[1] == "attempts" && r.Method == http.MethodGet:
+	case attempts && r.Method == http.MethodGet:
 		out, err := s.Service.ListUsageAttempts(r.Context(), actor, project, values.Get("month"), values.Get("state"), limit, values.Get("before"))
+		respond(w, http.StatusOK, out, err)
+	case facts && r.Method == http.MethodGet:
+		out, err := s.Service.ListUsageAttemptFacts(r.Context(), actor, project, parts[2], limit, values.Get("before"))
 		respond(w, http.StatusOK, out, err)
 	case len(parts) == 4 && parts[1] == "attempts" && parts[3] == "confirm" && r.Method == http.MethodPost:
 		var req UsageConfirmRequest
