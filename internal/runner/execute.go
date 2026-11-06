@@ -1327,6 +1327,17 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			if ctx.Err() != nil {
 				r.ExitCode = -1
 				r.Error = "native workspace execution was cancelled"
+				// Keep the gateway's diagnosis when it stopped the child. A
+				// transport failure may have reached the provider.
+				if count := len(gatewaySnapshot.Records); gatewaySnapshot.Closed && count > 0 {
+					record := gatewaySnapshot.Records[count-1]
+					switch {
+					case record.State == "rejected" && gatewaySnapshot.FailureCode == "model_gateway_upstream_rejected":
+						r.Error = fmt.Sprintf("Model provider rejected the request (HTTP %d)", record.HTTPStatus)
+					case record.State == "unknown" && (gatewaySnapshot.FailureCode == "model_gateway_upstream_unknown" || gatewaySnapshot.FailureCode == "model_gateway_upstream_rejected" || gatewaySnapshot.FailureCode == "model_gateway_response_unverified"):
+						r.Error = "Model provider outcome is unknown. Reconcile the original request."
+					}
+				}
 			}
 			if closeErr := native.Close(); closeErr != nil {
 				r.ExitCode = -1

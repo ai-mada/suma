@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	mc "github.com/ai-mada/suma/internal/modelcontract"
@@ -50,6 +51,8 @@ func modelBindingValue(t *testing.T, binding mc.Binding) map[string]any {
 func TestModelExecutionTwoDeploymentsReachActualNativeBundle(t *testing.T) {
 	var calls []map[string]any
 	var requestDigests, responseDigests []string
+	var replyStatus atomic.Int32
+	var failedCalls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]any
 		raw, readErr := io.ReadAll(r.Body)
@@ -68,6 +71,40 @@ func TestModelExecutionTwoDeploymentsReachActualNativeBundle(t *testing.T) {
 		}
 		if body["max_completion_tokens"] != float64(128) || body["stream"] != false {
 			t.Error("provider limits or protocol were not applied")
+		}
+		foundWrite := false
+		tools, _ := body["tools"].([]any)
+		for _, tool := range tools {
+			entry, _ := tool.(map[string]any)
+			function, _ := entry["function"].(map[string]any)
+			schema, _ := function["parameters"].(map[string]any)
+			fields, _ := schema["properties"].(map[string]any)
+			if fields["expected_sha256"] != nil && fields["expected_absent"] != nil {
+				foundWrite = true
+				if _, incompatible := schema["oneOf"]; incompatible {
+					t.Error("OpenAI rejects the workspace write schema's top-level oneOf")
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+			}
+		}
+		if !foundWrite {
+			t.Error("the provider request lost the workspace write tool")
+		}
+		switch status := replyStatus.Load(); status {
+		case -1:
+			failedCalls.Add(1)
+			connection, _, err := w.(http.Hijacker).Hijack()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			_ = connection.Close()
+			return
+		case http.StatusBadRequest:
+			failedCalls.Add(1)
+			http.Error(w, "upstream-only diagnostic", int(status))
+			return
 		}
 		calls = append(calls, body)
 		requestDigests = append(requestDigests, digest(raw))
@@ -127,7 +164,7 @@ func TestModelExecutionTwoDeploymentsReachActualNativeBundle(t *testing.T) {
 	}
 	cfg.ToolInventory = inventory
 	for index, binding := range bindings {
-		a := Assignment{RunID: fmt.Sprintf("actual-model-%d", index), NodeID: "code", WorkerID: "worker", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "Inspect the supplied native workspace tools; report local protocol completion only", "tool_profile_sha256": inventory[0].Profile.ProfileSHA256, "model_execution": modelBindingValue(t, binding)}}
+		a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: fmt.Sprintf("actual-model-%d", index), NodeID: "code", WorkerID: "worker", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "Inspect the supplied native workspace tools; report local protocol completion only", "tool_profile_sha256": inventory[0].Profile.ProfileSHA256, "model_execution": modelBindingValue(t, binding)}}
 		result := Execute(context.Background(), a, cfg)
 		if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown || result.ToolEvidence == nil {
 			t.Fatalf("actual selected model runtime failed: exit=%d error=%s unknown=%t output=%s", result.ExitCode, result.Error, result.OutcomeUnknown, result.Output)
@@ -148,6 +185,29 @@ func TestModelExecutionTwoDeploymentsReachActualNativeBundle(t *testing.T) {
 	}
 	if len(calls) != 2 {
 		t.Fatalf("expected exactly two owned protocol model requests, got %d", len(calls))
+	}
+	for _, failure := range []struct {
+		status        int32
+		state, detail string
+	}{
+		{http.StatusBadRequest, "rejected", "Model provider rejected the request (HTTP 400)"},
+		{-1, "unknown", "Model provider outcome is unknown"},
+	} {
+		t.Run("provider request "+failure.state, func(t *testing.T) {
+			before := failedCalls.Load()
+			replyStatus.Store(failure.status)
+			a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "actual-model-" + failure.state, NodeID: "code", WorkerID: "worker", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"native"}, Config: map[string]any{
+				"goal": "Verify the original provider failure", "tool_profile_sha256": inventory[0].Profile.ProfileSHA256, "model_execution": modelBindingValue(t, bindings[0]),
+			}}
+			result := Execute(context.Background(), a, cfg)
+			if result.ExitCode == 0 || !strings.Contains(result.Error, failure.detail) || strings.Contains(result.Error+result.Output, "upstream-only diagnostic") {
+				t.Fatalf("original provider failure was obscured or leaked: exit=%d error=%s", result.ExitCode, result.Error)
+			}
+			if failedCalls.Load() != before+1 || result.ToolEvidence == nil || result.ToolEvidence.UsageState != tc.UsageUnreported || result.ToolEvidence.ModelExecution == nil ||
+				len(result.ToolEvidence.ModelExecution.Requests) != 1 || result.ToolEvidence.ModelExecution.Requests[0].State != failure.state {
+				t.Fatalf("original request or unknown usage was not retained: %+v", result.ToolEvidence)
+			}
+		})
 	}
 }
 

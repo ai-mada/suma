@@ -36,8 +36,14 @@ Start 使用原计划 ID／版本与原操作身份，重新核验当前项目�
 
 费用是按原冻结运营方费率计算的估算值；后来更新当前报价不改旧 attempt。模型身份或用量核对不能代替独立代码测试、Review、合并或生产批准。未经可信执行前证明，不能将失败推断为零用量。
 
+## 核对厂商用量与账单
+
+1. 在速码打开原运行与计量计费，记录 UTC 调用窗口、模型版本、尝试／fence、厂商返回的完成 ID、输入／输出／缓存计数、币种及冻结费率。先确认原尝试用量是否完整。
+2. 在厂商用量页选中同一组织、项目和 UTC 窗口。用量导出按模型及 API 密钥分组时，核对调用次数和计数。费用导出按账期与费用项核对，结合缓存价、服务档位、计费精度和项目内其他流量判断差额。 [OpenAI 用量与费用导出](https://help.openai.com/en/articles/20001072)
+3. 有授权且厂商费用已出账时，保留准确的费用依据。项目调用密钥只提供模型访问，OpenAI 组织费用 API 使用单独的管理凭据。月度发票、按项目的厂商费用报表和速码的逐尝试估算分别记录。 [OpenAI 组织费用接口](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/usage/methods/costs)
+
 ## 集成证据及外部连接
 
 阶段集成按[架构检查点](../architecture/model-execution.md#实现与集成计划)记录当前合同、真实原生 CLI 请求、用量及异常回执，再在[统一验证文档](../quality/model-execution-verification.md)披露通过项和未验项；本 SOP 不把设计、配置或 HTTP 200 当作实际验收。
 
-模型适配复用现有受限 fetch；工作区传输复用官方 MCP SDK，没有新增官方 OpenAI SDK。厂商认证、账单及物理多机仍须另有实际证据。开发工具可运行 `suma ... developer check` 进行[真实只读 MCP 检查](../integrations/developer-connection-check.md)，该事实不表示远程 IDE 或 Runner 文件访问已完成；[出站 broker](../architecture/remote-workspace-broker.md)尚未实施。
+模型适配复用现有受限 fetch，工作区传输复用官方 MCP SDK。[OpenAI 实际联调记录](../quality/openai-model-live-verification.md)分别记录项目认证、当前 Runner、厂商调用与待核对预留。厂商账单和物理多机需要独立证据。开发工具可运行 `suma ... developer check` 进行[真实只读 MCP 检查](../integrations/developer-connection-check.md)。远程文件访问参见[出站 broker](../architecture/remote-workspace-broker.md)。

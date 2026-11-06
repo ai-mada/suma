@@ -88,7 +88,16 @@ function providerToolCatalog(items:unknown[]):{tools:Tool[];aliases:Map<string,T
   if(canonicalNames.has(raw.name))throw new RuntimeError('invalid_tools','Control service returned duplicate tool names','native.tools.duplicate_names');canonicalNames.add(raw.name);
   const providerName='tool_'+createHash('sha256').update(raw.name,'utf8').digest('hex').slice(0,32);
   if(aliases.has(providerName))throw new RuntimeError('invalid_tools','Provider tool alias collision','native.tools.alias_collision');
-  const tool:Tool={name:raw.name,providerName,description:typeof raw.description==='string'?raw.description:undefined,parameters:asObject(raw.parameters)};
+  let description=typeof raw.description==='string'?raw.description:undefined;
+  let parameters=asObject(raw.parameters);
+  if(raw.name==='workspace.write'&&Object.hasOwn(parameters,'oneOf')){
+   // Chat Completions rejects root combinators. The original MCP schema and
+   // workspace host still enforce the mutually exclusive write preconditions.
+   parameters={...parameters};
+   delete parameters.oneOf;
+   description=(description?description+' ':'')+'Supply exactly one of expected_sha256 for an existing file or expected_absent: true for a new file.';
+  }
+  const tool:Tool={name:raw.name,providerName,description,parameters};
   tools.push(tool);aliases.set(providerName,tool);
  }
  return {tools,aliases};

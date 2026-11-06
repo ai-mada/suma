@@ -53,6 +53,8 @@ attempt / fence / journal]
 
 实现入口：`internal/modelcontract/` 定义闭合类型与整数预算；`internal/modelgateway/` 处理真实 HTTP 和 SSE；`internal/runner/model_gateway.go` 建立 attempt 网关，`model_gateway_journal.go` 把回执镜像到 Runner journal；`internal/platform/model_execution.go` 与用量钩子处理目录、计划和账务；两个 runtime 仅使用受限连接。
 
+原生 TypeScript 在 Chat Completions 工具声明中投影 `workspace.write` 参数，保留对象字段及版本前置条件说明。MCP 目录和 Go 宿主保留原有互斥验证。Runner 从已持久化的原请求区分厂商 4xx 拒绝和结果未知，公开诊断使用已知 HTTP 状态，厂商错误正文留在公开证据之外，缺失用量继续按原账本规则待核对。
+
 ## 3. 部署选择、参数与预算
 
 管理员通过现有 Runner `--model-deployments` 允许列表维护不可变部署。公开部分包含部署 ID／修订／摘要、协议、模型、`endpoint_origin`、完整端点配置摘要和声明的 `context_window`；完整 `base_url`、凭据环境引用及其真实值留在 Runner 管理范围。公开库存、任务、模型上下文和浏览器不携带供应商密钥。

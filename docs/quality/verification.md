@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MODEL-OPENAI-LIVE 核对 Windows Runner、OpenAI 项目认证和实际 HTTP 拒绝／结果未知，保留原尝试与待核对预留。 [命令与证据](openai-model-live-verification.md)
+
 T-TEAM-RUN-RETURN 核验保护关系、按需读取、CLI 项目范围、桌面键盘和 390px 窄屏。 [命令与证据](team-run-return-verification.md)
 
 T-TOOL-NODE-MATCH-273 核验唯一匹配、部分失败、手动选择优先及保存前重新核对，在 Chrome 中走通桌面和窄屏的代表路径。 [阶段验证](tool-node-match-verification.md)
