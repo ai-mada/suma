@@ -21,6 +21,7 @@ export function ExecutionWorkspace({
   onTasks,
   queueRoute,
   queueRun,
+  queueTool,
   invalidQueue,
   onQueueScope,
   workBuddyFilter,
@@ -45,8 +46,9 @@ export function ExecutionWorkspace({
   onTasks: () => void;
   queueRoute?: QueueRoute;
   queueRun?: string;
+  queueTool?: string;
   invalidQueue?: boolean;
-  onQueueScope?: (route?: QueueRoute, run?: string) => void;
+  onQueueScope?: (route?: QueueRoute, run?: string, tool?: string) => void;
   workBuddyFilter?: WorkBuddyProgressFilter;
   invalidWorkBuddyFilter?: boolean;
   onWorkBuddyFilter?: (filter?: WorkBuddyProgressFilter) => void;
@@ -82,7 +84,7 @@ export function ExecutionWorkspace({
         </button>
       </div>
       {layout === 'team' ? <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><TeamExecutionWorkspace session={session} project={project} refresh={refresh} panel={panel} team={team} invalidTeam={invalidTeam} onTeam={onTeam} onPlan={onPlan} onTasks={onTasks}/></Suspense></ErrorBoundary> : layout === "queue" ? (
-        <SchedulingQueue project={project} refresh={refresh} onRun={onRun} queueRoute={queueRoute} queueRun={queueRun} invalidQueue={invalidQueue} onQueueScope={onQueueScope} />
+        <SchedulingQueue project={project} refresh={refresh} onRun={onRun} queueRoute={queueRoute} queueRun={queueRun} queueTool={queueTool} invalidQueue={invalidQueue} onQueueScope={onQueueScope} />
       ) : layout === 'workbuddy' ? (
         <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><WorkBuddyProgressWorkspace session={session} project={project} refresh={refresh} filter={workBuddyFilter} invalidFilter={invalidWorkBuddyFilter} onFilter={onWorkBuddyFilter} task={workBuddyTask} invalidTask={invalidWorkBuddyTask} onTask={onWorkBuddyTask} onRun={onRun}/></Suspense></ErrorBoundary>
       ) : (

@@ -68,13 +68,17 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 			writeError(w, invalid("队列查询参数无效"))
 			return true
 		}
-		filter := dag.ReadyQueueFilter{Route: query.Get("route"), RunID: query.Get("run_id")}
+		filter := dag.ReadyQueueFilter{Route: query.Get("route"), RunID: query.Get("run_id"), ToolProfileID: query.Get("tool_profile_id")}
 		if route, present := query["route"]; present && (len(route) != 1 || filter.Route == "") {
 			writeError(w, invalid("route 必须是单个 project 或 pool"))
 			return true
 		}
 		if runID, present := query["run_id"]; present && (len(runID) != 1 || filter.RunID == "") {
 			writeError(w, invalid("run_id 必须是单个运行 ID"))
+			return true
+		}
+		if profiles, present := query["tool_profile_id"]; present && (len(profiles) != 1 || filter.ToolProfileID == "") {
+			writeError(w, invalid("队列筛选参数无效"))
 			return true
 		}
 		if !filter.Valid() {

@@ -1,4 +1,5 @@
 {
+  "tool-doctor.open_ready_queue": "View ready queue for this configuration",
   "tool-doctor.title": "Tool configuration check",
   "tool-doctor.read_only": "Read-only check",
   "tool-doctor.loading": "Checking authorization, node identity and inventory for this configuration…",

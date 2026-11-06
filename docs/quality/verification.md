@@ -8,6 +8,8 @@ T-TOOL-DISPATCH-SEARCH 核验越页工具查找、跨搜索与跨操作者游标
 
 T-TOOL-DISPATCH-ALTERNATIVES 代表验证覆盖暂停配置、键盘查找与采用、按需排查及真实 HTTP 只读范围。 [阶段验证](tool-dispatch-alternatives-verification.md)
 
+T-TOOL-QUEUE-FOCUS 核验固定工具筛选、授权分页、实际浏览器跳转与恢复。 [阶段报告](tool-queue-focus-verification.md)
+
 T-TOOL-TASK-PREFLIGHT 核验准确工具、当前授权、流程和执行路径，覆盖 CLI 与窄屏浏览器采用。 [阶段验证](tool-task-preflight-verification.md)
 
 T-CODEX-PREP-TEMPLATE-CHOICE 核验普通节点和共享池的准确模板、撤下与回执重放，以及 390px 浏览器和真实 Codex 库存交接。 [阶段验证](codex-prep-template-choice-verification.md)

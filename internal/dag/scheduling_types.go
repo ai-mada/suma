@@ -1,5 +1,7 @@
 package dag
 
+import "github.com/ai-mada/suma/internal/toolcontract"
+
 // SchedulingPolicyInput replaces the complete administrator admission policy.
 // Nil capacities explicitly mean unlimited; zero is an enforced zero limit.
 type SchedulingPolicyInput struct {
@@ -97,13 +99,15 @@ const (
 // ReadyQueueFilter narrows the persisted ready list before pagination.
 // Empty fields leave their corresponding predicates unrestricted.
 type ReadyQueueFilter struct {
-	Route string
-	RunID string
+	Route         string
+	RunID         string
+	ToolProfileID string
 }
 
 func (filter ReadyQueueFilter) Valid() bool {
 	return (filter.Route == "" || filter.Route == ReadyQueueProjectRoute || filter.Route == ReadyQueuePoolRoute) &&
-		(filter.RunID == "" || identifier.MatchString(filter.RunID))
+		(filter.RunID == "" || identifier.MatchString(filter.RunID)) &&
+		(filter.ToolProfileID == "" || toolcontract.ValidCommandID(filter.ToolProfileID))
 }
 
 type ReadyEntry struct {

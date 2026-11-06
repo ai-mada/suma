@@ -16,7 +16,7 @@ import type {
   NodeAdmissionSnapshot as NodeAdmission,
 } from "../../../packages/contracts/src";
 export type QueueRoute = "project" | "pool";
-export function validQueueRun(value: string): boolean {
+export function validQueueIdentifier(value: string): boolean {
   return value.length <= 100 && /^[A-Za-z0-9]/.test(value) && !/[^A-Za-z0-9_.-]/.test(value);
 }
 export type SchedulingPage<T> = {

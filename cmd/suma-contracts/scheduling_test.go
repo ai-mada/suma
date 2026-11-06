@@ -36,7 +36,7 @@ func TestSchedulingQueueFilterContract(t *testing.T) {
 		name, _ := entry["name"].(string)
 		params[name] = entry
 	}
-	for _, name := range []string{"route", "run_id"} {
+	for _, name := range []string{"route", "run_id", "tool_profile_id"} {
 		if param := params[name]; param["in"] != "query" || (param["required"] != nil && param["required"] != false) {
 			t.Fatalf("missing optional queue filter %s: %#v", name, param)
 		}
@@ -44,8 +44,11 @@ func TestSchedulingQueueFilterContract(t *testing.T) {
 	if route := mapAt(params["route"], "schema"); !reflect.DeepEqual(route["enum"], []string{"project", "pool"}) {
 		t.Fatalf("wrong frozen route filter: %#v", route)
 	}
-	if run := mapAt(params["run_id"], "schema"); run["pattern"] != "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$" || run["maxLength"] != 100 {
-		t.Fatalf("wrong exact run filter: %#v", run)
+	for _, name := range []string{"run_id", "tool_profile_id"} {
+		schema := mapAt(params[name], "schema")
+		if schema["pattern"] != "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$" || schema["maxLength"] != 100 {
+			t.Fatalf("wrong exact ID filter %s: %#v", name, schema)
+		}
 	}
 }
 

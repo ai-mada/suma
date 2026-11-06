@@ -80,7 +80,27 @@
   gap: 8px;
 }
 .scheduling-queue-scope-actions > button,
-.scheduling-queue-focus-run { min-height: 44px; }
+.scheduling-queue-focus-run,
+.scheduling-queue-tool-scope > button { min-height: 44px; }
+.scheduling-queue-tool-scope {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.scheduling-queue-tool-scope > svg { flex: none; color: var(--muted); }
+.scheduling-queue-tool-scope > div {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 3px;
+  min-width: 0;
+  font-size: 13px;
+}
+.scheduling-queue-tool-scope code { overflow-wrap: anywhere; }
 .scheduling-queue-scope-error {
   flex: 1 0 100%;
   margin: 0;

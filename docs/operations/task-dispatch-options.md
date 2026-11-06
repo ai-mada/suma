@@ -105,6 +105,7 @@ suma --project PROJECT run watch RUN
 suma --project PROJECT run watch RUN --after SEQUENCE --max-events 20
 suma --project PROJECT run queue --limit 50
 suma --project PROJECT run queue --route pool --run RUN --limit 50
+suma --project PROJECT run queue --tool PROFILE_ID --route pool --limit 50
 suma --project PROJECT run queue --route pool --run RUN --cursor NEXT_CURSOR
 suma --project PROJECT run scheduling RUN --node NODE
 suma --project PROJECT run workbuddy-status RUN --node NODE

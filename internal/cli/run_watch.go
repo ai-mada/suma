@@ -14,6 +14,8 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
 const (
@@ -22,7 +24,7 @@ const (
 	maxRunWatchFailures    = 5
 	runWatchUsage          = "run watch requires RUN, with optional --after 0..9007199254740991 and --max-events 1..100000"
 	runSchedulingUsage     = "run scheduling requires RUN and --node NODE"
-	runQueueUsage          = "run queue accepts --route project|pool, --run RUN, --limit 1..100 and an original --cursor"
+	runQueueUsage          = "run queue accepts --route project|pool, --run RUN, --tool PROFILE, --limit 1..100 and an original --cursor"
 	runWatchRetryExhausted = "live run event retries exhausted; resume from the last printed cursor"
 	runWatchOutputFailed   = "unable to write a complete live run event"
 )
@@ -77,6 +79,7 @@ func runObservationCommand(ctx context.Context, c *client, action string, args [
 			return value == "project" || value == "pool"
 		}))
 		fs.Func("run", "exact run ID", filter("run_id", runQueueRunID.MatchString))
+		fs.Func("tool", "exact tool profile ID", filter("tool_profile_id", toolcontract.ValidCommandID))
 		if fs.Parse(args) != nil || fs.NArg() != 0 {
 			return usage(runQueueUsage)
 		}
@@ -232,7 +235,7 @@ const runObservationHelpEN = `Follow and inspect a run in the current --project.
   run inputs RUN --node NODE --attempt N --fence F [--workbench-origin ORIGIN]
   run workbuddy-status RUN --node NODE
   run workbuddy-list [--limit 1..20] [--filter attention|delivery|input] [--task TASK] [--before NEXT_CURSOR]
-  run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
+  run queue [--route project|pool] [--run RUN] [--tool PROFILE] [--limit 1..100] [--cursor CURSOR]
 
 Watch writes one complete JSON event per line. Stop with Ctrl+C or an explicit
 event limit. Resume from the last printed sequence of the same run.
@@ -259,7 +262,7 @@ const runObservationHelpZH = `跟踪和查看当前 --project 的运行。
   run inputs RUN --node NODE --attempt 尝试号 --fence 租约令牌 [--workbench-origin 工作台地址]
   run workbuddy-status RUN --node NODE
   run workbuddy-list [--limit 1..20] [--filter attention|delivery|input] [--task TASK] [--before NEXT_CURSOR]
-  run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
+  run queue [--route project|pool] [--run RUN] [--tool PROFILE] [--limit 1..100] [--cursor CURSOR]
 
 watch 每行输出一条完整 JSON 事件。按 Ctrl+C 或设置事件数量上限结束。
 续传使用同一运行最后一条已输出事件的序号。

@@ -133527,7 +133527,7 @@
             }
           },
           {
-            "description": "Opaque keyset cursor bound to tenant, project, route and run_id filters.",
+            "description": "Opaque keyset cursor bound to tenant, project, route, run_id and tool_profile_id filters.",
             "in": "query",
             "name": "cursor",
             "schema": {
@@ -133547,9 +133547,19 @@
             }
           },
           {
-            "description": "Filter by the exact run ID within the authorized project. Both filters bind continuation and total.",
+            "description": "Filter by the exact run ID within the authorized project. All supplied filters narrow the same total and continuation.",
             "in": "query",
             "name": "run_id",
+            "schema": {
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by the exact tool profile ID pinned on each ready node. Includes currently unavailable pinned profiles.",
+            "in": "query",
+            "name": "tool_profile_id",
             "schema": {
               "maxLength": 100,
               "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",

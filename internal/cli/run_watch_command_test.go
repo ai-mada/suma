@@ -154,13 +154,13 @@ func TestRunWatchCommandSchedulingReads(t *testing.T) {
 
 func TestRunQueueSendsExactFiltersWithOriginalCursor(t *testing.T) {
 	for _, tc := range []struct {
-		name, route, run, cursor string
-		args                     []string
+		name, route, run, tool, cursor string
+		args                           []string
 	}{
 		{
 			name:  "pool and exact run continuation",
-			args:  []string{"--route=pool", "--run", "Abc_12.v-1", "--limit", "3", "--cursor", "Original_Cursor-9"},
-			route: "pool", run: "Abc_12.v-1", cursor: "Original_Cursor-9",
+			args:  []string{"--route=pool", "--run", "Abc_12.v-1", "--tool", "Codex_01", "--limit", "3", "--cursor", "Original_Cursor-9"},
+			route: "pool", run: "Abc_12.v-1", tool: "Codex_01", cursor: "Original_Cursor-9",
 		},
 		{
 			name: "project route only", args: []string{"--route", "project", "--limit", "3"}, route: "project",
@@ -178,7 +178,7 @@ func TestRunQueueSendsExactFiltersWithOriginalCursor(t *testing.T) {
 					q.Get("project_id") != "project-one" || q.Get("limit") != "3" || r.Header.Get("Authorization") != "Bearer test-secret" {
 					t.Errorf("incorrect queue read: %s %s", r.Method, r.URL)
 				}
-				for key, want := range map[string]string{"route": tc.route, "run_id": tc.run, "cursor": tc.cursor} {
+				for key, want := range map[string]string{"route": tc.route, "run_id": tc.run, "tool_profile_id": tc.tool, "cursor": tc.cursor} {
 					if want == "" && q.Has(key) || want != "" && (len(q[key]) != 1 || q.Get(key) != want) {
 						t.Errorf("queue query %q = %v, want %q", key, q[key], want)
 					}
@@ -206,6 +206,7 @@ func TestRunQueueRejectsInvalidFiltersWithoutReading(t *testing.T) {
 		{"--route", "project", "--route=pool"}, {"--run"}, {"--run="}, {"--run", "_leading"},
 		{"--run", "bad/run"}, {"--run", "two words"}, {"--run", "运行"}, {"--run", strings.Repeat("r", 101)},
 		{"--run", "same", "--run=same"},
+		{"--tool"}, {"--tool="}, {"--tool", "bad/tool"}, {"--tool", "same", "--tool=same"}, {"--tool", strings.Repeat("t", 101)},
 	} {
 		code, stdout, _ := invoke(t, server.URL, append([]string{"run", "queue"}, flags...)...)
 		if code != 2 || stdout != "" || calls.Load() != 0 {

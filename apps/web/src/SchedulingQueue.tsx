@@ -4,7 +4,7 @@ import { query, time } from "./api";
 import { useApiView } from "./api-context";
 import { tr as t, useLocale, formatNumber, UiError } from "./i18n";
 import { AdmissionFacts, poolRunnerRecoveryHint, schedulingBlockerTitle } from "./SchedulingFacts";
-import { executionHref, validQueueRun, type QueueRoute, type ReadyEntry, type SchedulingBlocker } from "./scheduling-model";
+import { executionHref, validQueueIdentifier, type QueueRoute, type ReadyEntry, type SchedulingBlocker } from "./scheduling-model";
 import { useSchedulingPage } from "./scheduling-hooks";
 import { toolReturnPanel } from "./tool-model";
 import { ErrorNotice, Loading, Empty } from "./ui";
@@ -18,8 +18,9 @@ type Props = {
   onRun: (run: string, node: string) => void;
   queueRoute?: QueueRoute;
   queueRun?: string;
+  queueTool?: string;
   invalidQueue?: boolean;
-  onQueueScope?: (route?: QueueRoute, run?: string) => void;
+  onQueueScope?: (route?: QueueRoute, run?: string, tool?: string) => void;
 };
 const statusIcons = { blocked: CircleAlert, unknown: CircleHelp, checked: CircleCheck };
 const actionableToolBlockers = new Set(["tool_profile_changed", "tool_profile_paused", "tool_profile_revoked", "tool_activation_revoked"]);
@@ -28,7 +29,6 @@ const actionablePoolBlockers = new Set([
   "pool_paused", "pool_metadata_missing", "pool_policy_missing", "pool_grant_not_current",
   "pool_runner_registration_missing", "pool_runner_credential_unavailable",
 ]);
-const toolIdentity = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
 const profileDigest = /^[a-f0-9]{64}$/;
 
 function isQueueEntry(project: string) {
@@ -61,14 +61,18 @@ function frozenRoute(admission: ReadyEntry["admission"]): QueueRoute | undefined
   if (typeof pool === "string") return "pool";
 }
 
-function toolDiagnosticsHref(project: string, item: ReadyEntry, admission: ReadyEntry["admission"], blocker?: SchedulingBlocker) {
+function fixedToolBinding(item: ReadyEntry, admission: ReadyEntry["admission"]) {
   const binding = admission?.tool_binding;
+  if (binding && typeof binding.profile_id === "string" && validQueueIdentifier(binding.profile_id) &&
+      typeof binding.command_id === "string" && validQueueIdentifier(binding.command_id) && binding.command_id === item.command_id &&
+      typeof binding.profile_sha256 === "string" && profileDigest.test(binding.profile_sha256)) return binding;
+}
+
+function toolDiagnosticsHref(project: string, item: ReadyEntry, admission: ReadyEntry["admission"], blocker?: SchedulingBlocker) {
+  const binding = fixedToolBinding(item, admission);
   if (admission?.status !== "blocked" || !blocker || !actionableToolBlockers.has(blocker.code) ||
       blocker.run_id !== item.run_id || blocker.node_id !== item.node_id || !binding ||
-      typeof binding.profile_id !== "string" || !toolIdentity.test(binding.profile_id) ||
-      typeof binding.command_id !== "string" || !toolIdentity.test(binding.command_id) || binding.command_id !== item.command_id ||
-      typeof binding.profile_sha256 !== "string" || !profileDigest.test(binding.profile_sha256) ||
-      !validQueueRun(item.run_id) || !item.node_id) return undefined;
+      !validQueueIdentifier(item.run_id) || !item.node_id) return undefined;
 
   const panel = toolReturnPanel(item.run_id, item.node_id);
   return panel ? "?" + new URLSearchParams({ project, view: "settings", sub: "tools", record: binding.profile_id, panel }) : undefined;
@@ -80,10 +84,11 @@ function guardQueueNavigation(event: MouseEvent<HTMLAnchorElement>) {
 }
 
 function QueueScopeForm({
-  route, run, invalid, input, onChange,
+  route, run, tool, invalid, input, onChange,
 }: {
   route?: QueueRoute;
   run?: string;
+  tool?: string;
   invalid: boolean;
   input: RefObject<HTMLInputElement | null>;
   onChange: NonNullable<Props["onQueueScope"]>;
@@ -95,26 +100,26 @@ function QueueScopeForm({
   // Back/forward can change the committed run without remounting the form.
   if (draft.source !== source) setDraft(initial);
   const current = draft.source === source ? draft : initial;
-  const invalidRun = current.submitted && !validQueueRun(current.text);
+  const invalidRun = current.submitted && !validQueueIdentifier(current.text);
   const selected = invalid ? current.invalidRoute : route;
 
   return (
     <form className="scheduling-queue-scope" aria-label={t("workspace.queue.scope_label")} onSubmit={event => {
       event.preventDefault();
-      if (current.text && !validQueueRun(current.text)) {
+      if (current.text && !validQueueIdentifier(current.text)) {
         setDraft({ ...current, submitted: true });
         input.current?.focus();
         return;
       }
       setDraft({ ...current, submitted: false });
-      if (invalid || current.text !== (run ?? "")) onChange(selected, current.text || undefined);
+      if (invalid || current.text !== (run ?? "")) onChange(selected, current.text || undefined, tool);
     }}>
       <label>
         <span>{t("workspace.queue.route_label")}</span>
         <select data-queue-route value={selected ?? ""} onChange={event => {
           const next = event.target.value === "project" || event.target.value === "pool" ? event.target.value : undefined;
           if (invalid) setDraft({ ...current, invalidRoute: next });
-          else onChange(next, run);
+          else onChange(next, run, tool);
         }}>
           <option value="">{t("workspace.queue.route_all")}</option>
           <option value="project">{t("workspace.queue.route_project")}</option>
@@ -132,10 +137,21 @@ function QueueScopeForm({
         <button type="submit" data-queue-apply>{t("workspace.queue.scope_apply")}</button>
         <button type="button" data-queue-clear onClick={() => {
           setDraft({ ...initial, text: "" });
-          if (invalid || route || run) onChange();
+          if (invalid || route || run || tool) onChange();
           input.current?.focus();
         }}>{t("workspace.queue.scope_clear")}</button>
       </div>
+      {tool && <div className="scheduling-queue-tool-scope" data-queue-tool-scope>
+        <Wrench size={16} aria-hidden="true" />
+        <div>
+          <strong>{t("workspace.queue.tool_label")}</strong>
+          <code>{tool}</code>
+        </div>
+        <button type="button" data-queue-tool-clear onClick={() => {
+          onChange(route, run);
+          input.current?.focus();
+        }}>{t("workspace.queue.tool_clear")}</button>
+      </div>}
       {invalidRun && <p id={errorID} className="scheduling-queue-scope-error" role="alert">{t("workspace.queue.run_invalid")}</p>}
     </form>
   );
@@ -149,10 +165,11 @@ export function SchedulingQueue(props: Props) {
   return <ProjectSchedulingQueue key={scope || props.project} scope={scope} {...props} />;
 }
 
-function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, queueRun, invalidQueue, onQueueScope }: Props & { scope: string }) {
+function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, queueRun, queueTool, invalidQueue, onQueueScope }: Props & { scope: string }) {
   const input = useRef<HTMLInputElement>(null);
-  const invalid = !!invalidQueue || queueRun !== undefined && !validQueueRun(queueRun);
-  const filterScope = JSON.stringify([scope, queueRoute, queueRun]);
+  const invalid = !!invalidQueue || queueRun !== undefined && !validQueueIdentifier(queueRun) ||
+    queueTool !== undefined && !validQueueIdentifier(queueTool);
+  const filterScope = JSON.stringify([scope, queueRoute, queueRun, queueTool]);
   const [facet, setFacet] = useState<{ scope: string; filter: QueueFilter }>();
   const saved = scope && isQueueEntry(project) ? history.state?.sumaQueueFilter : undefined;
   const filter = facet?.scope === filterScope ? facet.filter
@@ -160,19 +177,24 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
   function chooseFilter(value: QueueFilter) {
     const next = { scope: filterScope, filter: value };
     setFacet(next);
-    // Only the local status facet is stored in history state. Execution path
-    // and run use the shareable URL, which is also the queue read scope.
+    // Only the local status facet is stored in history state. The exact
+    // filters use the shareable URL, which is also the queue read scope.
     if (scope && isQueueEntry(project)) history.replaceState({ ...history.state, sumaQueueFilter: next }, "");
   }
   const params = new URLSearchParams();
   if (queueRoute) params.set("route", queueRoute);
   if (queueRun) params.set("run_id", queueRun);
+  if (queueTool) params.set("tool_profile_id", queueTool);
   const selection = params.toString();
   const page = useSchedulingPage<ReadyEntry>(
     invalid ? "" : "/scheduling/queue" + query(project) + (selection ? "&" + selection : ""),
     item => {
-      if (!item || typeof item.run_id !== "string" || typeof item.node_id !== "string" ||
-          queueRun && item.run_id !== queueRun || queueRoute && frozenRoute(admissionFor(item)) !== queueRoute) {
+      if (!item || typeof item.run_id !== "string" || typeof item.node_id !== "string") {
+        throw new UiError("development.errors.page_scope_invalid");
+      }
+      const admission = queueRoute || queueTool ? admissionFor(item) : undefined;
+      if (queueRun && item.run_id !== queueRun || queueRoute && frozenRoute(admission) !== queueRoute ||
+          queueTool && fixedToolBinding(item, admission)?.profile_id !== queueTool) {
         throw new UiError("development.errors.page_scope_invalid");
       }
       return item.run_id + "\0" + item.node_id;
@@ -205,7 +227,7 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
           {t(page.error ? "workspace.queue.retry" : "workspace.queue.reload")}
         </button>
       </div>
-      {onQueueScope && <QueueScopeForm route={queueRoute} run={queueRun} invalid={invalid} input={input} onChange={onQueueScope} />}
+      {onQueueScope && <QueueScopeForm route={queueRoute} run={queueRun} tool={queueTool} invalid={invalid} input={input} onChange={onQueueScope} />}
       {invalid && <p className="warning" role="alert">{t("workspace.queue.scope_invalid")}</p>}
       {page.error && <>
         <ErrorNotice error={page.failure || page.error} />
@@ -232,7 +254,7 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
             const toolBlocker = admission?.blockers.find(blocker => blocker.source === "tool");
             const toolHref = toolDiagnosticsHref(project, item, admission, toolBlocker);
             const poolID = admission?.execution_pool_id;
-            const poolBlockers = admission?.status === "blocked" && typeof poolID === "string" && validQueueRun(poolID)
+            const poolBlockers = admission?.status === "blocked" && typeof poolID === "string" && validQueueIdentifier(poolID)
               ? admission.blockers.filter(blocker => blocker.source === "pool" && actionablePoolBlockers.has(blocker.code) &&
                 blocker.run_id === item.run_id && blocker.node_id === item.node_id)
               : [];
@@ -285,11 +307,11 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
                     onClick={guardQueueNavigation}>
                     <Server size={15} aria-hidden="true" /> {t("workspace.queue.open_pool_resources")}
                   </a>}
-                  {confirmed && onQueueScope && !queueRun && validQueueRun(item.run_id) &&
+                  {confirmed && onQueueScope && !queueRun && validQueueIdentifier(item.run_id) &&
                     <button className="scheduling-queue-focus-run" type="button" data-queue-focus-run
                       aria-label={t("workspace.queue.focus_named_run", { run: item.run_id })}
                       onClick={() => {
-                        onQueueScope(queueRoute, item.run_id);
+                        onQueueScope(queueRoute, item.run_id, queueTool);
                         input.current?.focus();
                       }}>{t("workspace.queue.focus_run")}</button>}
                   {hasPolicyBlocker && <a className="scheduling-policy-link" data-queue-policy href={policyHref}
@@ -304,7 +326,7 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
           })}
         </ul>
       ) : confirmed ? <p className="scheduling-queue-empty">
-        {t(page.items.length ? "workspace.queue.filtered_empty" : "workspace.queue.empty")}
+        {t(page.items.length ? "workspace.queue.filtered_empty" : queueTool ? "workspace.queue.tool_empty" : "workspace.queue.empty")}
       </p> : null}
       {page.next && !page.error && (
         <button className="scheduling-queue-more" type="button" aria-disabled={page.loading}

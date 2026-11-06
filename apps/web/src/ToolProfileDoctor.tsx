@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {ArrowRight} from 'lucide-react';
 import type {ToolProfile,ToolProfileDiagnostics} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi,useApiView} from './api-context';
@@ -8,6 +9,7 @@ import {sameToolProfile,toolProfileMatchKey} from './tool-profile-reuse-model';
 import {ToolProfileImpact,type ToolProfileImpactProps} from './ToolProfileImpact';
 import type {ToolInspectionLocator} from './tool-reinspection-model';
 import {tr,useLocale} from './i18n';
+import {validQueueIdentifier} from './scheduling-model';
 import './ToolProfileDoctor.css';
 
 export type ToolProfileDoctorProps={project:string;tool:ToolProfile;confirmed?:boolean;autoRefresh?:boolean;pending?:boolean;disabled?:boolean;onReview?:(tool:ToolProfile)=>void;onWorker?:(workerID:string)=>void;onSharedWorker?:(workerID:string)=>void;onRegister?:(tool:ToolProfile)=>void;onInspect?:(tool:ToolProfile,locator?:ToolInspectionLocator)=>void;onRun?:ToolProfileImpactProps['onRun'];onRefreshTool?:()=>void};
@@ -110,5 +112,18 @@ function ToolDoctorReader({api,source,access,userID,organizationID,...props}:Pro
   {!suspended&&!denied&&<div className="tool-profile-doctor-target" data-tool-profile-doctor-target><p><span>{t('selected_target')}</span><strong>{props.tool.name}</strong></p>{sharedDestination&&<p className="tool-profile-doctor-hint">{t('shared_readonly')}</p>}<details data-tool-profile-doctor-basis><summary>{t('target_details')}</summary><dl>{([['target_project',props.project],['target_worker',props.tool.worker_id],['target_adapter',props.tool.profile.adapter],['target_protocol',props.tool.profile.protocol],['target_profile',props.tool.id],['target_hash',props.tool.profile.profile_sha256]] as const).map(([label,value])=><div key={label}><dt>{t(label)}</dt><dd><code>{value}</code></dd></div>)}</dl></details></div>}
   <ToolDoctorCard report={report} state={state} error={current?.error} primaryAction={primaryAction} maintenanceAction={maintenanceAction} checkActions={checkActions} onRefresh={refresh} onRefreshTool={state==='changed'&&props.onRefreshTool?()=>{if(admission.current&&mounted.current&&intent.current.api===api&&intent.current.key===key)props.onRefreshTool!();}:undefined}/>
   {!denied&&<ToolProfileImpact impact={state==='ready'?report?.impact:undefined} onRun={state==='ready'&&props.onRun?(runID,nodeID,attempt)=>guarded(()=>props.onRun!(runID,nodeID,attempt)):undefined}/>}
+  {state==='ready'&&report&&validQueueIdentifier(report.tool.id)&&
+    <a className="tool-profile-doctor-queue" data-tool-queue-focus
+      href={'?'+new URLSearchParams({project:props.project,view:'development',sub:'runs',layout:'queue',queue_tool:report.tool.id})}
+      onClick={event=>{
+        if(!live()){
+          event.preventDefault();
+          tick(value=>value+1);
+        }else if(!window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))){
+          event.preventDefault();
+        }
+      }}>
+      <span>{t('open_ready_queue')}</span><ArrowRight size={16} aria-hidden="true"/>
+    </a>}
  </div>;
 }

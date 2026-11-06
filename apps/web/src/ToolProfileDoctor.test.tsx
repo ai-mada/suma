@@ -175,3 +175,34 @@ it('T223 preserves an in-flight scoped read during background detail refresh and
  await click('[data-tool-doctor-refresh]');expect(fetcher).toHaveBeenCalledTimes(2);const next=(fetcher.mock.calls[1][1] as RequestInit).signal;
  await render({autoRefresh:true,pending:true});expect(state()).toBe('suspended');expect(next?.aborted).toBe(true);await act(async()=>second.resolve(Response.json(report())));await settle();expect(state()).toBe('suspended');expect(fetcher).toHaveBeenCalledTimes(2);
 });
+
+it('links a confirmed removed configuration to its exact ready queue and guards stale navigation',async()=>{
+ let now=0;
+ vi.spyOn(performance,'now').mockImplementation(()=>now);
+ const removed:ToolProfile={...tool,id:'Tool.Removed',state:'revoked'};
+ const fetcher=vi.fn(async(_input:string,_init:RequestInit)=>Response.json(report(removed)));
+ vi.stubGlobal('fetch',fetcher);
+ await render({tool:removed});
+ const link=host.querySelector<HTMLAnchorElement>('[data-tool-queue-focus]')!;
+ expect(state()).toBe('ready');
+ expect(link.textContent).toContain('View ready queue for this configuration');
+ expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({
+  project:'p',view:'development',sub:'runs',layout:'queue',queue_tool:'Tool.Removed',
+ });
+ const block=vi.fn((event:Event)=>event.preventDefault());
+ window.addEventListener('suma:navigate',block);
+ try{
+  await act(async()=>expect(link.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false));
+  expect(block).toHaveBeenCalledOnce();
+  now=13000;
+  await act(async()=>expect(link.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false));
+  expect(block).toHaveBeenCalledOnce();
+ }finally{window.removeEventListener('suma:navigate',block);}
+ expect(state()).toBe('expired');
+ expect(host.querySelector('[data-tool-queue-focus]')).toBeNull();
+ await render({tool:removed,pending:true});
+ expect(state()).toBe('suspended');
+ expect(host.querySelector('[data-tool-queue-focus]')).toBeNull();
+ expect(fetcher).toHaveBeenCalledOnce();
+ expect(fetcher.mock.calls[0][1].method).toBe('GET');
+});

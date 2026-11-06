@@ -1117,11 +1117,14 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     history.replaceState(
       null,
       "",
-      "/?project=p&view=development&sub=runs&layout=queue&queue_route=pool&queue_run=run-exact",
+      "/?project=p&view=development&sub=runs&layout=queue&queue_route=pool&queue_run=run-exact&queue_tool=tool-a",
     );
+    const reads: URLSearchParams[] = [];
     const poolEntry = {
       ...entry,
+      command_id: "codex-cli",
       admission: {
+        tool_binding: { profile_id: "tool-a", command_id: "codex-cli", profile_sha256: "a".repeat(64) },
         execution_pool_id: "pool-a", run_id: entry.run_id, node_id: entry.node_id,
         run_version: entry.run_version, node_state: entry.node_state, attempt: entry.attempt, fence: entry.fence,
         policy_version: 1, evaluated_at: entry.ready_at, status: "unknown", blockers: [], requests: [], reservations: [],
@@ -1138,6 +1141,7 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
           const params = new URL(String(input), location.origin).searchParams;
           expect(params.get("route")).toBe("pool");
           expect(params.get("run_id")).toBe("run-exact");
+          reads.push(params);
           return response({ items: [poolEntry], total: 1 });
         }
         throw Error("Unexpected " + route);
@@ -1145,6 +1149,8 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     );
     await render(<App />);
     await flush(() => !!container.querySelector("a.scheduling-open-link"));
+    expect(reads.at(-1)?.get("tool_profile_id")).toBe("tool-a");
+    expect(container.querySelector("[data-queue-tool-scope] code")?.textContent).toBe("tool-a");
     await act(async () => container.querySelector<HTMLButtonElement>('[data-queue-filter="unknown"]')!.click());
     const link = container.querySelector<HTMLAnchorElement>(
       "a.scheduling-open-link",
@@ -1163,6 +1169,7 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
       attempt: "",
     });
     expect(new URLSearchParams(location.search).has("queue_run")).toBe(false);
+    expect(new URLSearchParams(location.search).has("queue_tool")).toBe(false);
     await act(async () => {
       history.back();
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -1173,16 +1180,28 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
         !container.querySelector('[data-testid="route-consumer"]'),
     );
     expect(parseWorkbenchRoute(location.search)).toMatchObject({
-      layout: "queue", queue_route: "pool", queue_run: "run-exact",
+      layout: "queue", queue_route: "pool", queue_run: "run-exact", queue_tool: "tool-a",
     });
     await flush(() => container.querySelector('[data-queue-filter="unknown"]')?.getAttribute('aria-pressed') === 'true');
+    expect(reads.at(-1)?.get("tool_profile_id")).toBe("tool-a");
+
+    await act(async () => container.querySelector<HTMLButtonElement>("[data-queue-tool-clear]")!.click());
+    await flush(() => reads.at(-1)?.has("tool_profile_id") === false);
+    expect(parseWorkbenchRoute(location.search)).toMatchObject({
+      layout: "queue", queue_route: "pool", queue_run: "run-exact",
+    });
+    expect(parseWorkbenchRoute(location.search).queue_tool).toBeUndefined();
+    expect(document.activeElement?.hasAttribute("data-queue-run-filter")).toBe(true);
   });
 
   it("requires a fresh scope for an invalid link and rejects a mismatched continuation", async () => {
     const queue = "?project=p&view=development&sub=runs&layout=queue";
     expect(parseWorkbenchRoute(queue + "&queue_route=pool&queue_route=project").queue_invalid).toBe("1");
     expect(parseWorkbenchRoute(queue + "&queue_run=").queue_invalid).toBe("1");
-    history.replaceState(null, "", "/?view=development&sub=runs&layout=queue&queue_run=run-exact");
+    expect(parseWorkbenchRoute(queue + "&queue_tool=tool-a%0A").queue_invalid).toBe("1");
+    expect(parseWorkbenchRoute(queue + "&queue_tool=").queue_invalid).toBe("1");
+    expect(parseWorkbenchRoute("?view=development&sub=runs&layout=queue&queue_run=run-exact").queue_invalid).toBe("1");
+    history.replaceState(null, "", "/" + queue + "&queue_tool=tool-a&queue_tool=tool-b");
     const reads: URLSearchParams[] = [];
     const poolEntry = {
       ...entry,
@@ -1267,6 +1286,42 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     await flush(() => filter.value === entry.run_id);
     expect(document.activeElement).toBe(filter);
     expect(reads.at(-1)?.get("run_id")).toBe(entry.run_id);
+  });
+  it("retries the same tool-scoped continuation without accepting a differently cased profile", async () => {
+    const scope = { project: "p", queueTool: "Tool-A", queueRoute: "pool" as const, refresh: 0, onRun: vi.fn() };
+    const admission = {
+      execution_pool_id: "pool-a", run_id: entry.run_id, node_id: entry.node_id,
+      run_version: entry.run_version, node_state: entry.node_state, attempt: entry.attempt, fence: entry.fence,
+      policy_version: 1, evaluated_at: entry.ready_at, status: "unknown", blockers: [], requests: [], reservations: [],
+      tool_binding: { profile_id: "Tool-A", command_id: "codex-cli", profile_sha256: "a".repeat(64) },
+    };
+    const reads: URLSearchParams[] = [];
+    let mismatch = true;
+    vi.stubGlobal("fetch", vi.fn(async (input: unknown) => {
+      const params = new URL(String(input), location.origin).searchParams;
+      reads.push(params);
+      const first = { ...entry, command_id: "codex-cli", admission };
+      if (!params.has("cursor")) return response({ items: [first], total: 2, next_cursor: "next-tool" });
+      const tool_binding = { ...admission.tool_binding, profile_id: mismatch ? "tool-a" : "Tool-A" };
+      const node_id = "next-node";
+      return response({
+        items: [{ ...first, node_id, node_name: mismatch ? "范围外工具" : "固定工具续页", admission: { ...admission, node_id, tool_binding } }],
+        total: 2,
+      });
+    }));
+
+    await render(<SchedulingQueue {...scope} />);
+    await flush(() => container.textContent!.includes("当前范围已加载 1 / 2"));
+    await click("加载更多就绪节点");
+    await flush(() => !!container.querySelector('[role="alert"]'));
+    expect(container.textContent).not.toContain("范围外工具");
+    expect(reads.at(-1)?.get("cursor")).toBe("next-tool");
+    mismatch = false;
+    await click("重试读取队列");
+    await flush(() => container.textContent!.includes("固定工具续页"));
+    expect(reads.map(params => [params.get("route"), params.get("tool_profile_id"), params.get("cursor")])).toEqual([
+      ["pool", "Tool-A", null], ["pool", "Tool-A", "next-tool"], ["pool", "Tool-A", "next-tool"],
+    ]);
   });
   it("validates attempt URL and clears it when an inaccessible project is replaced", () => {
     const route = parseWorkbenchRoute(

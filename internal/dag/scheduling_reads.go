@@ -211,6 +211,38 @@ func encodeSchedulingCursor(c schedulingCursor) string {
 	return base64.RawURLEncoding.EncodeToString([]byte(encoded(c)))
 }
 
+// The queue matches frozen compiler output, including a valid SHA, rather
+// than the command name or a mutable tool registration. Both page rows and
+// total use this predicate. AdmissionSnapshotTx verifies the full binding.
+func (e *Engine) readyQueueToolPredicate() string {
+	const boundTypes = ` AND q.node_type IN ('agent','command','test','terminal_session')`
+	switch e.dialect {
+	case "postgres":
+		return boundTypes + `
+			AND jsonb_typeof(CAST(n.spec AS JSONB)#>'{config,tool_profile_id}')='string'
+			AND (CAST(n.spec AS JSONB)#>>'{config,tool_profile_id}') COLLATE "C"=?
+			AND jsonb_typeof(CAST(n.spec AS JSONB)#>'{config,tool_profile_sha256}')='string'
+			AND (CAST(n.spec AS JSONB)#>>'{config,tool_profile_sha256}') COLLATE "C" ~ '^[0-9a-f]{64}$'`
+	case "oceanbase":
+		return boundTypes + ` AND CASE WHEN JSON_VALID(n.spec) THEN
+			JSON_TYPE(JSON_EXTRACT(n.spec,'$.config.tool_profile_id'))='STRING'
+			AND CAST(JSON_UNQUOTE(JSON_EXTRACT(n.spec,'$.config.tool_profile_id')) AS BINARY)=CAST(? AS BINARY)
+			AND JSON_TYPE(JSON_EXTRACT(n.spec,'$.config.tool_profile_sha256'))='STRING'
+			AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(n.spec,'$.config.tool_profile_sha256')))=64
+			AND REGEXP_LIKE(JSON_UNQUOTE(JSON_EXTRACT(n.spec,'$.config.tool_profile_sha256')),'^[0-9a-f]{64}$','c')
+			ELSE FALSE END`
+	default:
+		return boundTypes + ` AND CASE WHEN json_valid(n.spec) THEN
+			json_type(n.spec,'$.config.tool_profile_id')='text'
+			AND json_extract(n.spec,'$.config.tool_profile_id') COLLATE BINARY=?
+			AND json_type(n.spec,'$.config.tool_profile_sha256')='text'
+			AND length(CAST(json_extract(n.spec,'$.config.tool_profile_sha256') AS BLOB))=64
+			AND instr(json_extract(n.spec,'$.config.tool_profile_sha256'),char(0))=0
+			AND json_extract(n.spec,'$.config.tool_profile_sha256') NOT GLOB '*[^0-9a-f]*'
+			ELSE FALSE END`
+	}
+}
+
 func (e *Engine) QueuePage(ctx context.Context, tenant, project string, limit int, cursor string) (ReadyPage, error) {
 	return e.queuePage(ctx, nil, tenant, project, ReadyQueueFilter{}, limit, cursor)
 }
@@ -241,6 +273,9 @@ func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project stri
 	kind := "ready"
 	if filter != (ReadyQueueFilter{}) {
 		kind += ":" + filter.Route + ":" + filter.RunID
+	}
+	if filter.ToolProfileID != "" {
+		kind += ":tool:" + filter.ToolProfileID
 	}
 	c, err := decodeSchedulingCursor(cursor, tenant, project, kind)
 	if err != nil {
@@ -281,6 +316,10 @@ func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project stri
 		from += " AND NOT " + poolRoute
 	case ReadyQueuePoolRoute:
 		from += " AND " + poolRoute
+	}
+	if filter.ToolProfileID != "" {
+		from += e.readyQueueToolPredicate()
+		params = append(params, filter.ToolProfileID)
 	}
 	if err = tx.QueryRowContext(ctx, e.q("SELECT COUNT(*)"+from), params...).Scan(&out.Total); err != nil {
 		return out, err
@@ -329,6 +368,9 @@ func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project stri
 		snapshot, err := e.AdmissionSnapshotTx(ctx, tx, tenant, project, out.Items[i].RunID, out.Items[i].NodeID)
 		if err != nil {
 			return out, err
+		}
+		if filter.ToolProfileID != "" && (snapshot.ToolBinding == nil || snapshot.ToolBinding.ProfileID != filter.ToolProfileID) {
+			return out, ErrConflict
 		}
 		out.Items[i].Admission = &snapshot
 	}

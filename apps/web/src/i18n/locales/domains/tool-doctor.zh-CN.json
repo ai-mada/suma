@@ -1,4 +1,5 @@
 {
+  "tool-doctor.open_ready_queue": "查看此配置的待派发队列",
   "tool-doctor.title": "工具体检",
   "tool-doctor.read_only": "只读检查",
   "tool-doctor.loading": "正在核对当前配置的授权、节点与库存…",
