@@ -70,6 +70,7 @@ recommended_actions（1..8个1..2000字节文本）、test_plan（1..8个1..2000
 - GET `/failure-diagnosis/context?project_id&run_id&node_id&attempt`：`FailureDiagnosisContext`，
   project_id/run_id/node_id/attempt、source?、issue?（Record）、requirement?（Record）、eligible、can_create、blockers[]。
   是只读，不在GET中造问题；issue尚未投影时明确等待，不假空成功。当前有权者可看事实，创建能力单独核验。
+- GET `/failure-diagnosis/issue-source?project_id&issue_id`：`FailureDiagnosisIssueSource`，包含 project_id、issue_id 和可选 run_id。只读核对当前项目权限、准确问题及同范围内的正式投影回执。普通问题省略 run_id，冲突来源拒绝返回。仍通过原运行和节点接口核对当前尝试与诊断资格。
 - GET `/failure-diagnosis/analyses?project_id&run_id&node_id&attempt&limit&before`：
   `FailureDiagnosisPage{items,total,next_cursor}`，默认20、1..100、稳定范围绑定游标。
 - POST `/failure-diagnosis/analyses`：`FailureDiagnosisCreateRequest`，project_id、issue_id、expected_issue_version、

@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "failure_issue_navigation": {
+    "stage": "T-FAILURE-ISSUE-NAVIGATION-269",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "37781de24fdfe953916a8838de635ddd523ba036",
+    "report": "docs/quality/failure-issue-navigation-verification.md",
+    "actual": "Issue details resolve a unique authorized original failure receipt before opening the existing run and attempt picker.",
+    "verification": "Two actual SQLite tests, ten focused React tests, API consistency and Chinese/English Chromium fixtures passed.",
+    "known_limitations": "OceanBase/PostgreSQL, high-volume receipt lookup and model execution remain unverified in this stage.",
+    "full_platform_complete": false
+  },
   "failure_issue_provenance": {
     "stage": "T-FAILURE-ISSUE-PROVENANCE-268",
     "version": "1.0.0",

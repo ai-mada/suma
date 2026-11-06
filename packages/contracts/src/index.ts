@@ -3194,6 +3194,11 @@ export interface FailureDiagnosisHypothesis {
   evidence_indices: (number)[];
   confidence: string;
 }
+export interface FailureDiagnosisIssueSource {
+  project_id: string;
+  issue_id: string;
+  run_id?: string;
+}
 export interface FailureDiagnosisObservation {
   statement: string;
   evidence_indices: (number)[];

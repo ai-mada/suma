@@ -8,7 +8,7 @@
 
 同一默认折叠的 `FailureDiagnosisPanel` 嵌入原失败节点、专家计划阻断卡片和原问题详情。
 props 固定 `session`、`project`、`source{run_id,node_id,attempt}`，可选 analysisId、onAnalysis、onChanged、refresh。
-入口只传定位，服务端负责来源、fence、权限和问题归属；不根据标题、问题 ID 或模型文字猜尝试。
+运行入口传准确定位。问题详情只传当前问题 ID，展开后按正式投影回执定位原运行，再让用户选择当前失败或待核对节点。普通问题显示无已核实的失败运行。加载和权限失效时收起运行链接，刷新、离开与收起沿用现有草稿保护。服务端负责来源、fence、权限和问题归属。 [阶段验证](../quality/failure-issue-navigation-verification.md)
 
 无深链／待恢复请求时折叠零读取。有效 analysisId 只展开读取准确来源的原分析，不自动调用模型或采用。
 保持单列短区块，适合运行侧栏和任务详情，不复制知识页面的复杂导航。

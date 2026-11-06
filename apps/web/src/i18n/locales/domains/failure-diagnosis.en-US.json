@@ -114,5 +114,8 @@
  "failure-diagnosis.launcher_unknown":"This run has an unknown execution outcome; reconcile the original run before diagnosis.",
  "failure-diagnosis.launcher_empty":"No current failed or reconciling node with a recorded attempt is available in this run.",
  "failure-diagnosis.launcher_access":"Current access to the original run is unavailable. Use an authorized account to refresh.",
- "failure-diagnosis.launcher_invalid_run":"The original run could not be verified in this project. Refresh its authorized details."
+ "failure-diagnosis.launcher_invalid_run":"The original run could not be verified in this project. Refresh its authorized details.",
+ "failure-diagnosis.launcher_issue_loading":"Checking the original failed run for this issue…",
+ "failure-diagnosis.launcher_issue_empty":"This issue has no confirmed link to a failed run.",
+ "failure-diagnosis.launcher_issue_invalid":"The failed run linked to this issue could not be verified. Refresh to check again."
 }

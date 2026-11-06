@@ -114,5 +114,8 @@
  "failure-diagnosis.launcher_unknown":"此运行含未知执行结果，请先核对原运行，再进行诊断。",
  "failure-diagnosis.launcher_empty":"此运行暂无带有准确尝试记录的当前失败或待核对节点。",
  "failure-diagnosis.launcher_access":"当前无法访问原运行，请使用有权账号刷新。",
- "failure-diagnosis.launcher_invalid_run":"未能确认本项目中的原运行，请刷新获授权的运行详情。"
+ "failure-diagnosis.launcher_invalid_run":"未能确认本项目中的原运行，请刷新获授权的运行详情。",
+ "failure-diagnosis.launcher_issue_loading":"正在核对这个问题的原失败运行…",
+ "failure-diagnosis.launcher_issue_empty":"这个问题尚无已核实的失败运行。",
+ "failure-diagnosis.launcher_issue_invalid":"无法核实这个问题关联的失败运行，请刷新后重试。"
 }

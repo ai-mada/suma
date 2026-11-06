@@ -24,6 +24,8 @@
 
 失败投影、任务交付和诊断共用 `failureIssueIDTx` 所在模块中的回执合同。读取时在当前事务检查准确作用域下的 `run_failed`，再按运行固定流程名称重算投影摘要，并核对原问题 ID 与创建范围。问题可编辑字段仅作为阅读信息，正式关联从原回执读取。创建、领取和采用通过现有来源复核使用同一关系。 [阶段验证](../quality/failure-issue-provenance-verification.md)
 
+问题详情展开时请求 `issue-source`。控制面在已授权项目的故障投影回执中按原问题 ID 反查候选，随后用同一校验器确认运行。只有唯一可验证关联才返回运行号。该读取复用现有回执表及当前项目范围，无新增持久化表或回填。 [界面验证](../quality/failure-issue-navigation-verification.md)
+
 证据最多六项，每项 8000 UTF-8 字节，超限取 UTF-8 边界安全末段并记录 `selection=tail`、selected／total 字节。
 单项摘要保留完整原字节身份，source SHA 绑定身份、版本及实际片段；整个 prompt 超过 32000 字节时拒绝。
 不能把片段 digest 与完整源 digest 混为一谈，也不能用浏览器提供的输出文本替代事实。

@@ -24,8 +24,9 @@ func (s *Server) failureDiagnosisHTTP(w http.ResponseWriter, r *http.Request, ac
 	}
 	locatedRead := r.Method == http.MethodGet && len(parts) == 2 && (parts[1] == "context" || parts[1] == "analyses")
 	listRead := locatedRead && parts[1] == "analyses"
+	issueSourceRead := r.Method == http.MethodGet && len(parts) == 2 && parts[1] == "issue-source"
 	for name, items := range query {
-		allowed := name == "project_id" || locatedRead && (name == "run_id" || name == "node_id" || name == "attempt") || listRead && (name == "limit" || name == "before")
+		allowed := name == "project_id" || locatedRead && (name == "run_id" || name == "node_id" || name == "attempt") || listRead && (name == "limit" || name == "before") || issueSourceRead && name == "issue_id"
 		if !allowed || len(items) != 1 || items[0] == "" {
 			writeError(w, invalid(diagnosisInvalid))
 			return true
@@ -44,6 +45,9 @@ func (s *Server) failureDiagnosisHTTP(w http.ResponseWriter, r *http.Request, ac
 		}
 	}
 	switch {
+	case issueSourceRead:
+		out, err := s.Service.GetFailureDiagnosisIssueSource(r.Context(), actor, project, query.Get("issue_id"))
+		respond(w, http.StatusOK, out, err)
 	case locatedRead && parts[1] == "context":
 		out, err := s.Service.FailureDiagnosisContext(r.Context(), s.Engine, actor, project, query.Get("run_id"), query.Get("node_id"), attempt)
 		respond(w, http.StatusOK, out, err)
