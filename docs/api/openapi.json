@@ -5226,7 +5226,12 @@
             "type": "string"
           },
           "run_id": {
+            "description": "The linked run in the current organization and project, or an empty string when no such run is visible.",
             "type": "string"
+          },
+          "run_needs_reconciliation": {
+            "description": "True when a node of the linked run is reconciling within this organization and project. Omitted when no such node is recorded.",
+            "type": "boolean"
           },
           "run_state": {
             "type": "string"
@@ -66057,6 +66062,19 @@
             "in": "query",
             "name": "cursor",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Returns all occurrences or only blocked triggers, failed linked runs, and linked runs with a node requiring reconciliation. The cursor is scoped to the selected filter.",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "attention"
+              ],
               "type": "string"
             }
           },

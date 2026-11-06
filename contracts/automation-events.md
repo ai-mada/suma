@@ -32,6 +32,12 @@
 
 命令统一返回 `{rule,occurrence?}`；人工触发先持久化 queued，由 tick 再派发。未来预演返回 `{items:[{utc,local}]}`；人工规则没有定时时刻，items 为空。所有规则接口仅允许真实组织会话，拒绝 API/Runner/Agent 范围凭证。
 
+### 按需处理状态查询触发记录
+
+`GET /automations/{id}/occurrences` 接受 `filter=all|attention`，缺省为 `all`。空值、重复参数和未知值均拒绝。`attention` 选择派发受阻、关联运行失败或关联运行有待核对节点的记录。当前项目内没有可核对运行时，返回的运行标识为空且无运行状态。排队、跳过、取消或成功本身不进入筛选。
+
+按同一授权范围、规则和筛选计算总量和分页，游标绑定原筛选。触发状态和已绑定运行状态分别返回。`run_needs_reconciliation=true` 表示关联运行有持久化的待核对节点。这个字段只补充运行事实。读取不会修改规则、触发记录或运行。
+
 ### 从运行回查原触发
 
 `GET /runs/{id}/automation-origin?project_id=…` 使用当前浏览器项目读取权限。返回项目、运行及 `origin`。普通运行的 `origin` 为 null，项目范围内不存在的运行返回 404。正式来源包含规则 ID、触发时的规则名称与不可变修订、准确触发 ID、触发方式及 UTC 名义时刻。控制面核对原绑定与运行的固定流程，损坏或歧义的绑定返回错误。修改或暂停规则不改写历史来源。 [操作与验证](../quality/automation-run-origin-verification.md)

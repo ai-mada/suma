@@ -1,4 +1,4 @@
-import {api,query,type RecordItem} from './api';
+import {api,ApiError,query,type ApiCaller,type RecordItem} from './api';
 import {UiError,renderDiagnostic} from './i18n';
 export type EntityPage<T extends {id:string}=RecordItem>={items:T[];total:number;next_cursor?:string};
 export type PageSnapshot<T extends {id:string}=RecordItem>={items:T[]|undefined;total:number;next_cursor:string;loading:boolean;error:string;failure?:unknown;error_action:'first'|'more'};
@@ -9,7 +9,7 @@ export class EntityPager<T extends {id:string}=RecordItem>{
  private state:PageSnapshot<T>={items:undefined,total:0,next_cursor:'',loading:false,error:'',error_action:'first'};
  private generation=0;
  private failure:unknown;
- constructor(public project:string,public kind:string,public limit=100){}
+ constructor(public project:string,public kind:string,public limit=100,private readonly options:{request?:ApiCaller;parameters?:Record<string,string>;headers?:Record<string,string>;discardOnAccessLoss?:boolean}={}){}
  snapshot():PageSnapshot<T>{return {...this.state,error:this.failure?renderDiagnostic(this.failure):this.state.error,failure:this.failure};}
  setScope(project:string,kind:string){if(project===this.project&&kind===this.kind)return;this.project=project;this.kind=kind;this.generation++;this.failure=undefined;this.state={items:undefined,total:0,next_cursor:'',loading:false,error:'',error_action:'first'};}
  async first(){const generation=++this.generation;return this.read('',false,generation);}
@@ -17,17 +17,26 @@ export class EntityPager<T extends {id:string}=RecordItem>{
  private async read(cursor:string,append:boolean,generation:number){
   this.failure=undefined;
   this.state={...this.state,loading:true,error:'',error_action:append?'more':'first'};
-  const path='/'+this.kind+query(this.project)+'&limit='+this.limit+(cursor?'&cursor='+encodeURIComponent(cursor):'');
+  const extra=this.options.parameters?'&'+new URLSearchParams(this.options.parameters).toString():'';
+  const path='/'+this.kind+query(this.project)+'&limit='+this.limit+extra+(cursor?'&cursor='+encodeURIComponent(cursor):'');
   try{
    if(!this.project)throw new UiError('workspace.select_project');
-   const page=await api<EntityPage<T>>(path);
+   const page=await (this.options.request??api)<EntityPage<T>>(path,undefined,undefined,this.options.headers);
    if(generation!==this.generation)return false;
    if(!Array.isArray(page.items)||!Number.isSafeInteger(page.total)||page.total<0)throw new UiError('workspace.pagination.invalid_page');
    const merged=new Map<string,T>();
    for(const item of [...(append?this.state.items||[]:[]),...page.items])merged.set(item.id,item);
    this.state={...this.state,items:[...merged.values()],total:page.total,next_cursor:page.next_cursor||'',error:''};
    return true;
-  }catch(error){if(generation===this.generation){this.failure=error;this.state={...this.state,error:(error as Error).message};}return false;}
+  }catch(error){
+   if(generation===this.generation){
+    this.failure=error;
+    const denied=this.options.discardOnAccessLoss&&error instanceof ApiError&&[401,403,404].includes(error.status);
+    this.state={...this.state,error:(error as Error).message};
+    if(denied)this.state={...this.state,items:undefined,total:0,next_cursor:'',error_action:'first'};
+   }
+   return false;
+  }
   finally{if(generation===this.generation)this.state={...this.state,loading:false};}
  }
 }

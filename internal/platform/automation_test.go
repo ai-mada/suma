@@ -50,7 +50,7 @@ func autoCommand(t *testing.T, f *fixture, a AutomationRule, action string) Auto
 }
 func autoRead(t *testing.T, f *fixture, a AutomationRule) AutomationOccurrences {
 	t.Helper()
-	out, err := f.s.AutomationOccurrences(context.Background(), f.actor, f.project, a.ID, 200, "")
+	out, err := f.s.AutomationOccurrences(context.Background(), f.actor, f.project, a.ID, automationOccurrenceAll, 200, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -548,7 +548,7 @@ func TestAutomationOccurrenceCompositePaginationAndLateManagedGuard(t *testing.T
 	seen := map[string]bool{}
 	cursor := ""
 	for {
-		page, err := f.s.AutomationOccurrences(ctx, f.actor, f.project, a.ID, 2, cursor)
+		page, err := f.s.AutomationOccurrences(ctx, f.actor, f.project, a.ID, automationOccurrenceAll, 2, cursor)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -566,7 +566,7 @@ func TestAutomationOccurrenceCompositePaginationAndLateManagedGuard(t *testing.T
 	if len(seen) != 7 {
 		t.Fatal("composite pagination omitted same-second occurrences", seen)
 	}
-	page, err := f.s.AutomationOccurrences(ctx, f.actor, f.project, a.ID, 2, "")
+	page, err := f.s.AutomationOccurrences(ctx, f.actor, f.project, a.ID, automationOccurrenceAll, 2, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -574,7 +574,7 @@ func TestAutomationOccurrenceCompositePaginationAndLateManagedGuard(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.AutomationOccurrences(ctx, f.actor, f.project, b.ID, 2, page.NextCursor); err == nil {
+	if _, err = f.s.AutomationOccurrences(ctx, f.actor, f.project, b.ID, automationOccurrenceAll, 2, page.NextCursor); err == nil {
 		t.Fatal("occurrence cursor crossed rules")
 	}
 	if _, err = f.s.DB.Exec(`INSERT INTO dag_managed_workflows(tenant_id,project_id,workflow_id,run_id)VALUES(?,?,?,?)`, f.user.TenantID, f.project, a.WorkflowID, "late-protected-run"); err != nil {

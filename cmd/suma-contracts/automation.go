@@ -19,7 +19,8 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	}
 	get("/automations", "AutomationList", true)
 	get("/automations/{id}", "AutomationRule", false)
-	get("/automations/{id}/occurrences", "AutomationOccurrences", true)
+	occurrences := get("/automations/{id}/occurrences", "AutomationOccurrences", true)
+	appendQuery(occurrences, queryParameter("filter", "Returns all occurrences or only blocked triggers, failed linked runs, and linked runs with a node requiring reconciliation. The cursor is scoped to the selected filter.", map[string]any{"type": "string", "enum": []string{"all", "attention"}, "default": "all"}))
 	get("/automations/{id}/revisions", "AutomationRevisions", true)
 	origin := get("/runs/{id}/automation-origin", "AutomationRunOriginResult", false)
 	origin["description"] = "Reads the original automation trigger and immutable rule revision for this exact current project run. A readable run without automation provenance returns an explicit null origin. Missing or foreign runs return 404."
@@ -93,4 +94,6 @@ func enhanceAutomationSchemas(schemas map[string]any) {
 	field("AutomationRunOrigin", "scheduled_at", map[string]any{"format": "date-time"})
 	field("AutomationOccurrence", "state", map[string]any{"enum": []string{"queued", "started", "skipped", "blocked"}})
 	field("AutomationOccurrence", "source", map[string]any{"enum": []string{"cron", "manual"}})
+	field("AutomationOccurrence", "run_id", map[string]any{"description": "The linked run in the current organization and project, or an empty string when no such run is visible."})
+	field("AutomationOccurrence", "run_needs_reconciliation", map[string]any{"description": "True when a node of the linked run is reconciling within this organization and project. Omitted when no such node is recorded."})
 }

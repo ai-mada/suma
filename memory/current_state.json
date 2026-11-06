@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_attention": {
+    "stage": "T-AUTOMATION-ATTENTION-285",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "355572eeea91dea1eb6442edb0ceb5a6f2dbc85a",
+    "report": "docs/quality/automation-attention-verification.md",
+    "actual": "Automation occurrences can be filtered by current dispatch blocks, failed linked runs and actual linked nodes pending reconciliation. The UI retains separate trigger and run facts.",
+    "verification": "Scoped SQLite HTTP, generated contracts, affected Web tests, and two isolated Chrome layouts with fixed API responses passed.",
+    "known_limitations": "Automatic pause and alert delivery need their own policy. Distributed database and production load remain outside this verification.",
+    "full_platform_complete": false
+  },
   "cli_skill_import": {
     "stage": "T-CLI-SKILL-IMPORT-284",
     "version": "1.0.0",

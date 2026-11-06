@@ -1124,6 +1124,7 @@ export interface AutomationOccurrence {
   reason: string;
   run_id: string;
   run_state?: string;
+  run_needs_reconciliation?: boolean;
   created_at: string;
   updated_at: string;
 }

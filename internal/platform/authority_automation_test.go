@@ -158,7 +158,10 @@ func TestAuthorityBReadsRequireCurrentBrowser(t *testing.T) {
 		func(a Actor) error { _, e := s.PreviewAutomation(ctx, a, project, req.Spec); return e },
 		func(a Actor) error { _, e := s.GetAutomation(ctx, a, project, rule.ID); return e },
 		func(a Actor) error { _, e := s.ListAutomations(ctx, a, project, 20, ""); return e },
-		func(a Actor) error { _, e := s.AutomationOccurrences(ctx, a, project, rule.ID, 20, ""); return e },
+		func(a Actor) error {
+			_, e := s.AutomationOccurrences(ctx, a, project, rule.ID, automationOccurrenceAll, 20, "")
+			return e
+		},
 		func(a Actor) error { _, e := s.AutomationRevisions(ctx, a, project, rule.ID, 20, ""); return e },
 		func(a Actor) error { _, e := s.GetAutomationIngress(ctx, a, project, "unreadable-ingress"); return e },
 		func(a Actor) error { _, e := s.ListAutomationIngresses(ctx, a, project, rule.ID, 20, ""); return e },

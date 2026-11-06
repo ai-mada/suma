@@ -52,6 +52,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-AUTOMATION-ATTENTION-285 核验真实 SQLite 的范围绑定分页，以及中英文桌面与窄屏排障。 [阶段报告](automation-attention-verification.md)
+
 T-CLI-SKILL-IMPORT-284 核验 CLI 离线预览、项目绑定、明确保存与 SQLite 原请求重放。 [阶段报告](cli-skill-import-verification.md)
 
 T-PROJECT-SKILL-IMPORT-283 真实 Chrome、控制面和 SQLite 核验中英文的技能导入与草稿持久化。 [阶段报告](project-skill-import-verification.md)

@@ -35,11 +35,11 @@ func (s *Service) ListAutomations(ctx context.Context, actor Actor, project stri
 	return out, err
 }
 
-func (s *Service) AutomationOccurrences(ctx context.Context, actor Actor, project, id string, limit int, cursor string) (AutomationOccurrences, error) {
+func (s *Service) AutomationOccurrences(ctx context.Context, actor Actor, project, id, filter string, limit int, cursor string) (AutomationOccurrences, error) {
 	var out AutomationOccurrences
 	err := s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeBrowserProjectRead, func(auth *authorizedCommand) error {
 		var e error
-		out, e = s.automationOccurrencesCurrentTx(auth.ctx, auth, project, id, limit, cursor)
+		out, e = s.automationOccurrencesCurrentTx(auth.ctx, auth, project, id, filter, limit, cursor)
 		return e
 	})
 	return out, err

@@ -1,10 +1,10 @@
-import {useApi} from './api-context';
+import {useApi,useApiView} from './api-context';
 import {tr,useLocale,UiError,renderDiagnostic,formatNumber,formatDateTime,getLocale} from './i18n';
 import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
-import {Archive,ArrowUpRight,CalendarClock,ChevronRight,Clock3,Pause,Play,Plus,RefreshCw,Settings2,X} from 'lucide-react';
+import {Archive,ArrowUpRight,CalendarClock,ChevronRight,Clock3,Pause,Play,Plus,RefreshCw,Settings2,TriangleAlert,X} from 'lucide-react';
 import {api,ApiError,query,stateLabel,type Session,type Workflow} from './api';
 import {Empty,ErrorNotice,Field,Loading,Modal} from './ui';
-import {EntityPager} from './pagination';
+import {EntityPager,type PageSnapshot} from './pagination';
 import {useLeaveGuard} from './write-action';
 import {AutomationIngressWorkspace} from './AutomationIngress';
 import {ingressReason} from './ingress-model';
@@ -15,10 +15,27 @@ type Props={project:string;session:Session;selected:string;search:string;onSearc
 type Dialog={kind:'create'}|{kind:'edit'|'enable'|'archive';rule:AutomationRule};
 function canLeave(){return window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));}
 function sessionStore(){try{return typeof sessionStorage==='undefined'?undefined:sessionStorage;}catch{return undefined;}}
-function useAutomationPage<T extends {id:string}>(project:string,kind:string,refresh:number){
- const pager=useRef(new EntityPager<T>(project,kind,40)),[state,setState]=useState(()=>pager.current.snapshot());
- const read=useCallback(async(more=false)=>{pager.current.setScope(project,kind);const request=more?pager.current.more():pager.current.first();setState(pager.current.snapshot());await request;setState(pager.current.snapshot());},[project,kind]);
- useEffect(()=>{void read();},[read,refresh]);return {...state,read};
+type OccurrenceFilter='all'|'attention';
+function useAutomationPage<T extends {id:string}>(project:string,kind:string,refresh:number,filter?:OccurrenceFilter){
+ const api=useApi();
+ const view=useApiView(),userID=view?.userID,organizationID=view?.organizationID;
+ const pager=useMemo(()=>new EntityPager<T>(project,kind,40,{
+  request:api,
+  parameters:filter?{filter}:undefined,
+  discardOnAccessLoss:!!filter,
+  headers:filter&&userID&&organizationID?{'X-Suma-Expected-User':userID,'X-Suma-Expected-Organization':organizationID}:undefined,
+ }),[project,kind,api,filter,userID,organizationID]);
+ const [state,setState]=useState<{pager:EntityPager<T>;page:PageSnapshot<T>}>();
+ const read=useCallback(async(more=false)=>{
+  const request=more?pager.more():pager.first();
+  setState({pager,page:pager.snapshot()});
+  await request;
+  setState(current=>current?.pager===pager?{pager,page:pager.snapshot()}:current);
+ },[pager]);
+ useEffect(()=>{void read();},[read,refresh]);
+ // A changed filter, project, or API identity must not render the old window.
+ const page=state?.pager===pager?state.page:{...pager.snapshot(),loading:true};
+ return {...page,read};
 }
 function useAutomationDetail(project:string,id:string,refresh:number){ const api=useApi();
  const path=id?automationDetailPath(project,id):'',epoch=useRef(0),[state,setState]=useState<{path:string;data?:AutomationRule;loading:boolean;error:string|Error}>({path,loading:!!id,error:''});
@@ -78,13 +95,36 @@ function AutomationTime({value,timezone}:{value:string;timezone:string}){useLoca
 function AutomationReason({reason,scheduledAt='',timezone='UTC',source}:{reason:string;scheduledAt?:string;timezone?:string;source?:string}){useLocale();const value=automationReason(reason,scheduledAt,timezone),eventReason=source==='webhook'?ingressReason(reason):undefined;return <div className="automation-reason"><p>{eventReason?.known?eventReason.message:value.message}</p>{value.range&&<p className="automation-reason-window">{tr("automation.window_display",{range:value.range})}</p>}<details><summary>{tr("automation.original_reason")}</summary><code>{value.raw}</code></details></div>;}
 function fullTime(value:string){return value?tr("automation.device_time",{time:formatDateTime(value,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}):'—';}
 
-function AutomationOccurrences({project,rule,refresh,timezone}:{project:string;rule:string;refresh:number;timezone:string}){useLocale();
- const page=useAutomationPage<AutomationOccurrence>(project,'automations/'+encodeURIComponent(rule)+'/occurrences',refresh),[history,setHistory]=useState(false);
+function AutomationOccurrences({project,rule,refresh,timezone}:{project:string;rule:string;refresh:number;timezone:string}){
+ useLocale();
+ const [filter,setFilter]=useState<OccurrenceFilter>('all'),[history,setHistory]=useState(false);
+ const page=useAutomationPage<AutomationOccurrence>(project,'automations/'+encodeURIComponent(rule)+'/occurrences',refresh,filter);
  useEffect(()=>setHistory(false),[refresh]);
- useEffect(()=>{if(history)return;const timer=setInterval(()=>{if(document.visibilityState!=='hidden')void page.read();},8000);return()=>clearInterval(timer);},[page.read,history]);
- return <section className="automation-occurrences"><div className="automation-section-heading"><div><h3>{tr("automation.trigger_records")}</h3><p>{history?tr("automation.the_current_range_stays_while_browsing_history_refresh"):tr("automation.trigger_facts_and_run_results_are_retained_separately")}{tr("automation.display_timezone",{timezone})}</p></div><button className="icon-button" aria-label={tr("automation.refresh_trigger_records")} disabled={page.loading} onClick={()=>{setHistory(false);void page.read();}}><RefreshCw size={14}/></button></div>{page.error&&<ErrorNotice error={page.failure||page.error} onRetry={()=>void page.read(page.error_action==='more')}/>} {!page.items?(page.loading?<Loading/>:<p className="automation-read-state">{tr("automation.no_confirmed_trigger_records_have_been_loaded")}</p>):page.items.length?<div className="automation-occurrence-list">{page.items.map(occurrence=><AutomationOccurrenceRow key={occurrence.id} occurrence={occurrence} project={project} timezone={timezone}/>)}</div>:<Empty title={tr("automation.no_trigger_records_yet")} description={tr("automation.eligible_scheduled_or_manual_triggers_are_retained_here")}/>}<div className="automation-occurrence-footer"><small>{tr("automation.loaded_range",{loaded:page.items?formatNumber(page.items.length):'—',total:page.items?formatNumber(page.total):'—'})}</small>{page.next_cursor&&<button disabled={page.loading} onClick={()=>{setHistory(true);void page.read(true);}}>{tr("automation.load_more_triggers")}</button>}</div></section>;
+ useEffect(()=>{
+  if(history||page.loading)return;
+  const timer=setInterval(()=>{if(document.visibilityState!=='hidden')void page.read();},8000);
+  return()=>clearInterval(timer);
+ },[page.read,page.loading,history]);
+ return <section className="automation-occurrences" aria-labelledby="automation-occurrence-heading">
+  <div className="automation-section-heading">
+   <div><h3 id="automation-occurrence-heading">{tr("automation.trigger_records")}</h3><p>{history?tr("automation.the_current_range_stays_while_browsing_history_refresh"):tr("automation.trigger_facts_and_run_results_are_retained_separately")}{tr("automation.display_timezone",{timezone})}</p></div>
+   <button className="icon-button" aria-label={tr("automation.refresh_trigger_records")} disabled={page.loading} onClick={()=>{setHistory(false);void page.read();}}><RefreshCw size={14}/></button>
+  </div>
+  <div className="automation-occurrence-filters" role="group" aria-label={tr("automation.occurrence_filter_label")}>
+   <button type="button" data-automation-occurrence-filter="all" aria-pressed={filter==='all'} onClick={()=>{if(filter!=='all'){setHistory(false);setFilter('all');}}}>{tr("automation.occurrence_filter_all")}</button>
+   <button type="button" data-automation-occurrence-filter="attention" aria-pressed={filter==='attention'} onClick={()=>{if(filter!=='attention'){setHistory(false);setFilter('attention');}}}>{tr("automation.occurrence_filter_attention")}</button>
+  </div>
+  {page.error&&<ErrorNotice error={page.failure||page.error} onRetry={()=>void page.read(page.error_action==='more')}/>}
+  {!page.items?(page.loading?<Loading/>:<p className="automation-read-state">{tr("automation.no_confirmed_trigger_records_have_been_loaded")}</p>):page.items.length?
+   <div className="automation-occurrence-list">{page.items.map(occurrence=><AutomationOccurrenceRow key={occurrence.id} occurrence={occurrence} project={project} timezone={timezone}/>)}</div>:
+   <Empty title={tr(filter==='attention'?"automation.no_attention_records":"automation.no_trigger_records_yet")} description={tr(filter==='attention'?"automation.no_attention_records_hint":"automation.eligible_scheduled_or_manual_triggers_are_retained_here")}/>}
+  <div className="automation-occurrence-footer">
+   <small aria-live="polite">{tr("automation.loaded_range",{loaded:page.items?formatNumber(page.items.length):'—',total:page.items?formatNumber(page.total):'—'})}</small>
+   {page.next_cursor&&<button type="button" disabled={page.loading} onClick={()=>{setHistory(true);void page.read(true);}}>{tr("automation.load_more_triggers")}</button>}
+  </div>
+ </section>;
 }
-export function AutomationOccurrenceRow({occurrence,project,timezone='UTC'}:{occurrence:AutomationOccurrence;project:string;timezone?:string}){useLocale();return <article className="automation-occurrence"><div className="automation-occurrence-title"><strong>{occurrence.source==='manual'?tr("automation.manual_trigger"):occurrence.source==='webhook'?tr("automation.signed_event_trigger"):tr("automation.scheduled_trigger")} <small>r{formatNumber(occurrence.revision)}</small></strong><span className={'automation-pill '+occurrence.state}>{occurrenceStates[occurrence.state]||occurrence.state}</span></div><time dateTime={occurrence.scheduled_at}><AutomationTime value={occurrence.scheduled_at} timezone={timezone}/></time>{occurrence.reason&&<AutomationReason reason={occurrence.reason} scheduledAt={occurrence.scheduled_at} timezone={timezone} source={occurrence.source}/>} {occurrence.run_id?<><a href={'?'+new URLSearchParams({project,view:'development',sub:'runs',run:occurrence.run_id})} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr("automation.view_actual_run")}<ArrowUpRight size={13}/><span>{occurrence.run_id.slice(0,16)}</span></a><small className="automation-run-state">{occurrence.run_state?tr("automation.run_state",{state:stateLabel(occurrence.run_state)}):tr("automation.run_state_has_not_been_loaded")}</small></>:<small className="muted">{tr("automation.no_run_linked_yet")}</small>}<details><summary>{tr("automation.trigger_id")}</summary><code>{occurrence.id}</code></details></article>;}
+export function AutomationOccurrenceRow({occurrence,project,timezone='UTC'}:{occurrence:AutomationOccurrence;project:string;timezone?:string}){useLocale();return <article className="automation-occurrence"><div className="automation-occurrence-title"><strong>{occurrence.source==='manual'?tr("automation.manual_trigger"):occurrence.source==='webhook'?tr("automation.signed_event_trigger"):tr("automation.scheduled_trigger")} <small>r{formatNumber(occurrence.revision)}</small></strong><span className={'automation-pill '+occurrence.state}>{occurrenceStates[occurrence.state]||occurrence.state}</span></div><time dateTime={occurrence.scheduled_at}><AutomationTime value={occurrence.scheduled_at} timezone={timezone}/></time>{occurrence.reason&&<AutomationReason reason={occurrence.reason} scheduledAt={occurrence.scheduled_at} timezone={timezone} source={occurrence.source}/>} {occurrence.run_id?<><a href={'?'+new URLSearchParams({project,view:'development',sub:'runs',run:occurrence.run_id})} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr("automation.view_actual_run")}<ArrowUpRight size={13}/><span>{occurrence.run_id.slice(0,16)}</span></a><small className="automation-run-state">{occurrence.run_state?tr("automation.run_state",{state:stateLabel(occurrence.run_state)}):tr("automation.run_state_has_not_been_loaded")}</small>{occurrence.run_needs_reconciliation&&<small className="automation-run-reconciliation"><TriangleAlert size={14} aria-hidden="true"/>{tr("automation.run_needs_reconciliation")}</small>}</>:<small className="muted">{tr("automation.no_run_linked_yet")}</small>}<details><summary>{tr("automation.trigger_id")}</summary><code>{occurrence.id}</code></details></article>;}
 
 function AutomationRevisions({project,rule,refresh}:{project:string;rule:string;refresh:number}){useLocale();
  const pager=useMemo(()=>new AutomationRevisionPager(project,rule),[project,rule]),[page,setPage]=useState(()=>pager.snapshot()),[open,setOpen]=useState(false);
