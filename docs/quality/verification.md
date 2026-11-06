@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CODEX-MANAGED-REPIN 核验普通节点和共享池维护授权、空回执、真实 Codex 模型目录和 390px 浏览器确认。 [阶段验证](codex-managed-repin-verification.md)
+
 T-WORKBUDDY-PROGRESS-TASK-SCOPE 核验任务来源、分页授权、命令行与中英文浏览器交付往返。 [阶段验证](workbuddy-progress-task-scope-verification.md)
 
 T-POOL-IDLE-BACKOFF 核验空领取退避、原操作重放、固定项目派发、真实子进程结果和原槽位停止。 [阶段验证](pool-idle-backoff-verification.md)

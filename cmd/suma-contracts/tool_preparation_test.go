@@ -36,7 +36,7 @@ func TestManagedToolPreparationContractsKeepExplicitScopeAndOriginalInventory(t 
 	}
 }
 
-func TestManagedCLIInitialSchemaKeepsSixClosedAdapterConfigurations(t *testing.T) {
+func TestManagedCLIInitialSchemaKeepsClosedAdapterConfigurations(t *testing.T) {
 	api, _ := generate()
 	schemas := toolContractMap(api, "components", "schemas")
 	if toolContractMap(schemas, "ManagedToolPreparationCapability", "properties", "adapter_ids")["maxItems"] != len(tp.AdapterIDs()) {
@@ -44,7 +44,7 @@ func TestManagedCLIInitialSchemaKeepsSixClosedAdapterConfigurations(t *testing.T
 	}
 	for _, name := range []string{"ManagedToolPreparation", "ManagedToolPreparationCreateRequest"} {
 		choices, ok := toolContractMap(schemas, name)["oneOf"].([]any)
-		if !ok || len(choices) != 6 {
+		if !ok || len(choices) != len(tp.AdapterIDs()) {
 			t.Fatal("adapter-specific options are not closed", name)
 		}
 		modes := map[string]bool{}
@@ -75,7 +75,7 @@ func TestManagedCLIInitialSchemaKeepsSixClosedAdapterConfigurations(t *testing.T
 			}
 			modes[id] = true
 		}
-		if len(modes) != 6 {
+		if len(modes) != len(tp.AdapterIDs()) || !modes["codex-app-server"] {
 			t.Fatal("duplicate factory branches")
 		}
 	}

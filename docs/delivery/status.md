@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CODEX-MANAGED-REPIN 团队节点可用原管理员配置准备新扫描的 Codex App Server。模型目录与库存核对后可保存暂停，修复空领取和维护竞争。 [交互](../design/managed-tool-preparation.md#codex-app-server-换新) · [验证](../quality/codex-managed-repin-verification.md)
+
 T-WORKBUDDY-PROGRESS-TASK-SCOPE 网页和 CLI 可按正式任务查看已保存云记录。任务交付与进度行可直接进入，支持保留待处理条件、分享和返回。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-progress-task-scope-verification.md)
 
 T-POOL-IDLE-BACKOFF 共享槽位对持久确认的连续空领取启用有界退避。原领取继续按配置间隔恢复。本机 SQLite 和真实子进程已走通领取及结果回写。 [调度合同](../../contracts/execution-pools.md#空闲领取退避) · [阶段验证](../quality/pool-idle-backoff-verification.md)

@@ -43,7 +43,7 @@ func (j *Journal) saveInstallationObservation(ctx context.Context, p installatio
 	}
 	receipt := installationPrivateReceipt{Protocol: "suma-installed-tool-private-v1", ScopeSHA256: p.ScopeSHA256, Reference: scanReference(*p.Scan), SourceSHA256: p.Scan.SourceSHA256, Items: []installationNativeObservation{}}
 	for i, row := range report.Items {
-		if row.AdapterID != "qoder-acp" && row.AdapterID != "cursor-cli" && !genericInstalledAdapter(row.AdapterID) || !row.Installed || row.ExecutableSHA256 == "" || row.Version == "" {
+		if !tp.CanPrepareItem(items[i]) {
 			continue
 		}
 		native := installationNativeObservation{Item: items[i], Executable: row.Executable}

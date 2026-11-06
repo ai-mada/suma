@@ -118,6 +118,32 @@ func TestManagedPreparationPrivateScanRequiresExactReceiptAndPins(t *testing.T) 
 	}
 }
 
+func TestManagedPreparationEmptyClaimAcceptsOnlyExactNullableReceipt(t *testing.T) {
+	replies := []struct {
+		body string
+		ok   bool
+	}{
+		{`{"tenant_id":"tenant224","project_id":"project224","worker_id":"worker224","preparation":null}`, true},
+		{`{"tenant_id":"tenant224","project_id":"project224","worker_id":"worker224"}`, false},
+		{`{"tenant_id":"tenant224","project_id":"project224","worker_id":"worker224","preparation":{}}`, false},
+		{`{"tenant_id":"tenant224","project_id":"project224","worker_id":"worker224","other":null}`, false},
+		{`{"tenant_id":"tenant224","project_id":"other","worker_id":"worker224","preparation":null}`, false},
+	}
+	for _, tt := range replies {
+		t.Run(tt.body, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(out http.ResponseWriter, r *http.Request) {
+				_, _ = io.WriteString(out, tt.body)
+			}))
+			defer server.Close()
+			w := preparationWorker224(t, server.URL)
+			got, err := w.Client.claimToolPreparation(context.Background(), w.ID, operationID())
+			if (err == nil) != tt.ok || got.Preparation != nil {
+				t.Fatalf("unexpected result from canonical claim: %+v, %v", got, err)
+			}
+		})
+	}
+}
+
 func TestManagedPreparationClaimAndUnknownResultRestoreOriginalIntent(t *testing.T) {
 	var op tp.Operation
 	var rawResults [][]byte

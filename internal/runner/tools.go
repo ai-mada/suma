@@ -423,7 +423,9 @@ func inventoryWorkspace(ctx context.Context, cfg ExecConfig, write bool) error {
 	if err != nil {
 		return fmt.Errorf("administrator repository is unavailable")
 	}
-	top, err := gitText(ctx, repo, "rev-parse", "--show-toplevel")
+	// Maintenance probes have an isolated working directory. Select the
+	// already verified repository explicitly for these read-only Git calls.
+	top, err := gitText(ctx, repo, "-C", repo, "rev-parse", "--show-toplevel")
 	if err != nil {
 		return fmt.Errorf("administrator repository is not a Git checkout")
 	}
@@ -431,7 +433,7 @@ func inventoryWorkspace(ctx context.Context, cfg ExecConfig, write bool) error {
 	if err != nil || !strings.EqualFold(top, repo) {
 		return fmt.Errorf("administrator repository must be the checkout root")
 	}
-	base, err := gitText(ctx, repo, "rev-parse", "--verify", cfg.BaseCommit+"^{commit}")
+	base, err := gitText(ctx, repo, "-C", repo, "rev-parse", "--verify", cfg.BaseCommit+"^{commit}")
 	if err != nil || base != cfg.BaseCommit {
 		return fmt.Errorf("pinned repository base commit is unavailable")
 	}
@@ -456,7 +458,7 @@ func inventoryWorkspace(ctx context.Context, cfg ExecConfig, write bool) error {
 			return fmt.Errorf("worktree cache is unavailable")
 		}
 	}
-	if _, err = gitRun(ctx, repo, "check-ignore", "--quiet", root); err != nil {
+	if _, err = gitRun(ctx, repo, "-C", repo, "check-ignore", "--quiet", root); err != nil {
 		return fmt.Errorf("worktree cache must be ignored by Git")
 	}
 	return nil

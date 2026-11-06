@@ -14,7 +14,7 @@ import (
 	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
 
-// Called by the ONE inventory owner. It writes only fixed ACP configurations;
+// Called by the one inventory owner. It writes only fixed tool configurations;
 // browser input cannot select a path, argv, command ID or executable.
 func (w *Worker) serviceToolPreparation(ctx context.Context) (bool, error) {
 	p, err := w.Journal.preparationCheckpoint()
@@ -216,6 +216,11 @@ func (w *Worker) prepareManagedTool(ctx context.Context, p *toolPreparationCheck
 	if op.ExpectedGenerationSHA256 != w.currentGenerationSHA() {
 		code = "generation_changed"
 	}
+	if op.AdapterID == managedCodexAdapterID && code == "" {
+		if _, ok := managedCodexTemplate(w.Exec); !ok {
+			code = "preparation_not_supported"
+		}
+	}
 	var native installationNativeObservation
 	if code == "" {
 		var err error
@@ -226,14 +231,17 @@ func (w *Worker) prepareManagedTool(ctx context.Context, p *toolPreparationCheck
 				code = "rescan_required"
 			}
 		} else {
-			if genericInstalledAdapter(op.AdapterID) {
+			switch {
+			case op.AdapterID == managedCodexAdapterID:
+				p.InstalledIntent, err = w.managedCodexPreparationIntent(op, native)
+			case genericInstalledAdapter(op.AdapterID):
 				p.InstalledIntent, err = installedPreparationIntent(op, native)
-				if err != nil {
-					code = "configuration_invalid"
-					setPreparationSourceIntent(p)
-				}
-			} else {
+			default:
 				p.Intent.Executable = native.Executable
+			}
+			if err != nil {
+				code = "configuration_invalid"
+				setPreparationSourceIntent(p)
 			}
 		}
 	}
@@ -349,6 +357,11 @@ func (w *Worker) buildManagedGeneration(ctx context.Context, p toolPreparationCh
 	for i, item := range observations {
 		if item.Profile.CommandID == id {
 			profile = item.Profile
+			if p.Operation.AdapterID == managedCodexAdapterID &&
+				(!item.Available || item.CodexCatalog == nil || tc.ValidateObservation(item) != nil ||
+					profile.ExecutableSHA256 != native.Item.ExecutableSHA256 || profile.ToolVersion != native.Item.Version) {
+				return nil, fmt.Errorf("prepared Codex app-server catalog or scanned identity is unavailable")
+			}
 			if !current.AllowExec {
 				profile, err = observePreparedTool(ctx, current, id, spec)
 				if err != nil {
@@ -431,7 +444,7 @@ func observePreparedTool(ctx context.Context, cfg ExecConfig, id string, spec Co
 
 func setPreparationSourceIntent(p *toolPreparationCheckpoint) {
 	op := p.Operation
-	if genericInstalledAdapter(op.AdapterID) {
+	if usesInstalledPreparationIntent(op.AdapterID) {
 		p.Intent = nil
 		p.InstalledIntent = &installedToolPreparationInput{AdapterID: op.AdapterID}
 		return

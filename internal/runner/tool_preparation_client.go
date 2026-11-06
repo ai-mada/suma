@@ -32,23 +32,30 @@ func (c *Client) claimToolPreparation(ctx context.Context, worker, nonce string)
 	if err = c.post(ctx, "tool-preparations/claim", payload, &raw); err != nil {
 		return reply, err
 	}
-	fields, err := decodeToolObject(raw)
-	if err != nil || len(fields) != 4 || strictjson.Decode(raw, &reply, 256<<10) != nil || !ii.ID(reply.TenantID) || reply.ProjectID != c.ProjectID || reply.WorkerID != worker {
+	var fields map[string]json.RawMessage
+	if strictjson.Decode(raw, &fields, 256<<10) != nil || len(fields) != 4 ||
+		json.Unmarshal(fields["tenant_id"], &reply.TenantID) != nil ||
+		json.Unmarshal(fields["project_id"], &reply.ProjectID) != nil ||
+		json.Unmarshal(fields["worker_id"], &reply.WorkerID) != nil ||
+		!ii.ID(reply.TenantID) || reply.ProjectID != c.ProjectID || reply.WorkerID != worker {
 		return reply, fmt.Errorf("managed preparation canonical claim differs")
-	}
-	for _, key := range []string{"tenant_id", "project_id", "worker_id", "preparation"} {
-		if _, ok := fields[key]; !ok {
-			return reply, fmt.Errorf("incomplete managed preparation claim")
-		}
 	}
 	if c.Pool != nil && reply.TenantID != c.Pool.TenantID {
 		return reply, fmt.Errorf("managed preparation tenant differs")
 	}
-	if reply.Preparation != nil {
-		op := reply.Preparation
-		if tp.ValidateOperation(*op) != nil || op.TenantID != reply.TenantID || op.ProjectID != reply.ProjectID || op.WorkerID != worker || op.ClaimID != nonce || op.Fence < 1 {
+	// Only the claim payload is nullable. Its explicit null is a confirmed
+	// empty receipt, so the slot can finish this nonce and ask for new work.
+	value, ok := fields["preparation"]
+	if !ok {
+		return reply, fmt.Errorf("incomplete managed preparation claim")
+	}
+	if string(value) != "null" {
+		var op tp.Operation
+		if strictjson.Decode(value, &op, 256<<10) != nil || tp.ValidateOperation(op) != nil ||
+			op.TenantID != reply.TenantID || op.ProjectID != reply.ProjectID || op.WorkerID != worker || op.ClaimID != nonce || op.Fence < 1 {
 			return reply, fmt.Errorf("managed preparation claim source differs")
 		}
+		reply.Preparation = &op
 	}
 	return reply, nil
 }

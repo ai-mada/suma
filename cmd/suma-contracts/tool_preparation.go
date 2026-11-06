@@ -80,7 +80,7 @@ func managedToolPreparationSchemas(api map[string]any) {
 	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "model")["x-max-utf8-bytes"] = 256
 	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "model")["description"] = "Fixed model for ACP and Claude CLI only. Must be empty for the other exact native-command preparation adapters; unsupported options are never silently ignored."
 	managedToolPreparationConfigurationSchemas(schemas)
-	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "credential_env_ref")["description"] = "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Native CLI preparation requires an empty string and uses its original CLI identity. Reserved process/provider variables are rejected."
+	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "credential_env_ref")["description"] = "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Native CLI preparation requires an empty string and uses its original CLI identity. Codex app-server also requires an empty string and reuses the node administrator configuration. Reserved process/provider variables are rejected."
 	toolContractMap(schemas, "ManagedToolPreparation", "properties", "state")["enum"] = tp.States()
 	for _, name := range []string{"ManagedToolPreparationResultRequest", "PoolManagedToolPreparationResultRequest"} {
 		toolContractMap(schemas, name, "properties", "outcome")["enum"] = []string{"prepared", "failed", "unknown", "closed_unknown"}
@@ -90,7 +90,7 @@ func managedToolPreparationSchemas(api map[string]any) {
 	}
 }
 
-// The adapter and its options are one closed choice. Generate the same six
+// The adapter and its options are one closed choice. Generate the same closed
 // modes as the validator instead of widening model input for every tool.
 func managedToolPreparationConfigurationSchemas(schemas map[string]any) {
 	variants := []any{}

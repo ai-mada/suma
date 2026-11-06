@@ -49,9 +49,18 @@ func validateInstalledCommandSpec(spec CommandSpec) error {
 	if pins == nil {
 		return nil
 	}
-	entry, ok := installedDirectoryEntry(pins.AdapterID)
-	if !ok || !evidenceHash.MatchString(pins.HostSHA256) || !desktopManagedPath(spec.Executable) {
+	if !evidenceHash.MatchString(pins.HostSHA256) || !desktopManagedPath(spec.Executable) {
 		return fmt.Errorf("invalid installed command source pins")
+	}
+	if pins.AdapterID == managedCodexAdapterID {
+		if pins.ResolverRoot != "" || pins.TreeSHA256 != "" || !fixedManagedCodexCommand(spec) {
+			return fmt.Errorf("invalid installed Codex app-server source pins")
+		}
+		return nil
+	}
+	entry, ok := installedDirectoryEntry(pins.AdapterID)
+	if !ok {
+		return fmt.Errorf("invalid installed command adapter")
 	}
 	expected := normalizedCommand(entry.command)
 	expected.Executable = spec.Executable

@@ -146,6 +146,55 @@ func assertPreparationInventoryRaw224(t *testing.T, h preparationFixture224, res
 	h.f.bearer("POST", route, h.token, request, 200)
 }
 
+func TestManagedPreparationYieldsToPendingInstallationWithStableEmptyClaim(t *testing.T) {
+	for _, pooled := range []bool{false, true} {
+		t.Run(fmt.Sprint(pooled), func(t *testing.T) {
+			h := preparationFixtureFor224(t, pooled, "acp_configuration_required")
+			f, ctx := h.f, context.Background()
+			next, err := f.s.CreateToolInstallationScan(ctx, f.actor, f.project, ti.CreateRequest{ProjectID: f.project, WorkerID: h.worker, AdapterIDs: []string{"cursor-cli"}, IdempotencyKey: newID()})
+			if err != nil {
+				t.Fatal(err)
+			}
+			oldClaim := newID()
+			empty, err := h.claim(t, oldClaim)
+			if err != nil || empty.Preparation != nil || empty.TenantID != f.user.TenantID || empty.ProjectID != f.project || empty.WorkerID != h.worker {
+				t.Fatal("busy scan must return a scoped empty preparation receipt", empty, err)
+			}
+			var claim ti.ClaimReply
+			if pooled {
+				claim, err = f.s.ClaimPoolToolInstallationScan(ctx, h.token, ti.PoolClaimRequest{TenantID: f.user.TenantID, ProjectID: f.project, RunnerID: h.runner, ClaimID: newID()})
+			} else {
+				claim, err = f.s.ClaimToolInstallationScan(ctx, h.actor, f.project, ti.ClaimRequest{ProjectID: f.project, WorkerID: h.worker, ClaimID: newID()})
+			}
+			if err != nil || claim.Scan == nil || claim.Scan.ID != next.ID {
+				t.Fatal("installation scan did not retain its original slot", claim, err)
+			}
+			result := installationResult205(*claim.Scan)
+			result.Items = h.scan.Result.Items
+			if pooled {
+				h.scan, err = f.s.CompletePoolToolInstallationScan(ctx, h.token, ti.PoolResultRequest{TenantID: f.user.TenantID, ProjectID: f.project, RunnerID: h.runner, Scan: result.Scan, IdempotencyKey: result.IdempotencyKey, Outcome: result.Outcome, Items: result.Items, StopProof: result.StopProof})
+			} else {
+				h.scan, err = f.s.CompleteToolInstallationScan(ctx, h.actor, f.project, result)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			pending, err := f.s.CreateToolPreparation(ctx, f.actor, f.project, h.createRequest())
+			if err != nil {
+				t.Fatal(err)
+			}
+			replay, err := h.claim(t, oldClaim)
+			if err != nil || replay != empty {
+				t.Fatal("replay of the empty nonce acquired new work", replay, err)
+			}
+			picked, err := h.claim(t, newID())
+			if err != nil || picked.Preparation == nil || picked.Preparation.ID != pending.ID {
+				t.Fatal("fresh nonce did not acquire the new preparation", picked, err)
+			}
+		})
+	}
+}
+
 func TestManagedPreparationInventoryAtomicAcceptanceAndReplay(t *testing.T) {
 	for _, pooled := range []bool{false, true} {
 		t.Run(fmt.Sprint(pooled), func(t *testing.T) {

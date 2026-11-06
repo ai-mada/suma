@@ -96,6 +96,11 @@ func (s *Service) completeToolPreparationInventoryTx(ctx context.Context, tx *sq
 			if !preparationProfilesEqual(item.Profile, v.Receipt.Profile) {
 				return toolPreparationChanged()
 			}
+			// Codex repin runs the app-server catalogue probe before accepting
+			// the new generation. Require that observation with the same profile.
+			if v.AdapterID == "codex-app-server" && (!item.Available || item.CodexCatalog == nil) {
+				return toolPreparationChanged()
+			}
 			matched = true
 		}
 	}

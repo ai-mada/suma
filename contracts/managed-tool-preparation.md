@@ -6,7 +6,11 @@
 
 浏览器在准确扫描结果上选择工具，按实际配置模式填写必要字段，明确授权本次机器配置写入；受限Runner准备并持久接纳新命令代次，上报准确库存，返回原Quick选择／暂停登记，独立启用。复用原维护owner／Journal／普通与Pool出站身份／事务回执／原typed ACP准备器／库存和派发器。不会下载、安装、运行任意shell、收取环境值、扩展任务AllowExec或代用户启用。
 
-九项目录保留现有手工能力。当前自动准备六项：qoder-acp、cursor-cli、codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli，能力由本机真实来源及明确opt-in声明。Qoder允许空凭据引用；Cursor保持原要求；Claude CLI明确固定model且ref空，其他三原生配置两个字段都空。两SDK及Codex App Server的自动准备继续待办，不把目录当支持或增加独立准备中心。
+九项目录保留现有手工能力。自动准备支持 qoder-acp、cursor-cli、codex-jsonl、codebuddy-cli、dsh-multica、claude-code-cli。Codex App Server 在节点具备下文的准确本机配置时额外可用。能力由本机真实来源及明确 opt-in 声明。Qoder 允许空凭据引用，Cursor 要求引用，Claude CLI 固定模型且引用为空。Codex App Server 及其他三种原生配置的两个字段均为空。两种 SDK 继续使用现有配置入口。
+
+### Codex App Server 换新
+
+节点需允许执行，并在原项目范围的基础命令文件中仅配置一个符合固定协议的 Codex App Server 命令。当前派生代次不能反过来成为模板。浏览器只确认选择原扫描中的新安装。执行器沿原模板复用本机供应方、凭据引用和沙箱策略，使用新扫描固定的程序路径及字节摘要。模板歧义、来源变更或缺少当前模型目录观察时，保持原代次并返回原操作结果。秘密值和本机配置正文不进入控制面回执。模型目录检查沿既有 App Server 观察，任务模型选择与正式执行保持独立。
 
 ## 独立允许与准确来源
 
@@ -40,7 +44,7 @@ Worker.currentExecSnapshot用于runAssignment、DescribeTools、Info能力等所
 
 Protocol=suma-managed-tool-preparation-v1；StopProtocol=suma-managed-tool-preparation-stop-v1。公共long名ManagedToolPreparation系列；Go短名只用于实现方便，不是旧产品兼容。
 
-- Capability{protocol,adapter_ids,generation_sha256}。Configuration{model,credential_env_ref}正好两字符串；六种adapter按当前ConfigurationMode闭形校验，不忽略不适用的模型或凭据输入。
+- Capability{protocol,adapter_ids,generation_sha256}。Configuration{model,credential_env_ref}正好两字符串；各 adapter 按当前 ConfigurationMode闭形校验，不忽略不适用的模型或凭据输入。
 - CreateRequest{project_id,worker_id,installation_scan_id,expected_scan_version,adapter_id,configuration,expected_generation_sha256,acknowledge_configuration_write:true,idempotency_key}。
 - Reference{preparation_id,claim_id,fence}；ClaimRequest{project_id,worker_id,claim_id}；PoolClaimRequest{tenant_id,project_id,runner_id,claim_id}；Claim{preparation:Operation|null}。
 - Operation保存ID/project/worker/version/state/adapter/config、InstanceID、原scan及准确Item／ref／SourceSHA、ExpectedGenerationSHA、RequestedBy/timestamps、claim/fence与本操作SourceSHA；可选Receipt、ResultCode、InventoryOperationID／ObservedAt及只读SourceChanged。可变state/version/result与claim/lease字段不进入稳定SourceSHA；claim nonce/fence由准确Reference单独固定核对。
@@ -66,6 +70,8 @@ Root：本合同、唯一共享DTO／校验器、ToolMaintenance sharedcap/statu
 
 补充冻结：Claim总带由当前机器认证生成的tenant_id/project_id/worker_id，preparation可null；无prepare cap只返回认证scope，不领取pending。仅已有managed head的恢复可用此只读身份结果核租户，默认无state且无opt-in不额外调用。Operation准确字段以internal/toolpreparationcontract/types.go为准，含TenantID及InstallationScanID/InstallationScanVersion/InstallationReference/InstallationSourceSHA256/InstallationItem/InstallationStopProof。Quick pin允许当前fresh observedAt晚于或等于原选择且完整SHA不变；不凭浏览器补续期或凭新timestamp改变配置选择。
 
-来源资格补充：原ACP安装观察的launch_supported=false／acp_configuration_required是需要准备的准确状态，不改写为已可启动。当前CanPrepareItem对ACP两项只允许此状态；其他四项需要原launch_supported=true／workspace_required。均需完整版本／nativeSHA及原合法Item，Claude还需原受支持版本；version_unsupported等禁止。SourceSHA只摘要不可变输入，claim/fence/lease单独按Reference核对，首次领取不改变用户确认的输入来源。
+来源资格补充：原ACP安装观察的launch_supported=false／acp_configuration_required是需要准备的准确状态，不改写为已可启动。当前 CanPrepareItem 对 ACP 两项只接受此状态。Codex App Server 只接受 `launch_supported=false` 且 `reason_code=configuration_required` 的准确原生扫描。其他四项需要 `launch_supported=true` 且 `reason_code=workspace_required`。均需完整版本／nativeSHA及原合法Item，Claude还需原受支持版本；version_unsupported等禁止。SourceSHA只摘要不可变输入，claim/fence/lease单独按Reference核对，首次领取不改变用户确认的输入来源。
+
+维护调度的空回执与未确认请求独立处理。原领取返回显式空结果时，执行器按同一作用域完成原领取。当安装扫描或检查已占用维护槽，准备领取也在当前授权事务保存空回执，原领取重放仍为空。执行器可继续处理已有维护请求，下一次新领取使用新标识。页面创建和修改的互斥仍按原授权、版本与回执核对。
 
 配置接纳与可执行性分开：maintenance-only不扩大AllowExec，新准备项可为Available=false但必须完整Profile；关联库存不强求available。原CreateToolProfile允许保存paused，Quick仅真实completed preparationID来源的准确当前配置可显示明确“保存暂停配置”，保持实际不可执行原因；普通反馈仍原available门。该pin需重新读取准确准备操作与完整Profile匹配，不能用id当权限；原enable／Start门保留。

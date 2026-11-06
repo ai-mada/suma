@@ -31,8 +31,12 @@ func installedPreparationIntent(op tp.Operation, native installationNativeObserv
 	input := &installedToolPreparationInput{AdapterID: op.AdapterID, Command: spec}
 	return input, validateInstalledPreparationIntent(op, *input)
 }
+func usesInstalledPreparationIntent(id string) bool {
+	return genericInstalledAdapter(id) || id == managedCodexAdapterID
+}
+
 func validateInstalledPreparationIntent(op tp.Operation, input installedToolPreparationInput) error {
-	if input.AdapterID != op.AdapterID || !genericInstalledAdapter(input.AdapterID) || input.Command.InstalledCommand == nil || input.Command.InstalledCommand.AdapterID != input.AdapterID || input.Command.InstalledCommand.HostSHA256 != op.InstallationItem.ExecutableSHA256 || validateInstalledCommandSpec(input.Command) != nil || tp.ValidateConfiguration(op.AdapterID, op.Configuration) != nil {
+	if input.AdapterID != op.AdapterID || !usesInstalledPreparationIntent(input.AdapterID) || input.Command.InstalledCommand == nil || input.Command.InstalledCommand.AdapterID != input.AdapterID || input.Command.InstalledCommand.HostSHA256 != op.InstallationItem.ExecutableSHA256 || validateInstalledCommandSpec(input.Command) != nil || tp.ValidateConfiguration(op.AdapterID, op.Configuration) != nil {
 		return fmt.Errorf("installed preparation intent differs from its exact source")
 	}
 	if op.AdapterID == "claude-code-cli" {

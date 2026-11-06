@@ -52,7 +52,7 @@ func validateToolPreparationCheckpoint(p toolPreparationCheckpoint) error {
 		return fmt.Errorf("maintenance intents must be mutually exclusive")
 	}
 	if p.Started {
-		if genericInstalledAdapter(p.Operation.AdapterID) {
+		if usesInstalledPreparationIntent(p.Operation.AdapterID) {
 			if p.Intent != nil || p.InstalledIntent == nil || p.InstalledIntent.AdapterID != p.Operation.AdapterID {
 				return fmt.Errorf("installed preparation has no exact typed intent")
 			}

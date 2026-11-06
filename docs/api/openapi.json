@@ -20458,6 +20458,37 @@
               "configuration"
             ],
             "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "codex-app-server"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
           }
         ],
         "properties": {
@@ -20468,7 +20499,8 @@
               "codex-jsonl",
               "codebuddy-cli",
               "dsh-multica",
-              "claude-code-cli"
+              "claude-code-cli",
+              "codex-app-server"
             ],
             "type": "string"
           },
@@ -20619,11 +20651,12 @@
                 "codex-jsonl",
                 "codebuddy-cli",
                 "dsh-multica",
-                "claude-code-cli"
+                "claude-code-cli",
+                "codex-app-server"
               ],
               "type": "string"
             },
-            "maxItems": 6,
+            "maxItems": 7,
             "minItems": 1,
             "type": "array",
             "uniqueItems": true
@@ -20699,7 +20732,7 @@
         "additionalProperties": false,
         "properties": {
           "credential_env_ref": {
-            "description": "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Native CLI preparation requires an empty string and uses its original CLI identity. Reserved process/provider variables are rejected.",
+            "description": "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Native CLI preparation requires an empty string and uses its original CLI identity. Codex app-server also requires an empty string and reuses the node administrator configuration. Reserved process/provider variables are rejected.",
             "type": "string"
           },
           "model": {
@@ -20902,6 +20935,37 @@
               "configuration"
             ],
             "type": "object"
+          },
+          {
+            "properties": {
+              "adapter_id": {
+                "const": "codex-app-server"
+              },
+              "configuration": {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_env_ref": {
+                    "const": "",
+                    "type": "string"
+                  },
+                  "model": {
+                    "const": "",
+                    "type": "string",
+                    "x-max-utf8-bytes": 256
+                  }
+                },
+                "required": [
+                  "model",
+                  "credential_env_ref"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "adapter_id",
+              "configuration"
+            ],
+            "type": "object"
           }
         ],
         "properties": {
@@ -20916,7 +20980,8 @@
               "codex-jsonl",
               "codebuddy-cli",
               "dsh-multica",
-              "claude-code-cli"
+              "claude-code-cli",
+              "codex-app-server"
             ],
             "type": "string"
           },

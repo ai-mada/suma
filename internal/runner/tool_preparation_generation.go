@@ -23,7 +23,7 @@ type toolCommandGeneration struct {
 	ParentSHA256 string       `json:"parent_sha256"`
 	Preparation  tp.Reference `json:"preparation"`
 	SourceSHA256 string       `json:"source_sha256"`
-	// Only generated ACP commands are durable here. Original hand-written Env
+	// Only generated managed commands are durable here. Original hand-written Env
 	// values stay in their original configuration and the in-memory snapshot.
 	Commands map[string]CommandSpec `json:"commands"`
 	Profiles map[string]tc.Profile  `json:"profiles"`

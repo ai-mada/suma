@@ -54,7 +54,11 @@ func (w *Worker) enableToolMaintenance() error {
 		if err = w.initializeCommandGeneration(); err != nil {
 			return err
 		}
-		capability.ManagedPreparation = &tp.Capability{Protocol: tp.Protocol, AdapterIDs: tp.AdapterIDs(), GenerationSHA256: w.currentGenerationSHA()}
+		ids := tp.AdapterIDs()
+		if _, ok := managedCodexTemplate(w.Exec); !ok {
+			ids = slices.DeleteFunc(ids, func(id string) bool { return id == managedCodexAdapterID })
+		}
+		capability.ManagedPreparation = &tp.Capability{Protocol: tp.Protocol, AdapterIDs: ids, GenerationSHA256: w.currentGenerationSHA()}
 	}
 	w.maintenance = &capability
 	return nil

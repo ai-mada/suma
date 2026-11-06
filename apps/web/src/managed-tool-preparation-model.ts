@@ -39,6 +39,7 @@ export function canPrepareManagedToolItem(value:unknown):boolean{
  if(!validRemoteToolScanItem(value)||!value.installed||!validDesktopACPModel(value.version)||!hash(value.executable_sha256))return false;
  const mode=managedToolPreparationMode(value.adapter_id);if(!mode)return false;
  if(mode==='model_and_credential')return !value.launch_supported&&value.reason_code==='acp_configuration_required';
+ if(value.adapter_id==='codex-app-server')return !value.launch_supported&&value.reason_code==='configuration_required';
  return value.launch_supported&&value.reason_code==='workspace_required'&&(mode!=='fixed_claude_model'||value.version==='2.1.314'||value.version==='2.1.314 (Claude Code)');
 }
 function proof(value:unknown,row:Record<string,unknown>):value is ManagedToolPreparationStopProof{
@@ -61,15 +62,17 @@ export async function readManagedToolPreparation(value:unknown,scope:RemoteToolS
  if(has('finished_at')&&!time(value.finished_at)||has('stop_proof')&&!proof(value.stop_proof,value))return invalid();
  if(has('receipt')){
   const receipt=value.receipt;if(!object(receipt)||!closed(receipt,['parent_generation_sha256','generation_sha256','command_id','artifact_sha256','local_receipt_sha256','profile','stop_proof'])||receipt.parent_generation_sha256!==value.expected_generation_sha256||!hash(receipt.generation_sha256)||receipt.generation_sha256===receipt.parent_generation_sha256||!hash(receipt.artifact_sha256)||!hash(receipt.local_receipt_sha256)||!proof(receipt.stop_proof,value))return invalid();
-  let observation;try{observation=parseToolManifest(JSON.stringify([{profile:receipt.profile,available:true,reason:''}]))[0];}catch{return invalid();}
+  const codex=value.adapter_id==='codex-app-server';
+  // The receipt carries an accepted profile. Codex catalogue evidence arrives with inventory.
+  let observation;try{observation=parseToolManifest(JSON.stringify([{profile:receipt.profile,available:!codex,reason:codex?'validation':''}]))[0];}catch{return invalid();}
   const encoded=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value.id))),expectedCommand='managed-'+[...new Uint8Array(encoded)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
   const profile=observation.profile,target=preparationForLocalTool(value.adapter_id),mode=managedToolPreparationMode(value.adapter_id),configuration=value.configuration as ManagedToolPreparationConfiguration;
   if(receipt.command_id!==expectedCommand||receipt.command_id!==profile.command_id||!sameToolProfile(profile,profile)||profile.executable_sha256!==item.executable_sha256||profile.tool_version!==item.version||profile.read_only!==false||!target||profile.adapter!==target.adapter||profile.protocol!==target.protocol)return invalid();
   if(mode==='model_and_credential'){
    if(profile.acp_execution?.runtime!==(value.adapter_id==='qoder-acp'?'qoder':'cursor')||profile.acp_execution.model!==configuration.model)return invalid();
   }else{
-   const plain=['command_id','adapter','protocol','profile_sha256','executable_sha256','tool_version','read_only',...(mode==='fixed_claude_model'?['claude_execution']:[])];
-   if(Object.keys(profile).some(key=>!plain.includes(key)))return invalid();
+   const plain=['command_id','adapter','protocol','profile_sha256','executable_sha256','tool_version','read_only',...(mode==='fixed_claude_model'?['claude_execution']:[]),...(codex?['user_input_protocol']:[])];
+   if(Object.keys(profile).some(key=>!plain.includes(key))||codex&&Object.hasOwn(profile,'user_input_protocol')&&profile.user_input_protocol!=='codex-user-input-v1')return invalid();
    if(mode==='fixed_claude_model'&&(!validClaudeCapability(profile.claude_execution)||profile.claude_execution.model!==configuration.model))return invalid();
   }
  }

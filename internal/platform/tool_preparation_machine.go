@@ -103,11 +103,19 @@ func (s *Service) claimToolPreparationTx(ctx context.Context, tx *sql.Tx, machin
 		}
 		return out, nil
 	}
-	if err = s.toolInstallationBusyTx(ctx, tx, machine.tenant, machine.project, machine.worker, clock); err != nil {
-		return out, err
+	err = s.toolInstallationBusyTx(ctx, tx, machine.tenant, machine.project, machine.worker, clock)
+	if err == nil {
+		err = s.toolInstallationInspectionBusyTx(ctx, tx, machine.tenant, machine.project, machine.worker, clock)
 	}
-	if err = s.toolInstallationInspectionBusyTx(ctx, tx, machine.tenant, machine.project, machine.worker, clock); err != nil {
-		return out, err
+	if err != nil {
+		var api *APIError
+		if !errors.As(err, &api) || api.Code != "tool_maintenance_in_progress" {
+			return out, err
+		}
+		// An idle preparation poll can race another maintenance request.
+		// Finish this nonce without acquiring work so the same owner can
+		// process that request. A replay still returns the original null.
+		return out, s.toolInspectionReceiptTx(ctx, tx, machine, op, hash, out)
 	}
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tool_preparations WHERE tenant_id=? AND project_id=? AND worker_id=? AND state IN ('pending','claimed','awaiting_inventory','unknown') ORDER BY created_at,id LIMIT 10001`), machine.tenant, machine.project, machine.worker)
 	if err != nil {

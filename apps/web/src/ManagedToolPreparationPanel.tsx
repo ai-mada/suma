@@ -37,12 +37,16 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
  // Navigation ownership is separate from the durable operation. Switching a
  // scan retires only the old read-to-Quick intent; it never clears a write.
  const sourceKey=JSON.stringify([selectedScanID,selectionEpoch,scan?.id,scan?.version,item?.adapter_id,item?.executable_sha256]),sourceOwner=useRef({key:sourceKey,epoch:0});if(sourceOwner.current.key!==sourceKey)sourceOwner.current={key:sourceKey,epoch:sourceOwner.current.epoch+1};
- const acknowledgedSource=useRef<object|undefined>(undefined);
+ const acknowledgedSource=useRef<string|undefined>(undefined);
  const pending=!!action.pending,busy=action.busy,unresolved=!!operation&&managedToolPreparationUnresolved(operation),blocked=pending||busy||unresolved||action.persistenceBlocked;
  const maintenance=page?.maintenance.status,cap=maintenance?.managed_preparation,capCurrent=maintenance?.state==='supported'&&validManagedToolPreparationCapability(cap)&&performance.now()<deadline.current;
  const source=scan?.state==='completed'&&!scan.source_changed&&item&&canPrepareManagedToolItem(item)&&scan.result?.items.some(value=>value.adapter_id===item.adapter_id&&JSON.stringify(value)===JSON.stringify(item))?{scan,item}:undefined;
  const mode=managedToolPreparationMode(source?.item.adapter_id),configuration={model:mode==='existing_local_configuration'?'':model,credential_env_ref:mode==='model_and_credential'?credential:''};
- const canCreate=!disabled&&!newOperationsBlocked&&!hidden&&!loading&&!error&&!blocked&&!action.conflict&&capCurrent&&!!source&&cap.adapter_ids.some(adapter=>adapter===source.item.adapter_id)&&source.scan.instance_id===maintenance.instance_id&&validManagedToolPreparationConfiguration(source.item.adapter_id,configuration)&&acknowledged&&acknowledgedSource.current===sourceOwner.current;
+ const codex=source?.item.adapter_id==='codex-app-server';
+ const capabilityMatchesSource=capCurrent&&!!source&&cap.adapter_ids.some(adapter=>adapter===source.item.adapter_id)&&source.scan.instance_id===maintenance.instance_id;
+ const consentKey=codex?JSON.stringify([sourceKey,capabilityMatchesSource?cap.generation_sha256:null]):sourceKey;
+ const hasConsent=acknowledged&&acknowledgedSource.current===consentKey;
+ const canCreate=!disabled&&!newOperationsBlocked&&!hidden&&!loading&&!error&&!blocked&&!action.conflict&&capabilityMatchesSource&&validManagedToolPreparationConfiguration(source.item.adapter_id,configuration)&&hasConsent;
  function choose(id:string){selectedRef.current=id;setSelected(id);try{storage?.setItem(selectionKey,id);}catch{/* The write request, not this navigation locator, is durable authority. */}}
  function stop(){clearTimeout(timer.current);timer.current=undefined;}
  function current(sequence:number,controller:AbortController){return alive.current&&owns()&&epoch.current===sequence&&!controller.signal.aborted;}
@@ -90,7 +94,7 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
  useEffect(()=>{if(action.errorStatus&&[401,403,404].includes(action.errorStatus))deny();},[action.errorStatus]);
  useEffect(()=>{const remaining=deadline.current-performance.now();if(remaining<=0)return;const handle=setTimeout(()=>tick(value=>value+1),Math.ceil(remaining));return()=>clearTimeout(handle);},[page]);
  useEffect(()=>{const visibility=()=>{if(document.visibilityState==='hidden'){stop();++epoch.current;flight.current?.abort();flight.current=undefined;setLoading(false);}else if(waiting.current){if(performance.now()>=waiting.current.until)setTimedOut(true);else void read(waiting.current.id);}};document.addEventListener('visibilitychange',visibility);return()=>document.removeEventListener('visibilitychange',visibility);},[]);
- useEffect(()=>{setModel('');setCredential('');setAcknowledged(false);acknowledgedSource.current=undefined;},[sourceKey]);
+ useEffect(()=>{setModel('');setCredential('');setAcknowledged(false);acknowledgedSource.current=undefined;},[consentKey]);
  if(!source&&!operation&&!pending&&!error)return null;
  const state=hidden?'forbidden':pending?'write_unknown':operation?.state??'configure';
  return <section className="managed-tool-preparation" data-managed-tool-preparation data-managed-preparation-state={state} aria-label={t('title')} aria-busy={loading||busy}>
@@ -99,13 +103,15 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
   {!!(error||action.error)&&<ErrorNotice error={action.error||error}/>}
   {pending&&!hidden&&<button type="button" data-managed-preparation-recover disabled={busy||disabled} onClick={()=>void create(true)}>{t('recover')}</button>}
   {!hidden&&!pending&&source&&!unresolved&&<div className="managed-tool-preparation-form" data-managed-preparation-mode={mode}>
-   <p>{t('selected')} <strong>{source.item.adapter_id}</strong></p>
+   <p>{t('selected')} <strong>{codex?t('codex_name'):source.item.adapter_id}</strong>{codex&&source.item.version?' · '+source.item.version:null}</p>
    {mode!=='existing_local_configuration'&&<Field label={t('model')} hint={mode==='fixed_claude_model'?t('claude_model_hint'):undefined}><input data-managed-preparation-model value={model} disabled={disabled||busy} maxLength={256} onChange={event=>setModel(event.target.value)}/></Field>}
    {mode==='model_and_credential'&&<Field label={t('credential')} hint={t(source.item.adapter_id==='qoder-acp'?'credential_optional':'credential_required')}><input data-managed-preparation-credential value={credential} disabled={disabled||busy} maxLength={128} autoComplete="off" spellCheck={false} onChange={event=>setCredential(event.target.value)}/></Field>}
-   {mode==='existing_local_configuration'&&<p data-managed-preparation-existing>{t('existing_configuration')}</p>}
-   <label className="managed-tool-preparation-consent"><input type="checkbox" data-managed-preparation-confirm checked={acknowledged&&acknowledgedSource.current===sourceOwner.current} disabled={disabled||busy} onChange={event=>{acknowledgedSource.current=event.target.checked?sourceOwner.current:undefined;setAcknowledged(event.target.checked);}}/><span>{t('acknowledge')}</span></label>
-   {!capCurrent&&<p>{t('capability_unavailable')}</p>}
-   <button type="button" data-managed-preparation-create disabled={!canCreate} onClick={()=>void create()}>{t('create')}</button>
+   {mode==='existing_local_configuration'&&(!codex||capabilityMatchesSource)&&<p data-managed-preparation-existing>{t(codex?'codex_existing_configuration':'existing_configuration')}</p>}
+   {!capabilityMatchesSource&&!loading&&<p role="status">{t(codex&&capCurrent&&source.scan.instance_id!==maintenance.instance_id?'codex_rescan_required':codex&&capCurrent?'codex_capability_unavailable':'capability_unavailable')}</p>}
+   {(!codex||capabilityMatchesSource)&&<>
+    <label className="managed-tool-preparation-consent"><input type="checkbox" data-managed-preparation-confirm checked={hasConsent} disabled={disabled||busy} onChange={event=>{acknowledgedSource.current=event.target.checked?consentKey:undefined;setAcknowledged(event.target.checked);}}/><span>{t('acknowledge')}</span></label>
+    <button type="button" data-managed-preparation-create disabled={!canCreate} onClick={()=>void create()}>{t('create')}</button>
+   </>}
   </div>}
   {!hidden&&operation&&<div className="managed-tool-preparation-progress"><code>{operation.id}</code>{operation.result_code&&<p>{t('result.'+operation.result_code)}</p>}{operation.receipt&&<><p>{t('configuration_accepted')}</p><code>{operation.receipt.profile.profile_sha256}</code></>}{operation.source_changed&&<p>{t('source_changed')}</p>}{timedOut&&unresolved&&<p>{t('wait_finished')}</p>}{operation.state==='completed'&&onPreparedConfiguration&&<button type="button" data-managed-preparation-use disabled={disabled||newOperationsBlocked||loading||busy||pending||!!error||!!operation.source_changed||!!selectedScanID&&operation.installation_scan_id!==selectedScanID} onClick={()=>void useInventory()}>{t('use')}</button>}</div>}
   <p className="managed-tool-preparation-boundary">{t('boundary')}</p>

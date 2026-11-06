@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	tic "github.com/ai-mada/suma/internal/toolinspectioncontract"
 	ti "github.com/ai-mada/suma/internal/toolinstallationcontract"
@@ -52,7 +53,11 @@ func managedCLIFixture225(t *testing.T, adapter string, pooled bool) (preparatio
 		version = tc.ClaudeCLIVersion
 		configuration.Model = "claude-sonnet-4-6"
 	}
-	result.Items = []ti.Item{{AdapterID: adapter, Protocol: ti.AdapterProtocol(adapter), Installed: true, LaunchSupported: true, ReasonCode: "workspace_required", Version: version, ExecutableSHA256: strings.Repeat("b", 64)}}
+	item := ti.Item{AdapterID: adapter, Protocol: ti.AdapterProtocol(adapter), Installed: true, LaunchSupported: true, ReasonCode: "workspace_required", Version: version, ExecutableSHA256: strings.Repeat("b", 64)}
+	if adapter == "codex-app-server" {
+		item.LaunchSupported, item.ReasonCode = false, "configuration_required"
+	}
+	result.Items = []ti.Item{item}
 	if pooled {
 		h.scan, err = f.s.CompletePoolToolInstallationScan(ctx, h.token, ti.PoolResultRequest{TenantID: f.user.TenantID, ProjectID: f.project, RunnerID: h.runner, Scan: result.Scan, IdempotencyKey: result.IdempotencyKey, Outcome: result.Outcome, Items: result.Items, StopProof: result.StopProof})
 	} else {
@@ -66,7 +71,7 @@ func managedCLIFixture225(t *testing.T, adapter string, pooled bool) (preparatio
 
 func managedCLIResult225(value tp.Operation) tp.ResultRequest {
 	result := preparationResultFor224(value)
-	adapter := map[string]string{"codex-jsonl": "codex", "codebuddy-cli": "codebuddy", "dsh-multica": "harness", "claude-code-cli": "claude"}[value.AdapterID]
+	adapter := tp.AdapterRuntime(value.AdapterID)
 	result.Receipt.Profile = tc.Profile{CommandID: tp.CommandID(value.ID), Adapter: adapter, Protocol: ti.AdapterProtocol(value.AdapterID), ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: value.InstallationItem.ExecutableSHA256, ToolVersion: value.InstallationItem.Version}
 	if value.AdapterID == "claude-code-cli" {
 		result.Receipt.Profile.ClaudeExecution = &tc.ClaudeExecutionCapability{Model: value.Configuration.Model, ModelSource: "administrator_cli_argument", ConfigurationSHA256: strings.Repeat("c", 64), BudgetMode: "observe_only", IdentityEvidence: "configuration_ack_only", AuthStrategy: "existing_cli_login"}
@@ -203,5 +208,66 @@ func TestManagedCLIPoolInventoryReceiptRollbackAndPausedRegistration(t *testing.
 	profile, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: h.worker, Name: "Controlled prepared CLI225", Profile: result.Receipt.Profile, IdempotencyKey: newID()})
 	if err != nil || profile.State != "paused" || profile.Available {
 		t.Fatal("preparation implicitly enabled or executed CLI", profile, err)
+	}
+}
+
+func TestManagedCodexAppServerPreparationRequiresScopeOptInAndCatalogue(t *testing.T) {
+	for _, scope := range []string{"ordinary", "pool"} {
+		t.Run(scope, func(t *testing.T) {
+			h, request := managedCLIFixture225(t, "codex-app-server", scope == "pool")
+			f, ctx := h.f, context.Background()
+
+			withoutCodex, cap := *h.cap, *h.cap.ManagedPreparation
+			cap.AdapterIDs = []string{"codex-jsonl"}
+			withoutCodex.ManagedPreparation = &cap
+			if _, err := h.report(t, ToolInventoryRequest{OperationID: newID(), Items: []tc.Observation{}, Maintenance: &withoutCodex}); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := f.s.CreateToolPreparation(ctx, f.actor, f.project, request); err == nil {
+				t.Fatal("Codex JSONL opt-in granted a Codex app-server preparation")
+			}
+			if _, err := h.report(t, ToolInventoryRequest{OperationID: newID(), Items: []tc.Observation{}, Maintenance: h.cap}); err != nil {
+				t.Fatal(err)
+			}
+			created, err := f.s.CreateToolPreparation(ctx, f.actor, f.project, request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			claim, err := h.claim(t, newID())
+			if err != nil || claim.Preparation == nil || claim.Preparation.ID != created.ID {
+				t.Fatal(claim, err)
+			}
+			result := managedCLIResult225(*claim.Preparation)
+			result.Receipt.Profile.UserInputProtocol = cc.UserInputProtocol
+			head, err := h.result(t, result)
+			if err != nil || head.State != "awaiting_inventory" {
+				t.Fatal(head, err)
+			}
+			inventory := managedCLIInventory225(h, result)
+			if _, err = h.report(t, inventory); err == nil {
+				t.Fatal("an unavailable Codex profile without a model catalogue completed preparation")
+			}
+			head, err = f.s.GetToolPreparation(ctx, f.actor, f.project, created.ID)
+			if err != nil || head.State != "awaiting_inventory" {
+				t.Fatal("missing catalogue changed accepted-generation state", head, err)
+			}
+			catalogue, err := cc.NewCatalog(strings.Repeat("c", 64), []cc.ModelOption{{Model: "controlled-model", ReasoningEfforts: []string{"medium"}, DefaultReasoningEffort: "medium"}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			inventory.Items[0] = tc.Observation{Profile: result.Receipt.Profile, Available: true, CodexCatalog: &catalogue}
+			ack, err := h.report(t, inventory)
+			if err != nil || ack.PreparationState != "completed" {
+				t.Fatal(ack, err)
+			}
+			replay, err := h.report(t, inventory)
+			if err != nil || stringify(replay) != stringify(ack) {
+				t.Fatal("Codex preparation inventory did not replay the original receipt", replay, err)
+			}
+			profile, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: h.worker, Name: "Controlled prepared Codex App Server", Profile: result.Receipt.Profile, IdempotencyKey: newID()})
+			if err != nil || profile.State != "paused" || profile.Available {
+				t.Fatal("preparation implicitly enabled Codex app-server", profile, err)
+			}
+		})
 	}
 }

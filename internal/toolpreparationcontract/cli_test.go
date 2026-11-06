@@ -1,6 +1,7 @@
 package toolpreparationcontract_test
 
 import (
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
 	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestManagedCLIOptionsCannotBecomeIgnoredModelOrCredentialOverrides(t *testing.T) {
-	for _, id := range []string{"codex-jsonl", "codebuddy-cli", "dsh-multica"} {
+	for _, id := range []string{"codex-jsonl", "codebuddy-cli", "dsh-multica", "codex-app-server"} {
 		t.Run(id, func(t *testing.T) {
 			if tp.ValidateConfiguration(id, tp.Configuration{}) != nil || tp.ConfigurationMode(id) != "existing_local_configuration" {
 				t.Fatal("exact native configuration rejected")
@@ -19,11 +20,18 @@ func TestManagedCLIOptionsCannotBecomeIgnoredModelOrCredentialOverrides(t *testi
 					t.Fatal("unsupported option silently ignored")
 				}
 			}
-			item := ii.Item{AdapterID: id, Protocol: map[string]string{"codex-jsonl": "codex-jsonl-v1", "codebuddy-cli": "codebuddy-jsonl-v1", "dsh-multica": "dsh-multica-jsonl-v1"}[id], Installed: true, LaunchSupported: true, ReasonCode: "workspace_required", Version: "reviewed225", ExecutableSHA256: strings.Repeat("a", 64)}
+			item := ii.Item{AdapterID: id, Protocol: ii.AdapterProtocol(id), Installed: true, LaunchSupported: true, ReasonCode: "workspace_required", Version: "reviewed225", ExecutableSHA256: strings.Repeat("a", 64)}
+			if id == "codex-app-server" {
+				item.LaunchSupported, item.ReasonCode = false, "configuration_required"
+			}
 			if !tp.CanPrepareItem(item) {
 				t.Fatal("reviewed original command lost its preparation route")
 			}
-			item.LaunchSupported = false
+			if id == "codex-app-server" {
+				item.LaunchSupported, item.ReasonCode = true, "workspace_required"
+			} else {
+				item.LaunchSupported = false
+			}
 			if tp.CanPrepareItem(item) {
 				t.Fatal("unverified original command admitted")
 			}
@@ -38,15 +46,15 @@ func TestManagedCLIOptionsCannotBecomeIgnoredModelOrCredentialOverrides(t *testi
 			t.Fatal("Claude CLI option bypasses original reviewed policy")
 		}
 	}
-	if tp.ValidateConfiguration("claude-code-sdk", good) == nil || tp.ConfigurationMode("codex-app-server") != "" {
+	if tp.ValidateConfiguration("claude-code-sdk", good) == nil || tp.ConfigurationMode("opencode-sdk") != "" {
 		t.Fatal("catalogue entry became an unimplemented factory")
 	}
 }
 
 func TestManagedCLIProfilesRetainTheirExactProtocolAndCapability(t *testing.T) {
-	for _, id := range []string{"codex-jsonl", "codebuddy-cli", "dsh-multica", "claude-code-cli"} {
+	for _, id := range []string{"codex-jsonl", "codebuddy-cli", "dsh-multica", "claude-code-cli", "codex-app-server"} {
 		t.Run(id, func(t *testing.T) {
-			p := tc.Profile{CommandID: "managed225", Adapter: tp.AdapterRuntime(id), Protocol: map[string]string{"codex-jsonl": "codex-jsonl-v1", "codebuddy-cli": "codebuddy-jsonl-v1", "dsh-multica": "dsh-multica-jsonl-v1", "claude-code-cli": tc.ClaudeProtocol}[id], ExecutableSHA256: strings.Repeat("a", 64), ProfileSHA256: strings.Repeat("b", 64), ToolVersion: "reviewed225"}
+			p := tc.Profile{CommandID: "managed225", Adapter: tp.AdapterRuntime(id), Protocol: ii.AdapterProtocol(id), ExecutableSHA256: strings.Repeat("a", 64), ProfileSHA256: strings.Repeat("b", 64), ToolVersion: "reviewed225"}
 			configuration := tp.Configuration{}
 			if id == "claude-code-cli" {
 				configuration.Model = "claude-sonnet-5"
@@ -55,6 +63,17 @@ func TestManagedCLIProfilesRetainTheirExactProtocolAndCapability(t *testing.T) {
 			}
 			if !tp.ProfileMatchesConfiguration(id, configuration, p) {
 				t.Fatal("exact original complete profile rejected")
+			}
+			if id == "codex-app-server" {
+				p.UserInputProtocol = cc.UserInputProtocol
+				if !tp.ProfileMatchesConfiguration(id, configuration, p) {
+					t.Fatal("existing native user input setting was lost")
+				}
+				wrongProtocol := p
+				wrongProtocol.Protocol, wrongProtocol.UserInputProtocol = "codex-jsonl-v1", ""
+				if tp.ProfileMatchesConfiguration(id, configuration, wrongProtocol) {
+					t.Fatal("Codex JSONL replaced the selected app-server protocol")
+				}
 			}
 			changed := tc.CloneProfile(p)
 			changed.ReadOnly = true

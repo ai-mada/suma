@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	ii "github.com/ai-mada/suma/internal/toolinstallationcontract"
 	"slices"
@@ -39,7 +40,7 @@ func AdapterRuntime(adapter string) string {
 		return "qoder"
 	case "cursor-cli":
 		return "cursor"
-	case "codex-jsonl":
+	case "codex-jsonl", "codex-app-server":
 		return "codex"
 	case "codebuddy-cli":
 		return "codebuddy"
@@ -78,7 +79,7 @@ func ConfigurationMode(adapter string) string {
 		return "model_and_credential"
 	case "claude-code-cli":
 		return "fixed_claude_model"
-	case "codex-jsonl", "codebuddy-cli", "dsh-multica":
+	case "codex-jsonl", "codebuddy-cli", "dsh-multica", "codex-app-server":
 		return "existing_local_configuration"
 	}
 	return ""
@@ -111,6 +112,9 @@ func CanPrepareItem(v ii.Item) bool {
 	if ConfigurationMode(v.AdapterID) == "model_and_credential" {
 		return !v.LaunchSupported && v.ReasonCode == "acp_configuration_required"
 	}
+	if v.AdapterID == "codex-app-server" {
+		return !v.LaunchSupported && v.ReasonCode == "configuration_required"
+	}
 	return v.LaunchSupported && v.ReasonCode == "workspace_required" && (v.AdapterID != "claude-code-cli" || tc.ValidateClaudeCLIVersion(v.Version) == nil)
 }
 
@@ -126,8 +130,12 @@ func ProfileMatchesConfiguration(adapter string, configuration Configuration, p 
 	case "fixed_claude_model":
 		return tc.SupportsClaudeExecutionProfile(p) && p.ClaudeExecution.Model == configuration.Model
 	case "existing_local_configuration":
-		protocol := map[string]string{"codex-jsonl": "codex-jsonl-v1", "codebuddy-cli": "codebuddy-jsonl-v1", "dsh-multica": "dsh-multica-jsonl-v1"}[adapter]
+		protocol := map[string]string{"codex-jsonl": "codex-jsonl-v1", "codebuddy-cli": "codebuddy-jsonl-v1", "dsh-multica": "dsh-multica-jsonl-v1", "codex-app-server": cc.Protocol}[adapter]
 		plain := tc.Profile{CommandID: p.CommandID, Adapter: p.Adapter, Protocol: protocol, ExecutableSHA256: p.ExecutableSHA256, ToolVersion: p.ToolVersion, ReadOnly: false, ProfileSHA256: p.ProfileSHA256}
+		if adapter == "codex-app-server" {
+			// ValidateProfile has already checked the optional native input protocol.
+			plain.UserInputProtocol = p.UserInputProtocol
+		}
 		return tc.EqualProfile(p, plain)
 	}
 	return false
@@ -137,7 +145,7 @@ func supportedGenerationProfile(p tc.Profile) bool {
 	if tc.SupportsACPExecutionProfile(p) || tc.SupportsClaudeExecutionProfile(p) {
 		return tc.ValidateProfile(p, true) == nil
 	}
-	for _, id := range []string{"codex-jsonl", "codebuddy-cli", "dsh-multica"} {
+	for _, id := range []string{"codex-jsonl", "codebuddy-cli", "dsh-multica", "codex-app-server"} {
 		if ProfileMatchesConfiguration(id, Configuration{}, p) {
 			return true
 		}
