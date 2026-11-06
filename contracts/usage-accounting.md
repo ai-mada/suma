@@ -31,6 +31,7 @@ Check deny要保留可诊断的静态阻止原因，不消耗attempt/槽位/金�
 - partial/unknown：可明确的已上报input/output下界入账，持有max(原预留-已入账,0)，unknown状态/待核对计数保留；未报告不能当0。任何未知结果、不完整usage、停止/租约过期/业务reconcile不自动退款。重复result和人工确认幂等。
 - 整数溢出不得丢实际执行结果；保留usage原件，费用/合计置null、标需核对并保留预留。字段更新和账户/CAS/receipt同tx，真实结果不因展示汇总错误被拒。
 - 人工confirm只适用于未完整结算/未知记录，需当前项目批准权限（涉及组织账户还要求组织owner/admin），完整新usage input/output和>=原已知每个计数、source_ref+reason+明确确认。标manual_confirmation，不冒充厂商实测；不允许降低已知使用量。新估算/剩余预留结算与审计/receipt原子提交；原始工具事实保留。不能直接清空余额。
+- 人工确认成功结算后，已校验的晚到结果按尝试身份和结果摘要追加事实，保留其原始观察。已确认的计数、估算、预留及人工依据保持稳定。若确认发生在首条结果之前，仅补记原结果摘要并推进账本修订。差额调整入口待交付。 [阶段验证](../docs/quality/usage-confirmed-receipts-verification.md)
 
 ## DTO（backend先落类型，Root统一生成）
 

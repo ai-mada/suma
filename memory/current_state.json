@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "usage_confirmed_receipts": {
+    "stage": "T-USAGE-CONFIRMED-RECEIPTS-277",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "fa8a5596f0dc6caac1d9e23306a279199a01d65c",
+    "report": "docs/quality/usage-confirmed-receipts-verification.md",
+    "actual": "Valid late Runner receipts remain independent immutable usage facts after successful manual settlement. First-result metadata can fill once without changing account balances.",
+    "verification": "11 targeted Go tests and seven subtests passed using SQLite, including red-to-green real Runner HTTP, expiry before first receipt, replay and both scope balances.",
+    "known_limitations": "Adjustment of conflicting late provider usage is outside this stage. OceanBase, PostgreSQL, multi-host and vendor billing acceptance remain open.",
+    "full_platform_complete": false
+  },
   "automation_run_origin": {
     "stage": "T-AUTOMATION-RUN-ORIGIN-276",
     "version": "1.0.0",

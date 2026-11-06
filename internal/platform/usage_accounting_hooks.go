@@ -408,7 +408,7 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		return e
 	}
 	old := record.Attempt.Version
-	a := &record.Attempt
+	a := record.Attempt
 	previousUsage := a.Usage
 	if a.SourceResultSHA256 == "" {
 		a.SourceResultSHA256 = sha
@@ -592,15 +592,26 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	} else if a.Rate == nil {
 		state = "unpriced"
 	}
-	if e = s.settleUsageTx(ctx, tx, ref.TenantID, &record, complete, state); e != nil {
-		return e
-	}
-	a = &record.Attempt
-	a.Version++
-	a.UpdatedAt = now()
 	if e = s.usageFactTx(ctx, tx, ref.TenantID, ref.ProjectID, a.ID, "result", sha, result); e != nil {
 		return e
 	}
+	// A valid late receipt is an independent observation. Once human
+	// settlement is complete it cannot change the decision or account balances.
+	if record.Attempt.State == "confirmed" && record.Attempt.UsageSource == "manual_confirmation" && !record.Unresolved {
+		if record.Attempt.SourceResultSHA256 != "" {
+			return nil
+		}
+		// An expired attempt may have been confirmed before its first result.
+		// Record the original receipt identity without changing settlement.
+		record.Attempt.SourceResultSHA256 = sha
+	} else {
+		record.Attempt = a
+		if e = s.settleUsageTx(ctx, tx, ref.TenantID, &record, complete, state); e != nil {
+			return e
+		}
+	}
+	record.Attempt.Version++
+	record.Attempt.UpdatedAt = now()
 	return s.saveUsageTx(ctx, tx, ref.TenantID, record, old)
 }
 func usageCountersAtLeastOrPartial(next, old *toolcontract.Usage) bool {

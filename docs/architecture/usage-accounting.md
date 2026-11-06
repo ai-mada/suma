@@ -50,6 +50,8 @@ sequenceDiagram
 
 Check只锁和检查，不收费。Reserve失败回滚项目及共享池资源和派发，不留下部分金额。重放领取不再次预留；完成回执重复不重复结算。租约过期不释放财务预留，业务reconcile成功／未开始也不是Token实测0。费用核对使用独立记录与人工确认，不能随DAG原result覆盖而丢失已知用量。
 
+晚到回执经过原执行资格与证据校验后，在同一事务保存独立结果事实。人工结算完成时保留其已确认的金额、额度和依据。先确认后收结果的尝试会登记原结果摘要；已有摘要的尝试保留原修订。该规则同时适用于项目和共享池收到的有效回执。 [阶段验证](../quality/usage-confirmed-receipts-verification.md)
+
 ## 数据与读取
 
 新增policy、rate、account_guard、account、attempt、fact六表及有界查询索引。账户按tenant/scope/project/UTCmonth/resource隔离，resource分别tokens、cost:CNY、cost:USD。每笔attempt固定run/node/attempt/fence/worker/profile及费率；原结果、业务核对和人工确认进入独立不可变fact。
