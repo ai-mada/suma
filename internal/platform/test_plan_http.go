@@ -23,7 +23,7 @@ func (s *Server) testPlansHTTP(w http.ResponseWriter, r *http.Request, actor Act
 	}
 	paged := r.Method == http.MethodGet && (len(parts) == 1 || len(parts) == 3 && parts[2] == "executions")
 	for key, values := range query {
-		if len(values) != 1 || values[0] == "" || key != "project_id" && !(paged && (key == "limit" || key == "before")) && !(r.Method == http.MethodGet && len(parts) == 1 && key == "task_id") {
+		if len(values) != 1 || values[0] == "" || key != "project_id" && !(paged && (key == "limit" || key == "before")) && !(r.Method == http.MethodGet && len(parts) == 1 && (key == "task_id" || key == "state")) {
 			writeError(w, invalid(testPlanInvalid))
 			return true
 		}
@@ -68,7 +68,7 @@ func (s *Server) testPlansHTTP(w http.ResponseWriter, r *http.Request, actor Act
 	}
 	switch {
 	case len(parts) == 1 && r.Method == http.MethodGet:
-		out, err := s.Service.ListTestPlans(r.Context(), actor, project, query.Get("task_id"), limit, query.Get("before"))
+		out, err := s.Service.ListTestPlans(r.Context(), actor, project, query.Get("task_id"), query.Get("state"), limit, query.Get("before"))
 		respond(w, 200, out, err)
 	case len(parts) == 1 && r.Method == http.MethodPost:
 		var request TestPlanCreateRequest

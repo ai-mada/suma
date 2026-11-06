@@ -78,3 +78,31 @@ func TestTestPlansSchemasKeepIncompleteDraftsAndCaseProofSeparate(t *testing.T) 
 		t.Fatal("coverage no longer identifies exact task criteria")
 	}
 }
+
+func TestTestPlanCatalogContractScopesStateAndCursor(t *testing.T) {
+	api, _ := generate()
+	list := mapAt(api, "paths", "/test-plans", "get")
+	fields := map[string]map[string]any{}
+	for _, value := range list["parameters"].([]any) {
+		field := value.(map[string]any)
+		if field["in"] == "query" {
+			fields[field["name"].(string)] = field
+		}
+	}
+	state := fields["state"]
+	if state == nil || state["required"] == true || !reflect.DeepEqual(mapAt(state, "schema")["enum"], []string{"draft", "published", "retired"}) {
+		t.Fatal("catalog state must be an optional closed filter", state)
+	}
+	before := fields["before"]
+	if mapAt(before, "schema")["maxLength"] != 1024 || !strings.Contains(before["description"].(string), "opaque") {
+		t.Fatal("plan cursor lost its state-filtered wire contract", before)
+	}
+	for _, path := range []string{"/test-plans/{id}", "/test-plans/{id}/executions"} {
+		for _, value := range mapAt(api, "paths", path, "get")["parameters"].([]any) {
+			field := value.(map[string]any)
+			if field["in"] == "query" && field["name"] == "state" {
+				t.Fatal("catalog state was added to a detail route", path)
+			}
+		}
+	}
+}

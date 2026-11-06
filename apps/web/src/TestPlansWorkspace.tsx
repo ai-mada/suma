@@ -6,14 +6,16 @@ import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {Badge,Empty,ErrorNotice,Field,Loading,Modal} from './ui';
 import {useLeaveGuard,useWriteAction,WriteFields,WriteNotice} from './write-action';
-import {caseStatuses,executionStates,newQualityCase,packageEvidenceStates,planDraftErrors,planID,planStates,planText,reportEligibility,taskCriteria,testPlanPath,testPlanRecovery,validPlanPage,validTestPlan,validTestPlanExecution,validTestPlanReport} from './test-plans-model';
+import {caseStatuses,executionStates,isTestPlanState,newQualityCase,packageEvidenceStates,planDraftErrors,planID,planStates,planText,reportEligibility,taskCriteria,testPlanCatalogPath,testPlanPath,testPlanRecovery,type TestPlanCatalogFilter,type TestPlanState,validPlanPage,validTestPlan,validTestPlanExecution,validTestPlanReport} from './test-plans-model';
 import {useTestPlanPage,useTestPlanRead} from './test-plans-hooks';
 import './TestPlansWorkspace.css';
 
-export type TestPlansWorkspaceProps={session:Session;project:string;refresh:number;planID?:string;runID?:string;tab?:'cases'|'results';onSelectPlan:(id:string)=>void;onSelectExecution:(run:string)=>void;onTab:(tab:'cases'|'results')=>void;onOpenTask:(id:string)=>void;onOpenRun:(run:string,node?:string,attempt?:number)=>void;onOpenIssue:(id:string)=>void;onChanged:()=>void|Promise<void>};
+export type TestPlansWorkspaceProps={session:Session;project:string;refresh:number;planID?:string;runID?:string;tab?:'cases'|'results';catalogFilter?:TestPlanCatalogFilter;onCatalogFilter?:(filter:TestPlanCatalogFilter)=>void;onSelectPlan:(id:string)=>boolean|void;onSelectExecution:(run:string)=>void;onTab:(tab:'cases'|'results')=>void;onOpenTask:(id:string)=>void;onOpenRun:(run:string,node?:string,attempt?:number)=>void;onOpenIssue:(id:string)=>void;onChanged:()=>void|Promise<void>};
 type Draft={id:string;version:number;taskID:string;taskVersion:number;requirementVersion:number;title:string;description:string;cases:QualityTestCase[];canonical:string};
 type DefectDraft={planID:string;version:number;runID:string;reason:string}&({kind:'case';key:string}|{kind:'package';nodeID:string;attempt:number;fence:number});
 type PackageGate=TestPlanExecution['package_evidence'][number];
+type DraftAdoption={previous:Draft;planID:string;complete:()=>void;reject:(error:unknown)=>void};
+const emptyCatalogFilter:TestPlanCatalogFilter={};
 const t=(key:string,values?:Record<string,unknown>)=>tr('test-plans.'+key,values);
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const content=(value:Pick<Draft,'title'|'description'|'cases'>)=>JSON.stringify({title:value.title,description:value.description,cases:value.cases});
@@ -25,9 +27,12 @@ export function TestPlansWorkspace(props:TestPlansWorkspaceProps){return <TestPl
 function TestPlanOwner(props:TestPlansWorkspaceProps){const [retry,setRetry]=useState(0);return <TestPlanScope key={retry} {...props} retryRead={()=>setRetry(value=>value+1)}/>;}
 
 function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
- useLocale();const {session,project,refresh,planID:requestedPlan='',runID='',tab='cases',retryRead}=props,api=useApi(),callbacks=useRef(props);callbacks.current=props;
+ useLocale();const {session,project,refresh,planID:requestedPlan='',runID='',tab='cases',catalogFilter=emptyCatalogFilter,onCatalogFilter,retryRead}=props,api=useApi(),callbacks=useRef(props);callbacks.current=props;
  const [accessError,setAccessError]=useState<unknown>(),[draft,setDraft]=useState<Draft>(),[taskID,setTaskID]=useState(''),[basisAck,setBasisAck]=useState(false),[reason,setReason]=useState(''),[notice,setNotice]=useState(''),[caseFilter,setCaseFilter]=useState(''),[activeCase,setActiveCase]=useState(-1),[defect,setDefect]=useState<DefectDraft>();
- const bodyID=useId(),alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const [rebasing,setRebasing]=useState(false),[adoption,setAdoption]=useState<DraftAdoption>();
+ const bodyID=useId(),alive=useRef(true),lookup=useRef<AbortController|undefined>(undefined);
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;lookup.current?.abort();};},[]);
+ const {state:catalogState,taskID:catalogTask,invalid:catalogInvalid}=catalogFilter;
  const validRecovery=useCallback((request:Parameters<typeof testPlanRecovery>[0])=>testPlanRecovery(request,project),[project]);
  const validResponse=useCallback((value:unknown,request:Parameters<typeof testPlanRecovery>[0])=>request.path.endsWith('/defects')||request.path.endsWith('/package-defects')?object(value)&&planID(value.id)&&value.project_id===project&&Number.isSafeInteger(value.version)&&Number(value.version)>0:validTestPlan(value,project),[project]);
  const action=useWriteAction({scope:JSON.stringify([session.user.id,session.organization.id,project,'test-plans']),storage:sessionStorage,validateRequest:validRecovery,validateResponse:validResponse});
@@ -36,17 +41,21 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
  useEffect(()=>{if(action.errorStatus===401||action.errorStatus===403)setAccessError(new UiError('test-plans.access_changed'));},[action.errorStatus]);
  useEffect(()=>{if(accessError)setDefect(undefined);},[accessError]);
  const validPlan=useCallback((value:unknown):value is TestPlanView=>validTestPlan(value,project),[project]);
- const validPlans=useCallback((value:unknown):value is {items:TestPlanView[];total:number;next_cursor:string}=>validPlanPage(value,validPlan),[validPlan]);
+ const validCatalogPlan=useCallback((value:unknown):value is TestPlanView=>
+  validPlan(value)&&(!catalogState||value.state===catalogState)&&(!catalogTask||value.task_id===catalogTask),[validPlan,catalogState,catalogTask]);
+ const validPlans=useCallback((value:unknown):value is {items:TestPlanView[];total:number;next_cursor:string}=>validPlanPage(value,validCatalogPlan),[validCatalogPlan]);
  const validRecord=useCallback((value:unknown):value is RecordItem=>object(value)&&planID(value.id)&&Number.isSafeInteger(value.version)&&Number(value.version)>0&&value.project_id===project,[project]);
  const validRecords=useCallback((value:unknown):value is {items:RecordItem[];total:number;next_cursor:string}=>validPlanPage(value,validRecord),[validRecord]);
- const plans=useTestPlanPage(api,!accessError?testPlanPath()+query(project)+'&limit=20':undefined,refresh,validPlans,failed);
+ const plans=useTestPlanPage(api,!accessError&&!catalogInvalid?testPlanCatalogPath(project,catalogFilter):undefined,refresh,validPlans,failed);
  const detail=useTestPlanRead(api,selectedID&&!accessError?testPlanPath(selectedID)+query(project):undefined,refresh,validPlan,failed),plan=detail.value;
  const tasks=useTestPlanPage(api,!selectedID&&!accessError?'/tasks'+query(project)+'&limit=100':undefined,refresh,validRecords,failed,'cursor');
  const actualTaskID=plan?.task_id||taskID||String(pending?.body.task_id||'');
  const task=useTestPlanRead(api,actualTaskID&&!accessError?'/tasks/'+encodeURIComponent(actualTaskID)+query(project):undefined,refresh,validRecord,failed);
  const requirementID=typeof task.value?.requirement_id==='string'?task.value.requirement_id:'';
  const requirement=useTestPlanRead(api,requirementID&&!accessError?'/requirements/'+encodeURIComponent(requirementID)+query(project):undefined,refresh,validRecord,failed);
- const current=plan?.id===selectedID?plan:undefined,visibleDraft=draft?.id===selectedID?draft:undefined,locked=action.busy||!!pending||!!accessError;
+ const current=plan?.id===selectedID?plan:undefined,visibleDraft=draft?.id===selectedID?draft:undefined,locked=action.busy||!!pending||!!accessError||rebasing;
+ const rebaseScope=useRef({api,actualTaskID,selectedID,accessError,visibleDraft});
+ rebaseScope.current={api,actualTaskID,selectedID,accessError,visibleDraft};
  const canCreate=['owner','admin'].includes(session.user.role||'')||['admin','reviewer','developer'].includes(session.projects.find(item=>item.id===project)?.role||'');
  // Existing-plan capabilities come from its current authorized read. Session
  // project grants govern only creation, never override a withheld save action.
@@ -60,6 +69,19 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
  useEffect(()=>{if(!pendingDraft)return;setDraft(before=>({...freshDraft(String(pendingDraft.body.task_id||before?.taskID||actualTaskID)),id:originalPlan||'',version:Number(pendingDraft.body.expected_version||0),taskVersion:Number(pendingDraft.body.expected_task_version||0),requirementVersion:Number(pendingDraft.body.expected_requirement_version||0),title:String(pendingDraft.body.title),description:String(pendingDraft.body.description||''),cases:structuredClone(pendingDraft.body.cases as QualityTestCase[]),canonical:before?.canonical||''}));},[pendingDraft?.idempotency_key]);
  const dirty=!!visibleDraft&&(content(visibleDraft)!==visibleDraft.canonical||!selectedID&&!!visibleDraft.taskID),versionChanged=!!current&&!!visibleDraft&&current.version!==visibleDraft.version;
  useLeaveGuard(dirty||!!defect?.reason.trim(),action.setError);
+ useEffect(()=>{
+  if(!adoption)return;
+  // The draft now belongs to the verified destination. After the editor's
+  // dirty guard releases, route through the usual guard for any other work.
+  const scope=rebaseScope.current;
+  if(scope.selectedID||scope.accessError||scope.actualTaskID!==adoption.previous.taskID){
+   adoption.reject(new UiError('test-plans.refresh_failed'));
+  }else if(callbacks.current.onSelectPlan(adoption.planID)===false){
+   setDraft(adoption.previous);
+   adoption.reject(new UiError('test-plans.refresh_failed'));
+  }else adoption.complete();
+  setAdoption(undefined);
+ },[adoption]);
  const criteria=taskCriteria(task.value?.acceptance_criteria),requirementVersion=requirementID?requirement.value?.version:0,sourceLoaded=!!task.value&&(!requirementID||!!requirement.value),basisChanged=!!current&&(!current.basis_current||sourceLoaded&&(current.latest!.source.task.title!==(task.value?.title||'')||current.latest!.source.task.description!==(task.value?.description||'')||JSON.stringify(current.latest!.source.task.acceptance_criteria)!==JSON.stringify(criteria)||current.latest!.source.requirement?.version!==(requirementVersion||undefined)));
  const readError=[detail.error,task.error,requirement.error].find(Boolean),sourceReady=sourceLoaded&&!detail.loading&&!task.loading&&!requirement.loading&&!readError;
  // An unread task is not a task with zero criteria. Await the current source
@@ -91,13 +113,45 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
    // A same-plan save needs no navigation, and a late list read cannot redirect
    // a different selection or a new owner back to this historical receipt.
    const fresh=await plans.read();if(!alive.current)return;
-   if(fresh&&value.id!==confirmedPlan&&(callbacks.current.planID||'')===requestedAtConfirmation)callbacks.current.onSelectPlan(value.id);
+   if((fresh||catalogInvalid)&&value.id!==confirmedPlan&&(callbacks.current.planID||'')===requestedAtConfirmation)callbacks.current.onSelectPlan(value.id);
    await changed();
   }
  }
  async function save(){if(!canSave||!visibleDraft||!task.value)return;const body={project_id:project,...(current?{expected_version:visibleDraft.version}:{task_id:actualTaskID}),expected_task_version:task.value.version,expected_requirement_version:requirementVersion||0,title:visibleDraft.title,description:visibleDraft.description,cases:visibleDraft.cases};await completed(await action.run<TestPlanView>(testPlanPath(current?.id),body,current?'PUT':'POST'));}
  async function command(name:'publish'|'retire'){if(!current||locked||dirty||versionChanged||!sourceLoaded||readError||!current.allowed_actions.includes(name)||!planText(reason,2000))return;await completed(await action.run<TestPlanView>(testPlanPath(current.id)+'/commands',{project_id:project,expected_version:current.version,action:name,reason}));}
- async function rebase(){if(!selectedID){const page=await plans.read();const existing=page?.items.find(item=>item.task_id===actualTaskID);if(!existing)throw new UiError('test-plans.existing_plan_hint');setDraft(before=>before?{...fromPlan(existing),title:before.title,description:before.description,cases:before.cases}:fromPlan(existing));callbacks.current.onSelectPlan(existing.id);return;}const latest=await detail.read();if(!latest)throw new UiError('test-plans.refresh_failed');setDraft(before=>before?{...before,version:latest.version,canonical:content(latest.latest!)}:fromPlan(latest));setBasisAck(false);await task.read();if(requirementID)await requirement.read();}
+ async function rebase(){
+  if(selectedID){
+   const latest=await detail.read();
+   if(!latest)throw new UiError('test-plans.refresh_failed');
+   setDraft(before=>before?{...before,version:latest.version,canonical:content(latest.latest!)}:fromPlan(latest));
+   setBasisAck(false);await task.read();if(requirementID)await requirement.read();
+   return;
+  }
+  if(!planID(actualTaskID)||lookup.current)throw new UiError('test-plans.refresh_failed');
+  const controller=new AbortController();lookup.current=controller;setRebasing(true);
+  const ownScope=()=>{
+   const scope=rebaseScope.current;
+   return alive.current&&!controller.signal.aborted&&scope.api===api&&!scope.selectedID&&
+    !scope.accessError&&scope.actualTaskID===actualTaskID&&scope.visibleDraft?.taskID===actualTaskID;
+  };
+  try{
+   const page=await api<unknown>(testPlanCatalogPath(project,{taskID:actualTaskID},1),undefined,'GET',undefined,controller.signal);
+   if(!ownScope())throw new UiError('test-plans.refresh_failed');
+   if(!validPlanPage(page,validPlan)||page.total!==1||page.items.length!==1||page.next_cursor||
+    page.items[0].task_id!==actualTaskID)throw new UiError('test-plans.existing_plan_hint');
+   const existing=page.items[0],previous=rebaseScope.current.visibleDraft!;
+   await new Promise<void>((complete,reject)=>{
+    setDraft({...fromPlan(existing),title:previous.title,description:previous.description,cases:previous.cases});
+    setAdoption({previous,planID:existing.id,complete,reject});
+   });
+  }catch(error){
+   if(ownScope())failed(error);
+   throw error;
+  }finally{
+   if(lookup.current===controller)lookup.current=undefined;
+   if(alive.current)setRebasing(false);
+  }
+ }
  function openDefect(item:TestCaseResult|PackageGate){
   if(locked||!current||!execution.value||!currentDefectBasis)return;
   const basis={planID:current.id,version:current.version,runID:execution.value.run_id,reason:''};
@@ -120,11 +174,25 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
  const restore=pending&&<div className="tp-callout" role="status"><strong>{t('original_operation')}</strong><p>{t('restore_hint')}</p><button type="button" data-test-plan-restore disabled={action.busy} onClick={()=>void action.run<TestPlanView|RecordItem>(pending.path,pending.body,pending.method).then(value=>completed(value,pending.path.endsWith('/package-defects')))}>{t('restore')}</button></div>;
  return <section className="test-plans-workspace" aria-label={t('title')}>
   <div className="tp-intro"><div><h2>{t('title')}</h2><p>{t('intro')}</p></div>{canCreate&&<button type="button" disabled={locked} onClick={()=>{if(canLeave()){setDraft(freshDraft());setTaskID('');callbacks.current.onSelectPlan('');}}}><Plus size={15}/>{t('new_plan')}</button>}</div>
-  {!defectOpen&&<><WriteNotice action={action} onRebase={rebase}/>{restore}</>}
+  {!defectOpen&&<><WriteNotice action={action} onRebase={rebasing?undefined:rebase}/>{rebasing&&<p className="tp-muted" role="status">{t('catalog_recovering')}</p>}{restore}</>}
   {notice&&<p className="tp-success" role="status">{t(notice)}</p>}
   {accessError?<div className="tp-access"><ErrorNotice error={accessError}/><button type="button" data-test-plan-retry onClick={retryRead}>{t('retry_access')}</button></div>:<div className="tp-layout">
-   <aside className="tp-list" aria-label={t('plans')}><div className="tp-list-heading"><h3>{t('plans')}</h3><button className="icon-button" type="button" disabled={plans.loading||locked} aria-label={t('refresh')} onClick={()=>void plans.read()}><RefreshCw size={15}/></button></div>{plans.loading&&<Loading/>}{Boolean(plans.error)&&<ErrorNotice error={plans.error} onRetry={()=>void plans.read()}/>}{plans.value&&<><p className="tp-muted">{t('loaded',{loaded:formatNumber(plans.value.items.length),total:formatNumber(plans.value.total)})}</p><div className="tp-plan-options">{plans.value.items.map(item=><button type="button" key={item.id} aria-pressed={selectedID===item.id} disabled={locked} onClick={()=>{if(canLeave())callbacks.current.onSelectPlan(item.id);}}><strong>{item.latest?.title||item.id}</strong><small>{item.latest?.source.task.title||item.task_id}</small><Status kind="state" value={item.state}/></button>)}</div>{!plans.value.items.length&&<p className="tp-muted">{t('no_plans')}</p>}{plans.value.next_cursor&&<button type="button" disabled={plans.loading||locked} onClick={()=>void plans.read(true)}>{t('more')}</button>}</>}</aside>
-   <div className="tp-main">{detail.loading&&<Loading/>}{Boolean(readError)&&<ErrorNotice error={readError} onRetry={()=>{void detail.read();void task.read();void requirement.read();}}/>}
+   <aside className="tp-list" aria-label={t('plans')}>
+    <div className="tp-list-heading"><h3>{t('plans')}</h3><button className="icon-button" type="button" disabled={plans.loading||locked||catalogInvalid} aria-label={t('refresh')} onClick={()=>void plans.read()}><RefreshCw size={15}/></button></div>
+    {onCatalogFilter&&<CatalogFilters filter={catalogFilter} onChange={onCatalogFilter} disabled={locked}/>}
+    {catalogInvalid&&<p className="tp-warning" role="alert">{t('catalog_invalid_link')}</p>}
+    {plans.loading&&<Loading/>}
+    {Boolean(plans.error)&&<ErrorNotice error={plans.error} onRetry={()=>void plans.read()}/>}
+    {plans.value&&<>
+     <p className="tp-muted" role="status" data-test-plan-catalog-count>{t('loaded',{loaded:formatNumber(plans.value.items.length),total:formatNumber(plans.value.total)})}</p>
+     <div className="tp-plan-options">{plans.value.items.map(item=><button type="button" key={item.id} data-test-plan-item={item.id} aria-pressed={selectedID===item.id} disabled={locked} onClick={()=>{if(canLeave())callbacks.current.onSelectPlan(item.id);}}><strong>{item.latest?.title||item.id}</strong><small>{item.latest?.source.task.title||item.task_id}</small><Status kind="state" value={item.state}/></button>)}</div>
+     {!plans.value.items.length&&<p className="tp-muted">{t(catalogState||catalogTask?'catalog_no_matches':'no_plans')}</p>}
+     {plans.value.next_cursor&&<button type="button" data-test-plan-catalog-more disabled={plans.loading||locked} onClick={()=>void plans.read(true)}>{t('more')}</button>}
+    </>}
+   </aside>
+   <div className="tp-main">
+    {current&&(catalogState&&current.state!==catalogState||catalogTask&&current.task_id!==catalogTask)&&<p className="tp-muted" role="status">{t('catalog_selected_outside')}</p>}
+    {detail.loading&&<Loading/>}{Boolean(readError)&&<ErrorNotice error={readError} onRetry={()=>{void detail.read();void task.read();void requirement.read();}}/>}
     {current&&<><div className="tp-heading"><div><Status kind="state" value={current.state}/><h3>{current.latest?.title}</h3><p className="tp-muted">{t('version',{version:formatNumber(current.version)})} · {t('revision',{revision:formatNumber(current.latest_revision)})}{current.published_revision>0&&<> · {t('published_revision',{revision:formatNumber(current.published_revision)})}</>}{current.has_draft&&<> · {t('has_draft')}</>}</p></div><button type="button" onClick={()=>{if(canLeave())callbacks.current.onOpenTask(current.task_id);}}>{t('open_task')}<ArrowRight size={14}/></button></div><p className={current.basis_current?'tp-muted':'tp-warning'}>{t('eligibility.'+current.eligibility)}</p><div className="tp-tabs" role="tablist" aria-label={t('plan_sections')} onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;const buttons=Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role=tab]')),index=buttons.indexOf(document.activeElement as HTMLButtonElement),next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;event.preventDefault();buttons[next]?.focus();}}>{(['cases','results'] as const).map(value=><button type="button" role="tab" aria-selected={tab===value} tabIndex={tab===value?0:-1} id={bodyID+'-tab-'+value} aria-controls={bodyID+'-panel-'+value} key={value} onClick={()=>{if(canLeave())callbacks.current.onTab(value);}}>{t(value)}</button>)}</div></>}
     {tab==='cases'&&visibleDraft&&<section data-test-plan-editor role="tabpanel" id={bodyID+'-panel-cases'} aria-labelledby={bodyID+'-tab-cases'} className="tp-editor" aria-label={t('cases')}>
      <WriteFields action={action}><div className="tp-form-heading">{!selectedID&&<Field label={t('task')} hint={t('one_plan_per_task')}><select name="test_plan_task" value={taskID} disabled={locked||!!visibleDraft.title||!!visibleDraft.description||!!visibleDraft.cases.length} onChange={event=>{setTaskID(event.target.value);setDraft(freshDraft(event.target.value));}}><option value="">{t('select_task')}</option>{tasks.value?.items.map(item=><option value={item.id} key={item.id}>{item.title||item.id}</option>)}</select>{tasks.loading&&<Loading/>}{Boolean(tasks.error)&&<ErrorNotice error={tasks.error} onRetry={()=>void tasks.read()}/>} {tasks.value?.next_cursor&&<button type="button" onClick={()=>void tasks.read(true)}>{t('more_tasks')}</button>}</Field>}<Field label={t('plan_title')}><input name="test_plan_title" value={visibleDraft.title} maxLength={200} readOnly={!canWrite} onChange={event=>edit({title:event.target.value})}/></Field><Field label={t('description')}><textarea rows={2} value={visibleDraft.description} maxLength={4000} readOnly={!canWrite} onChange={event=>edit({description:event.target.value})}/></Field></div>
@@ -157,6 +225,35 @@ function TestPlanScope(props:TestPlansWorkspaceProps&{retryRead:()=>void}){
     {!pending&&<button className="primary" type="button" data-test-plan-defect disabled={locked||!defectCurrent||action.conflict||!planText(defect?.reason,2000)} onClick={()=>void registerDefect()}>{t('register_defect')}</button>}
    </Modal>
  </section>;
+}
+
+function CatalogFilters({filter,onChange,disabled}:{filter:TestPlanCatalogFilter;onChange:(filter:TestPlanCatalogFilter)=>void;disabled:boolean}){
+ const [state,setState]=useState<TestPlanState|''>(filter.state||''),[taskID,setTaskID]=useState(filter.taskID||'');
+ const validTask=!taskID||planID(taskID),errorID=useId();
+ useEffect(()=>{setState(filter.state||'');setTaskID(filter.taskID||'');},[filter.state,filter.taskID,filter.invalid]);
+ return <form className="tp-catalog-filters" aria-label={t('catalog_filters')} onSubmit={event=>{
+  event.preventDefault();
+  if(!disabled&&validTask)onChange({state:state||undefined,taskID:taskID||undefined});
+ }}>
+  <label>
+   <span>{t('catalog_state')}</span>
+   <select data-test-plan-filter-state value={state} disabled={disabled} onChange={event=>setState(isTestPlanState(event.target.value)?event.target.value:'')}>
+    <option value="">{t('catalog_all_states')}</option>
+    {planStates.map(item=><option key={item} value={item}>{t('state.'+item)}</option>)}
+   </select>
+  </label>
+  <label>
+   <span>{t('catalog_task_id')}</span>
+   <input type="text" data-test-plan-filter-task value={taskID} disabled={disabled} maxLength={64} autoComplete="off" spellCheck={false}
+    aria-invalid={!validTask||undefined} aria-describedby={!validTask?errorID:undefined} onChange={event=>setTaskID(event.target.value)}/>
+  </label>
+  {!validTask&&<p id={errorID} className="tp-muted" role="status">{t('catalog_invalid_task')}</p>}
+  <div className="tp-catalog-filter-actions">
+   <button type="submit" data-test-plan-filter-apply disabled={disabled||!validTask}>{t('catalog_apply')}</button>
+   <button type="button" data-test-plan-filter-clear disabled={disabled||!state&&!taskID&&!filter.state&&!filter.taskID&&!filter.invalid}
+    onClick={()=>{setState('');setTaskID('');onChange({});}}>{t('catalog_clear')}</button>
+  </div>
+ </form>;
 }
 
 function CaseEditor({value,index,criteria,criteriaLoaded,disabled,open,onToggle,onChange,onRemove}:{value:QualityTestCase;index:number;criteria:string[];criteriaLoaded:boolean;disabled:boolean;open:boolean;onToggle:(open:boolean)=>void;onChange:(value:QualityTestCase)=>void;onRemove:()=>void}){

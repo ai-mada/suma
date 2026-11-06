@@ -46,10 +46,11 @@ func testPlanContracts(add operationAdder, api map[string]any) {
 		if r.output == "TestPlanList" || r.output == "TestPlanExecutionList" {
 			if r.output == "TestPlanList" {
 				appendQuery(op, queryParameter("task_id", "Optional exact current project task. Filtering applies before count and pagination; a cursor from another task is rejected.", map[string]any{"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}))
+				appendQuery(op, queryParameter("state", "Optional exact plan lifecycle state. Applies before count and pagination and does not imply current execution evidence.", map[string]any{"type": "string", "enum": []string{"draft", "published", "retired"}}))
 			}
 			appendQuery(op, queryParameter("limit", "Canonical positive decimal page size.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
-			maximum := 64
-			description := "Existing plan ID in this tenant/project, descending created_at/id keyset."
+			maximum := 1024
+			description := "Original next_cursor for descending created_at/id order. Without state this is an existing plan ID; with state it is opaque and bound to the tenant, project, state and task filters."
 			if r.output == "TestPlanExecutionList" {
 				maximum = 100
 				description = "Existing task run ID in this tenant/project, descending created_at/run_id keyset."

@@ -54,7 +54,7 @@ Runner 为当前 attempt 在源码目录旁创建全新的 `test-report/report.x
 
 | 方法与路径 | 请求／响应 |
 | --- | --- |
-| GET `/test-plans?project_id&limit&before` | `TestPlanList`，200 |
+| GET `/test-plans?project_id&limit&before&task_id&state` | `TestPlanList`，200 |
 | POST `/test-plans` | `TestPlanCreateRequest` → `TestPlanView`，201 |
 | GET `/test-plans/{id}?project_id` | `TestPlanView`，200 |
 | PUT `/test-plans/{id}` | `TestPlanSaveRequest` → `TestPlanView`，200 |
@@ -65,7 +65,7 @@ Runner 为当前 attempt 在源码目录旁创建全新的 `test-report/report.x
 | POST `/test-plans/{id}/executions/{run}/defects` | `TestPlanDefectRequest` → 问题 `Record`，201 |
 | POST `/test-plans/{id}/executions/{run}/package-defects` | `TestPlanPackageDefectRequest` → 问题 `Record`，201 |
 
-两个列表默认 20、最多 100 条，以当前作用域 keyset 游标分页。计划列表可用 `task_id` 精确筛选，计划列表游标为 plan ID，执行列表游标为 run ID。写入带 `idempotency_key`（8–128 字节）及适用的预期版本；发布／停用／创建问题带 1–2000 字节 reason。请求超时先恢复原身份、原作用域、原正文和原 key 的操作；同 key 不同正文冲突，不通过换 key 绕过版本与权限。原操作回执保留当时结果，响应中的可用动作和依据当前性仍重新授权／计算。
+两个列表默认 20、最多 100 条，以当前作用域 keyset 游标分页。计划列表可用 `task_id` 精确筛选，并按 `state=draft|published|retired` 筛选生命周期。两项取交集，先筛选再计数及分页。省略状态沿用原 plan ID 游标，状态筛选的 `next_cursor` 绑定租户、项目、状态和任务，保留原排序位置。执行列表游标仍为 run ID。写入带 `idempotency_key`（8–128 字节）及适用的预期版本；发布／停用／创建问题带 1–2000 字节 reason。请求超时先恢复原身份、原作用域、原正文和原 key 的操作；同 key 不同正文冲突，不通过换 key 绕过版本与权限。原操作回执保留当时结果，响应中的可用动作和依据当前性仍重新授权／计算。
 
 ## 逐例门禁与问题回流
 

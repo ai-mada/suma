@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 )
@@ -256,7 +257,16 @@ func (s *Service) GetTestPlan(ctx context.Context, actor Actor, project, id stri
 	}
 	return s.testPlanViewTx(ctx, auth, project, current)
 }
-func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project, task string, limit int, before string) (out TestPlanList, err error) {
+
+const testPlanStateCursorLimit = 1024
+
+type testPlanListCursor struct{ Tenant, Project, Task, State, Created, ID string }
+
+func encodeTestPlanListCursor(cursor testPlanListCursor) string {
+	return base64.RawURLEncoding.EncodeToString([]byte(stringify(cursor)))
+}
+
+func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project, task, state string, limit int, before string) (out TestPlanList, err error) {
 	out.Items = []TestPlanView{}
 	if !testPlanActor(actor) {
 		return out, forbidden()
@@ -264,7 +274,13 @@ func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project, task 
 	if limit == 0 {
 		limit = 20
 	}
-	if !handoffID(project, false) || !handoffID(task, true) || !handoffID(before, true) || limit < 1 || limit > 100 {
+	switch state {
+	case "", "draft", "published", "retired":
+	default:
+		return out, invalid(testPlanInvalid)
+	}
+	if !handoffID(project, false) || !handoffID(task, true) || limit < 1 || limit > 100 ||
+		state == "" && !handoffID(before, true) || state != "" && len(before) > testPlanStateCursorLimit {
 		return out, invalid(testPlanInvalid)
 	}
 	ctx, auth, close, err := s.planningAuthority(ctx, actor, project, "", purposeProjectRead)
@@ -284,20 +300,39 @@ func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project, task 
 		from += ` AND task_id=?`
 		args = append(args, task)
 	}
+	var cursor testPlanListCursor
+	if state != "" {
+		from += ` AND state=?`
+		args = append(args, state)
+	}
+	if before != "" {
+		if state == "" {
+			anchor, e := s.testPlanTx(ctx, auth.tx, tenant, project, before)
+			if e != nil {
+				return out, e
+			}
+			if task != "" && anchor.TaskID != task {
+				return out, invalid(testPlanInvalid)
+			}
+			cursor.Created, cursor.ID = anchor.CreatedAt, anchor.ID
+		} else {
+			// A plan can leave the filtered state between requests. Use the
+			// original sort position without consulting the plan's new state.
+			raw, e := base64.RawURLEncoding.Strict().DecodeString(before)
+			if e != nil || json.Unmarshal(raw, &cursor) != nil || cursor.Tenant != tenant ||
+				cursor.Project != project || cursor.Task != task || cursor.State != state ||
+				!validReleaseTime(cursor.Created) || !handoffID(cursor.ID, false) || encodeTestPlanListCursor(cursor) != before {
+				return out, invalid(testPlanInvalid)
+			}
+		}
+	}
 	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*)`+from), args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
 	query := `SELECT id` + from
 	if before != "" {
-		cursor, e := s.testPlanTx(ctx, auth.tx, tenant, project, before)
-		if e != nil {
-			return out, e
-		}
-		if task != "" && cursor.TaskID != task {
-			return out, invalid(testPlanInvalid)
-		}
 		query += ` AND (created_at<? OR (created_at=? AND id<?))`
-		args = append(args, cursor.CreatedAt, cursor.CreatedAt, before)
+		args = append(args, cursor.Created, cursor.Created, cursor.ID)
 	}
 	query += ` ORDER BY created_at DESC,id DESC LIMIT ?`
 	args = append(args, limit+1)
@@ -320,9 +355,9 @@ func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project, task 
 	if e != nil {
 		return out, e
 	}
-	if len(ids) > limit {
+	more := len(ids) > limit
+	if more {
 		ids = ids[:limit]
-		out.NextCursor = ids[len(ids)-1]
 	}
 	for _, id := range ids {
 		current, e := s.testPlanTx(ctx, auth.tx, tenant, project, id)
@@ -334,6 +369,13 @@ func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project, task 
 			return out, e
 		}
 		out.Items = append(out.Items, view)
+	}
+	if more {
+		last := out.Items[len(out.Items)-1]
+		out.NextCursor = last.ID
+		if state != "" {
+			out.NextCursor = encodeTestPlanListCursor(testPlanListCursor{Tenant: tenant, Project: project, Task: task, State: state, Created: last.CreatedAt, ID: last.ID})
+		}
 	}
 	return out, nil
 }

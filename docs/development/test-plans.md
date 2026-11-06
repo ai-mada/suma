@@ -4,6 +4,20 @@
 
 具体已验范围、环境和未完成验证见[阶段报告](../quality/test-plans-verification.md)与[摘要](../quality/test-plans-summary.json)。
 
+## 定位测试计划
+
+在「质量验收 → 测试记录」的测试计划工作台按草稿、已发布、已退役状态，或准确任务 ID 筛选。两个条件同时使用时取交集。计数来自当前服务端范围，筛选链接可分享，已有计划的详情和未保存内容仍由原编辑器与导航保护管理。
+
+若创建时发现同一任务已有计划，使用冲突提示中的重新核对。工作台只读取该任务的计划，保留已输入的标题、说明和用例。核对后进入原计划，继续显式保存；仅核对不会写入新修订。
+
+```sh
+suma --project PROJECT test-plan list --state published --limit 20
+suma --project PROJECT test-plan list --task TASK
+suma --project PROJECT test-plan show PLAN
+```
+
+续页沿用原项目及筛选，把响应的 `next_cursor` 传给 `--before`。已发布描述计划生命周期，测试结果和验收继续分别核对。
+
 ## 先准备任务与真实测试工具
 
 任务应有明确的验收条目和当前需求版本。每个任务只维护一个计划，可以不断保存新草稿、发布新修订；运行只使用绑定时的已发布修订，不会跟随草稿自动变化。

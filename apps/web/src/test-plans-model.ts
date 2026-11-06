@@ -2,6 +2,18 @@ import type {QualityTestCase,TaskContextRecord,TestPlanView,TestPlanRevision,Tes
 import type {WriteRecoveryRequest} from './write-action';
 
 export const planStates=['draft','published','retired'] as const;
+export type TestPlanState=(typeof planStates)[number];
+export type TestPlanCatalogFilter={state?:TestPlanState;taskID?:string;invalid?:boolean};
+export function isTestPlanState(value:unknown):value is TestPlanState{
+ return typeof value==='string'&&(planStates as readonly string[]).includes(value);
+}
+export function testPlanCatalogPath(project:string,filter:TestPlanCatalogFilter,limit=20){
+ const query=new URLSearchParams({project_id:project});
+ if(filter.state)query.set('state',filter.state);
+ if(filter.taskID)query.set('task_id',filter.taskID);
+ query.set('limit',String(limit));
+ return testPlanPath()+'?'+query;
+}
 export const planEligibility=['none','current','source_changed','retired'] as const;
 export const executionStates=['pending','passed','failed','incomplete','source_changed','retired','run_changed','unknown'] as const;
 export const caseStatuses=['not_run','passed','failed','error','skipped','unknown','ambiguous'] as const;

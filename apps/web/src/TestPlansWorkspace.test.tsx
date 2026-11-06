@@ -6,6 +6,8 @@ import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
 import {setLocale,tr} from './i18n';
 import {TestPlansWorkspace} from './TestPlansWorkspace';
+import {parseWorkbenchRoute} from './navigation';
+import type {TestPlanCatalogFilter} from './test-plans-model';
 
 const sha='a'.repeat(64),project='project-a',task={id:'task-a',project_id:project,version:3,title:'Current task',description:'Task body',acceptance_criteria:['Access is authorized'],requirement_id:''};
 const source={task:{id:task.id,version:task.version,title:task.title,description:task.description,acceptance_criteria:task.acceptance_criteria},task_basis_sha256:sha,sha256:sha};
@@ -13,12 +15,12 @@ const revision={revision:1,state:'draft',title:'Existing plan',description:'Draf
 const plan={id:'plan-a',project_id:project,task_id:task.id,version:1,state:'draft',latest_revision:1,published_revision:0,has_draft:true,basis_current:true,eligibility:'none',latest:revision,allowed_actions:['save','publish'],created_at:revision.created_at,updated_at:revision.created_at};
 const execution={plan_id:'plan-a',task_id:'task-a',revision:1,plan_sha256:sha,run_id:'run-a',run_state:'succeeded',created_at:revision.created_at,state:'incomplete',basis_current:true,source_commits:[],total:1,passed:0,failed:0,errors:0,skipped:0,not_run:1,cases:[{case_key:'authorize',title:'Authorization case',status:'not_run',covers:[1],evidence:[],issue_id:''}],reports:[],package_evidence:[]};
 const session:Session={user:{id:'user-a',name:'Owner',email:'owner@example.test',role:'owner'},organization:{id:'org-a',name:'Org'},projects:[{id:project,version:1,title:'Project',role:'admin'}]};
-let root:Root|undefined,host:HTMLDivElement,writes:{path:string;body:Record<string,unknown>}[],reads:string[],reply:(path:string,init?:RequestInit)=>Promise<Response>,changed:ReturnType<typeof vi.fn>,select:ReturnType<typeof vi.fn>,openRun:ReturnType<typeof vi.fn>,openIssue:ReturnType<typeof vi.fn>;
+let root:Root|undefined,host:HTMLDivElement,writes:{path:string;body:Record<string,unknown>}[],reads:string[],reply:(path:string,init?:RequestInit)=>Promise<Response>,changed:ReturnType<typeof vi.fn>,select:ReturnType<typeof vi.fn>,openRun:ReturnType<typeof vi.fn>,openIssue:ReturnType<typeof vi.fn>,filterPlan:ReturnType<typeof vi.fn>;
 function defaults(path:string){if(path.startsWith('/tasks?'))return Response.json({items:[task],total:1,next_cursor:''});if(path.startsWith('/tasks/task-a?'))return Response.json(task);if(path.includes('/executions/run-a?'))return Response.json(execution);if(path.includes('/executions?'))return Response.json({items:[execution],total:1,next_cursor:''});if(path.startsWith('/test-plans?'))return Response.json({items:[plan],total:1,next_cursor:''});return Response.json(plan);}
-beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();writes=[];reads=[];changed=vi.fn();select=vi.fn();openRun=vi.fn();openIssue=vi.fn();host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);reply=async path=>defaults(path);vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(init?.body)writes.push({path,body:JSON.parse(String(init.body))});else reads.push(path);return reply(path,init);}));});
+beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();writes=[];reads=[];changed=vi.fn();select=vi.fn();openRun=vi.fn();openIssue=vi.fn();filterPlan=vi.fn();host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);reply=async path=>defaults(path);vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(init?.body)writes.push({path,body:JSON.parse(String(init.body))});else reads.push(path);return reply(path,init);}));});
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function settle(){for(let i=0;i<4;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
-async function render(planID='',tab:'cases'|'results'='cases',runID='',actor=session,refresh=0){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={actor}><TestPlansWorkspace session={actor} project={project} refresh={refresh} planID={planID} runID={runID} tab={tab} onSelectPlan={select} onSelectExecution={()=>{}} onTab={()=>{}} onOpenTask={()=>{}} onOpenRun={openRun} onOpenIssue={openIssue} onChanged={changed}/></ApiViewProvider>);});await settle();}
+async function render(planID='',tab:'cases'|'results'='cases',runID='',actor=session,refresh=0,catalogFilter?:TestPlanCatalogFilter){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={actor}><TestPlansWorkspace session={actor} project={project} refresh={refresh} planID={planID} runID={runID} tab={tab} catalogFilter={catalogFilter} onCatalogFilter={filterPlan} onSelectPlan={select} onSelectExecution={()=>{}} onTab={()=>{}} onOpenTask={()=>{}} onOpenRun={openRun} onOpenIssue={openIssue} onChanged={changed}/></ApiViewProvider>);});await settle();}
 async function change(selector:string,value:string){const element=(host.querySelector<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>(selector)||document.querySelector<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('[role=dialog] '+selector))!;expect(element,selector).not.toBeNull();const prototype=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(prototype,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});await settle();}
 async function click(selector:string){const element=(host.querySelector<HTMLElement>(selector)||document.querySelector<HTMLElement>('[role=dialog] '+selector))!;expect(element,selector).not.toBeNull();await act(async()=>element.click());await settle();}
 
@@ -178,4 +180,86 @@ it('registers an issue from the exact failed case and refreshes its server-owned
  let issued=false;const commit='c'.repeat(40),report={id:'report-a',run_id:'run-a',node_id:'test',attempt:1,fence:1,worker_id:'worker-a',source_commit:commit,sha256:sha,protocol:'suma-junit-report-v1',eligibility:'current',process_exit_code:1,outcome_unknown:false,reported_at:revision.created_at,total:1,passed:0,failed:1,errors:0,skipped:0,unmapped:0};
  const failed=()=>({...execution,state:'failed',run_state:'failed',source_commits:[commit],failed:1,not_run:0,cases:[{...execution.cases[0],status:'failed',issue_id:issued?'issue-a':'',evidence:[{report_id:'report-a',node_id:'test',attempt:1,fence:1,worker_id:'worker-a',source_commit:commit,status:'failed',message:'Expected authorization denial',duration_ms:8}]}],reports:[report]});
  reply=async(path,init)=>{if(init?.body){issued=true;return Response.json({id:'issue-a',project_id:project,version:1,title:'Observed failing case'});}if(path.includes('/executions/run-a?'))return Response.json(failed());if(path.includes('/executions?'))return Response.json({items:[failed()],total:1,next_cursor:''});return defaults(path);};await render('plan-a','results','run-a');await click('[data-test-case-result=authorize]>button');await change('[name=test_plan_defect_reason]','The current project authorization check failed.');await click('[data-test-plan-defect]');expect(writes.at(-1)?.path).toBe('/test-plans/plan-a/executions/run-a/defects');expect(writes.at(-1)?.body).toMatchObject({project_id:project,expected_version:1,case_key:'authorize',reason:'The current project authorization check failed.'});expect(host.querySelector('[data-test-case-result=authorize]')?.textContent).toContain('Open issue and feedback');
+});
+
+it('parses catalog filters only inside the quality tests route and fails closed on ambiguous links',()=>{
+ const base='?project=project-a&view=quality&sub=tests';
+ expect(parseWorkbenchRoute(base+'&test_state=published&test_task=task-a')).toMatchObject({test_state:'published',test_task:'task-a'});
+ for(const query of ['test_state=','test_state=ready','test_task=bad.id','test_task=task-a&test_task=task-a','test_invalid=1']){
+  const invalid=parseWorkbenchRoute(base+'&'+query);
+  expect(invalid.test_invalid).toBe('1');
+  expect(invalid.test_state).toBeUndefined();
+  expect(invalid.test_task).toBeUndefined();
+ }
+ const other=parseWorkbenchRoute('?project=project-a&view=development&sub=tasks&test_state=published&test_task=task-a');
+ expect(other.test_state).toBeUndefined();
+ expect(other.test_task).toBeUndefined();
+});
+
+it('uses the committed catalog filters and cursor without replacing the open plan or showing an old list',async()=>{
+ let resolveScoped!:(response:Response)=>void;
+ reply=async path=>{
+  const url=new URL(path,'https://test.invalid');
+  if(url.pathname!=='/test-plans')return defaults(path);
+  const state=url.searchParams.get('state');
+  if(state==='draft')return Response.json({items:[plan],total:2,next_cursor:'draft-cursor'});
+  if(state==='published')return new Promise<Response>(resolve=>{resolveScoped=resolve;});
+  return defaults(path);
+ };
+ await render('plan-a','cases','',session,0,{state:'draft'});
+ expect(host.querySelector('[data-test-plan-item="plan-a"]')).not.toBeNull();
+ await change('[name=test_plan_title]','Keep this draft in the editor');
+ await change('[data-test-plan-filter-state]','published');
+ await change('[data-test-plan-filter-task]',task.id);
+ await click('[data-test-plan-filter-apply]');
+ expect(filterPlan).toHaveBeenLastCalledWith({state:'published',taskID:task.id});
+ await render('plan-a','cases','',session,0,{state:'published',taskID:task.id});
+ expect(reads).toContain('/test-plans?project_id=project-a&state=published&task_id=task-a&limit=20');
+ expect(host.querySelector('[data-test-plan-item="plan-a"]')).toBeNull();
+ expect(host.querySelector('[data-test-plan-catalog-more]')).toBeNull();
+ expect(host.querySelector<HTMLInputElement>('[name=test_plan_title]')?.value).toBe('Keep this draft in the editor');
+ await act(async()=>{resolveScoped(Response.json({items:[],total:0,next_cursor:''}));});await settle();
+ expect(host.querySelector('[data-test-plan-catalog-count]')?.textContent).toContain('0 of 0');
+ await render('plan-a','cases','',session,0,{invalid:true});
+ expect(host.querySelector('[data-test-plan-catalog-count]')).toBeNull();
+ expect(reads.filter(path=>path.startsWith('/test-plans?'))).toHaveLength(2);
+ await click('[data-test-plan-filter-clear]');
+ expect(filterPlan).toHaveBeenLastCalledWith({});
+ expect(select).not.toHaveBeenCalled();
+ expect(writes).toHaveLength(0);
+});
+
+it('looks up the exact task plan after a create conflict, bypasses no external guard and keeps the draft',async()=>{
+ let navigationAllowed=false,prevented=false;
+ const filter={state:'published'} as const;
+ const prevent=(event:Event)=>{if(prevented)event.preventDefault();};
+ window.addEventListener('suma:navigate',prevent);
+ select.mockImplementation(()=>{navigationAllowed=window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));return navigationAllowed;});
+ reply=async(path,init)=>{
+  if(init?.body)return Response.json({error:{code:'conflict',message:'An existing plan owns this task'}},{status:409});
+  if(path==='/test-plans?project_id=project-a&task_id=task-a&limit=1')return Response.json({items:[plan],total:1,next_cursor:''});
+  if(path.startsWith('/test-plans?'))return Response.json({items:[],total:0,next_cursor:''});
+  return defaults(path);
+ };
+ try{
+  await render('','cases','',session,0,filter);
+  await change('[name=test_plan_task]',task.id);
+  await change('[name=test_plan_title]','My unsaved plan');
+  await change('.tp-form-heading textarea','My unsaved description');
+  await click('[data-test-plan-save]');
+  expect(writes).toHaveLength(1);
+  prevented=true;
+  await click('.conflict-banner button');
+  expect(navigationAllowed).toBe(false);
+  expect(host.querySelector<HTMLInputElement>('[name=test_plan_title]')?.value).toBe('My unsaved plan');
+  prevented=false;
+  await click('.conflict-banner button');
+  expect(navigationAllowed).toBe(true);
+  expect(select).toHaveBeenLastCalledWith(plan.id);
+  expect(reads.filter(path=>path==='/test-plans?project_id=project-a&task_id=task-a&limit=1')).toHaveLength(2);
+  await render(plan.id,'cases','',session,0,filter);
+  expect(host.querySelector<HTMLInputElement>('[name=test_plan_title]')?.value).toBe('My unsaved plan');
+  expect(host.querySelector<HTMLTextAreaElement>('.tp-form-heading textarea')?.value).toBe('My unsaved description');
+  expect(writes).toHaveLength(1);
+ }finally{window.removeEventListener('suma:navigate',prevent);}
 });

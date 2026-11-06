@@ -148303,6 +148303,19 @@
             }
           },
           {
+            "description": "Optional exact plan lifecycle state. Applies before count and pagination and does not imply current execution evidence.",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "enum": [
+                "draft",
+                "published",
+                "retired"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "description": "Canonical positive decimal page size.",
             "in": "query",
             "name": "limit",
@@ -148314,14 +148327,14 @@
             }
           },
           {
-            "description": "Existing plan ID in this tenant/project, descending created_at/id keyset.",
+            "description": "Original next_cursor for descending created_at/id order. Without state this is an existing plan ID; with state it is opaque and bound to the tenant, project, state and task filters.",
             "in": "query",
             "name": "before",
             "schema": {
-              "maxLength": 64,
+              "maxLength": 1024,
               "minLength": 1,
               "type": "string",
-              "x-max-utf8-bytes": 64
+              "x-max-utf8-bytes": 1024
             }
           },
           {
