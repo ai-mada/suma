@@ -24,6 +24,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-FAILURE-PROJECTION-RETRY-270 真实 SQLite 验证积压、重启、原确认和重试代次。 [阶段报告](failure-projection-retry-verification.md)
+
 T-FAILURE-ISSUE-NAVIGATION-269 真实 SQLite 核对问题反查，Chromium 验证中英文正式问题与普通问题。 [阶段报告](failure-issue-navigation-verification.md)
 
 T-FAILURE-ISSUE-PROVENANCE-268 验证原问题回执、手工关联拒绝、正式问题编辑后的追溯和任务交付。 [阶段报告](failure-issue-provenance-verification.md)

@@ -155,6 +155,9 @@ func TestTaskRunFailureInboxAtomicWithIssueAndSkipsRevokedFollower(t *testing.T)
 	if _, err := f.s.DB.Exec(`DELETE FROM suma_project_members WHERE project_id=? AND user_id=?`, f.project, h.receiver.credential.subjectID); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := f.s.DB.Exec(`UPDATE suma_failure_projection_retries SET next_attempt_at=0 WHERE sequence IN (SELECT sequence FROM dag_events WHERE run_id=? AND event_type='run_failed')`, run.ID); err != nil {
+		t.Fatal(err)
+	}
 	if err := f.s.ProjectFailures(ctx); err != nil {
 		t.Fatal(err)
 	}

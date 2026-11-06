@@ -121,46 +121,81 @@ func (s *Service) insertFailureIssueTx(ctx context.Context, tx *sql.Tx, proof *f
 	return err
 }
 
-// ProjectFailures consumes durable run_failed facts, including failures from
-// Tick, approvals and subworkflows. It does not depend on a runner HTTP request.
-// FailureIssue has its own transactional receipt. A crash before ledger
-// acknowledgement replays the same issue without recalculating recipients.
-func (s *Service) ProjectFailures(ctx context.Context) error {
-	rows, err := s.DB.QueryContext(ctx, `SELECT e.sequence,e.tenant_id,e.project_id,e.run_id,r.workflow_name FROM dag_events e JOIN dag_runs r ON r.id=e.run_id AND r.tenant_id=e.tenant_id AND r.project_id=e.project_id WHERE e.event_type='run_failed' AND NOT EXISTS(SELECT 1 FROM suma_failure_projection p WHERE p.sequence=e.sequence) ORDER BY e.sequence LIMIT 50`)
+const (
+	failureProjectionBatchSize  = 50
+	failureProjectionRetrySlots = 10
+)
+
+type failureProjectionFact struct {
+	sequence, attempts   int64
+	tenant, project, run string
+}
+
+func (s *Service) failureProjectionBatch(ctx context.Context, retries bool, databaseNow int64) ([]failureProjectionFact, error) {
+	const runJoin = ` JOIN dag_runs r ON r.id=e.run_id AND r.tenant_id=e.tenant_id AND r.project_id=e.project_id`
+	const unacknowledged = ` e.event_type='run_failed' AND NOT EXISTS(SELECT 1 FROM suma_failure_projection p WHERE p.sequence=e.sequence)`
+	query := `SELECT e.sequence,0,e.tenant_id,e.project_id,e.run_id FROM dag_events e` + runJoin + ` WHERE` + unacknowledged +
+		` AND NOT EXISTS(SELECT 1 FROM suma_failure_projection_retries retry WHERE retry.sequence=e.sequence) ORDER BY e.sequence LIMIT ?`
+	args := []any{failureProjectionBatchSize}
+	if retries {
+		query = `SELECT e.sequence,retry.attempts,e.tenant_id,e.project_id,e.run_id FROM suma_failure_projection_retries retry JOIN dag_events e ON e.sequence=retry.sequence` + runJoin +
+			` WHERE` + unacknowledged + ` AND retry.next_attempt_at<=? ORDER BY retry.next_attempt_at,e.sequence LIMIT ?`
+		args = []any{databaseNow, failureProjectionBatchSize}
+	}
+	rows, err := s.DB.QueryContext(ctx, s.q(query), args...)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	type fact struct {
-		sequence                   int64
-		tenant, project, run, name string
-	}
-	facts := []fact{}
+	defer rows.Close()
+	facts := make([]failureProjectionFact, 0, failureProjectionBatchSize)
 	for rows.Next() {
-		var item fact
-		if err = rows.Scan(&item.sequence, &item.tenant, &item.project, &item.run, &item.name); err != nil {
-			rows.Close()
-			return err
+		var item failureProjectionFact
+		if err = rows.Scan(&item.sequence, &item.attempts, &item.tenant, &item.project, &item.run); err != nil {
+			return nil, err
 		}
 		facts = append(facts, item)
 	}
-	err = rows.Err()
-	rows.Close()
+	return facts, rows.Err()
+}
+
+// ProjectFailures consumes durable run_failed facts without relying on a
+// runner callback. Reserve space for due retries and fresh work in each batch;
+// a continuous backlog in either queue cannot occupy all slots.
+func (s *Service) ProjectFailures(ctx context.Context) error {
+	databaseNow, err := s.failureProjectionNow(ctx)
 	if err != nil {
 		return err
 	}
-	failures := []error{}
-	for _, item := range facts {
-		run := dag.Run{ID: item.run, State: "failed", WorkflowName: item.name}
-		if err = s.FailureIssue(ctx, item.tenant, item.project, run); err != nil {
+	fresh, err := s.failureProjectionBatch(ctx, false, databaseNow)
+	if err != nil {
+		return err
+	}
+	due, err := s.failureProjectionBatch(ctx, true, databaseNow)
+	if err != nil {
+		return err
+	}
+	freshCount := min(len(fresh), failureProjectionBatchSize-min(len(due), failureProjectionRetrySlots))
+	retryCount := min(len(due), failureProjectionBatchSize-freshCount)
+	var failures []error
+	for _, item := range append(fresh[:freshCount], due[:retryCount]...) {
+		if ctx.Err() != nil {
+			return errors.Join(errors.Join(failures...), ctx.Err())
+		}
+		err = s.projectFailureIssue(ctx, item.tenant, item.project, item.run)
+		if err == nil {
+			// If acknowledgement fails after issue commit, the original
+			// projection receipt makes the next attempt idempotent.
+			err = s.ackFailureProjection(ctx, item.sequence, item.tenant, item.project, item.run)
+		}
+		if err != nil {
 			failures = append(failures, fmt.Errorf("failure event %d: %w", item.sequence, err))
-			continue
-		}
-		query := `INSERT INTO suma_failure_projection(sequence,tenant_id,project_id,run_id,projected_at)VALUES(?,?,?,?,?) ON CONFLICT(sequence) DO NOTHING`
-		if s.Dialect == "oceanbase" {
-			query = `INSERT IGNORE INTO suma_failure_projection(sequence,tenant_id,project_id,run_id,projected_at)VALUES(?,?,?,?,?)`
-		}
-		if _, err = s.DB.ExecContext(ctx, s.q(query), item.sequence, item.tenant, item.project, item.run, now()); err != nil {
-			failures = append(failures, fmt.Errorf("failure event acknowledgement %d: %w", item.sequence, err))
+			failedAt, retryErr := s.failureProjectionNow(ctx)
+			if retryErr == nil {
+				retryErr = s.deferFailureProjection(ctx, item.sequence, item.attempts, failedAt)
+			}
+			if retryErr != nil {
+				failures = append(failures, fmt.Errorf("schedule failure event %d retry: %w", item.sequence, retryErr))
+			}
 		}
 	}
 	return errors.Join(failures...)

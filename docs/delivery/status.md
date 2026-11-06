@@ -24,6 +24,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-FAILURE-PROJECTION-RETRY-270 故障回流为首次处理与到期重试分别保留名额，单条异常按数据库时间退避。 [验证](../quality/failure-projection-retry-verification.md)
+
 T-FAILURE-ISSUE-NAVIGATION-269 问题详情展开后按原投影回执定位失败运行并选择当前尝试。 [交互](../design/failure-diagnosis.md#入口与主路径) · [验证](../quality/failure-issue-navigation-verification.md)
 
 T-FAILURE-ISSUE-PROVENANCE-268 失败投影、任务交付和诊断通过正式事件及原问题回执统一核对来源。 [架构](../architecture/failure-diagnosis.md) · [验证](../quality/failure-issue-provenance-verification.md)

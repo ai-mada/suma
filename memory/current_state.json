@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "failure_projection_retry": {
+    "stage": "T-FAILURE-PROJECTION-RETRY-270",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "a4f06bc3c979d09a858d637c56131687986a28da",
+    "report": "docs/quality/failure-projection-retry-verification.md",
+    "actual": "Persisted per-event failure projection retry, bounded fresh/retry batches, idempotent original issue and atomic retry retirement.",
+    "verification": "8 targeted SQLite tests including 52 real DAG failures and restart. Supplemental release test times out in fixture worker setup on both current and baseline.",
+    "known_limitations": "Managed release end-to-end verification blocked in fixture setup. Physical multi-control and other storage engines remain unverified.",
+    "full_platform_complete": false
+  },
   "failure_issue_navigation": {
     "stage": "T-FAILURE-ISSUE-NAVIGATION-269",
     "version": "1.0.0",
