@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_trigger_detail": {
+    "stage": "T-AUTOMATION-TRIGGER-DETAIL-288",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "88d5e08403d152461fdfb7ab40e22ab146312113",
+    "report": "docs/quality/automation-trigger-detail-verification.md",
+    "actual": "Automation trigger history and pause alerts open the exact persisted trigger in a bookmarkable rule detail panel with pinned revision and scoped run facts.",
+    "verification": "SQLite HTTP and Web regressions prove paging independence, exact authority, old revisions and stale response protection. Real Chrome verifies cross-project and mobile navigation.",
+    "known_limitations": "External channels, distributed notification scale and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "automation_pause_inbox": {
     "stage": "T-AUTOMATION-PAUSE-INBOX-287",
     "version": "1.0.0",

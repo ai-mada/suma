@@ -20,6 +20,7 @@
 - `GET /automations/{id}`：规则详情。
 - `POST /automations/{id}/commands`：`action,expected_version,idempotency_key`；action 为 `revise,enable,pause,archive,trigger`。revise 携带完整 `spec`；修改启用规则先暂停，必须重新启用。trigger 仅用于已启用规则，持久化一次人工触发。
 - `GET /automations/{id}/occurrences`：`items,total,next_cursor`；包含真实运行关联和等待/跳过/阻塞原因。
+- `GET /automations/{id}/occurrences/{occurrence_id}?project_id=…` 读取单条准确触发。限当前浏览器与项目读取权，查询只接受单一项目标识。返回同范围运行事实及触发时的修订和原因。不存在或规则不匹配时返回 404，响应禁用缓存。
 - `GET /automations/{id}/revisions`：不可变规格历史的稳定分页；详情中的修订摘要只包含最近 100 项，不代表全部历史。
 
 规则规格位于请求 `spec` 内：`name,workflow_id,workflow_version,trigger,cron,timezone,misfire,catch_up_limit,overlap`；读取规则时这些字段位于顶层。trigger 为 `cron|manual`；cron 为五段数字表达式（列表、范围、步进、星号），timezone 为 IANA 时区。misfire 为 `skip|latest|catch_up`；catch_up_limit 为 1..100；overlap 为 `allow|forbid|queue`。限制表达式与预演计算成本。使用随程序交付的时区数据，明确夏令时：不存在的本地分钟不触发，重复的分钟按不同 UTC 时刻触发。日与星期同时受限时遵循 cron OR 语义。

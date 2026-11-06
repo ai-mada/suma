@@ -461,5 +461,15 @@
   "automation.event_git_push": "Git push",
   "automation.event_ci_completed": "CI completed",
   "automation.event_monitor_firing": "Monitor alert firing",
-  "automation.event_monitor_resolved": "Monitor alert resolved"
+  "automation.event_monitor_resolved": "Monitor alert resolved",
+  "automation.trigger_detail_title": "Trigger details",
+  "automation.refresh_trigger_detail": "Refresh trigger details",
+  "automation.close_trigger_detail": "Close trigger details",
+  "automation.loading_trigger_detail": "Loading the exact trigger record…",
+  "automation.trigger_detail_unavailable": "This trigger is unavailable. It may no longer exist or your access may have changed.",
+  "automation.trigger_detail_unconfirmed": "The server did not confirm this trigger. Refresh to try again.",
+  "automation.historical_trigger_revision": "This trigger used revision {{trigger}}. The rule is now on revision {{current}}.",
+  "automation.trigger_detail_updated": "Last updated {{time}} · {{timezone}}",
+  "automation.open_trigger_detail": "View trigger",
+  "automation.open_trigger_detail_named": "View trigger {{id}}"
 }

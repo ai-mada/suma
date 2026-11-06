@@ -656,10 +656,57 @@ func (s *Service) CommandAutomation(ctx context.Context, actor Actor, project, i
 const (
 	automationOccurrenceAll       = "all"
 	automationOccurrenceAttention = "attention"
+
+	automationOccurrenceSource = ` FROM suma_automation_occurrences o`
+	automationOccurrenceRun    = ` LEFT JOIN dag_runs r ON r.id=o.run_id AND r.tenant_id=o.tenant_id AND r.project_id=o.project_id`
+	automationOccurrenceScope  = ` WHERE o.tenant_id=? AND o.project_id=? AND o.rule_id=?`
+	// A node inherits scope from its joined run, so a missing or foreign run
+	// cannot contribute reconciliation or other run facts to the projection.
+	automationOccurrenceReconciliation = `EXISTS (SELECT 1 FROM dag_nodes n WHERE n.run_id=r.id AND n.state='reconciling')`
+	automationOccurrenceColumns        = `SELECT o.id,o.rule_id,o.revision,o.source,o.scheduled_at,o.state,o.reason,COALESCE(r.id,''),o.created_at,o.updated_at,COALESCE(r.state,''),CASE WHEN ` +
+		automationOccurrenceReconciliation + ` THEN 1 ELSE 0 END`
 )
 
 func validAutomationOccurrenceFilter(filter string) bool {
 	return filter == automationOccurrenceAll || filter == automationOccurrenceAttention
+}
+
+func scanAutomationOccurrence(row scanner, scope ...any) (AutomationOccurrence, error) {
+	var o AutomationOccurrence
+	fields := []any{&o.ID, &o.RuleID, &o.Revision, &o.Source, &o.ScheduledAt, &o.State, &o.Reason, &o.RunID, &o.CreatedAt, &o.UpdatedAt, &o.RunState, &o.RunNeedsReconciliation}
+	err := row.Scan(append(fields, scope...)...)
+	return o, err
+}
+
+func (s *Service) automationOccurrenceCurrentTx(auth *authorizedCommand, occurrenceID string) (AutomationOccurrence, error) {
+	if auth == nil {
+		return AutomationOccurrence{}, forbidden()
+	}
+	if err := auth.assertTx(auth.tx, auth.target, purposeBrowserProjectRead); err != nil {
+		return AutomationOccurrence{}, err
+	}
+	const rule = ` JOIN suma_automations a ON a.tenant_id=o.tenant_id AND a.project_id=o.project_id AND a.id=o.rule_id`
+	const scopeColumns = `,o.tenant_id,o.project_id,a.tenant_id,a.project_id,a.id,o.run_id,COALESCE(r.tenant_id,''),COALESCE(r.project_id,'')`
+	tenant, project, ruleID := auth.target.tenantID, auth.target.projectID, auth.target.resourceID
+	query := automationOccurrenceColumns + scopeColumns + automationOccurrenceSource + rule + automationOccurrenceRun + automationOccurrenceScope + ` AND o.id=?`
+	row := auth.tx.QueryRowContext(auth.ctx, s.q(query), tenant, project, ruleID, occurrenceID)
+	var occurrenceTenant, occurrenceProject, ruleTenant, ruleProject, storedRuleID, storedRunID, runTenant, runProject string
+	o, err := scanAutomationOccurrence(row, &occurrenceTenant, &occurrenceProject, &ruleTenant, &ruleProject, &storedRuleID, &storedRunID, &runTenant, &runProject)
+	if errors.Is(err, sql.ErrNoRows) {
+		return AutomationOccurrence{}, missing()
+	}
+	if err != nil {
+		return AutomationOccurrence{}, err
+	}
+	// Match identifiers exactly even under a case-insensitive database collation.
+	if occurrenceTenant != tenant || occurrenceProject != project || o.ID != occurrenceID ||
+		ruleTenant != tenant || ruleProject != project || o.RuleID != ruleID || storedRuleID != ruleID {
+		return AutomationOccurrence{}, missing()
+	}
+	if o.RunID != storedRunID || runTenant != tenant || runProject != project {
+		o.RunID, o.RunState, o.RunNeedsReconciliation = "", "", false
+	}
+	return o, nil
 }
 
 func (s *Service) automationOccurrencesCurrentTx(ctx context.Context, auth *authorizedCommand, project, id, filter string, limit int, cursor string) (AutomationOccurrences, error) {
@@ -700,32 +747,25 @@ func (s *Service) automationOccurrencesCurrentTx(ctx context.Context, auth *auth
 	if _, err := s.automationRuleTx(ctx, tx, p, project, id); err != nil {
 		return out, err
 	}
-	const source = ` FROM suma_automation_occurrences o`
-	const linkedRun = ` LEFT JOIN dag_runs r ON r.id=o.run_id AND r.tenant_id=o.tenant_id AND r.project_id=o.project_id`
-	// A DAG node is scoped by its run. Use the joined run ID so an
-	// occurrence with a missing or foreign run never inherits its facts.
-	const reconciliation = `EXISTS (SELECT 1 FROM dag_nodes n WHERE n.run_id=r.id AND n.state='reconciling')`
-	countSource := source
-	where := ` WHERE o.tenant_id=? AND o.project_id=? AND o.rule_id=?`
+	countSource := automationOccurrenceSource
+	where := automationOccurrenceScope
 	if filter == automationOccurrenceAttention {
-		countSource += linkedRun
-		where += ` AND (o.state='blocked' OR r.state='failed' OR ` + reconciliation + `)`
+		countSource += automationOccurrenceRun
+		where += ` AND (o.state='blocked' OR r.state='failed' OR ` + automationOccurrenceReconciliation + `)`
 	}
 	args := []any{p.TenantID, project, id}
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*)`+countSource+where), args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	columns := `SELECT o.id,o.rule_id,o.revision,o.source,o.scheduled_at,o.state,o.reason,COALESCE(r.id,''),o.created_at,o.updated_at,COALESCE(r.state,''),CASE WHEN ` +
-		reconciliation + ` THEN 1 ELSE 0 END`
 	page := ` AND (?='' OR o.created_at<? OR (o.created_at=? AND o.id<?)) ORDER BY o.created_at DESC,o.id DESC LIMIT ?`
-	rows, err := tx.QueryContext(ctx, s.q(columns+source+linkedRun+where+page), append(args, at, at, at, last, limit+1)...)
+	rows, err := tx.QueryContext(ctx, s.q(automationOccurrenceColumns+automationOccurrenceSource+automationOccurrenceRun+where+page), append(args, at, at, at, last, limit+1)...)
 	if err != nil {
 		return out, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var o AutomationOccurrence
-		if err = rows.Scan(&o.ID, &o.RuleID, &o.Revision, &o.Source, &o.ScheduledAt, &o.State, &o.Reason, &o.RunID, &o.CreatedAt, &o.UpdatedAt, &o.RunState, &o.RunNeedsReconciliation); err != nil {
+		o, err := scanAutomationOccurrence(rows)
+		if err != nil {
 			return out, err
 		}
 		out.Items = append(out.Items, o)
@@ -871,6 +911,19 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		}
 		out, err := s.Service.AutomationOccurrences(ctx, actor, project, parts[1], filter, limit, cursor)
 		respond(w, 200, out, err)
+	case len(parts) == 4 && parts[2] == "occurrences" && r.Method == http.MethodGet:
+		w.Header().Set("Cache-Control", "no-store")
+		if len(r.URL.RawQuery) > 4096 {
+			writeError(w, invalid("无效自动化请求"))
+			return true
+		}
+		query, err := url.ParseQuery(r.URL.RawQuery)
+		if err != nil || len(query) != 1 || len(query["project_id"]) != 1 || query.Get("project_id") != project {
+			writeError(w, invalid("无效自动化请求"))
+			return true
+		}
+		out, err := s.Service.GetAutomationOccurrence(ctx, actor, project, parts[1], parts[3])
+		respond(w, http.StatusOK, out, err)
 	case len(parts) == 3 && parts[2] == "revisions" && r.Method == "GET":
 		limit, cursor, err := automationPage(r)
 		if err != nil {

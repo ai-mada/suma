@@ -461,5 +461,15 @@
   "automation.event_git_push": "Git 推送",
   "automation.event_ci_completed": "CI 完成",
   "automation.event_monitor_firing": "监控告警触发",
-  "automation.event_monitor_resolved": "监控告警恢复"
+  "automation.event_monitor_resolved": "监控告警恢复",
+  "automation.trigger_detail_title": "触发详情",
+  "automation.refresh_trigger_detail": "刷新触发详情",
+  "automation.close_trigger_detail": "关闭触发详情",
+  "automation.loading_trigger_detail": "正在读取对应的触发记录…",
+  "automation.trigger_detail_unavailable": "该触发记录不可用，可能已不存在或你的访问权限已变化。",
+  "automation.trigger_detail_unconfirmed": "服务端未能确认该触发记录，请刷新后重试。",
+  "automation.historical_trigger_revision": "本次触发使用修订 {{trigger}}，规则当前为修订 {{current}}。",
+  "automation.trigger_detail_updated": "最近更新于 {{time}} · {{timezone}}",
+  "automation.open_trigger_detail": "查看触发详情",
+  "automation.open_trigger_detail_named": "查看触发详情 {{id}}"
 }

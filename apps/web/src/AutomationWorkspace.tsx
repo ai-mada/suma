@@ -1,6 +1,6 @@
 import {useApi,useApiView} from './api-context';
 import {tr,useLocale,UiError,renderDiagnostic,formatNumber,formatDateTime,getLocale} from './i18n';
-import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
+import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
 import {Archive,ArrowUpRight,CalendarClock,ChevronRight,Clock3,Pause,Play,Plus,RefreshCw,Settings2,TriangleAlert,X} from 'lucide-react';
 import {api,ApiError,query,stateLabel,type Session,type Workflow} from './api';
 import {Empty,ErrorNotice,Field,Loading,Modal} from './ui';
@@ -8,10 +8,11 @@ import {EntityPager,type PageSnapshot} from './pagination';
 import {useLeaveGuard} from './write-action';
 import {AutomationIngressWorkspace} from './AutomationIngress';
 import {ingressReason} from './ingress-model';
+import {automationTriggerPanelID} from './navigation';
 import {AutomationRecovery,AutomationRevisionPager,automationDetailPath,automationEnabled,automationError,automationFailurePaused,automationFailurePauseReason,automationMoment,automationPermissions,automationReason,automationSpec,automationStates,automationWorkflowOptions,misfireNames,newAutomationSpec,occurrenceStates,overlapNames,type AutomationOccurrence,type AutomationPreview,type AutomationResult,type AutomationRevision,type AutomationRule,type AutomationSpec} from './automation-model';
 import './automation.css';
 
-type Props={project:string;session:Session;selected:string;search:string;onSearch:(value:string)=>void;refresh:number;onSelect:(id:string)=>void;panel?:string;onIngressSelect?:(id:string)=>void};
+type Props={project:string;session:Session;selected:string;search:string;onSearch:(value:string)=>void;refresh:number;onSelect:(id:string)=>void;panel?:string;onIngressSelect?:(id:string)=>void;onOccurrenceSelect?:(id:string)=>void};
 type Dialog={kind:'create'}|{kind:'edit'|'enable'|'archive';rule:AutomationRule};
 function canLeave(){return window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));}
 function sessionStore(){try{return typeof sessionStorage==='undefined'?undefined:sessionStorage;}catch{return undefined;}}
@@ -50,10 +51,25 @@ function useAutomationWrite(recovery:AutomationRecovery){
 }
 type WriteAction=ReturnType<typeof useAutomationWrite>;
 
-export function AutomationWorkspace({project,session,selected,search,onSearch,refresh,onSelect,panel,onIngressSelect}:Props){ const api=useApi();useLocale();
+export function AutomationWorkspace({project,session,selected,search,onSearch,refresh,onSelect,panel,onIngressSelect,onOccurrenceSelect}:Props){ const api=useApi();useLocale();
  const[revision,setRevision]=useState(0),[dialog,setDialog]=useState<Dialog>(),[notice,setNotice]=useState<string|Error>(''),[editFresh,setEditFresh]=useState<AutomationRule>();
  const recovery=useMemo(()=>new AutomationRecovery(session.organization.id+':'+session.user.id+':'+project, sessionStore(), api),[session.organization.id, session.user.id, project, api]),action=useAutomationWrite(recovery),tick=refresh+revision;
  const page=useAutomationPage<AutomationRule>(project,'automations',tick),detail=useAutomationDetail(project,selected,tick),permissions=automationPermissions(session,project),rule=detail.data;
+ const selectedOccurrence=automationTriggerPanelID(panel??'');
+ const workspace=useRef<HTMLDivElement>(null),returnToOccurrence=useRef<string>(undefined);
+ useLayoutEffect(()=>{
+  if(selectedOccurrence||!returnToOccurrence.current)return;
+  const id=returnToOccurrence.current;
+  returnToOccurrence.current=undefined;
+  const target=workspace.current?.querySelector<HTMLElement>('[data-automation-open-trigger="'+id+'"]')??workspace.current?.querySelector<HTMLElement>('#automation-occurrence-heading');
+  target?.focus();
+ },[selectedOccurrence]);
+ function selectOccurrence(id:string){
+  if(!onOccurrenceSelect||!canLeave())return;
+  if(id&&id===selectedOccurrence){workspace.current?.querySelector<HTMLElement>('#automation-trigger-detail-heading')?.focus();return;}
+  returnToOccurrence.current=id?undefined:selectedOccurrence;
+  onOccurrenceSelect(id);
+ }
  const disabled=action.busy||!!action.pending||!!recovery.error,stale=detail.loading||!!detail.error;
  const refreshFailurePause=useCallback(()=>{void detail.read();void page.read();},[detail.read,page.read]);
  const filtered=(page.items||[]).filter(item=>(item.name+' '+item.workflow_id+' '+item.id).toLowerCase().includes(search.toLowerCase()));
@@ -62,7 +78,7 @@ export function AutomationWorkspace({project,session,selected,search,onSearch,re
  async function command(value:AutomationRule,command:string){const result=await action.run<AutomationResult>('/automations/'+encodeURIComponent(value.id)+'/commands',{project_id:project,expected_version:value.version,action:command});if(result)committed(result,command==='trigger'?tr("automation.manual_trigger_saved_durably_see_trigger_records_for"):command==='pause'?tr("automation.rule_paused_new_manual_scheduled_and_event_dispatches"):tr("automation.rule_updated"));}
  async function reloadConflict(){const fresh=await detail.read();if(fresh){setEditFresh(fresh);action.clear();setNotice(new UiError("automation.latest_rule_loaded_review_its_version_state_and"));}}
  const editPolicy=rule&&<button disabled={disabled||stale||!permissions.write||rule.state==='archived'||action.conflict} onClick={()=>{action.clear();setEditFresh(undefined);setDialog({kind:'edit',rule});}}><Settings2 size={14}/>{tr("automation.edit_policy")}</button>;
- return <div className="automation-workspace">
+ return <div ref={workspace} className="automation-workspace">
   <div className="automation-intro"><span className="row-icon"><CalendarClock size={19}/></span><div><h2>{tr("automation.automation")}</h2><p>{tr("automation.dispatch_a_fixed_workflow_version_on_a_schedule")}</p></div></div>
   {!permissions.write&&<div className="automation-message">{tr("automation.this_project_is_read_only_creating_editing_and")}</div>}
   {action.error&&<><ErrorNotice error={action.error}/>{action.pending&&<p className="automation-hint">{tr("automation.the_original_operation_still_needs_reconciliation_this_refusal")}</p>}</>} {notice&&<div className="automation-message" role="status">{renderDiagnostic(notice)}<button className="icon-button" aria-label={tr("automation.dismiss_automation_notice")} onClick={()=>setNotice('')}><X size={14}/></button></div>}
@@ -75,7 +91,11 @@ export function AutomationWorkspace({project,session,selected,search,onSearch,re
     {!page.items?<AutomationUnread loading={page.loading}/>:filtered.length?<div className="automation-resources">{filtered.map(value=><button key={value.id} className={'automation-resource '+(selected===value.id?'selected':'')} onClick={()=>{if(canLeave()){action.clear();setNotice('');onSelect(value.id);}}}><span className="row-icon">{value.trigger==='cron'?<Clock3 size={16}/>:<Play size={16}/>}</span><span className="automation-resource-text"><strong>{value.name}</strong><small>{value.trigger==='cron'?value.cron+' · '+value.timezone:tr("automation.manual_trigger")} · v{formatNumber(value.workflow_version)}</small><span className={'automation-pill '+value.state}>{automationStates[value.state]||value.state}</span></span><ChevronRight size={15}/></button>)}</div>:<Empty title={search?tr("automation.no_matching_rules_in_the_loaded_range"):tr("automation.no_automation_rules_yet")} description={search?tr("automation.adjust_the_search_or_load_more_rules"):tr("automation.publish_a_workflow_version_then_create_a_scheduled")}/>}
     <div className="list-footer pagination-footer"><span>{page.items?tr("automation.loaded_range",{loaded:formatNumber(page.items.length),total:formatNumber(page.total)}):tr("automation.no_confirmed_rule_range")}</span>{page.next_cursor&&<button disabled={page.loading} onClick={()=>void page.read(true)}>{page.loading?tr("automation.loading"):tr("automation.load_more_rules")}</button>}</div>
    </section>
-   {selected?<section className="panel automation-detail"><header className="automation-detail-top"><button className="text-button" onClick={()=>{if(canLeave())onSelect('');}}>{tr("automation.back_to_rule_list")}</button><button className="icon-button" aria-label={tr("automation.close_automation_details")} onClick={()=>{if(canLeave())onSelect('');}}><X size={17}/></button></header>{detail.error&&<ErrorNotice error={detail.error} onRetry={()=>void detail.read()}/>} {detail.loading&&<p className="automation-read-state" role="status">{tr("automation.loading_rule_details")}</p>}{rule&&<><div className="automation-detail-heading"><div><h2>{rule.name}</h2><p>{tr("automation.the_workflow_version_is_fixed_enable_the_rule")}</p></div><button className="icon-button" aria-label={tr("automation.refresh_automation_details")} disabled={detail.loading} onClick={()=>void detail.read()}><RefreshCw size={15}/></button></div>{detail.error&&<p className="automation-message warning">{tr("automation.the_last_loaded_rule_is_retained_writes_are")}</p>}<AutomationRuleFacts rule={rule} recoveryAction={editPolicy}/><div className="automation-rule-actions">{!automationFailurePaused(rule)&&editPolicy}{automationEnabled(rule)?<><button disabled={disabled||stale||!permissions.write||action.conflict} onClick={()=>void command(rule,'pause')}><Pause size={14}/>{tr("automation.pause")}</button><button className="primary" disabled={disabled||stale||!permissions.write||action.conflict} onClick={()=>void command(rule,'trigger')}><Play size={14}/>{tr("automation.trigger_once")}</button></>:rule.state!=='archived'&&!automationFailurePaused(rule)&&<button className="primary" disabled={disabled||stale||!permissions.approve||!permissions.write||action.conflict} onClick={()=>{action.clear();setEditFresh(undefined);setDialog({kind:'enable',rule});}}><Play size={14}/>{tr("automation.review_and_enable")}</button>}{rule.state!=='archived'&&<button disabled={disabled||stale||!permissions.write||action.conflict} onClick={()=>{action.clear();setEditFresh(undefined);setDialog({kind:'archive',rule});}}><Archive size={14}/>{tr("automation.archive")}</button>}</div>{!permissions.approve&&rule.state!=='archived'&&!automationEnabled(rule)&&!automationFailurePaused(rule)&&<p className="automation-hint">{tr("automation.enabling_requires_project_approval_permission_contact_a_reviewer")}</p>}<AutomationIngressWorkspace key={session.organization.id+session.user.id+project+rule.id} project={project} session={session} rule={rule} refresh={tick} disabled={disabled||stale} panel={panel} onSelect={onIngressSelect} onRefreshRule={detail.read}/><AutomationSchedulePreview project={project} spec={rule} disabled={stale}/><AutomationOccurrences key={rule.id} project={project} rule={rule.id} refresh={tick} timezone={rule.timezone} activeRevision={automationEnabled(rule)?rule.revision:undefined} onFailurePause={refreshFailurePause}/><AutomationRevisions key={"revisions:"+rule.id} project={project} rule={rule.id} refresh={tick}/></>}{!rule&&!detail.loading&&!detail.error&&<Empty title={tr("automation.this_rule_has_not_been_loaded")} description={tr("automation.reload_the_rule_within_the_current_project")}/>}</section>:<section className="panel automation-selection"><CalendarClock size={27} strokeWidth={1.4}/><h3>{tr("automation.select_a_rule_to_inspect_its_trigger_basis")}</h3><p>{tr("automation.the_fixed_workflow_missed_run_policy_waiting_reasons")}</p><a href={'?'+new URLSearchParams({project,view:'development',sub:'workflows'})}>{tr("automation.view_workflows")}<ArrowUpRight size={13}/></a></section>}
+   {selected?<section className="panel automation-detail"><header className="automation-detail-top"><button className="text-button" onClick={()=>{if(canLeave())onSelect('');}}>{tr("automation.back_to_rule_list")}</button><button className="icon-button" aria-label={tr("automation.close_automation_details")} onClick={()=>{if(canLeave())onSelect('');}}><X size={17}/></button></header>{detail.error&&<ErrorNotice error={detail.error} onRetry={()=>void detail.read()}/>} {detail.loading&&<p className="automation-read-state" role="status">{tr("automation.loading_rule_details")}</p>}{rule&&<><div className="automation-detail-heading"><div><h2>{rule.name}</h2><p>{tr("automation.the_workflow_version_is_fixed_enable_the_rule")}</p></div><button className="icon-button" aria-label={tr("automation.refresh_automation_details")} disabled={detail.loading} onClick={()=>void detail.read()}><RefreshCw size={15}/></button></div>{detail.error&&<p className="automation-message warning">{tr("automation.the_last_loaded_rule_is_retained_writes_are")}</p>}{selectedOccurrence&&rule.id===selected&&rule.project_id===project&&<AutomationTriggerDetail
+     key={JSON.stringify([session.user.id,session.organization.id,project,rule.id,selectedOccurrence])}
+     project={project} rule={rule} id={selectedOccurrence} refresh={tick} session={session}
+     onClose={onOccurrenceSelect?()=>selectOccurrence(''):undefined}/>}
+    <AutomationRuleFacts rule={rule} recoveryAction={editPolicy}/><div className="automation-rule-actions">{!automationFailurePaused(rule)&&editPolicy}{automationEnabled(rule)?<><button disabled={disabled||stale||!permissions.write||action.conflict} onClick={()=>void command(rule,'pause')}><Pause size={14}/>{tr("automation.pause")}</button><button className="primary" disabled={disabled||stale||!permissions.write||action.conflict} onClick={()=>void command(rule,'trigger')}><Play size={14}/>{tr("automation.trigger_once")}</button></>:rule.state!=='archived'&&!automationFailurePaused(rule)&&<button className="primary" disabled={disabled||stale||!permissions.approve||!permissions.write||action.conflict} onClick={()=>{action.clear();setEditFresh(undefined);setDialog({kind:'enable',rule});}}><Play size={14}/>{tr("automation.review_and_enable")}</button>}{rule.state!=='archived'&&<button disabled={disabled||stale||!permissions.write||action.conflict} onClick={()=>{action.clear();setEditFresh(undefined);setDialog({kind:'archive',rule});}}><Archive size={14}/>{tr("automation.archive")}</button>}</div>{!permissions.approve&&rule.state!=='archived'&&!automationEnabled(rule)&&!automationFailurePaused(rule)&&<p className="automation-hint">{tr("automation.enabling_requires_project_approval_permission_contact_a_reviewer")}</p>}<AutomationIngressWorkspace key={session.organization.id+session.user.id+project+rule.id} project={project} session={session} rule={rule} refresh={tick} disabled={disabled||stale} panel={panel} onSelect={onIngressSelect} onRefreshRule={detail.read}/><AutomationSchedulePreview project={project} spec={rule} disabled={stale}/><AutomationOccurrences key={rule.id} project={project} rule={rule.id} refresh={tick} timezone={rule.timezone} activeRevision={automationEnabled(rule)?rule.revision:undefined} onFailurePause={refreshFailurePause} selected={selectedOccurrence} onOpen={onOccurrenceSelect?selectOccurrence:undefined}/><AutomationRevisions key={"revisions:"+rule.id} project={project} rule={rule.id} refresh={tick}/></>}{!rule&&!detail.loading&&!detail.error&&<Empty title={tr("automation.this_rule_has_not_been_loaded")} description={tr("automation.reload_the_rule_within_the_current_project")}/>}</section>:<section className="panel automation-selection"><CalendarClock size={27} strokeWidth={1.4}/><h3>{tr("automation.select_a_rule_to_inspect_its_trigger_basis")}</h3><p>{tr("automation.the_fixed_workflow_missed_run_policy_waiting_reasons")}</p><a href={'?'+new URLSearchParams({project,view:'development',sub:'workflows'})}>{tr("automation.view_workflows")}<ArrowUpRight size={13}/></a></section>}
   </div>
   <Modal open={!!dialog} title={dialog?.kind==='create'?tr("automation.new_automation_rule"):dialog?.kind==='edit'?tr("automation.edit_rule_policy"):dialog?.kind==='enable'?tr("automation.review_and_enable_rule"):tr("automation.archive_automation_rule")} description={dialog?.kind==='enable'?tr("automation.while_enabled_authorization_and_dispatch_are_checked_against"):dialog?.kind==='archive'?tr("automation.archiving_retains_the_rule_and_trigger_history_and"):tr("automation.pin_a_published_workflow_version_new_rules_are")} onClose={()=>{if(canLeave()){setDialog(undefined);setEditFresh(undefined);action.clear();}}}>
    {dialog&&(dialog.kind==='create'||dialog.kind==='edit')&&<AutomationForm project={project} rule={dialog.kind==='edit'?dialog.rule:undefined} fresh={editFresh} action={action} onReload={reloadConflict} onSaved={result=>committed(result,tr("automation.rule_saved_for_review_enable_it_manually_after"))}/>}
@@ -102,7 +122,7 @@ function AutomationTime({value,timezone}:{value:string;timezone:string}){useLoca
 function AutomationReason({reason,scheduledAt='',timezone='UTC',source}:{reason:string;scheduledAt?:string;timezone?:string;source?:string}){useLocale();const value=automationReason(reason,scheduledAt,timezone),eventReason=source==='webhook'?ingressReason(reason):undefined;return <div className="automation-reason"><p>{eventReason?.known?eventReason.message:value.message}</p>{value.range&&<p className="automation-reason-window">{tr("automation.window_display",{range:value.range})}</p>}<details><summary>{tr("automation.original_reason")}</summary><code>{value.raw}</code></details></div>;}
 function fullTime(value:string){return value?tr("automation.device_time",{time:formatDateTime(value,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}):'—';}
 
-function AutomationOccurrences({project,rule,refresh,timezone,activeRevision,onFailurePause}:{project:string;rule:string;refresh:number;timezone:string;activeRevision?:number;onFailurePause:()=>void}){
+function AutomationOccurrences({project,rule,refresh,timezone,activeRevision,onFailurePause,selected,onOpen}:{project:string;rule:string;refresh:number;timezone:string;activeRevision?:number;onFailurePause:()=>void;selected?:string;onOpen?:(id:string)=>void}){
  useLocale();
  const [filter,setFilter]=useState<OccurrenceFilter>('all'),[history,setHistory]=useState(false);
  const page=useAutomationPage<AutomationOccurrence>(project,'automations/'+encodeURIComponent(rule)+'/occurrences',refresh,filter);
@@ -122,7 +142,7 @@ function AutomationOccurrences({project,rule,refresh,timezone,activeRevision,onF
  },[page.read,page.loading,history]);
  return <section className="automation-occurrences" aria-labelledby="automation-occurrence-heading">
   <div className="automation-section-heading">
-   <div><h3 id="automation-occurrence-heading">{tr("automation.trigger_records")}</h3><p>{history?tr("automation.the_current_range_stays_while_browsing_history_refresh"):tr("automation.trigger_facts_and_run_results_are_retained_separately")}{tr("automation.display_timezone",{timezone})}</p></div>
+   <div><h3 id="automation-occurrence-heading" tabIndex={-1}>{tr("automation.trigger_records")}</h3><p>{history?tr("automation.the_current_range_stays_while_browsing_history_refresh"):tr("automation.trigger_facts_and_run_results_are_retained_separately")}{tr("automation.display_timezone",{timezone})}</p></div>
    <button className="icon-button" aria-label={tr("automation.refresh_trigger_records")} disabled={page.loading} onClick={()=>{setHistory(false);void page.read();}}><RefreshCw size={14}/></button>
   </div>
   <div className="automation-occurrence-filters" role="group" aria-label={tr("automation.occurrence_filter_label")}>
@@ -131,7 +151,7 @@ function AutomationOccurrences({project,rule,refresh,timezone,activeRevision,onF
   </div>
   {page.error&&<ErrorNotice error={page.failure||page.error} onRetry={()=>void page.read(page.error_action==='more')}/>}
   {!page.items?(page.loading?<Loading/>:<p className="automation-read-state">{tr("automation.no_confirmed_trigger_records_have_been_loaded")}</p>):page.items.length?
-   <div className="automation-occurrence-list">{page.items.map(occurrence=><AutomationOccurrenceRow key={occurrence.id} occurrence={occurrence} project={project} timezone={timezone}/>)}</div>:
+   <div className="automation-occurrence-list">{page.items.map(occurrence=><AutomationOccurrenceRow key={occurrence.id} occurrence={occurrence} project={project} timezone={timezone} selected={occurrence.id===selected} onOpen={onOpen}/>)}</div>:
    <Empty title={tr(filter==='attention'?"automation.no_attention_records":"automation.no_trigger_records_yet")} description={tr(filter==='attention'?"automation.no_attention_records_hint":"automation.eligible_scheduled_or_manual_triggers_are_retained_here")}/>}
   <div className="automation-occurrence-footer">
    <small aria-live="polite">{tr("automation.loaded_range",{loaded:page.items?formatNumber(page.items.length):'—',total:page.items?formatNumber(page.total):'—'})}</small>
@@ -139,7 +159,78 @@ function AutomationOccurrences({project,rule,refresh,timezone,activeRevision,onF
   </div>
  </section>;
 }
-export function AutomationOccurrenceRow({occurrence,project,timezone='UTC'}:{occurrence:AutomationOccurrence;project:string;timezone?:string}){useLocale();return <article className="automation-occurrence"><div className="automation-occurrence-title"><strong>{occurrence.source==='manual'?tr("automation.manual_trigger"):occurrence.source==='webhook'?tr("automation.signed_event_trigger"):tr("automation.scheduled_trigger")} <small>r{formatNumber(occurrence.revision)}</small></strong><span className={'automation-pill '+occurrence.state}>{occurrenceStates[occurrence.state]||occurrence.state}</span></div><time dateTime={occurrence.scheduled_at}><AutomationTime value={occurrence.scheduled_at} timezone={timezone}/></time>{occurrence.reason&&<AutomationReason reason={occurrence.reason} scheduledAt={occurrence.scheduled_at} timezone={timezone} source={occurrence.source}/>} {occurrence.run_id?<><a href={'?'+new URLSearchParams({project,view:'development',sub:'runs',run:occurrence.run_id})} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr("automation.view_actual_run")}<ArrowUpRight size={13}/><span>{occurrence.run_id.slice(0,16)}</span></a><small className="automation-run-state">{occurrence.run_state?tr("automation.run_state",{state:stateLabel(occurrence.run_state)}):tr("automation.run_state_has_not_been_loaded")}</small>{occurrence.run_needs_reconciliation&&<small className="automation-run-reconciliation"><TriangleAlert size={14} aria-hidden="true"/>{tr("automation.run_needs_reconciliation")}</small>}</>:<small className="muted">{tr("automation.no_run_linked_yet")}</small>}<details><summary>{tr("automation.trigger_id")}</summary><code>{occurrence.id}</code></details></article>;}
+type TriggerDetailRead={loading:true}|{loading:false;record:AutomationOccurrence}|{loading:false;unavailable:true}|{loading:false;error:string|Error};
+
+function AutomationTriggerDetail({project,rule,id,refresh,session,onClose}:{project:string;rule:AutomationRule;id:string;refresh:number;session:Session;onClose?:()=>void}){
+ const api=useApi();
+ useLocale();
+ const heading=useRef<HTMLHeadingElement>(null);
+ const [reload,setReload]=useState(0),[read,setRead]=useState<TriggerDetailRead>({loading:true});
+ const userID=session.user.id,organizationID=session.organization.id,ruleID=rule.id;
+ // Focus the landing once, while it is stable, so a slow response never
+ // steals focus from a user who has continued to another control.
+ useLayoutEffect(()=>{heading.current?.focus();},[]);
+ useEffect(()=>{
+  const controller=new AbortController();
+  const path='/automations/'+encodeURIComponent(ruleID)+'/occurrences/'+encodeURIComponent(id)+query(project);
+  const headers={'X-Suma-Expected-User':userID,'X-Suma-Expected-Organization':organizationID};
+  setRead({loading:true});
+  void (async()=>{
+   try{
+    const record=await api<AutomationOccurrence>(path,undefined,'GET',headers,controller.signal);
+    if(controller.signal.aborted)return;
+    if(!record||record.id!==id||record.rule_id!==ruleID||!Number.isSafeInteger(record.revision)||record.revision<1||
+       typeof record.source!=='string'||typeof record.state!=='string'||typeof record.scheduled_at!=='string'||
+       typeof record.reason!=='string'||typeof record.run_id!=='string'||typeof record.updated_at!=='string'){
+     throw new UiError('automation.trigger_detail_unconfirmed');
+    }
+    setRead({loading:false,record});
+   }catch(error){
+    if(controller.signal.aborted)return;
+    if(error instanceof ApiError&&[401,403,404].includes(error.status)){setRead({loading:false,unavailable:true});return;}
+    setRead({loading:false,error:automationError(error)});
+   }
+  })();
+  return ()=>controller.abort();
+ },[api,project,ruleID,id,userID,organizationID,refresh,reload]);
+ const retry=()=>setReload(value=>value+1);
+ return <section id="automation-trigger-detail" className="automation-trigger-detail" aria-labelledby="automation-trigger-detail-heading" aria-busy={read.loading} data-automation-trigger-detail={id}>
+  <header className="automation-trigger-detail-header">
+   <h3 id="automation-trigger-detail-heading" tabIndex={-1} ref={heading}>{tr('automation.trigger_detail_title')}</h3>
+   <div className="inline">
+    <button type="button" className="icon-button" aria-label={tr('automation.refresh_trigger_detail')} disabled={read.loading} onClick={retry}><RefreshCw size={15}/></button>
+    {onClose&&<button type="button" className="icon-button" aria-label={tr('automation.close_trigger_detail')} onClick={onClose}><X size={16}/></button>}
+   </div>
+  </header>
+  {read.loading?<p className="automation-read-state" role="status">{tr('automation.loading_trigger_detail')}</p>:
+   'unavailable' in read?<p className="automation-read-state" role="status">{tr('automation.trigger_detail_unavailable')}</p>:
+   'error' in read?<ErrorNotice error={read.error} onRetry={retry}/>:
+   <>
+    {read.record.revision!==rule.revision&&<p className="automation-trigger-history-hint">{tr('automation.historical_trigger_revision',{trigger:formatNumber(read.record.revision),current:formatNumber(rule.revision)})}</p>}
+    <AutomationOccurrenceRow occurrence={read.record} project={project} timezone={rule.timezone} detail/>
+   </>}
+ </section>;
+}
+
+export function AutomationOccurrenceRow({occurrence,project,timezone='UTC',selected,onOpen,detail=false}:{occurrence:AutomationOccurrence;project:string;timezone?:string;selected?:boolean;onOpen?:(id:string)=>void;detail?:boolean}){
+ useLocale();
+ return <article className="automation-occurrence" data-automation-trigger-record={detail?occurrence.id:undefined}>
+  <div className="automation-occurrence-title">
+   <strong>{occurrence.source==='manual'?tr("automation.manual_trigger"):occurrence.source==='webhook'?tr("automation.signed_event_trigger"):tr("automation.scheduled_trigger")} <small>r{formatNumber(occurrence.revision)}</small></strong>
+   <span className={'automation-pill '+occurrence.state}>{occurrenceStates[occurrence.state]||occurrence.state}</span>
+  </div>
+  <time dateTime={occurrence.scheduled_at}><AutomationTime value={occurrence.scheduled_at} timezone={timezone}/></time>
+  {occurrence.reason&&<AutomationReason reason={occurrence.reason} scheduledAt={occurrence.scheduled_at} timezone={timezone} source={occurrence.source}/>}
+  {occurrence.run_id?<><a href={'?'+new URLSearchParams({project,view:'development',sub:'runs',run:occurrence.run_id})} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr("automation.view_actual_run")}<ArrowUpRight size={13}/><span>{occurrence.run_id.slice(0,16)}</span></a><small className="automation-run-state">{occurrence.run_state?tr("automation.run_state",{state:stateLabel(occurrence.run_state)}):tr("automation.run_state_has_not_been_loaded")}</small>{occurrence.run_needs_reconciliation&&<small className="automation-run-reconciliation"><TriangleAlert size={14} aria-hidden="true"/>{tr("automation.run_needs_reconciliation")}</small>}</>:<small className="muted">{tr("automation.no_run_linked_yet")}</small>}
+  {detail&&<small className="automation-trigger-updated">{tr('automation.trigger_detail_updated',{time:automationMoment(occurrence.updated_at,timezone).local,timezone})}</small>}
+  <div className="automation-trigger-row-actions">
+   <details><summary>{tr("automation.trigger_id")}</summary><code>{occurrence.id}</code></details>
+   {onOpen&&<button type="button" className="automation-open-trigger" data-automation-open-trigger={occurrence.id}
+   aria-label={tr('automation.open_trigger_detail_named',{id:occurrence.id})} aria-expanded={!!selected} aria-controls={selected?'automation-trigger-detail':undefined}
+   onClick={()=>onOpen(occurrence.id)}>{tr('automation.open_trigger_detail')}<ArrowUpRight size={13} aria-hidden="true"/></button>}
+  </div>
+ </article>;
+}
 
 function AutomationRevisions({project,rule,refresh}:{project:string;rule:string;refresh:number}){useLocale();
  const pager=useMemo(()=>new AutomationRevisionPager(project,rule),[project,rule]),[page,setPage]=useState(()=>pager.snapshot()),[open,setOpen]=useState(false);

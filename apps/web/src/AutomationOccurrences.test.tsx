@@ -73,3 +73,71 @@ it('loads authoritative attention pages and ignores a late reply from the previo
   vi.unstubAllGlobals();await setLocale('zh-CN',{persist:false});
  }
 });
+
+it('opens an exact trigger independently of history and discards stale or mismatched detail responses',async()=>{
+ const host=document.createElement('div');document.body.append(host);
+ const root=createRoot(host);
+ const detailCalls:{id:string;signal:AbortSignal|null|undefined}[]=[];
+ const current={...rule,revision:3,state:'paused'};
+ const original={...occurrence,id:'earlier-trigger',revision:1,state:'blocked',reason:'failure_pause_threshold_reached',run_id:''};
+ const next={...occurrence,id:'another-trigger',revision:2,run_id:'linked-run',run_state:'failed'};
+ let panel='automation-trigger:'+original.id;
+ let releaseEarlier:(response:Response)=>void=()=>{};
+ const delayed=new Promise<Response>(resolve=>{releaseEarlier=resolve;});
+ let mismatch=true;
+ const view=()=><ApiViewProvider session={session}><AutomationWorkspace project={project} session={session}
+  selected={rule.id} search="" onSearch={()=>{}} refresh={0} onSelect={()=>{}} panel={panel}
+  onOccurrenceSelect={id=>{panel=id?'automation-trigger:'+id:'';root.render(view());}}/></ApiViewProvider>;
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);
+ vi.stubGlobal('fetch',vi.fn(async(input:string,options?:RequestInit)=>{
+  const url=new URL(input,location.origin);
+  const exactPrefix='/api/v1/automations/'+rule.id+'/occurrences/';
+  if(url.pathname.startsWith(exactPrefix)){
+   const id=url.pathname.slice(exactPrefix.length);
+   expect(options?.method).toBe('GET');
+   expect([...url.searchParams]).toEqual([['project_id',project]]);
+   const headers=new Headers(options?.headers);
+   expect(headers.get('X-Suma-Expected-User')).toBe(session.user.id);
+   expect(headers.get('X-Suma-Expected-Organization')).toBe(session.organization.id);
+   detailCalls.push({id,signal:options?.signal});
+   if(id===original.id)return delayed;
+   if(id===next.id)return Response.json(mismatch?{...next,rule_id:'other-rule'}:next);
+   return Response.json({error:{code:'not_found',message:'Not found'}},{status:404});
+  }
+  if(url.pathname.endsWith('/automations/'+rule.id))return Response.json(current);
+  if(url.pathname.endsWith('/automations'))return Response.json({items:[current],total:1});
+  if(url.pathname.endsWith('/occurrences'))return Response.json({items:[],total:0});
+  return Response.json({items:[],total:0});
+ }));
+ const render=async()=>{await act(async()=>root.render(view()));};
+ const detail=()=>host.querySelector('[data-automation-trigger-detail]')!;
+ try{
+  await setLocale('en-US',{persist:false});
+  await render();
+  expect(detail().getAttribute('aria-busy')).toBe('true');
+  expect(document.activeElement?.id).toBe('automation-trigger-detail-heading');
+  panel='automation-trigger:'+next.id;
+  await render();
+  expect(detailCalls.map(call=>call.id)).toEqual([original.id,next.id]);
+  expect(detailCalls[0].signal?.aborted).toBe(true);
+  expect(detail().textContent).toContain('The server did not confirm this trigger');
+  expect(detail().querySelector('[data-automation-trigger-record]')).toBeNull();
+  await act(async()=>releaseEarlier(Response.json(original)));
+  expect(detail().textContent).not.toContain('No run is linked');
+  mismatch=false;
+  await act(async()=>detail().querySelector<HTMLButtonElement>('[aria-label="Refresh trigger details"]')!.click());
+  expect(detail().querySelector('[data-automation-trigger-record]')?.getAttribute('data-automation-trigger-record')).toBe(next.id);
+  expect(detail().textContent).toContain('This trigger used revision 2. The rule is now on revision 3.');
+  expect(new URL(detail().querySelector('a')!.href).searchParams.get('run')).toBe(next.run_id);
+  panel='automation-trigger:missing-trigger';
+  await render();
+  expect(detail().textContent).toContain('This trigger is unavailable');
+  expect(detail().querySelector('[data-automation-trigger-record]')).toBeNull();
+  await act(async()=>detail().querySelector<HTMLButtonElement>('[aria-label="Close trigger details"]')!.click());
+  expect(detail()).toBeNull();
+  expect(document.activeElement?.id).toBe('automation-occurrence-heading');
+ }finally{
+  await act(async()=>root.unmount());host.remove();
+  vi.unstubAllGlobals();await setLocale('zh-CN',{persist:false});
+ }
+});

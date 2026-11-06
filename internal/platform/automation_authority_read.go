@@ -45,6 +45,21 @@ func (s *Service) AutomationOccurrences(ctx context.Context, actor Actor, projec
 	return out, err
 }
 
+// GetAutomationOccurrence reads one retained trigger without using a history page cursor.
+func (s *Service) GetAutomationOccurrence(ctx context.Context, actor Actor, project, ruleID, occurrenceID string) (AutomationOccurrence, error) {
+	var out AutomationOccurrence
+	if project == organizationScope || !handoffID(project, false) || !handoffID(ruleID, false) || !handoffID(occurrenceID, false) {
+		return out, invalid("无效自动化请求")
+	}
+	target := commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ruleID}
+	err := s.withCurrentRead(ctx, actor, target, purposeBrowserProjectRead, func(auth *authorizedCommand) error {
+		var e error
+		out, e = s.automationOccurrenceCurrentTx(auth, occurrenceID)
+		return e
+	})
+	return out, err
+}
+
 func (s *Service) AutomationRevisions(ctx context.Context, actor Actor, project, id string, limit int, cursor string) (AutomationRevisions, error) {
 	var out AutomationRevisions
 	err := s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeBrowserProjectRead, func(auth *authorizedCommand) error {

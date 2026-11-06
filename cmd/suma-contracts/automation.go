@@ -21,6 +21,9 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	get("/automations/{id}", "AutomationRule", false)
 	occurrences := get("/automations/{id}/occurrences", "AutomationOccurrences", true)
 	appendQuery(occurrences, queryParameter("filter", "Returns all occurrences or only blocked triggers, failed linked runs, and linked runs with a node requiring reconciliation. The cursor is scoped to the selected filter.", map[string]any{"type": "string", "enum": []string{"all", "attention"}, "default": "all"}))
+	trigger := get("/automations/{id}/occurrences/{occurrence_id}", "AutomationOccurrence", false)
+	trigger["description"] = "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes the same scoped run evidence as trigger history."
+	trigger["responses"].(map[string]any)["404"] = map[string]any{"description": "The rule or trigger is missing or outside the requested project"}
 	get("/automations/{id}/revisions", "AutomationRevisions", true)
 	origin := get("/runs/{id}/automation-origin", "AutomationRunOriginResult", false)
 	origin["description"] = "Reads the original automation trigger and immutable rule revision for this exact current project run. A readable run without automation provenance returns an explicit null origin. Missing or foreign runs return 404."

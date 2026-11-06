@@ -51,24 +51,24 @@ it('opens an exact handoff only through its callback without marking read or acc
  records=[item({kind:'task_handoff_requested',assignment_current:false,source_available:false,current_task:undefined})];await render({refresh:1});expect(host.querySelector('.notification-inbox-source')).toBeNull();expect(writes).toHaveLength(0);
 });
 
-it('opens the paused rule in its source project and retains personal notification actions when it becomes unavailable',async()=>{
- const onAutomationRule=vi.fn(),selector='[data-notification-open-automation="rule-original"]';
+it('opens the exact paused trigger in its source project and retains personal notification actions when it becomes unavailable',async()=>{
+ const onAutomationTrigger=vi.fn(),selector='[data-notification-open-automation="trigger-blocked"]';
  const pause={
   kind:'automation_failure_paused',assignment_current:false,task_id:'',source_task_version:0,source_resource_id:'rule-original',
   current_task:undefined,automation_target:{rule_id:'rule-original',revision:2,trigger_id:'trigger-blocked',title:'CI review'},
  };
  let notice=item(pause);
  transport(()=>Response.json(orgPage([orgRow('project-b','Other project',notice)])));
- await render({scopeMode:'organization',onAutomationRule});
+ await render({scopeMode:'organization',onAutomationTrigger});
  expect(host.textContent).toContain('Automation paused after repeated failures');
  expect(host.textContent).toContain('Rule revision 2 at pause');
- expect(host.querySelector(selector)?.getAttribute('aria-label')).toBe('Open automation rule: CI review');
+ expect(host.querySelector(selector)?.getAttribute('aria-label')).toBe('Inspect paused trigger: CI review');
  await click(selector);
- expect(onAutomationRule).toHaveBeenCalledExactlyOnceWith('rule-original','project-b');
+ expect(onAutomationTrigger).toHaveBeenCalledExactlyOnceWith('rule-original','trigger-blocked','project-b');
  expect(props.onTask).not.toHaveBeenCalled();
  expect(writes).toHaveLength(0);
  await act(async()=>setLocale('zh-CN',{persist:false}));
- expect(host.querySelector(selector)?.getAttribute('aria-label')).toBe('打开自动化规则：CI review');
+ expect(host.querySelector(selector)?.getAttribute('aria-label')).toBe('查看暂停触发：CI review');
  expect(host.textContent).toContain('自动化因连续失败已暂停');
  notice=item({...pause,source_available:false,automation_target:undefined});
  await render({refresh:1});

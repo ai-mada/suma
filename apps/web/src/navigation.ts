@@ -8,6 +8,12 @@ export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 const toolInputPanelPrefix='tool-input:';
+export const automationTriggerPanelPrefix='automation-trigger:';
+const notificationSourceID=(value:string)=>/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
+export function automationTriggerPanelID(panel:string):string|undefined{
+ const id=panel.startsWith(automationTriggerPanelPrefix)?panel.slice(automationTriggerPanelPrefix.length):'';
+ return notificationSourceID(id)?id:undefined;
+}
 export function toolInputPanelID(panel:string):string|undefined {
  const input=panel.startsWith(toolInputPanelPrefix)?panel.slice(toolInputPanelPrefix.length):'';
  return input.length===32&&/^[a-f0-9]{32}$/.test(input)?input:undefined;
@@ -17,6 +23,12 @@ export function toolInputPanelID(panel:string):string|undefined {
 function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string{
  const panel=params.get('panel')||'',review=panel.startsWith('task-review:'),handoff=panel.startsWith('task-handoff:');
  if(params.getAll('panel').some(value=>value.startsWith(originalTestCasePanelPrefix)))return validOriginalTestCaseRoute(params)?panel:'';
+ if(params.getAll('panel').some(value=>value.startsWith(automationTriggerPanelPrefix))){
+  const exact=['project','view','sub','record','panel'].every(key=>params.getAll(key).length===1);
+  return exact&&params.get('view')==='development'&&params.get('sub')==='automations'&&
+   notificationSourceID(params.get('project')||'')&&notificationSourceID(params.get('record')||'')&&
+   !['run','node','attempt'].some(key=>params.has(key))&&automationTriggerPanelID(panel)?panel:'';
+ }
  if(panel.startsWith(toolInputPanelPrefix)){
   const input=toolInputPanelID(panel),project=params.get('project')||'';
   const exact=['panel','project','view','sub','run','node','attempt'].every(key=>params.getAll(key).length===1);
@@ -227,14 +239,13 @@ export function sourceHref(project:string,source:unknown):string|undefined {
 /** Notification filters belong to one current human and reading scope. */
 export function resetInboxScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,inbox_scope:undefined,inbox_filter:undefined,inbox_invalid:undefined};}
 
-export type NotificationSourceLocation={kind:'task'}|{kind:'message'|'review'|'handoff'|'run'|'automation';id:string}|{kind:'tool-input';target:NotificationToolInputTarget};
+export type NotificationSourceLocation={kind:'task'}|{kind:'message'|'review'|'handoff'|'run';id:string}|{kind:'automation';id:string;triggerID:string}|{kind:'tool-input';target:NotificationToolInputTarget};
 
 /** A current authorized inbox row can target another project. Keep the
  * project and exact source locator in one guarded route transition. */
 export function locateNotificationSource(project:string,task:string,source:NotificationSourceLocation,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
- const validID=(value:string)=>/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value);
- if(!validID(project)||(source.kind==='automation'?task!=='':!validID(task)))return false;
- if(source.kind!=='task'&&source.kind!=='tool-input'&&!validID(source.id))return false;
+ if(!notificationSourceID(project)||(source.kind==='automation'?task!=='':!notificationSourceID(task)))return false;
+ if(source.kind!=='task'&&source.kind!=='tool-input'&&!notificationSourceID(source.id))return false;
  const scoped:typeof update=change=>update(route=>change({...resetInboxScope(resetTaskCollectionScope(route)),project}));
  switch(source.kind){
   case 'message':return locateWorkbenchTask(task,canLeave,scoped,source.id);
@@ -247,8 +258,8 @@ export function locateNotificationSource(project:string,task:string,source:Notif
    return true;
   }
   case 'automation':{
-   if(!canLeave())return false;
-   scoped(route=>({...route,view:'development',sub:'automations',record:source.id,run:'',node:'',attempt:'',panel:'',q:'',status:'all',layout:'list'}));
+   if(!notificationSourceID(source.triggerID)||!canLeave())return false;
+   scoped(route=>({...route,view:'development',sub:'automations',record:source.id,run:'',node:'',attempt:'',panel:automationTriggerPanelPrefix+source.triggerID,q:'',status:'all',layout:'list'}));
    return true;
   }
   case 'run':
