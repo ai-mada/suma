@@ -16,6 +16,8 @@
 
 ## 目标与当前性
 
+从执行详情进入工具管理时，先核对当前项目与准确配置 ID。诊断区使用原报告读取和恢复动作，链接只保留原运行、节点和已选尝试的导航意图。配置不匹配时收起诊断和管理动作，保留重读和返回。当前操作回执继续优先。影响记录中的正尝试编号进入准确历史详情，尚未领取的节点只进入节点详情。
+
 恢复目标是本页面的短期公开意图，不是第二配置权威：原API caller、账户／组织／项目、单调代次、profile ID／version／SHA、Worker、adapter／protocol及准确目录descriptor。不得存凭据、私有路径、argv、模型值或报告内容；不持久化为健康事实。
 
 Doctor callback继续使用原`onWorker(workerID)`签名，由父闭包捕获当前profile；匹配项目、当前详情、版本、Worker及SHA后才定位。目标与页面/API/actor/项目/profile选择或依据一起失效；ABA、迟到catalog/diagnostics结果不能恢复旧目标。

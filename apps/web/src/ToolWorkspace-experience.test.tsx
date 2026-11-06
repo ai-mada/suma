@@ -18,8 +18,8 @@ beforeEach(async()=>{
 });
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function settle(){await act(async()=>{for(let i=0;i<12;i++)await Promise.resolve();await new Promise(resolve=>setTimeout(resolve,25));});}
-function Workspace({panel=''}:{panel?:string}){const[selected,onSelect]=useState('');return <ApiViewProvider session={session}><ToolWorkspace project={project} session={session} selected={selected} onSelect={onSelect} refresh={0} panel={panel}/></ApiViewProvider>;}
-async function draw(panel?:string){await act(async()=>root.render(<Workspace panel={panel}/>));await settle();}
+function Workspace({panel='',initialSelected=''}:{panel?:string;initialSelected?:string}){const[selected,onSelect]=useState(initialSelected);return <ApiViewProvider session={session}><ToolWorkspace project={project} session={session} selected={selected} onSelect={onSelect} refresh={0} panel={panel}/></ApiViewProvider>;}
+async function draw(panel?:string,initialSelected?:string){await act(async()=>root.render(<Workspace panel={panel} initialSelected={initialSelected}/>));await settle();}
 async function click(selector:string){const button=document.querySelector<HTMLElement>(selector)!;expect(button,selector).not.toBeNull();await act(async()=>{button.focus();button.click();});await settle();}
 async function choose(selector:string,value:string){const select=document.querySelector<HTMLSelectElement>(selector)!;expect(select,selector).not.toBeNull();await act(async()=>{Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')!.set!.call(select,value);select.dispatchEvent(new Event('change',{bubbles:true}));});await settle();}
 
@@ -49,4 +49,30 @@ it('returns to the exact historical attempt through the existing navigation guar
  expect(writes).toHaveLength(0);
  await draw('return-run:run-one/map%2Fchild/02');
  expect(host.querySelector('[data-tool-return-run]')).toBeNull();
+});
+
+it.each(['exact','foreign project','foreign profile'] as const)('opens the run diagnostic handoff with an %s profile response',async(scope)=>{
+ const fetchMock=vi.mocked(fetch),previous=fetchMock.getMockImplementation()!;
+ fetchMock.mockImplementation((input,init)=>{
+  if(new URL(String(input),'http://local.test').pathname!=='/api/v1/tool-profiles/profile-one')return previous(input,init);
+  return Promise.resolve(Response.json({id:scope==='foreign profile'?'other-profile':'profile-one',project_id:scope==='foreign project'?'other-project':project,
+   worker_id:worker,name:'Independent test tool',state:'paused',version:1,available:false,reason:'profile_paused',enabled_by:'',created_at:at,updated_at:at,
+   profile:{adapter:'command',protocol:'text-v1',command_id:'verify-tool',profile_sha256:'a'.repeat(64),executable_sha256:'b'.repeat(64),tool_version:'1.0',read_only:false},
+  }));
+ });
+ await draw('return-run:run-one/check/2','profile-one');
+ const diagnostics=host.querySelector<HTMLElement>('[data-tool-run-diagnostics]')!;
+ expect(document.activeElement).toBe(diagnostics);
+ expect(diagnostics.querySelector('[data-tool-run-handoff] [data-tool-return-run]')?.textContent).toContain('attempt 2');
+ expect(host.querySelectorAll('[data-tool-return-run]')).toHaveLength(1);
+ if(scope==='exact'){
+  expect(diagnostics.querySelector('[data-tool-doctor-card]')).not.toBeNull();
+  const actions=host.querySelector('[data-tool-profile-actions]')!;
+  expect(diagnostics.compareDocumentPosition(actions)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ }else{
+  expect(diagnostics.querySelector('[role="alert"] button')).not.toBeNull();
+  expect(host.querySelector('[data-tool-profile-actions]')).toBeNull();
+  expect(diagnostics.textContent).not.toContain('Independent test tool');
+ }
+ expect(writes).toHaveLength(0);
 });

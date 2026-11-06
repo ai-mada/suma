@@ -30,6 +30,8 @@
  "tool-management.impact.reason.node_limit":"The node limit was reached. Remaining nodes are unchecked; the observed count is only a lower bound.",
  "tool-management.impact.reason.source_unavailable":"Some sources could not be verified. The remaining impact is unknown; the observed count is not a total.",
  "tool-management.impact.open":"Open node {{node}} in run {{run}}",
+ "tool-management.impact.open_attempt":"Open attempt {{attempt}} of node {{node}} in run {{run}}",
+ "tool-management.impact.attempt":"Attempt {{attempt}}",
  "tool-management.impact.states":"Run state: {{run}} · Node state: {{node}}",
  "tool-management.impact.state.running":"Running",
  "tool-management.impact.state.paused":"Paused",

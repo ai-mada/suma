@@ -20,6 +20,12 @@
 
 .tool-profiles-heading{display:inline-flex;align-items:center;gap:8px;margin:0;font:inherit;scroll-margin-block-start:88px}
 .tool-profiles-heading:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.tool-run-diagnostics{display:grid;gap:12px;margin-bottom:16px;min-width:0;scroll-margin-block-start:88px;border-radius:8px}
+.tool-run-diagnostics:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.tool-run-handoff{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 16px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft);overflow-wrap:anywhere}
+.tool-run-handoff h3{margin:0;font-size:14px}
+.tool-run-handoff p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.tool-run-handoff a{display:inline-flex;align-items:center;min-height:44px;max-width:100%;font-size:14px;font-weight:600;text-underline-offset:2px}
 .tool-profile-worker-filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 16px;margin:12px 16px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft)}
 .tool-profile-worker-filter p{display:flex;align-items:center;gap:8px;min-width:0;margin:0;padding-block:8px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
 .tool-profile-worker-filter p svg{flex:none;color:var(--accent)}

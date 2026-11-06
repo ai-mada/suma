@@ -1,4 +1,6 @@
 {
+  "tool-workspace-experience.from_execution": "从执行查看工具诊断",
+  "tool-workspace-experience.source_node": "原执行节点",
   "tool-workspace-experience.add": "添加工具",
   "tool-workspace-experience.more": "更多接入方式",
   "tool-workspace-experience.more_hint": "查看工具目录、IDE 接入及详细配置指南。",

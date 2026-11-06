@@ -1,4 +1,6 @@
 {
+  "tool-workspace-experience.from_execution": "Tool diagnostics from execution",
+  "tool-workspace-experience.source_node": "Source node",
   "tool-workspace-experience.add": "Add tool",
   "tool-workspace-experience.more": "More connection options",
   "tool-workspace-experience.more_hint": "Tool catalog, IDE connections and detailed setup guides.",

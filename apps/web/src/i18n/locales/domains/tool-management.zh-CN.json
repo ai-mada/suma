@@ -30,6 +30,8 @@
  "tool-management.impact.reason.node_limit":"已达节点检查上限，其余节点尚未核对；已观察数仅为下界。",
  "tool-management.impact.reason.source_unavailable":"部分来源无法核实，剩余影响范围未知；已观察数不能代表总量。",
  "tool-management.impact.open":"打开运行 {{run}} 的节点 {{node}}",
+ "tool-management.impact.open_attempt":"打开运行 {{run}} 中节点 {{node}} 的第 {{attempt}} 次尝试",
+ "tool-management.impact.attempt":"第 {{attempt}} 次尝试",
  "tool-management.impact.states":"运行状态：{{run}} · 节点状态：{{node}}",
  "tool-management.impact.state.running":"执行中",
  "tool-management.impact.state.paused":"已暂停",

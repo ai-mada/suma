@@ -10,12 +10,23 @@ const snapshot=():Impact=>({scope:'active_project_runs',observed_at:'2026-11-01T
 let host:HTMLDivElement,root:Root|undefined;
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function mount(){await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);host=document.createElement('div');document.body.append(host);root=createRoot(host);}
-it('T193 shows only the bounded complete project observation and explicitly opens its exact run and node',async()=>{
+it('shows the bounded project observation and opens the exact reported attempt',async()=>{
  await mount();const onRun=vi.fn(),fetch=vi.fn();vi.stubGlobal('fetch',fetch);const value=snapshot();await act(async()=>root!.render(<ToolProfileImpact impact={value} onRun={onRun}/>));
  expect(host.querySelector('[data-tool-profile-impact]')?.getAttribute('data-coverage')).toBe('complete');expect(host.querySelector('[data-impact-summary]')?.textContent).toContain('1 reference');expect(host.querySelector('[data-impact-summary]')?.textContent).toContain('active runs in this project');const details=host.querySelector('details')!;expect(details.open).toBe(false);expect(host.querySelector('time')?.dateTime).toBe(value.observed_at);
- const open=host.querySelector<HTMLButtonElement>('[data-impact-run="run-a"][data-impact-node="develop-a"]')!;expect(open).not.toBeNull();expect(onRun).not.toHaveBeenCalled();await act(async()=>open.click());expect(onRun).toHaveBeenCalledExactlyOnceWith('run-a','develop-a');expect(fetch).not.toHaveBeenCalled();
- await act(async()=>root!.render(<ToolProfileImpact impact={value}/>));expect(host.querySelector('[data-impact-run]')).toBeNull();expect(host.textContent).toContain('run-a');expect(host.textContent).toContain('develop-a');
+ const open=host.querySelector<HTMLButtonElement>('[data-impact-run="run-a"][data-impact-node="develop-a"]')!;
+ expect(open.getAttribute('aria-label')).toBe('Open attempt 2 of node develop-a in run run-a');
+ expect(host.querySelector('.tool-profile-impact-item-meta')?.textContent).toContain('Attempt 2');
+ expect(onRun).not.toHaveBeenCalled();await act(async()=>open.click());expect(onRun).toHaveBeenCalledExactlyOnceWith('run-a','develop-a',2);expect(fetch).not.toHaveBeenCalled();
+ await act(async()=>root!.render(<ToolProfileImpact impact={value}/>));expect(host.querySelector('[data-impact-run]')).toBeNull();expect(host.textContent).toContain('run-a');expect(host.textContent).toContain('develop-a');expect(host.textContent).toContain('Attempt 2');
  const empty={...value,runs_examined:0,nodes_examined:0,observed_reference_count:0,items:[]};await act(async()=>root!.render(<ToolProfileImpact impact={empty}/>));expect(host.querySelector('[data-impact-summary]')?.textContent).toBe('No references observed in active runs in this project.');expect(host.textContent).toContain('drafts');expect(host.textContent).toContain('external processes');
+});
+it('opens an unclaimed node without adding an attempt to the destination',async()=>{
+ await mount();const onRun=vi.fn(),value=snapshot();
+ await act(async()=>root!.render(<ToolProfileImpact impact={{...value,items:[{...item,node_state:'ready',worker_id:'',attempt:0,fence:0}]}} onRun={onRun}/>));
+ const open=host.querySelector<HTMLButtonElement>('[data-impact-run="run-a"]')!;
+ expect(open.getAttribute('aria-label')).toBe('Open node develop-a in run run-a');
+ expect(host.querySelector('.tool-profile-impact-item-meta')?.textContent).not.toContain('Attempt');
+ await act(async()=>open.click());expect(onRun).toHaveBeenCalledExactlyOnceWith('run-a','develop-a',undefined);
 });
 it('T193 keeps partial, unknown and malformed impact neutral without claiming zero dependencies or fabricating a run action',async()=>{
  await mount();const onRun=vi.fn();const value=snapshot();
