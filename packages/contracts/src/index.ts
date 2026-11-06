@@ -1001,6 +1001,15 @@ export interface AutomationCreateRequest {
   idempotency_key: string;
   spec: AutomationSpec;
 }
+export interface AutomationFailurePauseEvidence {
+  threshold: number;
+  observed_at: string;
+  failed_runs: (AutomationFailurePauseRun)[];
+}
+export interface AutomationFailurePauseRun {
+  trigger_id: string;
+  run_id: string;
+}
 export interface AutomationIngress {
   name: string;
   provider: string;
@@ -1127,6 +1136,7 @@ export interface AutomationOccurrence {
   run_needs_reconciliation?: boolean;
   created_at: string;
   updated_at: string;
+  failure_pause_evidence?: AutomationFailurePauseEvidence;
 }
 export interface AutomationOccurrences {
   items: (AutomationOccurrence)[];

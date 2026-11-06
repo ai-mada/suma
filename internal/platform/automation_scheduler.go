@@ -220,7 +220,10 @@ func (s *Service) materializeAutomation(ctx context.Context, ref automationRef) 
 	return tx.Commit()
 }
 
-type automationDeferred struct{ state, reason string }
+type automationDeferred struct {
+	state, reason string
+	failureRuns   []AutomationFailurePauseRun
+}
 
 func (e *automationDeferred) Error() string { return e.reason }
 
@@ -247,19 +250,19 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *aut
 		return a, o, err
 	}
 	if o.State != "queued" {
-		return a, o, &automationDeferred{"", "already_resolved"}
+		return a, o, &automationDeferred{state: "", reason: "already_resolved"}
 	}
 	if a.State != "enabled" || a.Revision != o.Revision {
-		return a, o, &automationDeferred{"blocked", "rule_inactive_or_revised"}
+		return a, o, &automationDeferred{state: "blocked", reason: "rule_inactive_or_revised"}
 	}
 	p := auth.currentPrincipal
 	if auth.activationDenied {
-		return a, o, &automationDeferred{"blocked", "activation_authority_revoked"}
+		return a, o, &automationDeferred{state: "blocked", reason: "activation_authority_revoked"}
 	}
 	if err = s.automationWorkflow(ctx, tx, p, ref.project, a.AutomationSpec); err != nil {
 		var ae *APIError
 		if errors.As(err, &ae) {
-			return a, o, &automationDeferred{"blocked", "workflow_unavailable"}
+			return a, o, &automationDeferred{state: "blocked", reason: "workflow_unavailable"}
 		}
 		return a, o, err
 	}
@@ -278,11 +281,11 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *aut
 			return a, o, &APIError{409, "authority_retry", "权限集合已改变，请重试", nil}
 		}
 		if invoker == "" {
-			return a, o, &automationDeferred{"blocked", manualTriggerAuthorityUnverified}
+			return a, o, &automationDeferred{state: "blocked", reason: manualTriggerAuthorityUnverified}
 		}
 		if _, err = s.currentProjectMembershipLockedTx(ctx, tx, ref.tenant, invoker, ref.project, true, false); err != nil {
 			if automationAuthorityFailure(err) {
-				return a, o, &automationDeferred{"blocked", manualTriggerAuthorityRevoked}
+				return a, o, &automationDeferred{state: "blocked", reason: manualTriggerAuthorityRevoked}
 			}
 			return a, o, err
 		}
@@ -290,12 +293,12 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *aut
 	if err = s.automationIngressDispatchAdmission(ctx, tx, ref, a, o); err != nil {
 		return a, o, err
 	}
-	tripped, err := s.automationFailurePauseReached(ctx, tx, ref, a)
+	failedRuns, err := s.automationFailurePauseRuns(ctx, tx, ref, a)
 	if err != nil {
 		return a, o, err
 	}
-	if tripped {
-		return a, o, &automationDeferred{"blocked", automationFailurePauseReason}
+	if len(failedRuns) > 0 {
+		return a, o, &automationDeferred{state: "blocked", reason: automationFailurePauseReason, failureRuns: failedRuns}
 	}
 	if a.Overlap != "allow" {
 		var active int
@@ -306,9 +309,9 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *aut
 		}
 		if active > 0 {
 			if a.Overlap == "forbid" {
-				return a, o, &automationDeferred{"skipped", "overlap_forbid"}
+				return a, o, &automationDeferred{state: "skipped", reason: "overlap_forbid"}
 			}
-			return a, o, &automationDeferred{"queued", "overlap_wait"}
+			return a, o, &automationDeferred{state: "queued", reason: "overlap_wait"}
 		}
 		if a.Overlap == "queue" {
 			var ahead int
@@ -316,7 +319,7 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *aut
 				return a, o, err
 			}
 			if ahead > 0 {
-				return a, o, &automationDeferred{"queued", "queue_wait"}
+				return a, o, &automationDeferred{state: "queued", reason: "queue_wait"}
 			}
 		}
 	}
@@ -357,7 +360,7 @@ func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref aut
 				return e
 			}
 			if current.Revision != a.Revision || current.WorkflowID != a.WorkflowID || current.WorkflowVersion != a.WorkflowVersion {
-				return &automationDeferred{"blocked", "rule_revised"}
+				return &automationDeferred{state: "blocked", reason: "rule_revised"}
 			}
 			return nil
 		},
@@ -415,7 +418,7 @@ func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref aut
 		return nil
 	}
 	if deferred.reason == automationFailurePauseReason {
-		if err = s.pauseAutomationAfterFailures(ctx, evaluation, ref, current, occurrence); err != nil {
+		if err = s.pauseAutomationAfterFailures(ctx, evaluation, ref, current, occurrence, deferred.failureRuns); err != nil {
 			return err
 		}
 		return tx.Commit()

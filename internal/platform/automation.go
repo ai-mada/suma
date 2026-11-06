@@ -51,18 +51,19 @@ type AutomationRule struct {
 	Revisions   []AutomationRevision `json:"revisions,omitempty"`
 }
 type AutomationOccurrence struct {
-	ID                     string `json:"id"`
-	RuleID                 string `json:"rule_id"`
-	Revision               int    `json:"revision"`
-	Source                 string `json:"source"`
-	ScheduledAt            string `json:"scheduled_at"`
-	State                  string `json:"state"`
-	Reason                 string `json:"reason"`
-	RunID                  string `json:"run_id"`
-	RunState               string `json:"run_state,omitempty"`
-	RunNeedsReconciliation bool   `json:"run_needs_reconciliation,omitempty"`
-	CreatedAt              string `json:"created_at"`
-	UpdatedAt              string `json:"updated_at"`
+	ID                     string                          `json:"id"`
+	RuleID                 string                          `json:"rule_id"`
+	Revision               int                             `json:"revision"`
+	Source                 string                          `json:"source"`
+	ScheduledAt            string                          `json:"scheduled_at"`
+	State                  string                          `json:"state"`
+	Reason                 string                          `json:"reason"`
+	RunID                  string                          `json:"run_id"`
+	RunState               string                          `json:"run_state,omitempty"`
+	RunNeedsReconciliation bool                            `json:"run_needs_reconciliation,omitempty"`
+	CreatedAt              string                          `json:"created_at"`
+	UpdatedAt              string                          `json:"updated_at"`
+	FailurePauseEvidence   *AutomationFailurePauseEvidence `json:"failure_pause_evidence,omitempty" wire:"nonnull"`
 }
 type AutomationCreateRequest struct {
 	ProjectID      string         `json:"project_id"`
@@ -113,6 +114,7 @@ func (s *Service) InitializeAutomations(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_automation_revisions(rule_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,spec TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(rule_id,revision))`,
 		`CREATE TABLE IF NOT EXISTS suma_automation_occurrences(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,rule_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,source VARCHAR(20) NOT NULL,scheduled_at VARCHAR(40) NOT NULL,state VARCHAR(20) NOT NULL,reason TEXT NOT NULL,run_id VARCHAR(64) NOT NULL,dedupe_key VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,UNIQUE(tenant_id,project_id,rule_id,revision,dedupe_key))`,
 		automationManualInvocationsDDL,
+		automationPauseEvidenceDDL,
 	} {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(q)); err != nil {
 			return fmt.Errorf("automation migration: %w", err)
@@ -705,6 +707,12 @@ func (s *Service) automationOccurrenceCurrentTx(auth *authorizedCommand, occurre
 	}
 	if o.RunID != storedRunID || runTenant != tenant || runProject != project {
 		o.RunID, o.RunState, o.RunNeedsReconciliation = "", "", false
+	}
+	if o.State == "blocked" && o.Reason == automationFailurePauseReason && storedRunID == "" {
+		o.FailurePauseEvidence, err = s.automationFailurePauseEvidenceTx(auth.ctx, auth.tx, automationRef{tenant: tenant, project: project, id: ruleID}, o)
+		if err != nil {
+			return AutomationOccurrence{}, err
+		}
 	}
 	return o, nil
 }

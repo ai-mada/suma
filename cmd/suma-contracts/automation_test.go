@@ -13,6 +13,7 @@ func TestAutomationAndStreamContractsMatchDistinctFactAndAuthority(t *testing.T)
 		{"/automations/{id}/commands", "post", "AutomationCommandResult"},
 		{"/automations/preview", "post", "AutomationPreview"},
 		{"/automations/{id}/occurrences", "get", "AutomationOccurrences"},
+		{"/automations/{id}/occurrences/{occurrence_id}", "get", "AutomationOccurrence"},
 		{"/runs/{id}/automation-origin", "get", "AutomationRunOriginResult"},
 	} {
 		op := mapAt(paths, pair.path, pair.method)
@@ -65,5 +66,14 @@ func TestAutomationAndStreamContractsMatchDistinctFactAndAuthority(t *testing.T)
 	}
 	if !filterFound || mapAt(schemas, "AutomationOccurrence", "properties", "run_needs_reconciliation")["type"] != "boolean" {
 		t.Fatal("occurrence attention filter and reconciliation fact contract missing")
+	}
+	occurrence := mapAt(schemas, "AutomationOccurrence")
+	evidence := mapAt(occurrence, "properties", "failure_pause_evidence")
+	if evidence["$ref"] != "#/components/schemas/AutomationFailurePauseEvidence" || evidence["readOnly"] != true || slices.Contains(occurrence["required"].([]string), "failure_pause_evidence") {
+		t.Fatal("pause evidence must remain optional and read-only on the occurrence")
+	}
+	failedRuns := mapAt(schemas, "AutomationFailurePauseEvidence", "properties", "failed_runs")
+	if failedRuns["minItems"] != 2 || failedRuns["maxItems"] != 10 || mapAt(failedRuns, "items")["$ref"] != "#/components/schemas/AutomationFailurePauseRun" {
+		t.Fatal("pause evidence must describe a bounded list of exact failed runs")
 	}
 }

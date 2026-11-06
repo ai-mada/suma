@@ -141,3 +141,63 @@ it('opens an exact trigger independently of history and discards stale or mismat
   vi.unstubAllGlobals();await setLocale('zh-CN',{persist:false});
  }
 });
+
+it('shows only the exact retained pause evidence and preserves the leave guard on linked failed runs',async()=>{
+ const host=document.createElement('div');document.body.append(host);
+ const root=createRoot(host);
+ const stopped={...occurrence,id:'stopped-trigger',state:'blocked',reason:'failure_pause_threshold_reached',run_id:''};
+ const retained={
+  threshold:2,observed_at:stamp,failed_runs:[{trigger_id:'recent-trigger',run_id:'recent-run'},{trigger_id:'earlier-trigger',run_id:'earlier-run'}],
+ };
+ let result:unknown={...stopped,failure_pause_evidence:retained},refresh=0;
+ const veto=(event:Event)=>event.preventDefault();
+ const view=()=><ApiViewProvider session={session}><AutomationWorkspace project={project} session={session}
+  selected={rule.id} search="" onSearch={()=>{}} refresh={refresh} onSelect={()=>{}} panel={'automation-trigger:'+stopped.id}/></ApiViewProvider>;
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);
+ const requests=vi.fn(async(input:string,options?:RequestInit)=>{
+  const url=new URL(input,location.origin);
+  expect(options?.method||'GET').toBe('GET');
+  if(url.pathname.endsWith('/occurrences/'+stopped.id))return Response.json(result);
+  if(url.pathname.endsWith('/automations/'+rule.id))return Response.json(rule);
+  if(url.pathname.endsWith('/automations'))return Response.json({items:[rule],total:1});
+  if(url.pathname.endsWith('/occurrences'))return Response.json({items:[stopped],total:1});
+  return Response.json({items:[],total:0});
+ });
+ vi.stubGlobal('fetch',requests);
+ const render=async()=>{await act(async()=>root.render(view()));};
+ const section=()=>host.querySelector('[data-automation-pause-evidence]');
+ const missing=()=>host.querySelector('[data-automation-pause-evidence-unavailable]');
+ try{
+  await setLocale('en-US',{persist:false});
+  await render();
+  expect(section()?.closest('[data-automation-trigger-record]')?.getAttribute('data-automation-trigger-record')).toBe(stopped.id);
+  expect(section()?.textContent).toContain('after 2 consecutive failed runs');
+  expect(section()?.querySelector('time')?.dateTime).toBe(stamp);
+  const links=[...section()!.querySelectorAll<HTMLAnchorElement>('[data-automation-pause-evidence-run]')];
+  expect(links.map(link=>[...new URL(link.href).searchParams])).toEqual(retained.failed_runs.map(entry=>[
+   ['project',project],['view','development'],['sub','runs'],['run',entry.run_id],
+  ]));
+  window.addEventListener('suma:navigate',veto);
+  try{expect(links[0].dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false);}
+  finally{window.removeEventListener('suma:navigate',veto);}
+  for(const evidence of [
+   undefined,
+   {...retained,observed_at:'2026-11-06T00:00:00Z'},
+   {...retained,failed_runs:[retained.failed_runs[0],{trigger_id:'another-trigger',run_id:'recent-run'}]},
+  ]){
+   result={...stopped,failure_pause_evidence:evidence};
+   refresh++;
+   await render();
+   expect(section()).toBeNull();
+   expect(missing()?.textContent).toContain('Saved failure evidence is unavailable');
+  }
+  result={...stopped,reason:'rule_pause',failure_pause_evidence:retained};
+  refresh++;
+  await render();
+  expect(section()).toBeNull();
+  expect(missing()).toBeNull();
+ }finally{
+  await act(async()=>root.unmount());host.remove();
+  vi.unstubAllGlobals();await setLocale('zh-CN',{persist:false});
+ }
+});

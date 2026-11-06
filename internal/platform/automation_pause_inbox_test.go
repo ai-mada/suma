@@ -1,8 +1,10 @@
 package platform
 
 import (
+	"cmp"
 	"context"
 	"net/http"
+	"slices"
 	"testing"
 )
 
@@ -52,6 +54,7 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	f.cookie = ownerCookie
 	f.call(http.MethodGet, "/auth/session", nil, http.StatusOK)
 
+	var failed []AutomationOccurrence
 	// The original owner triggers the failures and the pause, but the separate
 	// account that enabled this revision owns the resulting notification.
 	for i := 0; i < 2; i++ {
@@ -70,12 +73,37 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 			t.Fatal(err)
 		}
 		resolveAutomationTestApproval(t, f, run, "reject", "failed")
+		failed = append(failed, started)
 	}
-	queued := command("trigger", rule.Version, nil)
-	if queued.Occurrence == nil {
-		t.Fatal("threshold trigger missing from command receipt")
+	slices.SortFunc(failed, func(left, right AutomationOccurrence) int {
+		return cmp.Or(cmp.Compare(right.CreatedAt, left.CreatedAt), cmp.Compare(right.ID, left.ID))
+	})
+	wantRuns := []AutomationFailurePauseRun{
+		{TriggerID: failed[0].ID, RunID: failed[0].RunID},
+		{TriggerID: failed[1].ID, RunID: failed[1].RunID},
 	}
-	triggerID := queued.Occurrence.ID
+	first := command("trigger", rule.Version, nil)
+	queued := command("trigger", first.Rule.Version, nil)
+	if first.Occurrence == nil || queued.Occurrence == nil {
+		t.Fatal("threshold triggers missing from command receipts")
+	}
+	candidates := []AutomationOccurrence{*first.Occurrence, *queued.Occurrence}
+	slices.SortFunc(candidates, func(left, right AutomationOccurrence) int {
+		return cmp.Or(cmp.Compare(left.ScheduledAt, right.ScheduledAt), cmp.Compare(left.CreatedAt, right.CreatedAt), cmp.Compare(left.ID, right.ID))
+	})
+	triggerID, siblingID := candidates[0].ID, candidates[1].ID
+	detailPath := func(id, project string) string { return rulePath + "/occurrences/" + id + "?project_id=" + project }
+	detail := func(id string) AutomationOccurrence {
+		t.Helper()
+		return issueRepairRuntimeDecode[AutomationOccurrence](t, f.call(http.MethodGet, detailPath(id, f.project), nil, http.StatusOK))
+	}
+	evidenceCount := func(want int) {
+		t.Helper()
+		if count := autoCount(t, f, "suma_automation_pause_evidence"); count != want {
+			t.Fatalf("pause evidence row count %d, want %d", count, want)
+		}
+	}
+	evidenceCount(0)
 	runs := autoCount(t, f, "dag_runs")
 	receipts := autoCount(t, f, "dag_operations")
 	noticeCount := autoCount(t, f, "suma_notification_inbox")
@@ -98,6 +126,7 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	if autoCount(t, f, "suma_notification_inbox") != noticeCount || autoCount(t, f, "suma_notification_inbox_sequences") != sequenceCount {
 		t.Fatal("failed notice write left inbox state behind")
 	}
+	evidenceCount(0)
 	if _, err := f.s.DB.ExecContext(ctx, `DROP TRIGGER automation_pause_notice_abort`); err != nil {
 		t.Fatal(err)
 	}
@@ -107,9 +136,26 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	if paused.State != "paused" || paused.Version != queued.Rule.Version+1 || paused.LastError != automationFailurePauseReason {
 		t.Fatalf("expected one durable pause: %+v", paused)
 	}
-	if after := occurrence(triggerID); after.State != "blocked" || after.Reason != automationFailurePauseReason || after.RunID != "" {
-		t.Fatalf("expected blocked trigger without a run: %+v", after)
+	for _, id := range []string{triggerID, siblingID} {
+		if after := occurrence(id); after.State != "blocked" || after.Reason != automationFailurePauseReason || after.RunID != "" || after.FailurePauseEvidence != nil {
+			t.Fatalf("expected blocked trigger in history without a run or embedded evidence: %+v", after)
+		}
 	}
+	evidenceCount(1)
+	assertEvidence := func() {
+		t.Helper()
+		record := detail(triggerID)
+		evidence := record.FailurePauseEvidence
+		if record.Revision != paused.Revision || evidence == nil || evidence.Threshold != 2 ||
+			evidence.ObservedAt == "" || evidence.ObservedAt != record.UpdatedAt || !slices.Equal(evidence.FailedRuns, wantRuns) {
+			t.Fatalf("incorrect durable failure evidence: trigger=%+v evidence=%+v", record, evidence)
+		}
+	}
+	assertEvidence()
+	if record := detail(siblingID); record.FailurePauseEvidence != nil {
+		t.Fatalf("blocked sibling was incorrectly credited with the pause decision: %+v", record)
+	}
+	f.call(http.MethodGet, detailPath(triggerID, otherProject), nil, http.StatusNotFound)
 	if autoCount(t, f, "dag_runs") != runs || autoCount(t, f, "dag_operations") != receipts {
 		t.Fatal("paused admission created a DAG run or receipt")
 	}
@@ -141,6 +187,7 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	checkUnread(0)
 
 	spec.Name = "Reviewed threshold policy"
+	spec.FailurePauseThreshold = 3
 	revised := command("revise", paused.Version, &spec).Rule
 	if revised.Revision != paused.Revision+1 || revised.Name == paused.Name {
 		t.Fatalf("expected a new distinct revision: %+v", revised)
@@ -178,9 +225,31 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 		}
 	}
 
+	// A live run can change independently of the terminal observation used
+	// to pause. The evidence preserves that observation after a revision.
+	if _, err := f.s.DB.ExecContext(ctx, `UPDATE dag_runs SET state='running' WHERE id=?`, wantRuns[0].RunID); err != nil {
+		t.Fatal(err)
+	}
+	assertEvidence()
+
+	// A damaged or foreign run binding must not expose old evidence links.
+	if _, err := f.s.DB.ExecContext(ctx, `UPDATE dag_runs SET project_id=? WHERE id=?`, otherProject, wantRuns[0].RunID); err != nil {
+		t.Fatal(err)
+	}
+	if record := detail(triggerID); record.FailurePauseEvidence != nil {
+		t.Fatalf("foreign run binding leaked saved evidence: %+v", record)
+	}
+	if _, err := f.s.DB.ExecContext(ctx, `UPDATE dag_runs SET project_id=? WHERE id=?`, f.project, wantRuns[0].RunID); err != nil {
+		t.Fatal(err)
+	}
+	assertEvidence()
+
 	// A mismatched occurrence retains its inbox history but exposes no locator.
 	if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_automation_occurrences SET reason='workflow_unavailable' WHERE id=?`, triggerID); err != nil {
 		t.Fatal(err)
+	}
+	if record := detail(triggerID); record.FailurePauseEvidence != nil {
+		t.Fatalf("mismatched trigger leaked saved evidence: %+v", record)
 	}
 	for _, path := range []string{projectInbox, orgInbox} {
 		item := readNotice(path, 1)

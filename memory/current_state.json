@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_pause_evidence": {
+    "stage": "T-AUTOMATION-PAUSE-EVIDENCE-289",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "aa4f6748f07c7b7ec093cacbcde13bcaebe2cbf1",
+    "report": "docs/quality/automation-pause-evidence-verification.md",
+    "actual": "Automatic failure pauses record the exact failed runs that met the revision threshold in the same transaction. The original trigger detail links the preserved evidence to scoped runs.",
+    "verification": "SQLite HTTP verifies the immutable decision basis, evidence rollback and source isolation. English desktop and Chinese 390px Chrome verify the stored evidence and exact run link.",
+    "known_limitations": "Historical records without captured evidence retain only their reason. External channels, distributed scale and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "automation_trigger_detail": {
     "stage": "T-AUTOMATION-TRIGGER-DETAIL-288",
     "version": "1.0.0",

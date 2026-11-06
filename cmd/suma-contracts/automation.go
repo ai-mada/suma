@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func automationModels() []any {
-	return []any{platform.AutomationSpec{}, platform.AutomationRevision{}, platform.AutomationRule{}, platform.AutomationOccurrence{}, platform.AutomationCreateRequest{}, platform.AutomationPreviewRequest{}, platform.AutomationCommandRequest{}, platform.AutomationCommandResult{}, platform.AutomationPreview{}, platform.AutomationList{}, platform.AutomationOccurrences{}, platform.AutomationRevisions{}, platform.AutomationRunOriginResult{}, platform.AutomationRunOrigin{}}
+	return []any{platform.AutomationSpec{}, platform.AutomationRevision{}, platform.AutomationRule{}, platform.AutomationOccurrence{}, platform.AutomationFailurePauseEvidence{}, platform.AutomationFailurePauseRun{}, platform.AutomationCreateRequest{}, platform.AutomationPreviewRequest{}, platform.AutomationCommandRequest{}, platform.AutomationCommandResult{}, platform.AutomationPreview{}, platform.AutomationList{}, platform.AutomationOccurrences{}, platform.AutomationRevisions{}, platform.AutomationRunOriginResult{}, platform.AutomationRunOrigin{}}
 }
 
 func automationContracts(add operationAdder, paths map[string]any) {
@@ -22,7 +22,7 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	occurrences := get("/automations/{id}/occurrences", "AutomationOccurrences", true)
 	appendQuery(occurrences, queryParameter("filter", "Returns all occurrences or only blocked triggers, failed linked runs, and linked runs with a node requiring reconciliation. The cursor is scoped to the selected filter.", map[string]any{"type": "string", "enum": []string{"all", "attention"}, "default": "all"}))
 	trigger := get("/automations/{id}/occurrences/{occurrence_id}", "AutomationOccurrence", false)
-	trigger["description"] = "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes the same scoped run evidence as trigger history."
+	trigger["description"] = "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes the same scoped run evidence as trigger history, plus recorded failure-pause evidence when available for the initiating trigger."
 	trigger["responses"].(map[string]any)["404"] = map[string]any{"description": "The rule or trigger is missing or outside the requested project"}
 	get("/automations/{id}/revisions", "AutomationRevisions", true)
 	origin := get("/runs/{id}/automation-origin", "AutomationRunOriginResult", false)
@@ -99,5 +99,12 @@ func enhanceAutomationSchemas(schemas map[string]any) {
 	field("AutomationOccurrence", "state", map[string]any{"enum": []string{"queued", "started", "skipped", "blocked"}})
 	field("AutomationOccurrence", "source", map[string]any{"enum": []string{"cron", "manual"}})
 	field("AutomationOccurrence", "run_id", map[string]any{"description": "The linked run in the current organization and project, or an empty string when no such run is visible."})
+	field("AutomationOccurrence", "failure_pause_evidence", map[string]any{"readOnly": true, "description": "Immutable decision evidence returned only on the exact blocked trigger that initiated a consecutive failure pause. Absent when no scoped decision evidence is available."})
+	field("AutomationFailurePauseEvidence", "threshold", map[string]any{"minimum": 2, "maximum": 10})
+	field("AutomationFailurePauseEvidence", "observed_at", map[string]any{"format": "date-time"})
+	field("AutomationFailurePauseEvidence", "failed_runs", map[string]any{"minItems": 2, "maxItems": 10, "description": "Exactly threshold distinct runs in newest-first trigger order, observed failed at the pause decision."})
+	for _, id := range []string{"trigger_id", "run_id"} {
+		field("AutomationFailurePauseRun", id, map[string]any{"minLength": 1, "maxLength": 64})
+	}
 	field("AutomationOccurrence", "run_needs_reconciliation", map[string]any{"description": "True when a node of the linked run is reconciling within this organization and project. Omitted when no such node is recorded."})
 }

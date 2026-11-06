@@ -60,6 +60,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-AUTOMATION-PAUSE-EVIDENCE-289 核验暂停依据的原子提交、历史保留、项目授权与真实运行入口。 [阶段报告](automation-pause-evidence-verification.md)
+
 T-AUTOMATION-TRIGGER-DETAIL-288 核验准确触发详情、分页独立读取、授权和跨项目定位。 [阶段报告](automation-trigger-detail-verification.md)
 
 T-AUTOMATION-PAUSE-INBOX-287 核验暂停通知原子写入、权限隔离和中英文收件箱跳转。 [阶段报告](automation-pause-inbox-verification.md)

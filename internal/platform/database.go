@@ -125,6 +125,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateNotificationInboxInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateAutomationPauseEvidenceInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateTaskSubscriptionsInitialSchema(ctx); err != nil {
 		return err
 	}

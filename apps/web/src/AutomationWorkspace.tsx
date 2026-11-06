@@ -212,6 +212,45 @@ function AutomationTriggerDetail({project,rule,id,refresh,session,onClose}:{proj
  </section>;
 }
 
+function runHref(project:string,run:string){return '?'+new URLSearchParams({project,view:'development',sub:'runs',run});}
+
+function validPauseEvidence(occurrence:AutomationOccurrence){
+ const evidence=occurrence.failure_pause_evidence;
+ if(!evidence||occurrence.run_id||!Number.isInteger(evidence.threshold)||evidence.threshold<2||evidence.threshold>10||
+    typeof evidence.observed_at!=='string'||evidence.observed_at.length!==20||evidence.observed_at!==occurrence.updated_at||
+    !Array.isArray(evidence.failed_runs)||evidence.failed_runs.length!==evidence.threshold)return undefined;
+ const observedAt=Date.parse(evidence.observed_at);
+ if(!Number.isFinite(observedAt)||new Date(observedAt).toISOString().replace('.000Z','Z')!==evidence.observed_at)return undefined;
+ const validID=(id:unknown):id is string=>typeof id==='string'&&/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(id);
+ const runs=new Set<string>(),triggers=new Set<string>();
+ for(const entry of evidence.failed_runs){
+  if(!entry||!validID(entry.run_id)||!validID(entry.trigger_id)||entry.trigger_id===occurrence.id||
+     runs.has(entry.run_id)||triggers.has(entry.trigger_id))return undefined;
+  runs.add(entry.run_id);triggers.add(entry.trigger_id);
+ }
+ return evidence;
+}
+
+function AutomationPauseEvidence({occurrence,project,timezone}:{occurrence:AutomationOccurrence;project:string;timezone:string}){
+ const evidence=validPauseEvidence(occurrence);
+ if(!evidence)return <p className="automation-pause-evidence-unavailable" data-automation-pause-evidence-unavailable>{tr('automation.pause_evidence_unavailable')}</p>;
+ const observed=automationMoment(evidence.observed_at,timezone);
+ return <section className="automation-pause-evidence" aria-labelledby="automation-pause-evidence-heading" data-automation-pause-evidence>
+  <h4 id="automation-pause-evidence-heading">{tr('automation.pause_evidence_title')}</h4>
+  <p>{tr('automation.pause_evidence_threshold',{threshold:formatNumber(evidence.threshold)})}</p>
+  <time dateTime={evidence.observed_at}>{tr('automation.pause_evidence_observed',{time:observed.local,timezone:observed.timezone})}</time>
+  <ol aria-label={tr('automation.pause_evidence_failed_runs')}>
+   {evidence.failed_runs.map(entry=><li key={entry.run_id}>
+    <a href={runHref(project,entry.run_id)} data-automation-pause-evidence-run={entry.run_id}
+       aria-label={tr('automation.pause_evidence_open_run_named',{id:entry.run_id})}
+       onClick={event=>{if(!canLeave())event.preventDefault();}}>
+     {tr('automation.pause_evidence_open_run')}<code title={entry.run_id}>{entry.run_id.slice(0,16)}</code><ArrowUpRight size={13} aria-hidden="true"/>
+    </a>
+   </li>)}
+  </ol>
+ </section>;
+}
+
 export function AutomationOccurrenceRow({occurrence,project,timezone='UTC',selected,onOpen,detail=false}:{occurrence:AutomationOccurrence;project:string;timezone?:string;selected?:boolean;onOpen?:(id:string)=>void;detail?:boolean}){
  useLocale();
  return <article className="automation-occurrence" data-automation-trigger-record={detail?occurrence.id:undefined}>
@@ -221,7 +260,8 @@ export function AutomationOccurrenceRow({occurrence,project,timezone='UTC',selec
   </div>
   <time dateTime={occurrence.scheduled_at}><AutomationTime value={occurrence.scheduled_at} timezone={timezone}/></time>
   {occurrence.reason&&<AutomationReason reason={occurrence.reason} scheduledAt={occurrence.scheduled_at} timezone={timezone} source={occurrence.source}/>}
-  {occurrence.run_id?<><a href={'?'+new URLSearchParams({project,view:'development',sub:'runs',run:occurrence.run_id})} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr("automation.view_actual_run")}<ArrowUpRight size={13}/><span>{occurrence.run_id.slice(0,16)}</span></a><small className="automation-run-state">{occurrence.run_state?tr("automation.run_state",{state:stateLabel(occurrence.run_state)}):tr("automation.run_state_has_not_been_loaded")}</small>{occurrence.run_needs_reconciliation&&<small className="automation-run-reconciliation"><TriangleAlert size={14} aria-hidden="true"/>{tr("automation.run_needs_reconciliation")}</small>}</>:<small className="muted">{tr("automation.no_run_linked_yet")}</small>}
+  {detail&&occurrence.state==='blocked'&&occurrence.reason===automationFailurePauseReason&&<AutomationPauseEvidence occurrence={occurrence} project={project} timezone={timezone}/>}
+  {occurrence.run_id?<><a href={runHref(project,occurrence.run_id)} onClick={event=>{if(!canLeave())event.preventDefault();}}>{tr("automation.view_actual_run")}<ArrowUpRight size={13}/><span>{occurrence.run_id.slice(0,16)}</span></a><small className="automation-run-state">{occurrence.run_state?tr("automation.run_state",{state:stateLabel(occurrence.run_state)}):tr("automation.run_state_has_not_been_loaded")}</small>{occurrence.run_needs_reconciliation&&<small className="automation-run-reconciliation"><TriangleAlert size={14} aria-hidden="true"/>{tr("automation.run_needs_reconciliation")}</small>}</>:<small className="muted">{tr("automation.no_run_linked_yet")}</small>}
   {detail&&<small className="automation-trigger-updated">{tr('automation.trigger_detail_updated',{time:automationMoment(occurrence.updated_at,timezone).local,timezone})}</small>}
   <div className="automation-trigger-row-actions">
    <details><summary>{tr("automation.trigger_id")}</summary><code>{occurrence.id}</code></details>

@@ -70,3 +70,9 @@ Multica 将自动化失败视为操作员需要关注的信号。速码在现有
 接口从 Go 域类型生成到 OpenAPI 和 TypeScript；生成检查不代替权限、事务和故障测试。数据库首轮在真实 SQLite 上核验，多连接测试不能冒充 OceanBase 集群验收。事件吞吐与客户端千节点性能仍按完整计划单独验收。
 
 实现参考：[WHATWG 事件流解析规范](https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream)、[Go HTTP 响应控制](https://pkg.go.dev/net/http#ResponseController)、[Go 时区加载](https://pkg.go.dev/time#LoadLocation)、[cron 上游日历语义](https://github.com/robfig/cron/blob/master/doc.go)。这些资料用于协议与日历行为核对，本轮不会因此添加新调度依赖。
+
+## 失败保护的决策取证
+
+派发检查按触发顺序取当前修订的最近 N 条派发事实。暂停使用具备当前审批启用权限的评估事务重新核对，固定导致暂停的触发与实际失败运行。决策写入与规则暂停、待执行触发阻塞和个人收件箱通知共用事务。读取按当前项目权限核对历史证据和运行归属，只在准确触发详情展开。
+
+故障复盘引用保存时的观察。早期记录、缺失证据或其他同批受阻触发只显示原阻塞原因。Multica 的失败监控与主动告警为行为参考。 [Multica 失败监控](https://github.com/multica-ai/multica/blob/ee8604de4741d71d2f51e5ced7f0eb126b03ea0e/server/cmd/server/autopilot_failure_monitor.go)

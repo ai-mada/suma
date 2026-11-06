@@ -471,5 +471,12 @@
   "automation.historical_trigger_revision": "This trigger used revision {{trigger}}. The rule is now on revision {{current}}.",
   "automation.trigger_detail_updated": "Last updated {{time}} · {{timezone}}",
   "automation.open_trigger_detail": "View trigger",
-  "automation.open_trigger_detail_named": "View trigger {{id}}"
+  "automation.open_trigger_detail_named": "View trigger {{id}}",
+  "automation.pause_evidence_title": "Failure evidence",
+  "automation.pause_evidence_threshold": "Pause threshold reached after {{threshold}} consecutive failed runs.",
+  "automation.pause_evidence_observed": "Recorded {{time}} · {{timezone}}",
+  "automation.pause_evidence_failed_runs": "Failed runs, newest first",
+  "automation.pause_evidence_open_run": "View failed run",
+  "automation.pause_evidence_open_run_named": "View failed run {{id}}",
+  "automation.pause_evidence_unavailable": "Saved failure evidence is unavailable for this trigger."
 }

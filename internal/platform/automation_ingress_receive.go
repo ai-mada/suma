@@ -396,7 +396,7 @@ func (s *Service) automationIngressDispatchAdmission(ctx context.Context, tx *sq
 	var id string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT ingress_id FROM suma_automation_ingress_deliveries WHERE tenant_id=? AND project_id=? AND occurrence_id=?`), ref.tenant, ref.project, o.ID).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return &automationDeferred{"blocked", "ingress_delivery_unavailable"}
+		return &automationDeferred{state: "blocked", reason: "ingress_delivery_unavailable"}
 	}
 	if err != nil {
 		return err
@@ -410,14 +410,14 @@ func (s *Service) automationIngressDispatchAdmission(ctx context.Context, tx *sq
 		return err
 	}
 	if ingressRevision != in.Revision || keyGeneration != in.KeyGeneration {
-		return &automationDeferred{"blocked", "ingress_revised_or_rotated"}
+		return &automationDeferred{state: "blocked", reason: "ingress_revised_or_rotated"}
 	}
 	reason, err := s.ingressAdmission(ctx, tx, in, a)
 	if err != nil {
 		return err
 	}
 	if reason != "" {
-		return &automationDeferred{"blocked", reason}
+		return &automationDeferred{state: "blocked", reason: reason}
 	}
 	return nil
 }

@@ -4670,6 +4670,53 @@
         ],
         "type": "object"
       },
+      "AutomationFailurePauseEvidence": {
+        "properties": {
+          "failed_runs": {
+            "description": "Exactly threshold distinct runs in newest-first trigger order, observed failed at the pause decision.",
+            "items": {
+              "$ref": "#/components/schemas/AutomationFailurePauseRun"
+            },
+            "maxItems": 10,
+            "minItems": 2,
+            "type": "array"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "threshold": {
+            "maximum": 10,
+            "minimum": 2,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "threshold",
+          "observed_at",
+          "failed_runs"
+        ],
+        "type": "object"
+      },
+      "AutomationFailurePauseRun": {
+        "properties": {
+          "run_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "trigger_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "trigger_id",
+          "run_id"
+        ],
+        "type": "object"
+      },
       "AutomationIngress": {
         "properties": {
           "activated_by": {
@@ -5212,6 +5259,11 @@
         "properties": {
           "created_at": {
             "type": "string"
+          },
+          "failure_pause_evidence": {
+            "$ref": "#/components/schemas/AutomationFailurePauseEvidence",
+            "description": "Immutable decision evidence returned only on the exact blocked trigger that initiated a consecutive failure pause. Absent when no scoped decision evidence is available.",
+            "readOnly": true
           },
           "id": {
             "type": "string"
@@ -66397,7 +66449,7 @@
     },
     "/automations/{id}/occurrences/{occurrence_id}": {
       "get": {
-        "description": "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes the same scoped run evidence as trigger history.",
+        "description": "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes the same scoped run evidence as trigger history, plus recorded failure-pause evidence when available for the initiating trigger.",
         "operationId": "get_automations_id_occurrences_occurrence_id",
         "parameters": [
           {

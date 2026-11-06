@@ -471,5 +471,12 @@
   "automation.historical_trigger_revision": "本次触发使用修订 {{trigger}}，规则当前为修订 {{current}}。",
   "automation.trigger_detail_updated": "最近更新于 {{time}} · {{timezone}}",
   "automation.open_trigger_detail": "查看触发详情",
-  "automation.open_trigger_detail_named": "查看触发详情 {{id}}"
+  "automation.open_trigger_detail_named": "查看触发详情 {{id}}",
+  "automation.pause_evidence_title": "失败判定证据",
+  "automation.pause_evidence_threshold": "连续 {{threshold}} 次运行失败，达到暂停阈值。",
+  "automation.pause_evidence_observed": "记录于 {{time}} · {{timezone}}",
+  "automation.pause_evidence_failed_runs": "失败运行，按触发时间从新到旧",
+  "automation.pause_evidence_open_run": "查看失败运行",
+  "automation.pause_evidence_open_run_named": "查看失败运行 {{id}}",
+  "automation.pause_evidence_unavailable": "此触发暂无可核对的失败证据。"
 }
