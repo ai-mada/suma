@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
+
 T-TOOL-CLI-INVENTORY 终端可读取指定普通或共享节点的工具上报，并按命令 ID 使用最新配置查找已有档案。 [操作](../operations/task-dispatch-options.md#从节点上报查找已有工具档案) · [验证](../quality/tool-cli-inventory-verification.md)
 
 T-ADAPTER-DISCOVERY 工具目录默认浏览全部方向，支持按名称、入口和协议快速查找，并接回原配置流程。终端可用项目凭证查询同一目录。 [交互与命令](../design/adapter-connections.md#信息层级与异常恢复) · [验证](../quality/adapter-discovery-verification.md)

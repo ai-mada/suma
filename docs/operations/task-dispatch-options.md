@@ -53,6 +53,18 @@ suma --project PROJECT tasks dispatch-start PLAN --expected-version PLAN_VERSION
 
 启动回执中的运行 ID 可用于 `suma --project PROJECT run show RUN` 或 `run events RUN`。后续由调度器领取，任务验收沿原质量流程。 [独立测试合同](../../contracts/test-dispatch-bindings.md#选择时检查)
 
+## 在终端核对派发推荐
+
+候选查询使用已有登录会话与原用户、组织。准确指定当前任务版本、流程版本及开发节点。终端默认查询常用步骤与输出上限，也可提供更严格的 Token 限额。
+
+```text
+suma --project PROJECT --expected-user USER --expected-organization ORG tasks recommendation-options TASK --expected-version 3 --workflow FLOW --workflow-version 2 --node develop
+suma --project PROJECT tasks recommendations TASK --limit 20
+suma --project PROJECT tasks recommendation RECOMMENDATION
+```
+
+如需按硬预算筛选候选，在第一条命令中追加 `--require-hard-budget --token-limit 20000`。候选及排除范围以响应的 `coverage` 为准。历史可用项目 API 凭证读取，按返回的 `next_cursor` 继续。读取历史时保留原推荐、当时依据和当前有效性。 [推荐合同](../../contracts/dispatch-recommendations.md#终端只读核对)
+
 ## 从节点上报查找已有工具档案
 
 在项目工具管理中确定执行节点 ID，再用已有登录会话读取。共享资源池节点使用项目当前获准的 Worker ID。会话通过 `SUMA_TOKEN` 提供，并固定原用户和组织。

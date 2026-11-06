@@ -31,6 +31,12 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	dispatchRecommendationOptionsCLIUsage:           {"cli.dispatch_recommendation.options_usage", "候选查询需要准确的任务版本、流程版本和开发节点。可选步骤上限、输出 Token 上限和 Token 限额。--require-hard-budget 需要同时提供 --token-limit"},
+	dispatchRecommendationOptionsCLIResponseInvalid: {"cli.dispatch_recommendation.options_response", "候选响应须保留请求的任务、流程、节点和约束"},
+	dispatchRecommendationListUsage:                 {"cli.dispatch_recommendation.list_usage", "推荐历史需要准确的 TASK，可选 --limit 1..100 和 --before 原分页游标"},
+	dispatchRecommendationGetUsage:                  {"cli.dispatch_recommendation.get_usage", "推荐读取需要一个准确的推荐 ID"},
+	dispatchRecommendationHistoryResponseInvalid:    {"cli.dispatch_recommendation.history_response", "推荐响应须保留请求范围并包含有效记录"},
+
 	toolProfilesUsage:              {"cli.tool_profiles.usage", "tools 需要 list、catalog、inventory、doctor、matches、replace 或 replacements，请查看 tools --help"},
 	toolCatalogUsage:               {"cli.tool_catalog.usage", "tools catalog 需要 --project，支持 --direction all|suma_to_tool|tool_to_suma 和 --query 检索文本，最多 120 个 UTF-8 字节"},
 	toolCatalogResponseInvalid:     {"cli.tool_catalog.response", "工具接入目录响应须保留请求项目并包含有效目录"},
@@ -322,6 +328,10 @@ const helpZH = `suma — 速码控制面客户端
   run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+       [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]
+  tasks recommendations TASK [--limit 1..100] [--before 原游标]
+  tasks recommendation ID
   tasks dispatch-test-option --help   核对准确的独立测试工具
   tasks dispatch-plan PLAN
   models options --tool 工具ID --expected-tool-version 当前版本

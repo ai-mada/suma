@@ -10,6 +10,14 @@
 | GET `/dispatch-recommendations/{id}` | 当前项目读；历史、当前依据、允许动作、原输出和真实模型绑定 |
 | POST `/dispatch-recommendations/{id}/adopt` | 当前浏览器项目写、版本CAS、来源摘要、五字段选择和理由；事务内保存原派发计划及受保护来源 |
 
+## 终端只读核对
+
+`tasks recommendation-options` 使用已有登录会话，按准确任务版本、已发布流程和开发节点读取当前候选。默认约束为 8 步与 4096 输出 Token。启用强制预算筛选时明确提供 `--token-limit`。结果保留服务端的候选、覆盖、来源摘要及策略依据。
+
+`tasks recommendations TASK` 与 `tasks recommendation ID` 可使用当前项目 API 凭证或已有登录会话，分别读取该任务的历史页和准确推荐。分页使用服务端返回的 `next_cursor` 作为下一次 `--before`。状态、当前依据、原提案及允许动作沿服务端响应，实际采用和启动由原领域合同处理。 [终端操作](../docs/operations/task-dispatch-options.md#在终端核对派发推荐)
+
+## 固定协议与采用
+
 固定协议 `suma-dispatch-recommendation-v1`，提案包含schema_version=1、summary、rationale、1–3项recommendations、最多5项questions。每个选择严格只有candidate_id、max_steps、max_output_tokens、reasoning_effort、reason；三个可空参数必须显式null，拒绝重复键、别名和未知字段。原生类型使用数字步骤／输出和null effort；Codex使用明确effort及null数字；固定工具全部参数null。
 
 选择摘要以Go `encoding/json` 对固定五字段的编码计算SHA256，包含null与HTML/U+2028/U+2029转义，浏览器使用相同专用编码。服务端重新计算并核对当前候选，不信任浏览器摘要。公开普通计划接口不接受推荐来源证明。

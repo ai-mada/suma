@@ -30,6 +30,8 @@ func requestIsReadOnly(method, path string) bool {
 	switch u.Path {
 	case "/api/v1/task-owner-changes/preview", "/api/v1/tool-profiles/matches", taskPriorityBatchPath + "/preview", taskStatusBatchPath + "/preview":
 		return true
+	case "/api/v1/dispatch-recommendations/options":
+		return true
 	}
 	parts := strings.Split(strings.TrimPrefix(u.Path, "/api/v1/"), "/")
 	return len(parts) == 4 && parts[0] == "requirements" && contextID(parts[1]) && parts[2] == "design" && parts[3] == "preview"

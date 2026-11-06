@@ -38,6 +38,10 @@ Read commands:
   run workbuddy-status RUN --node NODE
   run queue [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+       [--max-steps N] [--max-output-tokens N] [--token-limit N] [--require-hard-budget]
+  tasks recommendations TASK [--limit 1..100] [--before CURSOR]
+  tasks recommendation ID
   tasks dispatch-test-option --help   Check an exact independent test tool
   tasks dispatch-plan PLAN
   models options --tool ID --expected-tool-version N
@@ -163,6 +167,15 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 		switch args[1] {
 		case "dispatch-options":
 			return taskDispatchOptionsCommand(ctx, c, args[2:], out)
+		case "recommendation-options", "recommendations", "recommendation":
+			if len(args) == 3 && args[2] == "--help" {
+				_, err := io.WriteString(out, helpForLocale(c.locale))
+				return err
+			}
+			if args[1] == "recommendation-options" {
+				return dispatchRecommendationOptionsCommand(ctx, c, args[2:], out)
+			}
+			return dispatchRecommendationHistoryCommand(ctx, c, args[1], args[2:], out)
 		case "dispatch-test-option", "dispatch-preview", "dispatch-plan", "dispatch-start":
 			return taskDispatchCommand(ctx, c, args[1], args[2:], in, out)
 		}
