@@ -53,6 +53,17 @@ suma --project PROJECT tasks dispatch-start PLAN --expected-version PLAN_VERSION
 
 启动回执中的运行 ID 可用于 `suma --project PROJECT run show RUN` 或 `run events RUN`。后续由调度器领取，任务验收沿原质量流程。 [独立测试合同](../../contracts/test-dispatch-bindings.md#选择时检查)
 
+## 从节点上报查找已有工具档案
+
+在项目工具管理中确定执行节点 ID，再用已有登录会话读取。共享资源池节点使用项目当前获准的 Worker ID。会话通过 `SUMA_TOKEN` 提供，并固定原用户和组织。
+
+```text
+suma --project PROJECT --expected-user USER --expected-organization ORG tools inventory --worker WORKER
+suma --project PROJECT --expected-user USER --expected-organization ORG tools matches --worker WORKER --command COMMAND
+```
+
+`inventory` 返回该节点最近一次上报的状态和时间。`fresh` 可显示工具明细及单项可用性，`stale` 和 `unreported` 分别表示旧上报或无上报。第二条命令按原上报里的 `profile.command_id` 选取完整固定档案，直接查看相同配置的已有记录。上报已过期或所选命令缺失或不可用时，命令提示重新读取当前上报。匹配结果继续区分已启用、暂停和撤销，配置变更沿原显式操作进行。 [工具档案复用合同](../../contracts/tool-profile-reuse.md#从当前节点上报复用档案)
+
 ## 终端运行跟踪
 
 启动后使用回执中的运行 ID。先跟随持久事件，再用队列和精确节点读取核对当前调度条件。

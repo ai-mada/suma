@@ -24,4 +24,10 @@ paused可显式采用已有档案并进入原enable确认；enabled可显式打�
 
 CLI新增`suma --project PROJECT tools matches --file REQUEST_JSON`（`--file -`读取stdin），严格有界解析同一请求，核对项目，直接调用原client；不添加操作key或confirm，不自动创建／启用。查询超时按只读错误返回，不标为未知写入。帮助与界面完整中英。
 
+### 从当前节点上报复用档案
+
+`tools inventory --worker WORKER` 使用已有登录会话读取指定节点最近一次工具上报。共享节点沿当前项目路由、双边授权及节点凭据核对。返回 `fresh`、`stale` 或 `unreported`，后两种状态的工具明细为空。身份资格、上报新鲜度与单项可用性分别处理。
+
+`tools matches --worker WORKER --command COMMAND` 使用同一读取，选择唯一且可用的准确命令。客户端按响应中的服务端时间和本地经过时长核对剩余有效期。随后使用完整原档案调用已有只读匹配。若上报过期、未上报、找不到指定命令或单项不可用，命令退出并提示重新读取。两种输入方式互斥，配置启用仍沿独立确认。 [终端操作](../docs/operations/task-dispatch-options.md#从节点上报查找已有工具档案)
+
 只验证准确匹配、完整集合、授权、创建竞争／原回执、CLI只读分类及受影响交互；复用未变SDK与原连接／恢复证据。当前实现和实际验收分别记录，不能由查找成功推定真实模型、分布式主机或全平台已验收。

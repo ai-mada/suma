@@ -31,7 +31,7 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
-	toolProfilesUsage:              {"cli.tool_profiles.usage", "tools 需要 list、catalog、doctor、matches、replace 或 replacements，请查看 tools --help"},
+	toolProfilesUsage:              {"cli.tool_profiles.usage", "tools 需要 list、catalog、inventory、doctor、matches、replace 或 replacements，请查看 tools --help"},
 	toolCatalogUsage:               {"cli.tool_catalog.usage", "tools catalog 需要 --project，支持 --direction all|suma_to_tool|tool_to_suma 和 --query 检索文本，最多 120 个 UTF-8 字节"},
 	toolCatalogResponseInvalid:     {"cli.tool_catalog.response", "工具接入目录响应须保留请求项目并包含有效目录"},
 	toolReplacementUsage:           {"cli.tool_profiles.replacement_usage", "tools replace 需要 --id 原配置ID、--file JSON文件|- 和明确 --confirm；tools replacements 支持 --id 配置ID、--direction outgoing|incoming、--limit 1–100 及原 --cursor；请查看 tools --help"},
@@ -43,9 +43,14 @@ var cliMessages = map[string]cliMessage{
 	toolListResponseInvalid:        {"cli.tool_profiles.list_response", "工具列表响应必须保留原项目、状态、完整档案及分页边界"},
 	toolDoctorUsage:                {"cli.tool_profiles.doctor_usage", "tools doctor 需要 --id 档案ID 和 --project；--format 为 json 或 table；请查看 tools --help"},
 	toolDoctorResponseInvalid:      {"cli.tool_profiles.doctor_response", "工具体检响应必须保留请求项目、准确完整档案、四项检查、准确维护建议及最多 60 秒的有效展示期限"},
-	toolMatchesUsage:               {"cli.tool_profiles.matches_usage", "tools matches 需要 --file 请求JSON 或 --file -；请查看 tools --help"},
+	toolMatchesUsage:               {"cli.tool_profiles.matches_usage", "tools matches 需要 --file 请求JSON|-，或同时提供 --worker 节点与 --command 命令。请查看 tools --help"},
 	toolMatchesInvalid:             {"cli.tool_profiles.matches_input", "工具匹配查询需要当前项目、worker_id 和完整准确的 profile"},
 	toolMatchesResponseInvalid:     {"cli.tool_profiles.matches_response", "工具匹配响应必须保留原项目、节点、完整档案及完整结果数量"},
+	toolInventoryUsage:             {"cli.tool_inventory.usage", "tools inventory 需要 --project 和一个明确的 --worker 节点"},
+	toolInventoryResponseInvalid:   {"cli.tool_inventory.response", "工具上报响应必须保留请求范围，并包含有效的观测记录"},
+	toolInventoryMatchUnusable:     {"cli.tool_inventory.match_unusable", "所选节点当前没有新鲜上报。请用 tools inventory 查看上报并刷新后再匹配"},
+	toolInventoryMatchMissing:      {"cli.tool_inventory.match_missing", "节点的新鲜上报中没有所选命令。请用 tools inventory 查看已上报的命令"},
+	toolInventoryMatchUnavailable:  {"cli.tool_inventory.match_unavailable", "节点的新鲜上报显示所选命令不可用。请用 tools inventory 查看上报原因"},
 	worklogCLIUsage:                {"cli.worklog.action_required", "worklogs 需要 list、get、create、correct、void 或 history，请查看 worklogs --help"},
 	worklogCLIListInvalid:          {"cli.worklog.list_options", "工时列表须提供 --from-date 与 --to-date（YYYY-MM-DD，含首尾最多 31 天）、有效筛选参数及 1–50 的 --limit"},
 	worklogCLIReadInvalid:          {"cli.worklog.read_options", "读取／历史需要有效工时 ID；历史支持 1–50 的 --limit 与 --cursor"},
@@ -322,6 +327,8 @@ const helpZH = `suma — 速码控制面客户端
   models options --tool 工具ID --expected-tool-version 当前版本
   tools list [--state 状态] [--query 检索文本] [--limit 1..200] [--cursor 原游标]
   tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query 检索文本]
+  tools inventory --worker 节点ID
+  tools matches --worker 节点ID --command 命令ID
   tools matches --file JSON   使用登录会话查询完整匹配的已有工具档案（只读）
   developer check            验证当前项目的真实MCP连接（只读）
   workspace save-status ID [--wait]

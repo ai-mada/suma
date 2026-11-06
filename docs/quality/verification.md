@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOL-CLI-INVENTORY 核验节点上报的准确范围、有效期、配置复用和共享节点撤权。 [命令与证据](tool-cli-inventory-verification.md)
+
 T-ADAPTER-DISCOVERY 核验准确入口搜索、方向筛选、键盘焦点、当前访问拒绝及终端查询。 [命令与证据](adapter-discovery-verification.md)
 
 T-SCHEDULING-READ-RECOVERY 核验同项目身份切换、暂时失败续读、权限失效后的清理和原尝试恢复。 [命令与证据](scheduling-read-recovery-verification.md)
