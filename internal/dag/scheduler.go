@@ -391,7 +391,14 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 			return err
 		}
 		n := r.find(result.NodeID)
+		if r.loadErr != nil {
+			return r.loadErr
+		}
+		verifyClosedRunner := before != nil && commit != nil && !managedResolution
 		if n == nil || n.Attempt != result.Attempt || n.Fence != result.Fence || n.WorkerID != result.WorkerID {
+			if verifyClosedRunner {
+				return t.closedRunnerResult(r, n, result)
+			}
 			return ErrStale
 		}
 		// Cloud effects have an independent lifetime. Resolve the original
@@ -408,6 +415,9 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 			}
 		}
 		if n.State != "running" && n.State != "reconciling" {
+			if verifyClosedRunner {
+				return t.closedRunnerResult(r, n, result)
+			}
 			return ErrStale
 		}
 		liveResolution := n.State == "reconciling" && !result.Stopped && !managedResolution

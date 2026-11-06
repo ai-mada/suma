@@ -69,16 +69,8 @@ func (c *Client) post(ctx context.Context, path string, payload, reply any) erro
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		rejected := &runnerHTTPStatusError{Path: path, Status: resp.StatusCode}
-		if path == "progress" && resp.StatusCode == http.StatusConflict {
-			var body struct {
-				Error struct{ Code string } `json:"error"`
-			}
-			bounded := &io.LimitedReader{R: resp.Body, N: 16 << 10}
-			decoder := json.NewDecoder(bounded)
-			if decoder.Decode(&body) == nil && body.Error.Code == executioncontract.RunnerProgressStaleCode &&
-				decoder.Decode(new(json.RawMessage)) == io.EOF && bounded.N > 0 {
-				rejected.Code = body.Error.Code
-			}
+		if resp.StatusCode == http.StatusConflict {
+			rejected.Code = runnerConflictCode(path, resp.Body)
 		}
 		return rejected
 	}
@@ -86,6 +78,29 @@ func (c *Client) post(ctx context.Context, path string, payload, reply any) erro
 		return json.NewDecoder(io.LimitReader(resp.Body, 2<<20)).Decode(reply)
 	}
 	return nil
+}
+
+// Only these exact operation-specific conflicts have a terminal local
+// disposition. Generic conflicts still require the original request to replay.
+func runnerConflictCode(path string, response io.Reader) string {
+	var expected string
+	switch path {
+	case "progress":
+		expected = executioncontract.RunnerProgressStaleCode
+	case "results":
+		expected = executioncontract.RunnerResultClosedCode
+	default:
+		return ""
+	}
+	var body struct {
+		Error struct{ Code string } `json:"error"`
+	}
+	bounded := &io.LimitedReader{R: response, N: 16 << 10}
+	decoder := json.NewDecoder(bounded)
+	if decoder.Decode(&body) == nil && body.Error.Code == expected && decoder.Decode(new(json.RawMessage)) == io.EOF && bounded.N > 0 {
+		return expected
+	}
+	return ""
 }
 func (c *Client) Claim(ctx context.Context, worker string, capabilities []string) (*Assignment, error) {
 	return c.ClaimWithOperation(ctx, worker, capabilities, operationID())
@@ -172,11 +187,20 @@ func Replay(ctx context.Context, c *Client, j *Journal) error {
 	if err := ReplayProgress(ctx, c, j); err != nil {
 		return err
 	}
+	return replayResults(ctx, j, c.Complete)
+}
+
+func replayResults(ctx context.Context, j *Journal, send func(context.Context, Result) error) error {
 	for _, r := range j.Pending() {
-		if err := c.Complete(ctx, r); err != nil {
-			return err
+		err := send(ctx, r)
+		var rejected *runnerHTTPStatusError
+		switch {
+		case err == nil:
+			err = j.Ack(r.OperationID)
+		case errors.As(err, &rejected) && rejected.Code == executioncontract.RunnerResultClosedCode:
+			err = j.RejectClosedResult(r.OperationID)
 		}
-		if err := j.Ack(r.OperationID); err != nil {
+		if err != nil {
 			return err
 		}
 	}

@@ -155,17 +155,11 @@ func replayPool(ctx context.Context, c *Client, j *Journal) error {
 	}); err != nil {
 		return err
 	}
-	for _, r := range j.Pending() {
+	return replayResults(ctx, j, func(ctx context.Context, r Result) error {
 		scoped, err := c.forPoolAssignment(r.Assignment)
 		if err != nil {
 			return err
 		}
-		if err = scoped.Complete(ctx, r); err != nil {
-			return err
-		}
-		if err = j.Ack(r.OperationID); err != nil {
-			return err
-		}
-	}
-	return nil
+		return scoped.Complete(ctx, r)
+	})
 }

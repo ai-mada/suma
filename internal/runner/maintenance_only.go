@@ -8,8 +8,15 @@ import (
 
 func (j *Journal) requireNoPendingBusiness() error {
 	for _, e := range j.entries {
-		if !e.Acked || e.Result == nil || e.ArtifactPending != nil || e.CandidatePending != nil {
+		if !e.validResultDisposition() || !e.resultDeliverySettled() || e.Result == nil || e.ArtifactPending != nil || e.CandidatePending != nil {
 			return fmt.Errorf("original business execution or receipt remains pending")
+		}
+		if e.ResultRejection != "" {
+			for _, progress := range e.Progress {
+				if progress.pending() {
+					return fmt.Errorf("original business progress remains pending")
+				}
+			}
 		}
 	}
 	if j.claim != nil && !j.claim.Complete {

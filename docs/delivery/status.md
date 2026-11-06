@@ -24,6 +24,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-RUNNER-RESULT-RECOVERY-272 普通与共享执行节点保留已关闭尝试的原结果并继续处理后续回执。 [验证](../quality/runner-result-closed-verification.md)
+
 T-FAILURE-ISSUE-KEY-RESERVATION-271 系统故障回执键拒绝被普通命令和候选传输占用。 [验证](../quality/failure-issue-key-reservation-verification.md)
 
 T-FAILURE-PROJECTION-RETRY-270 故障回流为首次处理与到期重试分别保留名额，单条异常按数据库时间退避。 [验证](../quality/failure-projection-retry-verification.md)

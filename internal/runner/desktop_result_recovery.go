@@ -126,7 +126,7 @@ func openDesktopRecovery(stateDir, project, worker, temp string) (*desktopRecove
 	s.originalSHA = rc.Digest(canonical)
 	for id, rawEntry := range s.entries {
 		var e entry
-		if desktopRenewalDecode(rawEntry, &e) != nil || id != key(e.Assignment) || e.Assignment.Attempt < 1 || e.Assignment.Fence < 1 {
+		if desktopRenewalDecode(rawEntry, &e) != nil || id != key(e.Assignment) || e.Assignment.Attempt < 1 || e.Assignment.Fence < 1 || !e.validResultDisposition() {
 			return fail("invalid_state")
 		}
 		if e.Assignment.WorkerID != worker || e.Assignment.ProjectID != "" && e.Assignment.ProjectID != project || e.Assignment.PoolID != "" {
@@ -264,6 +264,12 @@ func (s *desktopRecoveryState) item(project, worker, id string) (rc.Item, bool, 
 	if json.Unmarshal(fields["acked"], &acked) != nil {
 		return rc.Item{}, false, os.ErrInvalid
 	}
+	if raw := fields["result_rejection"]; len(raw) != 0 {
+		var rejection ResultRejection
+		if json.Unmarshal(raw, &rejection) != nil || rejection != "" {
+			return rc.Item{}, false, os.ErrInvalid
+		}
+	}
 	body, err := json.Marshal(resultCallbackPayload(project, r))
 	if err != nil {
 		return rc.Item{}, false, err
@@ -312,7 +318,7 @@ func PrepareDesktopResultRecovery(stateDir, project, worker string) rc.Result {
 	sort.Strings(keys)
 	for _, id := range keys {
 		fields := s.document[id].(map[string]any)
-		if fields["result"] == nil {
+		if fields["result"] == nil || fields["result_rejection"] == string(ResultRejectedClosedAttempt) {
 			continue
 		}
 		if acked, ok := fields["acked"].(bool); !ok {

@@ -68,9 +68,11 @@ type inspectionDiskEntry struct {
 	} `json:"assignment"`
 	Result *struct {
 		OutcomeUnknown bool `json:"outcome_unknown"`
+		Stopped        bool `json:"stopped"`
 	} `json:"result"`
-	Acked    bool `json:"acked"`
-	Progress []struct {
+	Acked           bool            `json:"acked"`
+	ResultRejection ResultRejection `json:"result_rejection"`
+	Progress        []struct {
 		Acked         bool              `json:"acked"`
 		Rejection     ProgressRejection `json:"rejection"`
 		HostOperation *struct{}         `json:"host_operation"`
@@ -185,6 +187,9 @@ func inspectJournalBytes(raw []byte) JournalInspection {
 		if decoder.Decode(&disk) != nil || disk.Assignment == nil || disk.Assignment.RunID == "" || disk.Assignment.NodeID == "" || disk.Assignment.Attempt < 1 || disk.Assignment.Fence < 1 || disk.Acked && disk.Result == nil {
 			return invalid
 		}
+		if disk.ResultRejection != "" && (disk.ResultRejection != ResultRejectedClosedAttempt || disk.Acked || disk.Result == nil || disk.Result.OutcomeUnknown || disk.Result.Stopped || disk.ArtifactPending != nil || disk.CandidatePending != nil) {
+			return invalid
+		}
 		identity := disk.Assignment
 		digest := sha256.Sum256([]byte(key))
 		item := JournalInspectionItem{EntryRef: hex.EncodeToString(digest[:]), Attempt: identity.Attempt, Fence: identity.Fence, ResultRecorded: disk.Result != nil, ResultAcknowledged: disk.Acked, ProgressTruncated: disk.ProgressTruncated, ArtifactPending: disk.ArtifactPending != nil, CandidatePending: disk.CandidatePending != nil}
@@ -203,7 +208,7 @@ func inspectJournalBytes(raw []byte) JournalInspection {
 			item.OutcomeUnknown = disk.Result.OutcomeUnknown
 			if disk.Acked {
 				out.Counts.AcknowledgedResults++
-			} else {
+			} else if disk.ResultRejection == "" {
 				out.Counts.PendingResults++
 				if disk.Result.OutcomeUnknown {
 					out.Counts.UnknownResults++
@@ -213,7 +218,7 @@ func inspectJournalBytes(raw []byte) JournalInspection {
 			out.Counts.UnresolvedInbox++
 		}
 		for _, progress := range disk.Progress {
-			if !validProgressDisposition(progress.Acked, progress.Rejection, progress.HostOperation != nil) {
+			if !validProgressDisposition(progress.Acked, progress.Rejection, progress.HostOperation != nil) || disk.ResultRejection != "" && progress.HostOperation != nil {
 				return invalid
 			}
 			if !progress.Acked && progress.Rejection == "" {

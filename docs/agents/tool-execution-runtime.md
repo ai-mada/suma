@@ -51,6 +51,8 @@ typed progress 与原文本 progress 共用 Journal、稳定 ordinal operation I
 
 普通节点和共享池节点重连时，控制面先核对当前回调权限和原操作回执。若未提交的文本或工具进度属于已失效的原派发，且持久尝试能证明完整身份，则返回 `409 runner_progress_stale`。Runner 保留原进度与操作标识，持久写入 `stale_attempt` 后继续重放。已入库但确认丢失的进度恢复原确认。一般冲突、网络错误与授权失败保留待核对状态。停止和最终结果继续走独立的回执校验。 [验证记录](../quality/runner-progress-stale-verification.md)
 
+迟到的普通结果使用独立的 `runner_result_attempt_closed`。控制面须证明准确历史尝试已关闭，并优先恢复已入库的原回执。Runner 持久保留原结果，记为 `closed_attempt` 后继续处理后续结果。未知执行、停止证明和受保护的执行证据继续按各自协议核对。 [验证记录](../quality/runner-result-closed-verification.md)
+
 ## 验证边界
 
 新增测试记录了缺失功能、原生凭证混用、入口字节漂移、协议身份／顺序、非法preset与缺失用量计数的真实失败，再验证修复。初次域内 `go test ./internal/runner -json -count=1` 为111个通过事件（含子测试和helper），0失败、0跳过，61.973秒；`go vet ./internal/runner ./cmd/suma-runner`退出0。39份Runtime源文件当时前后摘要一致。Native CLI5项测试及typecheck通过。库存503／恢复测试使用实际200ms子进程，保持心跳与正常结果后才恢复新领取；非法配置和129条配置明确拒绝。

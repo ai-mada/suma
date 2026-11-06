@@ -1427,7 +1427,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 			}
 		}
-		respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
+		respondRunnerResult(w, e)
 	default:
 		writeError(w, missing())
 	}

@@ -421,7 +421,7 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				}
 			}
 		}
-		respond(w, 200, map[string]bool{"acknowledged": err == nil}, err)
+		respondRunnerResult(w, err)
 	default:
 		writeError(w, &APIError{422, "pool_capability_unsupported", "该资源池机器协议尚未提供此独立能力", nil})
 	}

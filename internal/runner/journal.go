@@ -21,6 +21,7 @@ type entry struct {
 	Assignment        Assignment                         `json:"assignment"`
 	Result            *Result                            `json:"result,omitempty"`
 	Acked             bool                               `json:"acked"`
+	ResultRejection   ResultRejection                    `json:"result_rejection,omitempty"`
 	Progress          []Progress                         `json:"progress,omitempty"`
 	ProgressTruncated bool                               `json:"progress_truncated,omitempty"`
 	ArtifactPending   *artifactTransfer                  `json:"artifact_pending,omitempty"`
@@ -94,6 +95,9 @@ func openJournal(dir string, maintenanceOnly bool) (*Journal, error) {
 			return nil, fmt.Errorf("journal contains trailing data")
 		}
 		for _, e := range j.entries {
+			if !e.validResultDisposition() {
+				return nil, fmt.Errorf("journal contains invalid result disposition")
+			}
 			for _, p := range e.Progress {
 				if !validProgressDisposition(p.Acked, p.Rejection, p.HostOperation != nil) {
 					return nil, fmt.Errorf("journal contains invalid progress disposition")
@@ -536,7 +540,7 @@ func (j *Journal) Pending() []Result {
 	defer j.mu.Unlock()
 	results := []Result{}
 	for _, e := range j.entries {
-		if !e.Acked && e.Result != nil && (e.Terminal == nil || e.Terminal.ReconciliationOperationID == "") {
+		if !e.resultDeliverySettled() && e.Result != nil && (e.Terminal == nil || e.Terminal.ReconciliationOperationID == "") {
 			copy := *e.Result
 			if copy.WorkBuddyCloudWait != nil {
 				proof := *copy.WorkBuddyCloudWait
@@ -565,12 +569,32 @@ func (j *Journal) Pending() []Result {
 	return results
 }
 func (j *Journal) Ack(id string) error {
+	return j.finalizeResult(id, "")
+}
+
+// RejectClosedResult keeps the original result and its identity after the
+// control plane proves delivery can never apply to the closed attempt.
+func (j *Journal) RejectClosedResult(id string) error {
+	return j.finalizeResult(id, ResultRejectedClosedAttempt)
+}
+
+func (j *Journal) finalizeResult(id string, rejection ResultRejection) error {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	for k, e := range j.entries {
 		if e.Result != nil && e.Result.OperationID == id {
+			acked := rejection == ""
+			if e.resultDeliverySettled() {
+				if e.Acked == acked && e.ResultRejection == rejection {
+					return nil
+				}
+				return fmt.Errorf("result already has a different disposition")
+			}
 			previous := e
-			e.Acked = true
+			e.Acked, e.ResultRejection = acked, rejection
+			if !e.validResultDisposition() {
+				return fmt.Errorf("invalid result disposition")
+			}
 			j.entries[k] = e
 			if err := j.save(); err != nil {
 				j.entries[k] = previous

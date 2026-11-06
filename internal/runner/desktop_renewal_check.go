@@ -281,7 +281,7 @@ func inspectDesktopRenewalJournal(raw []byte, add func(string)) {
 			continue
 		}
 		a := e.Assignment
-		if id != key(a) || a.RunID == "" || a.NodeID == "" || a.WorkerID == "" || a.Attempt < 1 || a.Fence < 1 || e.Acked && e.Result == nil {
+		if id != key(a) || a.RunID == "" || a.NodeID == "" || a.WorkerID == "" || a.Attempt < 1 || a.Fence < 1 || !e.validResultDisposition() {
 			add("invalid_state")
 			continue
 		}
@@ -295,7 +295,7 @@ func inspectDesktopRenewalJournal(raw []byte, add func(string)) {
 			if r.OutcomeUnknown {
 				add("unknown_outcome")
 			}
-			if !e.Acked {
+			if !e.resultDeliverySettled() {
 				add("pending_receipt")
 			}
 			if r.WorkBuddyCloudWait != nil {

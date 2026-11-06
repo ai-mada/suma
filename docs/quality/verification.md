@@ -24,6 +24,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-RUNNER-RESULT-RECOVERY-272 验证已关闭原尝试、后续任务、原回执和独立停止证明。 [阶段报告](runner-result-closed-verification.md)
+
 T-FAILURE-ISSUE-KEY-RESERVATION-271 验证回执键保护、真实故障转需求和本机托管发布问题回流。 [阶段报告](failure-issue-key-reservation-verification.md)
 
 T-FAILURE-PROJECTION-RETRY-270 真实 SQLite 验证积压、重启、原确认和重试代次。 [阶段报告](failure-projection-retry-verification.md)

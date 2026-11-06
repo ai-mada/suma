@@ -22,6 +22,9 @@ func (j *Journal) requireShutdownBusinessEvidence(priorUnknown map[string]struct
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	for _, e := range j.entries {
+		if !e.validResultDisposition() {
+			return fmt.Errorf("Runner shutdown has an invalid original result disposition")
+		}
 		result := e.Result
 		if e.ArtifactPending != nil {
 			result = &e.ArtifactPending.Result

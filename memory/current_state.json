@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "runner_result_recovery": {
+    "stage": "T-RUNNER-RESULT-RECOVERY-272",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "db0732353d8d64959ee0957ac866c05a9d163e29",
+    "report": "docs/quality/runner-result-closed-verification.md",
+    "actual": "An authenticated historical ordinary result receives a distinct closed-attempt disposition, with the original Runner payload retained and later replay continuing.",
+    "verification": "Five Runner, three SQLite HTTP and three DAG targeted checks passed. Ordinary and pooled paths plus lost ACK and unknown/stopped evidence boundaries.",
+    "known_limitations": "Physical multi-host and OceanBase are unverified. Protected evidence retains separate handling.",
+    "full_platform_complete": false
+  },
   "failure_issue_key_reservation": {
     "stage": "T-FAILURE-ISSUE-KEY-RESERVATION-271",
     "version": "1.0.0",
