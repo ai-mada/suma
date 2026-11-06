@@ -75948,6 +75948,17 @@
             }
           },
           {
+            "description": "Exact launched run ID from the protected team plan binding. Intersects with team_id and returns at most one plan, without a continuation.",
+            "in": "query",
+            "name": "run_id",
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "type": "string"
+            }
+          },
+          {
             "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
             "in": "header",
             "name": "Accept-Language",

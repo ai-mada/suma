@@ -30,5 +30,13 @@
  "team-execution.accepted":"已正式验收 {{accepted}} / {{total}} 项任务",
  "team-execution.accepted_label":"{{name}} 的正式验收进度",
  "team-execution.source_changed":"部分固定依据或权限需要重新核对。请打开计划查看当前阻塞原因。",
- "team-execution.more":"加载更多团队计划"
+ "team-execution.more":"加载更多团队计划",
+ "team-execution.run_origin.title":"团队归属",
+ "team-execution.run_origin.loading":"正在核对本次运行的团队计划…",
+ "team-execution.run_origin.denied":"当前项目会话无法读取团队归属。",
+ "team-execution.run_origin.error":"暂时无法核对本次运行的团队归属。",
+ "team-execution.run_origin.retry":"重试读取",
+ "team-execution.run_origin.none":"本次运行没有关联团队计划。",
+ "team-execution.run_origin.context":"{{role}} · 当前计划修订 {{revision}}",
+ "team-execution.run_origin.open":"打开团队计划"
 }

@@ -5,22 +5,27 @@ import (
 	"testing"
 )
 
-func TestExpertTeamPlanListContractScopesOptionalTeamFilter(t *testing.T) {
+func TestExpertTeamPlanListContractScopesOptionalFilters(t *testing.T) {
 	api, _ := generate()
 	for _, path := range []string{"/expert-team-plans", "/expert-teams", "/expert-team-plans/{id}/revisions"} {
-		found := false
+		found := map[string]int{}
 		for _, param := range mapAt(api, "paths", path, "get")["parameters"].([]any) {
 			p := param.(map[string]any)
-			if p["in"] != "query" || p["name"] != "team_id" {
+			name, _ := p["name"].(string)
+			if p["in"] != "query" || name != "team_id" && name != "run_id" {
 				continue
 			}
-			found = true
+			found[name]++
 			if p["required"] == true || mapAt(p, "schema")["pattern"] != `^[A-Za-z0-9_-]{1,64}$` {
-				t.Fatal("team filter must be optional and bounded", path)
+				t.Fatal("filter must be optional and bounded", path, name)
 			}
 		}
-		if found != (path == "/expert-team-plans") {
-			t.Fatal("team filter is missing or accepted outside the plan collection", path)
+		want := 0
+		if path == "/expert-team-plans" {
+			want = 1
+		}
+		if found["team_id"] != want || found["run_id"] != want {
+			t.Fatal("filters belong only to the plan collection", path, found)
 		}
 	}
 }

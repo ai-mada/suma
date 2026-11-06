@@ -28,7 +28,7 @@ func (s *Server) expertTeamHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 	revisions := parts[0] == "expert-team-plans" && len(parts) == 3 && parts[2] == "revisions" && r.Method == http.MethodGet
 	paged := listing || revisions
 	for key, values := range values {
-		if len(values) != 1 || key != "project_id" && !(paged && (key == "limit" || key == "before")) && !(planListing && key == "team_id" && values[0] != "") {
+		if len(values) != 1 || key != "project_id" && !(paged && (key == "limit" || key == "before")) && !(planListing && (key == "team_id" || key == "run_id") && values[0] != "") {
 			bad()
 			return true
 		}
@@ -139,7 +139,7 @@ func (s *Server) expertTeamHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 
 	switch {
 	case listing:
-		out, err := s.Service.ListExpertTeamPlans(r.Context(), s.Engine, actor, project, values.Get("team_id"), pageLimit, values.Get("before"))
+		out, err := s.Service.ListExpertTeamPlans(r.Context(), s.Engine, actor, project, values.Get("team_id"), values.Get("run_id"), pageLimit, values.Get("before"))
 		respond(w, http.StatusOK, out, err)
 	case revisions:
 		out, err := s.Service.ExpertTeamPlanRevisions(r.Context(), s.Engine, actor, project, parts[1], pageLimit, values.Get("before"))

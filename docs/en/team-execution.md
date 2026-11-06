@@ -19,6 +19,12 @@ Use **Needs attention** for blocked plans or plans with a changed basis, and **A
 
 Start, pause, resume, stop, revision, testing and acceptance retain their existing conditions. Recover an uncertain command using its original operation. Creating another plan or starting again does not reconcile the original result.
 
+## Return to the team plan from a run
+
+Expand **Team assignment** in the execution detail for a Runner or WorkBuddy run. The section shows the team, assigned role and current plan revision when a binding is confirmed. **Open team plan** opens the original plan so you can review related tasks, dependencies and acceptance. Browser Back returns to the run. An unbound run, a denied read and a temporary read failure have distinct states.
+
+Use `suma --project PROJECT team-plan list --run RUN_ID` for the same lookup in the terminal. Add `--team TEAM_ID` to require a matching team. The lookup returns at most one item.
+
 ## Total and loaded scope
 
 The list reads at most 10 plans per request. The server total is the visible plan count for the current scope at the last successful read. The loaded count is the number of distinct plans the page currently holds. Load the next page only when needed. Per-plan progress is not a project-wide or organization-wide aggregate, machine health, available slots or proven multi-host capacity.

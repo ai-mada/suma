@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TEAM-RUN-RETURN 执行详情按原运行定位团队和分工，可打开准确计划查看同批任务。CLI 使用同一项目查询。 [交互](../development/team-execution.md#从运行返回团队计划) · [验证](../quality/team-run-return-verification.md)
+
 T-TOOL-NODE-MATCH-273 添加工具可一次查找当前项目的可用执行节点。完整核对后唯一匹配自动选中，多个匹配或读取不完整时由用户选择。 [交互](../design/tool-quick-connect.md) · [验证](../quality/tool-node-match-verification.md)
 
 T-MODEL-DIRECTORY 补齐网关部署、Codex 与工具固定模型的目录展示，支持搜索、来源链接、分页及当前配置重读。 [交互](../design/management-and-tool-discovery.md#模型目录与来源恢复) · [验证](../quality/model-directory-verification.md)

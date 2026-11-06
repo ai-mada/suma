@@ -36,6 +36,7 @@ func expertTeamContracts(add operationAdder, api map[string]any) {
 		}
 		if route.method == "get" && route.path == "/expert-team-plans" {
 			appendQuery(op, queryParameter("team_id", "Exact team ID. A filtered continuation is valid only for the same current reader, project and team.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": `^[A-Za-z0-9_-]{1,64}$`}))
+			appendQuery(op, queryParameter("run_id", "Exact launched run ID from the protected team plan binding. Intersects with team_id and returns at most one plan, without a continuation.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": `^[A-Za-z0-9_-]{1,64}$`}))
 		}
 	}
 	field := func(model, name string, extra map[string]any) {

@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/ai-mada/suma/internal/codexcontract"
@@ -20,11 +21,11 @@ import (
 
 const expertPlanUsage = "team-plan requires list, get, revisions, create, start, or command; use team-plan --help"
 const expertPlanReadInvalid = "invalid team-plan read options; provide a valid ID, revision and limit 1..100"
-const expertPlanScopeResponseInvalid = "team-plan list response must preserve the requested project, exact team and page boundaries"
+const expertPlanScopeResponseInvalid = "team-plan list response must preserve the requested project, filters and page boundaries"
 const expertPlanWriteOptions = "team-plan writes require --file JSON_FILE or --file - and explicit --confirm"
 const expertPlanWriteInvalid = "team-plan requires exact positive integer versions, typed items, explicit acknowledgement and a stable 8..128 character idempotency_key"
 
-var expertPlanTeamFilterID = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
+var expertPlanFilterID = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
 
 type expertPlanCLIItem struct {
 	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty"`
@@ -236,17 +237,24 @@ func expertPlansCommand(ctx context.Context, c *client, args []string, in io.Rea
 		fs := commandFlags("team-plan " + action)
 		limit := fs.Int("limit", 20, "page size 1..100")
 		before := fs.String("before", "", "next_cursor from the previous page")
-		var team string
+		var team, run string
 		if action == "list" {
 			fs.Func("team", "exact team ID", func(value string) error {
-				if !expertPlanTeamFilterID.MatchString(value) {
+				if !expertPlanFilterID.MatchString(value) {
 					return usage(expertPlanReadInvalid)
 				}
 				team = value
 				return nil
 			})
+			fs.Func("run", "exact run ID", func(value string) error {
+				if run != "" || !expertPlanFilterID.MatchString(value) {
+					return usage(expertPlanReadInvalid)
+				}
+				run = value
+				return nil
+			})
 		}
-		if fs.Parse(args[offset:]) != nil || fs.NArg() != 0 || *limit < 1 || *limit > 100 {
+		if fs.Parse(args[offset:]) != nil || fs.NArg() != 0 || *limit < 1 || *limit > 100 || run != "" && *before != "" {
 			return usage(expertPlanReadInvalid)
 		}
 		if action == "list" && !toolListCursor(*before) || action == "revisions" && !handoffCLIIdentifier(*before, true) {
@@ -258,11 +266,16 @@ func expertPlansCommand(ctx context.Context, c *client, args []string, in io.Rea
 		}
 		if team != "" {
 			query.Set("team_id", team)
+		}
+		if run != "" {
+			query.Set("run_id", run)
+		}
+		if team != "" || run != "" {
 			raw, err := c.request(ctx, http.MethodGet, path+"?"+query.Encode(), nil, true)
 			if err != nil {
 				return err
 			}
-			if !validExpertPlanTeamPage(raw, c.project, team, *before, *limit) {
+			if !validExpertPlanScopedPage(raw, c.project, team, run, *before, *limit) {
 				return &failure{Code: "response", Message: expertPlanScopeResponseInvalid}
 			}
 			return writeJSON(out, raw, c.token)
@@ -331,7 +344,7 @@ func responseObjectFields(raw json.RawMessage) map[string]json.RawMessage {
 	return fields
 }
 
-func validExpertPlanTeamPage(raw json.RawMessage, project, team, before string, limit int) bool {
+func validExpertPlanScopedPage(raw json.RawMessage, project, team, run, before string, limit int) bool {
 	fields := responseObjectFields(raw)
 	var items []json.RawMessage
 	var total *int
@@ -339,9 +352,13 @@ func validExpertPlanTeamPage(raw json.RawMessage, project, team, before string, 
 		json.Unmarshal(fields["total"], &total) != nil || total == nil || *total < len(items) {
 		return false
 	}
+	if run != "" && (*total > 1 || *total != len(items)) {
+		return false
+	}
 	if cursor := fields["next_cursor"]; cursor != nil {
 		var next *string
 		if len(fields) != 3 || json.Unmarshal(cursor, &next) != nil || next == nil || !toolListCursor(*next) ||
+			run != "" && *next != "" ||
 			*next != "" && (*next == before || len(items) != limit || *total <= len(items)) {
 			return false
 		}
@@ -355,12 +372,45 @@ func validExpertPlanTeamPage(raw json.RawMessage, project, team, before string, 
 		if !recommendationHistoryCanonicalFields(fields, "id", "project_id", "team_id") ||
 			json.Unmarshal(fields["id"], &id) != nil || !handoffCLIIdentifier(id, false) || seen[id] ||
 			json.Unmarshal(fields["project_id"], &projectID) != nil || projectID != project ||
-			json.Unmarshal(fields["team_id"], &teamID) != nil || teamID != team {
+			json.Unmarshal(fields["team_id"], &teamID) != nil || !expertPlanFilterID.MatchString(teamID) ||
+			team != "" && teamID != team {
+			return false
+		}
+		if run != "" && (!recommendationHistoryCanonicalFields(fields, "items") || !validExpertPlanRunBinding(fields["items"], run)) {
 			return false
 		}
 		seen[id] = true
 	}
 	return true
+}
+
+func validExpertPlanRunBinding(raw json.RawMessage, run string) bool {
+	var items []json.RawMessage
+	if json.Unmarshal(raw, &items) != nil || len(items) == 0 {
+		return false
+	}
+	matches := 0
+	for _, item := range items {
+		fields := responseObjectFields(item)
+		if fields == nil {
+			return false
+		}
+		for key := range fields {
+			if key != "run_id" && strings.EqualFold(key, "run_id") {
+				return false
+			}
+		}
+		if value := fields["run_id"]; value != nil {
+			var id string
+			if json.Unmarshal(value, &id) != nil || !expertPlanFilterID.MatchString(id) {
+				return false
+			}
+			if id == run {
+				matches++
+			}
+		}
+	}
+	return matches == 1
 }
 
 func expertPlansHelp(locale localization.Locale) string {
@@ -372,12 +422,14 @@ func expertPlansHelp(locale localization.Locale) string {
 
 const expertPlansHelpEN = `
 Expert team delivery plans (global flags precede the command):
-  team-plan list [--team TEAM_ID] [--limit 1..100] [--before NEXT_CURSOR]
+  team-plan list [--team TEAM_ID] [--run RUN_ID] [--limit 1..100] [--before NEXT_CURSOR]
   team-plan get ID
   team-plan revisions ID [REVISION | --limit 1..100 --before NEXT_CURSOR]
   team-plan create --file request.json --confirm
   team-plan start|command ID --file request.json --confirm
 
+--run matches an exact run bound to a plan in the current project. Combine it
+with --team to require the same team. This lookup has no --before cursor.
 Typed UTF-8 JSON files support --file - (bounded stdin). Writes require the original
 idempotency_key and exact integer versions; no automatic retry or identity refresh.
 start requires acknowledge_dispatch=true. command actions: pause, resume, stop, revise;
@@ -386,12 +438,13 @@ Run success never accepts a task. Stop does not stop active processes; no autoac
 `
 const expertPlansHelpZH = `
 专家组交付计划（全局参数放在命令前）：
-  team-plan list [--team TEAM_ID] [--limit 1..100] [--before NEXT_CURSOR]
+  team-plan list [--team TEAM_ID] [--run RUN_ID] [--limit 1..100] [--before NEXT_CURSOR]
   team-plan get ID
   team-plan revisions ID [REVISION | --limit 1..100 --before NEXT_CURSOR]
   team-plan create --file request.json --confirm
   team-plan start|command ID --file request.json --confirm
 
+--run 按当前项目中与计划绑定的运行 ID 精确筛选，可与 --team 同时使用。 此查询无 --before 游标。
 读取有界 UTF-8 类型化 JSON 文件；--file - 从标准输入读取。写入必须保留原
 idempotency_key 和精确整数版本，不自动重试或刷新身份。start 须明确
 acknowledge_dispatch=true；command 支持 pause、resume、stop、revise，并提供

@@ -30,5 +30,13 @@
  "team-execution.accepted":"Formally accepted {{accepted}} / {{total}} tasks",
  "team-execution.accepted_label":"Formal acceptance progress for {{name}}",
  "team-execution.source_changed":"Some fixed inputs or permissions need review. Open the plan to inspect its current blockers.",
- "team-execution.more":"Load more team plans"
+ "team-execution.more":"Load more team plans",
+ "team-execution.run_origin.title":"Team assignment",
+ "team-execution.run_origin.loading":"Checking the team plan for this run…",
+ "team-execution.run_origin.denied":"Team assignment is unavailable to your current project session.",
+ "team-execution.run_origin.error":"Could not verify the team assignment for this run.",
+ "team-execution.run_origin.retry":"Try again",
+ "team-execution.run_origin.none":"No team plan is linked to this run.",
+ "team-execution.run_origin.context":"{{role}} · Current plan revision {{revision}}",
+ "team-execution.run_origin.open":"Open team plan"
 }

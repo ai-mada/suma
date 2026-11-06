@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TEAM-RUN-RETURN 核验保护关系、按需读取、CLI 项目范围、桌面键盘和 390px 窄屏。 [命令与证据](team-run-return-verification.md)
+
 T-TOOL-NODE-MATCH-273 核验唯一匹配、部分失败、手动选择优先及保存前重新核对，在 Chrome 中走通桌面和窄屏的代表路径。 [阶段验证](tool-node-match-verification.md)
 
 T-MODEL-DIRECTORY 核验模型目录类型、准确来源及费率、切换和撤权恢复，以及桌面和窄屏目录操作。 [命令与证据](model-directory-verification.md)

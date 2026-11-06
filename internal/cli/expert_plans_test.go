@@ -168,6 +168,79 @@ func TestExpertPlanCLIExactTeamList(t *testing.T) {
 	})
 }
 
+func TestExpertPlanCLIExactRunList(t *testing.T) {
+	const run = "Run-One"
+	const item = `{"id":"plan-one","project_id":"project-one","team_id":"Team_one","items":[{"task_id":"waiting"},{"task_id":"started","run_id":"Run-One"}],"detail":{"number":9007199254740993}}`
+	cursor := strings.Repeat("aB1_-", 40)
+	for _, test := range []struct {
+		name, body, team, before string
+		ok                       bool
+	}{
+		{"exact run", `{"items":[` + item + `],"total":1}`, "", "", true},
+		{"team intersection", `{"items":[` + item + `],"total":1,"next_cursor":""}`, "Team_one", "", true},
+		{"no binding", `{"items":[],"total":0}`, "", "", true},
+		{"unexpected continuation", `{"items":[` + item + `],"total":1,"next_cursor":"` + cursor + `"}`, "", "", false},
+		{"different team", `{"items":[` + item + `],"total":1}`, "Team_other", "", false},
+		{"different run", `{"items":[` + strings.Replace(item, "Run-One", "run-one", 1) + `],"total":1}`, "", "", false},
+		{"wrong project", `{"items":[` + strings.Replace(item, "project-one", "project-two", 1) + `],"total":1}`, "", "", false},
+		{"ambiguous run", `{"items":[` + strings.Replace(item, `"run_id":"Run-One"`, `"run_id":"Run-One","RUN_ID":"Run-Other"`, 1) + `],"total":1}`, "", "", false},
+		{"ambiguous plan items", `{"items":[` + strings.Replace(item, `"items":`, `"ITEMS":[],"items":`, 1) + `],"total":1}`, "", "", false},
+		{"multiple bindings in plan", `{"items":[` + strings.Replace(item, `{"task_id":"waiting"}`, `{"task_id":"waiting","run_id":"Run-One"}`, 1) + `],"total":1}`, "", "", false},
+		{"unexplained missing match", `{"items":[],"total":1}`, "", "", false},
+		{"impossible additional match", `{"items":[` + item + `],"total":2}`, "", "", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			calls := 0
+			s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls++
+				q := r.URL.Query()
+				if r.Method != http.MethodGet || r.URL.Path != "/api/v1/expert-team-plans" || q.Get("run_id") != run || len(q["run_id"]) != 1 || q.Get("team_id") != test.team || q.Get("project_id") != "project-one" || q.Get("limit") != "1" || q.Get("before") != test.before || r.Header.Get("X-Suma-Expected-User") != strings.Repeat("a", 32) || r.Header.Get("X-Suma-Expected-Organization") != strings.Repeat("b", 32) {
+					t.Error("run-filtered request changed scope or cursor", r.Method, r.URL)
+				}
+				_, _ = io.WriteString(w, test.body)
+			}))
+			defer s.Close()
+			args := []string{"team-plan", "list", "--run", run, "--limit", "1"}
+			if test.team != "" {
+				args = append(args, "--team", test.team)
+			}
+			if test.before != "" {
+				args = append(args, "--before", test.before)
+			}
+			code, out, problem := contextInvoke(t, s.URL, "en-US", "", args...)
+			if calls != 1 {
+				t.Fatal("expected one lookup", calls, code, problem)
+			}
+			if !test.ok {
+				if code == 0 || out != "" || !strings.Contains(problem, "cli.team_plan.scope_response_invalid") {
+					t.Fatal("mismatched response was exposed", code, out, problem)
+				}
+				return
+			}
+			if code != 0 || problem != "" || !json.Valid([]byte(out)) || strings.Contains(test.body, "9007199254740993") && !strings.Contains(out, "9007199254740993") {
+				t.Fatal("valid run page was rejected or rewritten", code, out, problem)
+			}
+		})
+	}
+	t.Run("invalid flags and bilingual help are local", func(t *testing.T) {
+		s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Error("unexpected request for invalid run option or help", r.URL)
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		defer s.Close()
+		for _, args := range [][]string{{"list", "--run", ""}, {"list", "--run", "Run.One"}, {"list", "--run", strings.Repeat("a", 65)}, {"list", "--run", run, "--run", "other"}, {"list", "--run", run, "--before", cursor}, {"revisions", "plan-one", "--run", run}} {
+			if code, out, _ := contextInvoke(t, s.URL, "en-US", "", append([]string{"team-plan"}, args...)...); code != 2 || out != "" {
+				t.Fatal("invalid run flags were accepted", args, code, out)
+			}
+		}
+		for _, language := range []string{"en-US", "zh-CN"} {
+			if code, out, problem := contextInvoke(t, s.URL, language, "", "team-plan", "--help"); code != 0 || problem != "" || !strings.Contains(out, "[--run RUN_ID]") {
+				t.Fatal("help omitted run filter", language, code, out, problem)
+			}
+		}
+	})
+}
+
 func TestExpertPlanCLICodexSelectionExactRecoveryAndStrictFields(t *testing.T) {
 	selection := `{"catalog_sha256":"` + strings.Repeat("a", 64) + `","model":"codex-a","reasoning_effort":"high","token_notice_limit":9007199254740991}`
 	item := func(choice string) string {

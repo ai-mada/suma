@@ -144,3 +144,88 @@ func TestExpertTeamPlanClosedMessagesDoNotTranslateFrozenSource(t *testing.T) {
 		}
 	}
 }
+
+func TestExpertTeamPlanHTTPFiltersProtectedRunOrigin(t *testing.T) {
+	h := newExpertFixture(t, false)
+	f, ctx := h.f, context.Background()
+	preview := h.preview(t)
+	plan := h.preview(t)
+	started, err := f.s.StartExpertTeamPlan(ctx, f.e, f.actor, f.project, plan.ID, h.start(plan))
+	if err != nil || len(started.Items) != 2 || started.Items[0].RunID == "" || started.Items[1].RunID == "" {
+		t.Fatal("fixture did not dispatch two protected team runs", err)
+	}
+	workflow := f.call("POST", "/workflows", f.body(map[string]any{
+		"name":  "Standalone execution",
+		"nodes": []any{map[string]any{"id": "code", "type": "command", "command": []string{"edit"}}},
+	}), 201)
+	ordinary := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": workflow["id"], "workflow_version": workflow["version"]}), 201)["id"].(string)
+	otherProject := f.call("POST", "/projects", map[string]any{"title": "Other authorized project", "idempotency_key": newID()}, 201)["id"].(string)
+	owner := f.cookie
+	const email = "team-run-origin-viewer@example.test"
+	governanceAccept(f, governanceInvite(f, email, "member", []any{map[string]any{"project_id": f.project, "role": "viewer"}}), email)
+	viewer := f.cookie
+	f.cookie = owner
+
+	operations := expertCount(t, f, "suma_operations")
+	runs := expertCount(t, f, "dag_runs")
+	base := "/expert-team-plans?project_id=" + f.project
+	checkPlan := func(path string, run string) {
+		t.Helper()
+		result := f.call("GET", path, nil, 200)
+		var page ExpertTeamPlanPage
+		if err := json.Unmarshal([]byte(stringify(result)), &page); err != nil {
+			t.Fatal(err)
+		}
+		if page.Total != 1 || page.NextCursor != "" || len(page.Items) != 1 || page.Items[0].ID != plan.ID || page.Items[0].TeamID != h.team {
+			t.Fatal("lookup did not resolve the original team plan", result)
+		}
+		found := false
+		for _, item := range page.Items[0].Items {
+			if item.RunID == run && item.Execution != nil && item.Execution.RunID == run {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatal("original item and execution disappeared from the projected plan")
+		}
+	}
+	run := started.Items[0].RunID
+	match := base + "&run_id=" + run
+	checkPlan(match+"&limit=1", run)
+	checkPlan(base+"&team_id="+h.team+"&run_id="+started.Items[1].RunID, started.Items[1].RunID)
+	for _, path := range []string{
+		base + "&run_id=" + ordinary,
+		match + "&team_id=" + newID(),
+		"/expert-team-plans?project_id=" + otherProject + "&run_id=" + run,
+	} {
+		result := f.call("GET", path, nil, 200)
+		if result["total"] != float64(0) || len(result["items"].([]any)) != 0 || result["next_cursor"] != nil {
+			t.Fatal("nonmatching scope disclosed a team plan", result)
+		}
+	}
+	if upper := strings.ToUpper(run); upper != run {
+		result := f.call("GET", base+"&run_id="+upper, nil, 200)
+		if result["total"] != float64(0) {
+			t.Fatal("case variant matched a run")
+		}
+	}
+	for _, suffix := range []string{"&run_id=", "&run_id=run%2F1", "&run_id=run.1", "&run_id=" + strings.Repeat("a", 65), "&run_id=" + run + "&run_id=" + run} {
+		f.call("GET", base+suffix, nil, 400)
+	}
+	paged := f.call("GET", base+"&limit=1", nil, 200)
+	f.call("GET", match+"&before="+url.QueryEscape(paged["next_cursor"].(string)), nil, 400)
+	f.call("GET", "/expert-team-plans/"+plan.ID+"?project_id="+f.project+"&run_id="+run, nil, 400)
+	f.call("GET", "/expert-teams?project_id="+f.project+"&run_id="+run, nil, 400)
+	f.cookie = viewer
+	checkPlan(match, run)
+	f.cookie = owner
+
+	// An inconsistent relation cannot navigate to a different valid preview.
+	if _, err = f.s.DB.Exec("UPDATE suma_expert_team_plan_items SET expert_plan_id=? WHERE run_id=?", preview.ID, run); err != nil {
+		t.Fatal(err)
+	}
+	f.call("GET", match, nil, 409)
+	if expertCount(t, f, "suma_operations") != operations || expertCount(t, f, "dag_runs") != runs {
+		t.Fatal("team plan lookup wrote an operation or created a run")
+	}
+}
