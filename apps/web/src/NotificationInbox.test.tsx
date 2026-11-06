@@ -100,6 +100,30 @@ it('opens the original failed run in its own project from the organization inbox
  expect(writes).toHaveLength(0);
 });
 
+it('opens the original tool input attempt across projects without reading or answering the request',async()=>{
+ const target={run_id:'run-original',node_id:'implement[2]',attempt:3},onToolInput=vi.fn();
+ const notice={kind:'task_tool_input_requested',assignment_current:false,tool_input_target:target};
+ transport(()=>Response.json(orgPage([orgRow('project-b','Other project',item(notice))])));
+ await render({scopeMode:'organization'});
+ expect(host.querySelector<HTMLButtonElement>('.notification-inbox-source')?.disabled).toBe(true);
+ await render({onToolInput});
+ expect(host.textContent).toContain('An agent requested input');
+ expect(host.querySelector('.notification-inbox-run-action')?.textContent).toBe('Open original attempt');
+ expect(host.querySelector('.notification-inbox-source')?.getAttribute('aria-label')).toBe('Open original attempt for Private assigned task');
+ await click('.notification-inbox-source');
+ expect(onToolInput).toHaveBeenCalledExactlyOnceWith('task-a',target,'project-b');
+ expect(props.onTask).not.toHaveBeenCalled();
+ expect(writes).toHaveLength(0);
+ expect(reads).toHaveLength(1);
+ await act(async()=>setLocale('zh-CN',{persist:false}));
+ expect(host.textContent).toContain('智能体请求了人工输入');
+ expect(host.querySelector('.notification-inbox-run-action')?.textContent).toBe('打开原执行尝试');
+ transport(()=>Response.json(orgPage([orgRow('project-b','Other project',item({...notice,source_available:false,current_task:undefined,tool_input_target:undefined}))])));
+ await render({refresh:1});
+ expect(host.querySelector('.notification-inbox-source')).toBeNull();
+ expect(host.textContent).not.toContain('Private assigned task');
+});
+
 it('shows real complete counts and current source facts, and opening the task never marks it read',async()=>{
  records=[item(),item({id:'notice-b',sequence:'9007199254740992',read:true,read_at:'2026-10-29T02:30:00Z'}),item({id:'notice-c',sequence:'9007199254740991',archived:true,archived_at:'2026-10-29T02:40:00Z'})];transport();await render();expect(host.querySelector('[data-notification-filter=inbox] .notification-inbox-count')?.textContent).toBe('2');expect(host.querySelector('[data-notification-filter=unread] .notification-inbox-count')?.textContent).toBe('1');expect(host.querySelector('[data-notification-filter=archived] .notification-inbox-count')?.textContent).toBe('1');expect(host.querySelectorAll('[data-notification-id]')).toHaveLength(2);expect(host.textContent).toContain('Current task status');expect(reads[0].headers.get('X-Suma-Expected-User')).toBe('user-a');expect(reads[0].headers.get('X-Suma-Expected-Organization')).toBe('org-a');expect(reads[0].path).not.toContain('user_id');await click('.notification-inbox-source');expect(props.onTask).toHaveBeenCalledWith('task-a');expect(writes).toHaveLength(0);expect(reads).toHaveLength(1);
 });

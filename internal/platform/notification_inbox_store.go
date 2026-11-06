@@ -106,7 +106,7 @@ func notificationRecipientCanRead(organizationRole string, projectRole sql.NullS
 
 func validNotificationInboxKind(kind string) bool {
 	switch kind {
-	case "task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", taskRunFailedInboxKind:
+	case "task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed", taskRunFailedInboxKind, taskToolInputInboxKind:
 		return true
 	default:
 		return false

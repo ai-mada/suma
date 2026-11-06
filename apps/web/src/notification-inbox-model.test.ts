@@ -39,6 +39,21 @@ it('accepts a failed run only with its exact locator and keeps unavailable sourc
  expect(validNotificationInboxItem(row({...unavailable,current_task:undefined,run_id:'run-original'}))).toBe(false);
 });
 
+it('requires the original execution attempt only on an available tool input source',()=>{
+ const target={run_id:'run-original',node_id:'implement[2]',attempt:2};
+ const input={kind:'task_tool_input_requested',assignment_current:false,tool_input_target:target};
+ expect(validNotificationInboxItem(row(input))).toBe(true);
+ for(const invalid of [undefined,null,{...target,run_id:'../other'},{...target,node_id:'bad/node'},{...target,node_id:'implement[2]\n'},
+  {...target,attempt:0},{...target,attempt:Number.MAX_SAFE_INTEGER+1},{...target,input_id:'unexpected'}]){
+  expect(validNotificationInboxItem(row({...input,tool_input_target:invalid}))).toBe(false);
+ }
+ expect(validNotificationInboxItem(row({...input,run_id:'run-original'}))).toBe(false);
+ expect(validNotificationInboxItem(row({tool_input_target:target}))).toBe(false);
+ const unavailable={...input,source_available:false,current_task:undefined};
+ expect(validNotificationInboxItem(row(unavailable))).toBe(false);
+ expect(validNotificationInboxItem(row({...unavailable,tool_input_target:undefined}))).toBe(true);
+});
+
 it('opens only an intact review-request source and rejects cross-kind source aliases',()=>{
  expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false,review_request_id:'request-a'}))).toBe(true);
  expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false}))).toBe(false);

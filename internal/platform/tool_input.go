@@ -148,6 +148,9 @@ func (s *Service) toolInputMachine(ctx context.Context, actor Actor, token, proj
 	if err = s.toolInputSaveTx(ctx, tx, r, 0); err != nil {
 		return out, err
 	}
+	if err = s.projectTaskToolInputInboxTx(ctx, tx, r); err != nil {
+		return out, err
+	}
 	return r.value, tx.Commit()
 }
 

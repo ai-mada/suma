@@ -22307,7 +22307,8 @@
               "task_review_requested",
               "task_handoff_requested",
               "task_followed",
-              "task_run_failed"
+              "task_run_failed",
+              "task_tool_input_requested"
             ],
             "readOnly": true,
             "type": "string"
@@ -22362,6 +22363,11 @@
           "task_id": {
             "readOnly": true,
             "type": "string"
+          },
+          "tool_input_target": {
+            "$ref": "#/components/schemas/NotificationInboxToolInputTarget",
+            "description": "Present only for an intact task_tool_input_requested source. This locates the historical attempt and does not report current answer eligibility or include question or answer text.",
+            "readOnly": true
           },
           "version": {
             "readOnly": true,
@@ -22465,6 +22471,35 @@
           "version",
           "title",
           "status"
+        ],
+        "type": "object"
+      },
+      "NotificationInboxToolInputTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "attempt"
         ],
         "type": "object"
       },
@@ -86387,7 +86422,7 @@
     },
     "/notification-inbox": {
       "get": {
-        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff and followed discussion, or from the durable task execution failure projection. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization.",
+        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff, followed discussion, execution failure or a durable tool input request. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization.",
         "operationId": "get_notification-inbox",
         "parameters": [
           {
@@ -86981,7 +87016,7 @@
     },
     "/notification-inbox/{id}/commands": {
       "post": {
-        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff and followed discussion, or from the durable task execution failure projection. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization.",
+        "description": "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff, followed discussion, execution failure or a durable tool input request. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization.",
         "operationId": "post_notification-inbox_id_commands",
         "parameters": [
           {

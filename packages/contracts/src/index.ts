@@ -4164,6 +4164,7 @@ export interface NotificationInboxItem {
   review_request_id?: string;
   handoff_id?: string;
   run_id?: string;
+  tool_input_target?: NotificationInboxToolInputTarget;
 }
 export interface NotificationInboxPage {
   project_id: string;
@@ -4180,6 +4181,11 @@ export interface NotificationInboxTask {
   version: number;
   title: string;
   status: string;
+}
+export interface NotificationInboxToolInputTarget {
+  run_id: string;
+  node_id: string;
+  attempt: number;
 }
 export interface NotificationOrganizationInboxItem {
   project_id: string;

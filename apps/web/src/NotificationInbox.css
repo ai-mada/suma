@@ -34,7 +34,8 @@
 .notification-inbox-row.is-unread .notification-inbox-state:first-of-type{color:var(--accent)}
 .notification-inbox-source{display:flex;align-items:center;justify-content:flex-start;gap:8px;text-align:left;min-width:0;max-width:100%;border:0;background:transparent;padding:0;font-weight:600;color:var(--text);overflow-wrap:anywhere;min-height:28px!important}
 .notification-inbox-source:hover{color:var(--accent)}.notification-inbox-source svg{flex-shrink:0}
-.notification-inbox-run-failed,.notification-inbox-run-action{display:inline-flex;align-items:center;gap:5px}
+.notification-inbox-run-failed,.notification-inbox-run-action,.notification-inbox-tool-input{display:inline-flex;align-items:center;gap:5px}
+.notification-inbox-tool-input svg{flex:none}
 .notification-inbox-run-failed{color:var(--red);font-weight:600}
 .notification-inbox-source.is-run-source{display:grid;justify-items:start;gap:2px}
 .notification-inbox-run-action{color:var(--accent);font-size:var(--font-secondary)}

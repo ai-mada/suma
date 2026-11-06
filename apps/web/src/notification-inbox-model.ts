@@ -22,6 +22,15 @@ const stateTime=(state:boolean,value:unknown)=>state?instant(value):value==='';
 const exact=(value:Record<string,unknown>,keys:string[])=>Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
 const operationKey=(value:unknown):value is string=>typeof value==='string'&&!!value.trim()&&!/[\p{Cc}]/u.test(value)&&new TextEncoder().encode(value).length>=8&&new TextEncoder().encode(value).length<=128;
 
+export type NotificationToolInputTarget=NonNullable<NotificationInboxItem['tool_input_target']>;
+
+export function validNotificationToolInputTarget(value:unknown):value is NotificationToolInputTarget{
+ return object(value)&&exact(value,['run_id','node_id','attempt'])&&
+  typeof value.run_id==='string'&&value.run_id.trim()===value.run_id&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value.run_id)&&
+  typeof value.node_id==='string'&&value.node_id.trim()===value.node_id&&value.node_id.length<=150&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}(?:\[[0-9]+\])?$/.test(value.node_id)&&
+  typeof value.attempt==='number'&&Number.isSafeInteger(value.attempt)&&value.attempt>0;
+}
+
 export function validNotificationInboxFilter(value:unknown):value is NotificationInboxFilter{return typeof value==='string'&&(notificationInboxFilters as readonly string[]).includes(value);}
 export function validNotificationInboxSequence(value:unknown):value is string{return typeof value==='string'&&/^[1-9]\d{0,18}$/.test(value)&&BigInt(value)<=9223372036854775807n;}
 export function notificationInboxScope(userID:string,organizationID:string,project:string){return 'notification-inbox:'+JSON.stringify([userID,organizationID,project]);}
@@ -41,15 +50,17 @@ export function notificationInboxCommandPath(notificationID:string){return '/not
 /** Source facts are hydrated by this authorized read only. An unavailable
  * source has no cached task title or actionable task locator in the UI. */
 export function validNotificationInboxItem(value:unknown):value is NotificationInboxItem{
- if(!object(value)||!id(value.id)||!version(value.version)||!validNotificationInboxSequence(value.sequence)||typeof value.kind!=='string'||!['task_assigned','task_mentioned','task_followed','task_review_requested','task_handoff_requested','task_run_failed'].includes(value.kind)||!id(value.task_id)||!version(value.source_task_version)||!id(value.source_resource_id)||!instant(value.created_at)||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||typeof value.source_available!=='boolean'||typeof value.assignment_current!=='boolean')return false;
+ if(!object(value)||!id(value.id)||!version(value.version)||!validNotificationInboxSequence(value.sequence)||typeof value.kind!=='string'||!['task_assigned','task_mentioned','task_followed','task_review_requested','task_handoff_requested','task_run_failed','task_tool_input_requested'].includes(value.kind)||!id(value.task_id)||!version(value.source_task_version)||!id(value.source_resource_id)||!instant(value.created_at)||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||typeof value.source_available!=='boolean'||typeof value.assignment_current!=='boolean')return false;
  const messageSource=value.kind==='task_mentioned'||value.kind==='task_followed';
  const runSource=value.kind==='task_run_failed';
- if(!messageSource&&value.message_id!==undefined||value.kind!=='task_review_requested'&&value.review_request_id!==undefined||value.kind!=='task_handoff_requested'&&value.handoff_id!==undefined||!runSource&&value.run_id!==undefined||value.kind!=='task_assigned'&&value.assignment_current)return false;
- if(!value.source_available)return value.current_task===undefined&&value.message_id===undefined&&value.review_request_id===undefined&&value.handoff_id===undefined&&value.run_id===undefined&&!value.assignment_current;
+ const toolInputSource=value.kind==='task_tool_input_requested';
+ if(!messageSource&&value.message_id!==undefined||value.kind!=='task_review_requested'&&value.review_request_id!==undefined||value.kind!=='task_handoff_requested'&&value.handoff_id!==undefined||!runSource&&value.run_id!==undefined||!toolInputSource&&value.tool_input_target!==undefined||value.kind!=='task_assigned'&&value.assignment_current)return false;
+ if(!value.source_available)return value.current_task===undefined&&value.message_id===undefined&&value.review_request_id===undefined&&value.handoff_id===undefined&&value.run_id===undefined&&value.tool_input_target===undefined&&!value.assignment_current;
  if(messageSource&&!id(value.message_id))return false;
  if(value.kind==='task_review_requested'&&!id(value.review_request_id))return false;
  if(value.kind==='task_handoff_requested'&&!id(value.handoff_id))return false;
  if(runSource&&!id(value.run_id))return false;
+ if(toolInputSource&&!validNotificationToolInputTarget(value.tool_input_target))return false;
  const task=value.current_task;
  return object(task)&&task.id===value.task_id&&version(task.version)&&typeof task.title==='string'&&typeof task.status==='string';
 }

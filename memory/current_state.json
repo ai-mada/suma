@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "tool_input_inbox": {
+    "stage": "T-TOOL-INPUT-INBOX-264",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "909e3e1722175caf5eddbae89d113a9008966f4d",
+    "report": "docs/quality/tool-input-inbox-verification.md",
+    "actual": "Blocking or typed tool input created by a formally bound task execution projects a recipient-specific inbox notice. Current project or organization view hydrates an exact historical attempt link without question or answer content.",
+    "verification": "Five focused backend tests with real isolated HTTP and SQLite, 53 focused web checks, TypeScript and bilingual Chromium interaction passed.",
+    "known_limitations": "No external model session, cross-machine execution or OceanBase stage evidence.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q264/post-git.json"
+  },
   "cli_tool_input_status": {
     "stage": "T-CLI-TOOL-INPUT-STATUS-263",
     "version": "1.0.0",

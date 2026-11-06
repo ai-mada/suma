@@ -39,6 +39,19 @@ describe('current notification reading route',()=>{
   expect(route).toMatchObject({project:'beta',sub:'runs',run:'run-b',record:'',panel:'',node:'',attempt:''});
   expect(route.inbox_scope).toBeUndefined();
  });
+ it('opens the original tool input attempt within its own project and honors the leave guard',()=>{
+  const start=parseWorkbenchRoute('?project=alpha&view=development&sub=inbox&inbox_scope=organization&inbox_filter=unread');
+  let route=start;
+  const update=(change:(value:typeof route)=>typeof route)=>{route=change(route);};
+  const target={run_id:'run-original',node_id:'implement[2]',attempt:3};
+  expect(locateNotificationSource('beta','task-b',{kind:'tool-input',target},()=>false,update)).toBe(false);
+  expect(locateNotificationSource('beta','task-b',{kind:'tool-input',target:{...target,attempt:0}},()=>true,update)).toBe(false);
+  expect(route).toBe(start);
+  expect(locateNotificationSource('beta','task-b',{kind:'tool-input',target},()=>true,update)).toBe(true);
+  expect(route).toMatchObject({project:'beta',view:'development',sub:'runs',run:'run-original',node:'implement[2]',attempt:'3',record:'',panel:'',layout:'list'});
+  expect(route.inbox_scope).toBeUndefined();
+  expect(route.inbox_filter).toBeUndefined();
+ });
  it('clears the private filter on a project fallback and keeps an accessible same-scope saved route',()=>{
   const current=parseWorkbenchRoute('?project=old&view=development&sub=inbox&inbox_filter=unread&inbox_invalid=1');
   expect(resetInboxScope(current).inbox_filter).toBeUndefined();
