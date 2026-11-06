@@ -950,6 +950,59 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     );
     expect(container.textContent).toContain("已加载 1 / 2 次正式尝试");
   });
+  it("triages loaded queue rows without promoting stale or mismatched admission", async () => {
+    const admission = {
+      run_id: entry.run_id, node_id: entry.node_id, run_version: entry.run_version,
+      node_state: entry.node_state, attempt: entry.attempt, fence: entry.fence,
+      policy_version: 1, evaluated_at: entry.ready_at,
+      requests: [], reservations: [], status: "blocked",
+      blockers: [
+        { code: "worker_capability_unknown", source: "worker", message: "待核对资格" },
+        { code: "resource_capacity", source: "policy", resource: "execution_slots", message: "限额证据" },
+      ],
+    };
+    const checked = { ...entry, node_id: "checked", admission: { ...admission, node_id: "checked", status: "eligible", blockers: [] } };
+    let status = 200;
+    const fetcher = vi.fn(async (input: unknown) => {
+      const params = new URL(String(input), location.origin).searchParams;
+      if (status !== 200) return response({ error: { code: "failed", message: "Read unavailable" } }, status);
+      return params.has("cursor") ? response({ items: [checked], total: 3 }) : response({
+        items: [{ ...entry, admission }, { ...entry, node_id: "other", admission }], total: 3, next_cursor: "next-page",
+      });
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const onRun = vi.fn();
+    await render(<SchedulingQueue project="p" refresh={0} onRun={onRun} />);
+    await flush(() => !!container.querySelector('[data-queue-filter="blocked"]'));
+    const filter = (key: string) => container.querySelector<HTMLButtonElement>(`[data-queue-filter="${key}"]`)!;
+    const rows = () => [...container.querySelectorAll('[data-queue-entry]')];
+    const select = async (key: string) => act(async () => filter(key).click());
+    expect(rows().map(row => row.getAttribute('data-queue-status'))).toEqual(['blocked', 'unknown']);
+    expect(container.querySelector('[data-queue-details]')?.hasAttribute('open')).toBe(false);
+    expect(rows()[0].querySelectorAll('a.scheduling-open-link')).toHaveLength(1);
+    const policyHref = new URL(rows()[0].querySelector<HTMLAnchorElement>('[data-queue-policy]')!.href);
+    expect(policyHref.searchParams.get('project')).toBe('p');
+    expect(policyHref.searchParams.get('sub')).toBe('scheduling');
+    expect(filter('all').textContent).toContain('2');
+    await select('checked');
+    expect(filter('checked').getAttribute('aria-pressed')).toBe('true');
+    expect(rows()).toHaveLength(0);
+    await click('加载更多就绪节点');
+    await flush(() => rows().length === 1);
+    expect(rows()[0].getAttribute('data-queue-status')).toBe('checked');
+    expect(fetcher.mock.calls[1][0]).toContain('cursor=next-page');
+    const link = rows()[0].querySelector<HTMLAnchorElement>('a.scheduling-open-link')!;
+    await act(async () => link.click());
+    expect(onRun).toHaveBeenCalledWith(entry.run_id, 'checked');
+    status = 503;
+    await click('重新读取队列');
+    await flush(() => !!container.querySelector('[role="alert"]'));
+    expect(container.querySelector('[data-queue-details], [data-queue-policy], [data-queue-entry][data-queue-status="checked"]')).toBeNull();
+    status = 403;
+    await click('重试读取队列');
+    await flush(() => rows().length === 0);
+    expect(container.querySelector('[data-queue-filter]')).toBeNull();
+  });
   it("uses the App queue link to preserve exact node then browser-back restores the queue", async () => {
     history.replaceState(
       null,
@@ -970,6 +1023,7 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     );
     await render(<App />);
     await flush(() => !!container.querySelector("a.scheduling-open-link"));
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-queue-filter="unknown"]')!.click());
     const link = container.querySelector<HTMLAnchorElement>(
       "a.scheduling-open-link",
     )!;
@@ -996,6 +1050,7 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
         !container.querySelector('[data-testid="route-consumer"]'),
     );
     expect(parseWorkbenchRoute(location.search).layout).toBe("queue");
+    await flush(() => container.querySelector('[data-queue-filter="unknown"]')?.getAttribute('aria-pressed') === 'true');
   });
   it("validates attempt URL and clears it when an inaccessible project is replaced", () => {
     const route = parseWorkbenchRoute(

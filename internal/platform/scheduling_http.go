@@ -69,9 +69,22 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		}
 		var out dag.ReadyPage
 		err = s.Service.schedulingRead(r.Context(), actor, project, "scheduling-queue", purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+			tenant := auth.target.tenantID
 			var err error
-			out, err = s.Engine.QueuePageTx(ctx, auth.tx, auth.target.tenantID, project, limit, r.URL.Query().Get("cursor"))
-			return err
+			out, err = s.Engine.QueuePageTx(ctx, auth.tx, tenant, project, limit, r.URL.Query().Get("cursor"))
+			if err != nil {
+				return err
+			}
+			poolBlockers := make(map[string][]dag.SchedulingBlocker)
+			for _, item := range out.Items {
+				if item.Admission == nil {
+					continue
+				}
+				if err = s.Service.decoratePoolAdmissionTx(ctx, auth.tx, tenant, project, item.Admission, poolBlockers); err != nil {
+					return err
+				}
+			}
+			return nil
 		})
 		respond(w, 200, out, err)
 	case isNode && len(parts) == 5 && parts[4] == "scheduling" && r.Method == "GET":
@@ -82,7 +95,7 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 			if err != nil {
 				return err
 			}
-			return s.Service.decoratePoolAdmissionTx(ctx, auth.tx, auth.target.tenantID, project, &out)
+			return s.Service.decoratePoolAdmissionTx(ctx, auth.tx, auth.target.tenantID, project, &out, nil)
 		})
 		respond(w, 200, out, err)
 	case isNode && len(parts) == 5 && parts[4] == "attempts" && r.Method == "GET":

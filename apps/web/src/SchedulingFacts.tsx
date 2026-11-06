@@ -94,7 +94,7 @@ export const schedulingUnitLabel = (unit?: string) =>
   unit ? unitNames[unit] || unit : t("common.unit.unknown");
 export const schedulingNodeStateLabel = (state: string) =>
   state === "waiting" ? t("development.scheduling.node_waiting") : stateLabel(state);
-function blockerTitle(blocker: SchedulingBlocker) {
+export function schedulingBlockerTitle(blocker: SchedulingBlocker) {
   if (blocker.source === "pool") {
     const names: Record<string, string> = {
       pool_scope_inactive: t("development.scheduling.shared_pool_project_grant_is_disabled"),
@@ -308,7 +308,7 @@ export function AdmissionFacts({
       <ul className="scheduling-blockers">
         {snapshot.blockers.map((blocker, index) => (
           <li key={index}>
-            <strong>{blockerTitle(blocker)}</strong>
+            <strong>{schedulingBlockerTitle(blocker)}</strong>
             {blocker.resource && (
               <span>{schedulingResourceLabel(blocker.resource)}</span>
             )}

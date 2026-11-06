@@ -2,6 +2,8 @@ package platform
 
 import (
 	"encoding/json"
+	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -60,36 +62,64 @@ func TestPoolHTTPCrossOrganizationPrivacyAndProjectRunnerChoices(t *testing.T) {
 	if _, err := f.s.DB.Exec(`UPDATE suma_projects SET status='active' WHERE id=?`, projectID); err != nil {
 		t.Fatal(err)
 	}
-	// Current owner pause is a visible admission reason in the exact node read.
-	wf := f.call("POST", "/workflows", map[string]any{"project_id": projectID, "name": "共享执行诊断", "nodes": []any{map[string]any{"id": "inspect", "type": "command", "command": []string{"inspect"}}}, "edges": []any{}, "idempotency_key": newID()}, 201)
+	// Read the same owning-domain facts for both nodes of a fixed shared run.
+	wf := f.call("POST", "/workflows", map[string]any{"project_id": projectID, "name": "共享执行诊断", "nodes": []any{
+		map[string]any{"id": "inspect", "type": "command", "command": []string{"inspect"}},
+		map[string]any{"id": "verify", "type": "command", "command": []string{"verify"}},
+	}, "edges": []any{}, "idempotency_key": newID()}, 201)
 	run := f.call("POST", "/runs", map[string]any{"project_id": projectID, "workflow_id": wf["id"], "workflow_version": 1, "idempotency_key": newID()}, 201)
+	runID := run["id"].(string)
+	queuePath := "/scheduling/queue?project_id=" + projectID
+	checkAdmission := func(item map[string]any, code string) {
+		t.Helper()
+		node := item["node_id"].(string)
+		facts := f.call("GET", "/runs/"+runID+"/nodes/"+node+"/scheduling?project_id="+projectID, nil, 200)
+		found := false
+		for _, b := range facts["blockers"].([]any) {
+			if b.(map[string]any)["code"] == code {
+				found = true
+			}
+		}
+		admission := item["admission"].(map[string]any)
+		if !found || facts["status"] != "blocked" || admission["status"] != facts["status"] || !reflect.DeepEqual(admission["blockers"], facts["blockers"]) {
+			t.Fatalf("queue and exact node differ on %s: queue=%v, exact=%v", code, admission["blockers"], facts["blockers"])
+		}
+		if item["run_id"] != runID || item["attempt"] != float64(0) || admission["execution_pool_id"] != poolID || admission["node_id"] != node {
+			t.Fatal("queue lookup changed the execution identity or attempt")
+		}
+	}
 	f.cookie = ownerCookie
 	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/execution-pools/"+poolID+"/commands", map[string]any{"action": "pause", "expected_version": 1, "idempotency_key": newID()}, 200)
 	f.cookie = projectCookie
 	f.call("GET", "/auth/session", nil, 200)
-	facts := f.call("GET", "/runs/"+run["id"].(string)+"/nodes/inspect/scheduling?project_id="+projectID, nil, 200)
-	found := false
-	for _, b := range facts["blockers"].([]any) {
-		if b.(map[string]any)["code"] == "pool_paused" {
-			found = true
-		}
+	queue := f.call("GET", queuePath, nil, 200)
+	items = queue["items"].([]any)
+	if queue["total"] != float64(2) || len(items) != 2 {
+		t.Fatal("blocked nodes disappeared from the ready queue")
 	}
-	if !found || facts["status"] != "blocked" {
-		t.Fatal("pool pause hidden by resource-only diagnostics")
+	for _, item := range items {
+		checkAdmission(item.(map[string]any), "pool_paused")
 	}
 	if len(f.call("GET", "/project-execution/runners?project_id="+projectID, nil, 200)["items"].([]any)) != 0 {
 		t.Fatal("paused pool advertised new tool execution")
 	}
 	f.call("POST", "/project-execution/grants/"+grant["id"].(string)+"/commands", map[string]any{"project_id": projectID, "action": "withdraw", "expected_version": 2, "idempotency_key": newID()}, 200)
-	facts = f.call("GET", "/runs/"+run["id"].(string)+"/nodes/inspect/scheduling?project_id="+projectID, nil, 200)
-	found = false
-	for _, b := range facts["blockers"].([]any) {
-		if b.(map[string]any)["code"] == "pool_grant_not_current" {
-			found = true
-		}
+	operations := expertCount(t, f, "suma_operations")
+	first := f.call("GET", queuePath+"&limit=1", nil, 200)
+	firstItems, cursor := first["items"].([]any), first["next_cursor"].(string)
+	second := f.call("GET", queuePath+"&limit=1&cursor="+url.QueryEscape(cursor), nil, 200)
+	secondItems := second["items"].([]any)
+	if first["total"] != float64(2) || second["total"] != first["total"] || len(firstItems) != 1 || len(secondItems) != 1 || second["next_cursor"] != nil {
+		t.Fatal("pool projection changed queue pagination")
 	}
-	if !found {
-		t.Fatal("withdrawn grant not shown on original run")
+	firstItem, secondItem := firstItems[0].(map[string]any), secondItems[0].(map[string]any)
+	if firstItem["node_id"] == secondItem["node_id"] {
+		t.Fatal("continuation repeated the first node")
+	}
+	checkAdmission(firstItem, "pool_grant_not_current")
+	checkAdmission(secondItem, "pool_grant_not_current")
+	if expertCount(t, f, "suma_operations") != operations {
+		t.Fatal("queue inspection wrote an operation receipt")
 	}
 }
