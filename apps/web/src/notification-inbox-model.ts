@@ -1,6 +1,6 @@
 import type {
  NotificationInboxBatchReceipt,NotificationInboxBatchTarget,NotificationInboxCommandReceipt,NotificationInboxItem,NotificationInboxPage,
- NotificationOrganizationInboxItem,NotificationOrganizationInboxPage,
+ NotificationOrganizationInboxItem,NotificationOrganizationInboxPage,NotificationOrganizationUnreadSummary,
 } from '../../../packages/contracts/src';
 
 export const notificationInboxFilters=['inbox','unread','archived'] as const;
@@ -36,6 +36,13 @@ export function validNotificationInboxFilter(value:unknown):value is Notificatio
 export function validNotificationInboxSequence(value:unknown):value is string{return typeof value==='string'&&/^[1-9]\d{0,18}$/.test(value)&&BigInt(value)<=9223372036854775807n;}
 export function notificationInboxScope(userID:string,organizationID:string,project:string){return 'notification-inbox:'+JSON.stringify([userID,organizationID,project]);}
 export function notificationOrganizationInboxScope(userID:string,organizationID:string){return 'notification-inbox:organization:'+JSON.stringify([userID,organizationID]);}
+export const notificationInboxChangedEvent='suma:notification-inbox-changed';
+export function notifyOrganizationInboxChanged(userID:string,organizationID:string){
+ window.dispatchEvent(new CustomEvent(notificationInboxChangedEvent,{detail:notificationOrganizationInboxScope(userID,organizationID)}));
+}
+export function validNotificationOrganizationUnreadSummary(value:unknown,organizationID:string,userID:string):value is NotificationOrganizationUnreadSummary{
+ return object(value)&&exact(value,['organization_id','user_id','unread'])&&value.organization_id===organizationID&&value.user_id===userID&&count(value.unread);
+}
 export function notificationInboxPath(project:string,filter:NotificationInboxFilter,cursor=''){
  const params=new URLSearchParams({project_id:project,filter,limit:String(notificationInboxLimit)});
  if(cursor)params.set('cursor',cursor);

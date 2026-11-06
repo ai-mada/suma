@@ -49,8 +49,23 @@ func (s *Server) notificationInboxHTTP(w http.ResponseWriter, r *http.Request, a
 		return true
 	}
 	organization := len(parts) == 2 && parts[1] == "organization"
-	if organization && (scope != "" || actor.kind != actorBrowser) {
+	unreadSummary := len(parts) == 3 && parts[1] == "organization" && parts[2] == "unread-summary"
+	if (organization || unreadSummary) && (scope != "" || actor.kind != actorBrowser) {
 		writeError(w, forbidden())
+		return true
+	}
+	if unreadSummary {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", http.MethodGet)
+			writeError(w, &APIError{Status: http.StatusMethodNotAllowed, Code: "method_not_allowed", Message: "Method not allowed"})
+			return true
+		}
+		if r.URL.RawQuery != "" || r.URL.ForceQuery {
+			bad()
+			return true
+		}
+		out, err := s.Service.NotificationOrganizationUnreadSummary(r.Context(), actor)
+		respond(w, http.StatusOK, out, err)
 		return true
 	}
 	if r.Method == http.MethodGet && (len(parts) == 1 || organization) {

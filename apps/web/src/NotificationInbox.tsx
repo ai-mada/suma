@@ -10,7 +10,7 @@ import {useWriteAction,WriteNotice} from './write-action';
 import {ProjectNotificationPreferencesControl} from './ProjectNotificationPreferences';
 import {
  appendNotificationInboxPage,appendNotificationOrganizationInboxPage,inboxRows,notificationInboxBatchPath,notificationInboxCommandPath,
- notificationInboxFilters,notificationInboxPath,notificationInboxReceiptIsStale,notificationInboxScope,notificationInboxSelectionLimit,
+ notificationInboxFilters,notificationInboxPath,notificationInboxReceiptIsStale,notificationInboxScope,notificationInboxSelectionLimit,notifyOrganizationInboxChanged,
  notificationOrganizationInboxPath,notificationOrganizationInboxScope,validNotificationInboxFilter,
  validNotificationInboxPage,validNotificationInboxRecovery,validNotificationInboxResult,validNotificationOrganizationInboxPage,
  type InboxReadPage,type InboxWriteReceipt,type NotificationInboxAction,type NotificationInboxFilter,type NotificationInboxScopeMode,type NotificationToolInputTarget,
@@ -61,7 +61,8 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
  currentKey.current=key;currentApi.current=api;
  const clearPrivate=useCallback((error:unknown)=>{
   if(!alive.current)return;denied.current=true;epoch.current++;controller.current?.abort();cached.current=undefined;setSelection(undefined);setNotice('');setDenial(error);setState({key:currentKey.current,api:currentApi.current,loading:false,error});
- },[]);
+  notifyOrganizationInboxChanged(userID,organizationID);
+ },[userID,organizationID]);
  const read=useCallback(async(more=false):Promise<InboxReadPage|undefined>=>{
   const previous=more&&cached.current?.key===key&&cached.current.api===api?cached.current.page:undefined,cursor=previous?.next_cursor;
   if(more&&!cursor)return;
@@ -138,6 +139,7 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
  const bulkActions:NotificationInboxAction[]=filter==='archived'?['read','unread','restore']:filter==='unread'?['read','archive']:['read','unread','archive'];
  async function confirmed(receipt:InboxWriteReceipt|undefined){
   if(!receipt||!alive.current)return;
+  notifyOrganizationInboxChanged(userID,organizationID);
   if('results' in receipt){
    setSelection(undefined);setNotice('batch_confirmed');
    if(!denied.current)await latestRead.current();
@@ -175,7 +177,10 @@ function InboxScope({project,userID,organizationID,filter,refresh,scope,scopeMod
  }
  async function retry(){
   action.setError('');denied.current=false;setDenial(undefined);
-  if(await latestRead.current()&&batchWrite.current)action.clearConflict();
+  if(await latestRead.current()){
+   notifyOrganizationInboxChanged(userID,organizationID);
+   if(batchWrite.current)action.clearConflict();
+  }
  }
  function openSource(item:NotificationInboxItem,itemProject:string){
   const origin:[]|[string]=organization?[itemProject]:[];

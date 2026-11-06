@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "organization_inbox_unread": {
+    "stage": "T-ORGANIZATION-INBOX-UNREAD-282",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "ed8c1369712b805944f4728326371f37393e477d",
+    "report": "docs/quality/organization-inbox-unread-verification.md",
+    "actual": "The authenticated workbench header opens the organization inbox and shows a count-only unread summary within current project grants.",
+    "verification": "Four platform and two contract checks, 34 Web tests, type and catalog checks, and two isolated Chrome layouts with fixture responses passed.",
+    "known_limitations": "Real-time cross-device delivery, production performance and non-SQLite databases were not verified.",
+    "full_platform_complete": false
+  },
   "usage_evidence_cli": {
     "stage": "T-USAGE-EVIDENCE-CLI-281",
     "version": "1.0.0",

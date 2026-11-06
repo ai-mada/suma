@@ -46,6 +46,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-ORGANIZATION-INBOX-UNREAD-282 真实 SQLite 验证个人未读计数与权限，隔离 Chrome 核对中英文、桌面和窄屏导航。 [阶段报告](organization-inbox-unread-verification.md)
+
 T-USAGE-EVIDENCE-CLI-281 核验真实本地 HTTP 和 SQLite 的 CLI 分页、权限及只读行为。 [阶段报告](usage-evidence-cli-verification.md)
 
 T-USAGE-EVIDENCE-ORDER-280 核验同秒混合精度、相同时间 ID 排序和单条续页。 [阶段报告](usage-evidence-order-verification.md)

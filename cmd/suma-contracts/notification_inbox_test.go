@@ -76,6 +76,26 @@ func TestNotificationInboxContractBindsBatchSelectionAndBrowser(t *testing.T) {
 	}
 }
 
+func TestNotificationOrganizationUnreadSummaryContract(t *testing.T) {
+	api, _ := generate()
+	path := mapAt(api, "paths", "/notification-inbox/organization/unread-summary")
+	op := mapAt(path, "get")
+	security := op["security"].([]any)
+	if len(path) != 1 || op["x-read-only"] != true || op["requestBody"] != nil || len(security) != 1 || security[0].(map[string]any)["cookieAuth"] == nil {
+		t.Fatal("unread summary must be a browser-only read")
+	}
+	for _, value := range op["parameters"].([]any) {
+		if value.(map[string]any)["in"] == "query" {
+			t.Fatal("unread summary may not accept scope or query overrides")
+		}
+	}
+	model := mapAt(api, "components", "schemas", "NotificationOrganizationUnreadSummary")
+	props := mapAt(model, "properties")
+	if model["additionalProperties"] != false || len(props) != 3 || props["organization_id"] == nil || props["user_id"] == nil || mapAt(props, "unread")["minimum"] != 0 {
+		t.Fatal("unread summary should contain only authenticated identity and a nonnegative count")
+	}
+}
+
 func TestNotificationOrganizationInboxContractUsesCurrentBrowserScope(t *testing.T) {
 	api, _ := generate()
 	path := mapAt(api, "paths", "/notification-inbox/organization")

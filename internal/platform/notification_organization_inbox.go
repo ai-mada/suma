@@ -60,21 +60,7 @@ func (s *Service) notificationOrganizationInboxTx(ctx context.Context, auth *aut
 		return out, err
 	}
 
-	// The authority transaction holds the organization lock used by project
-	// grants and project lifecycle writes. Counts, page rows, and source reads
-	// all use this same current scope. Match the project-read roles exactly.
-	visibleWhere := ` WHERE p.tenant_id=?`
-	visibleArgs := []any{target.tenantID}
-	if !orgAdmin(auth.currentPrincipal) {
-		role := "m.role"
-		if s.Dialect == "oceanbase" {
-			// MySQL-compatible collations may fold case or ignore trailing
-			// spaces, while validProjectRole compares the exact stored value.
-			role = "BINARY m.role"
-		}
-		visibleWhere += ` AND EXISTS (SELECT 1 FROM suma_project_members m WHERE m.project_id=p.id AND m.user_id=? AND ` + role + ` IN ('admin','developer','reviewer','viewer'))`
-		visibleArgs = append(visibleArgs, auth.currentPrincipal.ID)
-	}
+	visibleWhere, visibleArgs := s.notificationInboxVisibleProjects(auth)
 	revision, err := s.notificationOrganizationInboxRevisionTx(ctx, auth, visibleWhere, visibleArgs)
 	if err != nil {
 		return out, err
@@ -123,6 +109,45 @@ func (s *Service) notificationOrganizationInboxTx(ctx context.Context, auth *aut
 		out.NextCursor = base64.RawURLEncoding.EncodeToString([]byte(stringify(scope)))
 	}
 	return out, nil
+}
+
+// NotificationOrganizationUnreadSummary counts the caller's unread, unarchived
+// notifications without loading source content or the set of visible project IDs.
+func (s *Service) NotificationOrganizationUnreadSummary(ctx context.Context, actor Actor) (out NotificationOrganizationUnreadSummary, err error) {
+	if actor.kind != actorBrowser {
+		return out, forbidden()
+	}
+	target := commandTarget{tenantID: actor.credential.tenantID, projectID: organizationScope}
+	err = s.withCurrentRead(ctx, actor, target, purposeOrganizationRead, func(auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		where, args := s.notificationInboxVisibleProjects(auth)
+		query := `SELECT COUNT(*)` + notificationInboxFrom + where + ` AND n.recipient_user_id=?` + notificationInboxUnreadWhere
+		out = NotificationOrganizationUnreadSummary{OrganizationID: auth.currentPrincipal.TenantID, UserID: auth.currentPrincipal.ID}
+		return auth.tx.QueryRowContext(bounded, s.q(query), append(args, out.UserID)...).Scan(&out.Unread)
+	})
+	if err != nil {
+		return NotificationOrganizationUnreadSummary{}, err
+	}
+	return out, nil
+}
+
+// Call only within current organization read authority. Match project-read roles
+// so scope checks agree between inbox pages and the unread summary.
+func (s *Service) notificationInboxVisibleProjects(auth *authorizedCommand) (string, []any) {
+	visibleWhere := ` WHERE p.tenant_id=?`
+	visibleArgs := []any{auth.currentPrincipal.TenantID}
+	if !orgAdmin(auth.currentPrincipal) {
+		role := "m.role"
+		if s.Dialect == "oceanbase" {
+			// MySQL-compatible collations may fold case or ignore trailing
+			// spaces, while validProjectRole compares the exact stored value.
+			role = "BINARY m.role"
+		}
+		visibleWhere += ` AND EXISTS (SELECT 1 FROM suma_project_members m WHERE m.project_id=p.id AND m.user_id=? AND ` + role + ` IN ('admin','developer','reviewer','viewer'))`
+		visibleArgs = append(visibleArgs, auth.currentPrincipal.ID)
+	}
+	return visibleWhere, visibleArgs
 }
 
 func (s *Service) notificationOrganizationInboxRevisionTx(ctx context.Context, auth *authorizedCommand, where string, args []any) (string, error) {

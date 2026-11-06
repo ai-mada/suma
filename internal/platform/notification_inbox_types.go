@@ -104,6 +104,14 @@ type NotificationOrganizationInboxItem struct {
 	Notification NotificationInboxItem `json:"notification"`
 }
 
+// NotificationOrganizationUnreadSummary is the count-only navigation view.
+// It carries the authenticated identity and no project or task data.
+type NotificationOrganizationUnreadSummary struct {
+	OrganizationID string `json:"organization_id"`
+	UserID         string `json:"user_id"`
+	Unread         int    `json:"unread"`
+}
+
 type NotificationOrganizationInboxPage struct {
 	OrganizationID string                              `json:"organization_id"`
 	UserID         string                              `json:"user_id"`

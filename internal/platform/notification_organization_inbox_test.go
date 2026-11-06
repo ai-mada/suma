@@ -71,6 +71,15 @@ func TestNotificationOrganizationInboxCurrentScopeAndPaging(t *testing.T) {
 		}
 	}
 
+	assertUnread := func(actor Actor, user string, want int) {
+		t.Helper()
+		got, err := f.s.NotificationOrganizationUnreadSummary(ctx, actor)
+		if err != nil || got != (NotificationOrganizationUnreadSummary{OrganizationID: f.user.TenantID, UserID: user, Unread: want}) {
+			t.Fatalf("unread summary = %+v, err = %v; want %d", got, err, want)
+		}
+	}
+	assertUnread(h.receiver, recipient, 3)
+	assertUnread(f.actor, f.user.ID, 1)
 	first, err := f.s.NotificationOrganizationInbox(ctx, h.receiver, "unread", 1, "")
 	if err != nil || first.Total != 3 || first.Counts != (NotificationInboxCounts{Inbox: 3, Unread: 3}) || len(first.Items) != 1 || first.NextCursor == "" || first.OrganizationID != f.user.TenantID || first.UserID != recipient || len(first.ScopeRevision) != 64 {
 		t.Fatalf("wrong aggregate scope: %+v %v", first, err)
@@ -132,10 +141,17 @@ func TestNotificationOrganizationInboxCurrentScopeAndPaging(t *testing.T) {
 	if err != nil || archived.Total != 1 || archived.Counts != (NotificationInboxCounts{Inbox: 2, Unread: 2, Archived: 1}) || len(archived.Items) != 1 || archived.Items[0].Notification.ID != item.ID || archived.ScopeRevision != first.ScopeRevision {
 		t.Fatalf("private project command did not update aggregate: %+v %v", archived, err)
 	}
+	assertUnread(h.receiver, recipient, 2)
+	_, err = f.s.CommandNotificationInbox(ctx, h.receiver, other.ID, item.ID, NotificationInboxCommand{ProjectID: other.ID, ExpectedVersion: item.Version + 1, Action: "restore", IdempotencyKey: newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertUnread(h.receiver, recipient, 3)
 	_, err = f.s.SaveProjectAccess(ctx, f.actor, map[string]any{"project_id": other.ID, "user_id": recipient, "action": "remove", "expected_version": float64(1), "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
+	assertUnread(h.receiver, recipient, 2)
 	rejected, err := f.s.NotificationOrganizationInbox(ctx, h.receiver, "unread", 1, first.NextCursor)
 	requireAuthorityStatus(t, err, 409)
 	if rejected.Total != 0 || len(rejected.Items) != 0 || rejected.ScopeRevision != "" {
@@ -191,6 +207,63 @@ func TestNotificationOrganizationInboxBrowserHTTPClosedQueryAndCredentialKinds(t
 		actor := domainAActor(t, f.s, issued.Token)
 		_, err = f.s.NotificationOrganizationInbox(ctx, actor, "", 20, "")
 		requireAuthorityStatus(t, err, 403)
+	}
+}
+
+func TestNotificationOrganizationUnreadSummaryHTTP(t *testing.T) {
+	h := newHandoffFixture(t)
+	f, ctx := h.f, context.Background()
+	const path = "/api/v1/notification-inbox/organization/unread-summary"
+	call := func(method, suffix, user, bearer string, cookie *http.Cookie, status int) *httptest.ResponseRecorder {
+		t.Helper()
+		req := httptest.NewRequest(method, path+suffix, nil)
+		if cookie != nil {
+			req.AddCookie(cookie)
+			req.Header.Set("X-Suma-Expected-User", user)
+			req.Header.Set("X-Suma-Expected-Organization", f.user.TenantID)
+		}
+		if bearer != "" {
+			req.Header.Set("Authorization", "Bearer "+bearer)
+		}
+		w := httptest.NewRecorder()
+		f.handler.ServeHTTP(w, req)
+		if w.Code != status {
+			t.Fatalf("%s %s returned %d, want %d: %s", method, suffix, w.Code, status, w.Body.String())
+		}
+		return w
+	}
+	assertUnread := func(want int) {
+		t.Helper()
+		w := call(http.MethodGet, "", f.user.ID, "", f.cookie, 200)
+		var got NotificationOrganizationUnreadSummary
+		var fields map[string]json.RawMessage
+		if json.Unmarshal(w.Body.Bytes(), &got) != nil || json.Unmarshal(w.Body.Bytes(), &fields) != nil || len(fields) != 3 ||
+			got != (NotificationOrganizationUnreadSummary{OrganizationID: f.user.TenantID, UserID: f.user.ID, Unread: want}) || w.Header().Get("Cache-Control") != "no-store" {
+			t.Fatalf("wrong or cacheable count-only response: %s", w.Body.String())
+		}
+	}
+	assertUnread(1)
+	item := inboxPage(t, f, f.actor, "inbox", 20, "").Items[0]
+	_, err := f.s.CommandNotificationInbox(ctx, f.actor, f.project, item.ID, NotificationInboxCommand{ProjectID: f.project, ExpectedVersion: item.Version, Action: "read", IdempotencyKey: newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertUnread(0)
+	for _, suffix := range []string{"?", "?project_id=other", "?recipient_user_id=other", "?organization_id=other", "?limit=1"} {
+		call(http.MethodGet, suffix, f.user.ID, "", f.cookie, 400)
+	}
+	w := call(http.MethodPost, "", f.user.ID, "", f.cookie, 405)
+	if w.Header().Get("Allow") != http.MethodGet {
+		t.Fatal("missing exact method contract")
+	}
+	call(http.MethodGet, "", "", "", nil, 401)
+	call(http.MethodGet, "", h.receiver.credential.subjectID, "", f.cookie, 403)
+	for _, scope := range []string{"api", "runner", "agent"} {
+		issued, err := f.s.IssueProjectCredential(ctx, f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: scope, IdempotencyKey: newID()})
+		if err != nil {
+			t.Fatal(err)
+		}
+		call(http.MethodGet, "", "", issued.Token, nil, 403)
 	}
 }
 

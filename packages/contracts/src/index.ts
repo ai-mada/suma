@@ -4252,6 +4252,11 @@ export interface NotificationOrganizationInboxPage {
   as_of: string;
   scope_revision: string;
 }
+export interface NotificationOrganizationUnreadSummary {
+  organization_id: string;
+  user_id: string;
+  unread: number;
+}
 export interface OctopExecutionCapability {
   harness_version: string;
   acp_sdk_version: string;

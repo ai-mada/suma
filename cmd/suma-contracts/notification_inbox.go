@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func notificationInboxModels() []any {
-	return []any{platform.NotificationInboxCounts{}, platform.NotificationInboxTask{}, platform.NotificationInboxToolInputTarget{}, platform.NotificationInboxItem{}, platform.NotificationInboxPage{}, platform.NotificationOrganizationInboxItem{}, platform.NotificationOrganizationInboxPage{}, platform.NotificationInboxCommand{}, platform.NotificationInboxCommandReceipt{}, platform.NotificationInboxBatchTarget{}, platform.NotificationInboxBatchCommand{}, platform.NotificationInboxBatchResult{}, platform.NotificationInboxBatchReceipt{}}
+	return []any{platform.NotificationInboxCounts{}, platform.NotificationInboxTask{}, platform.NotificationInboxToolInputTarget{}, platform.NotificationInboxItem{}, platform.NotificationInboxPage{}, platform.NotificationOrganizationInboxItem{}, platform.NotificationOrganizationInboxPage{}, platform.NotificationOrganizationUnreadSummary{}, platform.NotificationInboxCommand{}, platform.NotificationInboxCommandReceipt{}, platform.NotificationInboxBatchTarget{}, platform.NotificationInboxBatchCommand{}, platform.NotificationInboxBatchResult{}, platform.NotificationInboxBatchReceipt{}}
 }
 
 // The inbox projects real task assignments. Its private lifecycle requires
@@ -23,6 +23,11 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	appendQuery(organization, queryParameter("filter", "Inbox, unread or archived in the current organization.", map[string]any{"type": "string", "enum": []string{"inbox", "unread", "archived"}, "default": "inbox"}))
 	appendQuery(organization, queryParameter("limit", "Bounded page size; counts cover all currently readable projects.", map[string]any{"type": "integer", "minimum": 1, "maximum": 50, "default": 20}))
 	appendQuery(organization, queryParameter("cursor", "Opaque keyset cursor bound to current identity, organization, visible projects, filter and limit.", map[string]any{"type": "string", "minLength": 1, "maxLength": 4096}))
+	summary := add("/notification-inbox/organization/unread-summary", "get", "NotificationOrganizationUnreadSummary", false, false)
+	browserOnly(summary)
+	successStatus(summary, "200")
+	summary["x-read-only"] = true
+	summary["description"] = "Count the current browser recipient's unread and unarchived notifications in currently readable projects of the active organization. No query parameters or notification contents."
 	write := add("/notification-inbox/{id}/commands", "post", "NotificationInboxCommandReceipt", false, true)
 	successStatus(write, "200")
 	request(write, "NotificationInboxCommand")
@@ -45,7 +50,7 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 		op["description"] = "Current human/user-API project authority; recipient is derived from current identity. Notifications come from original task assignment, mention, review, handoff, followed discussion, execution failure or a durable tool input request. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization."
 	}
 	schemas := toolContractMap(api, "components", "schemas")
-	for _, name := range []string{"NotificationInboxCounts", "NotificationInboxTask", "NotificationInboxToolInputTarget", "NotificationInboxItem", "NotificationInboxPage", "NotificationOrganizationInboxItem", "NotificationOrganizationInboxPage", "NotificationInboxCommand", "NotificationInboxCommandReceipt", "NotificationInboxBatchTarget", "NotificationInboxBatchCommand", "NotificationInboxBatchResult", "NotificationInboxBatchReceipt"} {
+	for _, name := range []string{"NotificationInboxCounts", "NotificationInboxTask", "NotificationInboxToolInputTarget", "NotificationInboxItem", "NotificationInboxPage", "NotificationOrganizationInboxItem", "NotificationOrganizationInboxPage", "NotificationOrganizationUnreadSummary", "NotificationInboxCommand", "NotificationInboxCommandReceipt", "NotificationInboxBatchTarget", "NotificationInboxBatchCommand", "NotificationInboxBatchResult", "NotificationInboxBatchReceipt"} {
 		model := toolContractMap(schemas, name)
 		model["additionalProperties"] = false
 		if name != "NotificationInboxCommand" && name != "NotificationInboxBatchCommand" && name != "NotificationInboxBatchTarget" {
@@ -86,6 +91,7 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	field("NotificationOrganizationInboxPage", "items", map[string]any{"maxItems": 50})
 	field("NotificationOrganizationInboxPage", "limit", map[string]any{"minimum": 1, "maximum": 50})
 	field("NotificationOrganizationInboxPage", "scope_revision", map[string]any{"pattern": "^[0-9a-f]{64}$", "description": "Opaque equality marker for the current readable project set. Do not append pages from different markers."})
+	field("NotificationOrganizationUnreadSummary", "unread", map[string]any{"minimum": 0})
 	for _, key := range []string{"inbox", "unread", "archived"} {
 		field("NotificationInboxCounts", key, map[string]any{"minimum": 0})
 	}

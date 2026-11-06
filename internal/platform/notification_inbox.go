@@ -98,6 +98,8 @@ func (s *Service) notificationInboxTx(ctx context.Context, auth *authorizedComma
 
 const notificationInboxFrom = ` FROM suma_notification_inbox n JOIN suma_projects p ON p.id=n.project_id AND p.tenant_id=n.tenant_id`
 
+const notificationInboxUnreadWhere = ` AND n.archived_at='' AND n.read_at=''`
+
 func validNotificationInboxRead(filter string, limit int, cursor string) bool {
 	return (filter == "inbox" || filter == "unread" || filter == "archived") && limit >= 1 && limit <= 50 && len(cursor) <= 4096
 }
@@ -111,7 +113,7 @@ func (s *Service) notificationInboxCountsTx(ctx context.Context, auth *authorize
 func notificationInboxFilter(filter string, counts NotificationInboxCounts) (string, int) {
 	switch filter {
 	case "unread":
-		return ` AND n.archived_at='' AND n.read_at=''`, counts.Unread
+		return notificationInboxUnreadWhere, counts.Unread
 	case "archived":
 		return ` AND n.archived_at<>''`, counts.Archived
 	default:

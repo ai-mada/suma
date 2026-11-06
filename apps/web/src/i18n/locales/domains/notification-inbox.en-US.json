@@ -1,5 +1,8 @@
 {
   "notification-inbox.title": "Inbox",
+  "notification-inbox.open_organization": "Open organization inbox",
+  "notification-inbox.open_organization_unread": "Open organization inbox, {{unread}} unread",
+  "notification-inbox.header_count_limit": "{{countText}}+",
   "notification-inbox.intro": "Task assignments, mentions, handoffs, reviews and execution failures for you in the current project.",
   "notification-inbox.organization_intro": "Your notifications across the projects you can access in this organization.",
   "notification-inbox.scope_label": "Show",
