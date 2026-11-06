@@ -52,6 +52,8 @@ beforeEach(async()=>{
 afterEach(async()=>{
  await act(async()=>root.unmount());
  host.remove();
+ vi.useRealTimers();
+ vi.restoreAllMocks();
  vi.unstubAllGlobals();
  await setLocale('zh-CN',{persist:false});
 });
@@ -75,6 +77,22 @@ async function click(selector:string){
  await settle();
 }
 const ids=()=>[...host.querySelectorAll('[data-workbuddy-progress-row]')].map(row=>row.getAttribute('data-workbuddy-progress-row'));
+const autoRefresh='[data-workbuddy-progress-auto-refresh]';
+const refreshInterval=20_000;
+
+function simulateVisibility(){
+ const state=vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+ const hidden=vi.spyOn(document,'hidden','get').mockReturnValue(false);
+ return async(visible:boolean)=>{
+  state.mockReturnValue(visible?'visible':'hidden');
+  hidden.mockReturnValue(!visible);
+  await act(async()=>document.dispatchEvent(new Event('visibilitychange')));
+ };
+}
+
+async function advanceRefresh(intervals=1){
+ await act(async()=>vi.advanceTimersByTimeAsync(refreshInterval*intervals));
+}
 
 it('reads only on entry, keeps platform and provider facts separate, and opens the exact run attempt',async()=>{
  await act(async()=>root.render(<ApiViewProvider session={session}>
@@ -489,4 +507,80 @@ it('waits for an explicit clear before reading when the task locator is malforme
  await click('[data-workbuddy-progress-task-clear]');
  expect(requests).toHaveLength(1);
  expect(requests[0].url.searchParams.has('task_id')).toBe(false);
+});
+
+it('only refreshes opted-in visible first pages and keeps the same authorized scope without overlapping',async()=>{
+ vi.useFakeTimers({toFake:['setInterval','clearInterval']});
+ const setVisible=simulateVisibility();
+ const row=known('run-a','cloud.delivery_required');
+ const first=(title='Build CI')=>page([row],'next-batch','attention',[taskLink('run-a','task-a','current',title)],'task-a');
+ reply=async()=>first();
+ await render(session,'attention',false,'task-a');
+ const initial=requests[0];
+ expect(host.querySelector(autoRefresh)?.getAttribute('aria-pressed')).toBe('false');
+ await advanceRefresh(2);
+ expect(requests).toHaveLength(1);
+ await click(autoRefresh);
+ expect(host.querySelector(autoRefresh)?.getAttribute('aria-pressed')).toBe('true');
+ await setVisible(false);
+ await advanceRefresh(2);
+ expect(requests).toHaveLength(1);
+ await setVisible(true);
+
+ let resolveRead!:(response:Response)=>void;
+ reply=()=>new Promise(resolve=>{resolveRead=resolve;});
+ await advanceRefresh();
+ expect(requests).toHaveLength(2);
+ expect(requests[1].url.href).toBe(initial.url.href);
+ expect(requests[1].init?.method).toBe('GET');
+ expect(new Headers(requests[1].init?.headers).get('X-Suma-Expected-User')).toBe('user-a');
+ expect(new Headers(requests[1].init?.headers).get('X-Suma-Expected-Organization')).toBe('org-a');
+ expect(host.querySelector('[data-workbuddy-progress-open]')).not.toBeNull();
+ await advanceRefresh(2);
+ expect(requests).toHaveLength(2);
+ await act(async()=>resolveRead(first('Updated task title')));
+ expect(host.querySelector('[data-workbuddy-progress-task-scope]')?.textContent).toContain('Updated task title');
+
+ reply=async url=>url.searchParams.get('before')==='next-batch'
+  ?page([known('run-b','cloud.delivery_required')],undefined,'attention',[taskLink('run-b','task-a','current')],'task-a')
+  :first();
+ await click('[data-workbuddy-progress-more]');
+ expect(ids()).toEqual(['run-a','run-b']);
+ await advanceRefresh(2);
+ expect(requests).toHaveLength(3);
+ await click('[data-workbuddy-progress-refresh]');
+ expect(ids()).toEqual(['run-a']);
+ await advanceRefresh();
+ expect(requests.map(({url})=>url.searchParams.get('before'))).toEqual([null,null,'next-batch',null,null]);
+ expect(requests.every(({init})=>init?.method==='GET')).toBe(true);
+});
+
+it('pauses on a failed automatic read, recovers by explicit retry, and clears records on revocation',async()=>{
+ vi.useFakeTimers({toFake:['setInterval','clearInterval']});
+ simulateVisibility();
+ const confirmed=()=>page([known('protected-run')],undefined,undefined,[taskLink('protected-run','task-a','current','Private task title')]);
+ reply=async()=>confirmed();
+ await render();
+ await click(autoRefresh);
+ expect(ids()).toEqual(['protected-run']);
+ expect(host.querySelector('[data-workbuddy-progress-task-link]')).not.toBeNull();
+
+ reply=async()=>Response.json({error:'unavailable'},{status:503});
+ await advanceRefresh();
+ expect(ids()).toEqual(['protected-run']);
+ expect(host.querySelector('[data-workbuddy-progress-open]')).toBeNull();
+ expect(host.querySelector('[data-workbuddy-progress-task-link]')).toBeNull();
+ await advanceRefresh(2);
+ expect(requests).toHaveLength(2);
+
+ reply=async()=>confirmed();
+ await click('[role="alert"] button');
+ expect(host.querySelector('[data-workbuddy-progress-task-link]')).not.toBeNull();
+ reply=async()=>Response.json({error:'forbidden'},{status:403});
+ await advanceRefresh();
+ expect(ids()).toEqual([]);
+ expect(host.textContent).not.toContain('Private task title');
+ expect(host.querySelector('[role="alert"]')?.textContent).toContain('Protected records were cleared');
+ await advanceRefresh(2);
+ expect(requests).toHaveLength(4);
 });

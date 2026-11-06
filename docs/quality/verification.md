@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-PROGRESS-FOLLOW 核验自动刷新、分页与失败暂停、当前授权及只读浏览器请求。 [阶段报告](workbuddy-progress-follow-verification.md)
+
 T-WORKBUDDY-INPUT-TRIAGE 核验保存观察、当前任务及原尝试，验证团队只读与原授权人协作入口。 [阶段验证](workbuddy-input-triage-verification.md)
 
 T-WORKBUDDY-DELIVERY-FILTER 核验当前关联、历史改绑、准确尝试深链和 Web／CLI 筛选边界。 [阶段验证](workbuddy-delivery-filter-verification.md)

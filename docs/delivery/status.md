@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-PROGRESS-FOLLOW WorkBuddy 团队进度可按当前筛选自动刷新已保存记录，保留分页位置及失败恢复。 [交互](../design/workbuddy-cloud-task.md#持续跟踪已保存进度) · [验证](../quality/workbuddy-progress-follow-verification.md)
+
 T-WORKBUDDY-INPUT-TRIAGE 团队可按当前任务查看已确认的等待输入尝试并打开准确来源，原授权人在运行详情查看继续协作。 [交互](../design/workbuddy-cloud-task.md#等待输入筛选) · [验证](../quality/workbuddy-input-triage-verification.md)
 
 T-WORKBUDDY-DELIVERY-FILTER 团队进度可筛选当前任务仍关联的待交付尝试，按准确运行、节点和尝试核对交付来源。网页与 CLI 共用分页。 [交互](../design/workbuddy-cloud-task.md#待交付筛选) · [验证](../quality/workbuddy-delivery-filter-verification.md)

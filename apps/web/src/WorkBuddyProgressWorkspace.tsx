@@ -1,5 +1,5 @@
-import {useCallback,useEffect,useRef,useState,type MouseEvent} from 'react';
-import {ArrowRight,Cloud,ListFilter,RefreshCw,X} from 'lucide-react';
+import {useCallback,useEffect,useId,useRef,useState,type MouseEvent} from 'react';
+import {ArrowRight,Cloud,ListFilter,RefreshCw,Timer,X} from 'lucide-react';
 import type {CloudNodeProgress,CloudProgressTaskLink} from '../../../packages/contracts/src';
 import {ApiError,query,type Session} from './api';
 import {useApi} from './api-context';
@@ -22,6 +22,7 @@ type Props={
  onRun:(run:string,node:string,attempt?:number)=>void;
 };
 const pageSize=10;
+const autoRefreshInterval=20_000;
 const t=(key:string,values?:Record<string,unknown>)=>tr('workbuddy-progress.'+key,values);
 const reasons:Record<string,string>={
  'cloud.authorization_changed':'runner_status_authorization_changed',
@@ -118,7 +119,8 @@ function readPage(value:unknown,project:string,filter:Props['filter'],taskID?:st
  return {entries,next};
 }
 
-type Snapshot=ProgressPage & {scope:string;lastBatchCount:number;cursors:Set<string>};
+type Snapshot=ProgressPage & {scope:string;lastBatchCount:number;cursors:Set<string>;hasContinuation:boolean;loadedAt:string};
+type ReadMode='first'|'append'|'auto';
 type ReadState={scope:string;snapshot?:Snapshot;loading:boolean;error?:UiError;retryAppend?:boolean};
 
 export function WorkBuddyProgressWorkspace(props:Props){
@@ -132,17 +134,21 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
  const blocked=!!invalidFilter||badTask;
  const scope=JSON.stringify([filter,task,blocked]);
  const [state,setState]=useState<ReadState>({scope,loading:!blocked});
- const snapshot=useRef<Snapshot|undefined>(undefined),controller=useRef<AbortController|undefined>(undefined);
- const heading=useRef<HTMLHeadingElement>(null);
+ const [autoRefresh,setAutoRefresh]=useState(false);
+ const snapshot=useRef<Snapshot|undefined>(undefined);
+ const request=useRef<{mode:ReadMode;controller:AbortController}|undefined>(undefined);
+ const autoStatusID=useId(),heading=useRef<HTMLHeadingElement>(null);
  const selectTask=onTask?(id?:string)=>{heading.current?.focus();onTask(id);}:undefined;
- const read=useCallback(async (append=false)=>{
+ const read=useCallback(async (mode:ReadMode='first')=>{
   if(blocked)return;
+  const append=mode==='append';
   const previous=snapshot.current?.scope===scope?snapshot.current:undefined,before=append?previous?.next:undefined;
   if(append&&!before)return;
-  controller.current?.abort();
+  if(mode==='auto'&&(!previous||previous.hasContinuation||request.current||document.visibilityState==='hidden'))return;
+  request.current?.controller.abort();
   const abort=new AbortController();
-  controller.current=abort;
-  setState({scope,snapshot:previous,loading:true});
+  request.current={mode,controller:abort};
+  if(mode!=='auto')setState({scope,snapshot:previous,loading:true});
   try{
    const url='/workbuddy-cloud-progress'+query(project)+'&limit='+pageSize+
     (filter?'&filter='+filter:'')+(task?'&task_id='+encodeURIComponent(task):'')+(before?'&before='+encodeURIComponent(before):'');
@@ -156,7 +162,8 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
    const cursors=new Set(append?previous?.cursors:[]);
    if(page.next&&cursors.has(page.next)||page.entries.some(({item})=>loaded.has(key(item))))throw new UiError('workbuddy-progress.invalid');
    if(page.next)cursors.add(page.next);
-   const next={scope,entries:append&&previous?[...previous.entries,...page.entries]:page.entries,next:page.next,lastBatchCount:page.entries.length,cursors};
+   const next={scope,entries:append&&previous?[...previous.entries,...page.entries]:page.entries,next:page.next,
+    lastBatchCount:page.entries.length,cursors,hasContinuation:append,loadedAt:new Date().toISOString()};
    snapshot.current=next;
    setState({scope,snapshot:next,loading:false});
   }catch(error){
@@ -166,18 +173,44 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
    snapshot.current=denied||invalid?undefined:previous;
    setState({scope,snapshot:snapshot.current,loading:false,retryAppend:!!snapshot.current&&append,
     error:new UiError(denied?'workbuddy-progress.denied':invalid?'workbuddy-progress.invalid':'workbuddy-progress.failed')});
+  }finally{
+   if(request.current?.controller===abort)request.current=undefined;
   }
  },[api,project,user,organization,scope,filter,task,blocked]);
  useEffect(()=>{
   if(snapshot.current?.scope!==scope)snapshot.current=undefined;
   void read();
-  return()=>controller.current?.abort();
+  return()=>request.current?.controller.abort();
  },[read,refresh,scope]);
 
  // Hide the previous scope immediately, before its pending request is aborted.
  const current=state.scope===scope?state:{scope,loading:!blocked};
  const rows=current.snapshot?.entries??[];
  const available=!!current.snapshot&&!current.loading&&!current.error;
+ const autoState=!autoRefresh||blocked?undefined:current.error?'error':current.snapshot?.hasContinuation?'pagination':available?'active':undefined;
+ const canAutoRefresh=autoState==='active'&&available;
+ useEffect(()=>{
+  if(!canAutoRefresh)return;
+  let timer:ReturnType<typeof setInterval>|undefined;
+  const stop=()=>{
+   clearInterval(timer);
+   const active=request.current;
+   if(active?.mode==='auto'){
+    request.current=undefined;
+    active.controller.abort();
+   }
+  };
+  const schedule=()=>{
+   stop();
+   if(document.visibilityState!=='hidden')timer=setInterval(()=>void read('auto'),autoRefreshInterval);
+  };
+  schedule();
+  document.addEventListener('visibilitychange',schedule);
+  return()=>{
+   stop();
+   document.removeEventListener('visibilitychange',schedule);
+  };
+ },[canAutoRefresh,read]);
  const filtered=!!filter||!!task;
  const emptyBatch=available&&filtered&&current.snapshot?.lastBatchCount===0;
  const taskTitle=task?rows[0]?.task?.task_title?.trim():undefined;
@@ -185,7 +218,19 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
  return <section className="workbuddy-progress" aria-label={t('title')} aria-busy={current.loading} data-workbuddy-progress>
   <header className="workbuddy-progress-heading">
    <div><h2 ref={heading} tabIndex={-1}><Cloud size={18} aria-hidden="true"/>{t('title')}</h2><p>{t('intro')}</p></div>
-   <button type="button" data-workbuddy-progress-refresh disabled={current.loading||blocked} onClick={()=>void read()}><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button>
+   <div className="workbuddy-progress-read-controls">
+    <div className="workbuddy-progress-read-actions">
+     <button type="button" data-workbuddy-progress-refresh disabled={current.loading||blocked} onClick={()=>void read()}><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button>
+     <button type="button" data-workbuddy-progress-auto-refresh aria-pressed={autoRefresh} aria-describedby={autoState?autoStatusID:undefined} disabled={blocked}
+      onClick={()=>setAutoRefresh(value=>!value)}><Timer size={15} aria-hidden="true"/>{t('auto_refresh')}</button>
+    </div>
+    <p className="workbuddy-progress-read-status">
+     <span id={autoStatusID} role="status" data-workbuddy-progress-auto-state={autoState}>{autoState&&t('auto_'+autoState)}</span>
+     {current.snapshot&&<time dateTime={current.snapshot.loadedAt} data-workbuddy-progress-loaded-at>{t('read_at',{
+      time:formatDateTime(current.snapshot.loadedAt,{timeStyle:'medium'}),
+     })}</time>}
+    </p>
+   </div>
   </header>
   <p className="workbuddy-progress-boundary">{t(filter==='input'?'input_boundary':'boundary')}</p>
   <div className="workbuddy-progress-facets" role="group" aria-label={t('filter_label')}>
@@ -203,7 +248,7 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
   </div>
   {invalidFilter&&<div data-workbuddy-progress-invalid-filter><ErrorNotice error={new UiError('workbuddy-progress.invalid_filter')}/></div>}
   {badTask&&<div data-workbuddy-progress-invalid-task><ErrorNotice error={new UiError('workbuddy-progress.invalid_task')}/></div>}
-  {current.error&&<ErrorNotice error={current.error} onRetry={()=>void read(current.retryAppend)}/>}
+  {current.error&&<ErrorNotice error={current.error} onRetry={()=>void read(current.retryAppend?'append':'first')}/>}
   {current.error&&current.snapshot&&<p className="workbuddy-progress-note" role="status">{t('stale')}</p>}
   {current.loading&&!current.snapshot&&<Loading/>}
   {current.snapshot&&<>
@@ -219,7 +264,7 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
     data-workbuddy-progress-empty-attention={filter==='attention'||undefined}
     data-workbuddy-progress-empty-delivery={filter==='delivery'||undefined}
     data-workbuddy-progress-empty-input={filter==='input'||undefined}>{t('empty_'+filter)}</p>}
-   {current.snapshot.next&&<div className="workbuddy-progress-more"><button type="button" data-workbuddy-progress-more disabled={!available} onClick={()=>void read(true)}>{t(filtered?'more_attention':'more')}</button></div>}
+   {current.snapshot.next&&<div className="workbuddy-progress-more"><button type="button" data-workbuddy-progress-more disabled={!available} onClick={()=>void read('append')}>{t(filtered?'more_attention':'more')}</button></div>}
   </>}
  </section>;
 }

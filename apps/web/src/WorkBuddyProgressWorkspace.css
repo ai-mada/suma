@@ -5,6 +5,10 @@
 .workbuddy-progress-heading h2{display:flex;align-items:center;gap:8px;margin:0;font-size:16px}
 .workbuddy-progress-heading p,.workbuddy-progress-row-heading p,.workbuddy-progress-note,.workbuddy-progress-boundary{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
 .workbuddy-progress-heading button,.workbuddy-progress-row-heading a,.workbuddy-progress-more button{display:inline-flex;align-items:center;gap:7px;flex-shrink:0}
+.workbuddy-progress-read-controls{min-width:0;max-width:100%;display:grid;gap:4px}
+.workbuddy-progress-read-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.workbuddy-progress-read-actions button[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--surface-soft)}
+.workbuddy-progress-heading .workbuddy-progress-read-status{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 12px;margin:0}
 .workbuddy-progress-boundary{margin:0;padding:10px 12px;border-inline-start:3px solid var(--border);background:var(--surface-soft);border-radius:0 6px 6px 0}
 .workbuddy-progress-facets{display:flex;flex-wrap:wrap;gap:8px}
 .workbuddy-progress-facets button{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;text-align:start}
@@ -39,6 +43,7 @@
 @media(max-width:900px){.workbuddy-progress-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){
  .workbuddy-progress-heading,.workbuddy-progress-row-heading{flex-wrap:wrap;gap:6px}
+ .workbuddy-progress-read-actions,.workbuddy-progress-heading .workbuddy-progress-read-status{justify-content:flex-start}
  .workbuddy-progress-row{padding:12px}
  .workbuddy-progress-facets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
  .workbuddy-progress-facets>button{justify-content:center;min-width:0;padding-inline:6px;text-align:center;white-space:normal;overflow-wrap:anywhere}
