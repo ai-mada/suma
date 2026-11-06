@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MODEL-DIRECTORY 核验模型目录类型、准确来源及费率、切换和撤权恢复，以及桌面和窄屏目录操作。 [命令与证据](model-directory-verification.md)
+
 T-TOOL-QUICK-RECOVERY-266 核验真实桌面缺失和启动方式异常、明确失败保留草稿、原保存回执恢复与去重。 [阶段验证](tool-quick-recovery-verification.md)
 
 T-TOOL-DECISION-IMPACT 核验停用和移除的当前影响、冲突后重新确认、撤权阻断及实际移除后保留原运行。 [命令与证据](tool-decision-impact-verification.md)

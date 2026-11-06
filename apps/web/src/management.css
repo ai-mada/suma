@@ -9,10 +9,19 @@
 .management-projects strong,.management-projects small,.management-projects code{display:block;overflow-wrap:anywhere}
 .management-projects strong{font-size:15px}.management-projects small{margin:8px 0;color:var(--muted);line-height:1.7}.management-projects code{font-size:10px;color:var(--muted)}
 .management-project-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;background:var(--accent-soft);color:var(--accent);flex-shrink:0}
-.management-model-source{padding:20px;display:grid;gap:10px}.management-model-source select{max-width:560px}.management-model-source p{color:var(--muted);font-size:12px;line-height:1.7}
+.management-model-source{padding:20px;display:grid;gap:12px;min-width:0}.management-model-source .field{margin:0;max-width:560px;min-width:0}.management-model-source select{width:100%;min-width:0}.management-model-source p{color:var(--muted);font-size:12px;line-height:1.7}
+.management-source-more,.management-source-summary,.management-model-filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;min-width:0}
+.management-source-more{justify-content:flex-start;color:var(--muted)}
+.management-source-summary{border-bottom:1px solid var(--border);padding:0 0 12px;overflow-wrap:anywhere}
+.management-source-summary p,.management-model-filter p{color:var(--muted);font-size:12px}
+.management-source-summary a{display:inline-flex;align-items:center;gap:5px}
+.management-model-filter .field{margin:0;width:min(100%,360px)}
 .management-model-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.management-model-card{display:grid;align-content:start;gap:12px;padding:22px;min-width:0}.management-model-card>svg{color:var(--accent)}.management-model-card .badge{justify-self:start}.management-model-card h3{font-size:16px;overflow-wrap:anywhere}
-.management-model-card dl{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;margin:0;font-size:12px;line-height:1.7}.management-model-card dt{color:var(--muted)}.management-model-card dd{margin:0;overflow-wrap:anywhere}.management-model-card details{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px}.management-model-card summary{cursor:pointer}.management-model-card code{display:block;margin-top:12px;font-size:10px;word-break:break-all}
+.management-model-card{display:grid;align-content:start;gap:14px;padding:22px;min-width:0}
+.management-model-card-heading{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 10px}
+.management-model-card-heading svg{color:var(--accent)}.management-model-card-heading .badge{grid-column:2;justify-self:start}
+.management-model-card h3{font-size:16px;overflow-wrap:anywhere}.management-model-card p{font-size:12px;line-height:1.7;color:var(--muted)}
+.management-model-card dl{display:grid;grid-template-columns:minmax(90px,1fr) minmax(0,2fr);gap:8px 12px;margin:0;font-size:12px;line-height:1.7}.management-model-card dt{color:var(--muted)}.management-model-card dd{margin:0;overflow-wrap:anywhere}.management-model-card details{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px}.management-model-card summary{cursor:pointer}.management-model-card details dl{margin-top:12px}.management-model-card code{font-size:11px;overflow-wrap:anywhere}
 .management-model-asof{color:var(--muted);font-size:11px}.management-boundary{display:flex;align-items:flex-start;gap:9px;color:var(--muted);font-size:12px;line-height:1.75}.management-boundary svg{flex-shrink:0;color:var(--accent);margin-top:2px}.management-boundary p{flex:1}.management-boundary a{flex-shrink:0}
 @media(max-width:800px){.management-projects,.management-model-grid{grid-template-columns:minmax(0,1fr)}.management-heading{flex-wrap:wrap}.management-boundary{flex-wrap:wrap}.management-boundary p{flex-basis:85%}}
-@media(max-width:600px){.management-projects>button,.management-model-card{padding:17px}.management-directory button,.management-models button,.management-models select{min-height:44px}.management-heading{align-items:flex-start}.management-model-source{padding:16px}.management-model-card dl{grid-template-columns:1fr;gap:5px}.management-model-card dd{margin-bottom:7px}}
+@media(max-width:600px){.management-projects>button,.management-model-card{padding:17px}.management-directory button,.management-models button,.management-models select,.management-model-filter input{min-height:44px}.management-heading{align-items:flex-start}.management-model-source{padding:16px}.management-model-card dl{grid-template-columns:1fr;gap:5px}.management-model-card dd{margin-bottom:7px}}
