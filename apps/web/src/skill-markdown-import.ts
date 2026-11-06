@@ -1,27 +1,14 @@
 import {isMap, parseDocument, visit} from 'yaml';
 import {UiError} from './i18n';
+import {readKnowledgeMarkdownFile} from './knowledge-markdown-file';
 
-const maxFileBytes = 32 * 1024;
 const frontmatterBoundary = /^---[ \t]*$/;
 const skillName = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Read one local Agent Skills entry point into the existing knowledge draft. */
 export async function readSkillMarkdown(file: File): Promise<{title: string; summary: string; content: string}> {
-    if (file.name.length !== 8 || !/^skill\.md$/i.test(file.name)) {
-        throw new UiError('knowledge.import_invalid');
-    }
-    if (file.size > maxFileBytes) throw new UiError('knowledge.import_too_large');
-
-    let bytes: ArrayBuffer;
+    const text = await readKnowledgeMarkdownFile(file, 'skill');
     try {
-        bytes = await file.arrayBuffer();
-    } catch {
-        throw new UiError('knowledge.import_read_failed');
-    }
-    if (bytes.byteLength > maxFileBytes) throw new UiError('knowledge.import_too_large');
-
-    try {
-        const text = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
         return parseSkillMarkdown(text);
     } catch (error) {
         if (error instanceof UiError) throw error;

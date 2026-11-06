@@ -153,12 +153,17 @@ var cliMessages = map[string]cliMessage{
 	"unsupported API method":                                             {"cli.api.method_unsupported", "不支持此 API 方法"},
 	"API mutations require explicit --method and --file":                 {"cli.api.write_options", "API 写操作必须显式提供 --method 和 --file"},
 	"GET does not accept --file":                                         {"cli.api.get_file", "GET 不接受 --file"},
-	knowledgeActionsUsage:                                                {"cli.knowledge.action_required", "knowledge 需要 list、search、show、history、import-skill、create、edit、extract 或 command。请查看 knowledge --help"},
+	knowledgeActionsUsage:                                                {"cli.knowledge.action_required", "knowledge 需要 list、search、show、history、import-skill、import-helix-spec、create、edit、extract 或 command。请查看 knowledge --help"},
 	knowledgeSkillImportUsage:                                            {"cli.knowledge.import_skill_usage", "knowledge import-skill 需要一个 --file SKILL.md，并可在命令前指定 --project"},
 	knowledgeSkillInvalid:                                                {"cli.knowledge.import_skill_invalid", "请选择 UTF-8 编码的 SKILL.md。文件需包含有效的 YAML、技能名称、说明和 Markdown 正文"},
 	knowledgeSkillTooLarge:                                               {"cli.knowledge.import_skill_too_large", "技能文件、说明或正文超过项目草稿的大小限制"},
 	knowledgeSkillReadFailed:                                             {"cli.knowledge.import_skill_read_failed", "无法读取本地技能文件"},
 	knowledgeSkillCredential:                                             {"cli.knowledge.import_skill_credential", "技能草稿输入包含当前凭据。请移除凭据后再生成预览"},
+	knowledgeHelixSpecImportUsage:                                        {"cli.knowledge.import_helix_spec_usage", "knowledge import-helix-spec 需要一个 --file spec.md，并可在命令前指定 --project"},
+	knowledgeHelixSpecInvalid:                                            {"cli.knowledge.import_helix_spec_invalid", "请选择非空、UTF-8 编码的 spec.md"},
+	knowledgeHelixSpecTooLarge:                                           {"cli.knowledge.import_helix_spec_too_large", "规范文件上限为 32 KiB，草稿正文上限为 16,000 字节"},
+	knowledgeHelixSpecReadFailed:                                         {"cli.knowledge.import_helix_spec_read_failed", "无法读取本地规范文件"},
+	knowledgeHelixSpecCredential:                                         {"cli.knowledge.import_helix_spec_credential", "规范草稿输入包含当前凭据。请移除凭据后再生成预览"},
 	knowledgeSearchUsage:                                                 {"cli.knowledge.search_usage", "knowledge search 支持 --mode keyword|index、--query（最多 200 UTF-8 字节）、--kind memory|spec|skill、--limit 1–20 和 --format json|table；index 须非空查询且禁止 --cursor，keyword 可用原 --cursor（最多 2048 字节）；请查看 knowledge --help"},
 	knowledgeIndexSearchResponseInvalid:                                  {"cli.knowledge.index_search_response", "知识索引检索须保留准确发布来源、Unicode 码点定位和真实提供方候选事实"},
 	knowledgeSearchResponseInvalid:                                       {"cli.knowledge.search_response", "知识发现结果须保留当前项目的准确发布引用及有界扫描的继续依据"},
@@ -274,6 +279,7 @@ func projectContextHelp(locale localization.Locale) string {
 const contextHelpEN = `
 Governed project context (global flags still go before the command):
   knowledge import-skill --file SKILL.md    Preview local skill draft JSON
+  knowledge import-helix-spec --file spec.md    Preview a local HelixHarness specification draft
   knowledge list [--kind memory|spec|skill] [--state draft|published|retired]
                  [--query TEXT] [--limit 1..100] [--cursor NEXT_CURSOR]
   knowledge search [--mode keyword|index] [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
@@ -287,7 +293,7 @@ Governed project context (global flags still go before the command):
   requirement design save|preview|command|adopt REQUIREMENT_ID --file request.json
 
 Project context and JSON API inputs accept --file - (stdin), at most 4 MiB and valid UTF-8.
-import-skill reads one local SKILL.md without a server. Use knowledge create --file draft.json to save.
+Import commands read a local file offline. Review the JSON and save with knowledge create --file draft.json.
 history and revisions are aliases; command and commands are aliases.
 Draft edits replace the complete draft. save uses PUT. command action is publish or retire.
 Project API credentials may edit drafts; publication, retirement and adoption require
@@ -308,6 +314,7 @@ References are exact id/revision/sha256 values; discovery does not adopt, publis
 const contextHelpZH = `
 受治理的项目上下文（全局参数仍放在命令前）：
   knowledge import-skill --file SKILL.md    预览本地技能草稿 JSON
+  knowledge import-helix-spec --file spec.md    预览本地 HelixHarness 规范草稿
   knowledge list [--kind memory|spec|skill] [--state draft|published|retired]
                  [--query TEXT] [--limit 1..100] [--cursor NEXT_CURSOR]
   knowledge search [--mode keyword|index] [--query TEXT] [--kind memory|spec|skill] [--limit 1..20]
@@ -321,7 +328,7 @@ const contextHelpZH = `
   requirement design save|preview|command|adopt REQUIREMENT_ID --file request.json
 
 项目上下文与 JSON API 输入均支持 --file -（标准输入），最多 4 MiB，须使用有效 UTF-8。
-import-skill 离线读取一个本地 SKILL.md。使用 knowledge create --file draft.json 保存草稿。
+导入命令离线读取本地文件。复核 JSON 后，使用 knowledge create --file draft.json 保存草稿。
 history 与 revisions 同义；command 与 commands 同义。
 编辑须完整替换草稿；save 使用 PUT；command 的 action 为 publish 或 retire。
 项目 API 凭证可编辑草稿；发布、退役和采用须由当前有批准权限的浏览器身份

@@ -26,16 +26,17 @@ let host: HTMLDivElement;
 let writes: { path: string; method: string; body: Record<string, unknown>; headers: Headers }[];
 
 function savedDraft(body: Record<string, unknown>): KnowledgeDetail {
+    const kind = body.kind === 'spec' ? 'spec' : 'skill';
     const title = String(body.title);
     const summary = String(body.summary);
     const content = String(body.content);
     return {
-        id: draftID, project_id: project, version: 1, kind: 'skill', state: 'draft',
+        id: draftID, project_id: project, version: 1, kind, state: 'draft',
         title, summary, latest_revision: 1, published_revision: 0,
         published_sha256: '', published_title: '', published_summary: '',
         has_draft: true, published_eligible: false, eligibility: 'none', created_at: stamp, updated_at: stamp,
         latest: {
-            revision: 1, based_on_revision: 0, state: 'draft', kind: 'skill', title, summary, content,
+            revision: 1, based_on_revision: 0, state: 'draft', kind, title, summary, content,
             sha256: 'c'.repeat(64), sources: [], method: 'manual', created_by: session.user.id, created_at: stamp,
         },
     };
@@ -55,6 +56,7 @@ function WorkspaceHarness() {
 beforeEach(async () => {
     await setLocale('en-US', { persist: false });
     await import('../skill-markdown-import');
+    await import('../helix-spec-import');
     sessionStorage.clear();
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     host = document.createElement('div');
@@ -90,11 +92,12 @@ function button(text: string, container: ParentNode) {
     return element;
 }
 
-async function openImport() {
-    await act(async () => button(tr('knowledge.import_skill'), host).click());
+async function openImport(format: 'skill' | 'helix' = 'skill') {
+    const action = tr(format === 'helix' ? 'knowledge.import_helix_spec' : 'knowledge.import_skill');
+    await act(async () => button(action, host).click());
     const dialog = document.querySelector('[role="dialog"]');
-    if (!dialog) throw new Error('Missing skill import dialog');
-    expect(dialog.querySelector('h2')?.textContent).toBe(tr('knowledge.import_title'));
+    if (!dialog) throw new Error('Missing import dialog');
+    expect(dialog.querySelector('h2')?.textContent).toBe(format === 'helix' ? action : tr('knowledge.import_title'));
     return dialog;
 }
 
@@ -102,7 +105,7 @@ function utf8(text: string): ArrayBuffer {
     return new TextEncoder().encode(text).buffer as ArrayBuffer;
 }
 
-function skillFile(text: string, name = 'SKILL.md') {
+function markdownFile(text: string, name = 'SKILL.md') {
     const file = new File([text], name, { type: 'text/markdown' });
     if (typeof file.arrayBuffer !== 'function') {
         // Older JSDOM Blob implementations omit the native binary read method.
@@ -113,7 +116,7 @@ function skillFile(text: string, name = 'SKILL.md') {
 }
 
 async function chooseFile(dialog: Element, file: File, started?: Promise<void>) {
-    const input = dialog.querySelector<HTMLInputElement>('input[name="skill-file"]');
+    const input = dialog.querySelector<HTMLInputElement>('input[type="file"]');
     expect(input?.disabled).toBe(false);
     Object.defineProperty(input!, 'files', { value: [file], configurable: true });
     await act(async () => {
@@ -124,7 +127,7 @@ async function chooseFile(dialog: Element, file: File, started?: Promise<void>) 
 
 function titleField(dialog: Element) {
     const field = dialog.querySelector<HTMLInputElement>('input[name="title"]');
-    if (!field) throw new Error('Missing editable skill title');
+    if (!field) throw new Error('Missing editable title');
     return field;
 }
 
@@ -133,7 +136,7 @@ it('prefills an editable skill and creates one project draft only after Save dra
     expect(button(tr('knowledge.save'), dialog).disabled).toBe(true);
     expect(writes).toHaveLength(0);
 
-    await chooseFile(dialog, skillFile(skill));
+    await chooseFile(dialog, markdownFile(skill));
 
     const title = titleField(dialog);
     expect(title.value).toBe('candidate-review');
@@ -166,13 +169,13 @@ it('prefills an editable skill and creates one project draft only after Save dra
 it('retains the import dialog after an invalid file and accepts a local retry without writes', async () => {
     const dialog = await openImport();
 
-    await chooseFile(dialog, skillFile(skill, 'candidate-review.md'));
+    await chooseFile(dialog, markdownFile(skill, 'candidate-review.md'));
 
     expect(dialog.querySelector('[role="alert"]')?.textContent).toContain(tr('knowledge.import_invalid'));
     expect(button(tr('knowledge.save'), dialog).disabled).toBe(true);
     expect(writes).toHaveLength(0);
 
-    await chooseFile(dialog, skillFile(skill));
+    await chooseFile(dialog, markdownFile(skill));
 
     expect(dialog.querySelector('[role="alert"]')).toBeNull();
     expect(titleField(dialog).value).toBe('candidate-review');
@@ -199,7 +202,31 @@ it('ignores a file read that finishes after the import dialog is cancelled and r
     await act(async () => resolveRead(utf8(skill)));
     expect(button(tr('knowledge.save'), fresh).disabled).toBe(true);
 
-    await chooseFile(fresh, skillFile(skill.replace('name: candidate-review', 'name: release-review')));
+    await chooseFile(fresh, markdownFile(skill.replace('name: candidate-review', 'name: release-review')));
     expect(titleField(fresh).value).toBe('release-review');
     expect(writes).toHaveLength(0);
+});
+
+it('retries a rejected HelixHarness file and saves the reviewed text as a specification draft', async () => {
+    const dialog = await openImport('helix');
+    await chooseFile(dialog, markdownFile('# Work plan', 'tasks.md'));
+    expect(dialog.querySelector('[role="alert"]')?.textContent).toContain(tr('knowledge.helix_spec_invalid'));
+    expect(button(tr('knowledge.save'), dialog).disabled).toBe(true);
+
+    const content = '\n# 集成回执\n\n```text\nEvidence  \n```\n';
+    await chooseFile(dialog, markdownFile('\uFEFF' + content.replace(/\n/g, '\r\n'), 'SPEC.md'));
+    expect(titleField(dialog).value).toBe('集成回执');
+    expect(dialog.querySelector<HTMLTextAreaElement>('textarea[name="content"]')?.value).toBe(content);
+    expect(writes).toHaveLength(0);
+
+    await act(async () => button(tr('knowledge.save'), dialog).click());
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toMatchObject({
+        path: '/project-knowledge', method: 'POST',
+        body: {
+            project_id: project, kind: 'spec', title: '集成回执', summary: '', content,
+            expected_version: 0, sources: [], idempotency_key: expect.any(String),
+        },
+    });
+    expect(host.querySelector('.knowledge-detail')?.textContent).toContain(tr('knowledge.state.draft'));
 });

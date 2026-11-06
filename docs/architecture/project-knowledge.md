@@ -33,6 +33,10 @@ erDiagram
 
 CLI 的离线导入和浏览器遵循同一技能文件输入边界。Go CLI 使用独立的受限 YAML 解析器生成可交给现有创建命令的 JSON，权限、写入及回执均归原服务处理。项目可在预览时固定，显式提交时由现有 CLI 校验一致性。 [Go YAML v3](https://pkg.go.dev/go.yaml.in/yaml/v3@v3.0.6)
 
+## HelixHarness 规范交接
+
+HelixHarness 由 Codex 或 Claude Code 承载，仓库中生成的规范可以作为本地 Markdown 进入项目知识。Web 与 CLI 在发出请求前执行同样的文本和字节校验。输入经过人工审阅，再由原服务保存和发布。正式采用固定知识修订，任务执行、测试、验收和归档沿各自合同推进。插件安装、仓库同步与外部验收报告仍独立跟踪。 [HelixHarness](https://github.com/didi/helixharness)
+
 ## 修订与发布状态
 
 创建 v1／revision1 为草稿；每次编辑、发布、退役都追加新修订，并原子推进聚合版本。

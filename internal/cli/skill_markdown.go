@@ -3,8 +3,6 @@ package cli
 import (
 	"bytes"
 	"io"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -16,7 +14,6 @@ const (
 	knowledgeSkillInvalid    = "choose a UTF-8 SKILL.md with valid YAML, a skill name, a description and Markdown instructions"
 	knowledgeSkillTooLarge   = "the skill file, description or instructions exceed the project draft limits"
 	knowledgeSkillReadFailed = "the local skill file could not be read"
-	maxSkillMarkdownBytes    = 32 * 1024
 )
 
 type skillMarkdown struct {
@@ -26,33 +23,9 @@ type skillMarkdown struct {
 var skillNamePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 
 func readSkillMarkdown(path string) (skillMarkdown, error) {
-	base := filepath.Base(path)
-	if len(base) != len("SKILL.md") || !strings.EqualFold(base, "SKILL.md") || strings.Contains(path, "://") ||
-		strings.HasPrefix(strings.ReplaceAll(path, `\`, "/"), "//") {
-		return skillMarkdown{}, usage(knowledgeSkillInvalid)
-	}
-	before, err := os.Lstat(path)
-	if err != nil || !before.Mode().IsRegular() {
-		return skillMarkdown{}, usage(knowledgeSkillReadFailed)
-	}
-	if before.Size() > maxSkillMarkdownBytes {
-		return skillMarkdown{}, usage(knowledgeSkillTooLarge)
-	}
-	file, err := os.Open(path)
+	raw, err := readKnowledgeMarkdown(path, "SKILL.md", knowledgeSkillInvalid, knowledgeSkillTooLarge, knowledgeSkillReadFailed)
 	if err != nil {
-		return skillMarkdown{}, usage(knowledgeSkillReadFailed)
-	}
-	defer file.Close()
-	opened, err := file.Stat()
-	if err != nil || !opened.Mode().IsRegular() || !os.SameFile(before, opened) {
-		return skillMarkdown{}, usage(knowledgeSkillReadFailed)
-	}
-	raw, err := io.ReadAll(io.LimitReader(file, maxSkillMarkdownBytes+1))
-	if err != nil {
-		return skillMarkdown{}, usage(knowledgeSkillReadFailed)
-	}
-	if len(raw) > maxSkillMarkdownBytes {
-		return skillMarkdown{}, usage(knowledgeSkillTooLarge)
+		return skillMarkdown{}, err
 	}
 	return parseSkillMarkdown(raw)
 }

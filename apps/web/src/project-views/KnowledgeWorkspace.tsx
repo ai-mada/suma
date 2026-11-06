@@ -27,10 +27,10 @@ type Props = {
     onRefresh: () => void;
 };
 type Editor = {
-    mode: 'create' | 'extract' | 'edit' | 'import-skill';
+    mode: 'create' | 'extract' | 'edit' | 'import-skill' | 'import-helix-spec';
     entry?: KnowledgeDetail;
 };
-type SkillImport = { state: 'idle' | 'reading' | 'ready' } | { state: 'failed'; error: unknown };
+type MarkdownImport = { state: 'idle' | 'reading' | 'ready' } | { state: 'failed'; error: unknown };
 type Decision = {
     action: 'publish' | 'retire';
     entry: KnowledgeDetail;
@@ -85,7 +85,13 @@ export function KnowledgeWorkspace({ intelligenceId, deliveryTaskId, project, se
         onFilter({ state: event.target.value as KnowledgeFilters['state'] }); }}>{['all', 'draft', 'published', 'retired'].map(state => <option key={state} value={state}>{t('knowledge.state.' + state)}</option>)}</select></Field>
     <div className="knowledge-filter-search"><input aria-label={t('knowledge.search')} placeholder={t('knowledge.search_placeholder')} value={search} onChange={event => setSearch(event.target.value)} disabled={blocked}/><button disabled={blocked}>{t('knowledge.apply_filters')}</button></div>
    </form>
-   <div className="knowledge-toolbar knowledge-actions"><button className="primary" disabled={blocked} onClick={() => { action.clearConflict(); setEditor({ mode: 'create' }); }}><Plus size={15}/>{t('knowledge.create')}</button><button disabled={blocked} onClick={() => { action.clearConflict(); setEditor({ mode: 'import-skill' }); }}><FileUp size={15} aria-hidden="true"/>{t('knowledge.import_skill')}</button><button disabled={blocked} onClick={() => { action.clearConflict(); setEditor({ mode: 'extract' }); }}><FileText size={15}/>{t('knowledge.extract')}</button><button className="icon-button" aria-label={t('knowledge.reload')} disabled={blocked || entries.loading} onClick={() => void entries.read()}><RefreshCw size={16}/></button></div>
+   <div className="knowledge-toolbar knowledge-actions">
+    <button className="primary" disabled={blocked} onClick={() => { action.clearConflict(); setEditor({ mode: 'create' }); }}><Plus size={15}/>{t('knowledge.create')}</button>
+    <button disabled={blocked} onClick={() => { action.clearConflict(); setEditor({ mode: 'import-skill' }); }}><FileUp size={15} aria-hidden="true"/>{t('knowledge.import_skill')}</button>
+    <button disabled={blocked} onClick={() => { action.clearConflict(); setEditor({ mode: 'import-helix-spec' }); }}><FileUp size={15} aria-hidden="true"/>{t('knowledge.import_helix_spec')}</button>
+    <button disabled={blocked} onClick={() => { action.clearConflict(); setEditor({ mode: 'extract' }); }}><FileText size={15}/>{t('knowledge.extract')}</button>
+    <button className="icon-button" aria-label={t('knowledge.reload')} disabled={blocked || entries.loading} onClick={() => void entries.read()}><RefreshCw size={16}/></button>
+   </div>
    {Boolean(entries.error) && <ErrorNotice error={entries.error} onRetry={() => void entries.read(entries.more)}/>}
    {entries.loading && !entries.items && <Loading />}
    <ul className="knowledge-list-items">{entries.items?.map(entry => <li key={entry.id}><button className="knowledge-entry" aria-current={selected === entry.id} disabled={blocked} onClick={() => changeSelection(entry.id)}><span><strong>{entry.title}</strong><span className="knowledge-meta"><span className="type-chip">{t('knowledge.kind.' + entry.kind)}</span><span>{t('knowledge.state.' + entry.state)}</span><span>{t('knowledge.revision', { revision: formatNumber(entry.latest_revision) })}</span>{entry.has_draft && <span>{t('knowledge.has_draft')}</span>}</span>{entry.summary && <p>{entry.summary}</p>}<small className={entry.eligibility === 'source_changed' ? 'text-danger' : 'muted'}>{t('knowledge.eligible.' + entry.eligibility)}</small></span><ChevronRight size={16}/></button></li>)}</ul>
@@ -125,19 +131,21 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
     onClose: () => void;
     onSave: (path: string, body: Record<string, unknown>, method?: string) => Promise<void>;
 }) {
-    const importingSkill = editor.mode === 'import-skill';
-    const api = useApi(), entry = editor.entry, [kind, setKind] = useState<KnowledgeKind>(entry?.kind || (importingSkill ? 'skill' : 'memory')), [title, setTitle] = useState(entry?.latest.title || ''), [summary, setSummary] = useState(entry?.latest.summary || ''), [content, setContent] = useState(entry?.latest.content || ''), [baseVersion, setBaseVersion] = useState(entry?.version || 0), [dirty, setDirty] = useState(false), [discard, setDiscard] = useState(false), [guardError, setGuardError] = useState<unknown>(''), [sourceKind, setSourceKind] = useState<KnowledgeSourceKind>('documents'), [sourceID, setSourceID] = useState(''), [quote, setQuote] = useState(''), [serverContent, setServerContent] = useState<string>(), [fixedSources, setFixedSources] = useState<KnowledgeSourceInput[]>(entry ? knowledgeSourceInputs(entry.latest.sources) : []), [currentSources, setCurrentSources] = useState<Record<string, CurrentKnowledgeSource>>({}), [sourceBusy, setSourceBusy] = useState('');
-    const extracting = editor.mode === 'extract', sources = useToolList<RecordItem>(importingSkill ? '' : project, sourceKind), blocked = action.busy || !!action.pending;
+    const importingHelix = editor.mode === 'import-helix-spec';
+    const importing = importingHelix || editor.mode === 'import-skill';
+    const importKind = importingHelix ? 'spec' : 'skill';
+    const api = useApi(), entry = editor.entry, [kind, setKind] = useState<KnowledgeKind>(entry?.kind || (importing ? importKind : 'memory')), [title, setTitle] = useState(entry?.latest.title || ''), [summary, setSummary] = useState(entry?.latest.summary || ''), [content, setContent] = useState(entry?.latest.content || ''), [baseVersion, setBaseVersion] = useState(entry?.version || 0), [dirty, setDirty] = useState(false), [discard, setDiscard] = useState(false), [guardError, setGuardError] = useState<unknown>(''), [sourceKind, setSourceKind] = useState<KnowledgeSourceKind>('documents'), [sourceID, setSourceID] = useState(''), [quote, setQuote] = useState(''), [serverContent, setServerContent] = useState<string>(), [fixedSources, setFixedSources] = useState<KnowledgeSourceInput[]>(entry ? knowledgeSourceInputs(entry.latest.sources) : []), [currentSources, setCurrentSources] = useState<Record<string, CurrentKnowledgeSource>>({}), [sourceBusy, setSourceBusy] = useState('');
+    const extracting = editor.mode === 'extract', sources = useToolList<RecordItem>(importing ? '' : project, sourceKind), blocked = action.busy || !!action.pending;
     const selected = sources.items?.find(source => source.id === sourceID);
-    const [skillImport, setSkillImport] = useState<SkillImport>({ state: 'idle' });
+    const [markdownImport, setMarkdownImport] = useState<MarkdownImport>({ state: 'idle' });
     const importEpoch = useRef(0), focusImportedTitle = useRef(false);
     const importStatusID = useId(), titleInput = useRef<HTMLInputElement>(null);
-    const skillReady = skillImport.state === 'ready';
+    const importReady = markdownImport.state === 'ready';
     useLeaveGuard(dirty, setGuardError);
     useLayoutEffect(() => () => { importEpoch.current++; }, []);
     useLayoutEffect(() => {
-        if (skillReady && focusImportedTitle.current) titleInput.current?.focus();
-    }, [skillReady]);
+        if (importReady && focusImportedTitle.current) titleInput.current?.focus();
+    }, [importReady]);
     function close() {
         if (blocked) return;
         if (dirty) {
@@ -147,22 +155,24 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
         importEpoch.current++;
         onClose();
     }
-    async function importSkillFile(file: File, picker: HTMLInputElement) {
+    async function importMarkdown(file: File, picker: HTMLInputElement) {
         const epoch = ++importEpoch.current;
-        setSkillImport({ state: 'reading' });
+        setMarkdownImport({ state: 'reading' });
         try {
-            const { readSkillMarkdown } = await import('../skill-markdown-import');
-            const draft = await readSkillMarkdown(file);
+            const readMarkdown = importingHelix
+                ? (await import('../helix-spec-import')).readHelixSpec
+                : (await import('../skill-markdown-import')).readSkillMarkdown;
+            const draft = await readMarkdown(file);
             if (epoch !== importEpoch.current) return;
             focusImportedTitle.current = document.activeElement === picker;
             setTitle(draft.title);
             setSummary(draft.summary);
             setContent(draft.content);
             setDirty(true);
-            setSkillImport({ state: 'ready' });
+            setMarkdownImport({ state: 'ready' });
         } catch (error) {
             if (epoch !== importEpoch.current) return;
-            setSkillImport({ state: 'failed', error: error instanceof UiError ? error : new UiError('knowledge.import_read_failed') });
+            setMarkdownImport({ state: 'failed', error: error instanceof UiError ? error : new UiError(importingHelix ? 'knowledge.helix_spec_read_failed' : 'knowledge.import_read_failed') });
         }
     }
     async function submit(event: FormEvent) {
@@ -172,7 +182,7 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
             await onSave(action.pending.path, action.pending.body, action.pending.method);
             return;
         }
-        if (importingSkill && !skillReady) return;
+        if (importing && !importReady) return;
         let fixed: KnowledgeSourceInput[] = fixedSources;
         if (extracting) {
             if (!selected) {
@@ -205,25 +215,28 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
         const input:KnowledgeSourceInput=current.kind==='accepted_delivery'?{...deliveryKnowledgeSourceInput(current.value),kind:'accepted_delivery'}:{kind:source.kind,id:source.id,version:current.value.version};
         setFixedSources(before=>before.map((item,at)=>at===index?input:item));setDirty(true);
     }
-    const editorTitle = importingSkill ? 'knowledge.import_title' : extracting ? 'knowledge.extraction_title' : entry ? 'knowledge.edit_title' : 'knowledge.create_title';
-    const editorDescription = importingSkill ? 'knowledge.import_hint' : extracting ? 'knowledge.extraction_hint' : 'knowledge.manual_hint';
+    const editorTitle = importingHelix ? 'knowledge.import_helix_spec' : importing ? 'knowledge.import_title' : extracting ? 'knowledge.extraction_title' : entry ? 'knowledge.edit_title' : 'knowledge.create_title';
+    const editorDescription = importingHelix ? 'knowledge.helix_spec_hint' : importing ? 'knowledge.import_hint' : extracting ? 'knowledge.extraction_hint' : 'knowledge.manual_hint';
+    const fileHint = importingHelix ? 'knowledge.helix_spec_file_hint' : 'knowledge.import_file_hint';
+    const importStatus = importReady ? (importingHelix ? 'knowledge.helix_spec_ready' : 'knowledge.import_ready')
+        : markdownImport.state === 'reading' ? (importingHelix ? 'knowledge.helix_spec_reading' : 'knowledge.import_reading') : fileHint;
     return <Modal open title={t(editorTitle)} description={t(editorDescription)} onClose={close}>
-  <form className={importingSkill ? "knowledge-editor knowledge-editor-skill-import" : "knowledge-editor"} onSubmit={event => void submit(event)}>
+  <form className={importing ? "knowledge-editor knowledge-editor-import" : "knowledge-editor"} onSubmit={event => void submit(event)}>
    <WriteNotice action={action} onRebase={entry ? async () => { const current = await api<KnowledgeDetail>(objectPath(entry.id) + query(project)); setBaseVersion(current.version); setServerContent(current.latest.content); } : undefined}/>
    {Boolean(guardError) && <ErrorNotice error={guardError}/>}
-   {importingSkill && <div className="knowledge-skill-import">
-    {!skillReady && <Field label={t('knowledge.import_file')}><input type="file" name="skill-file" accept=".md,text/markdown" disabled={blocked} aria-describedby={importStatusID} aria-invalid={skillImport.state === 'failed' || undefined} onChange={event => {
+   {importing && <div className="knowledge-markdown-import">
+    {!importReady && <Field label={t(importingHelix ? 'knowledge.helix_spec_file' : 'knowledge.import_file')}><input type="file" name={importingHelix ? 'helix-spec-file' : 'skill-file'} accept=".md,text/markdown" disabled={blocked} aria-describedby={importStatusID} aria-invalid={markdownImport.state === 'failed' || undefined} onChange={event => {
         const picker = event.currentTarget;
         const file = picker.files?.[0];
         picker.value = '';
-        if (file) void importSkillFile(file, picker);
+        if (file) void importMarkdown(file, picker);
     }}/></Field>}
-    {skillReady && <span className="type-chip">{t('knowledge.kind.skill')}</span>}
-    <p id={importStatusID} className="muted" role="status">{skillReady ? t('knowledge.import_ready') : skillImport.state === 'reading' ? t('knowledge.import_reading') : t('knowledge.import_file_hint')}</p>
-    {skillImport.state === 'failed' && <ErrorNotice error={skillImport.error}/>}
+    {importReady && <span className="type-chip">{t(importingHelix ? 'knowledge.kind.spec' : 'knowledge.kind.skill')}</span>}
+    <p id={importStatusID} className="muted" role="status">{t(importStatus)}</p>
+    {markdownImport.state === 'failed' && <ErrorNotice error={markdownImport.error}/>}
    </div>}
-   {(!importingSkill || skillReady) && <fieldset className="form-fields" disabled={blocked} onChange={() => setDirty(true)}>
-    {!importingSkill && <Field label={t('knowledge.kind_label')}><select value={kind} disabled={!!entry} onChange={event => setKind(event.target.value as KnowledgeKind)}>{knowledgeKinds.map(value => <option key={value} value={value}>{t('knowledge.kind.' + value)}</option>)}</select></Field>}
+   {(!importing || importReady) && <fieldset className="form-fields" disabled={blocked} onChange={() => setDirty(true)}>
+    {!importing && <Field label={t('knowledge.kind_label')}><select value={kind} disabled={!!entry} onChange={event => setKind(event.target.value as KnowledgeKind)}>{knowledgeKinds.map(value => <option key={value} value={value}>{t('knowledge.kind.' + value)}</option>)}</select></Field>}
     <Field label={t('knowledge.title_label')} hint={extracting ? t('knowledge.optional_title') : undefined}><input ref={titleInput} name="title" required={!extracting} maxLength={300} value={title} onChange={event => setTitle(event.target.value)}/></Field>
     <Field label={t('knowledge.summary_label')}><textarea name="summary" rows={2} maxLength={2000} value={summary} onChange={event => setSummary(event.target.value)}/></Field>
     {extracting ? <><Field label={t('knowledge.source_kind')}><select value={sourceKind} onChange={event => { setSourceKind(event.target.value as KnowledgeSourceKind); setSourceID(''); setQuote(''); }}>{sourceKinds.map(value => <option key={value} value={value}>{knowledgeSourceLabel(value)}</option>)}</select></Field>
@@ -232,11 +245,11 @@ function KnowledgeEditor({ project, editor, action, onClose, onSave }: {
      {sources.next_cursor && <button type="button" disabled={sources.loading} onClick={() => void sources.read(true)}>{t('knowledge.more')}</button>}
      {selected && <small>{selected.id} · {t('knowledge.source_version', { version: formatNumber(selected.version) })}</small>}
      <Field label={t('knowledge.source_quote')} hint={t('knowledge.source_quote_hint')}><textarea name="quote" rows={5} value={quote} onChange={event => setQuote(event.target.value)}/></Field>
-    </> : <><Field label={t('knowledge.content_label')}><textarea name="content" required rows={importingSkill ? 7 : 12} value={content} onChange={event => setContent(event.target.value)}/></Field>{entry && <details><summary>{t('knowledge.source_list')}</summary>{fixedSources.map((source, index) => { const key = source.kind + ':' + source.id, current = currentSources[key]; return <div className="knowledge-source" key={key}><strong>{entry.latest.sources.find(item => item.id === source.id && item.kind === source.kind)?.title || source.id}</strong><p>{t('knowledge.source_version', { version: formatNumber(source.version) })}</p><button type="button" disabled={blocked || !!sourceBusy} onClick={()=>void readCurrentSource(source,key)}>{t('knowledge.source_read_current')}</button>{current && <><p>{t('knowledge.source_current_version', { version: formatNumber(current.value.version) })} · {current.value.title || current.value.id}</p><pre className="knowledge-content">{current.kind==='accepted_delivery'?current.value.quote:[current.value.description,current.value.content,current.value.acceptance_criteria].filter(value=>typeof value==='string').join('\n\n')}</pre><p className="muted">{t('knowledge.source_adopt_hint')}</p><button type="button" disabled={blocked} onClick={()=>adoptCurrentSource(index,source,current)}>{t('knowledge.source_adopt', { version: formatNumber(current.value.version) })}</button></>}</div>; })}</details>}</>}
+    </> : <><Field label={t('knowledge.content_label')}><textarea name="content" required rows={importing ? 7 : 12} value={content} onChange={event => setContent(event.target.value)}/></Field>{entry && <details><summary>{t('knowledge.source_list')}</summary>{fixedSources.map((source, index) => { const key = source.kind + ':' + source.id, current = currentSources[key]; return <div className="knowledge-source" key={key}><strong>{entry.latest.sources.find(item => item.id === source.id && item.kind === source.kind)?.title || source.id}</strong><p>{t('knowledge.source_version', { version: formatNumber(source.version) })}</p><button type="button" disabled={blocked || !!sourceBusy} onClick={()=>void readCurrentSource(source,key)}>{t('knowledge.source_read_current')}</button>{current && <><p>{t('knowledge.source_current_version', { version: formatNumber(current.value.version) })} · {current.value.title || current.value.id}</p><pre className="knowledge-content">{current.kind==='accepted_delivery'?current.value.quote:[current.value.description,current.value.content,current.value.acceptance_criteria].filter(value=>typeof value==='string').join('\n\n')}</pre><p className="muted">{t('knowledge.source_adopt_hint')}</p><button type="button" disabled={blocked} onClick={()=>adoptCurrentSource(index,source,current)}>{t('knowledge.source_adopt', { version: formatNumber(current.value.version) })}</button></>}</div>; })}</details>}</>}
    </fieldset>}
    {serverContent !== undefined && <details open><summary>{t('knowledge.current_content')}</summary><pre className="knowledge-content">{serverContent}</pre></details>}
    {discard && <div className="warning" role="alert"><strong>{t('knowledge.discard_title')}</strong><p>{t('knowledge.discard_confirm')}</p><div className="knowledge-actions"><button type="button" onClick={() => setDiscard(false)}>{t('knowledge.keep_editing')}</button><button type="button" onClick={() => { setDirty(false); onClose(); }}>{t('knowledge.discard')}</button></div></div>}
-   <div className="dialog-actions"><button type="button" disabled={blocked} onClick={close}>{t('knowledge.cancel')}</button><button className="primary" disabled={action.busy || action.conflict || (!action.pending && (importingSkill && !skillReady || extracting && (!selected || sources.loading)))}>{t(action.pending ? 'knowledge.restore' : extracting ? 'knowledge.extract_submit' : 'knowledge.save')}</button></div>
+   <div className="dialog-actions"><button type="button" disabled={blocked} onClick={close}>{t('knowledge.cancel')}</button><button className="primary" disabled={action.busy || action.conflict || (!action.pending && (importing && !importReady || extracting && (!selected || sources.loading)))}>{t(action.pending ? 'knowledge.restore' : extracting ? 'knowledge.extract_submit' : 'knowledge.save')}</button></div>
   </form>
  </Modal>;
 }

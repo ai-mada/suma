@@ -48,6 +48,12 @@
 
 CLI 的 `knowledge import-skill --file PATH_TO_SKILL.md` 按同一输入范围生成可审阅的 JSON 草稿。预览在本机完成，选填 `--project` 时将项目写入结果。用户明确执行 `knowledge create --file` 后，沿原项目权限和幂等合同保存。预览不生成操作标识。相同调用者、目标和原 JSON 可用于核对结果未知的提交。
 
+## 从 HelixHarness spec.md 创建草稿
+
+Web 与 CLI 接受单个本地 `spec.md`，文件最多 32 KiB，正文最多 16,000 UTF-8 字节。读取时移除 UTF-8 BOM，将 CRLF 统一为 LF。首个非空行若为有效一级标题且不超过 200 UTF-8 字节，作为草稿标题，否则预填 `HelixHarness spec`。拒绝空正文、无效 UTF-8、NUL 和超限内容。
+
+文件正文作为人工输入提交，草稿为 `kind=spec`、`expected_version=0`、初始来源为空。用户明确保存后走原项目知识创建合同；CLI 离线预览与创建分开。仓库路径、内容哈希或外部批准均不能由导入推断。发布和任务选择仍使用当前授权、准确版本及幂等回执。
+
 ## 任务与智能体消费
 
 `TaskDispatchPreviewRequest.knowledge` 显式选择最多十六个 `ProjectKnowledgeReference{id,revision,sha256}`，默认空。服务端从批准的不可变版本解析出 `TaskContext.knowledge`；前端或外部工具不能提供正文快照冒充已批准输入。

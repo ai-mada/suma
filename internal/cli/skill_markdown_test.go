@@ -24,7 +24,7 @@ func TestReadSkillMarkdown(t *testing.T) {
 		{"malformed UTF-8", base + "\xff", knowledgeSkillInvalid},
 		{"NUL", base + "\x00", knowledgeSkillInvalid},
 		{"NUL from scalar escape", strings.Replace(base, "Review a release candidate.", `"hidden\0detail"`, 1), knowledgeSkillInvalid},
-		{"file limit", strings.Repeat("a", maxSkillMarkdownBytes+1), knowledgeSkillTooLarge},
+		{"file limit", strings.Repeat("a", maxKnowledgeMarkdownBytes+1), knowledgeSkillTooLarge},
 		{"summary UTF-8 limit", strings.Replace(base, "Review a release candidate.", strings.Repeat("审", 334), 1), knowledgeSkillTooLarge},
 		{"body UTF-8 limit", strings.Split(base, "# Steps")[0] + strings.Repeat("审", 5334), knowledgeSkillTooLarge},
 	} {

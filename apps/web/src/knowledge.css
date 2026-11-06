@@ -88,7 +88,7 @@
   color:var(--muted)}
 .knowledge-editor textarea[name=content]{min-height:220px;
   font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
-.knowledge-skill-import{
+.knowledge-markdown-import{
   display:grid;
   gap:8px;
   padding:12px;
@@ -97,19 +97,19 @@
   background:var(--surface-soft);
   min-width:0
 }
-.knowledge-skill-import .field,.knowledge-skill-import p{margin:0}
-.knowledge-skill-import input[type=file]{max-width:100%;min-width:0}
-.knowledge-skill-import p{font-size:13px;line-height:1.5}
-.knowledge-skill-import .type-chip{justify-self:start}
-.knowledge-editor-skill-import textarea[name=content]{min-height:144px}
-.knowledge-editor-skill-import .dialog-actions{
+.knowledge-markdown-import .field,.knowledge-markdown-import p{margin:0}
+.knowledge-markdown-import input[type=file]{max-width:100%;min-width:0}
+.knowledge-markdown-import p{font-size:13px;line-height:1.5}
+.knowledge-markdown-import .type-chip{justify-self:start}
+.knowledge-editor-import textarea[name=content]{min-height:144px}
+.knowledge-editor-import .dialog-actions{
   position:sticky;
   inset-block-end:0;
   z-index:1;
   background:var(--surface);
   padding-block:12px 4px
 }
-.dialog:has(.knowledge-editor-skill-import){scroll-padding-block-end:64px}
+.dialog:has(.knowledge-editor-import){scroll-padding-block-end:64px}
 .knowledge-editor details{margin:10px 0}
 .knowledge-back{display:none}
 .knowledge-dispatch-list{display:grid;

@@ -49,6 +49,8 @@ func knowledgeCommand(ctx context.Context, c *client, args []string, in io.Reade
 	switch args[0] {
 	case "import-skill":
 		return knowledgeSkillImportCommand(c, args[1:], out)
+	case "import-helix-spec":
+		return knowledgeHelixSpecImportCommand(c, args[1:], out)
 	case "search":
 		return knowledgeSearchCommand(ctx, c, args[1:], out)
 	case "list":

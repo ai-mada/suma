@@ -32,6 +32,19 @@ suma --control https://suma.example --project PROJECT_ID knowledge create --file
 
 创建命令返回草稿 ID。若写入结果未知，保留同一项目、调用身份和原 JSON，再使用相同命令核对结果。对内容的后续编辑沿现有草稿修订进行。
 
+## 导入 HelixHarness 规范
+
+在「知识空间 → 项目知识」选择「导入 HelixHarness 规范」，打开仓库中 `docs/specs/active/<slug>/spec.md` 或 `docs/specs/completed/<slug>/spec.md`。检查预填的标题与正文，按需补充说明，再保存到当前项目。文件无效时可直接重新选择，关闭已编辑的草稿前会提示保留或放弃。
+
+命令行可在本机生成同样的草稿。检查 JSON 后，才执行现有创建命令。
+
+```powershell
+suma --project PROJECT_ID knowledge import-helix-spec --file "./docs/specs/active/feature/spec.md" > helix-draft.json
+suma --control https://suma.example --project PROJECT_ID knowledge create --file helix-draft.json
+```
+
+有审批权限的成员可随后发布固定修订。团队在任务派发时明确选择该修订。需要核对原仓库、任务清单或验收报告时，可在草稿摘要中手工备注出处。上游规范流程见 [HelixHarness 示例](https://github.com/didi/helixharness/blob/main/examples/README.md)。
+
 ## 角色与权限
 
 | 操作者 | 可执行操作 |

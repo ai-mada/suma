@@ -363,6 +363,8 @@ T-QUALITY-119在同一待办内推进[受保护问题修复](../development/issu
 - 源码、设计／合同和精简验证按活动会话授权交付；运行数据、凭据、缓存、原始日志、截图及二进制不进入Git。临时工作放在项目忽略的.cache，正式产物按项目交付目录管理。
 - 当前入口只维护一份状态；历史阶段由Git、[专项报告索引](../README.md)和[证据索引](../quality/evidence/README.md)追溯，不重写原质量报告或外部版本。
 
+T-HELIX-SPEC-IMPORT 接通 HelixHarness 本地规范到项目知识草稿，沿当前审批和明确任务采用推进。插件生命周期、仓库双向同步及验收报告固定引用继续按互操作范围实施。 [产品操作](../product/project-knowledge.md#导入-helixharness-规范) · [阶段验证](../quality/helix-spec-import-verification.md)
+
 T-OCTOP-116按原互操作／项目协作范围推进[Octop项目MCP](../integrations/octop.md)及当前交付／逐例质量读取；真实SDK／HTTP与连接界面证据见[专项报告](../quality/octop-integration-verification.md)。只读和原草稿工具不授予ACP编码、批准或派发，完整范围与58／34／92统计不变。
 
 T-MODEL-118将[公开Harness／ACP执行](../architecture/octop-execution.md)与原生编码收敛到共同模型选择、冻结报价、attempt预算和唯一Go网关，不再保留Octop第二条固定模型配置权威。当前真实SSE、逐次剩余输出许可、持久准入／回执、同正文原响应回放及未知不重复外发，官方SDK六工具工作树、检查／封存、同SHA独立JUnit与取消树停止，简洁中英文模型／报价入口和可展开运行事实，分别见[当前报告](../quality/model-gateway-verification.md)及[摘要](../quality/model-gateway-summary.json)。[T-OCTOP-117报告](../quality/octop-execution-verification.md)保留原阶段事实，不替代当前验证。完整Octop CLI／GUI、厂商账户、记忆／技能同步、跨平台SDK安装、供应商账单与绝对费用保证继续待办，不改变完整P0–P7、需求1–26和58／34／92统计。

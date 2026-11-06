@@ -82,6 +82,8 @@ T-AUTOMATION-FAILURE-PAUSE-286 自动化可按连续失败阈值暂停后续派�
 
 T-AUTOMATION-ATTENTION-285 规则历史可跨页查找派发受阻、失败或待核对记录，并打开原运行。 [交互](../design/automation-workspace.md#筛选需要处理的触发) · [验证](../quality/automation-attention-verification.md)
 
+T-HELIX-SPEC-IMPORT Web／CLI 支持从 HelixHarness 的本地规范创建项目知识草稿。 [操作](../product/project-knowledge.md#导入-helixharness-规范) · [验证](../quality/helix-spec-import-verification.md)
+
 T-CLI-SKILL-IMPORT-284 CLI 可预览本地 SKILL.md 并通过现有项目命令保存草稿。 [操作](../product/project-knowledge.md#命令行预览与保存) · [验证](../quality/cli-skill-import-verification.md)
 
 T-PROJECT-SKILL-IMPORT-283 项目知识支持本地 SKILL.md 预填、编辑及保存草稿。 [交互](../product/project-knowledge.md#导入本地技能) · [验证](../quality/project-skill-import-verification.md)
