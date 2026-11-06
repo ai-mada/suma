@@ -6,12 +6,6 @@ import (
 	"fmt"
 )
 
-type dueWake struct {
-	tenant, project, run, node, kind string
-	generation, attempt              int
-	fence, due                       int64
-}
-
 func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 	report := TickReport{Failures: []TickFailure{}}
 	if limit <= 0 {
@@ -29,31 +23,19 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 		read.Rollback()
 		return report, err
 	}
-	rows, err := read.QueryContext(ctx, e.q(`SELECT tenant_id,project_id,run_id,node_id,kind,generation,attempt,fence,due_at FROM dag_wakeups WHERE state='pending' AND due_at<=? ORDER BY due_at,run_id,node_id,kind LIMIT ?`), clock, limit)
+	wakes, err := e.readDueWakes(ctx, read, clock, limit)
 	if err != nil {
 		read.Rollback()
 		return report, err
 	}
 	groups := map[string][]dueWake{}
 	order := []string{}
-	for rows.Next() {
-		var v dueWake
-		if err = rows.Scan(&v.tenant, &v.project, &v.run, &v.node, &v.kind, &v.generation, &v.attempt, &v.fence, &v.due); err != nil {
-			rows.Close()
-			read.Rollback()
-			return report, err
-		}
+	for _, v := range wakes {
 		if _, ok := groups[v.run]; !ok {
 			order = append(order, v.run)
 		}
 		groups[v.run] = append(groups[v.run], v)
 		report.Examined++
-	}
-	err = rows.Err()
-	rows.Close()
-	if err != nil {
-		read.Rollback()
-		return report, err
 	}
 	if err = read.Commit(); err != nil {
 		return report, err
@@ -67,27 +49,28 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 			if err != nil {
 				return err
 			}
+			processed := false
 			for _, w := range list {
-				var generation, attempt int
-				var fence, due int64
-				var state string
-				err = t.row(`SELECT generation,attempt,fence,due_at,state FROM dag_wakeups WHERE run_id=? AND node_id=? AND kind=?`, w.run, w.node, w.kind).Scan(&generation, &attempt, &fence, &due, &state)
-				if err == sql.ErrNoRows {
-					continue
-				}
+				matches, err := t.matchesDueWake(w)
 				if err != nil {
 					return err
 				}
-				if state != "pending" || due > t.now || generation != w.generation || attempt != w.attempt || fence != w.fence || due != w.due {
+				if !matches {
 					continue
 				}
+				processed = true
+				if w.state == "deferred" {
+					if err = t.exec(`DELETE FROM dag_wake_retries WHERE run_id=? AND node_id=? AND kind=?`, w.run, w.node, w.kind); err != nil {
+						return err
+					}
+				}
 				if r.State == "paused" && w.kind != "lease" {
-					if err = t.exec(`UPDATE dag_wakeups SET state='paused' WHERE run_id=? AND node_id=? AND kind=? AND generation=? AND attempt=? AND fence=? AND due_at=?`, w.run, w.node, w.kind, generation, attempt, fence, due); err != nil {
+					if err = t.exec(`UPDATE dag_wakeups SET state='paused' WHERE run_id=? AND node_id=? AND kind=?`, w.run, w.node, w.kind); err != nil {
 						return err
 					}
 					continue
 				}
-				if err = t.exec(`DELETE FROM dag_wakeups WHERE run_id=? AND node_id=? AND kind=? AND generation=? AND attempt=? AND fence=? AND due_at=?`, w.run, w.node, w.kind, generation, attempt, fence, due); err != nil {
+				if err = t.exec(`DELETE FROM dag_wakeups WHERE run_id=? AND node_id=? AND kind=?`, w.run, w.node, w.kind); err != nil {
 					return err
 				}
 				if terminal(r.State) {
@@ -108,7 +91,7 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 				if err = t.row(`SELECT generation FROM dag_node_dependencies WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&currentGeneration); err != nil {
 					return err
 				}
-				if currentGeneration != generation || n.Attempt != attempt || n.Fence != fence {
+				if currentGeneration != w.generation || n.Attempt != w.attempt || n.Fence != w.fence {
 					continue
 				}
 				if w.kind == "lease" {
@@ -147,6 +130,9 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 				}
 				changed = true
 			}
+			if !processed {
+				return nil
+			}
 			if err = t.advance(r); err != nil {
 				return err
 			}
@@ -156,6 +142,9 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 			return t.save(r)
 		})
 		if err != nil {
+			if retryErr := e.deferFailedWakes(ctx, list); retryErr != nil {
+				err = fmt.Errorf("%w (could not schedule wake retry: %v)", err, retryErr)
+			}
 			report.Failed++
 			report.Failures = append(report.Failures, TickFailure{TenantID: key.tenant, ProjectID: key.project, RunID: key.run, Message: err.Error()})
 			continue

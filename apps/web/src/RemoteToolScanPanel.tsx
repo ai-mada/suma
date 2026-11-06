@@ -19,7 +19,7 @@ import './RemoteToolScanPanel.css';
 
 export type RemoteToolScanPanelProps={project:string;workerID:string;selectedAdapterID?:string;disabled?:boolean;onPrepare?:(adapter:AdapterDescriptor,workerID:string)=>void;onGuide?:()=>void;onBlockedChange?:(blocked:boolean)=>void;onPreparedConfiguration?:(selection:ToolReportFeedbackSelection,preparationID:string)=>void};
 type Page=Awaited<ReturnType<typeof readRemoteToolScans>>;
-type Snapshot={page?:Page;catalog?:AdapterDescriptor[];receivedAt?:number;capDeadline:number;loading:boolean;denied?:boolean;error?:unknown};
+type Snapshot={page?:Page;catalog?:AdapterDescriptor[];receivedAt?:number;capDeadline:number;loading:boolean;checkingSelection?:boolean;denied?:boolean;error?:unknown};
 const t=(key:string,values?:Record<string,unknown>)=>tr('remote-tool-scan.'+key,values);
 const probeText=(key:string)=>tr('tool-installation-probe-diagnostics.'+key);
 const unresolved=(scan:RemoteToolScan)=>['pending','claimed','unknown'].includes(scan.state);
@@ -45,7 +45,7 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
  const managedSelection=useRef({key:'',epoch:0});
  const managedMounted=useRef(false);if(managedTarget||validManagedToolPreparationCapability(snapshot.page?.maintenance.status.managed_preparation))managedMounted.current=true;
  if(!managedMounted.current)try{managedMounted.current=!!storage?.getItem('suma-write-recovery-v1:managed-tool-preparation:'+base)||!!storage?.getItem('suma-managed-preparation-selected:'+base);}catch{/* Existing write recovery remains fail-closed in its own mounted reader. */}
- const [timedOut,setTimedOut]=useState(false),[,tick]=useState(0),alive=useRef(true),requestEpoch=useRef(0),flight=useRef<AbortController|undefined>(undefined),submission=useRef(false),poll=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),deadline=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),wait=useRef<{id:string;until:number}|undefined>(undefined);
+ const [timedOut,setTimedOut]=useState(false),[,tick]=useState(0),alive=useRef(true),requestEpoch=useRef(0),flight=useRef<{controller:AbortController;kind:'page'|'detail'}|undefined>(undefined),submission=useRef(false),poll=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),deadline=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),wait=useRef<{id:string;until:number}|undefined>(undefined);
  const latest=useRef({disabled,onPrepare,onGuide,onBlockedChange});latest.current={disabled,onPrepare,onGuide,onBlockedChange};
  const action=useWriteAction({scope:'remote-tool-scan:'+base,storage,validateRequest:request=>validRemoteToolScanRequest(request,scope),validateResponse:async(value,request)=>owns()&&alive.current&&await validRemoteToolScanReceipt(value,request,scope)&&owns()&&alive.current});
  const pending=!!action.pending,writeDenied=!!action.errorStatus&&[401,403,404].includes(action.errorStatus),hidden=!!snapshot.denied||writeDenied;
@@ -55,7 +55,7 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
  // Selection and bounded page omission are not proof that a process stopped.
  // This reader remounts for a different caller, actor, project or worker scope.
  const stopBlocked=observedStops.current.size>0;
- const newBlocked=disabled||hidden||snapshot.loading||!!snapshot.error||!capValid||blocked||managedBlocked||action.conflict||!!snapshot.page?.items.some(unresolved)||stopBlocked;
+ const newBlocked=disabled||hidden||snapshot.loading||snapshot.checkingSelection||!!snapshot.error||!capValid||blocked||managedBlocked||action.conflict||!!snapshot.page?.items.some(unresolved)||stopBlocked;
  function publish(value:Snapshot){
   for(const result of value.page?.items??[]){
    const known=observedStops.current.get(result.id),sameClaim=!!known&&known.source_sha256===result.source_sha256&&known.claim_id===result.claim_id&&known.fence===result.fence;
@@ -71,10 +71,11 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
  function stopWait(){clearTimeout(poll.current);clearTimeout(deadline.current);poll.current=undefined;deadline.current=undefined;wait.current=undefined;}
  function selectID(value:string){if(selectedRef.current!==value)managedSelection.current={...managedSelection.current,epoch:managedSelection.current.epoch+1};selectedRef.current=value;setSelected(value);try{storage?.setItem(selectionKey,value);}catch{/* Selection is navigation only; the durable write request remains separate. */}}
  function selectManagedTarget(value:{scanID:string;adapterID:string}|undefined){managedSelection.current={...managedSelection.current,epoch:managedSelection.current.epoch+1};setManagedTarget(value);}
- function abortRead(){++requestEpoch.current;flight.current?.abort();flight.current=undefined;}
+ function abortRead(){++requestEpoch.current;flight.current?.controller.abort();flight.current=undefined;}
  function deny(){abortRead();stopWait();publish({loading:false,capDeadline:0,denied:true});}
  function ownsRead(epoch:number,controller:AbortController){return alive.current&&owns()&&requestEpoch.current===epoch&&!controller.signal.aborted;}
  function schedule(value:RemoteToolScan|undefined,reset=false){
+  if(value&&value.id!==selectedRef.current)return;
   clearTimeout(poll.current);if(!value||!unresolved(value)||hidden||latest.current.disabled){stopWait();return;}
   if(reset||!wait.current||wait.current.id!==value.id){
    stopWait();setTimedOut(false);wait.current={id:value.id,until:performance.now()+60000};
@@ -82,22 +83,29 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
     if(!alive.current||!owns()||wait.current?.id!==value.id)return;
     clearTimeout(poll.current);
     // The scan wait bounds polling, while a full refresh has its own request deadline.
-    if(!snapshotRef.current.loading)abortRead();
+    if(flight.current?.kind==='detail')abortRead();
     setTimedOut(true);
    },60000);
   }
   if(performance.now()>=wait.current.until){setTimedOut(true);return;}if(document.visibilityState!=='hidden')poll.current=setTimeout(()=>void readCurrent(value.id),3000);
  }
- async function readCurrent(scanID:string){
-  if(flight.current||!alive.current||!owns()||latest.current.disabled||document.visibilityState==='hidden')return;
-  const epoch=++requestEpoch.current,controller=new AbortController();flight.current=controller;
-  try{const raw=await api<unknown>(remoteToolScanPath(scope,scanID),undefined,'GET',undefined,controller.signal),value=await readRemoteToolScan(raw,scope,scanID);if(!ownsRead(epoch,controller))return;
-   const before=snapshotRef.current;if(before.page)publish({...before,page:{...before.page,items:[value,...before.page.items.filter(item=>item.id!==value.id)]},loading:false,error:undefined});schedule(value);
-  }catch(error){if(!ownsRead(epoch,controller))return;if(denied(error))deny();else{publish({...snapshotRef.current,loading:false,error});const original=snapshotRef.current.page?.items.find(item=>item.id===scanID);schedule(original);}}
-  finally{if(flight.current===controller)flight.current=undefined;}
+ async function readCurrent(scanID:string,selectedByUser=false){
+  if(!alive.current||!owns()||scanID!==selectedRef.current||flight.current?.kind==='page')return;
+  if(!selectedByUser&&(flight.current||latest.current.disabled||document.visibilityState==='hidden'))return;
+  // Explicit selection replaces background detail reads. Its list row remains
+  // history until the exact record confirms the current source.
+  if(selectedByUser){abortRead();publish({...snapshotRef.current,checkingSelection:true,error:undefined});}
+  const epoch=++requestEpoch.current,controller=new AbortController();flight.current={controller,kind:'detail'};
+  const ownsSelection=()=>ownsRead(epoch,controller)&&selectedRef.current===scanID;
+  try{const raw=await api<unknown>(remoteToolScanPath(scope,scanID),undefined,'GET',undefined,controller.signal),value=await readRemoteToolScan(raw,scope,scanID);if(!ownsSelection())return;
+   const before=snapshotRef.current;if(before.page)publish({...before,page:{...before.page,items:[value,...before.page.items.filter(item=>item.id!==value.id)]},checkingSelection:false,error:undefined});schedule(value);
+  }catch(error){if(!ownsSelection())return;if(denied(error))deny();else{publish({...snapshotRef.current,checkingSelection:false,error});const original=snapshotRef.current.page?.items.find(item=>item.id===scanID);schedule(original);}}
+  finally{if(flight.current?.controller===controller)flight.current=undefined;}
  }
  async function readPage(reset=false){
-  if(flight.current||!alive.current||!owns())return;const epoch=++requestEpoch.current,controller=new AbortController();flight.current=controller;const started=performance.now();publish({...snapshotRef.current,loading:true,error:undefined});
+  if(flight.current?.kind==='page'||!alive.current||!owns())return;
+  abortRead();
+  const epoch=++requestEpoch.current,controller=new AbortController();flight.current={controller,kind:'page'};const started=performance.now();publish({...snapshotRef.current,loading:true,checkingSelection:false,error:undefined});
   try{const [catalogRaw,pageRaw]=await Promise.all([api<unknown>('/adapter-catalog?project_id='+encodeURIComponent(scope.project),undefined,'GET',undefined,controller.signal),api<unknown>(remoteToolScanListPath(scope),undefined,'GET',undefined,controller.signal)]),page=await readRemoteToolScans(pageRaw,scope),catalog=readAdapterCatalog(catalogRaw,scope.project);if(!catalog)throw new UiError('remote-tool-scan.invalid_response');if(!ownsRead(epoch,controller))return;
    let selectedID=selectedRef.current;let value=page.items.find(item=>item.id===selectedID);
    if(selectedID&&!value){const raw=await api<unknown>(remoteToolScanPath(scope,selectedID),undefined,'GET',undefined,controller.signal);value=await readRemoteToolScan(raw,scope,selectedID);if(!ownsRead(epoch,controller))return;page.items=[value,...page.items];}
@@ -108,7 +116,7 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
    if(writeDenied)action.setError('');
    if(reset&&!action.pending&&!page.items.some(unresolved))action.clearConflict();
   }catch(error){if(!ownsRead(epoch,controller))return;if(denied(error))deny();else publish({loading:false,capDeadline:0,error});}
-  finally{if(flight.current===controller)flight.current=undefined;}
+  finally{if(flight.current?.controller===controller)flight.current=undefined;}
  }
  async function create(adapters:string[],restore=false){
   if(submission.current||action.busy||disabled||hidden||!owns()||!restore&&(newBlocked||observedStops.current.size>0))return;submission.current=true;
@@ -120,11 +128,11 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
   const current=snapshotRef.current,original=current.page?.items.find(value=>value.id===selectedRef.current),candidates=current.catalog?.filter(adapter=>adapter.id===item.adapter_id&&toolPreparationTarget(adapter))??[];
   const maintenance=current.page?.maintenance.status,capability=maintenance?.installed_discovery;
   if(item.diagnostic&&(item.diagnostic.next_action!=='guide'||newBlocked||!original?.result?.items.includes(item)))return;
-  if(!owns()||!alive.current||latest.current.disabled||current.denied||current.loading||current.error||pending||action.busy||maintenance?.state!=='supported'||performance.now()>=current.capDeadline||!validInstalledDiscoveryCapability(capability)||!capability.adapter_ids.includes(item.adapter_id)||original?.state!=='completed'||original.source_changed||!original.result?.items.some(value=>value.adapter_id===item.adapter_id&&value.protocol===item.protocol)||candidates.length!==1)return;latest.current.onPrepare?.(candidates[0],scope.workerID);
+  if(!owns()||!alive.current||latest.current.disabled||current.denied||current.loading||current.checkingSelection||current.error||pending||action.busy||maintenance?.state!=='supported'||performance.now()>=current.capDeadline||!validInstalledDiscoveryCapability(capability)||!capability.adapter_ids.includes(item.adapter_id)||original?.state!=='completed'||original.source_changed||!original.result?.items.some(value=>value.adapter_id===item.adapter_id&&value.protocol===item.protocol)||candidates.length!==1)return;latest.current.onPrepare?.(candidates[0],scope.workerID);
  }
  function recheck(item:RemoteToolScanItem){
   const current=snapshotRef.current,original=current.page?.items.find(value=>value.id===selectedRef.current),maintenance=current.page?.maintenance.status,capability=maintenance?.installed_discovery;
-  if(!owns()||!alive.current||latest.current.disabled||current.denied||current.loading||current.error||newBlocked||item.diagnostic?.next_action!=='scan'||original?.state!=='completed'||original.source_changed||!original.result?.items.includes(item)||hasUnverifiedInstallationStop(original.result.items)||maintenance?.state!=='supported'||performance.now()>=current.capDeadline||!validInstalledDiscoveryCapability(capability)||!capability.adapter_ids.includes(item.adapter_id))return;
+  if(!owns()||!alive.current||latest.current.disabled||current.denied||current.loading||current.checkingSelection||current.error||newBlocked||item.diagnostic?.next_action!=='scan'||original?.state!=='completed'||original.source_changed||!original.result?.items.includes(item)||hasUnverifiedInstallationStop(original.result.items)||maintenance?.state!=='supported'||performance.now()>=current.capDeadline||!validInstalledDiscoveryCapability(capability)||!capability.adapter_ids.includes(item.adapter_id))return;
   void create([item.adapter_id]);
  }
  useLayoutEffect(()=>{alive.current=true;return()=>{alive.current=false;abortRead();stopWait();latest.current.onBlockedChange?.(false);};},[]);
@@ -145,23 +153,23 @@ function ScanController({scope,selectedAdapterID,disabled=false,onPrepare,onGuid
   document.addEventListener('visibilitychange',visibility);
   return()=>document.removeEventListener('visibilitychange',visibility);
  },[]);
- const status=hidden?'forbidden':action.busy?'loading':pending?'write_unknown':snapshot.loading?'loading':snapshot.error?'invalid':timedOut&&activeScan?'timed_out':scan?.state??(capValid?'ready':'capability_unavailable');
- const rows=!hidden&&!pending&&scan?.state==='completed'?scan.result?.items??[]:[],primary=rows.filter(item=>item.installed||item.reason_code!=='not_installed'||item.adapter_id===selectedAdapterID),other=rows.filter(item=>!primary.includes(item));
+ const status=hidden?'forbidden':action.busy?'loading':pending?'write_unknown':(snapshot.loading||snapshot.checkingSelection)?'loading':snapshot.error?'invalid':timedOut&&activeScan?'timed_out':scan?.state??(capValid?'ready':'capability_unavailable');
+ const rows=!hidden&&!pending&&!snapshot.checkingSelection&&!snapshot.error&&scan?.state==='completed'?scan.result?.items??[]:[],primary=rows.filter(item=>item.installed||item.reason_code!=='not_installed'||item.adapter_id===selectedAdapterID),other=rows.filter(item=>!primary.includes(item));
  function row(item:RemoteToolScanItem){const candidates=snapshot.catalog?.filter(adapter=>adapter.id===item.adapter_id&&toolPreparationTarget(adapter))??[],adapter=candidates.length===1?candidates[0]:undefined,reason=toolConnectionDiagnostic(item.reason_code==='acp_configuration_required'?'configuration_required':item.reason_code),diagnostic=item.diagnostic;
   const versionReason=item.reason_code==='version_unsupported'&&(item.adapter_id==='opencode-sdk'||item.adapter_id==='claude-code-sdk')?tr((item.adapter_id==='opencode-sdk'?'opencode-quick-connect':'claude-sdk-quick-connect')+'.version_unsupported'):undefined;
   const capability=storedMaintenance?.status.managed_preparation,managed=capValid&&validManagedToolPreparationCapability(capability)&&capability.adapter_ids.some(adapterID=>adapterID===item.adapter_id)&&canPrepareManagedToolItem(item);
   return <li key={item.adapter_id} data-remote-tool-scan-row={item.adapter_id}><div><strong>{adapter?.product||item.adapter_id}</strong><span>{item.reason_code==='scan_incomplete'?probeText('scan_incomplete'):t(item.installed?'installed':'not_installed')}{item.version?' · '+item.version:''}</span><code>{item.protocol}</code><p {...(diagnostic?{'data-tool-probe-diagnostic':diagnostic.code}:{})}>{diagnostic?probeText('code.'+diagnostic.code):versionReason??tr('tool-connection-diagnostics.reason.'+(reason?.reason??'unknown'))}</p><details><summary>{t('source_reason')}</summary>{diagnostic&&<><p>{probeText('stage_label')+': '+probeText('stage.'+diagnostic.stage)}</p><p>{probeText('hint.'+diagnostic.next_action)}</p></>}<code>{item.reason_code}</code>{item.executable_sha256&&<code>{item.executable_sha256}</code>}</details></div><div>{diagnostic?diagnostic.next_action==='guide'&&adapter&&onPrepare?<button type="button" data-remote-tool-scan-diagnostic-action="guide" disabled={newBlocked||!!scan?.source_changed} onClick={()=>prepare(item)}>{probeText('action.guide')}</button>:diagnostic.next_action==='scan'?<button type="button" data-remote-tool-scan-diagnostic-action="scan" disabled={newBlocked||!!scan?.source_changed||!requested.includes(item.adapter_id)} onClick={()=>recheck(item)}>{probeText('action.remote_scan')}</button>:null:<>{managed&&<button type="button" data-remote-tool-scan-configure={item.adapter_id} disabled={disabled||snapshot.loading||!!snapshot.error||blocked||managedBlocked||stopBlocked||!!scan?.source_changed} onClick={()=>{if(owns()&&alive.current&&!latest.current.disabled&&scan?.state==='completed'&&!scan.source_changed&&performance.now()<snapshot.capDeadline&&!blocked&&!managedBlocked&&observedStops.current.size===0)selectManagedTarget({scanID:scan.id,adapterID:item.adapter_id});}}>{tr('managed-tool-preparation.open')}</button>}{adapter&&onPrepare&&<button type="button" data-remote-tool-scan-prepare={item.adapter_id} disabled={disabled||snapshot.loading||!!snapshot.error||action.busy||managedBlocked||!capValid||!requested.includes(item.adapter_id)||!!scan?.source_changed} onClick={()=>prepare(item)}>{t('prepare')}</button>}</>}</div></li>;
  }
  const requested=capValid&&validInstalledDiscoveryCapability(cap)?cap.adapter_ids:[],single=selectedAdapterID?(requested.includes(selectedAdapterID)?[selectedAdapterID]:[]):requested;
- return <section className="remote-tool-scan" data-remote-tool-scan data-current-scan={scan?.id||''} data-remote-tool-scan-source-changed={scan?.source_changed?'true':'false'} data-remote-tool-scan-capability={hidden?'forbidden':capValid?'supported':storedMaintenance?.status.state==='supported'?'expired':storedMaintenance?.status.state||'unknown'} aria-label={t('title')} aria-busy={snapshot.loading||action.busy}>
+ return <section className="remote-tool-scan" data-remote-tool-scan data-current-scan={scan?.id||''} data-remote-tool-scan-source-changed={scan?.source_changed?'true':'false'} data-remote-tool-scan-capability={hidden?'forbidden':capValid?'supported':storedMaintenance?.status.state==='supported'?'expired':storedMaintenance?.status.state||'unknown'} aria-label={t('title')} aria-busy={snapshot.loading||snapshot.checkingSelection||action.busy}>
   <header><div><h4><Search size={17} aria-hidden="true"/>{t('title')}</h4><p>{t('target',{worker:scope.workerID})}</p></div><button type="button" data-remote-tool-scan-refresh disabled={snapshot.loading||action.busy} onClick={()=>void readPage(true)}><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button></header>
   <p role="status" data-remote-tool-scan-status={status}>{t('status.'+status)}</p>
   {!hidden&&stopBlocked&&<p role="status" className="remote-tool-scan-warning" data-remote-tool-scan-stop-blocked><strong>{probeText('code.stop_unverified')}</strong>{' '}{probeText('hint.none')}</p>}
   {!!(action.error||snapshot.error)&&<p role="alert" data-remote-tool-scan-error>{action.error||toolError(snapshot.error)}</p>}
   {!hidden&&<><div className="remote-tool-scan-actions">{pending?<button type="button" data-remote-tool-scan-recover disabled={disabled||action.busy} onClick={()=>void create([],true)}>{t('recover')}</button>:<><button type="button" data-remote-tool-scan-create disabled={newBlocked||!single.length} onClick={()=>void create(single)}>{t(selectedAdapterID?'scan_selected':'scan_all')}</button>{selectedAdapterID&&requested.length>1&&<button type="button" className="text-button" data-remote-tool-scan-create-all disabled={newBlocked} onClick={()=>void create(requested)}>{t('scan_all')}</button>}</>}
    {!capValid&&onGuide&&<button type="button" data-remote-tool-scan-guide disabled={disabled||action.busy||pending} onClick={()=>{if(owns()&&!latest.current.disabled&&!action.pending)latest.current.onGuide?.();}}>{t('enable_guide')}</button>}</div>
-   {snapshot.page?.items.length? <label className="remote-tool-scan-history">{t('history')}<select data-remote-tool-scan-request value={selected} disabled={action.busy||pending||managedBlocked} onChange={event=>{stopWait();selectID(event.target.value);selectManagedTarget(undefined);setTimedOut(false);void readCurrent(event.target.value);}}>{snapshot.page.items.map(value=><option key={value.id} value={value.id}>{value.created_at} · {t('status.'+value.state)}</option>)}</select></label>:null}
-   {scan?.source_changed&&<p className="remote-tool-scan-warning">{t('source_changed')}</p>}{scan?.finished_at&&<p className="remote-tool-scan-meta">{t('finished')} <time dateTime={scan.finished_at}>{scan.finished_at}</time></p>}
+   {snapshot.page?.items.length? <label className="remote-tool-scan-history">{t('history')}<select data-remote-tool-scan-request value={selected} disabled={snapshot.loading||action.busy||pending||managedBlocked} onChange={event=>{if(flight.current?.kind==='page')return;stopWait();selectID(event.target.value);selectManagedTarget(undefined);setTimedOut(false);void readCurrent(event.target.value,true);}}>{snapshot.page.items.map(value=><option key={value.id} value={value.id}>{value.created_at} · {t('status.'+value.state)}</option>)}</select></label>:null}
+   {!snapshot.checkingSelection&&scan?.source_changed&&<p className="remote-tool-scan-warning">{t('source_changed')}</p>}{!snapshot.checkingSelection&&scan?.finished_at&&<p className="remote-tool-scan-meta">{t('finished')} <time dateTime={scan.finished_at}>{scan.finished_at}</time></p>}
    {!!rows.length&&<><p>{t('counts',{detected:formatNumber(rows.filter(item=>item.installed).length),total:formatNumber(rows.length)})}</p><ul className="remote-tool-scan-list">{primary.map(row)}</ul>{other.length>0&&<details className="remote-tool-scan-other"><summary><ChevronRight size={16} aria-hidden="true"/>{t('other',{count:formatNumber(other.length)})}</summary><ul className="remote-tool-scan-list">{other.map(row)}</ul></details>}</>}
   </>}
   {managedMounted.current&&<ManagedToolPreparationPanel project={scope.project} workerID={scope.workerID} selectedScanID={selected} selectionEpoch={managedOwner.epoch} scan={!hidden?snapshot.page?.items.find(value=>value.id===managedTarget?.scanID):undefined} item={!hidden?snapshot.page?.items.find(value=>value.id===managedTarget?.scanID)?.result?.items.find(value=>value.adapter_id===managedTarget?.adapterID):undefined} disabled={disabled||hidden||pending||action.busy||activeScan} newOperationsBlocked={stopBlocked} onBlockedChange={setManagedBlocked} onPreparedConfiguration={(value,preparationID)=>{if(owns()&&alive.current&&managedSelection.current===managedOwner&&!latest.current.disabled&&!hidden&&observedStops.current.size===0&&value.project===scope.project&&value.workerID===scope.workerID)onPreparedConfiguration?.(value,preparationID);}}/>}

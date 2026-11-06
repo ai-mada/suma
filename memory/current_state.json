@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "wake_and_scan_recovery": {
+    "stage": "T-WAKE-AND-SCAN-RECOVERY-275",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "14da4bef0a97f679efbc3750bcade17d20ca3895",
+    "report": "docs/quality/wake-and-scan-recovery-verification.md",
+    "actual": "Wake failures persist a bounded retry schedule without blocking other due work. Exact remote scan selection and manual refresh supersede old detail reads.",
+    "verification": "19 targeted Go checks, 9 component checks and isolated Chrome keyboard journeys at zh-CN 390px and en-US 1280px passed.",
+    "known_limitations": "Local SQLite and synthetic browser responses. PostgreSQL, OceanBase, multi-host, scale, and vendor production acceptance remain open.",
+    "full_platform_complete": false
+  },
   "failure_projection_frontier": {
     "stage": "T-FAILURE-PROJECTION-FRONTIER-274",
     "version": "1.0.0",

@@ -22,7 +22,7 @@ const cap=()=>({state:'supported',checked_at:at,protocol:'suma-tool-maintenance-
 let root:Root,host:HTMLDivElement,onPrepare:ReturnType<typeof vi.fn>,onGuide:ReturnType<typeof vi.fn>,items:ReturnType<typeof scan>[],maintenance:Record<string,unknown>,forbidden:boolean,writeForbidden:boolean,lost:boolean,posts:Record<string,unknown>[],selected:string;
 beforeEach(async()=>{
  await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('crypto',webcrypto);sessionStorage.clear();items=[];maintenance=cap();forbidden=false;writeForbidden=false;lost=false;posts=[];selected='claude-code-sdk';onPrepare=vi.fn();onGuide=vi.fn();host=document.createElement('div');document.body.append(host);root=createRoot(host);
- vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{const path=String(input).replace('/api/v1','');if(forbidden)return Response.json({error:{code:'forbidden',message:'No access'}},{status:403});if(path.startsWith('/adapter-catalog'))return Response.json({project_id:'p',as_of:at,items:[codebuddy,sdk]});if(init.method==='POST'){const body=JSON.parse(String(init.body));posts.push(body);if(writeForbidden)return Response.json({error:{code:'forbidden',message:'Access revoked'}},{status:403});items=[scan(body.adapter_ids[0])];if(lost&&posts.length===1)throw Error('Acknowledgement lost');return Response.json(scan(body.adapter_ids[0],'pending'),{status:201});}if(path.startsWith('/tool-installation-scans?'))return Response.json({project_id:'p',worker_id:'worker-one',as_of:at,maintenance,items});if(path.includes('/tool-installation-scans/'))return Response.json(items[0]);throw Error('Unexpected remote scan route: '+path);}));
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{const path=String(input).replace('/api/v1','');if(forbidden)return Response.json({error:{code:'forbidden',message:'No access'}},{status:403});if(path.startsWith('/adapter-catalog'))return Response.json({project_id:'p',as_of:at,items:[codebuddy,sdk]});if(init.method==='POST'){const body=JSON.parse(String(init.body));posts.push(body);if(writeForbidden)return Response.json({error:{code:'forbidden',message:'Access revoked'}},{status:403});items=[scan(body.adapter_ids[0])];if(lost&&posts.length===1)throw Error('Acknowledgement lost');return Response.json(scan(body.adapter_ids[0],'pending'),{status:201});}if(path.startsWith('/tool-installation-scans?'))return Response.json({project_id:'p',worker_id:'worker-one',as_of:at,maintenance,items});if(path.includes('/tool-installation-scans/')){const scanID=path.split('?')[0].split('/').at(-1);const exact=items.find(item=>item.id===scanID);return exact?Response.json(exact):Response.json({error:{code:'not_found',message:'Scan not found'}},{status:404});}throw Error('Unexpected remote scan route: '+path);}));
 });
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function settle(){await act(async()=>{for(let i=0;i<4;i++)await waitReal(0);});}
@@ -86,6 +86,44 @@ it('keeps a manual refresh usable when the previous scan wait reaches its deadli
  expect(phase()).toBe('completed');
  expect(posts).toHaveLength(0);
 });
+
+it('confirms a selected history entry while polling is in flight and lets manual refresh take over',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});
+ const active=scan('claude-code-sdk','pending'),history=scan('codebuddy-cli');
+ const source={ID:'scan-two',ProjectID:history.project_id,WorkerID:history.worker_id,AdapterIDs:history.adapter_ids,InstanceID:history.instance_id,RequestedBy:history.requested_by,CreatedAt:history.created_at,ExpiresAt:history.expires_at};
+ history.id=source.ID;history.source_sha256=createHash('sha256').update(JSON.stringify(source)).digest('hex');history.claim_id='claim-two';
+ history.result!.stop_proof={...history.result!.stop_proof!,scan:{scan_id:history.id,claim_id:history.claim_id,fence:history.fence},source_sha256:history.source_sha256};
+ items=[active,history];
+ const originalFetch=fetch;
+ let releasePoll!:()=>void,releaseDetail!:()=>void;
+ const pollGate=new Promise<void>(resolve=>{releasePoll=resolve;}),detailGate=new Promise<void>(resolve=>{releaseDetail=resolve;});
+ const pollReads:AbortSignal[]=[],detailReads:AbortSignal[]=[];
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  const path=String(input);
+  if(path.includes('/tool-installation-scans/scan-one?')){pollReads.push(init!.signal!);await pollGate;return Response.json(active);}
+  if(path.includes('/tool-installation-scans/scan-two?')){detailReads.push(init!.signal!);await detailGate;return Response.json(history);}
+  return originalFetch(input,init);
+ }));
+ await draw();expect(phase()).toBe('pending');
+ await act(async()=>vi.advanceTimersByTimeAsync(3_000));
+ expect(pollReads).toHaveLength(1);
+ const picker=host.querySelector<HTMLSelectElement>('[data-remote-tool-scan-request]')!;
+ await act(async()=>{picker.value=history.id;picker.dispatchEvent(new Event('change',{bubbles:true}));});
+ expect(detailReads).toHaveLength(1);expect(pollReads[0].aborted).toBe(true);expect(phase()).toBe('loading');
+ expect(host.querySelector('[data-remote-tool-scan-prepare]')).toBeNull();
+
+ items=[active,{...history,source_changed:true}];
+ await click('refresh');
+ expect(detailReads[0].aborted).toBe(true);
+ expect(phase()).toBe('completed');expect(picker.value).toBe(history.id);
+ expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-prepare="codebuddy-cli"]')!.disabled).toBe(true);
+ await act(async()=>{releasePoll();releaseDetail();await vi.advanceTimersByTimeAsync(6_000);});
+ await settle();
+ expect(pollReads).toHaveLength(1);expect(phase()).toBe('completed');
+ expect(host.querySelector<HTMLButtonElement>('[data-remote-tool-scan-prepare="codebuddy-cli"]')!.disabled).toBe(true);
+ expect(posts).toHaveLength(0);expect(onPrepare).not.toHaveBeenCalled();
+});
+
 
 it('T205 restores the exact original unknown write, then explicitly prepares an installed SDK that still needs configuration',async()=>{
  lost=true;await draw();expect(phase()).toBe('ready');expect(posts).toHaveLength(0);await click('create');expect(phase()).toBe('write_unknown');expect(posts).toHaveLength(1);expect(host.querySelector('[data-remote-tool-scan-prepare]')).toBeNull();writeForbidden=true;await click('recover');expect(phase()).toBe('forbidden');expect(sessionStorage.length).toBeGreaterThan(0);writeForbidden=false;items=[scan('claude-code-sdk','pending')];await click('refresh');expect(phase()).toBe('write_unknown');await click('recover');expect(posts).toHaveLength(3);expect(posts[1]).toEqual(posts[0]);expect(posts[2]).toEqual(posts[0]);expect(phase()).toBe('completed');expect(host.querySelector<HTMLSelectElement>('[data-remote-tool-scan-request]')?.value).toBe('scan-one');expect(host.textContent).toContain('Target node: worker-one');expect(host.textContent).toContain('1 installed · 1 checked');expect(tr('remote-tool-scan.other',{count:'2'})).toBe('Other tools (2)');await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('目标节点：worker-one');expect(host.textContent).toContain('已安装 1 项 · 已检查 1 项');expect(tr('remote-tool-scan.other',{count:'2'})).toBe('其他工具（2）');expect(host.textContent).not.toMatch(/\{(?:worker|detected|total|count)\}/);await click('prepare="claude-code-sdk"');expect(onPrepare).toHaveBeenCalledExactlyOnceWith(sdk,'worker-one');expect(onGuide).not.toHaveBeenCalled();

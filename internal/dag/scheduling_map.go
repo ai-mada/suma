@@ -116,7 +116,7 @@ func (t *transaction) materializeMapChunk(r *runState, n *nodeState) error {
 	if closed == 0 {
 		return t.putWake(r, n, "expansion", t.now)
 	}
-	if err = t.exec(`DELETE FROM dag_wakeups WHERE run_id=? AND node_id=? AND kind='expansion'`, r.ID, n.ID); err != nil {
+	if err = t.deleteWakes(r.ID, n.ID, "expansion"); err != nil {
 		return err
 	}
 	return t.enqueueNode(r, n.ID)

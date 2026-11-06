@@ -12,4 +12,6 @@ Requests accept only nine fixed adapter identifiers, never executable paths or a
 
 Started work without a full result remains unknown. Only durable original result or stop receipts can reconcile it. Closed-unknown confirms stopped processes while preserving the unknown result; expiry or missing PIDs are insufficient. Browser wait controls do not cancel machine operations, and permission or scope changes clear stale observations.
 
+Selecting a history entry checks that exact record before showing preparation actions. Read again can replace an in-flight detail request. A late response for the previous selection cannot change the current result or restart its polling.
+
 See the [contract](../../contracts/remote-tool-installation-scan.md), [architecture and AI SOP](../architecture/remote-tool-installation-scan.md), [interaction design](../design/remote-tool-installation-scan.md) and [verification](../quality/remote-tool-installation-scan-verification.md). Vendor/model, physical multi-host, cross-platform/database, installers, scale and production acceptance remain separate under the complete platform plan.

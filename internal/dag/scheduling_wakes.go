@@ -7,7 +7,7 @@ func (t *transaction) putWake(r *runState, n *nodeState, kind string, due int64)
 	if err := t.row(`SELECT generation FROM dag_node_dependencies WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&generation); err != nil {
 		return err
 	}
-	if err := t.exec(`DELETE FROM dag_wakeups WHERE run_id=? AND node_id=? AND kind=?`, r.ID, n.ID, kind); err != nil {
+	if err := t.deleteWakes(r.ID, n.ID, kind); err != nil {
 		return err
 	}
 	state := "pending"
@@ -21,7 +21,7 @@ func (t *transaction) syncWake(r *runState, n *nodeState) error {
 		return nil
 	}
 	if terminal(n.State) {
-		return t.exec(`DELETE FROM dag_wakeups WHERE run_id=? AND node_id=?`, r.ID, n.ID)
+		return t.deleteWakes(r.ID, n.ID, "")
 	}
 	if n.State == "running" && n.lease > 0 {
 		return t.putWake(r, n, "lease", n.lease)
@@ -38,7 +38,7 @@ func (t *transaction) syncWake(r *runState, n *nodeState) error {
 	return nil
 }
 func (t *transaction) putPropagationWake(r *runState) error {
-	if err := t.exec(`DELETE FROM dag_wakeups WHERE run_id=? AND node_id='' AND kind='propagation'`, r.ID); err != nil {
+	if err := t.deleteWakes(r.ID, "", "propagation"); err != nil {
 		return err
 	}
 	state := "pending"

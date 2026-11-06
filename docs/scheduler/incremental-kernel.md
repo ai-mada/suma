@@ -14,6 +14,7 @@
 | `dag_ready`、`dag_scheduler_run_turns` | 正式就绪记录、项目内运行轮转 |
 | `dag_claim_run_scans`、`dag_dispatches` | 有界候选扫描进度、含空结果的领取回执 |
 | `dag_wakeups` | 定时、重试、租约、展开及传播唤醒 |
+| `dag_wake_retries` | 原唤醒身份下的失败次数和下次调度时间 |
 | `dag_join_decisions` | 任一成功／阈值汇合的冻结获胜集合 |
 | `dag_map_expansions`、`dag_map_progress` | 固定清单与摘要、展开边界和子节点结算 |
 | `dag_scheduling_policies`、`dag_resource_accounts`、`dag_resource_ledger` | 策略 CAS、当前准入计数、每 attempt 的持有／累计收费 |
@@ -44,6 +45,8 @@ sequenceDiagram
 领取操作固定 worker 与规范化能力摘要。相同操作恢复同一派发，空结果也固定。恢复活跃派发时再次检查当前授权与资格；暂停或撤销工具不能靠丢 ACK 回放绕过。观察到 `closed` 或 `reconciling` 的派发不能启动进程。租约到期进入核对，保留原 attempt/fence，不能猜测“未执行”后重新派发。
 
 `TickBatch` 默认读取最多 100 个到期唤醒，上限 1,000；按运行分别提交，某个损坏运行不会回滚其它运行。每次 recheck 唤醒代际、attempt、fence、到期时间和状态。暂停后的非租约唤醒停止轮询，不因周期 Tick 增加运行版本；恢复重新启用并处理已经到期的工作。传播每事务最多处理 2,048 个前沿条目，余项保存唤醒。等待、审批、映射父节点和子流程容器不占 worker 额度。
+
+唤醒处理事务失败时，控制面在独立事务中核对原唤醒身份和重试状态，然后把仍有效的唤醒转入持久退避。原到期时间、节点代次、尝试与 fence 保留。以数据库时间计算 5、10、20、40、60 秒退避，持续失败时上限 60 秒。读取按各自索引限制新到期与退避到期候选，再按可处理时间合并。成功消费、转入暂停或替换原唤醒时清理退避记录。 [阶段验证](../quality/wake-and-scan-recovery-verification.md)
 
 `GetRun`、事件、策略、队列、节点准入及尝试读取不推进状态。完整运行接口可载入完整图；精确 attempt 深链无需首页已包含该记录。尝试列表只读取持久元数据，来源为 `not_loaded`；完整结果在详情按需读取。人工核对返回 `manual_reconciliation` 与理由，不伪造 Runner 成功或零用量；受控提供方核对为 `managed_observation`，原未知结果仍保存在独立核对记录。
 
