@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const managedCodexTemplateIDPattern = `^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`
+
 func managedToolPreparationModels() []any {
 	return []any{tp.ManagedToolPreparationCapability{}, tp.ManagedToolPreparationConfiguration{}, tp.ManagedToolPreparationReference{}, tp.ManagedToolPreparationStopProof{}, tp.ManagedToolPreparationGenerationReceipt{}, tp.ManagedToolPreparation{}, tp.ManagedToolPreparationCreateRequest{}, tp.ManagedToolPreparationClaimRequest{}, tp.PoolManagedToolPreparationClaimRequest{}, tp.ManagedToolPreparationClaim{}, tp.ManagedToolPreparationResultRequest{}, tp.PoolManagedToolPreparationResultRequest{}, tp.ManagedToolPreparationInventoryBinding{}, platform.ToolPreparationPage{}}
 }
@@ -72,6 +74,10 @@ func managedToolPreparationSchemas(api map[string]any) {
 		}
 	}
 	toolContractMap(schemas, "ManagedToolPreparationCapability", "properties", "protocol")["const"] = tp.Protocol
+	templates := toolContractMap(schemas, "ManagedToolPreparationCapability", "properties", "codex_template_ids")
+	templates["minItems"], templates["maxItems"], templates["uniqueItems"] = 1, tp.MaxCodexTemplateIDs, true
+	templates["items"] = map[string]any{"type": "string", "pattern": managedCodexTemplateIDPattern}
+	templates["description"] = "Approved base Codex app-server command IDs for this node and generation. No template selection authority if omitted. Only valid with the Codex app-server adapter."
 	toolContractMap(schemas, "ManagedToolPreparationStopProof", "properties", "protocol")["const"] = tp.StopProtocol
 	for _, field := range []string{"probe_returned", "all_native_trees_stopped"} {
 		toolContractMap(schemas, "ManagedToolPreparationStopProof", "properties", field)["const"] = true
@@ -79,6 +85,9 @@ func managedToolPreparationSchemas(api map[string]any) {
 	toolContractMap(schemas, "ManagedToolPreparationCreateRequest", "properties", "acknowledge_configuration_write")["const"] = true
 	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "model")["x-max-utf8-bytes"] = 256
 	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "model")["description"] = "Fixed model for ACP and Claude CLI only. Must be empty for the other exact native-command preparation adapters; unsupported options are never silently ignored."
+	template := toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "template_id")
+	template["pattern"] = managedCodexTemplateIDPattern
+	template["description"] = "Approved Codex app-server template ID. May be omitted only when exactly one current template is available; the accepted operation fixes the selected ID."
 	managedToolPreparationConfigurationSchemas(schemas)
 	toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties", "credential_env_ref")["description"] = "Separate local credential variable name, not its value. Cursor requires a nonempty reference; Qoder may use existing CLI login. Native CLI preparation requires an empty string and uses its original CLI identity. Codex app-server also requires an empty string and reuses the node administrator configuration. Reserved process/provider variables are rejected."
 	toolContractMap(schemas, "ManagedToolPreparation", "properties", "state")["enum"] = tp.States()
@@ -109,7 +118,11 @@ func managedToolPreparationConfigurationSchemas(schemas map[string]any) {
 		case "existing_local_configuration":
 			model["const"], credential["const"] = "", ""
 		}
-		configuration := map[string]any{"type": "object", "additionalProperties": false, "required": []string{"model", "credential_env_ref"}, "properties": map[string]any{"model": model, "credential_env_ref": credential}}
+		fields := map[string]any{"model": model, "credential_env_ref": credential}
+		if id == "codex-app-server" {
+			fields["template_id"] = map[string]any{"type": "string", "pattern": managedCodexTemplateIDPattern}
+		}
+		configuration := map[string]any{"type": "object", "additionalProperties": false, "required": []string{"model", "credential_env_ref"}, "properties": fields}
 		variants = append(variants, map[string]any{"type": "object", "required": []string{"adapter_id", "configuration"}, "properties": map[string]any{"adapter_id": map[string]any{"const": id}, "configuration": configuration}})
 	}
 	for _, name := range []string{"ManagedToolPreparation", "ManagedToolPreparationCreateRequest"} {

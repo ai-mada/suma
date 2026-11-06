@@ -22,7 +22,13 @@ func installationMaintenanceRaw(value any) bool {
 		}
 	}
 	if capability, present := row["managed_preparation"]; present {
-		return installationRawObject(capability, []string{"protocol", "adapter_ids", "generation_sha256"})
+		if !installationRawObject(capability, []string{"protocol", "adapter_ids", "generation_sha256"}, "codex_template_ids") {
+			return false
+		}
+		if value, present := capability.(map[string]any)["codex_template_ids"]; present {
+			ids, ok := value.([]any)
+			return ok && len(ids) > 0
+		}
 	}
 	return true
 }

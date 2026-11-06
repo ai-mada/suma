@@ -423,6 +423,12 @@ func inventoryWorkspace(ctx context.Context, cfg ExecConfig, write bool) error {
 	if err != nil {
 		return fmt.Errorf("administrator repository is unavailable")
 	}
+	// The maintained probe already owns its process and private directory.
+	// Use the native Git environment so Git does not try to open global
+	// configuration under a deep temporary home on Windows.
+	if toolProbeCollectorFrom(ctx) != nil {
+		ctx = context.WithValue(ctx, nativeGitScope{}, true)
+	}
 	// Maintenance probes have an isolated working directory. Select the
 	// already verified repository explicitly for these read-only Git calls.
 	top, err := gitText(ctx, repo, "-C", repo, "rev-parse", "--show-toplevel")

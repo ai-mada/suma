@@ -29,6 +29,9 @@ func managedCLIFixture225(t *testing.T, adapter string, pooled bool) (preparatio
 		InstalledDiscovery: &ti.Capability{Protocol: ti.Protocol, AdapterIDs: ti.AdapterIDs()},
 		ManagedPreparation: &tp.Capability{Protocol: tp.Protocol, AdapterIDs: tp.AdapterIDs(), GenerationSHA256: strings.Repeat("1", 64)},
 	}
+	if adapter == "codex-app-server" {
+		h.cap.ManagedPreparation.CodexTemplateIDs = []string{"codex-template"}
+	}
 	if _, err := h.report(t, ToolInventoryRequest{OperationID: newID(), Items: []tc.Observation{}, Maintenance: h.cap}); err != nil {
 		t.Fatal(err)
 	}
@@ -219,6 +222,7 @@ func TestManagedCodexAppServerPreparationRequiresScopeOptInAndCatalogue(t *testi
 
 			withoutCodex, cap := *h.cap, *h.cap.ManagedPreparation
 			cap.AdapterIDs = []string{"codex-jsonl"}
+			cap.CodexTemplateIDs = nil
 			withoutCodex.ManagedPreparation = &cap
 			if _, err := h.report(t, ToolInventoryRequest{OperationID: newID(), Items: []tc.Observation{}, Maintenance: &withoutCodex}); err != nil {
 				t.Fatal(err)
@@ -267,6 +271,67 @@ func TestManagedCodexAppServerPreparationRequiresScopeOptInAndCatalogue(t *testi
 			profile, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: h.worker, Name: "Controlled prepared Codex App Server", Profile: result.Receipt.Profile, IdempotencyKey: newID()})
 			if err != nil || profile.State != "paused" || profile.Available {
 				t.Fatal("preparation implicitly enabled Codex app-server", profile, err)
+			}
+		})
+	}
+}
+
+func TestManagedCodexTemplateChoiceIsFrozenAcrossReportsAndReplay(t *testing.T) {
+	for _, scope := range []string{"ordinary", "pool"} {
+		t.Run(scope, func(t *testing.T) {
+			h, request := managedCLIFixture225(t, "codex-app-server", scope == "pool")
+			f, ctx := h.f, context.Background()
+			report := func(ids []string) {
+				t.Helper()
+				capability, managed := *h.cap, *h.cap.ManagedPreparation
+				managed.CodexTemplateIDs = ids
+				capability.ManagedPreparation = &managed
+				if _, err := h.report(t, ToolInventoryRequest{OperationID: newID(), Items: []tc.Observation{}, Maintenance: &capability}); err != nil {
+					t.Fatal(err)
+				}
+			}
+			report(nil)
+			f.call("POST", "/tool-preparations", request, 409)
+
+			report([]string{"codex-template"})
+			single := issueRepairRuntimeDecode[tp.Operation](t, f.call("POST", "/tool-preparations", request, 201))
+			if single.Configuration.TemplateID != "codex-template" || single.SourceSHA256 != tp.SourceSHA256(single) {
+				t.Fatal("singleton did not freeze its exact template")
+			}
+			// Even a capability change with the same generation cannot remap
+			// the original selection to a new template.
+			report([]string{"codex-a", "codex-b"})
+			claim, err := h.claim(t, newID())
+			if err != nil || claim.Preparation != nil {
+				t.Fatal("a removed template was still claimable", claim, err)
+			}
+			stale, err := f.s.GetToolPreparation(ctx, f.actor, f.project, single.ID)
+			if err != nil || stale.State != "superseded" || stale.Configuration.TemplateID != "codex-template" {
+				t.Fatal("superseded preparation lost its original template", stale, err)
+			}
+			replay := issueRepairRuntimeDecode[tp.Operation](t, f.call("POST", "/tool-preparations", request, 201))
+			if stringify(replay) != stringify(single) {
+				t.Fatal("idempotent request did not return the original receipt")
+			}
+
+			request.IdempotencyKey = newID()
+			f.call("POST", "/tool-preparations", request, 409)
+			request.Configuration.TemplateID = "codex-template"
+			f.call("POST", "/tool-preparations", request, 409)
+			for _, invalid := range []any{nil, ""} {
+				wire := issueRepairRuntimeDecode[map[string]any](t, request)
+				wire["configuration"].(map[string]any)["template_id"] = invalid
+				f.call("POST", "/tool-preparations", wire, 400)
+			}
+
+			request.Configuration.TemplateID = "codex-b"
+			selected := issueRepairRuntimeDecode[tp.Operation](t, f.call("POST", "/tool-preparations", request, 201))
+			request.Configuration.TemplateID = "codex-a"
+			f.call("POST", "/tool-preparations", request, 409)
+			claim, err = h.claim(t, newID())
+			if err != nil || claim.Preparation == nil || claim.Preparation.ID != selected.ID ||
+				claim.Preparation.Configuration.TemplateID != "codex-b" || claim.Preparation.SourceSHA256 != selected.SourceSHA256 {
+				t.Fatal("runner claim did not keep the chosen exact template", claim, err)
 			}
 		})
 	}

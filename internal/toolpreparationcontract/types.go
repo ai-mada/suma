@@ -14,6 +14,7 @@ const PendingTTLSeconds = 300
 const ClaimLeaseSeconds = 60
 const MaxProjectRequests = 10000
 const MaxNativeProcesses = 2048
+const MaxCodexTemplateIDs = 8
 
 // AdapterIDs is the implemented remote factory set, not the full tool catalogue.
 func AdapterIDs() []string {
@@ -24,6 +25,7 @@ type ManagedToolPreparationCapability struct {
 	Protocol         string   `json:"protocol"`
 	AdapterIDs       []string `json:"adapter_ids"`
 	GenerationSHA256 string   `json:"generation_sha256"`
+	CodexTemplateIDs []string `json:"codex_template_ids,omitempty"`
 }
 
 // Configuration carries names and the chosen model; never a credential value,
@@ -31,6 +33,7 @@ type ManagedToolPreparationCapability struct {
 type ManagedToolPreparationConfiguration struct {
 	Model            string `json:"model"`
 	CredentialEnvRef string `json:"credential_env_ref"`
+	TemplateID       string `json:"template_id,omitempty"`
 }
 type ManagedToolPreparationReference struct {
 	PreparationID string `json:"preparation_id"`

@@ -14,7 +14,7 @@ func TestManagedToolPreparationContractsKeepExplicitScopeAndOriginalInventory(t 
 		t.Fatal("configuration write lost its explicit closed input")
 	}
 	options := toolContractMap(schemas, "ManagedToolPreparationConfiguration", "properties")
-	if len(options) != 2 || options["model"] == nil || options["credential_env_ref"] == nil {
+	if len(options) != 3 || options["model"] == nil || options["credential_env_ref"] == nil || options["template_id"] == nil {
 		t.Fatal("remote options became an arbitrary host command")
 	}
 	claim := toolContractMap(schemas, "ManagedToolPreparationClaim", "properties")
@@ -52,7 +52,17 @@ func TestManagedCLIInitialSchemaKeepsClosedAdapterConfigurations(t *testing.T) {
 			props := toolContractMap(raw.(map[string]any), "properties")
 			id := toolContractMap(props, "adapter_id")["const"].(string)
 			config := toolContractMap(props, "configuration")
-			if config["additionalProperties"] != false || len(toolContractMap(config, "properties")) != 2 {
+			fields := toolContractMap(config, "properties")
+			count := 2
+			if id == "codex-app-server" {
+				count++
+				if toolContractMap(fields, "template_id")["pattern"] != managedCodexTemplateIDPattern {
+					t.Fatal("Codex template reference is not bounded")
+				}
+			} else if fields["template_id"] != nil {
+				t.Fatal("Codex template exposed to another adapter")
+			}
+			if config["additionalProperties"] != false || len(fields) != count {
 				t.Fatal("arbitrary machine options exposed")
 			}
 			model := toolContractMap(config, "properties", "model")

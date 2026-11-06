@@ -2,32 +2,40 @@ package runner
 
 import (
 	"fmt"
+	"slices"
 
-	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	tp "github.com/ai-mada/suma/internal/toolpreparationcontract"
 )
 
 const managedCodexAdapterID = "codex-app-server"
 
-// A project may adopt a newly scanned executable with the scope's original
-// provider settings. A second command or custom environment would make that
-// selection ambiguous, so only a single fixed base command is eligible.
-func managedCodexTemplate(cfg ExecConfig) (CommandSpec, bool) {
+// List only the approved base commands for this scope. If the configured set
+// is too large, do not advertise a subset that could imply a unique choice.
+func managedCodexTemplateIDs(cfg ExecConfig) []string {
 	if !cfg.AllowExec {
-		return CommandSpec{}, false
+		return nil
 	}
-	var template CommandSpec
+	var ids []string
 	for id, command := range cfg.Commands {
-		if command.CodexAppServer == nil && command.Protocol != cc.Protocol {
+		if !tc.ValidCommandID(id) || command.InstalledCommand != nil || !fixedManagedCodexCommand(command) {
 			continue
 		}
-		if template.CodexAppServer != nil || !tc.ValidCommandID(id) || command.InstalledCommand != nil || !fixedManagedCodexCommand(command) {
-			return CommandSpec{}, false
+		ids = append(ids, id)
+		if len(ids) > tp.MaxCodexTemplateIDs {
+			return nil
 		}
-		template = command
 	}
-	return template, template.CodexAppServer != nil
+	slices.Sort(ids)
+	return ids
+}
+
+func managedCodexTemplate(cfg ExecConfig, requested string) (CommandSpec, bool) {
+	id, ok := tp.ResolveCodexTemplateID(managedCodexTemplateIDs(cfg), requested)
+	if !ok {
+		return CommandSpec{}, false
+	}
+	return cfg.Commands[id], true
 }
 
 // Use the same command builder as the local setup. It copies provider settings
@@ -47,13 +55,14 @@ func fixedManagedCodexCommand(spec CommandSpec) bool {
 }
 
 func (w *Worker) managedCodexPreparationIntent(op tp.Operation, native installationNativeObservation) (*installedToolPreparationInput, error) {
-	template, ok := managedCodexTemplate(w.Exec)
+	template, ok := managedCodexTemplate(w.Exec, op.Configuration.TemplateID)
 	if !ok {
 		return nil, fmt.Errorf("exact local Codex app-server template required")
 	}
 	// Own the original configuration independently of the base command map.
 	provider := *template.CodexAppServer
 	template.CodexAppServer = &provider
+	template.Args = slices.Clone(template.Args)
 	template.Executable = native.Executable
 	template.InstalledCommand = &InstalledCommandPins{AdapterID: managedCodexAdapterID, HostSHA256: native.Item.ExecutableSHA256}
 	intent := &installedToolPreparationInput{AdapterID: managedCodexAdapterID, Command: template}

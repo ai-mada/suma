@@ -55,10 +55,14 @@ func (w *Worker) enableToolMaintenance() error {
 			return err
 		}
 		ids := tp.AdapterIDs()
-		if _, ok := managedCodexTemplate(w.Exec); !ok {
+		codexTemplateIDs := managedCodexTemplateIDs(w.Exec)
+		if len(codexTemplateIDs) == 0 {
 			ids = slices.DeleteFunc(ids, func(id string) bool { return id == managedCodexAdapterID })
 		}
-		capability.ManagedPreparation = &tp.Capability{Protocol: tp.Protocol, AdapterIDs: ids, GenerationSHA256: w.currentGenerationSHA()}
+		capability.ManagedPreparation = &tp.Capability{
+			Protocol: tp.Protocol, AdapterIDs: ids, GenerationSHA256: w.currentGenerationSHA(),
+			CodexTemplateIDs: codexTemplateIDs,
+		}
 	}
 	w.maintenance = &capability
 	return nil
@@ -76,7 +80,8 @@ func cloneToolMaintenance(p *ti.ToolMaintenanceCapability) *ti.ToolMaintenanceCa
 	}
 	if p.ManagedPreparation != nil {
 		c := *p.ManagedPreparation
-		c.AdapterIDs = append([]string{}, c.AdapterIDs...)
+		c.AdapterIDs = slices.Clone(c.AdapterIDs)
+		c.CodexTemplateIDs = slices.Clone(c.CodexTemplateIDs)
 		copied.ManagedPreparation = &c
 	}
 	return &copied
@@ -99,7 +104,10 @@ func sameToolMaintenance(a, b *ti.ToolMaintenanceCapability) bool {
 	if a.ManagedPreparation == nil || b.ManagedPreparation == nil {
 		return a.ManagedPreparation == nil && b.ManagedPreparation == nil
 	}
-	return a.ManagedPreparation.Protocol == b.ManagedPreparation.Protocol && a.ManagedPreparation.GenerationSHA256 == b.ManagedPreparation.GenerationSHA256 && slices.Equal(a.ManagedPreparation.AdapterIDs, b.ManagedPreparation.AdapterIDs)
+	return a.ManagedPreparation.Protocol == b.ManagedPreparation.Protocol &&
+		a.ManagedPreparation.GenerationSHA256 == b.ManagedPreparation.GenerationSHA256 &&
+		slices.Equal(a.ManagedPreparation.AdapterIDs, b.ManagedPreparation.AdapterIDs) &&
+		slices.Equal(a.ManagedPreparation.CodexTemplateIDs, b.ManagedPreparation.CodexTemplateIDs)
 }
 
 func (w *Worker) toolMaintenanceForGeneration(generation string) *ti.ToolMaintenanceCapability {

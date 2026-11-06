@@ -217,7 +217,7 @@ func (w *Worker) prepareManagedTool(ctx context.Context, p *toolPreparationCheck
 		code = "generation_changed"
 	}
 	if op.AdapterID == managedCodexAdapterID && code == "" {
-		if _, ok := managedCodexTemplate(w.Exec); !ok {
+		if _, ok := managedCodexTemplate(w.Exec, op.Configuration.TemplateID); !ok {
 			code = "preparation_not_supported"
 		}
 	}

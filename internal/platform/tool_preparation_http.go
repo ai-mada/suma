@@ -101,6 +101,17 @@ func validateToolPreparationInventoryFields(m map[string]any) bool {
 	return strictjson.Decode(raw, &request, 2<<20) == nil && request.Preparation != nil && tp.ValidateInventoryBinding(*request.Preparation) == nil
 }
 
+func preparationRawConfiguration(value any) bool {
+	if !installationRawObject(value, []string{"model", "credential_env_ref"}, "template_id") {
+		return false
+	}
+	if selected, present := value.(map[string]any)["template_id"]; present {
+		id, ok := selected.(string)
+		return ok && id != ""
+	}
+	return true
+}
+
 func (s *Server) toolPreparationsHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope string, parts []string, project string, m map[string]any) bool {
 	if len(parts) < 1 || parts[0] != "tool-preparations" || len(parts) > 2 {
 		return false
@@ -113,7 +124,7 @@ func (s *Server) toolPreparationsHTTP(w http.ResponseWriter, r *http.Request, ac
 	switch {
 	case len(parts) == 1 && r.Method == http.MethodPost:
 		var request tp.CreateRequest
-		if r.URL.RawQuery != "" || !installationRawObject(m, []string{"project_id", "worker_id", "installation_scan_id", "expected_scan_version", "adapter_id", "configuration", "expected_generation_sha256", "acknowledge_configuration_write", "idempotency_key"}) || !installationRawObject(m["configuration"], []string{"model", "credential_env_ref"}) || preparationDecode(m, &request) != nil {
+		if r.URL.RawQuery != "" || !installationRawObject(m, []string{"project_id", "worker_id", "installation_scan_id", "expected_scan_version", "adapter_id", "configuration", "expected_generation_sha256", "acknowledge_configuration_write", "idempotency_key"}) || !preparationRawConfiguration(m["configuration"]) || preparationDecode(m, &request) != nil {
 			writeError(w, toolPreparationInvalid())
 			return true
 		}

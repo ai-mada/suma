@@ -9,7 +9,7 @@ import {readToolReportFeedback,toolReportFeedbackRemainingMs,type ToolReportFeed
 import {toolDiscoveryTimestampNs} from './tool-discovery-model';
 import {sameToolProfile} from './tool-profile-reuse-model';
 import {Field,ErrorNotice} from './ui';
-import {managedToolPreparationMode} from './managed-tool-preparation-capability-model';
+import {managedToolPreparationMode,managedToolPreparationSupports} from './managed-tool-preparation-capability-model';
 import {preparationForLocalTool} from './tool-preparation-target';
 import {tr,useLocale,UiError} from './i18n';
 import './ManagedToolPreparationPanel.css';
@@ -30,6 +30,7 @@ export function ManagedToolPreparationPanel(props:ManagedToolPreparationPanelPro
 function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,disabled=false,newOperationsBlocked=false,onBlockedChange,onPreparedConfiguration,owns}:ManagedToolPreparationPanelProps&{scope:RemoteToolScanScope;owns:()=>boolean}){
  useLocale();const api=useApi(),storage=toolSessionStorage(),scopeKey=remoteToolScanScopeKey(scope),selectionKey='suma-managed-preparation-selected:'+scopeKey;
  const [selected,setSelected]=useState(()=>{try{return storage?.getItem(selectionKey)||'';}catch{return '';}}),selectedRef=useRef(selected);selectedRef.current=selected;
+ const [template,setTemplate]=useState<{scope:string;id:string}>();
  const [page,setPage]=useState<Page>(),[operation,setOperation]=useState<ToolPreparationOperation>(),[loading,setLoading]=useState(true),[error,setError]=useState<unknown>(),[hidden,setHidden]=useState(false),[model,setModel]=useState(''),[credential,setCredential]=useState(''),[acknowledged,setAcknowledged]=useState(false),[timedOut,setTimedOut]=useState(false),[,tick]=useState(0);
  const alive=useRef(true),epoch=useRef(0),flight=useRef<AbortController|undefined>(undefined),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined),waiting=useRef<{id:string;until:number}|undefined>(undefined),deadline=useRef(0),submitting=useRef(false),latest=useRef({disabled,newOperationsBlocked,onBlockedChange,onPreparedConfiguration,scan,item});latest.current={disabled,newOperationsBlocked,onBlockedChange,onPreparedConfiguration,scan,item};
  const newActionOwner=useRef({blocked:newOperationsBlocked});if(newActionOwner.current.blocked!==newOperationsBlocked)newActionOwner.current={blocked:newOperationsBlocked};
@@ -39,14 +40,23 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
  const sourceKey=JSON.stringify([selectedScanID,selectionEpoch,scan?.id,scan?.version,item?.adapter_id,item?.executable_sha256]),sourceOwner=useRef({key:sourceKey,epoch:0});if(sourceOwner.current.key!==sourceKey)sourceOwner.current={key:sourceKey,epoch:sourceOwner.current.epoch+1};
  const acknowledgedSource=useRef<string|undefined>(undefined);
  const pending=!!action.pending,busy=action.busy,unresolved=!!operation&&managedToolPreparationUnresolved(operation),blocked=pending||busy||unresolved||action.persistenceBlocked;
+ const pendingConfiguration=action.pending?.body.configuration;
+ const pendingTemplateID=action.pending?.body.adapter_id==='codex-app-server'&&validManagedToolPreparationConfiguration('codex-app-server',pendingConfiguration)?pendingConfiguration.template_id:undefined;
  const maintenance=page?.maintenance.status,cap=maintenance?.managed_preparation,capCurrent=maintenance?.state==='supported'&&validManagedToolPreparationCapability(cap)&&performance.now()<deadline.current;
  const source=scan?.state==='completed'&&!scan.source_changed&&item&&canPrepareManagedToolItem(item)&&scan.result?.items.some(value=>value.adapter_id===item.adapter_id&&JSON.stringify(value)===JSON.stringify(item))?{scan,item}:undefined;
- const mode=managedToolPreparationMode(source?.item.adapter_id),configuration={model:mode==='existing_local_configuration'?'':model,credential_env_ref:mode==='model_and_credential'?credential:''};
- const codex=source?.item.adapter_id==='codex-app-server';
- const capabilityMatchesSource=capCurrent&&!!source&&cap.adapter_ids.some(adapter=>adapter===source.item.adapter_id)&&source.scan.instance_id===maintenance.instance_id;
- const consentKey=codex?JSON.stringify([sourceKey,capabilityMatchesSource?cap.generation_sha256:null]):sourceKey;
+ const mode=managedToolPreparationMode(source?.item.adapter_id),codex=source?.item.adapter_id==='codex-app-server';
+ const capabilityMatchesSource=capCurrent&&!!source&&managedToolPreparationSupports(cap,source.item.adapter_id)&&source.scan.instance_id===maintenance.instance_id;
+ const templates=codex&&capabilityMatchesSource?cap.codex_template_ids:undefined;
+ const templateScope=templates&&cap?JSON.stringify([sourceOwner.current.epoch,cap.generation_sha256,templates]):undefined;
+ const templateID=templates?.length===1?templates[0]:template?.scope===templateScope?template?.id:undefined;
+ const configuration={model:mode==='existing_local_configuration'?'':model,credential_env_ref:mode==='model_and_credential'?credential:'',...(templateID?{template_id:templateID}:{})};
+ const consentKey=codex?JSON.stringify([sourceKey,templateScope,templateID]):sourceKey;
  const hasConsent=acknowledged&&acknowledgedSource.current===consentKey;
- const canCreate=!disabled&&!newOperationsBlocked&&!hidden&&!loading&&!error&&!blocked&&!action.conflict&&capabilityMatchesSource&&validManagedToolPreparationConfiguration(source.item.adapter_id,configuration)&&hasConsent;
+ const canCreate=!disabled&&!newOperationsBlocked&&!hidden&&!loading&&!error&&!blocked&&!action.conflict&&capabilityMatchesSource&&(!codex||!!templateID)&&validManagedToolPreparationConfiguration(source.item.adapter_id,configuration)&&hasConsent;
+ function chooseTemplate(id:string){
+  if(!templateScope||!templates?.includes(id)||id===templateID)return;
+  acknowledgedSource.current=undefined;setAcknowledged(false);setTemplate({scope:templateScope,id});
+ }
  function choose(id:string){selectedRef.current=id;setSelected(id);try{storage?.setItem(selectionKey,id);}catch{/* The write request, not this navigation locator, is durable authority. */}}
  function stop(){clearTimeout(timer.current);timer.current=undefined;}
  function current(sequence:number,controller:AbortController){return alive.current&&owns()&&epoch.current===sequence&&!controller.signal.aborted;}
@@ -78,7 +88,7 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
   const ownsSelection=()=>current(sequence,controller)&&sourceOwner.current===selectionOwner&&newActionOwner.current===actionOwner&&!latest.current.newOperationsBlocked;flight.current=controller;setLoading(true);setError(undefined);
   try{
    const head=await readManagedToolPreparation(await api<unknown>(managedToolPreparationPath(scope.project,original.id),undefined,'GET',undefined,controller.signal),scope,original.id);if(!ownsSelection())return;
-   if(head.state!=='completed'||head.source_changed||head.version!==original.version||!head.receipt||!sameToolProfile(head.receipt.profile,original.receipt!.profile))throw new UiError('managed-tool-preparation.inventory_changed');
+   if(head.state!=='completed'||head.source_changed||head.version!==original.version||head.configuration.template_id!==original.configuration.template_id||!head.receipt||!sameToolProfile(head.receipt.profile,original.receipt!.profile))throw new UiError('managed-tool-preparation.inventory_changed');
    const [catalog,inventory]=await Promise.all([api<unknown>('/adapter-catalog?project_id='+encodeURIComponent(scope.project),undefined,'GET',undefined,controller.signal),api<unknown>('/tool-discovery?project_id='+encodeURIComponent(scope.project)+'&worker_id='+encodeURIComponent(scope.workerID),undefined,'GET',undefined,controller.signal)]);if(!ownsSelection())return;
    const local=preparationForLocalTool(head.adapter_id);if(!local||!managedToolPreparationMode(local.localTool))throw new UiError('managed-tool-preparation.inventory_changed');
    const target={project:scope.project,workerID:scope.workerID,localTool:local.localTool},view=readToolReportFeedback(catalog,inventory,target,scope.project,performance.now()-started),choice=view?.choices.find(value=>sameToolProfile(value.profile,head.receipt!.profile));
@@ -94,6 +104,7 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
  useEffect(()=>{if(action.errorStatus&&[401,403,404].includes(action.errorStatus))deny();},[action.errorStatus]);
  useEffect(()=>{const remaining=deadline.current-performance.now();if(remaining<=0)return;const handle=setTimeout(()=>tick(value=>value+1),Math.ceil(remaining));return()=>clearTimeout(handle);},[page]);
  useEffect(()=>{const visibility=()=>{if(document.visibilityState==='hidden'){stop();++epoch.current;flight.current?.abort();flight.current=undefined;setLoading(false);}else if(waiting.current){if(performance.now()>=waiting.current.until)setTimedOut(true);else void read(waiting.current.id);}};document.addEventListener('visibilitychange',visibility);return()=>document.removeEventListener('visibilitychange',visibility);},[]);
+ useEffect(()=>{setTemplate(undefined);},[templateScope]);
  useEffect(()=>{setModel('');setCredential('');setAcknowledged(false);acknowledgedSource.current=undefined;},[consentKey]);
  if(!source&&!operation&&!pending&&!error)return null;
  const state=hidden?'forbidden':pending?'write_unknown':operation?.state??'configure';
@@ -101,19 +112,29 @@ function PreparationController({scope,scan,item,selectedScanID,selectionEpoch,di
   <header><div><h4>{t('title')}</h4><p>{scope.workerID}</p></div><button type="button" data-managed-preparation-refresh disabled={loading||busy} onClick={()=>void read(selectedRef.current,true)}>{t('refresh')}</button></header>
   <p role="status">{t('state.'+state)}</p>
   {!!(error||action.error)&&<ErrorNotice error={action.error||error}/>}
-  {pending&&!hidden&&<button type="button" data-managed-preparation-recover disabled={busy||disabled} onClick={()=>void create(true)}>{t('recover')}</button>}
+  {pending&&!hidden&&<>
+   {pendingTemplateID&&<p data-managed-preparation-pending-template>{t('codex_original_template')} <strong>{pendingTemplateID}</strong></p>}
+   <button type="button" data-managed-preparation-recover disabled={busy||disabled} onClick={()=>void create(true)}>{t('recover')}</button>
+  </>}
   {!hidden&&!pending&&source&&!unresolved&&<div className="managed-tool-preparation-form" data-managed-preparation-mode={mode}>
    <p>{t('selected')} <strong>{codex?t('codex_name'):source.item.adapter_id}</strong>{codex&&source.item.version?' · '+source.item.version:null}</p>
    {mode!=='existing_local_configuration'&&<Field label={t('model')} hint={mode==='fixed_claude_model'?t('claude_model_hint'):undefined}><input data-managed-preparation-model value={model} disabled={disabled||busy} maxLength={256} onChange={event=>setModel(event.target.value)}/></Field>}
    {mode==='model_and_credential'&&<Field label={t('credential')} hint={t(source.item.adapter_id==='qoder-acp'?'credential_optional':'credential_required')}><input data-managed-preparation-credential value={credential} disabled={disabled||busy} maxLength={128} autoComplete="off" spellCheck={false} onChange={event=>setCredential(event.target.value)}/></Field>}
    {mode==='existing_local_configuration'&&(!codex||capabilityMatchesSource)&&<p data-managed-preparation-existing>{t(codex?'codex_existing_configuration':'existing_configuration')}</p>}
+   {templates?.length===1&&<p data-managed-preparation-fixed-template>{t('codex_template')} <strong>{templates[0]}</strong></p>}
+   {templates&&templates.length>1&&<Field label={t('codex_template')}>
+    <select data-managed-preparation-template required value={templateID??''} disabled={disabled||loading||busy} onChange={event=>chooseTemplate(event.target.value)}>
+     <option value="" disabled>{t('codex_template_placeholder')}</option>
+     {templates.map(id=><option key={id} value={id}>{id}</option>)}
+    </select>
+   </Field>}
    {!capabilityMatchesSource&&!loading&&<p role="status">{t(codex&&capCurrent&&source.scan.instance_id!==maintenance.instance_id?'codex_rescan_required':codex&&capCurrent?'codex_capability_unavailable':'capability_unavailable')}</p>}
    {(!codex||capabilityMatchesSource)&&<>
-    <label className="managed-tool-preparation-consent"><input type="checkbox" data-managed-preparation-confirm checked={hasConsent} disabled={disabled||busy} onChange={event=>{acknowledgedSource.current=event.target.checked?consentKey:undefined;setAcknowledged(event.target.checked);}}/><span>{t('acknowledge')}</span></label>
+    <label className="managed-tool-preparation-consent"><input type="checkbox" data-managed-preparation-confirm checked={hasConsent} disabled={disabled||busy||codex&&!templateID} onChange={event=>{acknowledgedSource.current=event.target.checked?consentKey:undefined;setAcknowledged(event.target.checked);}}/><span>{t('acknowledge')}</span></label>
     <button type="button" data-managed-preparation-create disabled={!canCreate} onClick={()=>void create()}>{t('create')}</button>
    </>}
   </div>}
-  {!hidden&&operation&&<div className="managed-tool-preparation-progress"><code>{operation.id}</code>{operation.result_code&&<p>{t('result.'+operation.result_code)}</p>}{operation.receipt&&<><p>{t('configuration_accepted')}</p><code>{operation.receipt.profile.profile_sha256}</code></>}{operation.source_changed&&<p>{t('source_changed')}</p>}{timedOut&&unresolved&&<p>{t('wait_finished')}</p>}{operation.state==='completed'&&onPreparedConfiguration&&<button type="button" data-managed-preparation-use disabled={disabled||newOperationsBlocked||loading||busy||pending||!!error||!!operation.source_changed||!!selectedScanID&&operation.installation_scan_id!==selectedScanID} onClick={()=>void useInventory()}>{t('use')}</button>}</div>}
+  {!hidden&&operation&&<div className="managed-tool-preparation-progress"><code>{operation.id}</code>{!pending&&operation.configuration.template_id&&<p data-managed-preparation-operation-template>{t('codex_template')} <strong>{operation.configuration.template_id}</strong></p>}{operation.result_code&&<p>{t('result.'+operation.result_code)}</p>}{operation.receipt&&<><p>{t('configuration_accepted')}</p><code>{operation.receipt.profile.profile_sha256}</code></>}{operation.source_changed&&<p>{t('source_changed')}</p>}{timedOut&&unresolved&&<p>{t('wait_finished')}</p>}{operation.state==='completed'&&onPreparedConfiguration&&<button type="button" data-managed-preparation-use disabled={disabled||newOperationsBlocked||loading||busy||pending||!!error||!!operation.source_changed||!!selectedScanID&&operation.installation_scan_id!==selectedScanID} onClick={()=>void useInventory()}>{t('use')}</button>}</div>}
   <p className="managed-tool-preparation-boundary">{t('boundary')}</p>
  </section>;
 }

@@ -97,3 +97,46 @@ func TestManagedPreparationUsesPinnedConfigurationRequiredACPInstallation(t *tes
 		t.Fatal("second implemented ACP factory was lost")
 	}
 }
+
+func TestManagedCodexTemplateCapabilityAndInputRemainClosed(t *testing.T) {
+	capability := tp.Capability{Protocol: tp.Protocol, AdapterIDs: []string{"codex-app-server"}, GenerationSHA256: strings.Repeat("a", 64)}
+	if tp.ValidateCapability(capability) != nil {
+		t.Fatal("original inventory without template selection is no longer readable")
+	}
+	for _, ids := range [][]string{{}, {"codex-b", "codex-a"}, {"codex-a", "codex-a"}, {"codex/invalid"}, {"a", "b", "c", "d", "e", "f", "g", "h", "i"}} {
+		capability.CodexTemplateIDs = ids
+		if tp.ValidateCapability(capability) == nil {
+			t.Fatal("invalid template catalogue accepted", ids)
+		}
+	}
+	ids := []string{"codex-a", "codex-b"}
+	capability.CodexTemplateIDs = ids
+	if tp.ValidateCapability(capability) != nil {
+		t.Fatal("approved sorted catalogue rejected")
+	}
+	capability.AdapterIDs = []string{"codex-jsonl"}
+	if tp.ValidateCapability(capability) == nil {
+		t.Fatal("a different adapter advertised Codex app-server templates")
+	}
+	for _, input := range []string{"", "missing"} {
+		if _, ok := tp.ResolveCodexTemplateID(ids, input); ok {
+			t.Fatal("ambiguous or unapproved template was selected")
+		}
+	}
+	if selected, ok := tp.ResolveCodexTemplateID(ids, "codex-b"); !ok || selected != "codex-b" {
+		t.Fatal("exact approved template was not selected")
+	}
+	if selected, ok := tp.ResolveCodexTemplateID(ids[:1], ""); !ok || selected != "codex-a" {
+		t.Fatal("singleton template was not resolved")
+	}
+	explicit := tp.Configuration{TemplateID: "codex-b"}
+	if tp.ValidateConfiguration("codex-app-server", explicit) != nil || tp.ValidateConfiguration("codex-jsonl", explicit) == nil {
+		t.Fatal("template option was rejected or granted to another adapter")
+	}
+	source := tp.Operation{AdapterID: "codex-app-server", Configuration: explicit}
+	original := tp.SourceSHA256(source)
+	source.Configuration.TemplateID = "codex-a"
+	if tp.SourceSHA256(source) == original {
+		t.Fatal("template choice was not included in the immutable source")
+	}
+}

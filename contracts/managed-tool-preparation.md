@@ -10,7 +10,9 @@
 
 ### Codex App Server 换新
 
-节点需允许执行，并在原项目范围的基础命令文件中仅配置一个符合固定协议的 Codex App Server 命令。当前派生代次不能反过来成为模板。浏览器只确认选择原扫描中的新安装。执行器沿原模板复用本机供应方、凭据引用和沙箱策略，使用新扫描固定的程序路径及字节摘要。模板歧义、来源变更或缺少当前模型目录观察时，保持原代次并返回原操作结果。秘密值和本机配置正文不进入控制面回执。模型目录检查沿既有 App Server 观察，任务模型选择与正式执行保持独立。
+节点需允许执行，并在原项目范围的基础命令文件中提供符合固定协议的 Codex App Server 命令。节点发布最多 8 个经筛选的本机命令 ID，按名称稳定排序。没有可选项或数量超限时进入原手工指南。派生代次不作为模板。候选中有多项时必须明确选择，单项可直接确认。浏览器固定 `template_id`、原扫描和代次。接口只有在当前恰有一个候选时才接受省略，控制面在正式操作中固定所选 ID。
+
+执行器按当前基础配置的准确 ID 复用本机供应方、凭据引用和沙箱策略，使用新扫描固定的程序路径及字节摘要。来源变更或缺少模型目录观察时保留原代次，处理原操作结果。公开候选只含命令 ID，秘密值与本机配置正文留在节点。任务模型选择与正式执行另行确认。已有已领取回执沿原意图恢复。缺少候选列表时可核对已保存记录，新的 Codex 准备须等待节点上报明确候选。
 
 ## 独立允许与准确来源
 
@@ -44,7 +46,7 @@ Worker.currentExecSnapshot用于runAssignment、DescribeTools、Info能力等所
 
 Protocol=suma-managed-tool-preparation-v1；StopProtocol=suma-managed-tool-preparation-stop-v1。公共long名ManagedToolPreparation系列；Go短名只用于实现方便，不是旧产品兼容。
 
-- Capability{protocol,adapter_ids,generation_sha256}。Configuration{model,credential_env_ref}正好两字符串；各 adapter 按当前 ConfigurationMode闭形校验，不忽略不适用的模型或凭据输入。
+- Capability{protocol,adapter_ids,generation_sha256}。Configuration{model,credential_env_ref}包含 `model`、`credential_env_ref`，仅 Codex App Server 可附 `template_id`。各 adapter 按当前 ConfigurationMode闭形校验，不忽略不适用的模型或凭据输入。
 - CreateRequest{project_id,worker_id,installation_scan_id,expected_scan_version,adapter_id,configuration,expected_generation_sha256,acknowledge_configuration_write:true,idempotency_key}。
 - Reference{preparation_id,claim_id,fence}；ClaimRequest{project_id,worker_id,claim_id}；PoolClaimRequest{tenant_id,project_id,runner_id,claim_id}；Claim{preparation:Operation|null}。
 - Operation保存ID/project/worker/version/state/adapter/config、InstanceID、原scan及准确Item／ref／SourceSHA、ExpectedGenerationSHA、RequestedBy/timestamps、claim/fence与本操作SourceSHA；可选Receipt、ResultCode、InventoryOperationID／ObservedAt及只读SourceChanged。可变state/version/result与claim/lease字段不进入稳定SourceSHA；claim nonce/fence由准确Reference单独固定核对。

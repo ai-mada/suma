@@ -319,7 +319,7 @@ func TestManagedPreparationUnknownClosureAndCapabilityOptInRemainIndependent(t *
 		t.Fatal("ordinary or one-off capability silently widened")
 	}
 	// Deep cloning must also preserve the original inspection/scan declaration.
-	cap := &ti.ToolMaintenanceCapability{Protocol: ti.MaintenanceProtocol, InstanceID: operationID(), InstalledDiscovery: &ii.Capability{Protocol: ii.Protocol, AdapterIDs: ii.AdapterIDs()}, ManagedPreparation: &tp.Capability{Protocol: tp.Protocol, AdapterIDs: tp.AdapterIDs(), GenerationSHA256: op.ExpectedGenerationSHA256}}
+	cap := &ti.ToolMaintenanceCapability{Protocol: ti.MaintenanceProtocol, InstanceID: operationID(), InstalledDiscovery: &ii.Capability{Protocol: ii.Protocol, AdapterIDs: ii.AdapterIDs()}, ManagedPreparation: &tp.Capability{Protocol: tp.Protocol, AdapterIDs: tp.AdapterIDs(), GenerationSHA256: op.ExpectedGenerationSHA256, CodexTemplateIDs: []string{"codex-template"}}}
 	clone := cloneToolMaintenance(cap)
 	clone.InstalledDiscovery.AdapterIDs[0] = "qoder-acp"
 	if sameToolMaintenance(cap, clone) {

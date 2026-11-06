@@ -1,6 +1,6 @@
 import type {ManagedToolPreparation,ManagedToolPreparationConfiguration,ManagedToolPreparationStopProof} from '../../../packages/contracts/src';
 import {validDesktopACPModel,validDesktopACPCredentialReference} from './desktop-acp-connector-model';
-import {managedToolPreparationMode,validManagedToolPreparationCapability} from './managed-tool-preparation-capability-model';
+import {managedToolPreparationMode,validCodexTemplateID,validManagedToolPreparationCapability} from './managed-tool-preparation-capability-model';
 import {readToolMaintenanceStatus} from './tool-maintenance-model';
 import {validRemoteToolScanItem,validRemoteToolScanScope,type RemoteToolScanScope} from './remote-tool-scan-model';
 import {parseToolManifest} from './tool-model';
@@ -27,7 +27,8 @@ const unknownCodes=['preparation_timeout','preparation_interrupted','worker_rest
 const failedCodes=['not_started','source_changed','rescan_required','configuration_invalid','credential_reference_unavailable','native_source_changed','generation_changed','preparation_not_supported','preparation_failed'];
 function invalid():never{throw new UiError('managed-tool-preparation.invalid_response');}
 export function validManagedToolPreparationConfiguration(adapter:unknown,value:unknown):value is ManagedToolPreparationConfiguration{
- if(!object(value)||!closed(value,['model','credential_env_ref']))return false;
+ if(!object(value)||!closed(value,['model','credential_env_ref'],adapter==='codex-app-server'?['template_id']:[]))return false;
+ if(Object.hasOwn(value,'template_id')&&!validCodexTemplateID(value.template_id))return false;
  switch(managedToolPreparationMode(adapter)){
   case 'model_and_credential':return validDesktopACPModel(value.model)&&(value.credential_env_ref===''?adapter==='qoder-acp':validDesktopACPCredentialReference(value.credential_env_ref));
   case 'fixed_claude_model':return validClaudeCLIModel(value.model)&&value.credential_env_ref==='';
@@ -100,6 +101,6 @@ export function validManagedToolPreparationRequest(request:WriteRecoveryRequest,
 }
 export async function validManagedToolPreparationReceipt(value:unknown,request:WriteRecoveryRequest,scope:RemoteToolScanScope){
  if(!validManagedToolPreparationRequest(request,scope))return false;
- try{const row=await readManagedToolPreparation(value,scope),configuration=request.body.configuration as ManagedToolPreparationConfiguration;return row.requested_by===scope.userID&&row.installation_scan_id===request.body.installation_scan_id&&row.installation_scan_version===request.body.expected_scan_version&&row.adapter_id===request.body.adapter_id&&row.expected_generation_sha256===request.body.expected_generation_sha256&&row.configuration.model===configuration.model&&row.configuration.credential_env_ref===configuration.credential_env_ref;}catch{return false;}
+ try{const row=await readManagedToolPreparation(value,scope),configuration=request.body.configuration as ManagedToolPreparationConfiguration;return row.requested_by===scope.userID&&row.installation_scan_id===request.body.installation_scan_id&&row.installation_scan_version===request.body.expected_scan_version&&row.adapter_id===request.body.adapter_id&&row.expected_generation_sha256===request.body.expected_generation_sha256&&row.configuration.model===configuration.model&&row.configuration.credential_env_ref===configuration.credential_env_ref&&row.configuration.template_id===configuration.template_id;}catch{return false;}
 }
 export {validManagedToolPreparationCapability};

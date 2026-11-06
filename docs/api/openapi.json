@@ -20509,6 +20509,10 @@
                     "const": "",
                     "type": "string",
                     "x-max-utf8-bytes": 256
+                  },
+                  "template_id": {
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -20695,6 +20699,17 @@
             "type": "array",
             "uniqueItems": true
           },
+          "codex_template_ids": {
+            "description": "Approved base Codex app-server command IDs for this node and generation. No template selection authority if omitted. Only valid with the Codex app-server adapter.",
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
           "generation_sha256": {
             "pattern": "^[a-f0-9]{64}$",
             "type": "string"
@@ -20773,6 +20788,11 @@
             "description": "Fixed model for ACP and Claude CLI only. Must be empty for the other exact native-command preparation adapters; unsupported options are never silently ignored.",
             "type": "string",
             "x-max-utf8-bytes": 256
+          },
+          "template_id": {
+            "description": "Approved Codex app-server template ID. May be omitted only when exactly one current template is available; the accepted operation fixes the selected ID.",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
           }
         },
         "required": [
@@ -20986,6 +21006,10 @@
                     "const": "",
                     "type": "string",
                     "x-max-utf8-bytes": 256
+                  },
+                  "template_id": {
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+                    "type": "string"
                   }
                 },
                 "required": [

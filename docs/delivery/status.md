@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CODEX-PREP-TEMPLATE-CHOICE 团队节点可从当前授权的多个 Codex App Server 本机模板选择准确配置。切换后重新确认，固定原选择和扫描，模型目录核对后接续暂停登记。 [交互](../design/managed-tool-preparation.md#codex-app-server-换新) · [验证](../quality/codex-prep-template-choice-verification.md)
+
 T-CODEX-MANAGED-REPIN 团队节点可用原管理员配置准备新扫描的 Codex App Server。模型目录与库存核对后可保存暂停，修复空领取和维护竞争。 [交互](../design/managed-tool-preparation.md#codex-app-server-换新) · [验证](../quality/codex-managed-repin-verification.md)
 
 T-WORKBUDDY-PROGRESS-TASK-SCOPE 网页和 CLI 可按正式任务查看已保存云记录。任务交付与进度行可直接进入，支持保留待处理条件、分享和返回。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-progress-task-scope-verification.md)

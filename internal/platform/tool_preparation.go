@@ -83,6 +83,11 @@ func (s *Service) toolPreparationCurrentTx(ctx context.Context, tx *sql.Tx, row 
 	if identity != row.IdentitySHA256 || status.InstanceID != v.InstanceID || !preparationSupports(status.ManagedPreparation, v.AdapterID) {
 		return toolPreparationChanged()
 	}
+	if v.AdapterID == "codex-app-server" && (v.State == "pending" || v.Configuration.TemplateID != "") {
+		if _, ok := tp.ResolveCodexTemplateID(status.ManagedPreparation.CodexTemplateIDs, v.Configuration.TemplateID); !ok {
+			return toolPreparationChanged()
+		}
+	}
 	generation := status.ManagedPreparation.GenerationSHA256
 	if generation != v.ExpectedGenerationSHA256 && (!accepted || v.Receipt == nil || generation != v.Receipt.GenerationSHA256) {
 		return toolPreparationChanged()
@@ -202,6 +207,15 @@ func (s *Service) CreateToolPreparation(ctx context.Context, actor Actor, projec
 	}
 	if status.ManagedPreparation.GenerationSHA256 != request.ExpectedGenerationSHA256 {
 		return out, toolPreparationChanged()
+	}
+	if request.AdapterID == "codex-app-server" {
+		selected, ok := tp.ResolveCodexTemplateID(status.ManagedPreparation.CodexTemplateIDs, request.Configuration.TemplateID)
+		if !ok {
+			return out, toolPreparationChanged()
+		}
+		// The idempotency hash above keeps the original request. The new
+		// operation freezes the exact template even for a singleton default.
+		request.Configuration.TemplateID = selected
 	}
 	scan, err := s.toolInstallationReadTx(ctx, tx, auth.target.tenantID, project, request.InstallationScanID)
 	if err != nil {

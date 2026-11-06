@@ -68,7 +68,43 @@ func ValidateCapability(v Capability) error {
 	if v.Protocol != Protocol || !ValidDigest(v.GenerationSHA256) {
 		return fmt.Errorf("invalid managed preparation capability")
 	}
-	return ValidateAdapterIDs(v.AdapterIDs)
+	if err := ValidateAdapterIDs(v.AdapterIDs); err != nil {
+		return err
+	}
+	// An omitted list carries no authority to select a Codex template. Keep
+	// the rest of the capability and original inventory receipts readable.
+	if v.CodexTemplateIDs != nil &&
+		(!slices.Contains(v.AdapterIDs, "codex-app-server") || !validCodexTemplateIDs(v.CodexTemplateIDs)) {
+		return fmt.Errorf("invalid managed Codex template IDs")
+	}
+	return nil
+}
+
+func validCodexTemplateIDs(ids []string) bool {
+	if len(ids) < 1 || len(ids) > MaxCodexTemplateIDs {
+		return false
+	}
+	for i, id := range ids {
+		if !tc.ValidCommandID(id) || i > 0 && ids[i-1] >= id {
+			return false
+		}
+	}
+	return true
+}
+
+// ResolveCodexTemplateID accepts only an approved command ID. Omission is
+// unambiguous only when the exact current capability lists one template.
+func ResolveCodexTemplateID(ids []string, requested string) (string, bool) {
+	if !validCodexTemplateIDs(ids) {
+		return "", false
+	}
+	if requested == "" && len(ids) == 1 {
+		return ids[0], true
+	}
+	if slices.Contains(ids, requested) {
+		return requested, true
+	}
+	return "", false
 }
 
 // ConfigurationMode distinguishes actual factory input semantics. Native
@@ -86,6 +122,9 @@ func ConfigurationMode(adapter string) string {
 }
 
 func ValidateConfiguration(adapter string, v Configuration) error {
+	if v.TemplateID != "" && (adapter != "codex-app-server" || !tc.ValidCommandID(v.TemplateID)) {
+		return fmt.Errorf("invalid managed Codex template ID")
+	}
 	switch ConfigurationMode(adapter) {
 	case "model_and_credential":
 		if ac.ValidFixedText(v.Model, 256) && (v.CredentialEnvRef == "" || ac.ValidCredentialEnvRef(v.CredentialEnvRef)) && (adapter != "cursor-cli" || v.CredentialEnvRef != "") {

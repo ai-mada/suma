@@ -116,20 +116,35 @@ it('T225 uses detected local configuration for the other three CLIs with no mode
 });
 
 const codexAdapter={...adapter,id:'codex-app-server',product:'Codex',adapter:'codex',protocol:'codex-app-server-v1'};
-function codexFixture(state='completed',generation=capability.generation_sha256){
+function codexFixture(state='completed',generation=capability.generation_sha256,templateID?:string){
  const native={...item,adapter_id:codexAdapter.id,protocol:codexAdapter.protocol,reason_code:'configuration_required',version:'codex-cli 0.153.0'};
  const source={...scan,adapter_ids:[native.adapter_id],result:{...scan.result!,items:[native]}};
  const definition={command_id:command,adapter:codexAdapter.adapter,protocol:codexAdapter.protocol,profile_sha256:profile.profile_sha256,executable_sha256:native.executable_sha256,tool_version:native.version,read_only:false,user_input_protocol:'codex-user-input-v1'};
  const row=structuredClone(operation(state));
- Object.assign(row,{adapter_id:native.adapter_id,configuration:{model:'',credential_env_ref:''},installation_item:native,expected_generation_sha256:generation});
+ Object.assign(row,{adapter_id:native.adapter_id,configuration:{model:'',credential_env_ref:'',...(templateID?{template_id:templateID}:{})},installation_item:native,expected_generation_sha256:generation});
  if(row.receipt)row.receipt={...row.receipt,parent_generation_sha256:generation,profile:definition};
  return {native,source,row,definition};
+}
+
+function codexCapability(generation:string,templates?:string[]){
+ return {...maintenance(),installed_discovery:{protocol:'suma-installed-tool-scan-v1',adapter_ids:[codexAdapter.id]},managed_preparation:{...capability,adapter_ids:[codexAdapter.id],generation_sha256:generation,...(templates?{codex_template_ids:templates}:{})}};
 }
 
 it('accepts only the exact Codex installation, fixed protocol and complete preparation profile',async()=>{
  const value=codexFixture();
  const allAdapters=[...allManagedCapability().managed_preparation.adapter_ids,codexAdapter.id];
  expect(validManagedToolPreparationCapability({...capability,adapter_ids:allAdapters})).toBe(true);
+ expect(validManagedToolPreparationCapability({...capability,adapter_ids:allAdapters,codex_template_ids:['approved-default','approved-review']})).toBe(true);
+ for(const ids of [null,[],['review','default'],['duplicate','duplicate'],['with/slash'],Array.from({length:9},(_,index)=>'choice-'+index)]){
+  expect(validManagedToolPreparationCapability({...capability,adapter_ids:allAdapters,codex_template_ids:ids})).toBe(false);
+ }
+ expect(validManagedToolPreparationCapability({...capability,codex_template_ids:['unrelated']})).toBe(false);
+ const approved={model:'',credential_env_ref:'',template_id:'approved-default'};
+ expect(validManagedToolPreparationConfiguration(codexAdapter.id,approved)).toBe(true);
+ expect(validManagedToolPreparationConfiguration('codex-jsonl',approved)).toBe(false);
+ for(const template_id of [null,'','with/slash',undefined]){
+  expect(validManagedToolPreparationConfiguration(codexAdapter.id,{...approved,template_id})).toBe(false);
+ }
  expect(managedToolPreparationMode(codexAdapter.id)).toBe('existing_local_configuration');
  expect(canPrepareManagedToolItem(value.native)).toBe(true);
  for(const bad of [{...value.native,launch_supported:true},{...value.native,reason_code:'acp_configuration_required'},{...value.native,protocol:'codex-jsonl-v1'}])expect(canPrepareManagedToolItem(bad)).toBe(false);
@@ -144,14 +159,13 @@ it('accepts only the exact Codex installation, fixed protocol and complete prepa
 });
 
 it('shows Codex preparation only with current declared support, confirms the generation and hands off after fresh inventory',async()=>{
- const original=fetch,value=codexFixture(),newGeneration='7'.repeat(64);
+ const original=fetch,value=codexFixture(),newGeneration='7'.repeat(64),template='approved-default';
  const catalog={protocol:'codex-app-server-v1',configuration_sha256:'8'.repeat(64),catalog_sha256:'9'.repeat(64),models:[{model:'model-a',reasoning_efforts:['high'],default_reasoning_effort:'high'}]};
- function nodeCapability(generation:string){return {...maintenance(),installed_discovery:{protocol:'suma-installed-tool-scan-v1',adapter_ids:[codexAdapter.id]},managed_preparation:{...capability,adapter_ids:[codexAdapter.id],generation_sha256:generation}};}
  vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{
   const path=String(input).replace('/api/v1','');
   if(path==='/tool-preparations'&&init.method==='POST'){
    const body=JSON.parse(String(init.body));
-   posts.push(body);ops=[codexFixture('pending',newGeneration).row];
+   posts.push(body);ops=[codexFixture('pending',newGeneration,template).row];
    return Response.json(ops[0],{status:201});
   }
   if(path.startsWith('/adapter-catalog'))return Response.json({project_id:'p',as_of:at,items:[codexAdapter]});
@@ -161,25 +175,74 @@ it('shows Codex preparation only with current declared support, confirms the gen
  await drawGeneric(value);
  expect(host.textContent).toContain('Ask the node administrator');
  expect(host.querySelector('[data-managed-preparation-create]')).toBeNull();
- cap=nodeCapability(capability.generation_sha256);
+ cap=codexCapability(capability.generation_sha256);
  await click('[data-managed-preparation-refresh]');
- expect(host.textContent).toContain('single Codex App Server configuration approved on this node');
+ expect(host.querySelector('[data-managed-preparation-create]')).toBeNull();
+ cap=codexCapability(capability.generation_sha256,[template]);
+ await click('[data-managed-preparation-refresh]');
+ expect(host.querySelector('[data-managed-preparation-fixed-template]')?.textContent).toContain(template);
+ expect(host.querySelector('[data-managed-preparation-template]')).toBeNull();
  expect(host.querySelector('[data-managed-preparation-model]')).toBeNull();
  expect(host.querySelector('[data-managed-preparation-credential]')).toBeNull();
  await click('[data-managed-preparation-confirm]');
- cap=nodeCapability(newGeneration);
+ cap=codexCapability(newGeneration,[template]);
  await click('[data-managed-preparation-refresh]');
  expect(host.querySelector<HTMLButtonElement>('[data-managed-preparation-create]')?.disabled).toBe(true);
  await click('[data-managed-preparation-confirm]');
  await click('[data-managed-preparation-create]');
  expect(posts).toHaveLength(1);
- expect(posts[0]).toMatchObject({adapter_id:codexAdapter.id,configuration:{model:'',credential_env_ref:''},expected_generation_sha256:newGeneration,installation_scan_id:scan.id,expected_scan_version:scan.version,acknowledge_configuration_write:true});
+ expect(posts[0]).toMatchObject({adapter_id:codexAdapter.id,configuration:{model:'',credential_env_ref:'',template_id:template},expected_generation_sha256:newGeneration,installation_scan_id:scan.id,expected_scan_version:scan.version,acknowledge_configuration_write:true});
  expect(onPrepared).not.toHaveBeenCalled();
- ops=[codexFixture('completed',newGeneration).row];
+ ops=[codexFixture('completed',newGeneration,template).row];
  await click('[data-managed-preparation-refresh]');
  await click('[data-managed-preparation-use]');
  expect(onPrepared).toHaveBeenCalledExactlyOnceWith({project:'p',workerID:'worker-one',adapterID:codexAdapter.id,commandID:command,profileSHA256:value.definition.profile_sha256,observedAt:at},'preparation-one');
  expect(host.textContent).toContain('Enablement and task dispatch require separate confirmation');
  await act(async()=>setLocale('zh-CN',{persist:false}));
  expect(host.textContent).toContain('启用和任务派发需分别确认');
+});
+
+it('requires an explicit template and fresh consent, then recovers the same request after a mismatched acknowledgement',async()=>{
+ const original=fetch,generation=capability.generation_sha256,newGeneration='7'.repeat(64),ids=['approved-default','approved-review'];
+ cap=codexCapability(generation,ids);
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{
+  if(String(input).replace('/api/v1','')==='/tool-preparations'&&init.method==='POST'){
+   posts.push(JSON.parse(String(init.body)));
+   ops=[codexFixture('pending',newGeneration,ids[1]).row];
+   const reply=posts.length===1?codexFixture('pending',newGeneration,ids[0]).row:ops[0];
+   return Response.json(reply,{status:201});
+  }
+  return original(input,init);
+ }));
+ await drawGeneric(codexFixture());
+ const select=()=>host.querySelector<HTMLSelectElement>('[data-managed-preparation-template]')!;
+ const confirm=()=>host.querySelector<HTMLInputElement>('[data-managed-preparation-confirm]')!;
+ const create=()=>host.querySelector<HTMLButtonElement>('[data-managed-preparation-create]')!;
+ expect(select().labels?.[0].textContent).toContain('Approved configuration template');
+ expect(select().value).toBe('');
+ expect(confirm().disabled).toBe(true);
+ await change('[data-managed-preparation-template]',ids[0]);
+ await click('[data-managed-preparation-confirm]');
+ expect(create().disabled).toBe(false);
+ await change('[data-managed-preparation-template]',ids[1]);
+ expect(confirm().checked).toBe(false);
+ expect(create().disabled).toBe(true);
+ await click('[data-managed-preparation-confirm]');
+ cap=codexCapability(newGeneration,ids);
+ await click('[data-managed-preparation-refresh]');
+ expect(select().value).toBe('');
+ expect(create().disabled).toBe(true);
+ await change('[data-managed-preparation-template]',ids[1]);
+ await click('[data-managed-preparation-confirm]');
+ await click('[data-managed-preparation-create]');
+ expect(posts).toHaveLength(1);
+ expect(posts[0]).toMatchObject({configuration:{model:'',credential_env_ref:'',template_id:ids[1]},expected_generation_sha256:newGeneration});
+ expect(host.querySelector('[data-managed-preparation-state]')?.getAttribute('data-managed-preparation-state')).toBe('write_unknown');
+ expect(host.querySelector('[data-managed-preparation-pending-template]')?.textContent).toContain(ids[1]);
+ cap=codexCapability('8'.repeat(64),[ids[0]]);
+ await click('[data-managed-preparation-refresh]');
+ await click('[data-managed-preparation-recover]');
+ expect(posts).toHaveLength(2);
+ expect(posts[1]).toEqual(posts[0]);
+ expect(host.querySelector('[data-managed-preparation-operation-template]')?.textContent).toContain(ids[1]);
 });

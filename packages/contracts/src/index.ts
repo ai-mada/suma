@@ -3845,6 +3845,7 @@ export interface ManagedToolPreparationCapability {
   protocol: string;
   adapter_ids: (string)[];
   generation_sha256: string;
+  codex_template_ids?: (string)[];
 }
 export interface ManagedToolPreparationClaim {
   tenant_id: string;
@@ -3860,6 +3861,7 @@ export interface ManagedToolPreparationClaimRequest {
 export interface ManagedToolPreparationConfiguration {
   model: string;
   credential_env_ref: string;
+  template_id?: string;
 }
 export interface ManagedToolPreparationCreateRequest {
   project_id: string;
