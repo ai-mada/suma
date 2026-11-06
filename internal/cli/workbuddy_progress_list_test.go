@@ -105,6 +105,68 @@ func TestWorkBuddyProgressListCLIRejectsUnverifiedPage(t *testing.T) {
 	}
 }
 
+func TestWorkBuddyProgressListCLIPreservesFormalTaskScope(t *testing.T) {
+	const items = `"items":[` + workBuddyProgressJSON + `]`
+	const links = `"task_links":[` + workBuddyProgressTaskLinkJSON + `]`
+	for _, tc := range []struct {
+		name, task, filter, before, fields string
+		valid                              bool
+	}{
+		{"short task page", "task-1", "", "", `"task_id":"task-1","next_cursor":"first-cursor",` + items + "," + links, true},
+		{"empty task continuation", "task-1", "", "first-cursor", `"task_id":"task-1","items":[],"next_cursor":"dGVzdC1uZXh0"`, true},
+		{"task attention", "task-1", "attention", "", `"task_id":"task-1","filter":"attention",` + items + "," + links, true},
+		{"missing task echo", "task-1", "", "", items + "," + links, false},
+		{"unrequested task echo", "", "", "", `"task_id":"task-1",` + items + "," + links, false},
+		{"explicit empty task echo", "", "", "", `"task_id":"","items":[]`, false},
+		{"foreign echo", "task-1", "", "", `"task_id":"secret-marker","items":[]`, false},
+		{"wrong formal link", "task-1", "", "", `"task_id":"task-1",` + items + "," + strings.ReplaceAll(links, "task-1", "secret-marker"), false},
+		{"missing formal link", "task-1", "", "", `"task_id":"task-1",` + items, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			response := `{"project_id":"project-one",` + tc.fields + "}"
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				q := r.URL.Query()
+				if r.Method != http.MethodGet || r.URL.Path != "/api/v1/workbuddy-cloud-progress" ||
+					q.Get("project_id") != "project-one" || q.Get("limit") != "10" ||
+					q.Get("task_id") != tc.task || q.Has("task_id") != (tc.task != "") || len(q["task_id"]) > 1 ||
+					q.Get("filter") != tc.filter || q.Get("before") != tc.before {
+					t.Error("request did not keep its project, task, filter and cursor", r.Method, r.URL)
+				}
+				_, _ = io.WriteString(w, response)
+			}))
+			defer server.Close()
+
+			args := []string{"run", "workbuddy-list"}
+			if tc.task != "" {
+				args = append(args, "--task", tc.task)
+			}
+			if tc.filter != "" {
+				args = append(args, "--filter", tc.filter)
+			}
+			if tc.before != "" {
+				args = append(args, "--before", tc.before)
+			}
+			code, stdout, stderr := invoke(t, server.URL, args...)
+			if calls.Load() != 1 {
+				t.Fatalf("sent %d requests, want 1", calls.Load())
+			}
+			if !tc.valid {
+				if code != 1 || stdout != "" || !strings.Contains(stderr, `"code": "workbuddy_progress_invalid"`) || strings.Contains(stderr, "secret-marker") {
+					t.Fatalf("exit=%d stdout=%q stderr=%q", code, stdout, stderr)
+				}
+				return
+			}
+			var got, want any
+			if code != 0 || stderr != "" || json.Unmarshal([]byte(stdout), &got) != nil ||
+				json.Unmarshal([]byte(response), &want) != nil || !reflect.DeepEqual(got, want) {
+				t.Fatalf("exit=%d stdout=%q stderr=%q", code, stdout, stderr)
+			}
+		})
+	}
+}
+
 func TestWorkBuddyProgressListCLIStrictOptionsAndHelp(t *testing.T) {
 	var calls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -116,6 +178,8 @@ func TestWorkBuddyProgressListCLIStrictOptionsAndHelp(t *testing.T) {
 	for _, args := range [][]string{
 		{"run-1"}, {"--limit", "0"}, {"--limit", "21"}, {"--limit", "0x10"}, {"--limit", "1", "--limit", "2"},
 		{"--filter", ""}, {"--filter", "all"}, {"--filter", "Attention"}, {"--filter", "attention", "--filter", "attention"},
+		{"--task", ""}, {"--task", ".."}, {"--task", "task/other"}, {"--task", "task 1"},
+		{"--task", strings.Repeat("a", 65)}, {"--task", "one", "--task", "two"},
 		{"--before", ""}, {"--before", "bad+cursor"}, {"--before", strings.Repeat("a", 1025)}, {"--before", "one", "--before", "two"},
 	} {
 		code, stdout, _ := invoke(t, server.URL, append([]string{"run", "workbuddy-list"}, args...)...)
@@ -131,7 +195,7 @@ func TestWorkBuddyProgressListCLIStrictOptionsAndHelp(t *testing.T) {
 	for _, locale := range []string{"en-US", "zh-CN"} {
 		for _, args := range [][]string{{"--help"}, {"run", "workbuddy-list", "--help"}} {
 			code, stdout, stderr := invoke(t, server.URL, append([]string{"--language", locale}, args...)...)
-			if code != 0 || stderr != "" || calls.Load() != 0 || !strings.Contains(stdout, "run workbuddy-list [--limit 1..20] [--filter attention] [--before NEXT_CURSOR]") {
+			if code != 0 || stderr != "" || calls.Load() != 0 || !strings.Contains(stdout, "run workbuddy-list [--limit 1..20] [--filter attention] [--task TASK] [--before NEXT_CURSOR]") {
 				t.Fatalf("help %s %v exit=%d stdout=%q stderr=%q", locale, args, code, stdout, stderr)
 			}
 		}

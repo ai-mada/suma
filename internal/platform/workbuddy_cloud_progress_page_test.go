@@ -37,10 +37,14 @@ func readCloudProgressPage(t *testing.T, response *httptest.ResponseRecorder) wc
 	if len(page.TaskLinks) > 0 {
 		expectedFields++
 	}
+	if page.TaskID != "" {
+		expectedFields++
+	}
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(response.Body.Bytes(), &fields); err != nil || len(fields) != expectedFields ||
 		fields["items"] == nil || page.Items == nil || fields["project_id"] == nil || (fields["next_cursor"] != nil) != (page.NextCursor != "") ||
-		(fields["filter"] != nil) != (page.Filter != "") || (fields["task_links"] != nil) != (len(page.TaskLinks) > 0) {
+		(fields["filter"] != nil) != (page.Filter != "") || (fields["task_links"] != nil) != (len(page.TaskLinks) > 0) ||
+		(fields["task_id"] != nil) != (page.TaskID != "") {
 		t.Fatal("progress page contains fields outside the public contract")
 	}
 	return page
@@ -84,11 +88,35 @@ func TestWorkBuddyCloudProgressPageLocatesFormalTaskDelivery(t *testing.T) {
 	}
 	assertLink("unbound", "", h.task.Version+3)
 
+	scoped := path + "&task_id=" + h.task.ID
+	for _, filter := range []string{"", "&filter=attention"} {
+		page := readCloudProgressPage(t, read(scoped+filter))
+		if page.TaskID != h.task.ID || len(page.Items) != 1 || len(page.TaskLinks) != 1 || page.Items[0].RunID != assignment.RunID ||
+			page.TaskLinks[0].TaskID != h.task.ID || page.TaskLinks[0].RunRelation != "unbound" {
+			t.Fatalf("task scope did not preserve its historical formal dispatch: %+v", page)
+		}
+	}
+	otherProject := f.call("POST", "/projects", map[string]any{"title": "Separate task scope", "idempotency_key": newID()}, http.StatusCreated)["id"].(string)
+	foreignTask := f.call("POST", "/tasks", map[string]any{"project_id": otherProject, "title": "Foreign task", "idempotency_key": newID()}, http.StatusCreated)["id"].(string)
+	for _, id := range []string{newID(), foreignTask} {
+		if response := read(path + "&task_id=" + id); response.Code != http.StatusNotFound {
+			t.Fatalf("missing or foreign task scope should return 404: %d", response.Code)
+		}
+	}
+	for _, suffix := range []string{"", ".", "..", "a%2Fb", "x&task_id=x", strings.Repeat("a", 65)} {
+		if response := read(path + "&task_id=" + suffix); response.Code != http.StatusBadRequest {
+			t.Fatalf("invalid task scope should return 400: %d", response.Code)
+		}
+	}
+
 	if _, err := f.s.DB.Exec(`DELETE FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, f.user.TenantID, f.project, h.task.ID); err != nil {
 		t.Fatal(err)
 	}
 	if page := readCloudProgressPage(t, read(path)); len(page.Items) != 1 || len(page.TaskLinks) != 0 {
 		t.Fatalf("deleted task changed saved progress or retained a link: %+v", page)
+	}
+	if response := read(scoped); response.Code != http.StatusNotFound {
+		t.Fatalf("deleted task scope should return 404: %d", response.Code)
 	}
 
 	// A valid request can still be attached to a node specification that differs
@@ -330,7 +358,23 @@ func TestWorkBuddyCloudProgressAttentionContinuesAcrossScanBoundary(t *testing.T
 	if all.Filter != "" || all.NextCursor == "" || len(all.Items) != 1 {
 		t.Fatal("unfiltered page lost its first record or continuation")
 	}
+	createdTask := f.call("POST", "/tasks", f.body(map[string]any{"title": "No formal dispatch", "idempotency_key": newID()}), http.StatusCreated)
+	taskID := createdTask["id"].(string)
+	taskScope := base + "&task_id=" + taskID + "&limit=1"
+	taskPage := readCloudProgressPage(t, read(taskScope))
+	if taskPage.TaskID != taskID || len(taskPage.Items) != 0 || len(taskPage.TaskLinks) != 0 || taskPage.NextCursor == "" {
+		t.Fatalf("task scan must continue after the first batch of manual submissions: %+v", taskPage)
+	}
+	taskContinuation := "&before=" + url.QueryEscape(taskPage.NextCursor)
+	lastTaskPage := readCloudProgressPage(t, read(taskScope+taskContinuation))
+	if lastTaskPage.TaskID != taskID || len(lastTaskPage.Items) != 0 || lastTaskPage.NextCursor != "" {
+		t.Fatalf("manual submissions were matched or the task scan did not finish: %+v", lastTaskPage)
+	}
 	for _, path := range []string{
+		base + taskContinuation,
+		taskScope + "&filter=attention" + taskContinuation,
+		base + "&task_id=" + newID() + taskContinuation,
+		taskScope + "&before=" + url.QueryEscape(all.NextCursor),
 		base + "&filter=",
 		base + "&filter=all",
 		base + "&filter=attention&filter=attention",

@@ -2,9 +2,9 @@ import {mondayOf} from './planning-model';
 import {isTestPlanState,planID,originalTestCasePanelPrefix,validOriginalTestCaseRoute,type TestPlanState} from './test-plans-model';
 import {parseAttempt,validQueueRun,type QueueRoute} from './scheduling-model';
 import {validNotificationToolInputTarget,type NotificationToolInputTarget} from './notification-inbox-model';
-import {isTaskDeliveryLocator,taskDeliveryPanel} from './task-delivery-navigation-model';
+import {isTaskDeliveryLocator,taskDeliveryPanel,validWorkBuddyProgressTaskID} from './task-delivery-navigation-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
-export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_scope?:'organization';inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;execution_team?:string;execution_team_invalid?:'1';queue_route?:QueueRoute;queue_run?:string;queue_invalid?:'1';workbuddy_filter?:'attention';workbuddy_filter_invalid?:'1';test_state?:TestPlanState;test_task?:string;test_invalid?:'1';project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
+export type WorkbenchRoute={task_columns?:string[];conversation_message?:string;inbox_scope?:'organization';inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;execution_team?:string;execution_team_invalid?:'1';queue_route?:QueueRoute;queue_run?:string;queue_invalid?:'1';workbuddy_filter?:'attention';workbuddy_filter_invalid?:'1';workbuddy_task?:string;workbuddy_task_invalid?:'1';test_state?:TestPlanState;test_task?:string;test_invalid?:'1';project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 const toolInputPanelPrefix='tool-input:';
@@ -48,11 +48,19 @@ export function parseWorkbenchRoute(search:string):WorkbenchRoute{
    if(exactRun!==null)queueFields.queue_run=exactRun;
   }
  }
- const workBuddyFields:Pick<WorkbenchRoute,'workbuddy_filter'|'workbuddy_filter_invalid'>={};
- if(isWorkBuddyProgressRoute({view,sub,layout})&&(p.has('workbuddy_filter')||p.has('workbuddy_filter_invalid'))){
-  const repeated=['project','view','sub','layout','run','node','attempt','workbuddy_filter'].some(key=>p.getAll(key).length>1);
-  if(!project||run||p.get('node')||p.get('attempt')||repeated||p.has('workbuddy_filter_invalid')||p.get('workbuddy_filter')!=='attention')workBuddyFields.workbuddy_filter_invalid='1';
-  else workBuddyFields.workbuddy_filter='attention';
+ const workBuddyFields:Pick<WorkbenchRoute,'workbuddy_filter'|'workbuddy_filter_invalid'|'workbuddy_task'|'workbuddy_task_invalid'>={};
+ if(isWorkBuddyProgressRoute({view,sub,layout})){
+  const repeated=['project','view','sub','layout','run','node','attempt'].some(key=>p.getAll(key).length>1);
+  const ambiguous=!project||run||p.get('node')||p.get('attempt')||repeated;
+  if(p.has('workbuddy_filter')||p.has('workbuddy_filter_invalid')){
+   if(ambiguous||p.getAll('workbuddy_filter').length!==1||p.has('workbuddy_filter_invalid')||p.get('workbuddy_filter')!=='attention')workBuddyFields.workbuddy_filter_invalid='1';
+   else workBuddyFields.workbuddy_filter='attention';
+  }
+  if(p.has('workbuddy_task')||p.has('workbuddy_task_invalid')){
+   const task=p.get('workbuddy_task')||'';
+   if(ambiguous||!validWorkBuddyProgressTaskID(project)||['record','panel','run','node','attempt'].some(key=>p.has(key))||p.getAll('workbuddy_task').length!==1||p.has('workbuddy_task_invalid')||!validWorkBuddyProgressTaskID(task))workBuddyFields.workbuddy_task_invalid='1';
+   else workBuddyFields.workbuddy_task=task;
+  }
  }
  const testFields:Pick<WorkbenchRoute,'test_state'|'test_task'|'test_invalid'>={};
  if(isTestPlanCatalogRoute({view,sub})&&['test_state','test_task','test_invalid'].some(key=>p.has(key))){
@@ -116,7 +124,7 @@ export function isWorkBuddyProgressRoute(route:Pick<WorkbenchRoute,'view'|'sub'|
  return route.view==='development'&&route.sub==='runs'&&route.layout==='workbuddy';
 }
 export function clearWorkBuddyProgressScope(route:WorkbenchRoute):WorkbenchRoute{
- return {...route,workbuddy_filter:undefined,workbuddy_filter_invalid:undefined};
+ return {...route,workbuddy_filter:undefined,workbuddy_filter_invalid:undefined,workbuddy_task:undefined,workbuddy_task_invalid:undefined};
 }
 export function isTestPlanCatalogRoute(route:Pick<WorkbenchRoute,'view'|'sub'>):boolean{
  return route.view==='quality'&&route.sub==='tests';

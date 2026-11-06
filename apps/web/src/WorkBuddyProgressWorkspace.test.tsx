@@ -21,9 +21,9 @@ function known(id:string,reason?:string){
   node_state:'waiting',attempt:2,submission_state:'task_known',provider_status:'completed',
   observed_at:'2026-11-06T06:00:00Z',observation_failed:false,...(reason?{node_reason:reason}:{})};
 }
-function page(items:unknown[],next?:string,filter?:'attention',taskLinks?:unknown){
+function page(items:unknown[],next?:string,filter?:'attention',taskLinks?:unknown,task?:string){
  return Response.json({project_id:project,items,...(next?{next_cursor:next}:{}),...(filter?{filter}:{}),
-  ...(taskLinks!==undefined?{task_links:taskLinks}:{})});
+  ...(taskLinks!==undefined?{task_links:taskLinks}:{}),...(task?{task_id:task}:{})});
 }
 const taskLink=(run:string,id:string,relation:string,title?:string)=>({run_id:run,node_id:'workbuddy-cloud',task_id:id,
  task_version:4,run_relation:relation,...(title!==undefined?{task_title:title}:{})});
@@ -58,12 +58,14 @@ afterEach(async()=>{
 async function settle(){
  for(let i=0;i<5;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
 }
-async function render(identity=session,filter?:'attention',invalidFilter=false){
- function show(next?:'attention',invalid=false){
+async function render(identity=session,filter?:'attention',invalidFilter=false,task?:string,invalidTask=false){
+ function show(){
   root.render(<ApiViewProvider session={identity}><WorkBuddyProgressWorkspace project={project} session={identity} refresh={0} onRun={onRun}
-   filter={next} invalidFilter={invalid} onFilter={value=>show(value)}/></ApiViewProvider>);
+   filter={filter} invalidFilter={invalidFilter} task={task} invalidTask={invalidTask}
+   onFilter={value=>{filter=value;invalidFilter=false;show();}}
+   onTask={value=>{task=value;invalidTask=false;show();}}/></ApiViewProvider>);
  }
- await act(async()=>show(filter,invalidFilter));
+ await act(async()=>show());
  await settle();
 }
 async function click(selector:string){
@@ -255,4 +257,89 @@ it('keeps the filter shareable only in an exact WorkBuddy route and blocks malfo
  await click('[data-workbuddy-progress-filter="all"]');
  expect(requests).toHaveLength(1);
  expect(requests[0].url.searchParams.has('filter')).toBe(false);
+});
+
+
+it('opens the exact task scope, continues an empty batch and keeps the task when selecting attention',async()=>{
+ const run='run-formal',task='task-formal';
+ const link=[taskLink(run,task,'changed','Improve CI')];
+ reply=async url=>{
+  if(url.searchParams.get('task_id')!==task)return page([known(run),known('other-run')],undefined,undefined,link);
+  if(url.searchParams.get('filter')==='attention')return page([],undefined,'attention',undefined,task);
+  if(url.searchParams.get('before')==='task-cursor')return page([known(run)],undefined,undefined,link,task);
+  return page([],'task-cursor',undefined,undefined,task);
+ };
+ await render();
+ const action=host.querySelector<HTMLAnchorElement>('[data-workbuddy-progress-task-filter]')!;
+ expect(action.getAttribute('aria-label')).toBe('View cloud history for Improve CI');
+ expect(Object.fromEntries(new URL(action.href).searchParams)).toEqual({project,view:'development',sub:'runs',layout:'workbuddy',workbuddy_task:task});
+ expect(host.querySelectorAll('[data-workbuddy-progress-task-filter]')).toHaveLength(1);
+ await click('[data-workbuddy-progress-task-filter]');
+ expect(document.activeElement).toBe(host.querySelector('h2'));
+ expect(requests.at(-1)?.url.searchParams.get('task_id')).toBe(task);
+ expect(ids()).toEqual([]);
+ expect(host.querySelector('[data-workbuddy-progress-empty-batch]')?.textContent).toContain('No submissions for this task in this batch');
+ expect(host.querySelector('[data-workbuddy-progress-more]')?.textContent).toBe('Continue searching');
+ await click('[data-workbuddy-progress-more]');
+ expect(requests.at(-1)?.url.searchParams.get('before')).toBe('task-cursor');
+ expect(requests.at(-1)?.url.searchParams.get('task_id')).toBe(task);
+ expect(ids()).toEqual([run]);
+ expect(host.querySelector('[data-workbuddy-progress-task-scope]')?.textContent).toContain('Improve CI');
+ expect(host.querySelector('[data-workbuddy-progress-task-filter]')).toBeNull();
+ await click('[data-workbuddy-progress-filter="attention"]');
+ expect(requests.at(-1)?.url.searchParams.get('task_id')).toBe(task);
+ expect(requests.at(-1)?.url.searchParams.get('filter')).toBe('attention');
+ expect(requests.at(-1)?.url.searchParams.has('before')).toBe(false);
+ expect(host.querySelector('[data-workbuddy-progress-empty-attention]')).not.toBeNull();
+ reply=async()=>page([],undefined,'attention');
+ await click('[data-workbuddy-progress-task-clear]');
+ expect(document.activeElement).toBe(host.querySelector('h2'));
+ expect(requests.at(-1)?.url.searchParams.has('task_id')).toBe(false);
+ expect(requests.at(-1)?.url.searchParams.get('filter')).toBe('attention');
+ expect(host.querySelector('[data-workbuddy-progress-task-scope]')).toBeNull();
+});
+
+it.each([
+ ['missing echo',undefined,[taskLink('run-a','task-a','current')]],
+ ['different task echo','task-b',[taskLink('run-a','task-a','current')]],
+ ['missing formal link','task-a',undefined],
+ ['different formal task','task-a',[taskLink('run-a','task-b','current')]],
+] as const)('does not display a response outside the exact task scope: %s',async(_name,echo,links)=>{
+ reply=async()=>page([known('run-a')],undefined,undefined,links,echo);
+ await render(session,undefined,false,'task-a');
+ expect(ids()).toEqual([]);
+ expect(host.querySelector('[data-workbuddy-progress-task-link]')).toBeNull();
+ expect(host.querySelector('[role="alert"]')?.textContent).toContain('does not match this project or page');
+ expect(requests).toHaveLength(1);
+ expect(requests[0].url.searchParams.get('task_id')).toBe('task-a');
+});
+
+it('aborts an old task read on task change and clears protected records on a denied task read',async()=>{
+ const response=()=>page([known('protected-run')],undefined,undefined,[taskLink('protected-run','task-a','current','Protected title')],'task-a');
+ reply=async()=>response();
+ await render(session,undefined,false,'task-a');
+ expect(host.querySelector('[data-workbuddy-progress-task-scope]')?.textContent).toContain('Protected title');
+ let resolveOld!:(response:Response)=>void;
+ reply=async()=>new Promise(resolve=>{resolveOld=resolve;});
+ await act(async()=>host.querySelector<HTMLButtonElement>('[data-workbuddy-progress-refresh]')!.click());
+ const old=requests.at(-1);
+ reply=async()=>Response.json({error:'forbidden'},{status:403});
+ await render(session,undefined,false,'task-b');
+ expect(old?.init?.signal?.aborted).toBe(true);
+ await act(async()=>resolveOld(response()));
+ await settle();
+ expect(ids()).toEqual([]);
+ expect(host.textContent).not.toContain('Protected title');
+ expect(host.querySelector('[role="alert"]')?.textContent).toContain('Protected records were cleared');
+ expect(requests.at(-1)?.url.searchParams.get('task_id')).toBe('task-b');
+});
+
+it('waits for an explicit clear before reading when the task locator is malformed',async()=>{
+ await render(session,undefined,false,'../task-a',true);
+ expect(requests).toHaveLength(0);
+ expect(host.querySelector('[data-workbuddy-progress-invalid-task]')).not.toBeNull();
+ expect(host.textContent).not.toContain('../task-a');
+ await click('[data-workbuddy-progress-task-clear]');
+ expect(requests).toHaveLength(1);
+ expect(requests[0].url.searchParams.has('task_id')).toBe(false);
 });

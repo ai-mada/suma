@@ -1,8 +1,25 @@
 import {describe,it,expect} from 'vitest';
-import {consumeTaskAcceptancePanel,parseTaskAcceptancePanel,taskAcceptancePanel,taskDeliveryHref} from './task-delivery-navigation-model';
-import {parseWorkbenchRoute,type WorkbenchRoute} from './navigation';
+import {consumeTaskAcceptancePanel,isWorkBuddyProgressTaskLocator,parseTaskAcceptancePanel,taskAcceptancePanel,taskDeliveryHref,workBuddyProgressTaskHref} from './task-delivery-navigation-model';
+import {clearWorkBuddyProgressScope,parseWorkbenchRoute,type WorkbenchRoute} from './navigation';
 
 describe('task delivery navigation targets',()=>{
+  it('opens an exact WorkBuddy task scope and rejects ambiguous navigation without widening the read',()=>{
+    const href=workBuddyProgressTaskHref('project-a','task-a','attention')!;
+    expect(isWorkBuddyProgressTaskLocator(new URLSearchParams(href))).toBe(true);
+    const exact=parseWorkbenchRoute(href);
+    expect(exact).toMatchObject({project:'project-a',view:'development',sub:'runs',layout:'workbuddy',workbuddy_task:'task-a',workbuddy_filter:'attention'});
+    expect(clearWorkBuddyProgressScope(exact)).toMatchObject({workbuddy_task:undefined,workbuddy_filter:undefined});
+    for(const suffix of ['&workbuddy_task=other','&project=other','&run=','&node=node-a','&record=task-a','&panel=other']){
+      const conflicting=href+suffix;
+      expect(isWorkBuddyProgressTaskLocator(new URLSearchParams(conflicting))).toBe(false);
+      expect(parseWorkbenchRoute(conflicting)).toMatchObject({workbuddy_task_invalid:'1'});
+    }
+    for(const id of ['','.','..','task/other','a'.repeat(65)]){
+      expect(workBuddyProgressTaskHref('project-a',id)).toBeUndefined();
+      expect(parseWorkbenchRoute(href.replace('task-a',encodeURIComponent(id))).workbuddy_task_invalid).toBe('1');
+    }
+  });
+
   it('round-trips only canonical three-part acceptance locators with exact bounded public identifiers',()=>{
     for(const taskVersion of [1,27,2147483646]){
       for(const runID of ['run-Exact_1.2','a'.repeat(64)]){

@@ -7,7 +7,7 @@ import {useTaskDeliveryRead} from './task-delivery-hooks';
 import {FailureDiagnosisLauncher} from './FailureDiagnosisLauncher';
 import {TaskDeliveryRepositorySource} from './TaskDeliveryRepositorySource';
 import type {TaskDeliveryRunTarget} from './TaskDependenciesWorkspace';
-import {taskDeliveryHref} from './task-delivery-navigation-model';
+import {followTaskDeliveryHref,taskDeliveryHref,workBuddyProgressTaskHref} from './task-delivery-navigation-model';
 import {executionHref} from './scheduling-model';
 import './TaskDeliveryPanel.css';
 export type TaskDeliveryPanelProps={session:Session;project:string;taskId:string;taskVersion:number;refresh:number;openOnEntry?:boolean;originRunID?:string;navigationDisabled?:boolean;onOpenCurrentDelivery?:()=>void;onOpenRun?:(target:TaskDeliveryRunTarget)=>void;onOpenReview?:()=>void;onOpenRepository?:()=>void;onOpenIssue?:(id:string)=>void;onOpenRequirement?:(id:string)=>void;onTeamPlan?:(id:string)=>void;onExtractAcceptedDelivery?:(taskID:string)=>void;onVersionMismatch?:()=>void;onForbidden?:()=>void};
@@ -38,6 +38,7 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
   ?taskDeliveryHref(project,{kind:'review',id:taskId,taskVersion:value.task_version,runID:run.run_id}):undefined;
  const repositoryHref=value?.formal_acceptance&&value.task_version===taskVersion&&value.run_basis_state==='current'
   ?taskDeliveryHref(project,{kind:'repository',id:taskId}):undefined;
+ const workbuddyHistoryHref=(workbuddyOrigin||workbuddy)&&snapshot?.task_version===taskVersion?workBuddyProgressTaskHref(project,taskId):undefined;
  const canLeave=()=>window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));
  const scope=(total:number,loaded:number)=>t('scope',{loaded:formatNumber(loaded),total:formatNumber(total)});
  return <section className="task-delivery" aria-label={t('title')}><button type="button" className="task-delivery-toggle" ref={toggle} data-task-delivery-toggle aria-expanded={open} aria-controls={body} onClick={()=>{if(!open||canLeave())setOpen(current=>!current);}}><span>{t('title')}</span><ChevronDown size={15}/></button>
@@ -65,6 +66,8 @@ function DeliveryScope({session,project,taskId,taskVersion,refresh,openOnEntry,o
        </DeliveryReference>
       </div>
      </div>}
+     {workbuddyHistoryHref&&!locked&&!repositoryLocked&&<a className="task-delivery-reference" data-task-delivery-workbuddy-history href={workbuddyHistoryHref}
+      onClick={event=>followTaskDeliveryHref(event,workbuddyHistoryHref)}>{tr('workbuddy-progress.task_history')}<ArrowUpRight size={13} aria-hidden="true"/></a>}
      {workbuddy&&<div className="inline wrap">
       <p className="task-delivery-warning">{t('workbuddy.pending')}</p>
       <DeliveryReference kind="workbuddy" id={workbuddy.node_id} href={executionHref(project,workbuddy.run_id,workbuddy.node_id,workbuddy.attempt)}

@@ -9412,7 +9412,7 @@
             "type": "array"
           },
           "next_cursor": {
-            "description": "Continue the same project, reader and filter. A filtered cursor advances from the last inspected submission, even when no item matches.",
+            "description": "Continue the same project, reader, attention filter and exact task. A filtered cursor advances from the last inspected submission, even when no item matches.",
             "maxLength": 1024,
             "minLength": 1,
             "readOnly": true,
@@ -9421,6 +9421,14 @@
           "project_id": {
             "maxLength": 64,
             "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "description": "Echoes the exact requested task scope. Each item has a formal link to this task.",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]{1,64}$",
             "readOnly": true,
             "type": "string"
           },
@@ -160609,7 +160617,7 @@
     },
     "/workbuddy-cloud-progress": {
       "get": {
-        "description": "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project and filter.",
+        "description": "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader, project, attention filter and exact task.",
         "operationId": "get_workbuddy-cloud-progress",
         "parameters": [
           {
@@ -160651,6 +160659,17 @@
               "enum": [
                 "attention"
               ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact formal task in the current project. May be combined with attention. A bounded scan may return a short or empty page with a continuation.",
+            "in": "query",
+            "name": "task_id",
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]{1,64}$",
               "type": "string"
             }
           },
@@ -160785,6 +160804,33 @@
               }
             },
             "description": "Forbidden",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The specified task is unavailable in the current authorized project.",
             "headers": {
               "Cache-Control": {
                 "schema": {

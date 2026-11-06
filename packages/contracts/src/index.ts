@@ -1889,6 +1889,7 @@ export interface CloudNodeProgressPage {
   items: (CloudNodeProgress)[];
   next_cursor?: string;
   filter?: string;
+  task_id?: string;
   task_links?: (CloudProgressTaskLink)[];
 }
 export interface CloudNodeView {

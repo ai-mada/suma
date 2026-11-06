@@ -141,7 +141,7 @@ func (r CloudObserveRequest) Validate() error {
 }
 
 func (link CloudTaskDeliveryLink) Validate() error {
-	if !cloudDeliveryTaskIDPattern.MatchString(link.TaskID) || link.TaskID == "." || link.TaskID == ".." || !validVersion(link.TaskVersion) {
+	if !ValidCloudProgressTaskID(link.TaskID) || !validVersion(link.TaskVersion) {
 		return ErrInvalid
 	}
 	switch link.RunRelation {

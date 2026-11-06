@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-PROGRESS-TASK-SCOPE 核验任务来源、分页授权、命令行与中英文浏览器交付往返。 [阶段验证](workbuddy-progress-task-scope-verification.md)
+
 T-POOL-IDLE-BACKOFF 核验空领取退避、原操作重放、固定项目派发、真实子进程结果和原槽位停止。 [阶段验证](pool-idle-backoff-verification.md)
 
 T-QUEUE-POOL-CREDENTIALS 核验共享池凭证阻塞、授权优先、项目数据隔离和中英文队列返回。 [阶段验证](queue-pool-credentials-verification.md)

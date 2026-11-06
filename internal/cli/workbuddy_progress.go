@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	workBuddyProgressListUsage   = "run workbuddy-list accepts --limit 1..20, --filter attention, and the original --before cursor"
+	workBuddyProgressListUsage   = "run workbuddy-list accepts --limit 1..20, --filter attention, --task TASK, and the original --before cursor"
 	workBuddyProgressCursorLimit = 1024
 	workBuddyProgressUsage       = "run workbuddy-status requires RUN and one --node NODE"
 	workBuddyProgressInvalid     = "invalid WorkBuddy progress response or mismatched request scope"
@@ -54,7 +54,7 @@ func workBuddyProgressCommand(ctx context.Context, c *client, args []string, out
 func workBuddyProgressListCommand(ctx context.Context, c *client, args []string, out io.Writer) error {
 	fs := commandFlags("run workbuddy-list")
 	var limit int64
-	var before, filter string
+	var before, filter, task string
 	fs.Func("limit", "page size from 1 to 20", func(value string) error {
 		n, valid := runWatchDecimal(value, 1, 20)
 		if limit != 0 || !valid {
@@ -68,6 +68,13 @@ func workBuddyProgressListCommand(ctx context.Context, c *client, args []string,
 			return errors.New(workBuddyProgressListUsage)
 		}
 		filter = value
+		return nil
+	})
+	fs.Func("task", "exact Suma task ID", func(value string) error {
+		if task != "" || !wc.ValidCloudProgressTaskID(value) {
+			return errors.New(workBuddyProgressListUsage)
+		}
+		task = value
 		return nil
 	})
 	fs.Func("before", "original continuation from next_cursor", func(value string) error {
@@ -87,6 +94,9 @@ func workBuddyProgressListCommand(ctx context.Context, c *client, args []string,
 	if filter != "" {
 		query.Set("filter", filter)
 	}
+	if task != "" {
+		query.Set("task_id", task)
+	}
 	if before != "" {
 		query.Set("before", before)
 	}
@@ -98,9 +108,9 @@ func workBuddyProgressListCommand(ctx context.Context, c *client, args []string,
 		return err
 	}
 	page, err := wc.DecodeCloudNodeProgressPage(raw)
-	if err != nil || page.ProjectID != c.project || page.Filter != filter || int64(len(page.Items)) > limit ||
+	if err != nil || page.ProjectID != c.project || page.Filter != filter || page.TaskID != task || int64(len(page.Items)) > limit ||
 		page.NextCursor != "" && (page.NextCursor == before || !validRunAttemptCursor(page.NextCursor, workBuddyProgressCursorLimit) ||
-			filter == "" && int64(len(page.Items)) != limit) {
+			filter == "" && task == "" && int64(len(page.Items)) != limit) {
 		return &failure{Code: "workbuddy_progress_invalid", Message: workBuddyProgressInvalid}
 	}
 	return writeJSON(out, page, c.token)

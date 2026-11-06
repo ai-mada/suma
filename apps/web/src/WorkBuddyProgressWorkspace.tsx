@@ -1,12 +1,12 @@
 import {useCallback,useEffect,useRef,useState,type MouseEvent} from 'react';
-import {ArrowRight,Cloud,RefreshCw} from 'lucide-react';
+import {ArrowRight,Cloud,ListFilter,RefreshCw,X} from 'lucide-react';
 import type {CloudNodeProgress,CloudProgressTaskLink} from '../../../packages/contracts/src';
 import {ApiError,query,type Session} from './api';
 import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {wellFormed} from './i18n/catalog';
 import {executionHref} from './scheduling-model';
-import {followTaskDeliveryHref,taskDeliveryHref} from './task-delivery-navigation-model';
+import {followTaskDeliveryHref,taskDeliveryHref,workBuddyProgressTaskHref} from './task-delivery-navigation-model';
 import {Badge,Empty,ErrorNotice,Loading} from './ui';
 
 type Props={
@@ -16,6 +16,9 @@ type Props={
  filter?:'attention';
  invalidFilter?:boolean;
  onFilter?:(filter?:'attention')=>void;
+ task?:string;
+ invalidTask?:boolean;
+ onTask?:(task?:string)=>void;
  onRun:(run:string,node:string,attempt?:number)=>void;
 };
 const pageSize=10;
@@ -81,15 +84,15 @@ function readTaskLink(value:unknown,project:string):ProgressTask|undefined{
   run_relation:value.run_relation,task_title:title,href};
 }
 
-function readPage(value:unknown,project:string,filter:Props['filter']):ProgressPage|undefined{
- if(!record(value)||value.project_id!==project||value.filter!==filter||
-    !Object.keys(value).every(field=>['project_id','items','next_cursor','filter','task_links'].includes(field))||
+function readPage(value:unknown,project:string,filter:Props['filter'],taskID?:string):ProgressPage|undefined{
+ if(!record(value)||value.project_id!==project||value.filter!==filter||value.task_id!==taskID||
+    !Object.keys(value).every(field=>['project_id','items','next_cursor','filter','task_id','task_links'].includes(field))||
     !Array.isArray(value.items)||value.items.length>pageSize||
     !value.items.every((item):item is CloudNodeProgress=>readItem(item,project)&&(!filter||needsAttention(item)))||
     new Set(value.items.map(key)).size!==value.items.length)return;
  const next=value.next_cursor;
  if(next!==undefined&&(typeof next!=='string'||!/^[A-Za-z0-9_-]{1,1024}$/.test(next)||
-    filter!=='attention'&&value.items.length!==pageSize))return;
+    !filter&&!taskID&&value.items.length!==pageSize))return;
  const entries:ProgressEntry[]=value.items.map(item=>({item}));
  if(Object.hasOwn(value,'task_links')){
   if(!Array.isArray(value.task_links)||value.task_links.length>entries.length)return;
@@ -102,25 +105,29 @@ function readPage(value:unknown,project:string,filter:Props['filter']):ProgressP
    entry.task=task;
   }
  }
+ if(taskID&&entries.some(entry=>entry.task?.task_id!==taskID))return;
  return {entries,next};
 }
 
-type ReadScope='all'|'attention'|'invalid';
-type Snapshot=ProgressPage & {scope:ReadScope;lastBatchCount:number;cursors:Set<string>};
-type ReadState={scope:ReadScope;snapshot?:Snapshot;loading:boolean;error?:UiError};
+type Snapshot=ProgressPage & {scope:string;lastBatchCount:number;cursors:Set<string>};
+type ReadState={scope:string;snapshot?:Snapshot;loading:boolean;error?:UiError};
 
 export function WorkBuddyProgressWorkspace(props:Props){
  return <WorkBuddyProgressScope key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project])} {...props}/>;
 }
 
-function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFilter,onFilter}:Props){
+function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFilter,onFilter,task,invalidTask,onTask}:Props){
  useLocale();
  const api=useApi(),user=session.user.id,organization=session.organization.id;
- const scope:ReadScope=invalidFilter?'invalid':filter||'all';
- const [state,setState]=useState<ReadState>({scope,loading:scope!=='invalid'});
+ const badTask=!!invalidTask||task!==undefined&&!workBuddyProgressTaskHref(project,task);
+ const blocked=!!invalidFilter||badTask;
+ const scope=JSON.stringify([filter,task,blocked]);
+ const [state,setState]=useState<ReadState>({scope,loading:!blocked});
  const snapshot=useRef<Snapshot|undefined>(undefined),controller=useRef<AbortController|undefined>(undefined);
+ const heading=useRef<HTMLHeadingElement>(null);
+ const selectTask=onTask?(id?:string)=>{heading.current?.focus();onTask(id);}:undefined;
  const read=useCallback(async (append=false)=>{
-  if(scope==='invalid')return;
+  if(blocked)return;
   const previous=snapshot.current?.scope===scope?snapshot.current:undefined,before=append?previous?.next:undefined;
   if(append&&!before)return;
   controller.current?.abort();
@@ -129,12 +136,12 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
   setState({scope,snapshot:previous,loading:true});
   try{
    const url='/workbuddy-cloud-progress'+query(project)+'&limit='+pageSize+
-    (filter?'&filter='+filter:'')+(before?'&before='+encodeURIComponent(before):'');
+    (filter?'&filter='+filter:'')+(task?'&task_id='+encodeURIComponent(task):'')+(before?'&before='+encodeURIComponent(before):'');
    const value=await api<unknown>(url,undefined,'GET',{
     'X-Suma-Expected-User':user,'X-Suma-Expected-Organization':organization,
    },abort.signal);
    if(abort.signal.aborted)return;
-   const page=readPage(value,project,filter);
+   const page=readPage(value,project,filter,task);
    if(!page)throw new UiError('workbuddy-progress.invalid');
    const loaded=new Set(append?previous?.entries.map(({item})=>key(item)):[]);
    const cursors=new Set(append?previous?.cursors:[]);
@@ -150,46 +157,56 @@ function WorkBuddyProgressScope({project,session,refresh,onRun,filter,invalidFil
    snapshot.current=denied||invalid?undefined:previous;
    setState({scope,snapshot:snapshot.current,loading:false,error:new UiError(denied?'workbuddy-progress.denied':invalid?'workbuddy-progress.invalid':'workbuddy-progress.failed')});
   }
- },[api,project,user,organization,scope,filter]);
+ },[api,project,user,organization,scope,filter,task,blocked]);
  useEffect(()=>{
   if(snapshot.current?.scope!==scope)snapshot.current=undefined;
   void read();
   return()=>controller.current?.abort();
  },[read,refresh,scope]);
 
- // Never show another filter's snapshot while the new query is starting.
- const current=state.scope===scope?state:{scope,loading:scope!=='invalid'};
+ // Hide the previous scope immediately, before its pending request is aborted.
+ const current=state.scope===scope?state:{scope,loading:!blocked};
  const rows=current.snapshot?.entries??[];
  const available=!!current.snapshot&&!current.loading&&!current.error;
- const emptyBatch=available&&scope==='attention'&&current.snapshot?.lastBatchCount===0;
+ const filtered=!!filter||!!task;
+ const emptyBatch=available&&filtered&&current.snapshot?.lastBatchCount===0;
+ const taskTitle=task?rows[0]?.task?.task_title?.trim():undefined;
  return <section className="workbuddy-progress" aria-label={t('title')} aria-busy={current.loading} data-workbuddy-progress>
   <header className="workbuddy-progress-heading">
-   <div><h2><Cloud size={18} aria-hidden="true"/>{t('title')}</h2><p>{t('intro')}</p></div>
-   <button type="button" data-workbuddy-progress-refresh disabled={current.loading||scope==='invalid'} onClick={()=>void read()}><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button>
+   <div><h2 ref={heading} tabIndex={-1}><Cloud size={18} aria-hidden="true"/>{t('title')}</h2><p>{t('intro')}</p></div>
+   <button type="button" data-workbuddy-progress-refresh disabled={current.loading||blocked} onClick={()=>void read()}><RefreshCw size={15} aria-hidden="true"/>{t('refresh')}</button>
   </header>
   <p className="workbuddy-progress-boundary">{t('boundary')}</p>
   <div className="workbuddy-progress-facets" role="group" aria-label={t('filter_label')}>
-   <button type="button" data-workbuddy-progress-filter="all" aria-pressed={scope==='all'} disabled={!onFilter} onClick={()=>{if(scope!=='all')onFilter?.();}}>{t('filter_all')}</button>
-   <button type="button" data-workbuddy-progress-filter="attention" aria-pressed={scope==='attention'} disabled={!onFilter} onClick={()=>{if(scope!=='attention')onFilter?.('attention');}}>{t('filter_attention')}</button>
+   <button type="button" data-workbuddy-progress-filter="all" aria-pressed={!invalidFilter&&!filter} disabled={!onFilter} onClick={()=>{if(invalidFilter||filter)onFilter?.();}}>{t('filter_all')}</button>
+   <button type="button" data-workbuddy-progress-filter="attention" aria-pressed={!invalidFilter&&filter==='attention'} disabled={!onFilter} onClick={()=>{if(invalidFilter||filter!=='attention')onFilter?.('attention');}}>{t('filter_attention')}</button>
+   {(task||badTask)&&<div className="workbuddy-progress-task-scope" data-workbuddy-progress-task-scope>
+    <ListFilter size={15} aria-hidden="true"/>
+    <span>{badTask?t('task_scope_invalid'):t('task_scope')} {!badTask&&<bdi>{taskTitle||task}</bdi>}</span>
+    {selectTask&&<button type="button" data-workbuddy-progress-task-clear onClick={()=>selectTask()}><X size={15} aria-hidden="true"/>{t('task_clear')}</button>}
+   </div>}
   </div>
-  {scope==='invalid'&&<div data-workbuddy-progress-invalid-filter><ErrorNotice error={new UiError('workbuddy-progress.invalid_filter')}/></div>}
+  {invalidFilter&&<div data-workbuddy-progress-invalid-filter><ErrorNotice error={new UiError('workbuddy-progress.invalid_filter')}/></div>}
+  {badTask&&<div data-workbuddy-progress-invalid-task><ErrorNotice error={new UiError('workbuddy-progress.invalid_task')}/></div>}
   {current.error&&<ErrorNotice error={current.error} onRetry={()=>void read()}/>}
   {current.error&&current.snapshot&&<p className="workbuddy-progress-note" role="status">{t('stale')}</p>}
   {current.loading&&!current.snapshot&&<Loading/>}
   {current.snapshot&&<>
-   {rows.length>0&&<p className="workbuddy-progress-note" role="status">{t('loaded',{count:formatNumber(rows.length)})}</p>}
-   {available&&scope==='all'&&rows.length===0&&<Empty title={t('empty_title')} description={t('empty_detail')}/>}
-   {rows.length>0&&<ul className="workbuddy-progress-rows" aria-label={t('rows')}>{rows.map(({item,task})=>
-    <ProgressRow key={key(item)} project={project} item={item} task={task} available={available} onRun={onRun}/>
+   {rows.length>0&&<p className="workbuddy-progress-note" role="status">{t('loaded',{count:rows.length,amount:formatNumber(rows.length)})}</p>}
+   {available&&!filter&&!current.snapshot.next&&rows.length===0&&<Empty
+    title={t(task?'empty_task_title':'empty_title')} description={t(task?'empty_task_detail':'empty_detail')}/>}
+   {rows.length>0&&<ul className="workbuddy-progress-rows" aria-label={t('rows')}>{rows.map(({item,task:linkedTask})=>
+    <ProgressRow key={key(item)} project={project} item={item} task={linkedTask} available={available} onRun={onRun}
+     filter={filter} onTask={task?undefined:selectTask}/>
    )}</ul>}
-   {emptyBatch&&current.snapshot.next&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-batch>{t('empty_batch')}</p>}
-   {available&&scope==='attention'&&!current.snapshot.next&&rows.length===0&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-attention>{t('empty_attention')}</p>}
-   {current.snapshot.next&&<div className="workbuddy-progress-more"><button type="button" data-workbuddy-progress-more disabled={!available} onClick={()=>void read(true)}>{t(scope==='attention'?'more_attention':'more')}</button></div>}
+   {emptyBatch&&current.snapshot.next&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-batch>{t(filter?'empty_batch':'empty_task_batch')}</p>}
+   {available&&filter==='attention'&&!current.snapshot.next&&rows.length===0&&<p className="workbuddy-progress-note" role="status" data-workbuddy-progress-empty-attention>{t('empty_attention')}</p>}
+   {current.snapshot.next&&<div className="workbuddy-progress-more"><button type="button" data-workbuddy-progress-more disabled={!available} onClick={()=>void read(true)}>{t(filtered?'more_attention':'more')}</button></div>}
   </>}
  </section>;
 }
 
-function ProgressRow({project,item,task,available,onRun}:ProgressEntry & {project:string;available:boolean;onRun:Props['onRun']}){
+function ProgressRow({project,item,task,available,onRun,filter,onTask}:ProgressEntry & {project:string;available:boolean;onRun:Props['onRun'];filter?:Props['filter'];onTask?:Props['onTask']}){
  const href=executionHref(project,item.run_id,item.node_id,item.attempt||undefined);
  const follow=(event:MouseEvent<HTMLAnchorElement>)=>{
   if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
@@ -199,6 +216,7 @@ function ProgressRow({project,item,task,available,onRun}:ProgressEntry & {projec
  const vendor=item.provider_status==='canceled'?'cancelled':item.provider_status;
  const runTitle=tr('workbuddy-cloud-task.source_run',{id:item.run_id.slice(0,12)});
  const taskTitle=task?.task_title?.trim();
+ const taskScopeHref=task&&workBuddyProgressTaskHref(project,task.task_id,filter);
  const deliveryAction=task?.run_relation==='current'?'task_open':'task_open_current';
  return <li className="workbuddy-progress-row" data-workbuddy-progress-row={item.run_id} data-workbuddy-progress-node={item.node_id} data-attention={needsAttention(item)||undefined}>
   <div className="workbuddy-progress-row-heading">
@@ -210,6 +228,13 @@ function ProgressRow({project,item,task,available,onRun}:ProgressEntry & {projec
       <span>{tr('workbuddy-cloud-task.delivery_version',{version:formatNumber(task.task_version)})}</span>
      </p>
      <p data-workbuddy-progress-task-relation={task.run_relation}>{tr('workbuddy-cloud-task.delivery_relation_'+task.run_relation)}</p>
+     {available&&onTask&&taskScopeHref&&<a className="workbuddy-progress-task-scope-action" data-workbuddy-progress-task-filter
+      href={taskScopeHref} onClick={event=>{
+       if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+       event.preventDefault();
+       onTask(task.task_id);
+      }} aria-label={t('task_scope_open_label',{task:taskTitle||task.task_id})}>
+      <ListFilter size={15} aria-hidden="true"/>{t('task_history')}</a>}
     </>}
     <p className="workbuddy-progress-meta">
      {task&&<span>{runTitle}</span>}

@@ -25,6 +25,9 @@ export function ExecutionWorkspace({
   workBuddyFilter,
   invalidWorkBuddyFilter,
   onWorkBuddyFilter,
+  workBuddyTask,
+  invalidWorkBuddyTask,
+  onWorkBuddyTask,
   team,
   invalidTeam,
   onTeam,
@@ -46,6 +49,9 @@ export function ExecutionWorkspace({
   workBuddyFilter?: 'attention';
   invalidWorkBuddyFilter?: boolean;
   onWorkBuddyFilter?: (filter?: 'attention') => void;
+  workBuddyTask?: string;
+  invalidWorkBuddyTask?: boolean;
+  onWorkBuddyTask?: (task?: string) => void;
   team?: string;
   invalidTeam?: boolean;
   onTeam?: (id: string) => void;
@@ -77,7 +83,7 @@ export function ExecutionWorkspace({
       {layout === 'team' ? <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><TeamExecutionWorkspace session={session} project={project} refresh={refresh} panel={panel} team={team} invalidTeam={invalidTeam} onTeam={onTeam} onPlan={onPlan} onTasks={onTasks}/></Suspense></ErrorBoundary> : layout === "queue" ? (
         <SchedulingQueue project={project} refresh={refresh} onRun={onRun} queueRoute={queueRoute} queueRun={queueRun} invalidQueue={invalidQueue} onQueueScope={onQueueScope} />
       ) : layout === 'workbuddy' ? (
-        <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><WorkBuddyProgressWorkspace session={session} project={project} refresh={refresh} filter={workBuddyFilter} invalidFilter={invalidWorkBuddyFilter} onFilter={onWorkBuddyFilter} onRun={onRun}/></Suspense></ErrorBoundary>
+        <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><WorkBuddyProgressWorkspace session={session} project={project} refresh={refresh} filter={workBuddyFilter} invalidFilter={invalidWorkBuddyFilter} onFilter={onWorkBuddyFilter} task={workBuddyTask} invalidTask={invalidWorkBuddyTask} onTask={onWorkBuddyTask} onRun={onRun}/></Suspense></ErrorBoundary>
       ) : (
         children
       )}

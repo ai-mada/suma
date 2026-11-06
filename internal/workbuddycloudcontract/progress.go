@@ -61,6 +61,11 @@ func (p CloudNodeProgress) Validate() error {
 // CloudProgressAttentionFilter selects saved records requiring attention.
 const CloudProgressAttentionFilter = "attention"
 
+// ValidCloudProgressTaskID accepts the exact formal task identifiers used in progress links.
+func ValidCloudProgressTaskID(id string) bool {
+	return cloudDeliveryTaskIDPattern.MatchString(id) && id != "." && id != ".."
+}
+
 // NeedsAttention classifies the same public facts displayed in the workbench.
 func (p CloudNodeProgress) NeedsAttention() bool {
 	if p.NodeReason != "" || p.SubmissionState == "unknown" || p.ObservationFailed {
@@ -99,14 +104,28 @@ type CloudNodeProgressPage struct {
 	Items      []CloudNodeProgress     `json:"items"`
 	NextCursor string                  `json:"next_cursor,omitempty"`
 	Filter     string                  `json:"filter,omitempty"`
+	TaskID     string                  `json:"task_id,omitempty"`
 	TaskLinks  []CloudProgressTaskLink `json:"task_links,omitempty"`
 }
 
 func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
-	var out CloudNodeProgressPage
-	if strictjson.Decode(raw, &out, 64<<10) != nil || !validID(out.ProjectID, 64) || out.Items == nil || len(out.Items) > 20 ||
+	var wire struct {
+		CloudNodeProgressPage
+		TaskID *string `json:"task_id,omitempty"`
+	}
+	if strictjson.Decode(raw, &wire, 64<<10) != nil {
+		return CloudNodeProgressPage{}, ErrInvalid
+	}
+	out := wire.CloudNodeProgressPage
+	if wire.TaskID != nil {
+		if !ValidCloudProgressTaskID(*wire.TaskID) {
+			return CloudNodeProgressPage{}, ErrInvalid
+		}
+		out.TaskID = *wire.TaskID
+	}
+	if !validID(out.ProjectID, 64) || out.Items == nil || len(out.Items) > 20 ||
 		(out.Filter != "" && out.Filter != CloudProgressAttentionFilter) || len(out.NextCursor) > 1024 ||
-		out.Filter == "" && out.NextCursor != "" && len(out.Items) == 0 {
+		out.Filter == "" && out.TaskID == "" && out.NextCursor != "" && len(out.Items) == 0 {
 		return CloudNodeProgressPage{}, ErrInvalid
 	}
 	if _, err := base64.RawURLEncoding.Strict().DecodeString(out.NextCursor); err != nil {
@@ -123,10 +142,13 @@ func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
 	}
 	for _, link := range out.TaskLinks {
 		key := [2]string{link.RunID, link.NodeID}
-		if link.Validate() != nil || !seen[key] {
+		if link.Validate() != nil || !seen[key] || out.TaskID != "" && link.TaskID != out.TaskID {
 			return CloudNodeProgressPage{}, ErrInvalid
 		}
 		delete(seen, key)
+	}
+	if out.TaskID != "" && len(seen) != 0 {
+		return CloudNodeProgressPage{}, ErrInvalid
 	}
 	return out, nil
 }

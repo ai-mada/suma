@@ -181,6 +181,8 @@ it('opens the original WorkBuddy handoff while the current candidate remains the
  expect(host.querySelector(card)?.textContent).toContain('Local candidate');
  expect(host.querySelector('[data-task-delivery-workbuddy]')).toBeNull();
  expect(host.querySelector('[data-repository-source-toggle]')).toBeNull();
+ const history=host.querySelector<HTMLAnchorElement>('[data-task-delivery-workbuddy-history]')!;
+ expect(Object.fromEntries(new URL(history.href).searchParams)).toEqual({project:'project-a',view:'development',sub:'runs',layout:'workbuddy',workbuddy_task:'task-a'});
  const link=host.querySelector<HTMLAnchorElement>(action)!;
  link.focus();expect(document.activeElement).toBe(link);
  expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({project:'project-a',view:'development',sub:'runs',run:'cloud-run',node:'workbuddy-cloud',attempt:'2'});
@@ -193,6 +195,7 @@ it('opens the original WorkBuddy handoff while the current candidate remains the
  await click('[data-task-delivery-run]');expect(onOpenRun).toHaveBeenLastCalledWith({run:'run-a'});expect(reads).toHaveLength(beforeNavigation);
  expect(host.querySelector('[data-task-delivery-test="verify"]')).not.toBeNull();
  await render('task-a',{openOnEntry:true,originRunID:'run-a',onOpenRun,navigationDisabled:true});
+ expect(host.querySelector('[data-task-delivery-workbuddy-history]')).toBeNull();
  expect(host.querySelector(action)?.hasAttribute('href')).toBe(false);
  expect(host.querySelector(action)?.getAttribute('tabindex')).toBe('-1');
  await render('task-a',{openOnEntry:true,originRunID:'run-a',onOpenRun,taskVersion:4});
