@@ -640,6 +640,10 @@ func (s *Service) RollbackReleasePreview(ctx context.Context, actor Actor, proje
 	if err != nil {
 		return nil, err
 	}
+	preview.ExecutionReadiness, err = s.releaseExecutionReadinessTx(ctx, auth, preview.Environment.ProviderID)
+	if err != nil {
+		return nil, err
+	}
 	return map[string]any{"input": input, "preview": preview}, nil
 }
 

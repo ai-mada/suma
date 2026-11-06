@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ai-mada/suma/internal/dag"
+	rc "github.com/ai-mada/suma/internal/releasecontract"
 	wbc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
 
@@ -37,14 +39,27 @@ func cloneCloudAssignment(a Assignment) Assignment {
 }
 
 // Capabilities describe native protocol support, never supplier credentials.
-func runnerCapabilities(cfg ExecConfig, inventory []string) []string {
+func runnerCapabilities(cfg ExecConfig, inventory []string, private bool) []string {
 	out := append([]string{}, inventory...)
+	var release []string
 	for _, capability := range ExternalCapabilities(cfg.External) {
-		if capability != "external_workflow:"+wbc.Plugin {
+		if strings.HasPrefix(capability, rc.ReleaseProviderCapabilityPrefix) {
+			release = append(release, capability)
+		} else if capability != "external_workflow:"+wbc.Plugin {
 			out = append(out, capability)
 		}
 	}
-	return append(out, "external_workflow:"+wbc.Plugin)
+	out = append(out, "external_workflow:"+wbc.Plugin)
+	// Advisory declarations use only spare room in the existing claim contract.
+	if private {
+		for _, capability := range release {
+			if len(out) >= dag.MaxClaimCapabilities {
+				break
+			}
+			out = append(out, capability)
+		}
+	}
+	return out
 }
 
 // Keep the strict execution client unchanged. Only a matching current carrier

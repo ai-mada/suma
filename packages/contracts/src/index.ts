@@ -5713,6 +5713,12 @@ export interface ReleaseExecution {
   artifact_id: string;
   artifact_sha256: string;
 }
+export interface ReleaseExecutionReadiness {
+  state: string;
+  registered_count: number;
+  checked_at: string;
+  observed_at?: string;
+}
 export interface ReleasePlan {
   id: string;
   project_id: string;
@@ -5731,6 +5737,7 @@ export interface ReleasePlan {
   allowed_actions: (string)[];
   repair_source?: ReleaseRepairSource | null;
   execution_lane?: string;
+  execution_readiness?: ReleaseExecutionReadiness | null;
 }
 export interface ReleasePlanContent {
   application_release_set?: ApplicationReleaseSetRef | null;
@@ -5788,6 +5795,7 @@ export interface ReleasePlanPreview {
   blockers: (ReleaseBlocker)[];
   allowed_actions: (string)[];
   execution_lane?: string;
+  execution_readiness?: ReleaseExecutionReadiness | null;
 }
 export interface ReleaseProfileRegistration {
   id: string;

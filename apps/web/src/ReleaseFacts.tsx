@@ -1,10 +1,10 @@
-import {tr,useLocale,UiError,renderDiagnostic,formatNumber} from './i18n';
+import {tr,useLocale,UiError,renderDiagnostic,formatNumber,formatDateTime} from './i18n';
 import {ArrowUpRight,Copy} from 'lucide-react';
 import {useState} from 'react';
 import type {ArtifactProof} from '../../../packages/contracts/src';
 import {time} from './api';
 import {ErrorNotice} from './ui';
-import {deploymentFacts,type DeploymentObservation,type HealthPolicy,type ReleaseBlocker,type ReleaseDeployment} from './release-model';
+import {deploymentFacts,releaseRunnerObservationStates,type DeploymentObservation,type HealthPolicy,type ReleaseBlocker,type ReleaseDeployment,type ReleaseRunnerReadiness} from './release-model';
 import type {ReleaseAction} from './release-hooks';
 import {useReleaseRead} from './release-hooks';
 import {releaseReferenceName,releaseReferencePath,type CandidateDetail,type ReleaseEnvironment,type ReleaseReferenceKind} from './release-model';
@@ -14,13 +14,35 @@ export function ReleaseNamedReferenceView({id,name,label,loading,error,onRetry,o
 
 export function ReleaseFingerprint({value,label=tr('release.fingerprint.label')}:{value?:string;label?:string}){useLocale();const[copied,setCopied]=useState(false),[error,setError]=useState<unknown>('');return <div className="release-fingerprint"><span>{label}</span><code>{value||tr('release.fingerprint.absent')}</code>{value&&<button type="button" className="icon-button" aria-label={tr('release.fingerprint.copy',{label})} onClick={async()=>{try{await navigator.clipboard.writeText(value);setCopied(true);setError('');}catch{setError(new UiError('release.fingerprint.failed'));}}}><Copy size={13}/></button>}{copied&&<small role="status">{tr('release.fingerprint.copied')}</small>}{Boolean(error)&&<small role="status">{renderDiagnostic(error)}</small>}</div>;}
 export function ReleasePill({children,tone='neutral'}:{children:React.ReactNode;tone?:'neutral'|'good'|'warning'|'bad'}){useLocale();return <span className={'release-pill '+tone}>{children}</span>;}
-export function ReleaseExecutionLane({lane}:{lane?:unknown}){
+export function ReleaseExecutionLane({lane,readiness}:{lane?:unknown;readiness?:ReleaseRunnerReadiness|null}){
  useLocale();
  if(lane!=='project_runner')return null;
  return <div className="release-named-reference" data-release-execution-lane>
   <span className="muted">{tr('release.execution_lane.label')}</span>
   <strong>{tr('release.execution_lane.project_runner')}</strong>
   <small className="muted">{tr('release.execution_lane.shared_tasks')}</small>
+  {readiness&&<ReleaseRunnerObservation readiness={readiness}/>}
+ </div>;
+}
+function ReleaseRunnerObservation({readiness}:{readiness:ReleaseRunnerReadiness}){
+ const {state,registered_count:count,checked_at:checkedAt,observed_at:observedAt}=readiness;
+ const validTime=(stamp:unknown):stamp is string=>typeof stamp==='string'&&Number.isFinite(Date.parse(stamp));
+ if(!releaseRunnerObservationStates.includes(state)||!Number.isSafeInteger(count)||count<0||!validTime(checkedAt))return null;
+ const matches=state==='capability_observed';
+ const prefix='release.execution_readiness.';
+ return <div className="release-named-reference" data-release-runner-readiness role="group" aria-label={tr(prefix+'label')}>
+  <span className="muted">{tr(prefix+'label')}</span>
+  <div><ReleasePill tone={matches?'neutral':'warning'}>{tr(prefix+state)}</ReleasePill></div>
+  <small>{tr(prefix+state+'_help')}</small>
+  {!matches&&<small className="muted">{tr(prefix+'advisory')}</small>}
+  <details>
+   <summary>{tr(prefix+'evidence')}</summary>
+   <dl className="release-facts">
+    <div><dt>{tr(prefix+'registered')}</dt><dd>{formatNumber(count)}</dd></div>
+    <div><dt>{tr(prefix+'checked_at')}</dt><dd><time dateTime={checkedAt}>{formatDateTime(checkedAt,{dateStyle:'medium',timeStyle:'medium'})}</time></dd></div>
+    {validTime(observedAt)&&<div><dt>{tr(prefix+'observed_at')}</dt><dd><time dateTime={observedAt}>{formatDateTime(observedAt,{dateStyle:'medium',timeStyle:'medium'})}</time></dd></div>}
+   </dl>
+  </details>
  </div>;
 }
 export function ReleaseBlockers({items}:{items?:ReleaseBlocker[]}){useLocale();return items?.length?<div className="release-blockers" role="status"><strong>{tr('release.blockers.title')}</strong><ul>{items.map((item,index)=><li key={item.code+index}>{renderDiagnostic(item)}<small>{item.code}</small></li>)}</ul></div>:null;}

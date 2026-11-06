@@ -12,6 +12,9 @@ import (
 type RunnableHook struct {
 	BindAssignmentTx func(context.Context, *sql.Tx, *Assignment) error
 	ValidateReplayTx func(context.Context, *sql.Tx, Assignment) error
+	// RecordPrivateClaimTx observes a newly recorded private claim, including
+	// an empty poll. Receipt replays and shared Pool claims never call it.
+	RecordPrivateClaimTx func(context.Context, *sql.Tx) error
 }
 
 func runnableHook(hooks []*RunnableHook) (*RunnableHook, error) {

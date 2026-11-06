@@ -9,8 +9,10 @@ import (
 	"unicode/utf8"
 )
 
+const MaxClaimCapabilities = 256
+
 func normalizedCapabilities(values []string) ([]string, error) {
-	if len(values) > 256 {
+	if len(values) > MaxClaimCapabilities {
 		return nil, dagDiagnostic(fmt.Errorf("%w: too many capabilities", ErrInvalid), "dag.claim.capability_count", nil)
 	}
 	set := map[string]bool{}
@@ -105,6 +107,11 @@ func (t *transaction) recordDispatch(tenant, project, worker, operationID, hash 
 	}
 	if err = t.exec(`INSERT INTO dag_dispatches(id,tenant_id,project_id,operation_id,request_sha256,worker_id,run_id,node_id,attempt,fence,policy_version,assignment,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`, id, tenant, project, operationID, hash, worker, run, node, attempt, fence, version, encoded(a), stamp(t.now)); err != nil {
 		return err
+	}
+	if hook != nil && hook.RecordPrivateClaimTx != nil {
+		if err = hook.RecordPrivateClaimTx(t.ctx, t.tx); err != nil {
+			return err
+		}
 	}
 	return t.recordExternalAssignment(a)
 }

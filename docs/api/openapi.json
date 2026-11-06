@@ -30214,6 +30214,43 @@
         ],
         "type": "object"
       },
+      "ReleaseExecutionReadiness": {
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "registered_count": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "not_registered",
+              "unobserved",
+              "stale",
+              "capability_missing",
+              "capability_observed"
+            ],
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "registered_count",
+          "checked_at"
+        ],
+        "type": "object"
+      },
       "ReleasePlan": {
         "properties": {
           "allowed_actions": {
@@ -30264,6 +30301,18 @@
           },
           "execution_operation_id": {
             "type": "string"
+          },
+          "execution_readiness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReleaseExecutionReadiness"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Advisory dedicated Runner capability observation on release preview or plan detail. It does not grant approval, claim authority, capacity, or provider health.",
+            "readOnly": true
           },
           "id": {
             "type": "string"
@@ -30561,6 +30610,18 @@
             "description": "Server-owned dedicated project Runner lane for managed release, independent of the ordinary project execution pool. This does not report Runner readiness.",
             "readOnly": true,
             "type": "string"
+          },
+          "execution_readiness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReleaseExecutionReadiness"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Advisory dedicated Runner capability observation on release preview or plan detail. It does not grant approval, claim authority, capacity, or provider health.",
+            "readOnly": true
           },
           "health": {
             "$ref": "#/components/schemas/HealthPolicy"

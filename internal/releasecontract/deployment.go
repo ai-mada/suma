@@ -12,6 +12,10 @@ import (
 
 const ReleaseProtocol = "suma.release.v1"
 
+// ReleaseProviderCapabilityPrefix identifies a Runner claim's local release
+// protocol configuration. It does not establish reachability or permission.
+const ReleaseProviderCapabilityPrefix = "release_provider:"
+
 type HealthCheck struct {
 	Path           string `json:"path"`
 	ExpectedStatus int    `json:"expected_status"`

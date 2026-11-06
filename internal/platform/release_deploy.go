@@ -67,23 +67,24 @@ type ReleaseRepairSource struct {
 const releaseExecutionLane = "project_runner"
 
 type ReleasePlan struct {
-	ID                   string                `json:"id"`
-	ProjectID            string                `json:"project_id"`
-	Version              int                   `json:"version"`
-	State                string                `json:"state"`
-	Revision             int                   `json:"revision"`
-	SHA256               string                `json:"sha256"`
-	Content              rc.ReleasePlanContent `json:"content"`
-	CreatedBy            string                `json:"created_by"`
-	CreatedAt            string                `json:"created_at"`
-	Approval             *ReleaseApproval      `json:"approval"`
-	ApprovalHistory      []ReleaseApproval     `json:"approval_history,omitempty"`
-	ExecutionOperationID string                `json:"execution_operation_id"`
-	Eligibility          bool                  `json:"eligibility"`
-	Blockers             []ReleaseBlocker      `json:"blockers"`
-	AllowedActions       []string              `json:"allowed_actions"`
-	RepairSource         *ReleaseRepairSource  `json:"repair_source,omitempty"`
-	ExecutionLane        string                `json:"execution_lane,omitempty"`
+	ID                   string                     `json:"id"`
+	ProjectID            string                     `json:"project_id"`
+	Version              int                        `json:"version"`
+	State                string                     `json:"state"`
+	Revision             int                        `json:"revision"`
+	SHA256               string                     `json:"sha256"`
+	Content              rc.ReleasePlanContent      `json:"content"`
+	CreatedBy            string                     `json:"created_by"`
+	CreatedAt            string                     `json:"created_at"`
+	Approval             *ReleaseApproval           `json:"approval"`
+	ApprovalHistory      []ReleaseApproval          `json:"approval_history,omitempty"`
+	ExecutionOperationID string                     `json:"execution_operation_id"`
+	Eligibility          bool                       `json:"eligibility"`
+	Blockers             []ReleaseBlocker           `json:"blockers"`
+	AllowedActions       []string                   `json:"allowed_actions"`
+	RepairSource         *ReleaseRepairSource       `json:"repair_source,omitempty"`
+	ExecutionLane        string                     `json:"execution_lane,omitempty"`
+	ExecutionReadiness   *ReleaseExecutionReadiness `json:"execution_readiness,omitempty"`
 }
 type ReleasePlanInput struct {
 	ProjectID                     string `json:"project_id"`
@@ -96,15 +97,16 @@ type ReleasePlanInput struct {
 	IdempotencyKey                string `json:"idempotency_key,omitempty"`
 }
 type ReleasePlanPreview struct {
-	PreviewSHA256  string             `json:"preview_sha256"`
-	Environment    ReleaseEnvironment `json:"environment"`
-	CandidateID    string             `json:"candidate_id"`
-	Action         string             `json:"action"`
-	Health         rc.HealthPolicy    `json:"health"`
-	Eligibility    bool               `json:"eligibility"`
-	Blockers       []ReleaseBlocker   `json:"blockers"`
-	AllowedActions []string           `json:"allowed_actions"`
-	ExecutionLane  string             `json:"execution_lane,omitempty"`
+	PreviewSHA256      string                     `json:"preview_sha256"`
+	Environment        ReleaseEnvironment         `json:"environment"`
+	CandidateID        string                     `json:"candidate_id"`
+	Action             string                     `json:"action"`
+	Health             rc.HealthPolicy            `json:"health"`
+	Eligibility        bool                       `json:"eligibility"`
+	Blockers           []ReleaseBlocker           `json:"blockers"`
+	AllowedActions     []string                   `json:"allowed_actions"`
+	ExecutionLane      string                     `json:"execution_lane,omitempty"`
+	ExecutionReadiness *ReleaseExecutionReadiness `json:"execution_readiness,omitempty"`
 }
 type ReleaseDeployment struct {
 	OperationID    string                     `json:"operation_id"`

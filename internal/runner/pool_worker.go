@@ -527,7 +527,7 @@ func (w *PoolWorker) runSlotBusiness(ctx context.Context, slot, worker string, j
 		for _, scope := range w.Config.Scopes {
 			local := w.local[scopeKey(scope.TenantID, scope.ProjectID)]
 			if active[scopeKey(scope.TenantID, scope.ProjectID)] && local.canClaimInventory() {
-				caps := runnerCapabilities(local.currentExecSnapshot(), ToolCapabilities(local.currentInventory()))
+				caps := runnerCapabilities(local.currentExecSnapshot(), ToolCapabilities(local.currentInventory()), false)
 				scopes = append(scopes, PoolCapabilityScope{TenantID: scope.TenantID, ProjectID: scope.ProjectID, Capabilities: caps})
 			}
 		}

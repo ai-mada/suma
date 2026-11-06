@@ -52,6 +52,20 @@ Deployment：`{operation_id,project_id,version,plan_id,plan_revision,plan_sha256
 
 服务端在发布预览和计划上返回只读 `execution_lane=project_runner`。该字段说明调度通道，执行资格仍取决于现有项目权限、审批、候选、环境、发布节点和提供方授权。派发固定原运行路由，恢复原操作沿用已保存的部署身份。
 
+### 发布节点能力观测
+
+发布与回滚预览、单个计划详情可返回 `execution_readiness={state,registered_count,checked_at,observed_at?}`。服务端仅使用当前项目、当前有效且启用发布的专用 Runner 凭据对应的普通领取上报。支持发布协议的本机配置可报告准确提供方标识。共享池、仅构建或测试的执行节点及历史凭据不计入。
+
+| 状态 | 含义 |
+| --- | --- |
+| `not_registered` | 当前无启用发布且凭据有效的项目 Runner |
+| `capability_observed` | 60 秒内收到至少一个当前发布 Runner 报告该提供方的准确发布协议能力 |
+| `unobserved` | 尚无近期匹配能力，至少一个当前注册节点还没有有效的能力观测 |
+| `stale` | 尚无近期匹配能力，已保存的至少一项当前注册观测超出有效窗口 |
+| `capability_missing` | 所有当前发布 Runner 均有近期观测，均未报告对应提供方的准确发布协议能力 |
+
+观测提供操作提示，不改变预览、审批或排队权限。它记录经过认证的领取能力报告，提供方连接、空闲槽位、实际执行和健康仍以对应真实证据为准。原领取回执重放不会刷新时间，轮换凭据后从新凭据的观测重新计算。列表不逐行读取观测。
+
 ## Runner/Provider API 与共享 DTO
 
 Runner 请求携带管理员登记的专属 worker 发布凭证；只对真实 managed run/node/current attempt/fence/worker + 未停止有效租约发放授权。

@@ -68,7 +68,7 @@ export function ReleaseRollbackForm({source,initial,refresh,action,onRestore,onC
   <button type="button" disabled={blocked||reading} onClick={()=>void reload()}><RefreshCw size={14}/>{reading?tr('release.prepare.checking'):tr('release.prepare.refresh')}</button>
   {review&&<section className="release-preview">
    <div className="release-section-heading"><h3>{tr('release.prepare.preview_title')}</h3><strong>{review.preview.eligibility?tr('release.prepare.eligible'):tr('release.prepare.blocked')}</strong></div>
-   <ReleaseExecutionLane lane={review.preview.execution_lane}/>
+   <ReleaseExecutionLane lane={review.preview.execution_lane} readiness={review.preview.execution_readiness}/>
    <ReleaseFingerprint value={review.preview.preview_sha256} label={tr('release.prepare.preview_hash')}/>
    <ReleaseBlockers items={review.preview.blockers}/>
    <HealthPolicyFacts policy={review.preview.health}/>

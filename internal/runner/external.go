@@ -14,6 +14,9 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	rc "github.com/ai-mada/suma/internal/releasecontract"
+	wbc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
 
 type ExternalSpec struct {
@@ -45,6 +48,9 @@ func ExternalCapabilities(specs map[string]ExternalSpec) []string {
 	for name, spec := range specs {
 		if _, err := externalURL(spec); err == nil && spec.TokenEnv != "" && os.Getenv(spec.TokenEnv) != "" {
 			caps = append(caps, "external_workflow:"+name)
+			if name != wbc.Plugin && rc.ValidProfileID(name) && spec.Protocol == rc.ReleaseProtocol {
+				caps = append(caps, rc.ReleaseProviderCapabilityPrefix+name)
+			}
 		}
 	}
 	sort.Strings(caps)

@@ -93,6 +93,10 @@ func scopeKind(scope string) actorKind {
 	return actorInvalid
 }
 
+func validCredentialSourceKind(kind string) bool {
+	return kind == "setup" || kind == "password" || kind == "invitation"
+}
+
 func (s *Service) readCredential(ctx context.Context, q authorityQuery, hash string, current bool) (credentialState, error) {
 	var c credentialState
 	var kind, expiry string
@@ -134,7 +138,7 @@ func (s *Service) readCredential(ctx context.Context, q authorityQuery, hash str
 	if err != nil {
 		return c, err
 	}
-	if sourceUser != c.ref.subjectID || sourceGeneration != c.ref.sourceRevision || revoked != 0 || authenticatedAt == "" || sourceKind != "setup" && sourceKind != "password" && sourceKind != "invitation" {
+	if sourceUser != c.ref.subjectID || sourceGeneration != c.ref.sourceRevision || revoked != 0 || authenticatedAt == "" || !validCredentialSourceKind(sourceKind) {
 		return c, unauthenticated()
 	}
 	var scope, project string

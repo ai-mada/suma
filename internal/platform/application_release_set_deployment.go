@@ -94,6 +94,23 @@ func (s *Service) PreviewApplicationReleaseSetDeployment(ctx context.Context, ac
 	}
 	defer close()
 	out, _, err = s.applicationReleaseSetDeploymentPreviewTx(ctx, auth.tx, auth.currentPrincipal, project, id, q)
+	if err != nil {
+		return out, err
+	}
+	readinessByProvider := map[string]*ReleaseExecutionReadiness{}
+	for i := range out.Items {
+		preview := &out.Items[i].Preview
+		provider := preview.Environment.ProviderID
+		readiness, cached := readinessByProvider[provider]
+		if !cached {
+			readiness, err = s.releaseExecutionReadinessTx(ctx, auth, provider)
+			if err != nil {
+				return out, err
+			}
+			readinessByProvider[provider] = readiness
+		}
+		preview.ExecutionReadiness = readiness
+	}
 	return
 }
 func (s *Service) PrepareApplicationReleaseSetDeployment(ctx context.Context, actor Actor, project, id string, q ApplicationReleaseSetDeploymentPrepareRequest) (out ApplicationReleaseSetPlanGroupView, err error) {

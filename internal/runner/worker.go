@@ -148,7 +148,7 @@ run:
 			}
 			continue
 		}
-		capabilities := runnerCapabilities(w.currentExecSnapshot(), ToolCapabilities(w.currentInventory()))
+		capabilities := runnerCapabilities(w.currentExecSnapshot(), ToolCapabilities(w.currentInventory()), true)
 		request, err := w.Journal.BeginClaim(w.Client.BaseURL, w.Client.ProjectID, w.ID, capabilities)
 		if err != nil {
 			return err

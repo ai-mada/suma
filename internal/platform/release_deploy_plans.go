@@ -132,6 +132,9 @@ func (s *Service) PreviewReleasePlan(ctx context.Context, actor Actor, project s
 		return ReleasePlanPreview{}, err
 	}
 	view, _, err := s.releasePreviewTx(ctx, tx, p, project, in)
+	if err == nil {
+		view.ExecutionReadiness, err = s.releaseExecutionReadinessTx(ctx, auth, view.Environment.ProviderID)
+	}
 	return view, err
 }
 func (s *Service) CreateReleasePlan(ctx context.Context, actor Actor, project string, m map[string]any) (ReleasePlan, error) {
@@ -494,6 +497,9 @@ func (s *Service) ReleasePlan(ctx context.Context, actor Actor, project, id stri
 		result0, e = s.readReleasePlanTx(bounded, auth, project, id)
 		if e == nil {
 			result0.RepairSource, e = s.releasePlanRepairSourceReadTx(bounded, auth.tx, auth.target.tenantID, project, result0)
+		}
+		if e == nil {
+			result0.ExecutionReadiness, e = s.releaseExecutionReadinessTx(bounded, auth, result0.Content.ProviderID)
 		}
 		return e
 	})

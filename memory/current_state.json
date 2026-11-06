@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "release_runner_readiness": {
+    "stage": "T-RELEASE-RUNNER-READINESS-258",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "82b0c84556106bf48a9dc05aa866c91992807dc0",
+    "report": "docs/quality/release-runner-readiness-verification.md",
+    "actual": "Read-only release readiness projects current authenticated dedicated project Runner claims per provider into deployment and rollback previews, plan detail and release-set API preview. It preserves existing deployment approvals and queue behavior.",
+    "verification": "Focused Windows SQLite authenticated HTTP integration and 21 frontend checks passed. Chromium exercised Chinese and English rollback, plan detail and execution confirmation in an API fixture.",
+    "known_limitations": "Capability observation does not probe provider or environment availability or execution capacity. This stage has no live provider, cross-machine or OceanBase evidence.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q258/post-git.json"
+  },
   "managed_release_runner_lane": {
     "stage": "T-MANAGED-RELEASE-RUNNER-LANE-257",
     "version": "1.0.0",
