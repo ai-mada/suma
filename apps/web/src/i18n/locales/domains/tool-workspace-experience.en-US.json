@@ -1,5 +1,6 @@
 {
   "tool-workspace-experience.add": "Add tool",
   "tool-workspace-experience.more": "More connection options",
-  "tool-workspace-experience.more_hint": "Tool catalog, IDE connections and detailed setup guides."
+  "tool-workspace-experience.more_hint": "Tool catalog, IDE connections and detailed setup guides.",
+  "tool-workspace-experience.return_to_attempt": "Return to original attempt {{attempt}}"
 }

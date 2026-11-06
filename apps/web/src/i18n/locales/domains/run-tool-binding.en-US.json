@@ -1,0 +1,6 @@
+{
+  "run-tool-binding.current_node_state": "Current node state",
+  "run-tool-binding.details": "Configuration IDs and report details",
+  "run-tool-binding.fixed_configuration_mismatch": "The pinned fingerprint or command differs from the current configuration.",
+  "run-tool-binding.unverified_response": "The current configuration response could not be verified."
+}

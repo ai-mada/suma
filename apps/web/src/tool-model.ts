@@ -5,6 +5,7 @@ import {validClaudeCapability} from './claude-cli-model';
 import {validClaudeSDKCapability} from './claude-sdk-execution-model';
 import {validACPCapability} from './acp-execution-model';
 import { tr as t, UiError } from "./i18n";
+import { parseAttempt } from "./scheduling-model";
 import type { RecordItem, Workflow } from "./api";
 import type { ToolDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation, ToolProfile as ContractToolProfile, TaskDispatchTestSelection } from "../../../packages/contracts/src";
 export type ToolProfileDefinition = ToolExecutionProfile;
@@ -88,28 +89,33 @@ export type ToolRunBinding = {
   command: string;
   run_id: string;
   node_id: string;
+  attempt?: number;
 };
-export function toolReturnPanel(run: string, node: string) {
+const toolReturnPrefix = "return-run:";
+export function toolReturnPanel(run: string, node: string, attempt?: number) {
   if (
     !/^[\x21-\x7e]{1,150}$/.test(run) ||
-    (node && !/^[\x21-\x7e]{1,150}$/.test(node))
+    (node && !/^[\x21-\x7e]{1,150}$/.test(node)) ||
+    (attempt !== undefined && (!node || parseAttempt(String(attempt)) !== attempt))
   )
     return "";
   return (
-    "return-run:" + encodeURIComponent(run) + "/" + encodeURIComponent(node)
+    toolReturnPrefix + encodeURIComponent(run) + "/" + encodeURIComponent(node) +
+    (attempt === undefined ? "" : `/${attempt}`)
   );
 }
 export function toolReturnRun(
   panel: string,
-): { run: string; node: string } | undefined {
-  if (!panel.startsWith("return-run:") || panel.length > 1000) return undefined;
+): { run: string; node: string; attempt?: number } | undefined {
+  if (!panel.startsWith(toolReturnPrefix) || panel.length > 1000) return undefined;
   try {
-    const pieces = panel.slice(11).split("/");
-    if (pieces.length !== 2) return undefined;
+    const pieces = panel.slice(toolReturnPrefix.length).split("/");
+    if (pieces.length !== 2 && pieces.length !== 3) return undefined;
     const run = decodeURIComponent(pieces[0]),
       node = decodeURIComponent(pieces[1]);
-    if (toolReturnPanel(run, node) !== panel) return undefined;
-    return { run, node };
+    const attempt = pieces.length === 3 ? parseAttempt(pieces[2]) : undefined;
+    if (toolReturnPanel(run, node, attempt) !== panel) return undefined;
+    return attempt === undefined ? { run, node } : { run, node, attempt };
   } catch {
     return undefined;
   }

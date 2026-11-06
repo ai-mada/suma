@@ -18,8 +18,8 @@ beforeEach(async()=>{
 });
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function settle(){await act(async()=>{for(let i=0;i<12;i++)await Promise.resolve();await new Promise(resolve=>setTimeout(resolve,25));});}
-function Workspace(){const[selected,onSelect]=useState('');return <ApiViewProvider session={session}><ToolWorkspace project={project} session={session} selected={selected} onSelect={onSelect} refresh={0} panel=""/></ApiViewProvider>;}
-async function draw(){await act(async()=>root.render(<Workspace/>));await settle();}
+function Workspace({panel=''}:{panel?:string}){const[selected,onSelect]=useState('');return <ApiViewProvider session={session}><ToolWorkspace project={project} session={session} selected={selected} onSelect={onSelect} refresh={0} panel={panel}/></ApiViewProvider>;}
+async function draw(panel?:string){await act(async()=>root.render(<Workspace panel={panel}/>));await settle();}
 async function click(selector:string){const button=document.querySelector<HTMLElement>(selector)!;expect(button,selector).not.toBeNull();await act(async()=>{button.focus();button.click();});await settle();}
 async function choose(selector:string,value:string){const select=document.querySelector<HTMLSelectElement>(selector)!;expect(select,selector).not.toBeNull();await act(async()=>{Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')!.set!.call(select,value);select.dispatchEvent(new Event('change',{bubbles:true}));});await settle();}
 
@@ -34,4 +34,19 @@ it('T206 expands the original guide from Quick and keeps its exact node focus af
 
 it('T206 leaves the original uncertain operation visible while advanced setup is collapsed and blocks new configuration identities',async()=>{
  sessionStorage.setItem('suma-tool-recovery-v1:team-one:user-one:project-one:profiles',JSON.stringify({path:'/release-workers',method:'POST',body:{project_id:project,worker_id:worker,idempotency_key:'original-operation'},idempotency_key:'original-operation'}));await draw();const notice=host.querySelector('.tool-recovery')!;expect(notice).not.toBeNull();expect(notice.closest('details')).toBeNull();expect(notice.textContent).toContain('original-operation');expect(host.querySelector<HTMLButtonElement>('[data-tools-add]')?.disabled).toBe(true);expect(host.querySelector<HTMLDetailsElement>('[data-tool-workspace-more]')?.open).toBe(false);expect(writes).toHaveLength(0);expect(sessionStorage.getItem('suma-tool-recovery-v1:team-one:user-one:project-one:profiles')).toContain('original-operation');
+});
+
+it('returns to the exact historical attempt through the existing navigation guard',async()=>{
+ await draw('return-run:run-one/map%2Fchild/2');
+ const back=host.querySelector<HTMLAnchorElement>('[data-tool-return-run]')!;
+ expect(back).not.toBeNull();
+ expect(back.textContent).toContain('attempt 2');
+ expect(Object.fromEntries(new URL(back.href).searchParams)).toEqual({project,view:'development',sub:'runs',run:'run-one',node:'map/child',attempt:'2'});
+ const guard=vi.fn((event:Event)=>event.preventDefault());
+ window.addEventListener('suma:navigate',guard,{once:true});
+ expect(back.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false);
+ expect(guard).toHaveBeenCalledOnce();
+ expect(writes).toHaveLength(0);
+ await draw('return-run:run-one/map%2Fchild/02');
+ expect(host.querySelector('[data-tool-return-run]')).toBeNull();
 });

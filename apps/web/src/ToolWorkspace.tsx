@@ -20,6 +20,7 @@ import {
   Copy,
 } from "lucide-react";
 import { ApiError, api, query, type Session, type RecordItem } from "./api";
+import { executionHref } from "./scheduling-model";
 import { Empty, ErrorNotice, Field, Loading, Modal } from "./ui";
 import { ToolWriteRecovery } from "./tool-write";
 import {manualWorkerRotationID,validManualWorkerRotationCommand,validManualWorkerRotationReceipt,type ManualWorkerRotationReceipt} from "./manual-worker-rotation-model";
@@ -812,21 +813,15 @@ function ScopedToolWorkspace({
       <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={hasToolFilters} onClearFilters={clearToolFilters} onWorker={workerManagement===true?openWorkerRegistration:undefined} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
       {returnRun && (
         <a
+          data-tool-return-run
           onClick={(event) => {
             if (!canLeave()) event.preventDefault();
           }}
-          href={
-            "?" +
-            new URLSearchParams({
-              project,
-              view: "development",
-              sub: "runs",
-              run: returnRun.run,
-              node: returnRun.node,
-            })
-          }
+          href={executionHref(project, returnRun.run, returnRun.node, returnRun.attempt)}
         >
-          {t("development.tools.return_to_the_original_run_and_selected")}</a>
+          {returnRun.attempt === undefined
+            ? t("development.tools.return_to_the_original_run_and_selected")
+            : t("tool-workspace-experience.return_to_attempt", { attempt: formatNumber(returnRun.attempt) })}</a>
       )}
       <ToolRecoveryNotice action={action} onRestored={saved} />
       {(!rotationWorker||credentialDialogDenied)&&<>

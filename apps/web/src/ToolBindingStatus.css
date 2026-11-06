@@ -1,0 +1,82 @@
+.tool-binding-status {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.tool-binding-status :is(h4, h5, p) {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.tool-binding-status__heading,
+.tool-binding-status__current {
+  display: grid;
+  gap: 6px;
+}
+
+.tool-binding-status__heading p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.tool-binding-status__heading p > span {
+  color: var(--muted);
+}
+
+.tool-binding-status__current {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.tool-binding-status__action,
+.tool-binding-status__details > summary {
+  min-height: 44px;
+}
+
+.tool-binding-status__action {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 6px;
+  font-weight: 600;
+  text-underline-offset: 2px;
+}
+
+.tool-binding-status__action svg {
+  flex-shrink: 0;
+}
+
+.tool-binding-status__details {
+  padding-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.tool-binding-status__details > summary {
+  display: list-item;
+  align-content: center;
+  cursor: pointer;
+}
+
+.tool-binding-status__details :is(dl, p) {
+  margin: 6px 0 0;
+}
+
+.tool-binding-status__details dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 6px 10px;
+}
+
+.tool-binding-status__details code {
+  white-space: normal;
+}
+
+@media (max-width: 420px) {
+  .tool-binding-status__details dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

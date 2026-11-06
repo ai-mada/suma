@@ -1,0 +1,6 @@
+{
+  "run-tool-binding.current_node_state": "当前节点状态",
+  "run-tool-binding.details": "配置标识与上报依据",
+  "run-tool-binding.fixed_configuration_mismatch": "本次固定指纹或命令与当前配置不匹配。",
+  "run-tool-binding.unverified_response": "当前配置响应未能通过核对。"
+}

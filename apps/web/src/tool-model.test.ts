@@ -248,6 +248,20 @@ describe("tool manifest and fixed task choices", () => {
     expect(toolReturnRun("other:run-1/node")).toBeUndefined();
     expect(toolReturnRun("return-run:bad/too/many")).toBeUndefined();
   });
+  it("pins only a canonical positive attempt to an exact return node", () => {
+    const panel = toolReturnPanel("run-1", "map:entry/child", 2);
+    expect(panel).toBe("return-run:run-1/map%3Aentry%2Fchild/2");
+    expect(toolReturnRun(panel)).toEqual({ run: "run-1", node: "map:entry/child", attempt: 2 });
+    expect(toolReturnRun(toolReturnPanel("run-1", ""))).toEqual({ run: "run-1", node: "" });
+    for (const attempt of [0, -1, 1.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(toolReturnPanel("run-1", "node", attempt)).toBe("");
+    }
+    expect(toolReturnPanel("run-1", "", 2)).toBe("");
+    for (const suffix of ["", "0", "01", "-1", "1.5", "1e2", "%32", "9007199254740992", "2/3"]) {
+      expect(toolReturnRun(`return-run:run-1/node/${suffix}`)).toBeUndefined();
+    }
+    expect(toolReturnRun("return-run:run-1//2")).toBeUndefined();
+  });
   it("accepts only nonsecret describe-tools observations and retains unavailable explanations", () => {
     expect(
       parseToolManifest(

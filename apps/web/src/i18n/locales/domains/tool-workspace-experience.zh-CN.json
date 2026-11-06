@@ -1,5 +1,6 @@
 {
   "tool-workspace-experience.add": "添加工具",
   "tool-workspace-experience.more": "更多接入方式",
-  "tool-workspace-experience.more_hint": "查看工具目录、IDE 接入及详细配置指南。"
+  "tool-workspace-experience.more_hint": "查看工具目录、IDE 接入及详细配置指南。",
+  "tool-workspace-experience.return_to_attempt": "返回原执行第 {{attempt}} 次尝试"
 }

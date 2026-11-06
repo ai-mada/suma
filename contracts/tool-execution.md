@@ -100,6 +100,10 @@ Use existing compact local workbench. Settings show execution workers/profile co
 
 Tests include missing tool/disabled exec/wrong capability keeping ready without attempt, pinned digest drift, stale/replayed inventory, another worker/token/project, revocation, plan version/content changes, duplicate start/lost ACK, structured malformed/oversize/split output, success/failure conflicts, cancellation/unknown, credential redaction and actual agent-vs-runner scope. Actual journey must send task context into a real process, execute isolated candidate and independent test, human acceptance, plus a failed process and deduplicated issue/requirement. Deterministic fixture must be labelled as fixture; real CLI probe and any model execution separately disclosed.
 
+### Run-to-tool navigation
+
+The selected `agent`, `test`, `command` or `terminal_session` node can open its tool configuration when the authorized run snapshot carries the complete fixed profile ID, SHA-256 and command. The current profile read must match the project and exact profile ID. A different command or digest cannot establish eligibility for the recorded binding. Current eligibility describes new dispatch only. The navigation panel retains the run, node and optional selected attempt. Both destinations use their existing current authorization checks and navigation creates no operation or retry.
+
 ## Fixed command workflows
 
 An explicit `command` node may bind the complete `tool_profile_id` and

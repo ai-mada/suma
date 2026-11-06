@@ -4,9 +4,10 @@ import { createRoot, type Root } from 'react-dom/client';
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import { ToolProfileFacts, toolReason } from './ToolFacts';
 import { ToolBindingFacts } from './ToolBindingStatus';
-import { setLocale, setServerCatalog } from './i18n';
+import { setLocale, setServerCatalog, tr } from './i18n';
 import {ErrorNotice} from './ui';
-import {ApiError} from './api';
+import {ApiError,type Session} from './api';
+import {ApiViewProvider} from './api-context';
 import type { ToolProfile } from './tool-model';
 import {ToolWorkspace} from './ToolWorkspace';
 
@@ -79,20 +80,37 @@ it('keeps the existing disclosure, focus, raw data and requests unchanged across
  expect(host.querySelector('[data-tool-technical]')).toBe(technical);expect(technical.open).toBe(true);expect(technical.querySelector('details')).toBe(details);expect(details.open).toBe(true);expect(document.activeElement).toBe(summary);
  expect(details.querySelector('code')?.textContent).toBe(profile.reason);expect(JSON.stringify(profile)).toBe(before);expect(fetch).not.toHaveBeenCalled();
 });
-it.each(['enable','pause'] as const)('preserves the real %s dialog confirmation, raw disclosure and focus without locale requests',async(decision)=>{
- const value={...profile,state:decision==='enable'?'paused':'enabled'} as ToolProfile;
+it.each(['enable','pause'] as const)('preserves the %s dialog confirmation and focus across a locale change',async(decision)=>{
+ const value:ToolProfile=decision==='enable'?profile:{...profile,state:'enabled',reason:'',reason_diagnostic:null};
+ const session:Session={user:{id:'u',name:'Fixture',email:'fixture@example.test',role:'owner'},organization:{id:'org',name:'Fixture'},projects:[]};
  const fetch=vi.fn(async(input:unknown)=>{
   const path=new URL(String(input),'http://local').pathname;
+  if(path.endsWith('/tool-profiles/profile/diagnostics'))return Response.json({
+   tool:value,checked_at:'2026-11-06T00:00:00Z',expires_at:'2026-11-06T00:00:30Z',next_action:'none',
+   checks:['authorization','worker','inventory','profile'].map(code=>({code,status:'pass',reason:'',next_action:'none'})),
+   maintenance_resolution:{profile_id:value.id,profile_version:value.version,worker_id:value.worker_id,action:'open_worker',reason:'maintenance_unknown'},
+  });
   return new Response(JSON.stringify(path.endsWith('/tool-profiles/profile')?value:path.endsWith('/tool-profiles')?{items:[value],total:1}:{items:[],total:0}),{headers:{'Content-Type':'application/json'}});
  });vi.stubGlobal('fetch',fetch);
- await act(async()=>root.render(<ToolWorkspace project="p" selected="profile" panel="" refresh={0} onSelect={()=>{}} session={{user:{id:'u',name:'Fixture',email:'fixture@example.test',role:'owner'},organization:{id:'org',name:'Fixture'},projects:[]}}/>));
- const launch=[...host.querySelectorAll('button')].find(button=>button.textContent===(decision==='enable'?'Review and enable':'Pause configuration'));
+ await act(async()=>root.render(<ApiViewProvider session={session}><ToolWorkspace project="p" selected="profile" panel="" refresh={0} onSelect={()=>{}} session={session}/></ApiViewProvider>));
+ const launch=[...host.querySelectorAll('button')].find(button=>button.textContent===tr(decision==='enable'?'development.tools.review_and_enable':'tool-workspace.pause'));
  expect(launch).toBeTruthy();await act(async()=>launch!.click());
  const dialog=document.querySelector<HTMLElement>('[role="dialog"]')!;expect(dialog).not.toBeNull();
- expect(dialog.querySelector('.tool-dispatch-status p:last-child')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');
+ const technical=dialog.querySelector<HTMLDetailsElement>('[data-tool-technical]'),details=technical?.querySelector('details');
+ let focus:HTMLElement|null;
+ if(decision==='enable'){
+  expect(dialog.querySelector('.tool-dispatch-status p:last-child')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');
+  technical!.open=true;details!.open=true;focus=details!.querySelector('summary');
+ }else{
+  expect(dialog.querySelector('[data-tool-decision-impact]')?.getAttribute('data-state')).toBe('ready');
+  focus=dialog.querySelector('[data-tool-decision-refresh]');
+ }
  const checkbox=dialog.querySelector<HTMLInputElement>('input[type="checkbox"]')!;await act(async()=>checkbox.click());expect(checkbox.checked).toBe(true);
- const technical=dialog.querySelector<HTMLDetailsElement>('[data-tool-technical]')!,details=technical.querySelector('details')!,summary=details.querySelector('summary')!;technical.open=true;details.open=true;summary.focus();const count=fetch.mock.calls.length;
+ focus!.focus();const count=fetch.mock.calls.length;
  await act(async()=>{await setLocale('zh-CN',{persist:false});});
  expect(document.querySelector('[role="dialog"]')).toBe(dialog);expect(dialog.querySelector('input[type="checkbox"]')).toBe(checkbox);expect(checkbox.checked).toBe(true);
- expect(dialog.querySelector('[data-tool-technical]')).toBe(technical);expect(technical.open).toBe(true);expect(technical.querySelector('details')).toBe(details);expect(details.open).toBe(true);expect(document.activeElement).toBe(summary);expect(details.querySelector('code')?.textContent).toBe(profile.reason);expect(fetch.mock.calls).toHaveLength(count);
+ if(decision==='enable'){
+  expect(dialog.querySelector('[data-tool-technical]')).toBe(technical);expect(technical!.open).toBe(true);expect(technical!.querySelector('details')).toBe(details);expect(details!.open).toBe(true);expect(details!.querySelector('code')?.textContent).toBe(profile.reason);
+ }
+ expect(document.activeElement).toBe(focus);expect(fetch.mock.calls).toHaveLength(count);
 });
