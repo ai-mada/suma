@@ -481,5 +481,7 @@
   "automation.pause_evidence_failed_runs": "失败运行，按触发时间从新到旧",
   "automation.pause_evidence_open_run": "查看失败运行",
   "automation.pause_evidence_open_run_named": "查看失败运行 {{id}}",
+  "automation.pause_evidence_open_issue": "查看问题",
+  "automation.pause_evidence_open_issue_named": "查看失败运行 {{id}} 的问题",
   "automation.pause_evidence_unavailable": "此触发暂无可核对的失败证据。"
 }

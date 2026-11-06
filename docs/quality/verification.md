@@ -64,6 +64,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-AUTOMATION-PAUSE-ISSUE-LINK-291 核验暂停证据到现有失败问题的授权定位和真实界面。 [阶段报告](automation-pause-issue-link-verification.md)
+
 T-AUTOMATION-RUN-PAUSE-TRACE-290 核验运行原触发与暂停依据的准确回链、历史授权与真实双入口。 [阶段报告](automation-run-pause-trace-verification.md)
 
 T-AUTOMATION-PAUSE-EVIDENCE-289 核验暂停依据的原子提交、历史保留、项目授权与真实运行入口。 [阶段报告](automation-pause-evidence-verification.md)

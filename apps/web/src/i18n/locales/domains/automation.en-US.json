@@ -481,5 +481,7 @@
   "automation.pause_evidence_failed_runs": "Failed runs, newest first",
   "automation.pause_evidence_open_run": "View failed run",
   "automation.pause_evidence_open_run_named": "View failed run {{id}}",
+  "automation.pause_evidence_open_issue": "Open issue",
+  "automation.pause_evidence_open_issue_named": "Open issue for failed run {{id}}",
   "automation.pause_evidence_unavailable": "Saved failure evidence is unavailable for this trigger."
 }

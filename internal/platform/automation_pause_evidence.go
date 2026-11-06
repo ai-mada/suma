@@ -22,6 +22,7 @@ const automationPauseEvidenceDDL = `CREATE TABLE IF NOT EXISTS suma_automation_p
 type AutomationFailurePauseRun struct {
 	TriggerID string `json:"trigger_id"`
 	RunID     string `json:"run_id"`
+	IssueID   string `json:"issue_id,omitempty"`
 }
 
 type AutomationFailurePauseEvidence struct {
@@ -102,7 +103,7 @@ func validAutomationFailurePauseRuns(runs []AutomationFailurePauseRun, threshold
 	}
 	triggerIDs, runIDs := map[string]bool{}, map[string]bool{}
 	for _, run := range runs {
-		if !handoffID(run.TriggerID, false) || !handoffID(run.RunID, false) || run.TriggerID == blockedID || triggerIDs[run.TriggerID] || runIDs[run.RunID] {
+		if run.IssueID != "" || !handoffID(run.TriggerID, false) || !handoffID(run.RunID, false) || run.TriggerID == blockedID || triggerIDs[run.TriggerID] || runIDs[run.RunID] {
 			return false
 		}
 		triggerIDs[run.TriggerID], runIDs[run.RunID] = true, true
@@ -190,6 +191,39 @@ func (s *Service) automationFailurePauseEvidenceTx(ctx context.Context, tx *sql.
 		return nil, err
 	}
 	return &evidence, nil
+}
+
+// Issue links are current read-time context for the exact blocked trigger.
+// The persisted failure evidence and the run-origin backlink never use them.
+func (s *Service) automationPauseIssueLinksTx(ctx context.Context, tx *sql.Tx, tenant, project string, evidence *AutomationFailurePauseEvidence) error {
+	// Stored evidence has already been verified and limits this to ten runs.
+	for i := range evidence.FailedRuns {
+		entry := &evidence.FailedRuns[i]
+		issueID, found, err := s.failureIssueIDTx(ctx, tx, tenant, project, entry.RunID)
+		if err != nil {
+			var apiErr *APIError
+			if errors.As(err, &apiErr) && (apiErr.Status == 404 || apiErr.Status == 409) {
+				continue
+			}
+			return err
+		}
+		if !found {
+			continue
+		}
+		var id, issueTenant, issueProject string
+		err = tx.QueryRowContext(ctx, s.q(`SELECT id,tenant_id,project_id FROM suma_issues WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, issueID).
+			Scan(&id, &issueTenant, &issueProject)
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if id == issueID && issueTenant == tenant && issueProject == project {
+			entry.IssueID = id
+		}
+	}
+	return nil
 }
 
 func (s *Service) automationPauseEvidenceBindingsVisible(ctx context.Context, tx *sql.Tx, ref automationRef, revision int, spec AutomationSpec, runs []AutomationFailurePauseRun) (bool, error) {

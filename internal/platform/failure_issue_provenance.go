@@ -68,16 +68,25 @@ func failureIssueReceiptID(raw, stored, expected, tenant, project, run string) (
 // cannot establish execution provenance.
 func (s *Service) failureIssueIDTx(ctx context.Context, tx *sql.Tx, tenant, project, run string) (string, bool, error) {
 	var workflow, stored, raw string
-	err := tx.QueryRowContext(ctx, s.q(`SELECT r.workflow_name,o.request_hash,o.response
+	var runID, runTenant, runProject, operation, opTenant, opProject, eventRun, eventTenant, eventProject, eventType string
+	key := failureIssueKey(run)
+	err := tx.QueryRowContext(ctx, s.q(`SELECT r.workflow_name,o.request_hash,o.response,r.id,r.tenant_id,r.project_id,o.operation_id,o.tenant_id,o.project_id,
+		e.run_id,e.tenant_id,e.project_id,e.event_type
 		FROM dag_runs r JOIN suma_operations o ON o.tenant_id=r.tenant_id AND o.project_id=r.project_id AND o.operation_id=?
+		JOIN dag_events e ON e.tenant_id=r.tenant_id AND e.project_id=r.project_id AND e.run_id=r.id AND e.event_type='run_failed'
 		WHERE r.tenant_id=? AND r.project_id=? AND r.id=?
-		AND EXISTS(SELECT 1 FROM dag_events e WHERE e.tenant_id=r.tenant_id AND e.project_id=r.project_id AND e.run_id=r.id AND e.event_type='run_failed')`),
-		failureIssueKey(run), tenant, project, run).Scan(&workflow, &stored, &raw)
+		ORDER BY e.sequence LIMIT 1`), key, tenant, project, run).Scan(&workflow, &stored, &raw, &runID, &runTenant, &runProject,
+		&operation, &opTenant, &opProject, &eventRun, &eventTenant, &eventProject, &eventType)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", false, nil
 	}
 	if err != nil {
 		return "", false, err
+	}
+	// A database collation can equate different identifier bytes.
+	if runID != run || runTenant != tenant || runProject != project || operation != key || opTenant != tenant || opProject != project ||
+		eventRun != run || eventTenant != tenant || eventProject != project || eventType != "run_failed" {
+		return "", false, conflict(diagnosisIssue)
 	}
 	id, err := failureIssueReceiptID(raw, stored, failureIssueHash(failureIssueBody(run, workflow)), tenant, project, run)
 	return id, err == nil, err

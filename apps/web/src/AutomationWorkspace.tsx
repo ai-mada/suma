@@ -8,7 +8,7 @@ import {EntityPager,type PageSnapshot} from './pagination';
 import {useLeaveGuard} from './write-action';
 import {AutomationIngressWorkspace} from './AutomationIngress';
 import {ingressReason} from './ingress-model';
-import {automationTriggerPanelID} from './navigation';
+import {automationTriggerPanelID,sourceHref} from './navigation';
 import {AutomationRecovery,AutomationRevisionPager,automationDetailPath,automationEnabled,automationError,automationFailurePaused,automationFailurePauseReason,automationMoment,automationPermissions,automationReason,automationSpec,automationStates,automationWorkflowOptions,misfireNames,newAutomationSpec,occurrenceStates,overlapNames,type AutomationOccurrence,type AutomationPreview,type AutomationResult,type AutomationRevision,type AutomationRule,type AutomationSpec} from './automation-model';
 import './automation.css';
 
@@ -240,13 +240,24 @@ function AutomationPauseEvidence({occurrence,project,timezone}:{occurrence:Autom
   <p>{tr('automation.pause_evidence_threshold',{threshold:formatNumber(evidence.threshold)})}</p>
   <time dateTime={evidence.observed_at}>{tr('automation.pause_evidence_observed',{time:observed.local,timezone:observed.timezone})}</time>
   <ol aria-label={tr('automation.pause_evidence_failed_runs')}>
-   {evidence.failed_runs.map(entry=><li key={entry.run_id}>
-    <a href={runHref(project,entry.run_id)} data-automation-pause-evidence-run={entry.run_id}
-       aria-label={tr('automation.pause_evidence_open_run_named',{id:entry.run_id})}
-       onClick={event=>{if(!canLeave())event.preventDefault();}}>
-     {tr('automation.pause_evidence_open_run')}<code title={entry.run_id}>{entry.run_id.slice(0,16)}</code><ArrowUpRight size={13} aria-hidden="true"/>
-    </a>
-   </li>)}
+   {evidence.failed_runs.map(entry=>{
+    const issue=entry.issue_id;
+    const issueHref=typeof issue==='string'&&issue.length<=64&&sourceHref(project,{kind:'issues',id:issue});
+    return <li key={entry.run_id}>
+     <div className="automation-pause-evidence-actions">
+      <a href={runHref(project,entry.run_id)} data-automation-pause-evidence-run={entry.run_id}
+         aria-label={tr('automation.pause_evidence_open_run_named',{id:entry.run_id})}
+         onClick={event=>{if(!canLeave())event.preventDefault();}}>
+       {tr('automation.pause_evidence_open_run')}<code title={entry.run_id}>{entry.run_id.slice(0,16)}</code><ArrowUpRight size={13} aria-hidden="true"/>
+      </a>
+      {issueHref&&<a href={issueHref} data-automation-pause-evidence-issue={issue}
+         aria-label={tr('automation.pause_evidence_open_issue_named',{id:entry.run_id})}
+         onClick={event=>{if(!canLeave())event.preventDefault();}}>
+       {tr('automation.pause_evidence_open_issue')}<ArrowUpRight size={13} aria-hidden="true"/>
+      </a>}
+     </div>
+    </li>;
+   })}
   </ol>
  </section>;
 }

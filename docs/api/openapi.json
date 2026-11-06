@@ -4700,6 +4700,13 @@
       },
       "AutomationFailurePauseRun": {
         "properties": {
+          "issue_id": {
+            "description": "Current issue locator verified from the original failure projection receipt for this exact run. Omitted when unavailable. It is not part of the retained pause decision.",
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
           "run_id": {
             "maxLength": 64,
             "minLength": 1,
@@ -66485,7 +66492,7 @@
     },
     "/automations/{id}/occurrences/{occurrence_id}": {
       "get": {
-        "description": "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes the same scoped run evidence as trigger history, plus recorded failure-pause evidence when available for the initiating trigger.",
+        "description": "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes recorded failure-pause evidence for the initiating trigger, with an issue locator only where the existing scoped failure projection is verified.",
         "operationId": "get_automations_id_occurrences_occurrence_id",
         "parameters": [
           {

@@ -142,12 +142,15 @@ it('opens an exact trigger independently of history and discards stale or mismat
  }
 });
 
-it('shows only the exact retained pause evidence and preserves the leave guard on linked failed runs',async()=>{
+it('shows exact retained pause evidence and guards navigation to failed runs and verified issues',async()=>{
  const host=document.createElement('div');document.body.append(host);
  const root=createRoot(host);
  const stopped={...occurrence,id:'stopped-trigger',state:'blocked',reason:'failure_pause_threshold_reached',run_id:''};
  const retained={
-  threshold:2,observed_at:stamp,failed_runs:[{trigger_id:'recent-trigger',run_id:'recent-run'},{trigger_id:'earlier-trigger',run_id:'earlier-run'}],
+  threshold:2,observed_at:stamp,failed_runs:[
+   {trigger_id:'recent-trigger',run_id:'recent-run',issue_id:'recent-issue'},
+   {trigger_id:'earlier-trigger',run_id:'earlier-run',issue_id:'../other-issue'},
+  ],
  };
  let result:unknown={...stopped,failure_pause_evidence:retained},refresh=0;
  const veto=(event:Event)=>event.preventDefault();
@@ -177,8 +180,17 @@ it('shows only the exact retained pause evidence and preserves the leave guard o
   expect(links.map(link=>[...new URL(link.href).searchParams])).toEqual(retained.failed_runs.map(entry=>[
    ['project',project],['view','development'],['sub','runs'],['run',entry.run_id],
   ]));
+  const issueLinks=[...section()!.querySelectorAll<HTMLAnchorElement>('[data-automation-pause-evidence-issue]')];
+  expect(issueLinks).toHaveLength(1);
+  expect([...new URL(issueLinks[0].href).searchParams]).toEqual([
+   ['project',project],['view','quality'],['sub','issues'],['record','recent-issue'],
+  ]);
+  expect(issueLinks[0].getAttribute('aria-label')).toBe('Open issue for failed run recent-run');
   window.addEventListener('suma:navigate',veto);
-  try{expect(links[0].dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false);}
+  try{
+   expect(links[0].dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false);
+   expect(issueLinks[0].dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))).toBe(false);
+  }
   finally{window.removeEventListener('suma:navigate',veto);}
   for(const evidence of [
    undefined,

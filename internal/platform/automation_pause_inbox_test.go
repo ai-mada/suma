@@ -3,6 +3,7 @@ package platform
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"net/http"
 	"slices"
 	"testing"
@@ -300,6 +301,8 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	}
 	assertEvidence()
 
+	verifyAutomationPauseIssueProjection(t, f, detailPath(triggerID, f.project), triggerID, wantRuns[1].RunID, otherProject)
+
 	// A mismatched occurrence retains its inbox history but exposes no locator.
 	if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_automation_occurrences SET reason='workflow_unavailable' WHERE id=?`, triggerID); err != nil {
 		t.Fatal(err)
@@ -329,4 +332,87 @@ func TestAutomationPauseInboxHTTP(t *testing.T) {
 	}
 	empty(orgInbox)
 	checkUnread(0)
+}
+
+func verifyAutomationPauseIssueProjection(t *testing.T, f *fixture, path, triggerID, runID, otherProject string) {
+	t.Helper()
+	ctx := context.Background()
+	read := func() AutomationFailurePauseEvidence {
+		t.Helper()
+		result := issueRepairRuntimeDecode[AutomationOccurrence](t, f.call(http.MethodGet, path, nil, http.StatusOK))
+		if result.FailurePauseEvidence == nil {
+			t.Fatal("optional issue projection removed verified pause evidence")
+		}
+		return *result.FailurePauseEvidence
+	}
+	before := read()
+	assertLink := func(issueID string) {
+		t.Helper()
+		counts := func() [3]int {
+			return [3]int{autoCount(t, f, "suma_issues"), autoCount(t, f, "suma_operations"), autoCount(t, f, "suma_activity")}
+		}
+		countBefore := counts()
+		current := read()
+		want := slices.Clone(before.FailedRuns)
+		for i := range want {
+			if want[i].RunID == runID {
+				want[i].IssueID = issueID
+			}
+		}
+		if current.Threshold != before.Threshold || current.ObservedAt != before.ObservedAt || !slices.Equal(current.FailedRuns, want) {
+			t.Fatalf("wrong issue links or changed decision facts: got %+v, want failed runs %+v", current, want)
+		}
+		if counts() != countBefore {
+			t.Fatal("reading the pause detail changed the issue, receipt, or activity counts")
+		}
+	}
+	var stored string
+	if err := f.s.DB.QueryRowContext(ctx, `SELECT failed_runs FROM suma_automation_pause_evidence WHERE occurrence_id=?`, triggerID).Scan(&stored); err != nil {
+		t.Fatal(err)
+	}
+	// Editable issue metadata cannot manufacture the execution projector's link.
+	f.call(http.MethodPost, "/issues", f.body(map[string]any{
+		"title": "Manually reported failure", "data": map[string]any{"run_id": runID, "origin": "execution"},
+	}), http.StatusCreated)
+	assertLink("")
+	if err := f.s.projectFailureIssue(ctx, f.user.TenantID, f.project, runID); err != nil {
+		t.Fatal(err)
+	}
+	var raw string
+	if err := f.s.DB.QueryRowContext(ctx, `SELECT response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`, f.user.TenantID, f.project, failureIssueKey(runID)).Scan(&raw); err != nil {
+		t.Fatal(err)
+	}
+	var issue Record
+	if err := json.Unmarshal([]byte(raw), &issue); err != nil || issue.ID == "" {
+		t.Fatalf("invalid canonical issue receipt: %v", err)
+	}
+	assertLink(issue.ID)
+	f.call(http.MethodPatch, "/issues/"+issue.ID, f.body(map[string]any{
+		"expected_version": issue.Version, "data": map[string]any{"run_id": newID()},
+	}), http.StatusOK)
+	assertLink(issue.ID)
+	setReceipt := func(response string) {
+		t.Helper()
+		if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_operations SET response=? WHERE tenant_id=? AND project_id=? AND operation_id=?`, response, f.user.TenantID, f.project, failureIssueKey(runID)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	setReceipt(`{"invalid":`)
+	assertLink("")
+	setReceipt(raw)
+	if _, err := f.s.DB.ExecContext(ctx, `UPDATE suma_issues SET project_id=? WHERE id=?`, otherProject, issue.ID); err != nil {
+		t.Fatal(err)
+	}
+	assertLink("")
+	if _, err := f.s.DB.ExecContext(ctx, `DELETE FROM suma_issues WHERE id=?`, issue.ID); err != nil {
+		t.Fatal(err)
+	}
+	assertLink("")
+	var retained string
+	if err := f.s.DB.QueryRowContext(ctx, `SELECT failed_runs FROM suma_automation_pause_evidence WHERE occurrence_id=?`, triggerID).Scan(&retained); err != nil {
+		t.Fatal(err)
+	}
+	if retained != stored {
+		t.Fatal("read-time issue projection changed the stored failure evidence")
+	}
 }

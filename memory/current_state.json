@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_pause_issue_link": {
+    "stage": "T-AUTOMATION-PAUSE-ISSUE-LINK-291",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "5da1d7fc50c2cbd4994e228e2ebcd103cf7e7cc0",
+    "report": "docs/quality/automation-pause-issue-link-verification.md",
+    "actual": "The exact blocked trigger detail links existing verified run failure issues, alongside immutable run evidence. Reading creates no issue or write.",
+    "verification": "SQLite HTTP checks real projection lineage, corruption and scope. Real Chrome verifies exact issue navigation in English desktop and Chinese 390px.",
+    "known_limitations": "An issue link is available after current scoped failure projection verifies. External channels, distributed load and real OceanBase acceptance remain open.",
+    "full_platform_complete": false
+  },
   "automation_run_pause_trace": {
     "stage": "T-AUTOMATION-RUN-PAUSE-TRACE-290",
     "version": "1.0.0",

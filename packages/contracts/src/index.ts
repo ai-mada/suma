@@ -1009,6 +1009,7 @@ export interface AutomationFailurePauseEvidence {
 export interface AutomationFailurePauseRun {
   trigger_id: string;
   run_id: string;
+  issue_id?: string;
 }
 export interface AutomationIngress {
   name: string;

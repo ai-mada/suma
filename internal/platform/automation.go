@@ -714,6 +714,11 @@ func (s *Service) automationOccurrenceCurrentTx(auth *authorizedCommand, occurre
 		if err != nil {
 			return AutomationOccurrence{}, err
 		}
+		if o.FailurePauseEvidence != nil {
+			if err := s.automationPauseIssueLinksTx(auth.ctx, auth.tx, tenant, project, o.FailurePauseEvidence); err != nil {
+				return AutomationOccurrence{}, err
+			}
+		}
 	}
 	return o, nil
 }

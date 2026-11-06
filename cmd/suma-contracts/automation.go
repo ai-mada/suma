@@ -22,7 +22,7 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	occurrences := get("/automations/{id}/occurrences", "AutomationOccurrences", true)
 	appendQuery(occurrences, queryParameter("filter", "Returns all occurrences or only blocked triggers, failed linked runs, and linked runs with a node requiring reconciliation. The cursor is scoped to the selected filter.", map[string]any{"type": "string", "enum": []string{"all", "attention"}, "default": "all"}))
 	trigger := get("/automations/{id}/occurrences/{occurrence_id}", "AutomationOccurrence", false)
-	trigger["description"] = "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes the same scoped run evidence as trigger history, plus recorded failure-pause evidence when available for the initiating trigger."
+	trigger["description"] = "Reads one persisted trigger by exact rule and occurrence ID under current project read authority, independently of history paging. Includes recorded failure-pause evidence for the initiating trigger, with an issue locator only where the existing scoped failure projection is verified."
 	trigger["responses"].(map[string]any)["404"] = map[string]any{"description": "The rule or trigger is missing or outside the requested project"}
 	get("/automations/{id}/revisions", "AutomationRevisions", true)
 	origin := get("/runs/{id}/automation-origin", "AutomationRunOriginResult", false)
@@ -110,5 +110,6 @@ func enhanceAutomationSchemas(schemas map[string]any) {
 	for _, id := range []string{"trigger_id", "run_id"} {
 		field("AutomationFailurePauseRun", id, map[string]any{"minLength": 1, "maxLength": 64})
 	}
+	field("AutomationFailurePauseRun", "issue_id", map[string]any{"minLength": 1, "maxLength": 64, "readOnly": true, "description": "Current issue locator verified from the original failure projection receipt for this exact run. Omitted when unavailable. It is not part of the retained pause decision."})
 	field("AutomationOccurrence", "run_needs_reconciliation", map[string]any{"description": "True when a node of the linked run is reconciling within this organization and project. Omitted when no such node is recorded."})
 }

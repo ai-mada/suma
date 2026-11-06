@@ -35,6 +35,7 @@
 .automation-pause-evidence time{display:block;margin-top:4px;color:var(--muted);font-size:11px}
 .automation-pause-evidence ol{margin:6px 0 0;padding-inline-start:20px;list-style:decimal}
 .automation-pause-evidence li:not(:first-child){border-top:1px solid var(--border)}
-.automation-pause-evidence li>a{display:inline-flex;max-width:100%;margin-top:0;min-height:32px;overflow-wrap:anywhere}
-.automation-pause-evidence li>a code{display:inline;margin:0;color:var(--muted)}
-@media(max-width:480px){.automation-pause-evidence li>a{min-height:44px}}
+.automation-pause-evidence-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;column-gap:14px}
+.automation-pause-evidence-actions>a{display:inline-flex;max-width:100%;margin-top:0;min-height:32px;overflow-wrap:anywhere}
+.automation-pause-evidence-actions>a code{display:inline;margin:0;color:var(--muted)}
+@media(max-width:480px){.automation-pause-evidence-actions>a{min-height:44px}}
