@@ -290,6 +290,13 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *aut
 	if err = s.automationIngressDispatchAdmission(ctx, tx, ref, a, o); err != nil {
 		return a, o, err
 	}
+	tripped, err := s.automationFailurePauseReached(ctx, tx, ref, a)
+	if err != nil {
+		return a, o, err
+	}
+	if tripped {
+		return a, o, &automationDeferred{"blocked", automationFailurePauseReason}
+	}
 	if a.Overlap != "allow" {
 		var active int
 		// Paused, reconciling and approval/waiting runs remain active. The DAG
@@ -400,12 +407,18 @@ func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref aut
 		}
 		return err
 	}
-	_, _, err = s.automationAdmission(ctx, tx, evaluation, ref, id)
+	current, _, err := s.automationAdmission(ctx, tx, evaluation, ref, id)
 	if !errors.As(err, &deferred) {
 		return err
 	}
 	if deferred.state == "" {
 		return nil
+	}
+	if deferred.reason == automationFailurePauseReason {
+		if err = s.pauseAutomationAfterFailures(ctx, evaluation, ref, current); err != nil {
+			return err
+		}
+		return tx.Commit()
 	}
 	if err = evaluation.assertTx(tx, evalTarget, purposeAutomationEvaluate); err != nil {
 		return err

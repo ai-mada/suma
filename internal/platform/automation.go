@@ -20,15 +20,16 @@ import (
 )
 
 type AutomationSpec struct {
-	Name            string `json:"name"`
-	WorkflowID      string `json:"workflow_id"`
-	WorkflowVersion int    `json:"workflow_version"`
-	Trigger         string `json:"trigger"`
-	Cron            string `json:"cron"`
-	Timezone        string `json:"timezone"`
-	Misfire         string `json:"misfire"`
-	CatchUpLimit    int    `json:"catch_up_limit"`
-	Overlap         string `json:"overlap"`
+	Name                  string `json:"name"`
+	WorkflowID            string `json:"workflow_id"`
+	WorkflowVersion       int    `json:"workflow_version"`
+	Trigger               string `json:"trigger"`
+	Cron                  string `json:"cron"`
+	Timezone              string `json:"timezone"`
+	Misfire               string `json:"misfire"`
+	CatchUpLimit          int    `json:"catch_up_limit"`
+	Overlap               string `json:"overlap"`
+	FailurePauseThreshold int    `json:"failure_pause_threshold,omitempty"`
 }
 type AutomationRevision struct {
 	Revision  int            `json:"revision"`
@@ -147,6 +148,17 @@ func strictAutomation(m map[string]any, out any) error {
 	}
 	return nil
 }
+
+// A supplied threshold must be an integer, including when the policy is off.
+// encoding/json would otherwise decode explicit null into the integer zero.
+func strictAutomationRuleRequest(m map[string]any, out any) error {
+	if spec, ok := m["spec"].(map[string]any); ok {
+		if threshold, present := spec["failure_pause_threshold"]; present && threshold == nil {
+			return invalid(automationFailurePauseThresholdInvalid)
+		}
+	}
+	return strictAutomation(m, out)
+}
 func (s *Service) automationClock(ctx context.Context, q governanceQuery) (time.Time, error) {
 	return s.authorityNow(ctx, q)
 }
@@ -166,6 +178,9 @@ func validateAutomationSpec(a AutomationSpec) (*cronengine.Schedule, error) {
 	}
 	if a.CatchUpLimit < 1 || a.CatchUpLimit > 100 {
 		return nil, invalid("catch_up_limit 必须为 1..100")
+	}
+	if !validAutomationFailurePauseThreshold(a.FailurePauseThreshold) {
+		return nil, invalid(automationFailurePauseThresholdInvalid)
 	}
 	expr := a.Cron
 	if a.Trigger == "manual" {
@@ -581,6 +596,9 @@ func (s *Service) CommandAutomation(ctx context.Context, actor Actor, project, i
 		if a.State == "enabled" {
 			return out, conflict("规则已经启用")
 		}
+		if a.LastError == automationFailurePauseReason {
+			return out, conflict("规则因连续失败已暂停，请修订后重新启用")
+		}
 		if err = s.automationWorkflow(ctx, tx, p, project, a.AutomationSpec); err != nil {
 			return out, err
 		}
@@ -800,7 +818,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 	switch {
 	case path == "automations" && r.Method == "POST":
 		var req AutomationCreateRequest
-		if err := strictAutomation(m, &req); err != nil {
+		if err := strictAutomationRuleRequest(m, &req); err != nil {
 			writeError(w, err)
 			return true
 		}
@@ -808,7 +826,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		respond(w, 201, out, err)
 	case path == "automations/preview" && r.Method == "POST":
 		var req AutomationPreviewRequest
-		if err := strictAutomation(m, &req); err != nil {
+		if err := strictAutomationRuleRequest(m, &req); err != nil {
 			writeError(w, err)
 			return true
 		}
@@ -827,7 +845,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "commands" && r.Method == "POST":
 		var req AutomationCommandRequest
-		if err := strictAutomation(m, &req); err != nil {
+		if err := strictAutomationRuleRequest(m, &req); err != nil {
 			writeError(w, err)
 			return true
 		}

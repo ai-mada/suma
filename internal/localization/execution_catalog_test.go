@@ -7,6 +7,8 @@ import (
 
 func TestExecutionCatalogPreservesSpecificDiagnosticMeaning(t *testing.T) {
 	for _, example := range []struct{ source, key, english string }{
+		{"failure_pause_threshold 必须为 0 或 2 到 10 的整数", "execution.automation.failure_pause_threshold_invalid", "failure_pause_threshold must be 0 or an integer from 2 to 10."},
+		{"规则因连续失败已暂停，请修订后重新启用", "execution.automation.failure_pause_requires_revision", "Repeated failures paused the rule. Revise it before enabling it again."},
 		{"仅已启用规则可人工触发", "execution.automation.trigger_requires_enabled", "Only enabled rules can be triggered manually."},
 		{"固定流程版本不存在或不属于当前项目", "execution.automation.workflow_version_unavailable", "The pinned workflow version does not exist or does not belong to the current project."},
 		{"生成的补偿流程只作历史证据，不能作为自动化模板", "execution.automation.compensation_template_forbidden", "Generated compensation workflows are historical evidence only and cannot be used as automation templates."},

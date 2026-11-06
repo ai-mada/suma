@@ -38,7 +38,7 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	browserOnly(op)
 	successStatus(op, "200")
 	request(op, "AutomationCommandRequest")
-	op["description"] = "Versioned revise/enable/pause/archive/trigger. Enable requires current approval authority; edits pause the rule. Trigger stores one deduplicated occurrence, not a successful run. Dispatch rechecks current activator authority and atomically binds the fixed workflow run."
+	op["description"] = "Versioned revise/enable/pause/archive/trigger. Enable requires current approval authority; edits pause the rule. Trigger stores one deduplicated occurrence, not a successful run. Dispatch rechecks current activator authority, evaluates configured failure protection, and atomically binds the fixed workflow run when allowed. An automatic failure pause requires a revision before re-enabling."
 	op = add("/runs/{id}/events/stream", "get", "", false, false)
 	successStatus(op, "200")
 	op["responses"].(map[string]any)["200"].(map[string]any)["content"] = map[string]any{"text/event-stream": map[string]any{"schema": map[string]any{"type": "string", "description": "UTF-8 SSE. id=durable Event.sequence, event=run_event, data=Event JSON. Comments are heartbeats; stream_error reports revocation or availability. Partial frames never advance the cursor."}}}
@@ -80,6 +80,7 @@ func enhanceAutomationSchemas(schemas map[string]any) {
 		field(model, "misfire", map[string]any{"enum": []string{"skip", "latest", "catch_up"}})
 		field(model, "overlap", map[string]any{"enum": []string{"allow", "forbid", "queue"}})
 		field(model, "catch_up_limit", map[string]any{"minimum": 1, "maximum": 100})
+		field(model, "failure_pause_threshold", map[string]any{"default": 0, "enum": []int{0, 2, 3, 4, 5, 6, 7, 8, 9, 10}, "description": "When enabled, pause before dispatch if the latest N dispatched occurrences in this rule revision all have failed runs for the pinned workflow. Zero disables failure protection."})
 	}
 	for _, model := range []string{"AutomationSpec", "AutomationCreateRequest", "AutomationPreviewRequest", "AutomationCommandRequest"} {
 		schemas[model].(map[string]any)["additionalProperties"] = false
@@ -87,7 +88,7 @@ func enhanceAutomationSchemas(schemas map[string]any) {
 	field("AutomationCommandRequest", "expected_version", map[string]any{"minimum": 1, "maximum": 2147483647})
 	field("AutomationCommandRequest", "action", map[string]any{"enum": []string{"revise", "enable", "pause", "archive", "trigger"}, "description": "Only revise accepts/requires a non-null spec. Enable requires current project approval permission."})
 	field("AutomationRule", "state", map[string]any{"enum": []string{"draft", "enabled", "paused", "archived"}})
-	field("AutomationRule", "version", map[string]any{"minimum": 1, "description": "User-command CAS version; scheduler cursor movement does not consume this version."})
+	field("AutomationRule", "version", map[string]any{"minimum": 1, "description": "CAS version for user commands and automatic failure pauses. Scheduler cursor movement does not consume this version."})
 	field("AutomationRule", "revision", map[string]any{"minimum": 1, "description": "Immutable specification revision, incremented only by revise."})
 	field("AutomationRunOrigin", "source", map[string]any{"enum": []string{"cron", "manual", "webhook"}})
 	field("AutomationRunOrigin", "revision", map[string]any{"minimum": 1})

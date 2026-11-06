@@ -10,6 +10,8 @@ var executionCatalog = []Definition{
 	{Key: "execution.automation.misfire_invalid", Texts: map[Locale]string{ZhCN: "misfire 无效", EnUS: "The misfire policy is invalid."}},
 	{Key: "execution.automation.overlap_invalid", Texts: map[Locale]string{ZhCN: "overlap 无效", EnUS: "The overlap policy is invalid."}},
 	{Key: "execution.automation.catch_up_limit_invalid", Texts: map[Locale]string{ZhCN: "catch_up_limit 必须为 1..100", EnUS: "catch_up_limit must be between 1 and 100."}},
+	{Key: "execution.automation.failure_pause_threshold_invalid", Texts: map[Locale]string{ZhCN: "failure_pause_threshold 必须为 0 或 2 到 10 的整数", EnUS: "failure_pause_threshold must be 0 or an integer from 2 to 10."}},
+	{Key: "execution.automation.failure_pause_requires_revision", Texts: map[Locale]string{ZhCN: "规则因连续失败已暂停，请修订后重新启用", EnUS: "Repeated failures paused the rule. Revise it before enabling it again."}},
 	{Key: "execution.automation.manual_cron_forbidden", Texts: map[Locale]string{ZhCN: "人工规则不接受 cron", EnUS: "Manual rules do not accept a cron expression."}},
 	{Key: "execution.automation.protected_workflow_forbidden", Texts: map[Locale]string{ZhCN: "受保护发布流程不能被自动化引用", EnUS: "Automation cannot reference a protected release workflow."}},
 	{Key: "execution.automation.compensation_template_forbidden", Texts: map[Locale]string{ZhCN: "生成的补偿流程只作历史证据，不能作为自动化模板", EnUS: "Generated compensation workflows are historical evidence only and cannot be used as automation templates."}},

@@ -1164,6 +1164,7 @@ export interface AutomationRule {
   misfire: string;
   catch_up_limit: number;
   overlap: string;
+  failure_pause_threshold?: number;
   id: string;
   project_id: string;
   version: number;
@@ -1199,6 +1200,7 @@ export interface AutomationSpec {
   misfire: string;
   catch_up_limit: number;
   overlap: string;
+  failure_pause_threshold?: number;
 }
 export interface BaselineCaptureRequest {
   project_id: string;

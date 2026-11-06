@@ -5398,6 +5398,23 @@
           "cron": {
             "type": "string"
           },
+          "failure_pause_threshold": {
+            "default": 0,
+            "description": "When enabled, pause before dispatch if the latest N dispatched occurrences in this rule revision all have failed runs for the pinned workflow. Zero disables failure protection.",
+            "enum": [
+              0,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "type": "integer"
+          },
           "id": {
             "type": "string"
           },
@@ -5466,7 +5483,7 @@
             "type": "string"
           },
           "version": {
-            "description": "User-command CAS version; scheduler cursor movement does not consume this version.",
+            "description": "CAS version for user commands and automatic failure pauses. Scheduler cursor movement does not consume this version.",
             "minimum": 1,
             "type": "integer"
           },
@@ -5576,6 +5593,23 @@
           },
           "cron": {
             "type": "string"
+          },
+          "failure_pause_threshold": {
+            "default": 0,
+            "description": "When enabled, pause before dispatch if the latest N dispatched occurrences in this rule revision all have failed runs for the pinned workflow. Zero disables failure protection.",
+            "enum": [
+              0,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "type": "integer"
           },
           "misfire": {
             "enum": [
@@ -65452,7 +65486,7 @@
     },
     "/automations/{id}/commands": {
       "post": {
-        "description": "Versioned revise/enable/pause/archive/trigger. Enable requires current approval authority; edits pause the rule. Trigger stores one deduplicated occurrence, not a successful run. Dispatch rechecks current activator authority and atomically binds the fixed workflow run.",
+        "description": "Versioned revise/enable/pause/archive/trigger. Enable requires current approval authority; edits pause the rule. Trigger stores one deduplicated occurrence, not a successful run. Dispatch rechecks current activator authority, evaluates configured failure protection, and atomically binds the fixed workflow run when allowed. An automatic failure pause requires a revision before re-enabling.",
         "operationId": "post_automations_id_commands",
         "parameters": [
           {

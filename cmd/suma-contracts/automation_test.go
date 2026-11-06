@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func TestAutomationAndStreamContractsMatchDistinctFactAndAuthority(t *testing.T) {
 	api, _ := generate()
@@ -42,6 +45,13 @@ func TestAutomationAndStreamContractsMatchDistinctFactAndAuthority(t *testing.T)
 	}
 	if mapAt(schemas, "AutomationRule", "properties", "revision")["description"] == nil || mapAt(schemas, "AutomationCommandRequest", "properties", "action")["enum"] == nil {
 		t.Fatal("revision and command state contract missing")
+	}
+	for _, model := range []string{"AutomationSpec", "AutomationRule"} {
+		schema := mapAt(schemas, model)
+		threshold := mapAt(schema, "properties", "failure_pause_threshold")
+		if threshold["type"] != "integer" || threshold["default"] != 0 || !slices.Equal(threshold["enum"].([]int), []int{0, 2, 3, 4, 5, 6, 7, 8, 9, 10}) || slices.Contains(schema["required"].([]string), "failure_pause_threshold") {
+			t.Fatalf("wrong optional failure protection contract for %s", model)
+		}
 	}
 	occurrences := mapAt(paths, "/automations/{id}/occurrences", "get")
 	filterFound := false

@@ -54,6 +54,8 @@ T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返�
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)
 
+T-AUTOMATION-FAILURE-PAUSE-286 自动化可按连续失败阈值暂停后续派发，修订并重新审批后恢复。 [交互](../design/automation-workspace.md#连续失败保护与恢复) · [验证](../quality/automation-failure-pause-verification.md)
+
 T-AUTOMATION-ATTENTION-285 规则历史可跨页查找派发受阻、失败或待核对记录，并打开原运行。 [交互](../design/automation-workspace.md#筛选需要处理的触发) · [验证](../quality/automation-attention-verification.md)
 
 T-CLI-SKILL-IMPORT-284 CLI 可预览本地 SKILL.md 并通过现有项目命令保存草稿。 [操作](../product/project-knowledge.md#命令行预览与保存) · [验证](../quality/cli-skill-import-verification.md)

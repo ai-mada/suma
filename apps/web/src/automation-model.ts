@@ -16,6 +16,8 @@ export const misfireNames={get skip(){return tr("automation.skip_missed_times");
 export const overlapNames={get allow(){return tr("automation.allow_parallel_runs");},get forbid(){return tr("automation.skip_overlapping_triggers");},get queue(){return tr("automation.queue_and_wait");}};
 export const newAutomationSpec=():AutomationSpec=>({name:'',workflow_id:'',workflow_version:0,trigger:'cron',cron:'0 9 * * 1-5',timezone:'Asia/Shanghai',misfire:'latest',catch_up_limit:5,overlap:'queue'});
 export const automationEnabled=(rule:AutomationRule)=>rule.state==='enabled';
+export const automationFailurePauseReason='failure_pause_threshold_reached';
+export const automationFailurePaused=(rule:AutomationRule)=>rule.state==='paused'&&rule.last_error===automationFailurePauseReason;
 export function automationDetailPath(project:string,id:string){return '/automations/'+encodeURIComponent(id)+query(project);}
 export function automationListPath(project:string,cursor='',rule=''){return '/automations'+(rule?'/'+encodeURIComponent(rule)+'/occurrences':'')+query(project)+'&limit=40'+(cursor?'&cursor='+encodeURIComponent(cursor):'');}
 export function automationPermissions(session:Session,project:string){const grant=session.projects.find(item=>item.id===project);if(!grant)return {write:false,approve:false};const inherited=['owner','admin'].includes(session.user.role||'');return {write:inherited||['admin','developer','reviewer'].includes(grant.role),approve:inherited||['admin','reviewer'].includes(grant.role)};}
@@ -29,7 +31,9 @@ export function automationSpec(input:AutomationSpec):AutomationSpec{
  try{new Intl.DateTimeFormat('en',{timeZone:input.timezone}).format();}catch{throw new UiError("automation.enter_a_valid_iana_time_zone_such_as");}
  if(!Number.isSafeInteger(input.catch_up_limit)||input.catch_up_limit<1||input.catch_up_limit>100)throw new UiError("automation.the_catch_up_limit_must_be_an_integer");
  if(!(input.misfire in misfireNames)||!(input.overlap in overlapNames))throw new UiError("automation.select_valid_missed_run_and_overlap_policies");
- return {name:input.name.trim(),workflow_id:input.workflow_id,workflow_version:input.workflow_version,trigger:input.trigger,cron:input.trigger==='manual'?'':input.cron.trim(),timezone:input.timezone.trim(),misfire:input.misfire,catch_up_limit:input.catch_up_limit,overlap:input.overlap};
+ const failurePauseThreshold=input.failure_pause_threshold??0;
+ if(!Number.isSafeInteger(failurePauseThreshold)||(failurePauseThreshold!==0&&(failurePauseThreshold<2||failurePauseThreshold>10)))throw new UiError("automation.failure_pause_invalid_threshold");
+ return {name:input.name.trim(),workflow_id:input.workflow_id,workflow_version:input.workflow_version,trigger:input.trigger,cron:input.trigger==='manual'?'':input.cron.trim(),timezone:input.timezone.trim(),misfire:input.misfire,catch_up_limit:input.catch_up_limit,overlap:input.overlap,...(failurePauseThreshold?{failure_pause_threshold:failurePauseThreshold}:{})};
 }
 export function automationError(error:unknown):string|Error{if(error instanceof UiError)return error;if(error instanceof ApiError)return error.status===403?new UiError("automation.your_account_does_not_have_permission_to_access"):error;return error instanceof Error?error.message:new UiError("automation.reading_did_not_complete_try_again");}
 
@@ -38,6 +42,7 @@ export function automationMoment(value:string,timezone='UTC'){
  return {local,timezone:zone,utc:value};
 }
 const reasonNames:Record<string,string>={
+ get [automationFailurePauseReason](){return tr("automation.failure_pause_blocked_trigger");},
  get activation_authority_or_workflow_unavailable(){return tr("automation.the_activator_s_permissions_or_fixed_workflow_are");},
  get activation_authority_revoked(){return tr("automation.the_activator_s_project_write_or_approval_permission");},
  get manual_trigger_authority_revoked(){return tr("automation.manual_trigger_authority_revoked");},

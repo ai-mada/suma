@@ -39,6 +39,12 @@ cron 以 UTC 时刻标识一次触发，以指定 IANA 时区解释本地日历�
 
 Multica 将自动化失败视为操作员需要关注的信号。速码在现有授权边界内提供规则级筛选和准确运行入口。 [Multica 失败监控实现](https://github.com/multica-ai/multica/blob/ee8604de4741d71d2f51e5ced7f0eb126b03ea0e/server/cmd/server/autopilot_failure_monitor.go)
 
+## 连续失败保护
+
+阈值随规则不可变规格保存。派发准入使用有界的历史读取和当前规则授权，发现达到阈值时交给既有只评估事务复核。事务同时记录暂停和队列阻塞，避免多调度器重复暂停或绕过保护创建新的运行。复核继续沿当前激活、触发来源和工作流授权。
+
+参考 Multica 从持久运行历史识别失败的做法。速码的判定为经审批的规则级连续失败阈值，执行在下一次正式派发边界。 [Multica 自动化](https://multica.ai/docs/zh/autopilots) · [固定参考源码](https://github.com/multica-ai/multica/blob/ee8604de4741d71d2f51e5ced7f0eb126b03ea0e/server/cmd/server/autopilot_failure_monitor.go)
+
 ## 事件与界面
 
 事件来源是数据库提交后的 `dag_events`；SSE 只提供读取通知。全局序号在其他运行之间可能有间隙，不能把间隙当丢失；重连游标按完整收到且合法的当前运行事件推进。半个 JSON、半个事件帧、错误租户或运行的数据均不能推进游标。初次快照与事件流重叠允许重复，客户端按序号去重。

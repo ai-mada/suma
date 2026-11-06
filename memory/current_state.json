@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "automation_failure_pause": {
+    "stage": "T-AUTOMATION-FAILURE-PAUSE-286",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "b122fe4b4685439dc857e4ce37e01a7db1fe496c",
+    "report": "docs/quality/automation-failure-pause-verification.md",
+    "actual": "An approved opt-in consecutive failure threshold pauses the rule and blocks queued triggers atomically before new dispatch. A new specification revision and approval are required to resume.",
+    "verification": "Real SQLite and HTTP verify failure, rollback, disabled policy and revised recovery. Live English Chrome and Chinese 390px verify configuration, approval and persisted pause.",
+    "known_limitations": "The pause guard evaluates at the next eligible dispatch. Inbox or external alert delivery, other databases and production load remain open.",
+    "full_platform_complete": false
+  },
   "automation_attention": {
     "stage": "T-AUTOMATION-ATTENTION-285",
     "version": "1.0.0",
