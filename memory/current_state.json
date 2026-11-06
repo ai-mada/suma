@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "cli_inventory_connect": {
+    "stage": "T-CLI-INVENTORY-CONNECT-260",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "483ae619df09bf41191d450d92154c556b007f9a",
+    "report": "docs/quality/tool-inventory-connect-link-verification.md",
+    "actual": "CLI generates a scoped workbench review URL from a fresh exact command report. Current browser identity rechecks the inventory, adapter and registered profile match before paused registration. A separately hosted browser origin can be supplied explicitly.",
+    "verification": "Eight focused Go CLI tests, four real CLI/HTTP/SQLite shared node reads, four frontend tests and bilingual Chromium fixture passed.",
+    "known_limitations": "Browser proof used isolated API fixtures and stopped at the review. Live provider, model and cross-machine deployment are outside this stage.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q260/post-git.json"
+  },
   "release_protocol_admission": {
     "stage": "T-RELEASE-PROTOCOL-ADMISSION-259",
     "version": "1.0.0",

@@ -1,0 +1,15 @@
+{
+  "tool-inventory-connect-link.title": "Tool selected in the terminal",
+  "tool-inventory-connect-link.description": "Check the latest report for this worker and command before opening Quick Connect.",
+  "tool-inventory-connect-link.worker": "Worker",
+  "tool-inventory-connect-link.command": "Command ID",
+  "tool-inventory-connect-link.check": "Review this tool",
+  "tool-inventory-connect-link.dismiss": "Dismiss",
+  "tool-inventory-connect-link.checking": "Checking the worker report…",
+  "tool-inventory-connect-link.invalid": "This link is incomplete or belongs to a different project. Generate a new link from the intended project.",
+  "tool-inventory-connect-link.stale": "There is no fresh report for this worker. Wait for the worker to report again, then retry this check.",
+  "tool-inventory-connect-link.changed": "The command is unavailable or its configuration has changed. Review the worker inventory in the terminal and generate a new link.",
+  "tool-inventory-connect-link.adapter_unavailable": "The current tool catalog has no single Quick Connect entry for this configuration.",
+  "tool-inventory-connect-link.access_denied": "Your current account cannot read this tool selection in this project.",
+  "tool-inventory-connect-link.read_failed": "The current tool selection could not be checked. Try again."
+}

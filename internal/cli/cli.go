@@ -47,7 +47,7 @@ Read commands:
   models options --tool ID --expected-tool-version N
   tools list [--state STATE] [--worker WORKER] [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
   tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query TEXT]
-  tools inventory --worker WORKER
+  tools inventory --worker WORKER [--connect-command COMMAND [--workbench-origin ORIGIN]]
   tools matches --worker WORKER --command COMMAND
   tools matches --file JSON   Find exact existing profiles using a login session (no writes)
   workspace save-status ID [--wait]

@@ -58,6 +58,7 @@ import {ToolSetupGuide} from './ToolSetupGuide';
 import {toolPreparationTarget,preparationForLocalTool,type ToolPreparationPreset} from './tool-preparation-target';
 import {validToolReportFeedbackSelection,type ToolReportFeedbackSelection} from './tool-report-feedback-model';
 import {ToolQuickConnect,type ToolConnectDraft} from './ToolQuickConnect';
+import {ToolInventoryConnectLink} from './ToolInventoryConnectLink';
 import {RemoteToolScanPanel} from './RemoteToolScanPanel';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
 import {ToolReinspectionPanel} from './ToolReinspectionPanel';
@@ -793,6 +794,20 @@ function ScopedToolWorkspace({
         <button type="button" className="primary" data-tools-add disabled={writeBlocked} onClick={openQuickConnect}><Plus size={16} aria-hidden="true"/>{t('tool-workspace-experience.add')}</button>
         <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" data-tools-advanced-register disabled={writeBlocked} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
       </div>
+      <ToolInventoryConnectLink
+        project={project}
+        panel={panel}
+        disabled={writeBlocked||!!dialog||!!taskHandoff}
+        onDismiss={()=>{if(!writeBlocked&&canLeave())onSelect('');}}
+        onReview={({adapter,draft})=>{
+          if(!activeWorkspace.current||currentDialog.current||writeBlocked||taskHandoff||!canLeave())return;
+          beginPublicDraft(draft);
+          action.clearError();
+          void workers.read();
+          void sharedWorkers.read();
+          setDialog({kind:'quick',adapter,preferredWorkerID:draft.workerID});
+        }}
+      />
       <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={hasToolFilters} onClearFilters={clearToolFilters} onWorker={workerManagement===true?openWorkerRegistration:undefined} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
       {returnRun && (
         <a

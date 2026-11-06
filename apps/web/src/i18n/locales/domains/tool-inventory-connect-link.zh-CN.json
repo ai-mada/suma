@@ -1,0 +1,15 @@
+{
+  "tool-inventory-connect-link.title": "终端选中的工具",
+  "tool-inventory-connect-link.description": "核对该节点和命令的最新上报，然后进入快捷接入。",
+  "tool-inventory-connect-link.worker": "执行节点",
+  "tool-inventory-connect-link.command": "命令 ID",
+  "tool-inventory-connect-link.check": "核对此工具",
+  "tool-inventory-connect-link.dismiss": "关闭提示",
+  "tool-inventory-connect-link.checking": "正在核对节点上报…",
+  "tool-inventory-connect-link.invalid": "此链接不完整或属于其他项目。请在目标项目中重新生成链接。",
+  "tool-inventory-connect-link.stale": "该节点暂无有效的最新上报。请等待节点再次上报，然后重新核对。",
+  "tool-inventory-connect-link.changed": "命令不可用或配置已变更。请在终端查看节点库存并重新生成链接。",
+  "tool-inventory-connect-link.adapter_unavailable": "当前工具目录中没有此配置唯一对应的快捷接入入口。",
+  "tool-inventory-connect-link.access_denied": "当前账号无法读取此项目中的工具选择。",
+  "tool-inventory-connect-link.read_failed": "无法核对当前工具，请重试。"
+}

@@ -22,7 +22,7 @@ const toolMatchesUsage = "tools matches requires either --file REQUEST_JSON|- or
 const toolProfilesUsage = "tools requires list, catalog, inventory, doctor, matches, replace or replacements; use tools --help"
 const toolMatchesInvalid = "tool matches request requires the current project, worker_id and one complete exact profile"
 const toolMatchesResponseInvalid = "tool matches response must preserve the requested scope, complete profile and full result count"
-const toolInventoryMatchUnusable = "the selected worker has no current fresh report; use tools inventory to inspect the report and refresh it before matching"
+const toolInventoryMatchUnusable = "the selected worker has no current fresh report; use tools inventory to inspect and refresh the report before continuing"
 const toolInventoryMatchMissing = "the selected command is absent from the worker's fresh report; use tools inventory to inspect reported commands"
 const toolInventoryMatchUnavailable = "the selected command is unavailable in the worker's fresh report; use tools inventory to inspect the reported reason"
 const toolMatchesInputLimit = 256 << 10
@@ -123,20 +123,12 @@ func matchToolInventory(ctx context.Context, c *client, worker, command string, 
 	if err != nil {
 		return err
 	}
-	if inventory.State != "fresh" || !time.Now().Before(deadline) {
-		return &failure{Code: "inventory_unusable", Message: toolInventoryMatchUnusable}
+	observation, err := selectToolInventoryCommand(inventory, deadline, command)
+	if err != nil {
+		return err
 	}
-	for _, observation := range inventory.Items {
-		if observation.Profile.CommandID != command {
-			continue
-		}
-		if !observation.Available {
-			return &failure{Code: "inventory_command_unavailable", Message: toolInventoryMatchUnavailable}
-		}
-		request := platform.ToolProfileMatchRequest{ProjectID: c.project, WorkerID: worker, Profile: observation.Profile}
-		return queryToolProfileMatches(ctx, c, request, deadline, out)
-	}
-	return &failure{Code: "inventory_command_not_found", Message: toolInventoryMatchMissing}
+	request := platform.ToolProfileMatchRequest{ProjectID: c.project, WorkerID: worker, Profile: observation.Profile}
+	return queryToolProfileMatches(ctx, c, request, deadline, out)
 }
 
 func queryToolProfileMatches(ctx context.Context, c *client, request platform.ToolProfileMatchRequest, inventoryDeadline time.Time, out io.Writer) error {
@@ -189,6 +181,9 @@ tools catalog — find adapter entry points for the current project
 
 tools inventory — read the selected worker's reported inventory
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools inventory --worker WORKER
+  Add --connect-command COMMAND for a browser review URL for one fresh, available command.
+  Use --workbench-origin ORIGIN if the browser workbench and API have separate origins.
+  The link opens tool review; saving as paused and enabling require browser authorization.
   Use an existing login session (SUMA_TOKEN). JSON distinguishes fresh, stale and unreported inventories.
   This read does not scan the worker or execute a tool.
 
@@ -244,6 +239,9 @@ tools catalog — 查找当前项目的工具接入入口
 
 tools inventory — 读取指定节点的工具上报
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools inventory --worker WORKER
+  加 --connect-command 命令ID，为一个新鲜且可用的命令生成工作台核对链接。
+  工作台和 API 分开部署时，可用 --workbench-origin 指定工作台地址。
+  打开链接后可核对工具。暂停登记和启用沿用浏览器权限。
   使用已有登录会话（SUMA_TOKEN）。JSON 区分新鲜、过期和未上报状态。
   此读取不扫描节点，也不运行工具。
 

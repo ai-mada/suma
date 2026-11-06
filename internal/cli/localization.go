@@ -53,8 +53,11 @@ var cliMessages = map[string]cliMessage{
 	toolMatchesInvalid:             {"cli.tool_profiles.matches_input", "工具匹配查询需要当前项目、worker_id 和完整准确的 profile"},
 	toolMatchesResponseInvalid:     {"cli.tool_profiles.matches_response", "工具匹配响应必须保留原项目、节点、完整档案及完整结果数量"},
 	toolInventoryUsage:             {"cli.tool_inventory.usage", "tools inventory 需要 --project 和一个明确的 --worker 节点"},
+	toolInventoryConnectUsage:      {"cli.tool_inventory.connect_usage", "生成接入链接需要准确的项目 ID 和一个有效的 --connect-command。请查看 tools --help"},
+	toolInventoryOriginInvalid:     {"cli.tool_inventory.origin_invalid", "--workbench-origin 必须是 HTTP(S) 来源地址，不能包含凭证、路径、查询参数或片段"},
+	toolInventoryLinkSensitive:     {"cli.tool_inventory.link_sensitive", "接入链接可能暴露当前凭证"},
 	toolInventoryResponseInvalid:   {"cli.tool_inventory.response", "工具上报响应必须保留请求范围，并包含有效的观测记录"},
-	toolInventoryMatchUnusable:     {"cli.tool_inventory.match_unusable", "所选节点当前没有新鲜上报。请用 tools inventory 查看上报并刷新后再匹配"},
+	toolInventoryMatchUnusable:     {"cli.tool_inventory.match_unusable", "所选节点当前没有新鲜上报。请用 tools inventory 查看上报并刷新后再继续"},
 	toolInventoryMatchMissing:      {"cli.tool_inventory.match_missing", "节点的新鲜上报中没有所选命令。请用 tools inventory 查看已上报的命令"},
 	toolInventoryMatchUnavailable:  {"cli.tool_inventory.match_unavailable", "节点的新鲜上报显示所选命令不可用。请用 tools inventory 查看上报原因"},
 	worklogCLIUsage:                {"cli.worklog.action_required", "worklogs 需要 list、get、create、correct、void 或 history，请查看 worklogs --help"},
@@ -337,7 +340,7 @@ const helpZH = `suma — 速码控制面客户端
   models options --tool 工具ID --expected-tool-version 当前版本
   tools list [--state 状态] [--worker 节点ID] [--query 检索文本] [--limit 1..200] [--cursor 原游标]
   tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query 检索文本]
-  tools inventory --worker 节点ID
+  tools inventory --worker 节点ID [--connect-command 命令ID [--workbench-origin 工作台地址]]
   tools matches --worker 节点ID --command 命令ID
   tools matches --file JSON   使用登录会话查询完整匹配的已有工具档案（只读）
   developer check            验证当前项目的真实MCP连接（只读）

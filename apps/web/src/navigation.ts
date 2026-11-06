@@ -8,6 +8,10 @@ const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',qu
  * Parsing never opens, marks read or decides the source. */
 function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string{
  const panel=params.get('panel')||'',review=panel.startsWith('task-review:'),handoff=panel.startsWith('task-handoff:');
+ if(panel.startsWith('tool-inventory-connect:')){
+  const unique=['panel','project','view','sub'].every(key=>params.getAll(key).length===1);
+  return unique&&params.get('view')==='settings'&&params.get('sub')==='tools'&&!params.has('record')?panel:'';
+ }
  if(!review&&!handoff)return panel;
  if(!taskScope||params.getAll('panel').length!==1||params.getAll('record').length!==1||!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(params.get('record')||''))return '';
  return (review?taskReviewRequestID(panel):taskHandoffID(panel))?panel:'';

@@ -1,0 +1,44 @@
+.tool-inventory-connect-link {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.tool-inventory-connect-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.tool-inventory-connect-heading > svg {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.tool-inventory-connect-heading h3 { margin: 0; }
+.tool-inventory-connect-heading p {
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+.tool-inventory-connect-target {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0;
+}
+.tool-inventory-connect-target > div { min-width: 0; }
+.tool-inventory-connect-target dt { color: var(--muted); }
+.tool-inventory-connect-target dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+.tool-inventory-connect-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tool-inventory-connect-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

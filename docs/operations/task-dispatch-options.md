@@ -82,6 +82,14 @@ suma --project PROJECT --expected-user USER --expected-organization ORG tools ma
 
 `inventory` 返回该节点最近一次上报的状态和时间。`fresh` 可显示工具明细及单项可用性，`stale` 和 `unreported` 分别表示旧上报或无上报。第二条命令按原上报里的 `profile.command_id` 选取完整固定档案，直接查看相同配置的已有记录。上报已过期或所选命令缺失或不可用时，命令提示重新读取当前上报。匹配结果继续区分已启用、暂停和撤销，配置变更沿原显式操作进行。 [工具档案复用合同](../../contracts/tool-profile-reuse.md#从当前节点上报复用档案)
 
+### 从终端进入快捷接入
+
+```sh
+suma --control https://suma.example.com --project PROJECT tools inventory --worker team-codex --connect-command codex
+```
+
+将命令 ID 替换为节点上报中的实际 `profile.command_id`，打开结果中的 `url` 并点击「核对此工具」。API 和工作台地址分开时，加 `--workbench-origin https://workbench.example.com`。按需沿原登录会话指定 `--expected-user` 和 `--expected-organization`。核对后可查看已有档案或明确保存为暂停。若配置摘要变化，请在终端重新读取节点上报并生成链接。 [接入合同](../../contracts/tool-profile-reuse.md#从终端进入快捷接入)
+
 ## 终端运行跟踪
 
 启动后使用回执中的运行 ID。先跟随持久事件，再用队列和精确节点读取核对当前调度条件。
