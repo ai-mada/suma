@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-TOOL-DISPATCH-ALTERNATIVES 衔接准确工具预检和候选选择，按当前任务及执行路径提供替代配置。 [交互](../design/task-dispatch-options.md#从已带入工具继续) · [阶段验证](../quality/tool-dispatch-alternatives-verification.md)
+
 T-TOOL-TASK-PREFLIGHT 推进团队统一工具与任务交接。网页和命令行共用准确配置预检，沿原调度、模型和质量门禁。 [合同](../../contracts/task-dispatch-options.md#exact-tool-handoff) · [阶段验证](../quality/tool-task-preflight-verification.md)
 
 T-TOOL-NODE-MATCH-273 [添加工具](../design/tool-quick-connect.md)在多个已授权节点间查找当前工具的可用配置，选中节点后重新核对库存和已有配置。 [限定验证](../quality/tool-node-match-verification.md)

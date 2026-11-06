@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { ArrowDownToLine, CircleAlert, CircleCheck, CircleHelp, RefreshCw } from 'lucide-react';
+import { ArrowDownToLine, CircleAlert, CircleCheck, CircleHelp, ListFilter, RefreshCw } from 'lucide-react';
 import { ApiError } from './api';
 import { useApi, useApiView } from './api-context';
 import { formatNumber, tr, useLocale } from './i18n';
@@ -19,12 +19,14 @@ type Props = {
   onAdopt: (profile: ToolProfile) => void;
   onRefreshContext: () => void;
   onReturn: () => void;
+  onFindCompatible?: () => void;
 };
 type Phase = 'idle' | 'reading' | 'adopted' | 'changed' | 'stale' | 'forbidden' | 'missing' | 'unknown' |
   'tool_unavailable' | 'workflow_incompatible' | 'route_incompatible';
 type Check = { phase: Phase; reason?: string; diagnostic?: unknown };
 const t = (key: string, values?: Record<string, unknown>) => tr('tool-task-handoff-dispatch.' + key, values);
 const returnsToTool = new Set<Phase>(['changed', 'forbidden', 'missing', 'tool_unavailable']);
+const offersAlternative = new Set<Phase>(['changed', 'tool_unavailable', 'workflow_incompatible', 'route_incompatible']);
 
 function readFailure(error: unknown): Phase {
   if (!(error instanceof ApiError)) return 'unknown';
@@ -57,7 +59,7 @@ export function TaskDispatchToolHandoff(props: Props) {
 }
 
 function HandoffScope({
-  scope, organization, pin, disabled = false, adopted, onInvalidate, onAdopt, onRefreshContext, onReturn, owns,
+  scope, organization, pin, disabled = false, adopted, onInvalidate, onAdopt, onRefreshContext, onReturn, onFindCompatible, owns,
 }: Props & { organization: string; owns: () => boolean }) {
   const api = useApi();
   useLocale();
@@ -124,6 +126,8 @@ function HandoffScope({
   }
 
   const phase = check.phase === 'adopted' && !adopted ? 'idle' : check.phase;
+  const showReturn = returnsToTool.has(phase);
+  const showFindCompatible = !!onFindCompatible && offersAlternative.has(phase);
   const StatusIcon = phase === 'adopted' ? CircleCheck : phase === 'unknown' ? CircleHelp :
     phase === 'reading' ? RefreshCw : phase === 'idle' ? undefined : CircleAlert;
   const ActionIcon = phase === 'idle' ? ArrowDownToLine : RefreshCw;
@@ -148,8 +152,15 @@ function HandoffScope({
         <summary>{t('details')}</summary>
         <p>{toolReason(check.reason, check.diagnostic)}</p>
       </details>}
-      {returnsToTool.has(phase) && <button type="button" className="text-button" disabled={disabled} data-dispatch-handoff-return
-        onClick={onReturn}>{t('back')}</button>}
+      {(showFindCompatible || showReturn) && <div className="task-dispatch-tool-handoff-recovery">
+        {showFindCompatible && <button type="button" data-dispatch-handoff-find disabled={disabled} onClick={() => {
+          if (!blocked.current && owns()) onFindCompatible?.();
+        }}>
+          <ListFilter size={16} aria-hidden="true" />{t('find_compatible')}
+        </button>}
+        {showReturn && <button type="button" className="text-button" disabled={disabled} data-dispatch-handoff-return
+          onClick={onReturn}>{t('back')}</button>}
+      </div>}
       <small>{t('boundary')}</small>
     </section>
   );

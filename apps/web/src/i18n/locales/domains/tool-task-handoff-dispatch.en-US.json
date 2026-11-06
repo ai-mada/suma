@@ -7,6 +7,7 @@
   "tool-task-handoff-dispatch.refresh_context": "Refresh task and workflow",
   "tool-task-handoff-dispatch.refresh_mismatch": "The returned record does not match this task. Reopen the original task.",
   "tool-task-handoff-dispatch.back": "Back to tool details",
+  "tool-task-handoff-dispatch.find_compatible": "Find compatible tools",
   "tool-task-handoff-dispatch.details": "View reason",
   "tool-task-handoff-dispatch.boundary": "This check updates only the tool selection. Review model settings and preview the execution plan below.",
   "tool-task-handoff-dispatch.phase.idle": "Check this configuration against the selected workflow and execution route.",

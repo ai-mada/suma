@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-DISPATCH-ALTERNATIVES 工具交接受阻时，可就地查找当前流程的兼容工具。候选优先显示可选配置，不可用原因按需展开。 [交互](../design/task-dispatch-options.md#从已带入工具继续) · [验证](../quality/tool-dispatch-alternatives-verification.md)
+
 T-TOOL-TASK-PREFLIGHT 从工具详情交给任务时，在采用前核对准确配置、流程节点和执行路径。不可用原因直接呈现，终端可按同一配置查询。 [交互](../design/tool-task-handoff.md) · [验证](../quality/tool-task-preflight-verification.md)
 
 T-CODEX-PREP-TEMPLATE-CHOICE 团队节点可从当前授权的多个 Codex App Server 本机模板选择准确配置。切换后重新确认，固定原选择和扫描，模型目录核对后接续暂停登记。 [交互](../design/managed-tool-preparation.md#codex-app-server-换新) · [验证](../quality/codex-prep-template-choice-verification.md)

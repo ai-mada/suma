@@ -9,7 +9,7 @@ import {ProjectKnowledgePicker} from './ProjectKnowledgePicker';
 import {knowledgeSelectionKey,validKnowledgePins} from './task-conversation-knowledge-model';
 import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {RequirementDesignFacts} from './RequirementDesignFacts';
-import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
+import {TaskDispatchOptionsPanel, type TaskDispatchOptionsHandle} from './TaskDispatchOptionsPanel';
 import {TaskDispatchToolHandoff} from './TaskDispatchToolHandoff';
 import {TaskDispatchTestBindings,type TestBindingsChoice} from './TaskDispatchTestBindings';
 import {readToolTaskHandoffTask,type ToolTaskHandoffPin} from './tool-task-handoff-model';
@@ -157,6 +157,8 @@ function TaskDispatchScope({
     ? { project_id: project, task_id: currentTask.id, expected_task_version: currentTask.version,
         workflow_id: flow.id, workflow_version: flow.version, agent_node_id: agentID }
     : undefined;
+  const compatibleTools=useRef<TaskDispatchOptionsHandle>(null);
+  const toolSelector=useRef<HTMLSelectElement>(null);
   const handoffScope=JSON.stringify([selectionScope,manualToolIntent]);
   const actualProfileKey=profile?JSON.stringify([selectionScope,profile.id,profile.version,profile.profile.profile_sha256]):'';
   const handoffAdopted=!!actualProfileKey&&handoffSelectionKey===actualProfileKey;
@@ -243,7 +245,7 @@ function TaskDispatchScope({
         {planRead.loading && <p role="status">{t("development.dispatch.reading_immutable_execution_plan")}</p>}
         {knowledgeAccessBlocked?<section className="tool-notice" role="alert"><p>{t('knowledge-consumers.access_denied')}</p><button type="button" disabled={blocked||accessRefreshing} onClick={()=>void refreshTask()}>{t('knowledge-consumers.recheck_access')}</button></section>:!planID || planID === "new" ? (
           <>
-          {currentTask&&flow&&recommendationKnowledge&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<DispatchRecommendation session={session} scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID,knowledge:recommendationKnowledge}} inventory={profiles} disabled={directBlocked} creationDisabled={currentTests.hasIntent||!currentTests.ready} testBindings={{...currentTests,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID}} onLockChange={setRecommendationLocked} onPrepared={plan=>saved('/task-dispatch-plans',plan)} onOpenPlan={id=>onPlan(id,currentTask.id)} onManual={()=>{requestAnimationFrame(()=>document.querySelector<HTMLSelectElement>('[data-dispatch-manual-tool]')?.focus());}}/>}
+          {currentTask&&flow&&recommendationKnowledge&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<DispatchRecommendation session={session} scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID,knowledge:recommendationKnowledge}} inventory={profiles} disabled={directBlocked} creationDisabled={currentTests.hasIntent||!currentTests.ready} testBindings={{...currentTests,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID}} onLockChange={setRecommendationLocked} onPrepared={plan=>saved('/task-dispatch-plans',plan)} onOpenPlan={id=>onPlan(id,currentTask.id)} onManual={()=>{requestAnimationFrame(()=>toolSelector.current?.focus());}}/>}
           <form
             className="tool-form"
             onSubmit={(event) => {
@@ -334,13 +336,23 @@ function TaskDispatchScope({
               {handoffTool&&dispatchScope&&<TaskDispatchToolHandoff
                 scope={dispatchScope} pin={handoffTool} scopeKey={handoffScope} disabled={blocked||accessRefreshing} adopted={handoffAdopted}
                 onRefreshContext={() => void refreshTask()} onReturn={onClose}
+                onFindCompatible={()=>compatibleTools.current?.open()}
                 onInvalidate={()=>{const owner=handoffOwner.current;if(owner.api!==api||owner.scope!==handoffScope||owner.epoch!==handoffEpoch||owner.blocked||!owner.adopted)return;setProfileID('');setAdoptedProfile(undefined);setHandoffSelectionKey('');setModelChoice({key:'',ready:false});}}
                 onAdopt={tool=>{const owner=handoffOwner.current;if(owner.api!==api||owner.scope!==handoffScope||owner.epoch!==handoffEpoch||owner.blocked)return;setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);setHandoffSelectionKey(JSON.stringify([selectionScope,tool.id,tool.version,tool.profile.profile_sha256]));}} />}
               {dispatchScope&&<TaskDispatchOptionsPanel
                 session={session}
                 scope={dispatchScope}
-                disabled={blocked}
-                onAdopt={tool=>{if(!blocked){setManualToolIntent(value=>value+1);setHandoffSelectionKey('');setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);}}}
+                panelRef={compatibleTools}
+                disabled={blocked||accessRefreshing}
+                onAdopt={tool=>{
+                  if(blocked||accessRefreshing)return;
+                  setManualToolIntent(value=>value+1);
+                  setHandoffSelectionKey('');
+                  setProfileScope(selectionScope);
+                  setProfileID(tool.id);
+                  setAdoptedProfile(tool);
+                  toolSelector.current?.focus();
+                }}
                 onUnavailable={()=>{if(!blocked){setProfileID('');setAdoptedProfile(undefined);}}}
               />}
               {profiles.error && (
@@ -357,6 +369,7 @@ function TaskDispatchScope({
               >
                 <select
                   data-dispatch-manual-tool
+                  ref={toolSelector}
                   required
                   value={selectedProfileID}
                   onChange={(event) => {setManualToolIntent(value=>value+1);setHandoffSelectionKey('');setProfileScope(selectionScope);setProfileID(event.target.value);setAdoptedProfile(undefined);}}

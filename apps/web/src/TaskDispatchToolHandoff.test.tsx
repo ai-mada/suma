@@ -106,7 +106,7 @@ it('T213 explicitly adopts an exact off-page tool into the original dispatch sco
 });
 
 it('blocks incompatible or changed configurations and recovers the same scoped read', async () => {
-  const adopt = vi.fn(), refresh = vi.fn(), back = vi.fn();
+  const adopt = vi.fn(), refresh = vi.fn(), back = vi.fn(), find = vi.fn();
   let result: unknown = exactOption({ ...tool, version: 4 });
   let status = 200;
   const fetch = vi.fn(async (_input: string, init: RequestInit = {}) => {
@@ -117,24 +117,29 @@ it('blocks incompatible or changed configurations and recovers the same scoped r
   vi.stubGlobal('fetch', fetch);
   await act(async () => root.render(<ApiViewProvider session={session}><TaskDispatchToolHandoff
     scope={scope} pin={pin} scopeKey="exact-task-flow-node" adopted={false} onInvalidate={vi.fn()}
-    onAdopt={adopt} onRefreshContext={refresh} onReturn={back} /></ApiViewProvider>));
+    onAdopt={adopt} onRefreshContext={refresh} onReturn={back} onFindCompatible={find} /></ApiViewProvider>));
   await settle();
   expect(fetch).not.toHaveBeenCalled();
+  const findButton = '[data-dispatch-handoff-find]';
+  expect(host.querySelector(findButton)).toBeNull();
 
   const button = host.querySelector<HTMLButtonElement>('[data-dispatch-handoff-adopt]')!;
   button.focus();
   const phase = () => host.querySelector('[data-dispatch-handoff-status]')?.getAttribute('data-dispatch-handoff-status');
   await click('[data-dispatch-handoff-adopt]');
   expect(phase()).toBe('changed');
+  expect(host.querySelector(findButton)?.textContent).toBe('Find compatible tools');
   await click('[data-dispatch-handoff-return]');
   expect(back).toHaveBeenCalledOnce();
 
   result = exactOption({ ...tool, available: false, reason: 'inventory_stale' });
   await click('[data-dispatch-handoff-adopt]');
   expect(phase()).toBe('tool_unavailable');
+  expect(host.querySelector(findButton)).not.toBeNull();
   result = exactOption(tool, 'workflow_incompatible', 'Workflow requires a different tool capability');
   await click('[data-dispatch-handoff-adopt]');
   expect(phase()).toBe('workflow_incompatible');
+  expect(host.querySelector(findButton)).not.toBeNull();
   expect(host.textContent).toContain('Change the workflow, step or tool');
   result = exactOption(tool, 'route_incompatible', 'Worker is outside the selected pool');
   await click('[data-dispatch-handoff-adopt]');
@@ -142,12 +147,21 @@ it('blocks incompatible or changed configurations and recovers the same scoped r
   expect(host.textContent).toContain('Choose a tool on that route');
   await act(async () => setLocale('zh-CN', { persist: false }));
   expect(host.textContent).toContain('原工具不符合当前执行路径');
+  expect(host.querySelector(findButton)?.textContent).toBe('查找兼容工具');
+  expect(find).not.toHaveBeenCalled();
+  const checkedReads = fetch.mock.calls.length;
+  await click(findButton);
+  expect(find).toHaveBeenCalledOnce();
+  expect(fetch).toHaveBeenCalledTimes(checkedReads);
+  expect(phase()).toBe('route_incompatible');
+  button.focus();
   expect(adopt).not.toHaveBeenCalled();
 
   status = 409;
   result = { error: { code: 'conflict', message: 'Task changed' } };
   await click('[data-dispatch-handoff-adopt]');
   expect(phase()).toBe('stale');
+  expect(host.querySelector(findButton)).toBeNull();
   const reads = fetch.mock.calls.length;
   await click('[data-dispatch-handoff-adopt]');
   expect(refresh).toHaveBeenCalledOnce();
@@ -157,6 +171,7 @@ it('blocks incompatible or changed configurations and recovers the same scoped r
   result = { error: { code: 'unavailable', message: 'Connection lost' } };
   await click('[data-dispatch-handoff-adopt]');
   expect(phase()).toBe('unknown');
+  expect(host.querySelector(findButton)).toBeNull();
   const original = fetch.mock.lastCall?.[0];
   expect(document.activeElement).toBe(button);
   status = 200;
@@ -165,6 +180,7 @@ it('blocks incompatible or changed configurations and recovers the same scoped r
   expect(fetch.mock.lastCall?.[0]).toBe(original);
   expect(adopt).toHaveBeenCalledOnce();
   expect(adopt).toHaveBeenCalledWith(tool);
+  expect(host.querySelector(findButton)).toBeNull();
 });
 
 it('rejects response scope, substitute rows and missing or denied objects', async () => {
@@ -173,7 +189,7 @@ it('rejects response scope, substitute rows and missing or denied objects', asyn
   vi.stubGlobal('fetch', vi.fn(async () => Response.json(result, { status })));
   await act(async () => root.render(<ApiViewProvider session={session}><TaskDispatchToolHandoff
     scope={scope} pin={pin} scopeKey="exact-task-flow-node" adopted={false} onInvalidate={vi.fn()}
-    onAdopt={adopt} onRefreshContext={vi.fn()} onReturn={vi.fn()} /></ApiViewProvider>));
+    onAdopt={adopt} onRefreshContext={vi.fn()} onReturn={vi.fn()} onFindCompatible={vi.fn()} /></ApiViewProvider>));
   await settle();
 
   const wrongOrganization = exactOption();
@@ -204,6 +220,7 @@ it('rejects response scope, substitute rows and missing or denied objects', asyn
     result = { error: { code: 'unavailable', message: 'Cannot read original' } };
     await click('[data-dispatch-handoff-adopt]');
     expect(host.querySelector('[data-dispatch-handoff-status=' + phase + ']')).not.toBeNull();
+    expect(host.querySelector('[data-dispatch-handoff-find]')).toBeNull();
   }
   expect(adopt).not.toHaveBeenCalled();
 });

@@ -7,6 +7,7 @@
   "tool-task-handoff-dispatch.refresh_context": "刷新任务与流程",
   "tool-task-handoff-dispatch.refresh_mismatch": "返回的记录与当前任务不符。请重新打开原任务。",
   "tool-task-handoff-dispatch.back": "返回工具详情",
+  "tool-task-handoff-dispatch.find_compatible": "查找兼容工具",
   "tool-task-handoff-dispatch.details": "查看原因",
   "tool-task-handoff-dispatch.boundary": "核对只更新工具选择。请在下方查看模型设置并预览执行方案。",
   "tool-task-handoff-dispatch.phase.idle": "核对原配置能否用于当前流程和执行路径。",

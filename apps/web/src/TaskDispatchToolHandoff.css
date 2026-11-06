@@ -44,6 +44,12 @@
 .task-dispatch-tool-handoff :is([data-dispatch-handoff-status=unknown], [data-dispatch-handoff-status=reading]) svg { color: var(--muted); }
 .task-dispatch-tool-handoff-reason summary { color: var(--muted); cursor: pointer; }
 .task-dispatch-tool-handoff-reason p { margin-top: 4px; }
+.task-dispatch-tool-handoff-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
 .task-dispatch-tool-handoff small { font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
 @media (max-width: 600px) {
   .task-dispatch-tool-handoff-heading { display: grid; }

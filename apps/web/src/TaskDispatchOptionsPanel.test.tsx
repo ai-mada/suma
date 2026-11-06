@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {act} from 'react';
+import {act,createRef,type Ref} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import type {TaskDispatchOptions,TaskDispatchToolOption,ToolProfile as ContractToolProfile} from '../../../packages/contracts/src';
@@ -7,7 +7,7 @@ import {ApiViewProvider} from './api-context';
 import type {Session,Workflow} from './api';
 import {setLocale} from './i18n';
 import {TaskDispatchDialog} from './TaskDispatch';
-import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
+import {TaskDispatchOptionsPanel,type TaskDispatchOptionsHandle} from './TaskDispatchOptionsPanel';
 import {dispatchOptionsPath,validDispatchOptions,type DispatchOptionsScope} from './task-dispatch-options-model';
 
 const stamp='2026-10-27T08:00:00Z',project='project-a',session:Session={user:{id:'user-a',name:'Owner',email:'owner@example.test'},organization:{id:'org-a',name:'Org'},projects:[]};
@@ -31,7 +31,7 @@ beforeEach(async()=>{
 });
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host.remove();await setLocale('zh-CN',{persist:false});vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function settle(){for(let i=0;i<4;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
-async function render(current=scope,disabled=false){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={session}><TaskDispatchOptionsPanel session={session} scope={current} disabled={disabled} onAdopt={adopt} onUnavailable={unavailable}/></ApiViewProvider>);});await settle();}
+async function render(current=scope,disabled=false,panelRef?:Ref<TaskDispatchOptionsHandle>){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={session}><TaskDispatchOptionsPanel session={session} scope={current} disabled={disabled} panelRef={panelRef} onAdopt={adopt} onUnavailable={unavailable}/></ApiViewProvider>);});await settle();}
 async function click(selector:string){const node=document.querySelector<HTMLElement>(selector);expect(node,selector).not.toBeNull();await act(async()=>node!.click());await settle();}
 
 it('rejects mismatched basis, stale nested facts and fabricated or duplicate page recommendations',()=>{
@@ -49,6 +49,51 @@ it('reads only on demand, adopts without writing, switches CNEN locally and reco
  await render(scope,true);await click('[data-dispatch-options-adopt]');expect(adopt).toHaveBeenCalledTimes(1);expect(requests).toHaveLength(1);
  await render();await click('[data-dispatch-page="next"]');expect(document.body.textContent).toContain('第 2 页');expect(document.querySelector('[data-dispatch-option="tool-b"]')).toBeNull();
  await click('[data-dispatch-options-adopt]');expect(adopt).toHaveBeenLastCalledWith(expect.objectContaining({id:'tool-c'}));expect(requests.every(request=>request.method==='GET')).toBe(true);
+});
+
+it('opens and focuses the existing panel once without replacing the current page',async()=>{
+ const panelRef=createRef<TaskDispatchOptionsHandle>();
+ const toggle=()=>host.querySelector<HTMLButtonElement>('[data-dispatch-options-toggle]')!;
+ await render(scope,true,panelRef);
+ await act(async()=>panelRef.current!.open());
+ expect(requests).toHaveLength(0);
+ expect(toggle().getAttribute('aria-expanded')).toBe('false');
+ await render(scope,false,panelRef);
+ await act(async()=>{panelRef.current!.open();panelRef.current!.open();});
+ await settle();
+ expect(document.activeElement).toBe(toggle());
+ expect(toggle().getAttribute('aria-expanded')).toBe('true');
+ expect(requests).toHaveLength(1);
+ await click('[data-dispatch-page="next"]');
+ expect(host.querySelector('[data-dispatch-option="tool-c"]')).not.toBeNull();
+ await act(async()=>panelRef.current!.open());
+ expect(document.activeElement).toBe(toggle());
+ expect(host.querySelector('[data-dispatch-option="tool-c"]')).not.toBeNull();
+ expect(requests.map(request=>request.method)).toEqual(['GET','GET']);
+ expect(adopt).not.toHaveBeenCalled();
+});
+
+it('lists compatible tools first and lets operators expand current-page diagnostics locally',async()=>{
+ await render();
+ await click('[data-dispatch-options-toggle]');
+ const details=host.querySelector<HTMLDetailsElement>('[data-dispatch-options-exclusions]')!;
+ const compatible=host.querySelector('[aria-label="Compatible tools on the current page"]')!;
+ expect(compatible.querySelector('[data-dispatch-option="tool-b"]')).not.toBeNull();
+ expect(compatible.querySelector('[data-dispatch-option="tool-a"]')).toBeNull();
+ expect(compatible.compareDocumentPosition(details)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ expect(details.open).toBe(false);
+ expect(details.querySelector('summary')?.textContent).toContain('1 on this page');
+ await click('[data-dispatch-options-exclusions] summary');
+ expect(details.open).toBe(true);
+ expect(details.querySelector('[data-dispatch-option="tool-a"]')?.textContent).toContain('Tool unavailable');
+ expect(details.querySelector('button')).toBeNull();
+ expect(requests).toHaveLength(1);
+ reply=async()=>Response.json(page([option('tool-c',false)],''));
+ await click('[data-dispatch-page="next"]');
+ expect(host.textContent).toContain('No compatible tool on this page');
+ expect(host.textContent).not.toContain('try the next page');
+ expect(host.querySelector<HTMLDetailsElement>('[data-dispatch-options-exclusions]')?.open).toBe(false);
+ expect(host.querySelector('[data-dispatch-options-adopt]')).toBeNull();
 });
 
 it('clears protected observations after denial and rejects cross-scope or late responses before rendering',async()=>{
