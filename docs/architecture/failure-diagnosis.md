@@ -28,6 +28,8 @@
 
 故障投影最多每批处理 50 条。首次处理按事件序号排序，到期重试按数据库时间与事件序号排序；两类都有待办时保留最多 10 个重试名额，空余名额可互补。投影或确认失败按事件记录重试代次，退避从 1 秒递增至最多 300 秒。投影成功才写确认并在同一事务清理重试；若问题已提交但确认失败，沿原回执重放。运维通过 `control.failure_projection` 日志定位事件序号。 [验证记录](../quality/failure-projection-retry-verification.md)
 
+故障投影把首次处理的序号位点保存到 `suma_failure_projection_frontier`。每批先从 `(event_type, sequence)` 索引确定最新可见失败的上界，再读取位点之后的候选。DAG 在事件事务中持有全局序号锁，保证此上界不会越过晚提交的低序号事件。只有确认或退避记录已落库才允许位点前移；到期重试独立扫描，记账失败留下的缺口仍可在重启后处理。索引采用方案参考了 Multica 的待处理事件索引。 [阶段验证](../quality/failure-projection-frontier-verification.md) · [Multica 固定参考](https://github.com/multica-ai/multica/blob/e8b6a97643ccc35efbcf2a4675c8d088a288ed6e/server/migrations/560_issue_child_event_pending.up.sql#L1)
+
 系统投影使用 `failure-<run_id>` 回执键。通用项目命令和候选制品传输在读取和保存原始键前均拒绝该前缀及大小写变体。OceanBase 上这两类原始项目键采用无空格的可见 ASCII，避免 Unicode 变体进入共享主键。系统投影、验收退回和问题回流各自保留原有回执规则。 [验证记录](../quality/failure-issue-key-reservation-verification.md)
 
 证据最多六项，每项 8000 UTF-8 字节，超限取 UTF-8 边界安全末段并记录 `selection=tail`、selected／total 字节。

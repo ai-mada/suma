@@ -131,12 +131,12 @@ type failureProjectionFact struct {
 	tenant, project, run string
 }
 
-func (s *Service) failureProjectionBatch(ctx context.Context, retries bool, databaseNow int64) ([]failureProjectionFact, error) {
+func (s *Service) failureProjectionBatch(ctx context.Context, retries bool, databaseNow, afterSequence, throughSequence int64) ([]failureProjectionFact, error) {
 	const runJoin = ` JOIN dag_runs r ON r.id=e.run_id AND r.tenant_id=e.tenant_id AND r.project_id=e.project_id`
 	const unacknowledged = ` e.event_type='run_failed' AND NOT EXISTS(SELECT 1 FROM suma_failure_projection p WHERE p.sequence=e.sequence)`
 	query := `SELECT e.sequence,0,e.tenant_id,e.project_id,e.run_id FROM dag_events e` + runJoin + ` WHERE` + unacknowledged +
-		` AND NOT EXISTS(SELECT 1 FROM suma_failure_projection_retries retry WHERE retry.sequence=e.sequence) ORDER BY e.sequence LIMIT ?`
-	args := []any{failureProjectionBatchSize}
+		` AND e.sequence>? AND e.sequence<=? AND NOT EXISTS(SELECT 1 FROM suma_failure_projection_retries retry WHERE retry.sequence=e.sequence) ORDER BY e.sequence LIMIT ?`
+	args := []any{afterSequence, throughSequence, failureProjectionBatchSize}
 	if retries {
 		query = `SELECT e.sequence,retry.attempts,e.tenant_id,e.project_id,e.run_id FROM suma_failure_projection_retries retry JOIN dag_events e ON e.sequence=retry.sequence` + runJoin +
 			` WHERE` + unacknowledged + ` AND retry.next_attempt_at<=? ORDER BY retry.next_attempt_at,e.sequence LIMIT ?`
@@ -166,18 +166,34 @@ func (s *Service) ProjectFailures(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fresh, err := s.failureProjectionBatch(ctx, false, databaseNow)
+	frontier, err := s.failureProjectionFrontier(ctx)
 	if err != nil {
 		return err
 	}
-	due, err := s.failureProjectionBatch(ctx, true, databaseNow)
+	// DAG event sequences become visible in commit order. Capture the newest
+	// visible failure before selecting the bounded prefix, so concurrent new
+	// failures stay outside this pass even when it finds no fresh candidates.
+	var horizon int64
+	err = s.DB.QueryRowContext(ctx, s.q(`SELECT COALESCE(MAX(sequence),0) FROM dag_events WHERE event_type='run_failed' AND sequence>?`), frontier).Scan(&horizon)
+	if err != nil {
+		return err
+	}
+	var fresh []failureProjectionFact
+	if horizon > frontier {
+		fresh, err = s.failureProjectionBatch(ctx, false, databaseNow, frontier, horizon)
+		if err != nil {
+			return err
+		}
+	}
+	due, err := s.failureProjectionBatch(ctx, true, databaseNow, 0, 0)
 	if err != nil {
 		return err
 	}
 	freshCount := min(len(fresh), failureProjectionBatchSize-min(len(due), failureProjectionRetrySlots))
 	retryCount := min(len(due), failureProjectionBatchSize-freshCount)
+	accountedThrough, freshGap := frontier, false
 	var failures []error
-	for _, item := range append(fresh[:freshCount], due[:retryCount]...) {
+	for i, item := range append(fresh[:freshCount], due[:retryCount]...) {
 		if ctx.Err() != nil {
 			return errors.Join(errors.Join(failures...), ctx.Err())
 		}
@@ -195,7 +211,23 @@ func (s *Service) ProjectFailures(ctx context.Context) error {
 			}
 			if retryErr != nil {
 				failures = append(failures, fmt.Errorf("schedule failure event %d retry: %w", item.sequence, retryErr))
+				if i < freshCount {
+					freshGap = true
+				}
 			}
+		}
+		if i < freshCount && !freshGap {
+			accountedThrough = item.sequence
+		}
+	}
+	if !freshGap && freshCount == len(fresh) && len(fresh) < failureProjectionBatchSize {
+		// Every fresh candidate through the captured horizon is settled or
+		// retryable. Crossing already-accounted rows avoids scanning them again.
+		accountedThrough = max(accountedThrough, horizon)
+	}
+	if accountedThrough > frontier {
+		if err = s.advanceFailureProjectionFrontier(ctx, accountedThrough); err != nil {
+			failures = append(failures, fmt.Errorf("advance failure projection frontier: %w", err))
 		}
 	}
 	return errors.Join(failures...)

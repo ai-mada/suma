@@ -28,6 +28,8 @@ T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
+T-FAILURE-PROJECTION-FRONTIER-274 验证 SQLite 范围索引、记账失败、重启补处理和位点之前的到期重试。 [阶段报告](failure-projection-frontier-verification.md)
+
 T-RUNNER-CLOSED-RESULT-INSPECTION-273 验证真实 CLI 摘要与中英文槽位预览。 [阶段报告](runner-closed-result-inspection-verification.md)
 
 T-RUNNER-RESULT-RECOVERY-272 验证已关闭原尝试、后续任务、原回执和独立停止证明。 [阶段报告](runner-result-closed-verification.md)

@@ -757,6 +757,17 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "failure_projection_frontier": {
+    "stage": "T-FAILURE-PROJECTION-FRONTIER-274",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "c2120636dea42284757b0051fa98fa9d49f0e876",
+    "report": "docs/quality/failure-projection-frontier-verification.md",
+    "actual": "Incremental failure projection uses a durable monotonic frontier and a bounded indexed range, with an independent due-retry path.",
+    "verification": "10 targeted SQLite checks passed, covering indexed lookup, restart, bookkeeping failure, retry behind the frontier, and a stale writer.",
+    "known_limitations": "PostgreSQL, OceanBase, multi-host and sustained load are pending physical validation.",
+    "full_platform_complete": false
+  },
   "runner_closed_result_inspection": {
     "stage": "T-RUNNER-CLOSED-RESULT-INSPECTION-273",
     "version": "1.0.0",
