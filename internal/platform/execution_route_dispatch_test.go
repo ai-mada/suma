@@ -219,31 +219,36 @@ func TestTaskDispatchPoolGrantRevokedAfterPreviewDoesNotCreateRun(t *testing.T) 
 	}
 }
 
-func TestReleasePoolRouteRejectsPreviewAndExecuteWithoutStrandedRun(t *testing.T) {
+func TestReleasePoolDefaultAllowsApprovedDedicatedExecutionAndReplay(t *testing.T) {
 	f, candidate, env, plan, _, _ := verifiedReleaseDeploymentPlan(t)
 	_, grant := dispatchAuthorizedPool(t, f)
 	dispatchSetRoute(t, f, 0, &grant)
-	_, err := f.s.PreviewReleasePlan(context.Background(), f.actor, f.project, map[string]any{"project_id": f.project, "candidate_id": candidate.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
-	releaseWantStatus(t, err, 422)
-	_, err = f.s.ExecuteReleasePlan(context.Background(), f.actor, f.project, plan.ID, releaseExecuteBody(f, plan), f.e)
-	releaseWantStatus(t, err, 422)
-	var runs int
-	f.s.DB.QueryRow(`SELECT COUNT(*) FROM dag_runs WHERE id=?`, plan.Content.ReservedExecution.RunID).Scan(&runs)
-	if runs != 0 {
-		t.Fatal("unsupported production pool left managed run", runs)
+	ctx := context.Background()
+	preview, err := f.s.PreviewReleasePlan(ctx, f.actor, f.project, map[string]any{"project_id": f.project, "candidate_id": candidate.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
+	if err != nil || !preview.Eligibility || preview.ExecutionLane != releaseExecutionLane {
+		t.Fatal("ordinary Pool default blocked dedicated release preview", err, preview)
 	}
+	request := releaseExecuteBody(f, plan)
+	first, err := f.s.ExecuteReleasePlan(ctx, f.actor, f.project, plan.ID, request, f.e)
+	if err != nil || first.RunID != plan.Content.ReservedExecution.RunID {
+		t.Fatal("approved release did not reserve the dedicated managed run", err, first)
+	}
+	replayed, err := f.s.ExecuteReleasePlan(ctx, f.actor, f.project, plan.ID, request, f.e)
+	if err != nil || replayed.OperationID != first.OperationID || replayed.RunID != first.RunID {
+		t.Fatal("dedicated execution replay did not return the same operation", err, replayed)
+	}
+	assertDedicatedReleaseRun(t, ctx, f, first.RunID)
 }
 
-// This deliberately has no accepted candidate or deployment approval. It
-// verifies the explicit unsupported-route boundary before those later gates;
-// it is not evidence that a production deployment was accepted or executed.
-func TestReleasePoolUnsupportedRouteGateBeforePlanBasis(t *testing.T) {
+// A private release route does not bypass environment and approval gates or
+// acquire the ordinary Pool lock when rolling back a failed managed creation.
+func TestReleasePoolDefaultStillRequiresEnvironmentAndApproval(t *testing.T) {
 	f, _ := releaseTestSetup(t)
 	_, grant := dispatchAuthorizedPool(t, f)
 	dispatchSetRoute(t, f, 0, &grant)
 	t.Run("preview", func(t *testing.T) {
 		_, err := f.s.PreviewReleasePlan(context.Background(), f.actor, f.project, map[string]any{"project_id": f.project, "candidate_id": newID(), "environment_id": newID(), "action": "deploy", "expected_environment_generation": 0})
-		releaseWantStatus(t, err, 422)
+		releaseWantStatus(t, err, 404)
 	})
 	plan := ReleasePlan{ID: newID(), ProjectID: f.project, Version: 1, Revision: 1, State: "pending_approval", SHA256: strings.Repeat("0", 64), Content: rc.ReleasePlanContent{ProviderID: "local-static-test", ReservedExecution: rc.ReservedExecution{RunID: newID(), NodeID: "deploy"}}}
 	if _, err := f.s.DB.Exec(`INSERT INTO suma_release_plans(id,tenant_id,project_id,version,data)VALUES(?,?,?,?,?)`, plan.ID, f.user.TenantID, f.project, 1, stringify(plan)); err != nil {
@@ -251,39 +256,35 @@ func TestReleasePoolUnsupportedRouteGateBeforePlanBasis(t *testing.T) {
 	}
 	trace := dispatchRouteSQLTrace(t, f)
 	t.Run("execute", func(t *testing.T) {
-		_, err := f.s.ExecuteReleasePlan(context.Background(), f.actor, f.project, plan.ID, releaseExecuteBody(f, plan), f.e)
-		releaseWantStatus(t, err, 422)
+		reply := f.call("POST", "/release-plans/"+plan.ID+"/execute", releaseExecuteBody(f, plan), 409)
+		apiErr, _ := reply["error"].(map[string]any)
+		if apiErr["code"] != "release_approval_required" {
+			t.Fatal("dedicated release must still require the plan's original approval", apiErr)
+		}
 	})
 	trace.mu.Lock()
-	ordered := false
+	projectGuard := false
 	for _, transaction := range trace.transactions {
-		firstPool, firstProject := -1, -1
-		for i, statement := range transaction.Statements {
+		for _, statement := range transaction.Statements {
 			upper := strings.ToUpper(strings.TrimSpace(statement))
-			if strings.HasPrefix(upper, "UPDATE DAG_EXECUTION_POOL_GUARDS ") && firstPool < 0 {
-				firstPool = i
-			}
-			if strings.HasPrefix(upper, "UPDATE DAG_SCHEDULER_PROJECTS ") && firstProject < 0 {
-				firstProject = i
-			}
-		}
-		if firstPool >= 0 {
-			if firstProject < firstPool || firstProject < 0 {
+			if strings.HasPrefix(upper, "UPDATE DAG_EXECUTION_POOL_GUARDS ") {
 				trace.mu.Unlock()
-				t.Fatal("production gate acquired project before pool", firstPool, firstProject)
+				t.Fatal("dedicated release acquired the ordinary default Pool lock")
 			}
-			ordered = true
+			if strings.HasPrefix(upper, "UPDATE DAG_SCHEDULER_PROJECTS ") {
+				projectGuard = true
+			}
 		}
 	}
 	trace.mu.Unlock()
-	if !ordered {
-		t.Fatal("actual unsupported execution did not traverse ordered execution guard")
+	if !projectGuard {
+		t.Fatal("actual rejected execution did not traverse the dedicated project guard")
 	}
 	var runs, events int
 	f.s.DB.QueryRow(`SELECT COUNT(*) FROM dag_runs`).Scan(&runs)
 	f.s.DB.QueryRow(`SELECT COUNT(*) FROM dag_events`).Scan(&events)
 	if runs != 0 || events != 0 {
-		t.Fatal("unsupported route created execution facts", runs, events)
+		t.Fatal("unapproved release created execution facts", runs, events)
 	}
 }
 

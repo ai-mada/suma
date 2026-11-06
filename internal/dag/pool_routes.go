@@ -205,6 +205,10 @@ func (t *transaction) newRunRoute(tenant, project string) (ProjectExecutionRoute
 		}
 		return route, nil
 	}
+	if t.dedicatedManagedCreation {
+		// This fixed lane has no pool or project-default route generation.
+		return ProjectExecutionRoute{TenantID: tenant, ProjectID: project}, t.guardProject(tenant, project)
+	}
 	if err := t.guardExecution(tenant, project, ""); err != nil {
 		return ProjectExecutionRoute{}, err
 	}

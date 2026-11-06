@@ -27,16 +27,17 @@ type Engine struct {
 	BoundSubworkflows     BoundSubworkflowHandler
 }
 type transaction struct {
-	e                  *Engine
-	tx                 *sql.Tx
-	ctx                context.Context
-	now                int64
-	events             []pendingEvent
-	projects           map[string]bool
-	familyRoot         string
-	scopes             map[string]bool
-	scopeCleanups      []func()
-	allowBoundCreation bool
+	e                        *Engine
+	tx                       *sql.Tx
+	ctx                      context.Context
+	now                      int64
+	events                   []pendingEvent
+	projects                 map[string]bool
+	familyRoot               string
+	scopes                   map[string]bool
+	scopeCleanups            []func()
+	allowBoundCreation       bool
+	dedicatedManagedCreation bool
 }
 type pendingEvent struct {
 	runID, tenant, project, node, kind, at string
@@ -230,7 +231,7 @@ func (t *transaction) operation(tenant, project, scope, key, hash string) (strin
 		if err := t.guardExecution(tenant, project, routeRun); err != nil {
 			return "", err
 		}
-	} else if scope == "create_run" || scope == "managed_run" {
+	} else if scope == "create_run" || scope == "managed_run" && !t.dedicatedManagedCreation {
 		var prior string
 		err := t.row(`SELECT result_id FROM dag_operations WHERE tenant_id=? AND project_id=? AND scope=? AND operation_id=?`, tenant, project, scope, key).Scan(&prior)
 		if err != nil && err != sql.ErrNoRows {

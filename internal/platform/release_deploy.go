@@ -64,6 +64,8 @@ type ReleaseRepairSource struct {
 	CandidateID string `json:"candidate_id"`
 }
 
+const releaseExecutionLane = "project_runner"
+
 type ReleasePlan struct {
 	ID                   string                `json:"id"`
 	ProjectID            string                `json:"project_id"`
@@ -81,6 +83,7 @@ type ReleasePlan struct {
 	Blockers             []ReleaseBlocker      `json:"blockers"`
 	AllowedActions       []string              `json:"allowed_actions"`
 	RepairSource         *ReleaseRepairSource  `json:"repair_source,omitempty"`
+	ExecutionLane        string                `json:"execution_lane,omitempty"`
 }
 type ReleasePlanInput struct {
 	ProjectID                     string `json:"project_id"`
@@ -101,6 +104,7 @@ type ReleasePlanPreview struct {
 	Eligibility    bool               `json:"eligibility"`
 	Blockers       []ReleaseBlocker   `json:"blockers"`
 	AllowedActions []string           `json:"allowed_actions"`
+	ExecutionLane  string             `json:"execution_lane,omitempty"`
 }
 type ReleaseDeployment struct {
 	OperationID    string                     `json:"operation_id"`
@@ -272,6 +276,9 @@ func (s *Service) releasePlanReadTx(ctx context.Context, tx *sql.Tx, tenant, pro
 		return out, err
 	}
 	err := json.Unmarshal([]byte(raw), &out)
+	if err == nil {
+		out.ExecutionLane = releaseExecutionLane
+	}
 	return out, err
 }
 func (s *Service) releaseDeploymentTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (ReleaseDeployment, error) {

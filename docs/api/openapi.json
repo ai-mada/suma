@@ -30256,6 +30256,12 @@
           "eligibility": {
             "type": "boolean"
           },
+          "execution_lane": {
+            "const": "project_runner",
+            "description": "Server-owned dedicated project Runner lane for managed release, independent of the ordinary project execution pool. This does not report Runner readiness.",
+            "readOnly": true,
+            "type": "string"
+          },
           "execution_operation_id": {
             "type": "string"
           },
@@ -30549,6 +30555,12 @@
           },
           "environment": {
             "$ref": "#/components/schemas/ReleaseEnvironment"
+          },
+          "execution_lane": {
+            "const": "project_runner",
+            "description": "Server-owned dedicated project Runner lane for managed release, independent of the ordinary project execution pool. This does not report Runner readiness.",
+            "readOnly": true,
+            "type": "string"
           },
           "health": {
             "$ref": "#/components/schemas/HealthPolicy"

@@ -5730,6 +5730,7 @@ export interface ReleasePlan {
   blockers: (ReleaseBlocker)[];
   allowed_actions: (string)[];
   repair_source?: ReleaseRepairSource | null;
+  execution_lane?: string;
 }
 export interface ReleasePlanContent {
   application_release_set?: ApplicationReleaseSetRef | null;
@@ -5786,6 +5787,7 @@ export interface ReleasePlanPreview {
   eligibility: boolean;
   blockers: (ReleaseBlocker)[];
   allowed_actions: (string)[];
+  execution_lane?: string;
 }
 export interface ReleaseProfileRegistration {
   id: string;

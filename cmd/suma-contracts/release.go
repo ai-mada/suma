@@ -352,6 +352,9 @@ func enhanceReleaseSchemas(schemas map[string]any) {
 	field("ReleasePlan", "state", map[string]any{"enum": []string{"pending_approval", "approved", "rejected", "revoked", "executing", "completed"}, "description": "completed means execution ended, not necessarily deployed or healthy; read ReleaseDeployment effect/health separately."})
 	field("ReleasePlan", "version", map[string]any{"minimum": 1, "description": "Mutable decision CAS version, independent of immutable revision and sha256."})
 	field("ReleasePlan", "revision", map[string]any{"minimum": 1, "description": "Immutable content revision; v1 always 1 and content edits create a new plan."})
+	for _, model := range []string{"ReleasePlanPreview", "ReleasePlan"} {
+		field(model, "execution_lane", map[string]any{"readOnly": true, "const": "project_runner", "description": "Server-owned dedicated project Runner lane for managed release, independent of the ordinary project execution pool. This does not report Runner readiness."})
+	}
 	field("ReleaseDeployment", "effect_state", map[string]any{"enum": []string{"not_started", "applied", "unknown"}})
 	field("ReleaseDeployment", "health_state", map[string]any{"enum": []string{"not_checked", "passed", "failed", "unknown"}})
 	toolContractMap(schemas, "ReleaseRepairSource")["additionalProperties"] = false

@@ -14,6 +14,15 @@ export function ReleaseNamedReferenceView({id,name,label,loading,error,onRetry,o
 
 export function ReleaseFingerprint({value,label=tr('release.fingerprint.label')}:{value?:string;label?:string}){useLocale();const[copied,setCopied]=useState(false),[error,setError]=useState<unknown>('');return <div className="release-fingerprint"><span>{label}</span><code>{value||tr('release.fingerprint.absent')}</code>{value&&<button type="button" className="icon-button" aria-label={tr('release.fingerprint.copy',{label})} onClick={async()=>{try{await navigator.clipboard.writeText(value);setCopied(true);setError('');}catch{setError(new UiError('release.fingerprint.failed'));}}}><Copy size={13}/></button>}{copied&&<small role="status">{tr('release.fingerprint.copied')}</small>}{Boolean(error)&&<small role="status">{renderDiagnostic(error)}</small>}</div>;}
 export function ReleasePill({children,tone='neutral'}:{children:React.ReactNode;tone?:'neutral'|'good'|'warning'|'bad'}){useLocale();return <span className={'release-pill '+tone}>{children}</span>;}
+export function ReleaseExecutionLane({lane}:{lane?:unknown}){
+ useLocale();
+ if(lane!=='project_runner')return null;
+ return <div className="release-named-reference" data-release-execution-lane>
+  <span className="muted">{tr('release.execution_lane.label')}</span>
+  <strong>{tr('release.execution_lane.project_runner')}</strong>
+  <small className="muted">{tr('release.execution_lane.shared_tasks')}</small>
+ </div>;
+}
 export function ReleaseBlockers({items}:{items?:ReleaseBlocker[]}){useLocale();return items?.length?<div className="release-blockers" role="status"><strong>{tr('release.blockers.title')}</strong><ul>{items.map((item,index)=><li key={item.code+index}>{renderDiagnostic(item)}<small>{item.code}</small></li>)}</ul></div>:null;}
 export function ReleaseWriteNotice({action}:{action:ReleaseAction}){useLocale();return <>{action.error&&<ErrorNotice error={action.error}/>} {action.pending&&!action.busy&&<div className="warning" role="status"><p>{tr('release.write.unknown')}</p>{!action.deferred?<button type="button" onClick={action.defer}>{tr('release.write.defer')}</button>:<p>{tr('release.write.deferred')}</p>}</div>}</>;}
 export function HealthPolicyFacts({policy}:{policy:HealthPolicy}){useLocale();return <div className="release-health-policy"><p className="muted">{tr('release.health.summary',{timeout:formatNumber(policy.timeout_ms),attempts:formatNumber(policy.attempts)})}</p><div className="table-scroll"><table><thead><tr><th>{tr('release.health.path')}</th><th>{tr('release.health.http')}</th><th>{tr('release.health.file')}</th></tr></thead><tbody>{policy.checks.map(check=><tr key={check.path}><td><code>{check.path}</code></td><td>{check.expected_status}</td><td><code>{check.expected_file}</code>{check.expected_sha256&&<ReleaseFingerprint label={tr('release.health.fingerprint')} value={check.expected_sha256}/>}</td></tr>)}</tbody></table></div></div>;}

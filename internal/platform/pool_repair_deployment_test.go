@@ -9,19 +9,48 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/deployer"
 	rc "github.com/ai-mada/suma/internal/releasecontract"
 	"github.com/ai-mada/suma/internal/runner"
 )
 
-// The repair itself runs in a shared Pool. Deployments use the governed
-// dedicated Runner route and an isolated loopback static provider.
+// The repair and its intervening candidate run in the project's default Pool.
+// Deployments use a dedicated Runner and isolated loopback static provider.
 type repairDeploymentFixture struct {
-	f        *fixture
-	env      ReleaseEnvironment
-	client   *runner.Client
-	config   runner.ExecConfig
-	provider *deployer.Server
+	f            *fixture
+	env          ReleaseEnvironment
+	client       *runner.Client
+	poolClient   *runner.Client
+	poolWorkerID string
+	config       runner.ExecConfig
+	provider     *deployer.Server
+}
+
+func testProjectExecutionRoute(t *testing.T, f *fixture) dag.ProjectExecutionRoute {
+	t.Helper()
+	ctx := context.Background()
+	tx, err := f.s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback()
+	route, err := f.e.ReadProjectExecutionRouteTx(ctx, tx, f.user.TenantID, f.project)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return route
+}
+
+func assertDedicatedReleaseRun(t *testing.T, ctx context.Context, f *fixture, id string) {
+	t.Helper()
+	run, err := f.e.GetRun(ctx, f.user.TenantID, f.project, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if run.ExecutionPoolID != "" || run.ExecutionPoolGrantID != "" || run.ExecutionPoolGrantVersion != 0 {
+		t.Fatalf("managed run %s adopted an ordinary Pool route: pool=%q grant=%q", id, run.ExecutionPoolID, run.ExecutionPoolGrantID)
+	}
 }
 
 func assertRepairReleaseSource(t *testing.T, record map[string]any, handoff IssueRepairReleaseHandoff, candidate string) {
@@ -32,7 +61,7 @@ func assertRepairReleaseSource(t *testing.T, record map[string]any, handoff Issu
 	}
 }
 
-func newRepairDeploymentFixture(t *testing.T, f *fixture, controlURL string) *repairDeploymentFixture {
+func newRepairDeploymentFixture(t *testing.T, f *fixture, controlURL string, poolClient *runner.Client, poolWorkerID string) *repairDeploymentFixture {
 	t.Helper()
 	const providerID, workerID, siteID = "local-static-test", "repair-provider-worker", "fixture-site"
 	const providerEnv, workerEnv = "SUMA_REPAIR_FIXTURE_PROVIDER_TOKEN", "SUMA_REPAIR_FIXTURE_WORKER_TOKEN"
@@ -70,6 +99,7 @@ func newRepairDeploymentFixture(t *testing.T, f *fixture, controlURL string) *re
 	client := &runner.Client{BaseURL: controlURL, Token: registered["token"].(string), ProjectID: f.project}
 	return &repairDeploymentFixture{
 		f: f, env: releaseTestEnvironment(t, f), client: client, provider: provider,
+		poolClient: poolClient, poolWorkerID: poolWorkerID,
 		config: runner.ExecConfig{Artifacts: client, External: map[string]runner.ExternalSpec{
 			providerID: {URL: management.URL, TokenEnv: workerEnv, Protocol: rc.ReleaseProtocol, PollMilliseconds: 50},
 		}},
@@ -87,6 +117,9 @@ func (h *repairDeploymentFixture) approve(t *testing.T, input map[string]any, pr
 	t.Helper()
 	if previewSHA == "" {
 		preview := issueRepairRuntimeDecode[ReleasePlanPreview](t, h.f.call("POST", "/release-plans/preview", input, 200))
+		if preview.ExecutionLane != releaseExecutionLane {
+			t.Fatal("managed preview did not disclose the dedicated project Runner lane", preview.ExecutionLane)
+		}
 		previewSHA = preview.PreviewSHA256
 	}
 	input["preview_sha256"] = previewSHA
@@ -100,10 +133,23 @@ func (h *repairDeploymentFixture) approve(t *testing.T, input map[string]any, pr
 
 func (h *repairDeploymentFixture) deploy(t *testing.T, plan ReleasePlan, wantBody string) ReleaseDeployment {
 	t.Helper()
+	if plan.ExecutionLane != releaseExecutionLane {
+		t.Fatal("managed plan did not retain the dedicated project Runner lane", plan.ExecutionLane)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 	queued := issueRepairRuntimeDecode[ReleaseDeployment](t, h.f.call("POST", "/release-plans/"+plan.ID+"/execute", releaseExecuteBody(h.f, plan), 201))
-	assignment, err := h.client.Claim(ctx, "repair-provider-worker", runner.ExternalCapabilities(h.config.External))
+	assertDedicatedReleaseRun(t, ctx, h.f, queued.RunID)
+	capabilities := runner.ExternalCapabilities(h.config.External)
+	pool := h.poolClient.Pool
+	poolAssignment, err := h.poolClient.ClaimPool(ctx, runner.PoolClaimRequest{
+		PoolID: pool.PoolID, RunnerID: pool.RunnerID, WorkerID: h.poolWorkerID, SlotID: "0", OperationID: newID(),
+		Scopes: []runner.PoolCapabilityScope{{TenantID: h.f.user.TenantID, ProjectID: h.f.project, Capabilities: capabilities}},
+	})
+	if err != nil || poolAssignment != nil {
+		t.Fatalf("authenticated Pool claim must not pick up the queued dedicated deployment: assignment=%+v error=%v", poolAssignment, err)
+	}
+	assignment, err := h.client.Claim(ctx, "repair-provider-worker", capabilities)
 	if err != nil || assignment == nil || assignment.ReleaseExecution == nil || assignment.RunID != queued.RunID ||
 		assignment.ReleaseExecution.OperationID != queued.OperationID || assignment.ReleaseExecution.ArtifactSHA256 != plan.Content.ArtifactSHA256 {
 		t.Fatalf("claim did not return the managed deployment for the exact plan: %v", err)

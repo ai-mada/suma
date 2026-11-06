@@ -184,6 +184,14 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 		}
 		approved[binding.ApplicationID] = plan
 	}
+	// Switch only ordinary work to the shared Pool after preparing the
+	// original approved plans. The ordered release family must stay private.
+	pool, grant := dispatchAuthorizedPool(t, f)
+	dispatchSetRoute(t, f, 0, &grant)
+	defaultRoute := testProjectExecutionRoute(t, f)
+	if defaultRoute.PoolID != pool.ID || defaultRoute.GrantID != grant.ID {
+		t.Fatal("fixture did not configure an authorized project Pool default", defaultRoute)
+	}
 	base := "/application-release-sets/" + p.registered.Set.ID + "/rollouts"
 	request := ApplicationReleaseRolloutPreviewRequest{ProjectID: f.project, PlanGroupID: p.group.Group.ID, ExpectedSetSHA256: p.registered.Set.SnapshotSHA256, ExpectedPlanGroupSHA256: p.group.Group.SnapshotSHA256, Reason: "Explicit fixture authorization to execute original approved plans in dependency order; unknown outcomes must pause and retain the same operations."}
 	preview := issueRepairRuntimeDecode[ApplicationReleaseRolloutPreview](t, f.call("POST", base+"/preview", request, 200))
@@ -191,6 +199,7 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 		t.Fatal("ordered rollout preview rejected current original approvals", preview.Blockers)
 	}
 	view := issueRepairRuntimeDecode[ApplicationReleaseRolloutView](t, f.call("POST", base, ApplicationReleaseRolloutStartRequest{ApplicationReleaseRolloutPreviewRequest: request, ExpectedPreviewSHA256: preview.PreviewSHA256, IdempotencyKey: newID()}, 201))
+	assertDedicatedReleaseRun(t, ctx, f, view.Rollout.ParentRunID)
 	url := base + "/" + view.Rollout.ID
 	read := func() ApplicationReleaseRolloutView {
 		t.Helper()
@@ -230,6 +239,7 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 		}
 	}
 	library := claim()
+	assertDedicatedReleaseRun(t, ctx, f, library.RunID)
 	if library.ReleaseExecution == nil || library.ReleaseExecution.ArtifactID != p.candidates["library"].ArtifactID {
 		t.Fatal("dependent application started before its library")
 	}
@@ -278,6 +288,7 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 	paused := view
 	view = resume(view)
 	web := claim()
+	assertDedicatedReleaseRun(t, ctx, f, web.RunID)
 	if web.ReleaseExecution == nil || web.ReleaseExecution.ArtifactID != p.candidates["web"].ArtifactID {
 		t.Fatal("resume did not use the original dependent plan")
 	}
@@ -437,6 +448,11 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 			t.Fatal("final actual bytes, generation or original environment barrier differs", app, err, envErr)
 		}
 	}
+	if route := testProjectExecutionRoute(t, f); route != defaultRoute {
+		t.Fatal("ordered release family changed the project's ordinary Pool default", route)
+	}
+	t.Logf("ordered_release_dedicated_runs=%s,%s,%s default_pool=%s default_route_version=%d",
+		view.Rollout.ParentRunID, library.RunID, web.RunID, defaultRoute.PoolID, defaultRoute.Version)
 	receipt := map[string]any{"stage": "T-ROLLOUT-125", "release_set_id": p.registered.Set.ID, "release_set_sha256": p.registered.Set.SnapshotSHA256, "plan_group_id": p.group.Group.ID, "rollout_id": view.Rollout.ID, "parent_run_id": view.Rollout.ParentRunID, "candidate_commit": h.delivery.CandidateCommit, "paused_after_library": paused, "unknown_after_web": unknownView, "final": view, "provider_post_counts": postCounts, "model_calls": 0, "static_demo_only": true, "customer_human_signoff": false}
 	t.Logf("application_release_rollout_actual_receipt=%s", stringify(receipt))
 	actualApplicationRuntimeHold(t, f, h.delivery, h.manifests, receipt, actualApplicationHoldOptions{CacheDirectory: "rollout-125", DirectoryEnvironment: "SUMA_ROLLOUT_UI_DIR", WebEnvironment: "SUMA_ROLLOUT_WEB_DIR", Hostname: "rollout125.localhost", Kind: "actual_application_ordered_rollout", AdditionalTables: []string{"suma_application_release_sets", "suma_application_release_set_plan_groups", "suma_application_release_set_plan_bindings", "suma_application_release_rollouts", "suma_application_release_rollout_members", "suma_release_candidates", "suma_release_artifacts", "suma_artifact_proofs", "suma_release_plans", "suma_release_deployments", "suma_release_environments"}, ProtectedQueries: []string{`SELECT payload FROM suma_application_release_sets ORDER BY id`, `SELECT payload FROM suma_application_release_set_plan_groups ORDER BY id`, `SELECT payload FROM suma_application_release_rollouts ORDER BY id`, `SELECT data FROM suma_release_plans ORDER BY id`, `SELECT data FROM suma_release_deployments ORDER BY operation_id`, `SELECT data FROM suma_release_environments ORDER BY id`}})

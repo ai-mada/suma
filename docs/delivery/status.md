@@ -24,6 +24,8 @@ T-POOL-RUNNER-OCCUPANCY 从共享资源池的执行节点页查看已保留槽�
 
 T-PORTFOLIO-CAPACITY 从项目管理按周对照已分摊任务工时与组织工作日历。可筛选已超配或待核对人员，展开任务依据，跳转原任务和有权工作日历。已验证跨周分摊、当前撤权和桌面／窄屏交互。 [交互](../design/project-portfolio.md#跨项目周负荷与容量) · [验证](../quality/project-portfolio-capacity-verification.md)
 
+T-MANAGED-RELEASE-RUNNER-LANE-257 项目可保留默认共享池承接开发与测试，受管部署、回滚和有序发布独立走项目发布 Runner。 [合同](../../contracts/release-control.md#专用项目发布执行通道) · [验证](../quality/managed-release-runner-lane-verification.md)
+
 T-PACKAGE-REPAIR-DEPLOY-256 发布与部署详情可追溯原修复轮次。问题重开后旧批准可撤销，回滚按原健康部署单独审阅。 [合同](../../contracts/release-control.md#修复交接到发布候选) · [验证](../quality/package-repair-deployment-verification.md)
 
 T-PACKAGE-REPAIR-RELEASE-255 可从已关闭包测试修复进入原候选表单，冻结本轮任务和制品证明。重开后保留候选历史并阻止旧候选继续正向发布。 [合同](../../contracts/release-control.md#修复交接到发布候选) · [验证](../quality/package-repair-release-verification.md)

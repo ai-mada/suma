@@ -38,9 +38,6 @@ func (s *Service) releasePreviewTx(ctx context.Context, tx *sql.Tx, p Principal,
 	if in.ProjectID != project || in.CandidateID == "" || in.EnvironmentID == "" || in.Action != "deploy" && in.Action != "rollback" || in.ExpectedEnvironmentGeneration < 0 {
 		return view, content, invalid("候选、环境和发布动作无效")
 	}
-	if err := s.checkNewReleaseRouteTx(ctx, tx, p.TenantID, project); err != nil {
-		return view, content, err
-	}
 	env, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, in.EnvironmentID, true)
 	if err != nil {
 		return view, content, err
@@ -107,7 +104,7 @@ func (s *Service) releasePreviewTx(ctx context.Context, tx *sql.Tx, p Principal,
 		return view, content, invalid(err.Error())
 	}
 	content = rc.ReleasePlanContent{CandidateID: candidate.ID, Action: in.Action, EnvironmentID: env.ID, ProviderID: env.ProviderID, SiteID: env.SiteID, EnvironmentPolicyVersion: env.PolicyVersion, ExpectedGeneration: env.Generation, Generation: env.Generation + 1, ArtifactID: candidate.ArtifactID, ArtifactSHA256: candidate.ArtifactSHA256, SourceCommit: candidate.SourceCommit, BuildAttestationID: candidate.BuildAttestationID, PackageTestAttestationID: candidate.PackageTestAttestationID, AcceptedTaskBasisSHA256: candidate.AcceptedTaskBasisSHA256, Health: health, RollbackSourceOperationID: in.RollbackSourceOperationID}
-	view = ReleasePlanPreview{PreviewSHA256: releasePlanHash(content), Environment: env, CandidateID: candidate.ID, Action: in.Action, Health: health, Eligibility: true, Blockers: []ReleaseBlocker{}, AllowedActions: []string{"create"}}
+	view = ReleasePlanPreview{PreviewSHA256: releasePlanHash(content), Environment: env, CandidateID: candidate.ID, Action: in.Action, Health: health, Eligibility: true, Blockers: []ReleaseBlocker{}, AllowedActions: []string{"create"}, ExecutionLane: releaseExecutionLane}
 	return view, content, nil
 }
 func (s *Service) PreviewReleasePlan(ctx context.Context, actor Actor, project string, m map[string]any) (ReleasePlanPreview, error) {
@@ -388,7 +385,7 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, actor Actor, project, 
 	var replay bool
 	var auth *authorizedCommand
 	workflow := originalReleaseExecutionWorkflow(plan)
-	_, err = engine.CreateManagedRunBound(ctx, p.TenantID, project, plan.Content.ReservedExecution.RunID, "release-"+id, workflow, func(tx *sql.Tx) error {
+	_, err = engine.CreateDedicatedManagedRunBound(ctx, p.TenantID, project, plan.Content.ReservedExecution.RunID, "release-"+id, workflow, func(tx *sql.Tx) error {
 		var e error
 		auth, e = s.releaseBrowserTx(ctx, tx, actor, project, true)
 		if e != nil {
@@ -601,6 +598,7 @@ func (s *Service) createReleasePlanContentTx(ctx context.Context, tx *sql.Tx, p 
 	if _, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_plans(id,tenant_id,project_id,version,data)VALUES(?,?,?,?,?)`), out.ID, p.TenantID, project, 1, stringify(out)); err != nil {
 		return out, err
 	}
+	out.ExecutionLane = releaseExecutionLane
 
 	return out, nil
 }

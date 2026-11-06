@@ -64,11 +64,12 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 	const buildID, testID, junitID = "build-application251", "test-package251", "test-source252"
 	const output = "<!doctype html><title>Pool library</title><h1>Pool artifact</h1>"
 	const buildScript = "const fs=require('node:fs');if(require('./package.json').name!=='@fixture/library')process.exit(4);fs.mkdirSync('.cache/site',{recursive:true});fs.writeFileSync('.cache/site/index.html',process.argv[1]);"
+	const packageScript = "const fs=require('node:fs'),p=require('node:path');if(fs.readFileSync(p.join(process.env.SUMA_ARTIFACT_DIR,'index.html'),'utf8')!==process.argv[1]){console.log('sealed bytes read; package assertion failed');process.exitCode=7;}else console.log('sealed bytes verified');"
 	build := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: basis.SourceCommit, Commands: map[string]runner.CommandSpec{
 		buildID: {Adapter: "command", Protocol: "text-v1", Executable: node, Args: []string{"-e", buildScript, output}, ArtifactOutput: ".cache/site"},
 	}}
 	tester := runner.ExecConfig{AllowExec: true, Workspace: separate, Repository: separate, BaseCommit: basis.SourceCommit, Commands: map[string]runner.CommandSpec{
-		testID: {Adapter: "command", Protocol: "text-v1", Executable: node, Args: []string{"-e", "const fs=require('node:fs'),p=require('node:path');if(fs.readFileSync(p.join(process.env.SUMA_ARTIFACT_DIR,'index.html'),'utf8')!==process.argv[1]){console.log('sealed bytes read; package assertion failed');process.exitCode=7;}else console.log('sealed bytes verified');", output}, ArtifactInput: true, TestEvidence: true},
+		testID: {Adapter: "command", Protocol: "text-v1", Executable: node, Args: []string{"-e", packageScript, output}, ArtifactInput: true, TestEvidence: true},
 	}}
 	const sourceTest = `const fs=require('node:fs');const ok=require('./sum.cjs')(2,3)===5&&require('./packages/library/package.json').name==='@fixture/library';fs.writeFileSync(process.argv[1],'<testsuite tests="1" failures="'+(ok?'0':'1')+'"><testcase classname="pool.release" name="registered-source">'+(ok?'':'<failure message="registered source mismatch"/>')+'</testcase></testsuite>');process.exitCode=ok?0:1;`
 	junit := runner.ExecConfig{AllowExec: true, Workspace: separate, Repository: separate, BaseCommit: basis.SourceCommit, Commands: map[string]runner.CommandSpec{
@@ -633,13 +634,85 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 			t.Fatal("candidate replay changed the original release handoff", replayed)
 		}
 
-		// The shared Pool delivered and tested the artifact. The project uses a
-		// dedicated Runner for the managed release and its subsequent rollback.
-		dispatchSetRoute(t, f, 1, nil)
-		deployment := newRepairDeploymentFixture(t, f, h.control.URL)
+		// The project's ordinary route stays on the Pool while the provider's
+		// managed release and rollback are owned by its dedicated Runner.
+		defaultRoute := testProjectExecutionRoute(t, f)
+		if defaultRoute.PoolID != pool.ID || defaultRoute.GrantID != grant.ID || defaultRoute.GrantVersion != grant.Version {
+			t.Fatal("fixture lost its authorized project Pool default before deployment", defaultRoute)
+		}
+		deployment := newRepairDeploymentFixture(t, f, h.control.URL, producerClient, producer.WorkerID)
 		firstPlan := deployment.approve(t, deployment.forwardInput(issued.ID, 0), "")
 		first := deployment.deploy(t, firstPlan, output)
-		variant := releaseVariantCandidate(t, f)
+		// Build and independently test a distinct release on the ordinary route
+		// after generation 1. A release-specific route must not hijack this work.
+		const variantBuildID, variantTestID = "build-intervening257", "test-intervening257"
+		variantBuild := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: basis.SourceCommit, Commands: map[string]runner.CommandSpec{
+			variantBuildID: {Adapter: "command", Protocol: "text-v1", Executable: node, Args: []string{"-e", buildScript, releaseVariantHTML}, ArtifactOutput: ".cache/site"},
+		}}
+		variantTest := runner.ExecConfig{AllowExec: true, Workspace: separate, Repository: separate, BaseCommit: basis.SourceCommit, Commands: map[string]runner.CommandSpec{
+			variantTestID: {Adapter: "command", Protocol: "text-v1", Executable: node, Args: []string{"-e", packageScript, releaseVariantHTML}, ArtifactInput: true, TestEvidence: true},
+		}}
+		variantProducer, variantProducerClient := repositoryDispatchPoolTool(t, ctx, f, pool.ID, h.control.URL, "Intervening build Pool Runner", &variantBuild)
+		variantVerifier, variantVerifierClient := repositoryDispatchPoolTool(t, ctx, f, pool.ID, h.control.URL, "Intervening package Pool Runner", &variantTest)
+		variantWorkflow := f.call("POST", "/workflows", f.body(map[string]any{"name": "Intervening Pool release", "nodes": []dag.Node{
+			{ID: "build", Type: "command", Command: []string{variantBuildID}, Config: map[string]any{"tool_profile_id": variantProducer.ID, "tool_profile_sha256": variantProducer.Profile.ProfileSHA256, rc.ApplicationBuildConfigKey: basis}},
+			{ID: "package", Type: "test", Command: []string{variantTestID}, DependsOn: []string{"build"}, Config: map[string]any{"artifact_from": "build", "candidate_from": "build", "tool_profile_id": variantVerifier.ID, "tool_profile_sha256": variantVerifier.Profile.ProfileSHA256}},
+			wf.Nodes[2],
+		}}), 201)
+		variantTask, variantPlan := createPublishedPlan(t, "Intervening Pool release")
+		variantRun := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": variantWorkflow["id"], "workflow_version": variantWorkflow["version"], "task_id": variantTask.ID, "expected_version": variantTask.Version}), 201)["id"].(string)
+		variantSnapshot, err := f.e.GetRun(ctx, f.user.TenantID, f.project, variantRun)
+		if err != nil || variantSnapshot.ExecutionPoolID != defaultRoute.PoolID || variantSnapshot.ExecutionRouteVersion != defaultRoute.Version ||
+			variantSnapshot.ExecutionPoolGrantID != defaultRoute.GrantID || variantSnapshot.ExecutionPoolGrantVersion != defaultRoute.GrantVersion {
+			t.Fatal("ordinary candidate failed to freeze the unchanged Pool default", err)
+		}
+		variantBuilder, variantBuildAssignment := claim(t, variantRun, variantProducerClient, variantProducer, "command:"+variantBuildID)
+		variantBuild.Artifacts = variantBuilder
+		variantBuilt := runner.Execute(ctx, *variantBuildAssignment, variantBuild)
+		variantBuilt.OperationID = newID()
+		if variantBuilt.ExitCode != 0 || variantBuilt.ArtifactEvidence == nil {
+			t.Fatal("intervening ordinary Pool build did not seal a distinct package", variantBuilt.Error)
+		}
+		if err := variantBuilder.Complete(ctx, variantBuilt); err != nil {
+			t.Fatal("complete intervening Pool build", err)
+		}
+		for _, step := range []struct {
+			client     *runner.Client
+			profile    ToolProfile
+			capability string
+			config     runner.ExecConfig
+		}{
+			{sourceClient, source, "command:" + junitID, junit},
+			{variantVerifierClient, variantVerifier, "command:" + variantTestID, variantTest},
+		} {
+			client, assignment := claim(t, variantRun, step.client, step.profile, step.capability)
+			step.config.Artifacts = client
+			result := runner.Execute(ctx, *assignment, step.config)
+			result.OperationID = newID()
+			if result.ExitCode != 0 {
+				t.Fatal("intervening independent Pool verification failed", result.Error)
+			}
+			if err := client.Complete(ctx, result); err != nil {
+				t.Fatal("complete intervening Pool verification", err)
+			}
+		}
+		if check := qualityExecution(t, variantPlan.ID, variantRun); check.State != "passed" {
+			t.Fatal("intervening ordinary Pool release did not pass all quality evidence", check.State)
+		}
+		variantTaskPath := "/tasks/" + variantTask.ID
+		currentVariant := f.call("GET", variantTaskPath+"?project_id="+f.project, nil, 200)
+		reviewedVariant := f.call("POST", variantTaskPath+"/review", f.body(map[string]any{
+			"expected_version": currentVariant["version"], "run_id": variantRun, "decision": "accepted", "reason": "Accept distinct intervening package verified on the original Pool route.",
+		}), 200)
+		variantArtifact := issueRepairRuntimeDecode[ReleaseArtifact](t, f.call("GET", "/artifacts/"+variantBuilt.ArtifactEvidence.ArtifactID+"?project_id="+f.project, nil, 200))
+		variantProofs := map[string]string{}
+		for _, proof := range variantArtifact.Proofs {
+			variantProofs[proof.Kind] = proof.ID
+		}
+		variant := issueRepairRuntimeDecode[ReleaseCandidateView](t, f.call("POST", "/release-candidates", f.body(map[string]any{
+			"name": "Intervening Pool candidate", "artifact_id": variantArtifact.ID, "build_attestation_id": variantProofs["build"], "package_test_attestation_id": variantProofs["package_test"],
+			"tasks": []any{map[string]any{"id": variantTask.ID, "expected_version": reviewedVariant["version"]}},
+		}), 201)).Candidate
 		if first.Generation != 1 || variant.ArtifactSHA256 == issued.ArtifactSHA256 {
 			t.Fatal("the intervening candidate must contain different sealed bytes")
 		}
@@ -717,10 +790,15 @@ func TestPoolApplicationArtifactsActualBuildAndIndependentPackage(t *testing.T) 
 			historicalDeployment.Generation != first.Generation || historicalDeployment.ArtifactID != first.ArtifactID {
 			t.Fatal("later deployments or issue reopen altered the original healthy observation", historicalDeployment)
 		}
+		if actualRoute := testProjectExecutionRoute(t, f); actualRoute != defaultRoute {
+			t.Fatal("managed deployments or rollback changed the project's ordinary Pool default", actualRoute)
+		}
 		t.Logf("package_repair_release_candidate=%s repair=%s artifact=%s build_proof=%s package_proof=%s review=%s reopened_cycle=%d",
 			issued.ID, handoff.RepairID, issued.ArtifactID, issued.BuildAttestationID, issued.PackageTestAttestationID, handoff.ReviewID, reopened.Cycle)
 		t.Logf("package_repair_deployment=%s intervening_deployment=%s rollback=%s generations=%d,%d,%d restored_manifest=%s restored_body_sha256=%s original_health=%s rollback_health=%s",
 			first.OperationID, second.OperationID, rolledBack.OperationID, first.Generation, second.Generation, rolledBack.Generation,
 			rolledBack.ArtifactSHA256, digest(output), first.Observation.EvidenceSHA256, rolledBack.Observation.EvidenceSHA256)
+		t.Logf("managed_release_dedicated_runs=%s,%s,%s ordinary_pool_run=%s default_pool=%s default_route_version=%d pool_claim_excluded=true",
+			first.RunID, second.RunID, rolledBack.RunID, variantRun, defaultRoute.PoolID, defaultRoute.Version)
 	})
 }

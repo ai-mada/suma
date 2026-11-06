@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "managed_release_runner_lane": {
+    "stage": "T-MANAGED-RELEASE-RUNNER-LANE-257",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "89569fb142a956659cb62af33cacf88a6ec10700",
+    "report": "docs/quality/managed-release-runner-lane-verification.md",
+    "actual": "Server creates managed deployment, rollback and ordered release roots on the dedicated project Runner lane while the ordinary project default Pool remains unchanged. Bound children inherit the dedicated route. The workbench displays the server-provided lane.",
+    "verification": "Windows isolated provider deployments and rollback preserved the default Pool grant while Pool credentials could not claim managed deployment. Ordered rollout verifies inherited dedicated routing. Focused DAG, frontend and bilingual Chromium evidence is recorded separately.",
+    "known_limitations": "Production, cross-machine, and OceanBase environments remain unverified. Release uses existing project Runner, provider authorization and project quotas.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q257/post-git.json"
+  },
   "package_repair_deployment": {
     "stage": "T-PACKAGE-REPAIR-DEPLOY-256",
     "version": "1.0.0",

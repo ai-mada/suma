@@ -10,6 +10,17 @@ import (
 // reserved run ID, its domain binding and ready queue. The two callbacks obey
 // organization -> scheduler -> domain lock ordering and use tx exclusively.
 func (e *Engine) CreateManagedRunBound(ctx context.Context, tenant, project, runID, operationID string, w Workflow, before func(*sql.Tx) error, bind func(*sql.Tx, string) error) (Run, error) {
+	return e.createManagedRunBound(ctx, tenant, project, runID, operationID, w, before, bind, false)
+}
+
+// CreateDedicatedManagedRunBound is reserved for services whose executions
+// require project Runner identity. It freezes a private root without consulting
+// the project's default route. Children inherit that root's frozen route.
+func (e *Engine) CreateDedicatedManagedRunBound(ctx context.Context, tenant, project, runID, operationID string, w Workflow, before func(*sql.Tx) error, bind func(*sql.Tx, string) error) (Run, error) {
+	return e.createManagedRunBound(ctx, tenant, project, runID, operationID, w, before, bind, true)
+}
+
+func (e *Engine) createManagedRunBound(ctx context.Context, tenant, project, runID, operationID string, w Workflow, before func(*sql.Tx) error, bind func(*sql.Tx, string) error, dedicated bool) (Run, error) {
 	var out Run
 	if err := scopeValid(tenant, project); err != nil {
 		return out, err
@@ -26,16 +37,22 @@ func (e *Engine) CreateManagedRunBound(ctx context.Context, tenant, project, run
 	}
 	hash := fingerprint(map[string]any{"run_id": runID, "workflow": w})
 	err = e.writeBefore(ctx, before, func(t *transaction) error {
+		t.dedicatedManagedCreation = dedicated
 		previous, err := t.operation(tenant, project, "managed_run", operationID, hash)
 		if err != nil {
 			return err
 		}
 		if previous != "" {
 			r, err := load(ctx, t.tx, e, tenant, project, previous)
-			if err == nil {
-				out = r.public()
+			if err != nil {
+				return err
 			}
-			return err
+			// Existing dedicated receipts keep their original frozen generation.
+			if dedicated && (r.ExecutionPoolID != "" || r.ExecutionPoolGrantID != "" || r.ExecutionPoolGrantVersion != 0) {
+				return ErrConflict
+			}
+			out = r.public()
+			return nil
 		}
 		t.allowBoundCreation = true
 		if err = t.validateReferences(tenant, project, w); err != nil {

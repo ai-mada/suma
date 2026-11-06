@@ -77,7 +77,7 @@ func (s *Service) StartApplicationReleaseRollout(ctx context.Context, actor Acto
 	r.SnapshotSHA256 = applicationRolloutDigest(r)
 	var auth *authorizedCommand
 	var receipt string
-	_, err = engine.CreateManagedRunBound(ctx, p.TenantID, project, r.ParentRunID, "rollout-start-"+id, rolloutWorkflow(r), func(tx *sql.Tx) error {
+	_, err = engine.CreateDedicatedManagedRunBound(ctx, p.TenantID, project, r.ParentRunID, "rollout-start-"+id, rolloutWorkflow(r), func(tx *sql.Tx) error {
 		var e error
 		auth, e = s.releaseBrowserTx(ctx, tx, actor, project, true)
 		if e != nil {

@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {RefreshCw} from 'lucide-react';
 import {formatNumber,tr,UiError,useLocale} from './i18n';
-import {HealthPolicyFacts,ReleaseBlockers,ReleaseFingerprint,ReleaseWriteNotice} from './ReleaseFacts';
+import {HealthPolicyFacts,ReleaseBlockers,ReleaseExecutionLane,ReleaseFingerprint,ReleaseWriteNotice} from './ReleaseFacts';
 import {releaseError,type ReleaseAction} from './release-hooks';
 import {hasReleaseAction,planCreateRequest,type PlanInput,type PlanPreview,type ReleaseDeployment,type ReleasePlan} from './release-model';
 import {ErrorNotice} from './ui';
@@ -68,6 +68,7 @@ export function ReleaseRollbackForm({source,initial,refresh,action,onRestore,onC
   <button type="button" disabled={blocked||reading} onClick={()=>void reload()}><RefreshCw size={14}/>{reading?tr('release.prepare.checking'):tr('release.prepare.refresh')}</button>
   {review&&<section className="release-preview">
    <div className="release-section-heading"><h3>{tr('release.prepare.preview_title')}</h3><strong>{review.preview.eligibility?tr('release.prepare.eligible'):tr('release.prepare.blocked')}</strong></div>
+   <ReleaseExecutionLane lane={review.preview.execution_lane}/>
    <ReleaseFingerprint value={review.preview.preview_sha256} label={tr('release.prepare.preview_hash')}/>
    <ReleaseBlockers items={review.preview.blockers}/>
    <HealthPolicyFacts policy={review.preview.health}/>

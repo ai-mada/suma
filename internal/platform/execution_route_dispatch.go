@@ -106,35 +106,20 @@ func unsupportedPoolRelease() error {
 	return &APIError{Status: 422, Code: "pool_release_unsupported", Message: "共享资源池尚未提供独立生产部署授权协议；请使用项目发布执行节点，现有本地发布仍可核对和排空"}
 }
 
-// New production plans cannot inherit a shared route without the independent
-// provider/environment protocol. This check is read-only: it must not acquire
-// a pool lock after a caller's project guard or fabricate a deployment attempt.
-func (s *Service) checkNewReleaseRouteTx(ctx context.Context, tx *sql.Tx, tenant, project string) error {
-	route, err := dag.ReadProjectExecutionRouteTx(ctx, tx, s.Dialect, tenant, project)
-	if err != nil {
-		return err
-	}
-	if route.PoolID != "" {
-		return unsupportedPoolRelease()
-	}
-	return nil
-}
-
-// before may enter Core only after the same pool -> project order as claims.
-// An already-created local run keeps its original route even when the project
-// later changes its default; recovering its receipt must not create new work.
+// Release creation is always project-dedicated. Existing runs are checked
+// under the same project lock, without consulting the default pool route.
 func (s *Service) guardReleaseExecutionRouteTx(ctx context.Context, tx *sql.Tx, tenant, project, reservedRun string) error {
-	if err := dag.GuardExecutionScopeTx(ctx, tx, s.Dialect, tenant, project, reservedRun); err != nil {
+	if err := dag.GuardProjectTx(ctx, tx, s.Dialect, tenant, project); err != nil {
 		return err
 	}
 	route, err := dag.ReadRunExecutionRouteTx(ctx, tx, s.Dialect, tenant, project, reservedRun)
 	if errors.Is(err, dag.ErrNotFound) {
-		return s.checkNewReleaseRouteTx(ctx, tx, tenant, project)
+		return nil
 	}
 	if err != nil {
 		return err
 	}
-	if route.PoolID != "" {
+	if route.PoolID != "" || route.GrantID != "" || route.GrantVersion != 0 {
 		return unsupportedPoolRelease()
 	}
 	return nil
