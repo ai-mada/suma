@@ -14,6 +14,9 @@ func toolManagementContracts(api map[string]any) {
 	query["maxLength"] = 120
 	query["x-max-utf8-bytes"] = 120
 	query["description"] = "Optional bounded public-field query. Server normalizes Unicode lower-case and surrounding whitespace and binds that filter to the original authorized cursor; never searches credentials or private paths."
+	worker := toolContractMap(schemas, "ToolProfileListQuery", "properties", "worker_id")
+	worker["minLength"], worker["maxLength"], worker["pattern"] = 1, 100, `^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`
+	worker["description"] = "Optional exact, case-sensitive execution node identifier, combined with state and public text search."
 	limit := toolContractMap(schemas, "ToolProfileListQuery", "properties", "limit")
 	limit["minimum"], limit["maximum"], limit["default"] = 1, 200, 50
 	toolContractMap(schemas, "ToolProfileListQuery", "properties", "cursor")["maxLength"] = 1024
@@ -24,12 +27,13 @@ func toolManagementContracts(api map[string]any) {
 		value := parameter.(map[string]any)
 		if value["name"] == "cursor" && value["in"] == "query" {
 			value["schema"] = toolContractMap(schemas, "ToolProfileListQuery", "properties", "cursor")
-			value["description"] = "Opaque cursor, at most1024 characters, bound to the current actor, tenant, project and normalized state/query."
+			value["description"] = "Opaque cursor, at most 1024 characters, bound to the current actor, tenant, project, normalized state/query and exact worker_id."
 		}
 	}
 	appendQuery(get, queryParameter("state", "Current enabled/paused connections by default. Revoked history is explicit; changing a filter invalidates the old cursor.", state))
 	appendQuery(get, queryParameter("query", "At most120 UTF-8 bytes; literal public name/command/worker/adapter/protocol search, authorized before reading.", query))
-	get["description"] = "Current actor/organization/project tool connections with normalized state/query-bound keyset pagination. Default active includes enabled and paused only. Reading history or diagnostics never enables, repairs or stops tools."
+	appendQuery(get, queryParameter("worker_id", "Restrict results to the exact, case-sensitive execution node identifier.", worker))
+	get["description"] = "Current actor/organization/project tool connections with keyset pagination bound to normalized state/query and exact worker_id. Default active includes enabled and paused only. Reading history or diagnostics never enables, repairs or stops tools."
 	impact := toolContractMap(schemas, "ToolProfileImpact")
 	impact["description"] = "One authorized read snapshot of this project's active runs only, bounded to200 runs/2000 nodes and five observed references. Complete does not cover unstarted plans or historical/unknown external processes. Observed counts are not inferred totals or stop acknowledgements."
 	toolContractMap(impact, "properties", "scope")["const"] = "active_project_runs"

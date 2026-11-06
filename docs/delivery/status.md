@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKER-TOOL-FILTER 从普通或共享节点定位当前项目的工具配置与历史，网页支持恢复筛选链接，终端按完整节点 ID 分页。 [交互](../design/tool-management.md#从节点查看工具配置) · [验证](../quality/worker-tool-filter-verification.md)
+
 T-DISPATCH-CONNECTION-RECOVERY 派发候选与推荐历史可恢复原页并返回，WorkBuddy 授权可重试核对原连接，待核对期间收起旧操作。 [交互](../design/tool-management.md#派发与云账号读取恢复) · [验证](../quality/dispatch-connection-recovery-verification.md)
 
 T-CLI-DISPATCH-RECOMMENDATIONS 终端可核对当前派发候选、预算约束及原推荐历史，保留准确任务和流程范围。 [操作](../operations/task-dispatch-options.md#在终端核对派发推荐) · [验证](../quality/cli-dispatch-recommendations-verification.md)

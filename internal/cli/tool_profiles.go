@@ -175,8 +175,9 @@ func queryToolProfileMatches(ctx context.Context, c *client, request platform.To
 
 const toolProfilesHelpEN = `tools list — read current tool connections or their history
   suma --project PROJECT tools list [--state active|enabled|paused|revoked|all]
-       [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
+       [--worker WORKER] [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
   Default: active (enabled and paused), 50 items. Query: at most 120 UTF-8 bytes.
+  --worker matches the full worker ID, including letter case.
   Reuse the exact cursor with the same filters and original account/project view.
   Profile changes retain the explicit enable/pause/revoke command API; revoke keeps history.
 
@@ -230,8 +231,9 @@ This command never creates, enables, connects or executes a tool.
 `
 const toolProfilesHelpZH = `tools list — 查看当前工具接入或已移除记录
   suma --project 项目ID tools list [--state active|enabled|paused|revoked|all]
-       [--query 检索文本] [--limit 1..200] [--cursor 原分页游标]
+       [--worker 节点ID] [--query 检索文本] [--limit 1..200] [--cursor 原分页游标]
   默认 active（已启用和暂停），每页 50 项；检索文本最多 120 个 UTF-8 字节。
+  --worker 按完整节点 ID 匹配，区分字母大小写。
   翻页保持原筛选、账号和项目，使用同一列表返回的原游标。
   配置变更仍使用原 enable/pause/revoke 命令 API；revoke 移除接入并保留历史。
 

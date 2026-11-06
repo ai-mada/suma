@@ -67,6 +67,12 @@ suma --project PROJECT tasks recommendation RECOMMENDATION
 
 ## 从节点上报查找已有工具档案
 
+已知节点 ID 时，直接列出该节点的固定配置与历史。此查询沿原项目授权，完整 ID 区分大小写。可组合 `--state`、`--query`、`--limit`，续页时保留相同条件并使用原 `--cursor`。
+
+```sh
+suma --project PROJECT tools list --worker team-codex --state all
+```
+
 在项目工具管理中确定执行节点 ID，再用已有登录会话读取。共享资源池节点使用项目当前获准的 Worker ID。会话通过 `SUMA_TOKEN` 提供，并固定原用户和组织。
 
 ```text

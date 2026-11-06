@@ -6,6 +6,7 @@ import { useLeaveGuard } from "./write-action";
 import { ToolWriteRecovery } from "./tool-write";
 import {useApi} from './api-context';
 import {ToolProfilePager,type ToolListFilters} from './tool-management-list-model';
+import type {ToolProfile} from './tool-model';
 export function toolError(error: unknown) {
   if (typeof error === "string") return renderDiagnostic(error);
   return error instanceof ApiError
@@ -117,7 +118,7 @@ export function useToolList<T extends { id: string }>(
   }, [read, refresh]);
   return { ...page, read };
 }
-export function useManagedToolProfiles<T extends {id:string}>(project:string,filters:ToolListFilters,refresh:number){
+export function useManagedToolProfiles<T extends Pick<ToolProfile,'id'|'project_id'|'worker_id'>>(project:string,filters:ToolListFilters,refresh:number){
  const caller=useApi(),holder=useRef<{caller:typeof caller;pager:ToolProfilePager<T>}|undefined>(undefined);
  if(!holder.current||holder.current.caller!==caller){holder.current?.pager.invalidate();holder.current={caller,pager:new ToolProfilePager<T>(project,filters,caller)};}
  const pager=holder.current.pager;pager.setScope(project,filters);
@@ -127,7 +128,7 @@ export function useManagedToolProfiles<T extends {id:string}>(project:string,fil
   if(!mounted.current||current.current!==pager)return;
   const request=more?pager.more():pager.first();render(value=>value+1);
   await request;if(mounted.current&&current.current===pager)render(value=>value+1);
- },[pager,project,filters.state,filters.query]);
+ },[pager,project,filters.state,filters.query,filters.worker]);
  useEffect(()=>{void read();},[read,refresh]);
  return {...pager.snapshot(),read};
 }

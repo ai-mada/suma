@@ -40,7 +40,7 @@ import {
 } from "./tool-model";
 import { ToolProfileFacts, toolReason } from "./ToolFacts";
 import { ToolReadiness, matchesToolFilter, type ToolFilter } from './ToolReadiness';
-import {readToolListFilters,toolListSearchParams,toolListStates,validToolListQuery,type ToolListFilters} from './tool-management-list-model';
+import {readToolListFilters,toolListSearchParams,toolListStates,validToolListQuery,validToolListWorker,type ToolListFilters} from './tool-management-list-model';
 import {ToolInventoryField} from './ToolInventoryField';
 import {ToolDiscoveryPanel,type ToolDiscoveryAdoption} from './ToolDiscoveryPanel';
 import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
@@ -172,7 +172,7 @@ function ScopedToolWorkspace({
   const [pairedSelection,setPairedSelection]=useState<{caller:typeof api;generation:number;context:string;value:RunnerPairing}>();
   const pairedRunner=pairedSelection?.caller===api&&pairedSelection.generation===pairingGeneration&&pairedSelection.context===contextKey?pairedSelection.value:undefined;
   const guideID = useId();
-  const workspaceElement=useRef<HTMLDivElement>(null),navigationIntent=useRef(0);
+  const workspaceElement=useRef<HTMLDivElement>(null),listHeading=useRef<HTMLHeadingElement>(null),navigationIntent=useRef(0);
   const [setupDisclosure,setSetupDisclosure]=useState(()=>({open:panel==='workbuddy'||/^workbuddy:[A-Za-z0-9_.-]+$/.test(panel),visited:false}));
   // The optional directory is mounted only after a deliberate visit, then kept
   // mounted so collapsing it never discards an authored setup draft.
@@ -457,11 +457,30 @@ function ScopedToolWorkspace({
     const params=toolListSearchParams(new URLSearchParams(window.location.search),next);
     window.history.replaceState(window.history.state,'',window.location.pathname+(params.size?'?'+params:'')+window.location.hash);
   }
+  function showWorkerProfiles(workerID:string){
+    if(writeBlocked||!validToolListWorker(workerID)||!canLeave())return;
+    setSearch('');
+    applyFilters({state:'all',query:'',worker:workerID});
+    if(selected)onSelect('');
+    focusNavigation(()=>listHeading.current,false);
+  }
+  function clearWorkerFilter(){
+    if(writeBlocked||!canLeave())return;
+    applyFilters({state:filters.state,query:filters.query});
+    focusNavigation(()=>listHeading.current,false);
+  }
+  function clearToolFilters(){
+    if(filters.worker&&(writeBlocked||!canLeave()))return;
+    setSearch('');
+    applyFilters({state:'active',query:''});
+    if(filters.worker)focusNavigation(()=>listHeading.current,false);
+  }
   useEffect(()=>{const update=()=>{const next=readToolListFilters(new URLSearchParams(window.location.search));setFilters(next);setSearch(next.query);setSearchError(false);setFilter('all');};window.addEventListener('popstate',update);return()=>window.removeEventListener('popstate',update);},[]);
   const identitiesKnown = !!workers.data && !workers.loading && !workers.error && !!sharedWorkers.data && !sharedWorkers.loading && !sharedWorkers.error;
   const identityCount = new Set([
     ...(workers.data?.items || []), ...(sharedWorkers.data?.items || []),
   ].filter(item => item.status === 'active').map(item => item.worker_id)).size;
+  const hasToolFilters=filters.state!=='active'||!!filters.query||!!filters.worker;
   function openRegister() {
     if(writeBlocked)return;
     action.clearError();
@@ -774,7 +793,7 @@ function ScopedToolWorkspace({
         <button type="button" className="primary" data-tools-add disabled={writeBlocked} onClick={openQuickConnect}><Plus size={16} aria-hidden="true"/>{t('tool-workspace-experience.add')}</button>
         <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" data-tools-advanced-register disabled={writeBlocked} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
       </div>
-      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={filters.state!=='active'||!!filters.query} onClearFilters={()=>{setSearch('');applyFilters({state:'active',query:''});}} onWorker={workerManagement===true?openWorkerRegistration:undefined} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
+      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={writeBlocked} filtered={hasToolFilters} onClearFilters={clearToolFilters} onWorker={workerManagement===true?openWorkerRegistration:undefined} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
       {returnRun && (
         <a
           onClick={(event) => {
@@ -811,10 +830,14 @@ function ScopedToolWorkspace({
       <div className={"tool-columns " + (selected ? "with-detail" : "")}>
         <section className="panel tool-list" data-tool-workspace-configurations>
           <div className="list-toolbar">
-            <span>
+            <h3 className="tool-profiles-heading" data-tool-profiles-heading ref={listHeading} tabIndex={-1}>
               {t("development.tools.fixed_tool_configuration")}<b>{profiles.items ? formatNumber(profiles.total) : "—"}</b>
-            </span>
+            </h3>
           </div>
+          {filters.worker&&<div className="tool-profile-worker-filter" data-tool-profile-worker-filter={filters.worker}>
+            <p role="status"><Terminal size={16} aria-hidden="true"/><span>{t('tool-workspace.worker_filter')} <strong>{filters.worker}</strong></span></p>
+            <button type="button" className="text-button" data-tool-profile-worker-filter-clear disabled={writeBlocked} onClick={clearWorkerFilter}><X size={16} aria-hidden="true"/>{t('tool-workspace.clear_worker_filter')}</button>
+          </div>}
           <div className="tool-filter-tabs" role="group" aria-label={t('tool-workspace.filter')}>
             {toolListStates.map(value => <button key={value} type="button" data-tools-state={value} aria-pressed={filters.state===value} onClick={() => applyFilters({...filters,state:value})}>{t('tool-workspace.state.'+value)}</button>)}
           </div>
@@ -834,7 +857,9 @@ function ScopedToolWorkspace({
             </small>
           </form>
           {searchError&&<p className="warning" role="alert">{t('tool-workspace.query_invalid')}</p>}
-          <Field label={t('tool-workspace.window_filter')}><select data-tools-window-filter value={filter} onChange={event=>setFilter(event.target.value as ToolFilter)}>{(['all','available','attention'] as const).map(value=><option key={value} value={value}>{t('tool-workspace.filter.'+value)}</option>)}</select></Field>
+          <div className="tool-window-filter">
+            <Field label={t('tool-workspace.window_filter')}><select data-tools-window-filter value={filter} onChange={event=>setFilter(event.target.value as ToolFilter)}>{(['all','available','attention'] as const).map(value=><option key={value} value={value}>{t('tool-workspace.filter.'+value)}</option>)}</select></Field>
+          </div>
           {profiles.error && (
             <ErrorNotice
               error={profiles.error}
@@ -879,13 +904,13 @@ function ScopedToolWorkspace({
             </div>
           ) : (
             <Empty
-              title={filters.query || filters.state!=='active' || filter!=='all' ? t('tool-workspace.no_matches') : t("development.tools.no_execution_tools_registered")}
+              title={hasToolFilters || filter!=='all' ? t('tool-workspace.no_matches') : t("development.tools.no_execution_tools_registered")}
               description={
-                filters.query || filters.state!=='active' || filter!=='all'
+                hasToolFilters || filter!=='all'
                   ? t('tool-workspace.no_matches_hint')
                   : t("development.tools.register_an_execution_worker_identity_then_choose")
               }
-              action={filters.query || filters.state!=='active' || filter!=='all'?<button onClick={() => {setSearch('');applyFilters({state:'active',query:''});}}>{t('tool-workspace.clear_filters')}</button>:<button onClick={openGuide}><CircleHelp size={14}/>{t('tool-workspace.setup_guide')}</button>}
+              action={hasToolFilters || filter!=='all'?<button disabled={!!filters.worker&&writeBlocked} onClick={clearToolFilters}>{t('tool-workspace.clear_filters')}</button>:<button onClick={openGuide}><CircleHelp size={14}/>{t('tool-workspace.setup_guide')}</button>}
             />
           )}
           {profiles.next_cursor && <div className="list-footer">
@@ -1056,6 +1081,7 @@ function ScopedToolWorkspace({
                 {identityState!=='current'&&<small>{t('tool-worker-identities.hint.'+identityState)}</small>}
               </div>
               <div className="tool-worker-identity-actions">
+              {worker.project_id===project&&validToolListWorker(worker.worker_id)&&<button type="button" className="text-button tool-node-configurations" data-tool-worker-configurations={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>showWorkerProfiles(worker.worker_id)}>{t('tool-workspace.view_worker_profiles')}</button>}
               {identityState==='current'&&<button type="button" data-tool-worker-connect={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>openWorkerQuickConnect(worker)}>{t('tool-worker-identities.configure_tools')}</button>}
               {identityState==='current'&&<button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked||workers.loading||!!workers.error} onClick={()=>{const now=Date.now();if(writeBlocked||workers.loading||workers.error)return;if(classifyToolWorkerIdentity(worker,now)!=='current'){setWorkerIdentityClock(now);return;}openRemoteScan(worker.worker_id);}}>{t('remote-tool-scan.open')}</button>}
               {canMaintain&&<button type="button" className="tool-worker-maintenance-toggle" data-tool-worker-maintenance={worker.worker_id}
@@ -1092,7 +1118,17 @@ function ScopedToolWorkspace({
             description={t("development.tools.registration_issues_a_one_time_project_scoped")}
           />
         )}
-        {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers"><h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>{sharedWorkers.data.items.map(worker=><article key={worker.id} className={"tool-worker-row"+(sharedRecoveryPin(worker.worker_id)?" with-recovery":"")} tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}><div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div><div><button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span></div>{sharedRecoveryEntry(worker.worker_id)}</article>)}</div>}
+        {!sharedWorkers.loading&&!sharedWorkers.error&&!!sharedWorkers.data?.items.length&&<div className="tool-shared-workers">
+          <h4>{t('tool-workspace.shared_nodes')}</h4><p className="muted">{t('tool-workspace.shared_nodes_hint')}</p>
+          {sharedWorkers.data.items.map(worker=><article key={worker.id} className={"tool-worker-row"+(sharedRecoveryPin(worker.worker_id)?" with-recovery":"")} tabIndex={-1} data-tool-shared-worker={worker.worker_id} ref={element=>{if(element)sharedWorkerRows.current.set(worker.worker_id,element);else sharedWorkerRows.current.delete(worker.worker_id);}}>
+            <div><strong>{worker.name||worker.worker_id}</strong><small>{worker.worker_id} · {worker.pool_id}</small><small>{t('tool-workspace.shared_node_status',{status:worker.status})}</small></div>
+            <div className="tool-worker-identity-actions">
+              {validToolListWorker(worker.worker_id)&&worker.worker_id==='pool-'+worker.id&&<button type="button" className="text-button tool-node-configurations" data-tool-worker-configurations={worker.worker_id} disabled={writeBlocked} onClick={()=>showWorkerProfiles(worker.worker_id)}>{t('tool-workspace.view_worker_profiles')}</button>}
+              <button type="button" data-tool-worker-scan={worker.worker_id} disabled={writeBlocked} onClick={()=>openRemoteScan(worker.worker_id)}>{t('remote-tool-scan.open')}</button><span className="tool-status-pill">{t('tool-workspace.read_only_node')}</span>
+            </div>
+            {sharedRecoveryEntry(worker.worker_id)}
+          </article>)}
+        </div>}
       </section>
       <WorkBuddyConnections project={project} panel={panel} openRequest={connection?.cloud?connection.nonce:undefined}/>
       <details className="tool-workspace-more panel" data-tool-workspace-more open={setupDisclosure.open}>

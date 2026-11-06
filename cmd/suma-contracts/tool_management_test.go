@@ -23,9 +23,12 @@ func TestToolManagementContractKeepsFilteredReadsAndScopedImpact(t *testing.T) {
 			if name == "cursor" && (mapAt(value, "schema")["maxLength"] != 1024 || !strings.Contains(value["description"].(string), "actor") || !strings.Contains(value["description"].(string), "state/query")) {
 				t.Fatal("operation cursor lost its enforced boundary or filter/actor identity")
 			}
+			if name == "worker_id" && (value["required"] == true || mapAt(value, "schema")["pattern"] != `^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`) {
+				t.Fatal("exact worker filter must remain optional and use the existing worker identity shape")
+			}
 		}
 	}
-	if !found["state"] || !found["query"] || mapAt(s, "ToolProfileListQuery", "properties", "state")["default"] != "active" || mapAt(s, "ToolProfileListQuery", "properties", "query")["x-max-utf8-bytes"] != 120 {
+	if !found["state"] || !found["query"] || !found["worker_id"] || mapAt(s, "ToolProfileListQuery", "properties", "state")["default"] != "active" || mapAt(s, "ToolProfileListQuery", "properties", "query")["x-max-utf8-bytes"] != 120 || mapAt(s, "ToolProfileListQuery", "properties", "worker_id")["maxLength"] != 100 {
 		t.Fatal("public filter contract drifted")
 	}
 	impact := mapAt(s, "ToolProfileImpact")

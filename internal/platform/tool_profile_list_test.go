@@ -133,3 +133,75 @@ func TestToolProfileListCurrentAuthorityPrecedesFilterAndActorCursor(t *testing.
 		}
 	}
 }
+
+func TestToolProfileListHTTPExactWorkerFilter(t *testing.T) {
+	f, _, initial := toolFixture(t)
+	ctx := context.Background()
+	create := func(worker, name, command string) ToolProfile {
+		t.Helper()
+		p := toolTestProfile()
+		p.CommandID = command
+		p.ProfileSHA256 = digest(command)
+		out, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: worker, Name: name, Profile: p, IdempotencyKey: newID()})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return out
+	}
+	for _, worker := range []string{"tool-worker-cli", "Tool-Worker", "different-worker"} {
+		f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": worker, "profiles": []any{}, "deployment": false}), 201)
+		create(worker, "tool-worker named here", "same-search-text")
+	}
+	current := create("tool-worker", "Current exact tool", "exact-current")
+	retired := create("tool-worker", "Retired exact tool", "exact-retired")
+	if _, err := f.s.CommandToolProfile(ctx, f.actor, f.project, retired.ID, ToolProfileCommandRequest{ProjectID: f.project, ExpectedVersion: retired.Version, Action: "revoke", IdempotencyKey: newID()}); err != nil {
+		t.Fatal(err)
+	}
+	operations := expertCount(t, f, "suma_operations")
+	path := "/tool-profiles?project_id=" + f.project
+	read := func(filters string, total int, expected ...string) ToolProfileList {
+		t.Helper()
+		body := f.call("GET", path+filters, nil, 200)
+		var page ToolProfileList
+		if err := json.Unmarshal([]byte(stringify(body)), &page); err != nil {
+			t.Fatal(err)
+		}
+		if page.Total != total || len(page.Items) != len(expected) {
+			t.Fatalf("%s returned total=%d items=%d, want total=%d items=%d", filters, page.Total, len(page.Items), total, len(expected))
+		}
+		for i, want := range expected {
+			if page.Items[i].ID != want || page.Items[i].WorkerID != "tool-worker" || page.Items[i].ProjectID != f.project {
+				t.Fatalf("%s returned unexpected profile %s on worker %s", filters, page.Items[i].ID, page.Items[i].WorkerID)
+			}
+		}
+		return page
+	}
+	firstID, nextID := initial.ID, current.ID
+	if nextID < firstID {
+		firstID, nextID = nextID, firstID
+	}
+	filtered := "&worker_id=tool-worker&limit=1"
+	first := read(filtered, 2, firstID)
+	if first.NextCursor == "" {
+		t.Fatal("exact worker first page did not return a cursor")
+	}
+	cursor := "&cursor=" + url.QueryEscape(first.NextCursor)
+	if next := read(filtered+cursor, 2, nextID); next.NextCursor != "" {
+		t.Fatal("exact worker last page returned another cursor")
+	}
+	read("&worker_id=tool-worker&query=EXACT-CURRENT", 1, current.ID)
+	read("&worker_id=tool-worker&state=revoked", 1, retired.ID)
+	read("&worker_id=missing-worker", 0)
+	for _, filter := range []string{"&limit=1" + cursor, "&worker_id=Tool-Worker&limit=1" + cursor, "&worker_id=", "&worker_id=%20tool-worker", "&worker_id=tool-worker&worker_id=Tool-Worker"} {
+		f.call("GET", path+filter, nil, 400)
+	}
+	// Unfiltered cursors from the preceding scope remain usable.
+	oldScope := "tool_profiles:" + digest(stringify(struct{ Actor, State, Query string }{f.user.ID, "active", ""}))
+	oldCursor := automationEncodeCursor(f.user, f.project, oldScope, strings.Repeat("0", 32))
+	f.call("GET", path+"&limit=1&cursor="+url.QueryEscape(oldCursor), nil, 200)
+	f.call("GET", path+filtered+"&cursor="+url.QueryEscape(oldCursor), nil, 400)
+	f.call("GET", "/tool-profiles?project_id="+newID()+"&worker_id=tool-worker", nil, 404)
+	if expertCount(t, f, "suma_operations") != operations {
+		t.Fatal("worker-filtered reads wrote an operation receipt")
+	}
+}

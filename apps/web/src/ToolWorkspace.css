@@ -18,6 +18,19 @@
 @media(max-width:600px){.tool-workspace-primary-actions{justify-content:flex-start}.tool-workspace-primary-actions>[data-tools-add]{flex:1}.tool-workspace-more>summary{padding:12px}.tool-workspace-more-body{padding:0 12px 12px}.tool-workspace .tool-readiness-meta{flex:1 1 100%;width:100%}.tool-workspace .tool-readiness-meta>span{max-width:100%}}
 @media(prefers-reduced-motion:reduce){.tool-workspace-more>summary>svg{transition:none}}
 
+.tool-profiles-heading{display:inline-flex;align-items:center;gap:8px;margin:0;font:inherit;scroll-margin-block-start:88px}
+.tool-profiles-heading:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.tool-profile-worker-filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 16px;margin:12px 16px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-soft)}
+.tool-profile-worker-filter p{display:flex;align-items:center;gap:8px;min-width:0;margin:0;padding-block:8px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.tool-profile-worker-filter p svg{flex:none;color:var(--accent)}
+.tool-profile-worker-filter strong{color:var(--text)}
+.tool-profile-worker-filter button,.tool-node-configurations{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+.tool-node-configurations:focus-visible,.tool-profile-worker-filter button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tool-window-filter{margin:0 16px 12px;max-width:280px;min-width:0}
+.tool-window-filter .field{margin:0}
+.tool-window-filter select{width:100%;min-height:44px}
+@media(max-width:600px){.tool-window-filter{max-width:none}}
+
 /* Current public draft: exact ordinary Runner connection handoff only. */
 .tool-workspace .tool-worker-row.with-recovery{flex-wrap:wrap}
 .tool-workspace .tool-worker-recovery{flex:1 1 100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:8px}

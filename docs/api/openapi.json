@@ -50051,6 +50051,13 @@
               "all"
             ],
             "type": "string"
+          },
+          "worker_id": {
+            "description": "Optional exact, case-sensitive execution node identifier, combined with state and public text search.",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
           }
         },
         "required": [],
@@ -153710,7 +153717,7 @@
     },
     "/tool-profiles": {
       "get": {
-        "description": "Current actor/organization/project tool connections with normalized state/query-bound keyset pagination. Default active includes enabled and paused only. Reading history or diagnostics never enables, repairs or stops tools.",
+        "description": "Current actor/organization/project tool connections with keyset pagination bound to normalized state/query and exact worker_id. Default active includes enabled and paused only. Reading history or diagnostics never enables, repairs or stops tools.",
         "operationId": "get_tool-profiles",
         "parameters": [
           {
@@ -153733,7 +153740,7 @@
             }
           },
           {
-            "description": "Opaque cursor, at most1024 characters, bound to the current actor, tenant, project and normalized state/query.",
+            "description": "Opaque cursor, at most 1024 characters, bound to the current actor, tenant, project, normalized state/query and exact worker_id.",
             "in": "query",
             "name": "cursor",
             "schema": {
@@ -153784,6 +153791,18 @@
               "maxLength": 120,
               "type": "string",
               "x-max-utf8-bytes": 120
+            }
+          },
+          {
+            "description": "Restrict results to the exact, case-sensitive execution node identifier.",
+            "in": "query",
+            "name": "worker_id",
+            "schema": {
+              "description": "Optional exact, case-sensitive execution node identifier, combined with state and public text search.",
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+              "type": "string"
             }
           }
         ],

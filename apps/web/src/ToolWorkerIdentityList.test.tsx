@@ -5,7 +5,7 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {ToolWorkspace} from './ToolWorkspace';
 import {setLocale} from './i18n';
 import type {Session} from './api';
-import type {ExecutionWorker} from './tool-model';
+import type {ExecutionWorker,ToolProfile} from './tool-model';
 
 const session:Session={user:{id:'u',name:'Owner',email:'owner@example.test',role:'owner'},organization:{id:'o',name:'Org'},projects:[]};
 const at=Date.parse('2026-11-03T08:00:00Z');
@@ -17,6 +17,8 @@ let rotate:((body:Record<string,unknown>)=>Promise<Response>)|undefined;
 let canManage:boolean;
 let workerRead:(()=>Promise<Response>)|undefined;
 let revokeRefused:boolean;
+let profileRead:((params:URLSearchParams)=>Response)|undefined;
+let sharedNodes:unknown[];
 function manualNode(expires_at='2026-11-03T09:00:00Z') {records.push({...identity(manualID,'active',expires_at),worker_id:manualWorker,manual_rotation_allowed:true});}
 function rotationReceipt(body:Record<string,unknown>,token?:string) {
  const worker={...records.find(row=>row.id===manualID)!,version:4,expires_at:'2026-11-04T08:00:00Z',profiles:[]};
@@ -29,11 +31,11 @@ async function click(selector:string){const button=host.querySelector<HTMLButton
 const maintenance=(worker:string)=>'[data-tool-worker-maintenance="'+worker+'"]';
 const visibleIDs=()=>[...host.querySelectorAll<HTMLElement>('[data-tool-worker]:not([hidden])')].map(row=>row.dataset.toolWorker);
 beforeEach(async()=>{
- await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.spyOn(Date,'now').mockReturnValue(at);sessionStorage.clear();writes=[];rotate=undefined;canManage=true;workerRead=undefined;revokeRefused=false;
+ await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.spyOn(Date,'now').mockReturnValue(at);sessionStorage.clear();writes=[];rotate=undefined;canManage=true;workerRead=undefined;revokeRefused=false;profileRead=undefined;sharedNodes=[];
  records=[identity('team-codex-cli'),identity('expired-node','active','2026-11-03T08:00:00Z'),identity('team-codex','revoked'),identity('unknown-node','active','invalid-time')];
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
  vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit={})=>{
-  const path=String(input).replace('/api/v1','').split('?')[0];
+  const url=new URL(String(input),'http://local.test'),path=url.pathname.replace('/api/v1','');
   if(init.method&&init.method!=='GET'){
    const body=JSON.parse(String(init.body));writes.push({path,method:init.method,body});
    if(path===rotationPath&&rotate)return rotate(body);
@@ -42,10 +44,52 @@ beforeEach(async()=>{
    return Response.json(records.find(row=>row.id===id));
   }
   if(path==='/release-workers')return workerRead?.()??Response.json({items:records,credential_management_allowed:canManage});
-  return Response.json(path==='/tool-profiles'?{items:[],total:0}:path==='/project-execution/runners'?{items:[],as_of:'2026-11-03T08:00:00Z'}:{});
+  if(path==='/tool-profiles')return profileRead?.(url.searchParams)??Response.json({items:[],total:0});
+  return Response.json(path==='/project-execution/runners'?{items:sharedNodes,as_of:'2026-11-03T08:00:00Z'}:{});
  }));
 });
-afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();vi.unstubAllGlobals();vi.restoreAllMocks();});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();sessionStorage.clear();window.history.replaceState({},'','/');vi.unstubAllGlobals();vi.restoreAllMocks();});
+
+it('opens exact configurations from a revoked or shared node, retains other filters, and never starts a write',async()=>{
+ const reads:URLSearchParams[]=[];
+ const profile=(id:string,worker_id:string,state:ToolProfile['state']):ToolProfile=>({id,worker_id,state,project_id:'p',name:id,version:1,available:false,reason:'',enabled_by:'',created_at:'2026-11-03T07:00:00Z',updated_at:'2026-11-03T07:00:00Z',profile:{command_id:'codex-team',adapter:'codex',protocol:'codex-jsonl-v1',profile_sha256:'a'.repeat(64),executable_sha256:'b'.repeat(64),tool_version:'1.0',read_only:false}});
+ const options=[profile('Revoked configuration','team-codex','revoked'),profile('Similar worker configuration','team-codex-cli','paused'),profile('Shared configuration','pool-team','paused')];
+ sharedNodes=[{id:'team',worker_id:'pool-team',pool_id:'pools',name:'Shared team',status:'active',credential_expires_at:'2026-11-03T09:00:00Z'}];
+ profileRead=params=>{
+  reads.push(params);
+  const items=options.filter(item=>(!params.has('worker_id')||item.worker_id===params.get('worker_id'))&&(params.get('state')==='all'||item.state===params.get('state')));
+  return Response.json({items,total:items.length});
+ };
+ window.history.replaceState({},'','/?project=p&view=settings&sub=tools&tools_query=prior');
+ await draw();
+ await click('[data-tool-worker-filter="revoked"]');
+ const revoked='[data-tool-worker-configurations="team-codex"]',heading=host.querySelector('[data-tool-profiles-heading]');
+ const blocker=(event:Event)=>event.preventDefault();
+ window.addEventListener('suma:navigate',blocker,{once:true});
+ await click(revoked);
+ expect(reads.at(-1)?.has('worker_id')).toBe(false);
+ await click(revoked);
+ expect(reads.at(-1)?.get('worker_id')).toBe('team-codex');
+ expect(reads.at(-1)?.get('state')).toBe('all');
+ expect(reads.at(-1)?.get('query')).toBe('');
+ expect(host.querySelector('.tool-resource')?.textContent).toContain('Revoked configuration');
+ expect(host.querySelectorAll('.tool-resource')).toHaveLength(1);
+ expect(host.querySelector('[data-tool-profile-worker-filter="team-codex"]')).not.toBeNull();
+ expect(new URLSearchParams(location.search).get('tools_worker')).toBe('team-codex');
+ await vi.waitFor(()=>expect(document.activeElement).toBe(heading));
+ await click('[data-tools-state="revoked"]');
+ expect(reads.at(-1)?.get('worker_id')).toBe('team-codex');
+ await click('[data-tool-worker-configurations="pool-team"]');
+ expect(reads.at(-1)?.get('worker_id')).toBe('pool-team');
+ expect(host.querySelector('.tool-resource')?.textContent).toContain('Shared configuration');
+ await click('[data-tools-state="paused"]');
+ await click('[data-tool-profile-worker-filter-clear]');
+ expect(reads.at(-1)?.has('worker_id')).toBe(false);
+ expect(reads.at(-1)?.get('state')).toBe('paused');
+ expect(new URLSearchParams(location.search).has('tools_worker')).toBe(false);
+ expect(host.querySelectorAll('.tool-resource')).toHaveLength(2);
+ expect(writes).toEqual([]);
+});
 
 it('keeps only current credentials in the default list and offers expired or unknown identities for cleanup without scanning them',async()=>{
  await draw();expect(visibleIDs()).toEqual(['team-codex-cli']);

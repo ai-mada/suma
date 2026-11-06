@@ -45,7 +45,7 @@ Read commands:
   tasks dispatch-test-option --help   Check an exact independent test tool
   tasks dispatch-plan PLAN
   models options --tool ID --expected-tool-version N
-  tools list [--state STATE] [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
+  tools list [--state STATE] [--worker WORKER] [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
   tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query TEXT]
   tools inventory --worker WORKER
   tools matches --worker WORKER --command COMMAND

@@ -8,15 +8,18 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
 // ToolProfileListQuery is the single current list contract for HTTP, CLI and
 // domain readers. State and Query are normalized before binding a cursor.
 type ToolProfileListQuery struct {
-	State  string `json:"state,omitempty"`
-	Query  string `json:"query,omitempty"`
-	Limit  int    `json:"limit,omitempty"`
-	Cursor string `json:"cursor,omitempty"`
+	State    string `json:"state,omitempty"`
+	Query    string `json:"query,omitempty"`
+	WorkerID string `json:"worker_id,omitempty"`
+	Limit    int    `json:"limit,omitempty"`
+	Cursor   string `json:"cursor,omitempty"`
 }
 
 func toolProfileListInvalid() error {
@@ -35,6 +38,9 @@ func normalizeToolProfileListQuery(q ToolProfileListQuery) (ToolProfileListQuery
 	if len(q.Query) > 120 || !utf8.ValidString(q.Query) || strings.IndexFunc(q.Query, unicode.IsControl) >= 0 || len(q.Cursor) > 1024 {
 		return q, toolProfileListInvalid()
 	}
+	if q.WorkerID != "" && !toolcontract.ValidCommandID(q.WorkerID) {
+		return q, toolProfileListInvalid()
+	}
 	q.Query = strings.ToLower(strings.TrimSpace(q.Query))
 	if q.Limit == 0 {
 		q.Limit = 50
@@ -46,7 +52,10 @@ func normalizeToolProfileListQuery(q ToolProfileListQuery) (ToolProfileListQuery
 }
 
 func toolProfileListCursorScope(p Principal, q ToolProfileListQuery) string {
-	return "tool_profiles:" + digest(stringify(struct{ Actor, State, Query string }{p.ID, q.State, q.Query}))
+	return "tool_profiles:" + digest(stringify(struct {
+		Actor, State, Query string
+		WorkerID            string `json:",omitempty"`
+	}{p.ID, q.State, q.Query, q.WorkerID}))
 }
 
 // HTTP parses only transport shape here. Domain normalization is deliberately
@@ -65,12 +74,18 @@ func toolProfileListHTTPQuery(r *http.Request) (ToolProfileListQuery, error) {
 			return out, toolProfileListInvalid()
 		}
 		switch key {
-		case "project_id", "state", "query", "limit", "cursor":
+		case "project_id", "state", "query", "worker_id", "limit", "cursor":
 		default:
 			return out, toolProfileListInvalid()
 		}
 	}
 	out.State, out.Query, out.Cursor = q.Get("state"), q.Get("query"), q.Get("cursor")
+	if raw, exists := q["worker_id"]; exists {
+		if raw[0] == "" {
+			return out, toolProfileListInvalid()
+		}
+		out.WorkerID = raw[0]
+	}
 	if raw, exists := q["limit"]; exists {
 		out.Limit, err = strconv.Atoi(raw[0])
 		if err != nil || out.Limit < 1 || out.Limit > 200 {
@@ -116,7 +131,11 @@ func (s *Service) listToolProfilesFilteredTx(ctx context.Context, auth *authoriz
 		return out, err
 	}
 	where, args := toolProfileListWhere(auth.currentPrincipal.TenantID, project, q.State)
-	if q.Query == "" {
+	if q.WorkerID != "" {
+		where += " AND worker_id=?"
+		args = append(args, q.WorkerID)
+	}
+	if q.Query == "" && q.WorkerID == "" {
 		if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_profiles WHERE `+where), args...).Scan(&out.Total); err != nil {
 			return out, err
 		}
@@ -155,7 +174,8 @@ func (s *Service) listToolProfilesFilteredTx(ctx context.Context, auth *authoriz
 				rows.Close()
 				return out, e
 			}
-			if !toolProfilePublicContains(p, q.Query) {
+			// Keep exact identity across stores, including collations that fold case.
+			if q.WorkerID != "" && p.WorkerID != q.WorkerID || q.Query != "" && !toolProfilePublicContains(p, q.Query) {
 				continue
 			}
 			out.Total++

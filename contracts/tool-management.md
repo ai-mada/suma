@@ -12,9 +12,11 @@ T-TOOL-MANAGEMENT-193；速码1.0.0。原31／P0–P7／58限定／34待交付�
 
 ## 当前列表接口
 
-`GET /tool-profiles?project_id=…&state=…&query=…&limit=…&cursor=…`：state为active／enabled／paused／revoked／all，默认active（enabled＋paused）。query为可选、最多120 UTF8字节的公开字段检索，不查私有路径或凭据。筛选／排序／分页都经当前授权；opaque cursor绑定actor／组织／项目及规范化state/query，跨条件不能恢复同一页。
+`GET /tool-profiles?project_id=…&state=…&query=…&worker_id=…&limit=…&cursor=…` 支持状态、文本和节点联合筛选。`state` 为 active／enabled／paused／revoked／all，默认 active（enabled＋paused）。`query` 为可选、最多 120 UTF-8 字节的公开字段检索，范围为名称、命令、节点、适配器和协议。
 
-界面默认“当前接入”，按需查看“已移除记录”。搜索、状态和目标变化清空旧分页；当前项目／身份切换不得混入迟到结果。CLI使用同一过滤合同，保留结构化输出及原权限。
+可选 `worker_id` 使用与固定工具档案相同的节点 ID 格式，按原始大小写精确匹配。显式空值、重复参数和无效 ID 会被拒绝。过滤范围为当前项目的已登记档案，未知节点返回空列表，撤销历史由 `state` 控制。原授权、排序及游标机制继续生效，游标还绑定精确节点条件。省略 `worker_id` 时沿用原无节点游标。
+
+界面默认“当前接入”，按需查看“已移除记录”。搜索、状态和节点变化清空旧分页，当前项目或身份变化隔离迟到结果。CLI 使用 `tools list --worker ID` 调用同一接口，保留结构化输出及原权限。
 
 ## 配置与生命周期
 

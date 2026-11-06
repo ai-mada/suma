@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKER-TOOL-FILTER 核验节点精确匹配、权限及游标隔离，以及工具页的定位、链接恢复和清除。 [命令与证据](worker-tool-filter-verification.md)
+
 T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy 原连接核对。 [命令与证据](dispatch-connection-recovery-verification.md)
 
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)

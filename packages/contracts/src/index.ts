@@ -8887,6 +8887,7 @@ export interface ToolProfileList {
 export interface ToolProfileListQuery {
   state?: "active" | "enabled" | "paused" | "revoked" | "all";
   query?: string;
+  worker_id?: string;
   limit?: number;
   cursor?: string;
 }

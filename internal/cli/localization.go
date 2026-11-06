@@ -45,8 +45,8 @@ var cliMessages = map[string]cliMessage{
 	toolReplacementBrowserRequired: {"cli.tool_profiles.replacement_browser", "tools replace 需要已有登录会话和捕获的原 --expected-user；服务端仍核验当前项目批准权限"},
 	toolReplacementUnconfirmed:     {"cli.tool_profiles.replacement_unconfirmed", "换新回执尚未确认；保留原账户、组织、配置ID、JSON正文和操作标识，仅可重试相同已确认请求"},
 	toolReplacementHistoryInvalid:  {"cli.tool_profiles.replacement_history", "换新历史必须保留准确项目、配置、方向、不可变快照及原分页游标"},
-	toolListUsage:                  {"cli.tool_profiles.list_usage", "tools list 需要 --project；--state 为 active、enabled、paused、revoked 或 all；检索文本最多 120 个 UTF-8 字节，--limit 为 1–200，翻页使用原 --cursor；请查看 tools --help"},
-	toolListResponseInvalid:        {"cli.tool_profiles.list_response", "工具列表响应必须保留原项目、状态、完整档案及分页边界"},
+	toolListUsage:                  {"cli.tool_profiles.list_usage", "tools list 需要 --project。--state 可选 active、enabled、paused、revoked 或 all，--worker 使用完整节点 ID，检索文本最多 120 个 UTF-8 字节，--limit 为 1–200，翻页使用原 --cursor。请查看 tools list --help"},
+	toolListResponseInvalid:        {"cli.tool_profiles.list_response", "工具列表响应必须保留原项目、节点筛选、状态、完整档案及分页边界"},
 	toolDoctorUsage:                {"cli.tool_profiles.doctor_usage", "tools doctor 需要 --id 档案ID 和 --project；--format 为 json 或 table；请查看 tools --help"},
 	toolDoctorResponseInvalid:      {"cli.tool_profiles.doctor_response", "工具体检响应必须保留请求项目、准确完整档案、四项检查、准确维护建议及最多 60 秒的有效展示期限"},
 	toolMatchesUsage:               {"cli.tool_profiles.matches_usage", "tools matches 需要 --file 请求JSON|-，或同时提供 --worker 节点与 --command 命令。请查看 tools --help"},
@@ -335,7 +335,7 @@ const helpZH = `suma — 速码控制面客户端
   tasks dispatch-test-option --help   核对准确的独立测试工具
   tasks dispatch-plan PLAN
   models options --tool 工具ID --expected-tool-version 当前版本
-  tools list [--state 状态] [--query 检索文本] [--limit 1..200] [--cursor 原游标]
+  tools list [--state 状态] [--worker 节点ID] [--query 检索文本] [--limit 1..200] [--cursor 原游标]
   tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query 检索文本]
   tools inventory --worker 节点ID
   tools matches --worker 节点ID --command 命令ID

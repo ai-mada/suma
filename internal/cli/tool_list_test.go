@@ -83,14 +83,14 @@ func TestToolProfileListCLIRejectsInvalidFlagsAndPreservesServerDenial(t *testin
 		code := Execute(context.Background(), append(base, args...), nil, &out, &stderr)
 		return code, out.String(), stderr.String()
 	}
-	for _, args := range [][]string{{"--state", "ready"}, {"--state", ""}, {"--limit", "0"}, {"--limit", "201"}, {"--query", strings.Repeat("码", 41)}, {"--query", string([]byte{255})}, {"--query", "line\nbreak"}, {"--cursor", strings.Repeat("x", 1025)}, {"--cursor", "bad\ncursor"}, {"--confirm"}, {"--operation", "not-a-read"}, {"unexpected"}} {
+	for _, args := range [][]string{{"--state", "ready"}, {"--state", ""}, {"--limit", "0"}, {"--limit", "201"}, {"--query", strings.Repeat("码", 41)}, {"--query", string([]byte{255})}, {"--query", "line\nbreak"}, {"--worker", ""}, {"--worker", "node/a"}, {"--worker", " node-a"}, {"--worker", strings.Repeat("n", 101)}, {"--cursor", strings.Repeat("x", 1025)}, {"--cursor", "bad\ncursor"}, {"--confirm"}, {"--operation", "not-a-read"}, {"unexpected"}} {
 		if code, out, _ := run(args...); code != 2 || out != "" {
 			t.Fatal("invalid or write-like list options accepted", args, code, out)
 		}
 	}
 	for _, language := range []string{"zh-CN", "en-US"} {
 		var out, stderr bytes.Buffer
-		if code := Execute(context.Background(), []string{"--control", server.URL, "--language", language, "tools", "list", "--help"}, nil, &out, &stderr); code != 0 || !strings.Contains(out.String(), "--state") || !strings.Contains(out.String(), "120") || !strings.Contains(out.String(), "--cursor") {
+		if code := Execute(context.Background(), []string{"--control", server.URL, "--language", language, "tools", "list", "--help"}, nil, &out, &stderr); code != 0 || !strings.Contains(out.String(), "--state") || !strings.Contains(out.String(), "120") || !strings.Contains(out.String(), "--cursor") || !strings.Contains(strings.SplitN(out.String(), "tools catalog", 2)[0], "--worker") {
 			t.Fatal("bilingual list help unavailable without a project", code, out.String(), stderr.String())
 		}
 	}
@@ -106,5 +106,46 @@ func TestToolProfileListCLIRejectsInvalidFlagsAndPreservesServerDenial(t *testin
 	}
 	if calls.Load() != 2 {
 		t.Fatal("denial triggered identity refresh, retry or repair", calls.Load())
+	}
+}
+
+func TestToolProfileListCLIExactWorkerComposesWithOtherFilters(t *testing.T) {
+	const worker, cursor = "Team-Runner_1.0", "worker-page+/="
+	profile := toolDoctorReport181(t).Tool
+	profile.WorkerID, profile.Name, profile.State = worker, "Team development CLI", "revoked"
+	for _, test := range []struct{ name, returnedWorker string }{
+		{"exact worker", worker},
+		{"case variant", "team-runner_1.0"},
+		{"same prefix", "Team-Runner_1.0-cli"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			item := profile
+			item.WorkerID = test.returnedWorker
+			page := platform.ToolProfileList{Items: []platform.ToolProfile{item}, Total: 3, NextCursor: "next-worker-page"}
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				q := r.URL.Query()
+				if r.Method != http.MethodGet || r.URL.Path != "/api/v1/tool-profiles" || len(q) != 6 || q.Get("project_id") != "project-one" || q.Get("worker_id") != worker || q.Get("state") != "revoked" || q.Get("query") != "Team development" || q.Get("limit") != "1" || q.Get("cursor") != cursor {
+					t.Error("worker filter changed the current read or another filter", r.Method, r.URL)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(page)
+			}))
+			defer server.Close()
+			var out, stderr bytes.Buffer
+			code := Execute(context.Background(), []string{"--control", server.URL, "--project", "project-one", "--token", "session193", "--language", "en-US", "tools", "list", "--worker", worker, "--state", "revoked", "--query", "Team development", "--limit", "1", "--cursor", cursor}, nil, &out, &stderr)
+			if test.returnedWorker == worker {
+				var got platform.ToolProfileList
+				if code != 0 || json.Unmarshal(out.Bytes(), &got) != nil || !reflect.DeepEqual(got, page) {
+					t.Fatal("valid filtered page rejected or reshaped", code, out.String(), stderr.String())
+				}
+			} else if code != 1 || out.Len() != 0 {
+				t.Fatal("wrong-worker record returned as output", code, out.String(), stderr.String())
+			}
+			if calls.Load() != 1 {
+				t.Fatal("expected one GET", calls.Load())
+			}
+		})
 	}
 }
