@@ -108,6 +108,7 @@ suma --project PROJECT run workbuddy-status RUN --node NODE
 - `--max-events` 取 1–100000，到达条数后结束。省略时持续跟随，按 Ctrl+C 退出。单连接受全局 `--timeout` 约束，读取权限变化或收到无效协议时会明确退出。
 - `--route project` 查看项目专用路径，`--route pool` 查看固定到共享池的运行。加 `--run RUN` 可在路径范围内定位准确运行。省略条件时查看当前项目的全部对应项。续页应重复原来的筛选条件和项目，再传原 `next_cursor`。
 - 队列展示当前已就绪节点及服务端分页结果。找到运行和节点后，`run scheduling` 返回当前阻塞、所需资源和执行路由依据。历史事件、当前准入、实际结果与人工验收分别读取。
+- `run queue` 和 `run scheduling` 输出可包含 `tool_binding` 与 `source: "tool"` 阻塞。固定引用可定位原工具档案，暂停、撤销、变化、缺失和启用权限失效各有独立代码。无工具阻塞时仍按输出中的其他准入条件与领取核验判断。
 - `run workbuddy-status` 读取指定 WorkBuddy 节点的本地已保存进度，输出一份 JSON。可用项目 API 凭证读取。`not_recorded` 表示本地没有提交记录，`unknown` 表示外部提交待核对。供应方完成与平台交付分别判断。需要跟随平台事件时，继续使用同一运行的 `run watch`。
 
 ### 核对某次执行尝试

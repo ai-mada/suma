@@ -236,7 +236,7 @@
 <section id="scheduling-read-recovery"><h2>调度队列与尝试读取恢复</h2><p>队列分页失败后可重试原页。项目或身份改变及权限失效时移除旧结果和游标。尝试详情保留原定位，恢复访问后重新读取证据。</p><p><a href="design/scheduling-workspace.md#队列与尝试读取恢复">工作台交互</a> · <a href="quality/scheduling-read-recovery-verification.md">阶段证据</a></p></section>
 <section id="queue-scope"><h2>按执行路径定位待派发队列</h2><p>按项目专用或共享池路径、准确运行进行服务端筛选和分页。路径使用原运行固定绑定，当前权限、池状态及其他准入阻塞由现有诊断独立核对。网页保留可分享的筛选，CLI 使用同一合同。</p><p><a href="design/scheduling-workspace.md#按执行路径和运行定位">交互设计</a> · <a href="quality/queue-scope-verification.md">阶段证据</a></p></section>
 
-<section id="queue-triage"><h2>待派发队列分诊</h2><p>队列按已加载节点的当前准入条件筛选，支持直接打开准确运行与节点。队列与节点详情共用授权事务内的共享池诊断，清楚呈现池暂停、授权变化与条件待核对。</p><p><a href="design/scheduling-workspace.md#队列分诊">交互设计</a> · <a href="quality/queue-triage-verification.md">阶段证据</a></p></section>
+<section id="queue-triage"><h2>待派发队列分诊</h2><p>队列按已加载节点的当前准入条件筛选，支持直接打开准确运行与节点。队列与节点详情在授权事务内核对共享池和固定工具配置。工具暂停、撤销、固定依据变化或启用授权失效时可进入准确诊断。实际领取仍核对执行节点与可用性。</p><p><a href="design/scheduling-workspace.md#队列分诊">交互设计</a> · <a href="quality/queue-triage-verification.md">阶段证据</a></p></section>
 <section id="quality-catalog"><h2>测试计划目录与冲突恢复</h2><p>按当前授权范围在分页前筛选计划状态及准确任务。Web 与 CLI 使用同一查询。创建冲突后按原任务查找已有计划并保留编辑内容，再由用户明确保存。</p><p><a href="development/test-plans.md#定位测试计划">操作</a> · <a href="quality/quality-catalog-verification.md">阶段验证</a></p></section>
 
 <section id="team-delivery"><h2>从团队计划核对交付</h2><p>当前正式派发项带原运行打开交付面板。面板使用同一授权读取核对任务版本和当前运行；不同或无法确认时由用户明确打开当前交付。CLI 读取同一摘要，测试与正式验收继续分别呈现。</p><p><a href="development/team-execution.md#从团队计划核对交付">操作</a> · <a href="quality/team-delivery-verification.md">阶段验证</a></p></section>

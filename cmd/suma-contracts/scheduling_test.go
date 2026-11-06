@@ -48,3 +48,24 @@ func TestSchedulingQueueFilterContract(t *testing.T) {
 		t.Fatalf("wrong exact run filter: %#v", run)
 	}
 }
+
+func TestSchedulingToolBindingIsOptionalClosedMetadata(t *testing.T) {
+	api, _ := generate()
+	schemas := mapAt(api, "components", "schemas")
+	admission := mapAt(schemas, "NodeAdmissionSnapshot")
+	if value := mapAt(admission, "properties", "tool_binding"); value["$ref"] != "#/components/schemas/SchedulingToolBinding" || value["readOnly"] != true {
+		t.Fatalf("unexpected tool binding schema: %#v", value)
+	}
+	for _, name := range admission["required"].([]string) {
+		if name == "tool_binding" {
+			t.Fatal("unbound nodes cannot require tool metadata")
+		}
+	}
+	binding := mapAt(schemas, "SchedulingToolBinding")
+	fields := mapAt(binding, "properties")
+	if binding["additionalProperties"] != false || len(fields) != 3 ||
+		mapAt(fields, "profile_id")["maxLength"] != 100 || mapAt(fields, "command_id")["maxLength"] != 100 ||
+		mapAt(fields, "profile_sha256")["pattern"] != "^[a-f0-9]{64}$" {
+		t.Fatalf("binding must expose only the fixed identity, digest and command: %#v", binding)
+	}
+}

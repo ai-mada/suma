@@ -131,6 +131,8 @@
   "workspace.queue.open_node": "View run node",
   "workspace.queue.open_named_node": "View run node {{node}}",
   "workspace.queue.open_policy": "View project quotas",
+  "workspace.queue.open_tool_diagnostics": "Check tool configuration",
+  "workspace.queue.open_named_tool_diagnostics": "Check tool configuration for {{node}}",
   "workspace.queue.diagnostic_details": "Diagnostic details",
   "workspace.queue.reload": "Reload queue",
   "workspace.queue.unconfirmed": "The current queue is unconfirmed. Any records below are from the last successful read.",

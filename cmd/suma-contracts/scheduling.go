@@ -82,6 +82,12 @@ func enhanceSchedulingSchemas(schemas map[string]any) {
 	field("SchedulingPolicyCommitRequest", "expected_version", map[string]any{"minimum": 1})
 	field("SchedulingPolicyPreview", "state", map[string]any{"enum": []string{"ready", "committed"}})
 	field("NodeAdmissionSnapshot", "status", map[string]any{"enum": []string{"eligible", "blocked", "unknown", "not_pending"}})
+	field("NodeAdmissionSnapshot", "tool_binding", map[string]any{"readOnly": true, "description": "Fixed tool profile and command from the exact run node. Current tool authorization blockers are separate from worker eligibility."})
+	toolContractMap(schemas, "SchedulingToolBinding")["additionalProperties"] = false
+	for _, name := range []string{"profile_id", "command_id"} {
+		field("SchedulingToolBinding", name, map[string]any{"pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$", "maxLength": 100})
+	}
+	field("SchedulingToolBinding", "profile_sha256", map[string]any{"pattern": "^[a-f0-9]{64}$"})
 	field("Assignment", "dispatch_state", map[string]any{"enum": []string{"active", "closed", "reconciling"}})
 	field("Node", "max_retries", map[string]any{"minimum": 0, "maximum": 2, "description": "Only explicitly transient failures of idempotent nodes may automatically retry; each retry creates a new attempt with durable backoff and a fixed total deadline."})
 	field("Node", "timeout_seconds", map[string]any{"minimum": 0, "maximum": int64(9223372036), "description": "Worker automatic-retry sequence total deadline; zero/omitted uses300 seconds for new kernel generation. Manual retry explicitly opens a new persisted window. Non-worker timeout semantics depend on node type. Bound prevents Go duration overflow."})

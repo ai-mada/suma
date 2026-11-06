@@ -4085,6 +4085,7 @@ export interface NodeAdmissionSnapshot {
   execution_pool_id?: string;
   pool_policy_version?: number;
   pool_resources?: (ResourceSnapshot)[];
+  tool_binding?: SchedulingToolBinding;
   run_id: string;
   node_id: string;
   run_version: number;
@@ -6800,6 +6801,11 @@ export interface SchedulingPolicyView {
   resources: (ResourceSnapshot)[];
   allowed_actions: (string)[];
   fairness: SchedulingFairness;
+}
+export interface SchedulingToolBinding {
+  profile_id: string;
+  profile_sha256: string;
+  command_id: string;
 }
 export interface SessionOrganization {
   id: string;

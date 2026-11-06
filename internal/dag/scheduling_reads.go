@@ -92,6 +92,15 @@ func (e *Engine) AdmissionSnapshotTx(ctx context.Context, tx *sql.Tx, tenant, pr
 		out.Status = "not_pending"
 		return out, nil
 	}
+	if out.NodeState == "ready" || out.NodeState == "pending" {
+		id, sha, bound, err := ToolBinding(spec)
+		if err != nil {
+			return out, err
+		}
+		if bound {
+			out.ToolBinding = &SchedulingToolBinding{ProfileID: id, ProfileSHA256: sha, CommandID: spec.Command[0]}
+		}
+	}
 	add := func(code, message, source string) {
 		out.Blockers = append(out.Blockers, SchedulingBlocker{Code: code, Message: message, Source: source, RunID: runID, NodeID: nodeID})
 	}

@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-QUEUE-TOOL-BLOCKERS 核验档案状态、项目隔离、固定依据、授权响应和中英文队列往返。 [阶段验证](queue-tool-blockers-verification.md)
+
 T-TOOL-DIAGNOSTIC-HANDOFF 核验当前配置范围、诊断定位、原操作优先、运行影响尝试及中英文浏览器往返。 [阶段验证](tool-diagnostic-handoff-verification.md)
 
 T-RUN-TOOL-RETURN 核验四类固定工具节点、准确配置读取、导航保护和历史尝试往返。 [阶段验证](run-tool-return-verification.md)

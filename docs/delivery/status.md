@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-QUEUE-TOOL-BLOCKERS 待派发队列和节点详情说明固定工具的当前阻塞。队列可直达准确工具体检并返回原节点，CLI 读取同一事实。 [交互](../design/scheduling-workspace.md#队列分诊) · [验证](../quality/queue-tool-blockers-verification.md)
+
 T-TOOL-DIAGNOSTIC-HANDOFF 从执行进入工具管理直接定位准确配置的体检与返回入口。配置不匹配可重读，运行影响记录保留已记录尝试。 [交互](../design/tool-management.md#从执行详情核对工具配置) · [验证](../quality/tool-diagnostic-handoff-verification.md)
 
 T-RUN-TOOL-RETURN 已绑定工具的智能体、测试、命令与终端节点可从执行详情查看配置和当前派发原因。工具管理可返回原节点及已选尝试。 [交互](../design/tool-management.md#从执行详情核对工具配置) · [验证](../quality/run-tool-return-verification.md)

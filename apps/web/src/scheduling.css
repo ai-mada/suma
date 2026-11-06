@@ -198,6 +198,7 @@
   overflow-wrap: anywhere;
 }
 .scheduling-open-link,
+.scheduling-tool-link,
 .scheduling-policy-link {
   display: inline-flex;
   flex-wrap: wrap;
@@ -207,6 +208,7 @@
   min-height: 36px;
   overflow-wrap: anywhere;
 }
+.scheduling-tool-link svg { flex: none; }
 .scheduling-blockers {
   list-style: none;
   padding: 0;

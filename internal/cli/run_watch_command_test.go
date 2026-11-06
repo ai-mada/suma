@@ -115,6 +115,7 @@ func TestRunWatchCommandCancellationAndInvalidInput(t *testing.T) {
 }
 
 func TestRunWatchCommandSchedulingReads(t *testing.T) {
+	const admission = `{"run_id":"run-1","node_id":"test","status":"blocked","blockers":[{"code":"tool_profile_paused","source":"tool"}],"tool_binding":{"profile_id":"tool-one","command_id":"check","profile_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}`
 	var calls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet || r.URL.Query().Get("project_id") != "project-one" {
@@ -125,12 +126,12 @@ func TestRunWatchCommandSchedulingReads(t *testing.T) {
 			if r.URL.Path != "/api/v1/scheduling/queue" || r.URL.Query().Get("limit") != "2" || r.URL.Query().Get("cursor") != "opaque_cursor" {
 				t.Error("queue read lost its cursor or limit")
 			}
-			fmt.Fprint(w, `{"items":[],"next_cursor":"another_cursor"}`)
+			fmt.Fprint(w, `{"items":[{"run_id":"run-1","node_id":"test","admission":`+admission+`}],"next_cursor":"another_cursor"}`)
 		case 2:
 			if r.URL.Path != "/api/v1/runs/run-1/nodes/test/scheduling" {
 				t.Error("scheduling read is not scoped to the exact run and node")
 			}
-			fmt.Fprint(w, `{"run_id":"run-1","node_id":"test","blockers":[]}`)
+			fmt.Fprint(w, admission)
 		default:
 			t.Error("unexpected scheduling request")
 		}
@@ -144,7 +145,8 @@ func TestRunWatchCommandSchedulingReads(t *testing.T) {
 		{[]string{"run", "scheduling", "run-1", "--node", "test"}, "blockers"},
 	} {
 		code, stdout, stderr := invoke(t, server.URL, tc.args...)
-		if code != 0 || !strings.Contains(stdout, tc.want) || stderr != "" {
+		if code != 0 || !strings.Contains(stdout, tc.want) || !strings.Contains(stdout, `"tool_profile_paused"`) ||
+			!strings.Contains(stdout, `"profile_id": "tool-one"`) || stderr != "" {
 			t.Fatalf("%v exit=%d stdout=%q stderr=%q", tc.args, code, stdout, stderr)
 		}
 	}

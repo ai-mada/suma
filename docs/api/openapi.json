@@ -22073,6 +22073,11 @@
               "not_pending"
             ],
             "type": "string"
+          },
+          "tool_binding": {
+            "$ref": "#/components/schemas/SchedulingToolBinding",
+            "description": "Fixed tool profile and command from the exact run node. Current tool authorization blockers are separate from worker eligibility.",
+            "readOnly": true
           }
         },
         "required": [
@@ -35460,6 +35465,31 @@
           "resources",
           "allowed_actions",
           "fairness"
+        ],
+        "type": "object"
+      },
+      "SchedulingToolBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
+          },
+          "profile_id": {
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
+          },
+          "profile_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_id",
+          "profile_sha256",
+          "command_id"
         ],
         "type": "object"
       },

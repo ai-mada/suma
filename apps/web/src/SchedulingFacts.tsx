@@ -95,6 +95,16 @@ export const schedulingUnitLabel = (unit?: string) =>
 export const schedulingNodeStateLabel = (state: string) =>
   state === "waiting" ? t("development.scheduling.node_waiting") : stateLabel(state);
 export function schedulingBlockerTitle(blocker: SchedulingBlocker) {
+  if (blocker.source === "tool") {
+    switch (blocker.code) {
+      case "tool_profile_missing": return t("development.scheduling.tool_profile_missing");
+      case "tool_profile_changed": return t("development.scheduling.tool_profile_changed");
+      case "tool_profile_paused": return t("development.scheduling.tool_profile_paused");
+      case "tool_profile_revoked": return t("development.scheduling.tool_profile_revoked");
+      case "tool_activation_revoked": return t("development.scheduling.tool_activation_revoked");
+      default: return blocker.message || blocker.code;
+    }
+  }
   if (blocker.source === "pool") {
     const names: Record<string, string> = {
       pool_scope_inactive: t("development.scheduling.shared_pool_project_grant_is_disabled"),

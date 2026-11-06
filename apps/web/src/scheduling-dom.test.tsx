@@ -1003,6 +1003,57 @@ describe("actual scheduling consumers with synthetic HTTP fixtures", () => {
     await flush(() => rows().length === 0);
     expect(container.querySelector('[data-queue-filter]')).toBeNull();
   });
+  it("opens diagnostics only for an exact current fixed tool blocker", async () => {
+    const binding = { profile_id: "profile-1", profile_sha256: "a".repeat(64), command_id: "verify" };
+    const row = (node_id: string, code: string, tool_binding = binding) => ({
+      ...entry, node_id, command_id: binding.command_id,
+      admission: {
+        run_id: entry.run_id, node_id, run_version: entry.run_version,
+        node_state: entry.node_state, attempt: entry.attempt, fence: entry.fence,
+        policy_version: 1, evaluated_at: entry.ready_at, requests: [], reservations: [], status: "blocked",
+        blockers: [{ code, source: "tool", message: "source tool reason", run_id: entry.run_id, node_id }],
+        tool_binding,
+      },
+    });
+    const exact = row(entry.node_id, "tool_profile_paused");
+    const missing = row("missing", "tool_profile_missing");
+    const malformed = row("malformed", "tool_profile_changed", { ...binding, profile_sha256: "invalid" });
+    const wrongCommand = row("wrong-command", "tool_profile_revoked", { ...binding, command_id: "other" });
+    const wrongNode = row("wrong-node", "tool_activation_revoked");
+    wrongNode.admission.blockers[0].node_id = entry.node_id;
+    let fail = false;
+    vi.stubGlobal("fetch", vi.fn(async () => fail
+      ? response({ error: { message: "Read unavailable" } }, 503)
+      : response({ items: [exact, missing, malformed, wrongCommand, wrongNode], total: 5 })));
+
+    await render(<SchedulingQueue project="p" refresh={0} onRun={() => {}} />);
+    await flush(() => !!container.querySelector("[data-queue-tool-diagnostics]"));
+    const links = container.querySelectorAll<HTMLAnchorElement>("[data-queue-tool-diagnostics]");
+    expect(links).toHaveLength(1);
+    const link = links[0];
+    expect(link.closest("[data-queue-entry]")?.querySelector(".scheduling-queue-reason")?.textContent).toBe("固定工具档案已暂停");
+    expect(link.closest("[data-queue-entry]")?.querySelector(".scheduling-open-link")).not.toBeNull();
+    expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({
+      project: "p", view: "settings", sub: "tools", record: "profile-1", panel: "return-run:run-exact/map%5B2%5D",
+    });
+
+    const guard = vi.fn((event: Event) => event.preventDefault());
+    window.addEventListener("suma:navigate", guard);
+    try {
+      expect(link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))).toBe(false);
+      window.addEventListener("click", event => event.preventDefault(), { once: true });
+      link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: true }));
+      expect(guard).toHaveBeenCalledOnce();
+    } finally {
+      window.removeEventListener("suma:navigate", guard);
+    }
+
+    fail = true;
+    await click("重新读取队列");
+    await flush(() => !!container.querySelector('[role="alert"]'));
+    expect(container.querySelector("[data-queue-tool-diagnostics]")).toBeNull();
+    expect(container.querySelector(".scheduling-open-link")).not.toBeNull();
+  });
   it("uses the App queue link to open the exact node and browser Back restores the shared queue scope", async () => {
     history.replaceState(
       null,

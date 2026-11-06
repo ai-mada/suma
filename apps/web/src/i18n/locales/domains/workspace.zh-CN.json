@@ -131,6 +131,8 @@
   "workspace.queue.open_node": "查看运行节点",
   "workspace.queue.open_named_node": "查看运行节点 {{node}}",
   "workspace.queue.open_policy": "查看项目额度",
+  "workspace.queue.open_tool_diagnostics": "检查工具配置",
+  "workspace.queue.open_named_tool_diagnostics": "检查工具配置（{{node}}）",
   "workspace.queue.diagnostic_details": "诊断详情",
   "workspace.queue.reload": "重新读取队列",
   "workspace.queue.unconfirmed": "当前队列未确认；以下如有记录，仅为上次成功读取。",

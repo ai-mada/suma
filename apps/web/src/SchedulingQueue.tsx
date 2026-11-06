@@ -1,11 +1,12 @@
-import { useId, useRef, useState, type RefObject } from "react";
-import { ArrowRight, CircleAlert, CircleCheck, CircleHelp, RefreshCw } from "lucide-react";
+import { useId, useRef, useState, type MouseEvent, type RefObject } from "react";
+import { ArrowRight, CircleAlert, CircleCheck, CircleHelp, RefreshCw, Wrench } from "lucide-react";
 import { query, time } from "./api";
 import { useApiView } from "./api-context";
 import { tr as t, useLocale, formatNumber, UiError } from "./i18n";
 import { AdmissionFacts, schedulingBlockerTitle } from "./SchedulingFacts";
-import { executionHref, validQueueRun, type QueueRoute, type ReadyEntry } from "./scheduling-model";
+import { executionHref, validQueueRun, type QueueRoute, type ReadyEntry, type SchedulingBlocker } from "./scheduling-model";
 import { useSchedulingPage } from "./scheduling-hooks";
+import { toolReturnPanel } from "./tool-model";
 import { ErrorNotice, Loading, Empty } from "./ui";
 import "./scheduling.css";
 
@@ -21,6 +22,9 @@ type Props = {
   onQueueScope?: (route?: QueueRoute, run?: string) => void;
 };
 const statusIcons = { blocked: CircleAlert, unknown: CircleHelp, checked: CircleCheck };
+const actionableToolBlockers = new Set(["tool_profile_changed", "tool_profile_paused", "tool_profile_revoked", "tool_activation_revoked"]);
+const toolIdentity = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
+const profileDigest = /^[a-f0-9]{64}$/;
 
 function isQueueEntry(project: string) {
   const query = new URLSearchParams(location.search);
@@ -50,6 +54,24 @@ function frozenRoute(admission: ReadyEntry["admission"]): QueueRoute | undefined
   const pool = admission.execution_pool_id;
   if (pool === undefined || pool === "") return "project";
   if (typeof pool === "string") return "pool";
+}
+
+function toolDiagnosticsHref(project: string, item: ReadyEntry, admission: ReadyEntry["admission"], blocker?: SchedulingBlocker) {
+  const binding = admission?.tool_binding;
+  if (admission?.status !== "blocked" || !blocker || !actionableToolBlockers.has(blocker.code) ||
+      blocker.run_id !== item.run_id || blocker.node_id !== item.node_id || !binding ||
+      typeof binding.profile_id !== "string" || !toolIdentity.test(binding.profile_id) ||
+      typeof binding.command_id !== "string" || !toolIdentity.test(binding.command_id) || binding.command_id !== item.command_id ||
+      typeof binding.profile_sha256 !== "string" || !profileDigest.test(binding.profile_sha256) ||
+      !validQueueRun(item.run_id) || !item.node_id) return undefined;
+
+  const panel = toolReturnPanel(item.run_id, item.node_id);
+  return panel ? "?" + new URLSearchParams({ project, view: "settings", sub: "tools", record: binding.profile_id, panel }) : undefined;
+}
+
+function guardQueueNavigation(event: MouseEvent<HTMLAnchorElement>) {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  if (!window.dispatchEvent(new Event("suma:navigate", { cancelable: true }))) event.preventDefault();
 }
 
 function QueueScopeForm({
@@ -201,6 +223,8 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
         <ul className="scheduling-queue">
           {visible.map(({ item, admission, status }) => {
             const primary = admission?.blockers.find(blocker => blocker.code !== "worker_capability_unknown") ?? admission?.blockers[0];
+            const toolBlocker = admission?.blockers.find(blocker => blocker.source === "tool");
+            const toolHref = toolDiagnosticsHref(project, item, admission, toolBlocker);
             const hasPolicyBlocker = status === "blocked" && admission?.blockers.some(blocker =>
               blocker.source === "policy" && (blocker.code === "resource_capacity" || blocker.code === "budget_exhausted"));
             const StatusIcon = statusIcons[status];
@@ -222,6 +246,7 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
                 <p className="scheduling-queue-reason">
                   {primary ? schedulingBlockerTitle(primary) : t(status === "checked" ? "workspace.queue.next_dispatch" : "workspace.queue.conditions_unknown")}
                 </p>
+                {toolBlocker && toolBlocker !== primary && <p className="scheduling-queue-reason">{schedulingBlockerTitle(toolBlocker)}</p>}
                 <small className="muted">
                   {t("workspace.queue.ready_at", { at: time(item.ready_at), attempts: formatNumber(item.attempt) })}
                 </small>
@@ -235,6 +260,11 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
                     }}>
                     {t("workspace.queue.open_node")} <ArrowRight size={15} aria-hidden="true" />
                   </a>
+                  {toolHref && <a className="scheduling-tool-link" data-queue-tool-diagnostics href={toolHref}
+                    aria-label={t("workspace.queue.open_named_tool_diagnostics", { node: item.node_name || item.node_id })}
+                    onClick={guardQueueNavigation}>
+                    <Wrench size={15} aria-hidden="true" /> {t("workspace.queue.open_tool_diagnostics")}
+                  </a>}
                   {confirmed && onQueueScope && !queueRun && validQueueRun(item.run_id) &&
                     <button className="scheduling-queue-focus-run" type="button" data-queue-focus-run
                       aria-label={t("workspace.queue.focus_named_run", { run: item.run_id })}
@@ -243,10 +273,7 @@ function ProjectSchedulingQueue({ project, refresh, onRun, scope, queueRoute, qu
                         input.current?.focus();
                       }}>{t("workspace.queue.focus_run")}</button>}
                   {hasPolicyBlocker && <a className="scheduling-policy-link" data-queue-policy href={policyHref}
-                    onClick={event => {
-                      if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey &&
-                          !window.dispatchEvent(new Event("suma:navigate", { cancelable: true }))) event.preventDefault();
-                    }}>{t("workspace.queue.open_policy")}</a>}
+                    onClick={guardQueueNavigation}>{t("workspace.queue.open_policy")}</a>}
                 </div>
                 {admission && <details className="scheduling-queue-details" data-queue-details>
                   <summary>{t("workspace.queue.diagnostic_details")}</summary>

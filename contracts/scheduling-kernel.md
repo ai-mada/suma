@@ -78,6 +78,12 @@ NodeAdmissionSnapshot {run_id,node_id,run_version,node_state,attempt,fence,polic
 
 总数和有序分页使用相同条件。游标绑定租户、项目及两项筛选，不能在变更条件后继续使用旧游标。查询使用原队列和准入模型，不变更运行、领取、预算或池状态。
 
+### 固定工具准入
+
+队列与精确节点调度使用相同的当前项目授权事务。待派发或等待依赖的节点有完整固定工具时，`tool_binding` 返回 `profile_id`、`profile_sha256` 与 `command_id`。按该引用核对当前项目的档案。档案缺失、固定指纹或命令变化、暂停、撤销及启用审批权失效分别返回 `tool_profile_missing`、`tool_profile_changed`、`tool_profile_paused`、`tool_profile_revoked`、`tool_activation_revoked`。阻塞的 `source` 为 `tool`。
+
+同页多节点引用相同档案时复用事务内的档案和授权读取。固定档案当前有效时，仍独立核对额度、共享池及领取节点。状态不推断机器在线、模型登录或探测结果。工作台可以打开当前项目的准确工具诊断，再返回原执行节点。缺失档案保留原执行入口。
+
 ## 真实用量与原生过程额度
 
 1. `ToolUsage`每个计数字段保存presence，已报告0必须序列化为0，未报告字段省略；整数范围0..9007199254740991。空usage不是零用量，拒绝错型、负数、小数及溢出。

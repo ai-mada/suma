@@ -63,10 +63,18 @@ type ResourceReservationSnapshot struct {
 	Fence        int64  `json:"fence"`
 }
 
+// SchedulingToolBinding is the immutable tool identity pinned by the node.
+type SchedulingToolBinding struct {
+	ProfileID     string `json:"profile_id"`
+	ProfileSHA256 string `json:"profile_sha256"`
+	CommandID     string `json:"command_id"`
+}
+
 type NodeAdmissionSnapshot struct {
 	ExecutionPoolID   string                        `json:"execution_pool_id,omitempty"`
 	PoolPolicyVersion int                           `json:"pool_policy_version,omitempty"`
 	PoolResources     []ResourceSnapshot            `json:"pool_resources,omitempty"`
+	ToolBinding       *SchedulingToolBinding        `json:"tool_binding,omitempty" wire:"nonnull"`
 	RunID             string                        `json:"run_id"`
 	NodeID            string                        `json:"node_id"`
 	RunVersion        int                           `json:"run_version"`
