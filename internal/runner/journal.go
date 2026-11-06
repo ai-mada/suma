@@ -93,6 +93,13 @@ func openJournal(dir string, maintenanceOnly bool) (*Journal, error) {
 		if decoder.Decode(new(any)) != io.EOF {
 			return nil, fmt.Errorf("journal contains trailing data")
 		}
+		for _, e := range j.entries {
+			for _, p := range e.Progress {
+				if !validProgressDisposition(p.Acked, p.Rejection, p.HostOperation != nil) {
+					return nil, fmt.Errorf("journal contains invalid progress disposition")
+				}
+			}
+		}
 	}
 	if err = j.loadInventory(); err != nil {
 		return nil, err
@@ -452,6 +459,15 @@ func cloneToolEvent(v *tc.Event) *tc.Event {
 	}
 	return &copy
 }
+
+func validProgressDisposition(acked bool, rejection ProgressRejection, hostOperation bool) bool {
+	return rejection == "" || rejection == ProgressRejectedStaleAttempt && !acked && !hostOperation
+}
+
+func (p Progress) pending() bool {
+	return !p.Acked && p.Rejection == ""
+}
+
 func (j *Journal) PendingProgress() []Progress {
 	j.mu.Lock()
 	defer j.mu.Unlock()
@@ -463,7 +479,7 @@ func (j *Journal) PendingProgress() []Progress {
 	result := []Progress{}
 	for _, k := range keys {
 		for _, p := range j.entries[k].Progress {
-			if !p.Acked {
+			if p.pending() {
 				p.ToolEvent = cloneToolEvent(p.ToolEvent)
 				p.HostOperation = cloneWorkspaceEvent(p.HostOperation)
 				p.Assignment = cloneModelAssignment(p.Assignment)
@@ -474,14 +490,36 @@ func (j *Journal) PendingProgress() []Progress {
 	return result
 }
 func (j *Journal) AckProgress(id string) error {
+	return j.finalizeProgress(id, "")
+}
+
+// RejectStaleProgress retains the original progress and records a terminal
+// rejection after the control plane proves its attempt is stale. This is not an
+// acknowledgement and does not change the business result.
+func (j *Journal) RejectStaleProgress(id string) error {
+	return j.finalizeProgress(id, ProgressRejectedStaleAttempt)
+}
+
+func (j *Journal) finalizeProgress(id string, rejection ProgressRejection) error {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	for k, e := range j.entries {
 		for i, p := range e.Progress {
 			if p.OperationID == id {
+				acked := rejection == ""
+				if !validProgressDisposition(acked, rejection, p.HostOperation != nil) {
+					return fmt.Errorf("invalid progress disposition")
+				}
+				if !p.pending() {
+					if p.Acked == acked && p.Rejection == rejection {
+						return nil
+					}
+					return fmt.Errorf("progress already has a different disposition")
+				}
 				previous := e
 				e.Progress = append([]Progress(nil), e.Progress...)
-				e.Progress[i].Acked = true
+				e.Progress[i].Acked = acked
+				e.Progress[i].Rejection = rejection
 				j.entries[k] = e
 				if err := j.save(); err != nil {
 					j.entries[k] = previous

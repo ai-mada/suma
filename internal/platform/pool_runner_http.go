@@ -329,7 +329,7 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			}
 			return s.Service.ValidatePoolToolProgressTx(r.Context(), tx, proof, req.Assignment, req.ToolEvent)
 		})
-		respond(w, 200, map[string]bool{"acknowledged": err == nil}, err)
+		respondRunnerProgress(w, err)
 	case "pool-runner/results":
 		var req PoolRunnerResultRequest
 		if err := decode(&req); err != nil {

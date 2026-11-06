@@ -218,7 +218,7 @@ func TestProgressNativeDiagnosticSanitizationReceiptAndRestart(t *testing.T) {
 	if next == nil || next.Attempt != 2 || next.Fence == a.Fence {
 		t.Fatalf("retry did not retain attempt fencing: %+v", next)
 	}
-	if err = e.Progress(ctx, "t", "p", *a, "old-attempt", "", &static); !errors.Is(err, ErrStale) {
+	if err = e.Progress(ctx, "t", "p", *a, "old-attempt", "", &static); !errors.Is(err, ErrProgressStale) {
 		t.Fatalf("prior attempt accepted: %v", err)
 	}
 }
@@ -232,7 +232,13 @@ func TestProgressExpiredLeaseAndSizeAreRejected(t *testing.T) {
 	if _, err := e.db.Exec("UPDATE dag_nodes SET lease_until=0 WHERE run_id=?", a.RunID); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.Progress(ctx, "t", "p", *a, "expired", "text"); !errors.Is(err, ErrStale) {
+	if err := e.Progress(ctx, "t", "p", *a, "expired", "text"); !errors.Is(err, ErrProgressStale) || !errors.Is(err, ErrStale) {
 		t.Fatalf("lease: %v", err)
+	}
+	if _, err := e.db.Exec("UPDATE dag_nodes SET spec='{' WHERE run_id=?", a.RunID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.Progress(ctx, "t", "p", *a, "broken-node", "text"); err == nil || errors.Is(err, ErrStale) {
+		t.Fatalf("node-load failure was not retained: %v", err)
 	}
 }

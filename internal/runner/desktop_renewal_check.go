@@ -306,7 +306,9 @@ func inspectDesktopRenewalJournal(raw []byte, add func(string)) {
 			add("pending_receipt")
 		}
 		for _, progress := range e.Progress {
-			if !progress.Acked {
+			if !validProgressDisposition(progress.Acked, progress.Rejection, progress.HostOperation != nil) {
+				add("invalid_state")
+			} else if progress.pending() {
 				add("pending_receipt")
 			}
 		}

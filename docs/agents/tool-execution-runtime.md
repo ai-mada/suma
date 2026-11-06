@@ -49,6 +49,8 @@ stdout 按 64 KiB 单行、32 层／32768 token 的 JSON 结构上限解析，�
 
 typed progress 与原文本 progress 共用 Journal、稳定 ordinal operation ID 和 ACK 重放，绑定 run/node/attempt/fence/worker，最终结果另保存 ToolEvidence。会话 ID 仅供人工定位，不读取外部登录文件、不自动重放／恢复不确定副作用。远端会话恢复、外部桥接重启查询、完整终端／输入中介仍在后续范围。
 
+普通节点和共享池节点重连时，控制面先核对当前回调权限和原操作回执。若未提交的文本或工具进度属于已失效的原派发，且持久尝试能证明完整身份，则返回 `409 runner_progress_stale`。Runner 保留原进度与操作标识，持久写入 `stale_attempt` 后继续重放。已入库但确认丢失的进度恢复原确认。一般冲突、网络错误与授权失败保留待核对状态。停止和最终结果继续走独立的回执校验。 [验证记录](../quality/runner-progress-stale-verification.md)
+
 ## 验证边界
 
 新增测试记录了缺失功能、原生凭证混用、入口字节漂移、协议身份／顺序、非法preset与缺失用量计数的真实失败，再验证修复。初次域内 `go test ./internal/runner -json -count=1` 为111个通过事件（含子测试和helper），0失败、0跳过，61.973秒；`go vet ./internal/runner ./cmd/suma-runner`退出0。39份Runtime源文件当时前后摘要一致。Native CLI5项测试及typecheck通过。库存503／恢复测试使用实际200ms子进程，保持心跳与正常结果后才恢复新领取；非法配置和129条配置明确拒绝。

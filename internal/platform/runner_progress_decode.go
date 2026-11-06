@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/localization"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -57,4 +58,14 @@ func decodeRunnerProgressEvent(value any) (*toolcontract.Event, error) {
 		return nil, invalid("工具进度必须是受限事件对象")
 	}
 	return &event, nil
+}
+
+func respondRunnerProgress(w http.ResponseWriter, err error) {
+	if errors.Is(err, dag.ErrProgressStale) {
+		err = &diagnosticAPIError{
+			cause: &APIError{http.StatusConflict, executioncontract.RunnerProgressStaleCode, "DAG 派发已失效", nil},
+			key:   "dag.error.stale_assignment",
+		}
+	}
+	respond(w, http.StatusOK, map[string]bool{"acknowledged": err == nil}, err)
 }

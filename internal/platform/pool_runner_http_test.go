@@ -83,10 +83,40 @@ func TestPoolMachineToolInventoryKeepsProjectApprovalAndTTL(t *testing.T) {
 	body["message"] = ""
 	body["tool_event"] = event
 	f.bearer("POST", "/pool-runner/progress", token, body, 200)
+	acceptedOperation := body["operation_id"]
 	event.ProfileSHA256 = toolTestProfile().ExecutableSHA256
 	body["operation_id"] = newID()
 	body["tool_event"] = event
 	f.bearer("POST", "/pool-runner/progress", token, body, 400)
+	if _, err = f.s.DB.Exec(`UPDATE dag_nodes SET lease_until=0 WHERE run_id=? AND id=?`, a.RunID, a.NodeID); err != nil {
+		t.Fatal(err)
+	}
+	event.ProfileSHA256 = profile.ProfileSHA256
+	body["tool_event"] = event
+	body["operation_id"] = acceptedOperation
+	f.bearer("POST", "/pool-runner/progress", token, body, 200)
+	body["operation_id"] = newID()
+	closed := f.bearer("POST", "/pool-runner/progress", token, body, 409)
+	if e := closed["error"].(map[string]any); e["code"] != "runner_progress_stale" {
+		t.Fatalf("expired pool assignment must return its specific rejection: %+v", e)
+	}
+	if _, err = f.s.DB.Exec(`UPDATE dag_wakeups SET due_at=1 WHERE run_id=? AND node_id=? AND kind='lease'`, a.RunID, a.NodeID); err != nil {
+		t.Fatal(err)
+	}
+	if err = f.e.Tick(ctx); err != nil {
+		t.Fatal(err)
+	}
+	current, err := f.e.GetRun(ctx, a.TenantID, a.ProjectID, a.RunID)
+	if err != nil || current.Nodes[0].State != "reconciling" {
+		t.Fatalf("scheduler did not retain the expired attempt for reconciliation: %v", err)
+	}
+	stop := poolAssignmentBody(a)
+	stop["result"] = dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, ExitCode: 1, Stopped: true, OperationID: newID()}
+	f.bearer("POST", "/pool-runner/results", token, stop, 200)
+	current, err = f.e.GetRun(ctx, a.TenantID, a.ProjectID, a.RunID)
+	if err != nil || current.Nodes[0].State != "failed" {
+		t.Fatalf("original stop did not resolve the attempt as failed: %v", err)
+	}
 }
 
 func newPoolMachineFixture(t *testing.T) *poolMachineFixture {

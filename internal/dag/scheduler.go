@@ -287,8 +287,14 @@ func (t *transaction) assigned(tenant, project string, a Assignment) (*runState,
 		return nil, nil, err
 	}
 	n := r.find(a.NodeID)
-	if n == nil || n.Attempt != a.Attempt || n.Fence != a.Fence || n.WorkerID != a.WorkerID || n.State != "running" || n.lease <= t.now {
+	if r.loadErr != nil {
+		return nil, nil, r.loadErr
+	}
+	if n == nil {
 		return nil, nil, ErrStale
+	}
+	if n.Attempt != a.Attempt || n.Fence != a.Fence || n.WorkerID != a.WorkerID || n.State != "running" || n.lease <= t.now {
+		return r, nil, ErrStale
 	}
 	return r, n, nil
 }

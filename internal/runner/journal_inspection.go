@@ -71,7 +71,9 @@ type inspectionDiskEntry struct {
 	} `json:"result"`
 	Acked    bool `json:"acked"`
 	Progress []struct {
-		Acked bool `json:"acked"`
+		Acked         bool              `json:"acked"`
+		Rejection     ProgressRejection `json:"rejection"`
+		HostOperation *struct{}         `json:"host_operation"`
 	} `json:"progress"`
 	ProgressTruncated bool      `json:"progress_truncated"`
 	ArtifactPending   *struct{} `json:"artifact_pending"`
@@ -211,7 +213,10 @@ func inspectJournalBytes(raw []byte) JournalInspection {
 			out.Counts.UnresolvedInbox++
 		}
 		for _, progress := range disk.Progress {
-			if !progress.Acked {
+			if !validProgressDisposition(progress.Acked, progress.Rejection, progress.HostOperation != nil) {
+				return invalid
+			}
+			if !progress.Acked && progress.Rejection == "" {
 				item.PendingProgress++
 				out.Counts.PendingProgress++
 			}

@@ -72,13 +72,18 @@ type Result struct {
 	candidatePending  bool
 }
 
+type ProgressRejection string
+
+const ProgressRejectedStaleAttempt ProgressRejection = "stale_attempt"
+
 type Progress struct {
-	Assignment    Assignment `json:"assignment"`
-	OperationID   string     `json:"operation_id"`
-	Message       string     `json:"message"`
-	ToolEvent     *tc.Event  `json:"tool_event,omitempty"`
-	HostOperation *wc.Event  `json:"host_operation,omitempty"`
-	Acked         bool       `json:"acked,omitempty"`
+	Assignment    Assignment        `json:"assignment"`
+	OperationID   string            `json:"operation_id"`
+	Message       string            `json:"message"`
+	ToolEvent     *tc.Event         `json:"tool_event,omitempty"`
+	HostOperation *wc.Event         `json:"host_operation,omitempty"`
+	Acked         bool              `json:"acked,omitempty"`
+	Rejection     ProgressRejection `json:"rejection,omitempty"` // Local journal disposition.
 }
 
 // Result carries only completion fields on the wire, independently of the full durable assignment.

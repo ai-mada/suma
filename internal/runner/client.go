@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/ai-mada/suma/internal/executioncontract"
 )
 
 type Client struct {
@@ -20,6 +23,7 @@ type Client struct {
 type runnerHTTPStatusError struct {
 	Path   string
 	Status int
+	Code   string
 }
 
 func (e *runnerHTTPStatusError) Error() string {
@@ -64,7 +68,19 @@ func (c *Client) post(ctx context.Context, path string, payload, reply any) erro
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return &runnerHTTPStatusError{Path: path, Status: resp.StatusCode}
+		rejected := &runnerHTTPStatusError{Path: path, Status: resp.StatusCode}
+		if path == "progress" && resp.StatusCode == http.StatusConflict {
+			var body struct {
+				Error struct{ Code string } `json:"error"`
+			}
+			bounded := &io.LimitedReader{R: resp.Body, N: 16 << 10}
+			decoder := json.NewDecoder(bounded)
+			if decoder.Decode(&body) == nil && body.Error.Code == executioncontract.RunnerProgressStaleCode &&
+				decoder.Decode(new(json.RawMessage)) == io.EOF && bounded.N > 0 {
+				rejected.Code = body.Error.Code
+			}
+		}
+		return rejected
 	}
 	if reply != nil {
 		return json.NewDecoder(io.LimitReader(resp.Body, 2<<20)).Decode(reply)
@@ -107,14 +123,25 @@ func ReplayProgress(ctx context.Context, c *Client, j *Journal) error {
 	if err := drainWorkspaceProgress(ctx, j, c.Progress); err != nil {
 		return err
 	}
+	return replayStandardProgress(ctx, j, c.Progress)
+}
+
+// A definitive stale rejection is a durable local disposition, separate from
+// an ACK. Other failures retain the original request for ordered replay.
+func replayStandardProgress(ctx context.Context, j *Journal, send func(context.Context, Progress) error) error {
 	for _, p := range j.PendingProgress() {
 		if p.HostOperation != nil {
 			continue
 		}
-		if err := c.Progress(ctx, p); err != nil {
-			return err
+		err := send(ctx, p)
+		var rejected *runnerHTTPStatusError
+		switch {
+		case err == nil:
+			err = j.AckProgress(p.OperationID)
+		case errors.As(err, &rejected) && rejected.Code == executioncontract.RunnerProgressStaleCode:
+			err = j.RejectStaleProgress(p.OperationID)
 		}
-		if err := j.AckProgress(p.OperationID); err != nil {
+		if err != nil {
 			return err
 		}
 	}

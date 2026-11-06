@@ -1174,7 +1174,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			}
 			return s.Service.validateToolProgressTx(authority.ctx, tx, authority.proof, assignment, event)
 		})
-		respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
+		respondRunnerProgress(w, e)
 	case "runner/repository-integrations/authorize":
 		var req ri.RepositoryAuthorizationRequest
 		if err := repositoryDecodeBody(m, &req); err != nil {

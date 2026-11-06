@@ -136,7 +136,10 @@ func openDesktopRecovery(stateDir, project, worker, temp string) (*desktopRecove
 			s.unsupported = true
 		}
 		for _, p := range e.Progress {
-			if !p.Acked {
+			if !validProgressDisposition(p.Acked, p.Rejection, p.HostOperation != nil) {
+				return fail("invalid_state")
+			}
+			if p.pending() {
 				s.unsupported = true
 			}
 		}

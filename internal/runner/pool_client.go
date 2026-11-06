@@ -146,20 +146,14 @@ func replayPool(ctx context.Context, c *Client, j *Journal) error {
 	if len(j.pendingArtifacts()) != 0 || len(j.pendingReleases()) != 0 {
 		return fmt.Errorf("pool artifact/deployment recovery requires an explicit independent capability")
 	}
-	for _, p := range j.PendingProgress() {
-		if p.HostOperation != nil {
-			continue
-		}
+	if err := replayStandardProgress(ctx, j, func(ctx context.Context, p Progress) error {
 		scoped, err := c.forPoolAssignment(p.Assignment)
 		if err != nil {
 			return err
 		}
-		if err = scoped.Progress(ctx, p); err != nil {
-			return err
-		}
-		if err = j.AckProgress(p.OperationID); err != nil {
-			return err
-		}
+		return scoped.Progress(ctx, p)
+	}); err != nil {
+		return err
 	}
 	for _, r := range j.Pending() {
 		scoped, err := c.forPoolAssignment(r.Assignment)

@@ -5,11 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ai-mada/suma/internal/toolcontract"
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/ai-mada/suma/internal/toolcontract"
 )
+
+// ErrProgressStale means a previously recorded assignment can no longer accept
+// this progress operation. An acknowledged operation still replays successfully.
+var ErrProgressStale = fmt.Errorf("progress assignment closed: %w", ErrStale)
 
 var progressANSI = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
 var progressCredential = regexp.MustCompile(`(?i)(authorization\s*[:=]\s*bearer\s+|api[_-]?key\s*[:=]\s*|token\s*[:=]\s*)[^\s]+`)
@@ -74,6 +79,18 @@ func (e *Engine) ProgressWithAuthority(ctx context.Context, tenant, project stri
 		}
 		r, n, err := t.assigned(tenant, project, a)
 		if err != nil {
+			if err == ErrStale && r != nil {
+				// Only the durable original tuple can prove a queued operation
+				// is stale. A fabricated fence or a failed read cannot do so.
+				var known int
+				err = t.row(`SELECT 1 FROM dag_attempts WHERE run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=?`, r.ID, a.NodeID, a.Attempt, a.Fence, a.WorkerID).Scan(&known)
+				if err == nil {
+					return ErrProgressStale
+				}
+				if err == sql.ErrNoRows {
+					return ErrStale
+				}
+			}
 			return err
 		}
 		if toolEvent != nil {

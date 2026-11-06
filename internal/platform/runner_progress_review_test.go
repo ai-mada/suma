@@ -31,7 +31,10 @@ func TestRunnerProgressHTTPAuthorizationAndDurableReceipt(t *testing.T) {
 	f.bearer("POST", "/runner/progress", token, foreign, 403)
 	stale := a
 	stale.Fence++
-	f.bearer("POST", "/runner/progress", token, f.body(map[string]any{"assignment": stale, "operation_id": "stale-progress", "message": "text"}), 409)
+	unknown := f.bearer("POST", "/runner/progress", token, f.body(map[string]any{"assignment": stale, "operation_id": "stale-progress", "message": "text"}), 409)
+	if e := unknown["error"].(map[string]any); e["code"] != "version_conflict" {
+		t.Fatalf("unknown fence must keep its generic rejection: %+v", e)
+	}
 	f.bearer("POST", "/runner/progress", token, f.body(map[string]any{"assignment": a, "operation_id": "large-progress", "message": strings.Repeat("x", 8193)}), 400)
 	for range 2 {
 		ack := f.bearer("POST", "/runner/progress", token, request, 200)
@@ -39,10 +42,16 @@ func TestRunnerProgressHTTPAuthorizationAndDurableReceipt(t *testing.T) {
 			t.Fatal("progress did not ACK persistence")
 		}
 	}
-	f.bearer("POST", "/runner/progress", token, f.body(map[string]any{"assignment": a, "operation_id": "actual-progress-1", "message": "changed request"}), 409)
+	conflict := f.bearer("POST", "/runner/progress", token, f.body(map[string]any{"assignment": a, "operation_id": "actual-progress-1", "message": "changed request"}), 409)
+	if e := conflict["error"].(map[string]any); e["code"] != "version_conflict" {
+		t.Fatalf("changed receipt body must keep its conflict: %+v", e)
+	}
 	f.bearer("POST", "/runner/results", token, f.body(map[string]any{"result": dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, ExitCode: 0, Output: "final output", OperationID: "final-progress-result"}}), 200)
 	f.bearer("POST", "/runner/progress", token, request, 200)
-	f.bearer("POST", "/runner/progress", token, f.body(map[string]any{"assignment": a, "operation_id": "late-progress", "message": "new output after final"}), 409)
+	closed := f.bearer("POST", "/runner/progress", token, f.body(map[string]any{"assignment": a, "operation_id": "late-progress", "message": "new output after final"}), 409)
+	if e := closed["error"].(map[string]any); e["code"] != "runner_progress_stale" || e["message_key"] != "dag.error.stale_assignment" {
+		t.Fatalf("closed assignment must return its localized progress rejection: %+v", e)
+	}
 	current := f.call("GET", "/runs/"+run["id"].(string)+"?project_id="+f.project, nil, 200)
 	if current["state"] != "succeeded" || current["nodes"].([]any)[0].(map[string]any)["output"] != "final output" {
 		t.Fatal("progress replaced final result")
