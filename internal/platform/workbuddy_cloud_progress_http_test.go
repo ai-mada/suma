@@ -149,7 +149,14 @@ func TestWorkBuddyCloudProgressPreservesPreparedAndUnknown(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("provider attempt never started")
 	}
-	cloudProgressExpect(t, cloudProgressRequest(h, http.MethodGet, path, token), cloudProgressBase(t, h, "prepared"))
+	expectProgress := func(state string) {
+		t.Helper()
+		want := cloudProgressBase(t, h, state)
+		cloudProgressExpect(t, cloudProgressRequest(h, http.MethodGet, path, token), want)
+		cloudProgressExpect(t, cloudProgressRequest(h, http.MethodGet, cloudProgressListPath(h.f.project), token),
+			map[string]any{"project_id": h.f.project, "items": []any{want}})
+	}
+	expectProgress("prepared")
 	close(release)
 	select {
 	case err := <-done:
@@ -159,7 +166,7 @@ func TestWorkBuddyCloudProgressPreservesPreparedAndUnknown(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("provider attempt never finished")
 	}
-	cloudProgressExpect(t, cloudProgressRequest(h, http.MethodGet, path, token), cloudProgressBase(t, h, "unknown"))
+	expectProgress("unknown")
 	if h.creates.Load() != 1 || h.queries.Load() != 0 {
 		t.Fatal("reading uncertainty created or queried a supplier task")
 	}

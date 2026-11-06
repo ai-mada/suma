@@ -205,9 +205,10 @@ var cliMessages = map[string]cliMessage{
 	"live run event frame exceeds 16 MiB":                  {"cli.run.watch_frame_limit", "实时运行事件帧超过 16 MiB"},
 	"live run event stream reported an error":              {"cli.run.watch_stream_error", "实时运行事件流报告错误"},
 
-	workBuddyProgressUsage:    {"cli.run.workbuddy_status_usage", "run workbuddy-status 需要运行 ID 和一个 --node 节点 ID"},
-	workBuddyProgressInvalid:  {"cli.run.workbuddy_status_invalid", "WorkBuddy 进度响应无效或与请求的范围不一致"},
-	workBuddyProgressRejected: {"cli.run.workbuddy_status_rejected", "控制面拒绝读取 WorkBuddy 进度"},
+	workBuddyProgressListUsage: {"cli.run.workbuddy_list_usage", "run workbuddy-list 可指定一个 1–20 的 --limit 和原 --before 游标"},
+	workBuddyProgressUsage:     {"cli.run.workbuddy_status_usage", "run workbuddy-status 需要运行 ID 和一个 --node 节点 ID"},
+	workBuddyProgressInvalid:   {"cli.run.workbuddy_status_invalid", "WorkBuddy 进度响应无效或与请求的范围不一致"},
+	workBuddyProgressRejected:  {"cli.run.workbuddy_status_rejected", "控制面拒绝读取 WorkBuddy 进度"},
 }
 
 func localizeFailure(locale localization.Locale, f *failure) *failure {
@@ -347,6 +348,7 @@ const helpZH = `suma — 速码控制面客户端
   run tool-events RUN --node NODE --attempt 尝试号 [--limit 1..100] [--cursor 原游标]
   run inputs RUN --node NODE --attempt 尝试号 --fence 租约令牌 [--workbench-origin 工作台地址]
   run workbuddy-status RUN --node NODE
+  run workbuddy-list [--limit 1..20] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID

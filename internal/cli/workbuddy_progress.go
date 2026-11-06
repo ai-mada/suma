@@ -6,14 +6,17 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
 
 const (
-	workBuddyProgressUsage    = "run workbuddy-status requires RUN and one --node NODE"
-	workBuddyProgressInvalid  = "invalid WorkBuddy progress response or mismatched request scope"
-	workBuddyProgressRejected = "control rejected the WorkBuddy progress read"
+	workBuddyProgressListUsage   = "run workbuddy-list accepts one --limit 1..20 and the original --before cursor"
+	workBuddyProgressCursorLimit = 1024
+	workBuddyProgressUsage       = "run workbuddy-status requires RUN and one --node NODE"
+	workBuddyProgressInvalid     = "invalid WorkBuddy progress response or mismatched request scope"
+	workBuddyProgressRejected    = "control rejected the WorkBuddy progress read"
 )
 
 func workBuddyProgressCommand(ctx context.Context, c *client, args []string, out io.Writer) error {
@@ -46,6 +49,50 @@ func workBuddyProgressCommand(ctx context.Context, c *client, args []string, out
 		return &failure{Code: "workbuddy_progress_invalid", Message: workBuddyProgressInvalid}
 	}
 	return writeJSON(out, progress, c.token)
+}
+
+func workBuddyProgressListCommand(ctx context.Context, c *client, args []string, out io.Writer) error {
+	fs := commandFlags("run workbuddy-list")
+	var limit int64
+	var before string
+	fs.Func("limit", "page size from 1 to 20", func(value string) error {
+		n, valid := runWatchDecimal(value, 1, 20)
+		if limit != 0 || !valid {
+			return errors.New(workBuddyProgressListUsage)
+		}
+		limit = n
+		return nil
+	})
+	fs.Func("before", "original continuation from next_cursor", func(value string) error {
+		if before != "" || !validRunAttemptCursor(value, workBuddyProgressCursorLimit) {
+			return errors.New(workBuddyProgressListUsage)
+		}
+		before = value
+		return nil
+	})
+	if fs.Parse(args) != nil || fs.NArg() != 0 {
+		return usage(workBuddyProgressListUsage)
+	}
+	if limit == 0 {
+		limit = 10
+	}
+	query := url.Values{"limit": {strconv.FormatInt(limit, 10)}}
+	if before != "" {
+		query.Set("before", before)
+	}
+	raw, err := c.request(ctx, http.MethodGet, "/api/v1/workbuddy-cloud-progress?"+query.Encode(), nil, true)
+	if err != nil {
+		if f, ok := err.(*failure); ok && f.remote {
+			return workBuddyProgressHTTPFailure(f.Status)
+		}
+		return err
+	}
+	page, err := wc.DecodeCloudNodeProgressPage(raw)
+	if err != nil || page.ProjectID != c.project || int64(len(page.Items)) > limit ||
+		page.NextCursor != "" && (len(page.Items) == 0 || page.NextCursor == before || !validRunAttemptCursor(page.NextCursor, workBuddyProgressCursorLimit)) {
+		return &failure{Code: "workbuddy_progress_invalid", Message: workBuddyProgressInvalid}
+	}
+	return writeJSON(out, page, c.token)
 }
 
 func workBuddyProgressHTTPFailure(status int) *failure {

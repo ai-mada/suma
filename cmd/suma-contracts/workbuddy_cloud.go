@@ -8,7 +8,7 @@ import (
 )
 
 func workBuddyCloudModels() []any {
-	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudTaskDeliveryLink{}, wc.CloudNodeProgress{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
+	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudTaskDeliveryLink{}, wc.CloudNodeProgress{}, wc.CloudNodeProgressPage{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
 }
 
 func workBuddyCloudContracts(add operationAdder, api map[string]any) {
@@ -186,6 +186,41 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 }
 
 func workBuddyCloudProgressContract(add operationAdder, api map[string]any) {
+	pageOp := add("/workbuddy-cloud-progress", "get", "CloudNodeProgressPage", false, false)
+	successStatus(pageOp, "200")
+	pageOp["x-read-only"] = true
+	pageOp["x-no-external-effects"] = true
+	pageOp["x-disallowed-token-scopes"] = []string{"agent", "runner"}
+	pageOp["description"] = "List saved WorkBuddy submissions in the current project. Each item uses the exact node progress projection. Reads do not contact the provider. Before is the opaque cursor for this reader and project."
+	appendQuery(pageOp, queryParameter("limit", "Page size.", map[string]any{"type": "integer", "minimum": 1, "maximum": 20, "default": 10}))
+	appendQuery(pageOp, queryParameter("before", "Opaque continuation from next_cursor.", map[string]any{"type": "string", "minLength": 1, "maxLength": 1024}))
+	for _, raw := range pageOp["parameters"].([]any) {
+		p := raw.(map[string]any)
+		if p["name"] == "project_id" {
+			p["required"] = true
+			p["schema"] = map[string]any{"type": "string", "minLength": 1, "maxLength": 64}
+		}
+	}
+	pageResponses := toolContractMap(pageOp, "responses")
+	pageResponses["405"] = map[string]any{"description": "Only GET is supported."}
+	pageResponses["503"] = map[string]any{"description": "The WorkBuddy component is unavailable."}
+	for _, raw := range pageResponses {
+		raw.(map[string]any)["headers"] = map[string]any{
+			"Cache-Control":   map[string]any{"schema": map[string]any{"type": "string", "const": "no-store"}},
+			"Referrer-Policy": map[string]any{"schema": map[string]any{"type": "string", "const": "no-referrer"}},
+		}
+	}
+	toolContractMap(pageResponses, "405", "headers")["Allow"] = map[string]any{"schema": map[string]any{"type": "string", "const": "GET"}}
+	page := toolContractMap(api, "components", "schemas", "CloudNodeProgressPage")
+	page["additionalProperties"] = false
+	pageFields := toolContractMap(page, "properties")
+	for _, field := range pageFields {
+		field.(map[string]any)["readOnly"] = true
+	}
+	toolContractMap(pageFields, "project_id")["minLength"], toolContractMap(pageFields, "project_id")["maxLength"] = 1, 64
+	toolContractMap(pageFields, "items")["maxItems"] = 20
+	toolContractMap(pageFields, "next_cursor")["minLength"], toolContractMap(pageFields, "next_cursor")["maxLength"] = 1, 1024
+
 	op := add("/runs/{id}/nodes/{node}/workbuddy-status", "get", "CloudNodeProgress", false, false)
 	successStatus(op, "200")
 	op["x-read-only"] = true

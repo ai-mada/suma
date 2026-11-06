@@ -1,6 +1,11 @@
 package workbuddycloudcontract
 
-import "encoding/json"
+import (
+	"encoding/base64"
+	"encoding/json"
+
+	"github.com/ai-mada/suma/internal/strictjson"
+)
 
 // CloudNodeProgress is the project-readable view for operator and automation
 // clients. It carries persisted progress without request, account, assignment,
@@ -51,6 +56,33 @@ func (p CloudNodeProgress) Validate() error {
 		return ErrInvalid
 	}
 	return nil
+}
+
+// CloudNodeProgressPage contains only saved submissions in the current project.
+type CloudNodeProgressPage struct {
+	ProjectID  string              `json:"project_id"`
+	Items      []CloudNodeProgress `json:"items"`
+	NextCursor string              `json:"next_cursor,omitempty"`
+}
+
+func DecodeCloudNodeProgressPage(raw []byte) (CloudNodeProgressPage, error) {
+	var out CloudNodeProgressPage
+	if strictjson.Decode(raw, &out, 64<<10) != nil || !validID(out.ProjectID, 64) || out.Items == nil || len(out.Items) > 20 ||
+		len(out.NextCursor) > 1024 || out.NextCursor != "" && len(out.Items) == 0 {
+		return CloudNodeProgressPage{}, ErrInvalid
+	}
+	if _, err := base64.RawURLEncoding.Strict().DecodeString(out.NextCursor); err != nil {
+		return CloudNodeProgressPage{}, ErrInvalid
+	}
+	seen := make(map[[2]string]bool, len(out.Items))
+	for _, p := range out.Items {
+		key := [2]string{p.RunID, p.NodeID}
+		if p.Validate() != nil || p.ProjectID != out.ProjectID || p.SubmissionState == "not_recorded" || seen[key] {
+			return CloudNodeProgressPage{}, ErrInvalid
+		}
+		seen[key] = true
+	}
+	return out, nil
 }
 
 // CloudProgressReason projects only platform-defined WorkBuddy outcomes. An

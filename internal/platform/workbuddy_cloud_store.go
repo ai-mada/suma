@@ -103,7 +103,7 @@ func (s *Service) InitializeWorkBuddyCloud(ctx context.Context) error {
 			return err
 		}
 	}
-	return nil
+	return store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_workbuddy_cloud_progress_page", "suma_workbuddy_cloud_submissions", "tenant_id", "project_id", "id")
 }
 
 type cloudDelegationRow struct {

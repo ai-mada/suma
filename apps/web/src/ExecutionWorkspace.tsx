@@ -5,6 +5,8 @@ import type {Session} from './api';
 import {Loading} from './ui';
 import {ErrorBoundary} from './ErrorBoundary';
 import {tr as t,useLocale} from './i18n';
+import './WorkBuddyProgressWorkspace.css';
+const WorkBuddyProgressWorkspace=lazy(()=>import('./WorkBuddyProgressWorkspace').then(module=>({default:module.WorkBuddyProgressWorkspace})));
 const TeamExecutionWorkspace=lazy(()=>import('./TeamExecutionWorkspace').then(module=>({default:module.TeamExecutionWorkspace})));
 export function ExecutionWorkspace({
   project,
@@ -31,7 +33,7 @@ export function ExecutionWorkspace({
   refresh: number;
   layout: string;
   onLayout: (value: string) => void;
-  onRun: (run: string, node: string) => void;
+  onRun: (run: string, node: string, attempt?: number) => void;
   onPlan: (id: string) => void;
   onTasks: () => void;
   queueRoute?: QueueRoute;
@@ -46,9 +48,9 @@ export function ExecutionWorkspace({
   useLocale();
   return (
     <>
-      <div className="segmented" aria-label={t('workspace.execution.view_label')}>
+      <div className="segmented execution-workspace-tabs" aria-label={t('workspace.execution.view_label')}>
         <button
-          aria-pressed={layout !== "queue"&&layout !== "team"}
+          aria-pressed={!["queue","team","workbuddy"].includes(layout)}
           onClick={() => onLayout("list")}
         >
           {t('workspace.execution.runs')}
@@ -62,9 +64,14 @@ export function ExecutionWorkspace({
         <button aria-pressed={layout === 'team'} onClick={()=>onLayout('team')}>
           {t('team-execution.tab')}
         </button>
+        <button data-workbuddy-progress-tab aria-pressed={layout === 'workbuddy'} onClick={()=>onLayout('workbuddy')}>
+          {t('workbuddy-progress.tab')}
+        </button>
       </div>
       {layout === 'team' ? <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><TeamExecutionWorkspace session={session} project={project} refresh={refresh} panel={panel} team={team} invalidTeam={invalidTeam} onTeam={onTeam} onPlan={onPlan} onTasks={onTasks}/></Suspense></ErrorBoundary> : layout === "queue" ? (
         <SchedulingQueue project={project} refresh={refresh} onRun={onRun} queueRoute={queueRoute} queueRun={queueRun} invalidQueue={invalidQueue} onQueueScope={onQueueScope} />
+      ) : layout === 'workbuddy' ? (
+        <ErrorBoundary key={JSON.stringify([session.user.id,session.organization.id,project])} inline><Suspense fallback={<Loading/>}><WorkBuddyProgressWorkspace session={session} project={project} refresh={refresh} onRun={onRun}/></Suspense></ErrorBoundary>
       ) : (
         children
       )}

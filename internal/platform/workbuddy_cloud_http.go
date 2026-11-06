@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
@@ -28,6 +29,10 @@ func cloudHTTPHeaders(w http.ResponseWriter) {
 // The normal API entry authenticates Actor and validates the browser's original
 // view before calling this handler. Domain commands recheck current authority.
 func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject string, parts []string, c *WorkBuddyConnections) bool {
+	if len(parts) == 1 && parts[0] == "workbuddy-cloud-progress" {
+		workBuddyCloudProgressListHTTP(w, r, actor, scope, boundProject, c)
+		return true
+	}
 	if len(parts) == 5 && parts[0] == "runs" && parts[2] == "nodes" && parts[4] == "workbuddy-status" {
 		workBuddyCloudProgressHTTP(w, r, actor, scope, boundProject, parts[1], parts[3], c)
 		return true
@@ -154,24 +159,37 @@ func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, acto
 	return true
 }
 
-func workBuddyCloudProgressHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject, run, node string, c *WorkBuddyConnections) {
+// Both progress reads share the same browser or scoped project API boundary.
+func workBuddyCloudProgressQuery(w http.ResponseWriter, r *http.Request, actor Actor, scope string) (url.Values, string, bool) {
 	cloudHTTPHeaders(w)
 	if !(actor.IsBrowser() && scope == "" || actor.kind == actorProjectAPI && scope == "api") {
 		writeError(w, forbidden())
-		return
+		return nil, "", false
 	}
 	if r.Method != http.MethodGet {
 		w.Header().Set("Allow", http.MethodGet)
 		writeError(w, &APIError{Status: http.StatusMethodNotAllowed, Code: "method_not_allowed", Message: "Method not allowed"})
-		return
+		return nil, "", false
 	}
 	if len(r.URL.RawQuery) > 8192 {
 		writeError(w, cloudInvalid())
-		return
+		return nil, "", false
 	}
 	query, err := url.ParseQuery(r.URL.RawQuery)
 	project := query.Get("project_id")
-	if err != nil || len(query) != 1 || len(query["project_id"]) != 1 || !handoffID(project, false) {
+	if err != nil || len(query["project_id"]) != 1 || !handoffID(project, false) {
+		writeError(w, cloudInvalid())
+		return nil, "", false
+	}
+	return query, project, true
+}
+
+func workBuddyCloudProgressHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject, run, node string, c *WorkBuddyConnections) {
+	query, project, ok := workBuddyCloudProgressQuery(w, r, actor, scope)
+	if !ok {
+		return
+	}
+	if len(query) != 1 {
 		writeError(w, cloudInvalid())
 		return
 	}
@@ -184,6 +202,49 @@ func workBuddyCloudProgressHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		return
 	}
 	out, err := c.GetCloudNodeProgress(r.Context(), actor, project, run, node)
+	respond(w, http.StatusOK, out, err)
+}
+
+func workBuddyCloudProgressListHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject string, c *WorkBuddyConnections) {
+	query, project, ok := workBuddyCloudProgressQuery(w, r, actor, scope)
+	if !ok {
+		return
+	}
+	limit, before := cloudProgressDefaultLimit, ""
+	for key, values := range query {
+		if len(values) != 1 || values[0] == "" {
+			writeError(w, cloudInvalid())
+			return
+		}
+		switch key {
+		case "project_id":
+		case "limit":
+			n, err := strconv.Atoi(values[0])
+			if err != nil || n < 1 || n > cloudProgressMaxLimit || strconv.Itoa(n) != values[0] {
+				writeError(w, cloudInvalid())
+				return
+			}
+			limit = n
+		case "before":
+			if len(values[0]) > 1024 {
+				writeError(w, cloudInvalid())
+				return
+			}
+			before = values[0]
+		default:
+			writeError(w, cloudInvalid())
+			return
+		}
+	}
+	if scope == "api" && project != boundProject {
+		writeError(w, forbidden())
+		return
+	}
+	if c == nil {
+		writeError(w, &APIError{503, workBuddyUnavailable, workBuddyUnavailable, nil})
+		return
+	}
+	out, err := c.ListCloudNodeProgress(r.Context(), actor, project, limit, before)
 	respond(w, http.StatusOK, out, err)
 }
 

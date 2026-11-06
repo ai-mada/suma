@@ -44,6 +44,8 @@ func runObservationCommand(ctx context.Context, c *client, action string, args [
 		return runInputsCommand(ctx, c, args, out)
 	case "workbuddy-status":
 		return workBuddyProgressCommand(ctx, c, args, out)
+	case "workbuddy-list":
+		return workBuddyProgressListCommand(ctx, c, args, out)
 	case "scheduling":
 		if len(args) == 0 || !compositionCLIIdentifier(args[0], 100) {
 			return usage(runSchedulingUsage)
@@ -229,6 +231,7 @@ const runObservationHelpEN = `Follow and inspect a run in the current --project.
   run tool-events RUN --node NODE --attempt N [--limit 1..100] [--cursor CURSOR]
   run inputs RUN --node NODE --attempt N --fence F [--workbench-origin ORIGIN]
   run workbuddy-status RUN --node NODE
+  run workbuddy-list [--limit 1..20] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
 
 Watch writes one complete JSON event per line. Stop with Ctrl+C or an explicit
@@ -236,6 +239,8 @@ event limit. Resume from the last printed sequence of the same run.
 Queue filters the current project by execution route and exact run ID. Use the
 same filters when continuing with --cursor.
 workbuddy-status reads the platform state and the saved WorkBuddy observation.
+workbuddy-list reads one page of recorded project submissions. Pass the original
+next_cursor to --before for the next page.
 inputs uses a login session to report exact question and delivery states without
 printing the question or answer. Open workbench_url to review the original.
 `
@@ -249,12 +254,14 @@ const runObservationHelpZH = `跟踪和查看当前 --project 的运行。
   run tool-events RUN --node NODE --attempt 尝试号 [--limit 1..100] [--cursor 原游标]
   run inputs RUN --node NODE --attempt 尝试号 --fence 租约令牌 [--workbench-origin 工作台地址]
   run workbuddy-status RUN --node NODE
+  run workbuddy-list [--limit 1..20] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
 
 watch 每行输出一条完整 JSON 事件。按 Ctrl+C 或设置事件数量上限结束。
 续传使用同一运行最后一条已输出事件的序号。
 queue 按执行路径和准确运行 ID 筛选当前项目。使用 --cursor 续页时保留原筛选条件。
 workbuddy-status 读取平台状态和已保存的 WorkBuddy 观察。
+workbuddy-list 读取当前项目已记录的提交，续页时将原 next_cursor 传给 --before。
 inputs 使用登录会话核对指定尝试的问题及送达状态，不输出问答正文。
 打开 workbench_url 可在工作台核对原问题。
 `

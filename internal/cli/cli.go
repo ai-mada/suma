@@ -43,6 +43,7 @@ Read commands:
   run tool-events RUN --node NODE --attempt N [--limit 1..100] [--cursor CURSOR]
   run inputs RUN --node NODE --attempt N --fence F [--workbench-origin ORIGIN]
   run workbuddy-status RUN --node NODE
+  run workbuddy-list [--limit 1..20] [--before NEXT_CURSOR]
   run queue [--route project|pool] [--run RUN] [--limit 1..100] [--cursor CURSOR]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tasks recommendation-options TASK --expected-version N --workflow ID --workflow-version N --node ID
@@ -294,7 +295,7 @@ func commandFlags(name string) *flag.FlagSet {
 
 func runCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
 	switch args[0] {
-	case "watch", "scheduling", "workbuddy-status", "queue", "attempts", "attempt", "tool-events", "inputs":
+	case "watch", "scheduling", "workbuddy-status", "workbuddy-list", "queue", "attempts", "attempt", "tool-events", "inputs":
 		return runObservationCommand(ctx, c, args[0], args[1:], out)
 	case "show", "events", "command":
 		if len(args) < 2 || args[1] == "" || strings.ContainsAny(args[1], "/\\?#%") || args[1] == "." || args[1] == ".." {

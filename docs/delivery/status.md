@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-TEAM-PROGRESS 执行中心集中查看当前项目已保存的 WorkBuddy 提交、平台状态与供应方观察，支持授权分页和原节点定位。 [交互](../design/workbuddy-cloud-task.md#团队进度工作台) · [验证](../quality/workbuddy-team-progress-verification.md)
+
 T-WORKBUDDY-HANDOFF-ORIGIN 任务切到仓库或本机候选验证后，交付面板仍可打开准确的 WorkBuddy 原尝试。团队和 CLI 使用同一项目授权摘要。 [操作](../development/task-delivery-chain.md) · [验证](../quality/workbuddy-handoff-origin-verification.md)
 
 T-MODEL-OPENAI-LIVE 修复原生工具的 OpenAI 参数兼容与厂商失败诊断。真实节点登记、目录与项目认证已验证。最新真实调用结果未知，原账本预留待核对。 [联调记录](../quality/openai-model-live-verification.md)

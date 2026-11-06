@@ -1871,6 +1871,11 @@ export interface CloudNodeProgress {
   observed_at?: string;
   observation_failed: boolean;
 }
+export interface CloudNodeProgressPage {
+  project_id: string;
+  items: (CloudNodeProgress)[];
+  next_cursor?: string;
+}
 export interface CloudNodeView {
   project_id: string;
   run_id: string;

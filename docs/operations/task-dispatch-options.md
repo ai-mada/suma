@@ -134,6 +134,15 @@ suma --project PROJECT --expected-user USER --expected-organization ORG run inpu
 
 [持久事件合同](../../contracts/automation-events.md#持久运行事件) · [调度工作台](../design/scheduling-workspace.md)
 
+当前项目的 WorkBuddy 已保存提交可集中读取。默认每页 10 条，`--limit` 支持 1 至 20，续页传入同一项目和读者下的原 `next_cursor`。
+
+```sh
+suma --project PROJECT run workbuddy-list --limit 10
+suma --project PROJECT run workbuddy-list --limit 10 --before NEXT_CURSOR
+```
+
+输出中的平台状态、提交状态和最近供应方观察来自已保存记录。打开对应节点使用 `run workbuddy-status` 核对单条详情。
+
 ## IDE 保存回执恢复
 
 1. 保存请求固定当前项目、路径、原文件hash、提交内容、操作标识和原API调用者。请求结果未确定时保留它们；后续编辑只是新的草稿。

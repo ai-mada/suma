@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-TEAM-PROGRESS 核验项目进度分页、权限、供应方与平台状态区分及桌面和 390px 操作。 [阶段验证](workbuddy-team-progress-verification.md)
+
 T-WORKBUDDY-HANDOFF-ORIGIN 验证受保护的仓库与本机交接来源、只读团队成员、项目 CLI 及真实浏览器往返。 [阶段验证](workbuddy-handoff-origin-verification.md)
 
 T-MODEL-OPENAI-LIVE 核对 Windows Runner、OpenAI 项目认证和实际 HTTP 拒绝／结果未知，保留原尝试与待核对预留。 [命令与证据](openai-model-live-verification.md)
