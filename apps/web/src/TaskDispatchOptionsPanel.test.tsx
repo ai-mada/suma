@@ -47,18 +47,51 @@ it('reads only on demand, adopts without writing, switches CNEN locally and reco
  await click('[data-dispatch-options-adopt]');expect(adopt).toHaveBeenCalledWith(expect.objectContaining({id:'tool-b',version:3}));expect(requests).toHaveLength(1);
  await act(async()=>setLocale('zh-CN',{persist:false}));expect(document.querySelector('[data-dispatch-options-adopt]')?.textContent).toBe('采用当前推荐');expect(requests).toHaveLength(1);
  await render(scope,true);await click('[data-dispatch-options-adopt]');expect(adopt).toHaveBeenCalledTimes(1);expect(requests).toHaveLength(1);
- await render();await click('[data-dispatch-options-more]');expect(document.body.textContent).toContain('第 2 页');expect(document.querySelector('[data-dispatch-option="tool-b"]')).toBeNull();
+ await render();await click('[data-dispatch-page="next"]');expect(document.body.textContent).toContain('第 2 页');expect(document.querySelector('[data-dispatch-option="tool-b"]')).toBeNull();
  await click('[data-dispatch-options-adopt]');expect(adopt).toHaveBeenLastCalledWith(expect.objectContaining({id:'tool-c'}));expect(requests.every(request=>request.method==='GET')).toBe(true);
 });
 
 it('clears protected observations after denial and rejects cross-scope or late responses before rendering',async()=>{
  await render();await click('[data-dispatch-options-toggle]');expect(document.querySelectorAll('[data-dispatch-option]')).toHaveLength(2);
- reply=async()=>Response.json({error:{code:'forbidden',message:'Access denied'}},{status:403});await click('[data-dispatch-options-refresh]');expect(document.querySelector('[data-dispatch-option]')).toBeNull();expect(document.querySelector('[data-dispatch-options-adopt]')).toBeNull();expect(unavailable).toHaveBeenCalledOnce();
- reply=async()=>Response.json({...page(),workflow_version:9});await click('[data-dispatch-options-refresh]');expect(document.querySelector('[data-dispatch-option]')).toBeNull();expect(document.body.textContent).toContain('does not match this task');
+ reply=async()=>Response.json({error:{code:'forbidden',message:'Access denied'}},{status:403});await click('[data-dispatch-page="refresh"]');expect(document.querySelector('[data-dispatch-option]')).toBeNull();expect(document.querySelector('[data-dispatch-options-adopt]')).toBeNull();expect(unavailable).toHaveBeenCalledOnce();
+ reply=async()=>Response.json({...page(),workflow_version:9});await click('[data-dispatch-page="refresh"]');expect(document.querySelector('[data-dispatch-option]')).toBeNull();expect(document.body.textContent).toContain('does not match this task');
  let finish:((value:Response)=>void)|undefined;reply=()=>new Promise(resolve=>{finish=resolve;});
- const refresh=document.querySelector<HTMLElement>('[data-dispatch-options-refresh]')!;await act(async()=>{refresh.click();});
+ const refresh=document.querySelector<HTMLElement>('[data-dispatch-page="refresh"]')!;await act(async()=>{refresh.click();});
  await render({...scope,expected_task_version:5});expect(document.querySelector('[data-dispatch-options-toggle]')?.getAttribute('aria-expanded')).toBe('false');
  await act(async()=>finish!(Response.json(page())));await settle();expect(document.querySelector('[data-dispatch-option]')).toBeNull();expect(adopt).not.toHaveBeenCalled();
+});
+
+it('retries the original tool page, keeps keyboard focus and rejects cursor loops',async()=>{
+ const next='[data-dispatch-page="next"]';
+ const refresh='[data-dispatch-page="refresh"]';
+ let failed=false;
+ reply=async path=>{
+  if(path.includes('before=page-3'))return Response.json(page([option('tool-d')],'page-2'));
+  if(path.includes('before=page-2')){
+   if(!failed){failed=true;return Response.json({error:{code:'unavailable',message:'Temporarily unavailable'}},{status:503});}
+   return Response.json(page([option('tool-c')],'page-3'));
+  }
+  return Response.json(page());
+ };
+ await render();await click('[data-dispatch-options-toggle]');
+ const forward=host.querySelector<HTMLButtonElement>(next)!;forward.focus();await click(next);
+ expect(host.querySelector('[data-dispatch-option]')).toBeNull();expect(document.activeElement).toBe(forward);
+ const retry=host.querySelector<HTMLButtonElement>(refresh)!;
+ retry.focus();await act(async()=>retry.click());await settle();
+ expect(requests.map(request=>new URLSearchParams(request.path.split('?')[1]).get('before'))).toEqual([null,'page-2','page-2']);
+ expect(document.activeElement).toBe(retry);
+ expect(host.textContent).toContain('Page 2');
+ expect(host.querySelector('[data-dispatch-option="tool-c"]')).not.toBeNull();
+ await click(next);
+ expect(host.querySelector('[data-dispatch-option]')).toBeNull();
+ expect(host.textContent).toContain('does not match this task');
+ await click('[data-dispatch-page="previous"]');
+ expect(host.querySelector('[data-dispatch-option="tool-c"]')).not.toBeNull();
+ await click(refresh);
+ expect(requests.at(-1)?.path).toContain('before=page-2');
+ await click('[data-dispatch-page="first"]');
+ expect(host.querySelector('[data-dispatch-option="tool-b"]')).not.toBeNull();
+ expect(requests.every(request=>request.method==='GET')).toBe(true);expect(adopt).not.toHaveBeenCalled();
 });
 
 it('uses the newly observed exact profile version in the existing explicit preview, preserving its pending request',async()=>{
@@ -94,7 +127,7 @@ it('selects a nonrecommended compatible tool on a later page for the existing ex
  await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><TaskDispatchDialog project={project} session={session} task={{id:'task-a',project_id:project,version:4,title:'Develop task'}} initialWorkflow={workflow} onPlan={vi.fn()} onClose={vi.fn()} onRun={vi.fn()}/></ApiViewProvider>);});
  await settle();
  await click('[data-dispatch-options-toggle]');
- await click('[data-dispatch-options-more]');
+ await click('[data-dispatch-page="next"]');
  const action='[data-dispatch-option="tool-d"] button';
  expect(document.querySelector(action)).not.toBeNull();
  expect(document.querySelector(action)?.getAttribute('aria-label')).toContain('Tool tool-d');

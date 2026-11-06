@@ -5,6 +5,7 @@ import {ApiError,query,type Run,type Session} from './api';
 import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {Field,ErrorNotice,Loading} from './ui';
+import {DispatchPageNavigation,firstDispatchPage} from './DispatchPageNavigation';
 import {useLeaveGuard,useWriteAction,WriteNotice} from './write-action';
 import {toolError,toolSessionStorage} from './tool-hooks';
 import type {ToolProfile} from './tool-model';
@@ -16,7 +17,7 @@ import {modelInteger,modelMoneyMicros,modelMoneyInput} from './model-execution-m
 import {codexEffortLabel} from './codex-execution-model';
 import {connectRunEvents,SnapshotRefreshQueue,runConnectionMessage,type RunConnectionState} from './run-events';
 import {automationPermissions} from './automation-model';
-import {adoptionPlan,choiceDraft,defaultChoice,recommendationChoice,recommendationID,recommendationMatchesScope,recommendationObject,recommendationOptions,recommendationScopeKey,recommendationText,sameRecommendationConstraints,validRecommendation,validRecommendationConstraints,validRecommendationPage,validRecommendationRequest,validRecommendationResponse,validRecommendationSource,type ChoiceDraft,type RecommendationScope} from './dispatch-recommendation-model';
+import {adoptionPlan,choiceDraft,defaultChoice,recommendationChoice,recommendationHistoryPageSize,recommendationID,recommendationMatchesScope,recommendationObject,recommendationOptions,recommendationScopeKey,recommendationText,sameRecommendationConstraints,validRecommendation,validRecommendationConstraints,validRecommendationPage,validRecommendationRequest,validRecommendationResponse,validRecommendationSource,type ChoiceDraft,type RecommendationScope} from './dispatch-recommendation-model';
 import './DispatchRecommendation.css';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('dispatch-recommendation.'+key,values);
@@ -65,7 +66,8 @@ export function DispatchRecommendation(props:Props){return <RecommendationScopeV
 function RecommendationScopeView({session,scope,inventory,disabled,creationDisabled=false,testBindings,onPrepared,onOpenPlan,onLockChange,onManual}:Props){
  const api=useApi(),[checkingTests,setCheckingTests]=useState(false);
  const locale=useLocale(),bodyID=useId(),storage=toolSessionStorage(),owner=JSON.stringify([session.user.id,session.organization.id,scope.project_id,scope.task_id]),locatorKey='suma-recommendation-locator-v1:'+owner,canWrite=automationPermissions(session,scope.project_id).write;
- const [open,setOpen]=useState(false),[access,setAccess]=useState(false),[goal,setGoal]=useState(''),[limits,setLimits]=useState<ConstraintDraft>(initialConstraints),[sourceRequest,setSourceRequest]=useState<DispatchRecommendationOptionsRequest>(),[profileID,setProfileID]=useState(''),[ack,setAck]=useState(false),[selected,setSelected]=useState(()=>{try{const value=storage?.getItem(locatorKey);return recommendationID(value)?value:'';}catch{return '';}}),[dirty,setDirty]=useState(false),[reason,setReason]=useState(''),[choice,setChoice]=useState<ChoiceDraft>(),[historyOpen,setHistoryOpen]=useState(false),[historyBefore,setHistoryBefore]=useState(''),[connection,setConnection]=useState<RunConnectionState>(),[notice,setNotice]=useState('');
+ const [open,setOpen]=useState(false),[access,setAccess]=useState(false),[goal,setGoal]=useState(''),[limits,setLimits]=useState<ConstraintDraft>(initialConstraints),[sourceRequest,setSourceRequest]=useState<DispatchRecommendationOptionsRequest>(),[profileID,setProfileID]=useState(''),[ack,setAck]=useState(false),[selected,setSelected]=useState(()=>{try{const value=storage?.getItem(locatorKey);return recommendationID(value)?value:'';}catch{return '';}}),[dirty,setDirty]=useState(false),[reason,setReason]=useState(''),[choice,setChoice]=useState<ChoiceDraft>(),[connection,setConnection]=useState<RunConnectionState>(),[notice,setNotice]=useState('');
+ const [historyOpen,setHistoryOpen]=useState(false),[historyTrail,setHistoryTrail]=useState(firstDispatchPage);
  const alive=useRef(true),callbacks=useRef({onPrepared,onOpenPlan,onLockChange,onManual});callbacks.current={onPrepared,onOpenPlan,onLockChange,onManual};useEffect(()=>{alive.current=true;return()=>{alive.current=false;callbacks.current.onLockChange(false);};},[]);
  const action=useWriteAction({scope:'dispatch-recommendation:'+owner,storage,validateRequest:request=>validRecommendationRequest(request,scope),validateResponse:(value,request)=>validRecommendationResponse(value,request,scope)}),locked=action.busy||!!action.pending||checkingTests,fail=useCallback(()=>setAccess(true),[]);
  useLeaveGuard(dirty,action.setError);
@@ -73,9 +75,12 @@ function RecommendationScopeView({session,scope,inventory,disabled,creationDisab
  useLayoutEffect(()=>{if(action.errorStatus&&[401,403,404].includes(action.errorStatus))setAccess(true);},[action.errorStatus]);
  const constraints=constraintsFromDraft(limits),validateSource=useCallback((value:unknown):value is DispatchRecommendationSource=>!!sourceRequest&&validRecommendationSource(value,{...sourceRequest,knowledge:sourceRequest.knowledge}),[sourceRequest]),source=useRecommendationRead('/dispatch-recommendations/options',sourceRequest,open&&!access&&!selected&&!!sourceRequest,validateSource,fail);
  const validateAnalysis=useCallback((value:unknown):value is Recommendation=>validRecommendation(value,scope.project_id,scope.task_id,selected),[scope.project_id,scope.task_id,selected]),analysis=useRecommendationRead('/dispatch-recommendations/'+encodeURIComponent(selected)+query(scope.project_id),undefined,open&&!access&&!!selected,validateAnalysis,fail),current=analysis.value;
- const validateHistory=useCallback((value:unknown):value is DispatchRecommendationPage=>validRecommendationPage(value,scope.project_id,scope.task_id),[scope.project_id,scope.task_id]),history=useRecommendationRead('/dispatch-recommendations'+query(scope.project_id)+'&task_id='+encodeURIComponent(scope.task_id)+'&limit=10'+(historyBefore?'&before='+encodeURIComponent(historyBefore):''),undefined,open&&!access&&historyOpen,validateHistory,fail);
+ const historyBefore=historyTrail[historyTrail.length-1];
+ const validateHistory=useCallback((value:unknown):value is DispatchRecommendationPage=>validRecommendationPage(value,scope.project_id,scope.task_id,historyTrail),[scope.project_id,scope.task_id,historyTrail]);
+ const history=useRecommendationRead('/dispatch-recommendations'+query(scope.project_id)+'&task_id='+encodeURIComponent(scope.task_id)+'&limit='+recommendationHistoryPageSize+(historyBefore?'&before='+encodeURIComponent(historyBefore):''),undefined,open&&!access&&historyOpen,validateHistory,fail);
+ const historyPage=history.loading||history.error?undefined:history.value,canPageHistory=!disabled&&!locked&&!history.loading;
  const validateRun=useCallback((value:unknown):value is Run=>!!current&&recommendationObject(value)&&value.id===current.run_id&&value.project_id===scope.project_id&&Array.isArray(value.nodes)&&value.nodes.some(node=>recommendationObject(node)&&node.id==='recommend'&&node.tool_profile_id===current.analysis_tool_profile_id&&node.tool_profile_sha256===current.analysis_tool_profile_sha256),[current?.id,current?.version,scope.project_id]),run=useRecommendationRead(current?'/runs/'+encodeURIComponent(current.run_id)+query(scope.project_id):'',undefined,open&&!access&&!!current,validateRun,fail);
- useLayoutEffect(()=>{if(access){source.clear();analysis.clear();run.clear();history.clear();setChoice(undefined);setAck(false);}},[access,source.clear,analysis.clear,run.clear,history.clear]);
+ useLayoutEffect(()=>{if(access){source.clear();analysis.clear();run.clear();history.clear();setHistoryTrail(firstDispatchPage);setChoice(undefined);setAck(false);}},[access,source.clear,analysis.clear,run.clear,history.clear]);
  useEffect(()=>{if(denied(inventory.failure))setAccess(true);},[inventory.failure]);
  const profile=inventory.items?.find(value=>value.id===profileID&&analysisProfile(value)),creators=inventory.items?.filter(analysisProfile)||[],modelKey=JSON.stringify([profile?.id,profile?.version,profile?.profile.profile_sha256]);
  const [model,setModel]=useState<ModelChoice&{key:string}>({key:'',ready:false}),updateModel=useCallback((value:ModelChoice)=>{setModel({...value,key:modelKey});setAck(false);},[modelKey]);
@@ -159,7 +164,21 @@ function RecommendationScopeView({session,scope,inventory,disabled,creationDisab
       <details><summary>{t('analysis_evidence')}</summary><ModelExecutionFacts binding={current.analysis_model_execution}/>{run.loading&&<Loading/>}{!!run.error&&<ErrorNotice error={toolError(run.error)} onRetry={()=>void run.read()}/>}<UsageFacts usage={verifiedEvidence?.usage??undefined} usageState={reportedUsageState}/><p className="dr-muted">{t('usage_boundary')}</p><dl className="dr-facts"><dt>{t('analysis_id')}</dt><dd><code>{current.id}</code> · v{formatNumber(current.version)}</dd><dt>{t('expires')}</dt><dd>{formatDateTime(current.expires_at)}</dd><dt>{t('analysis_profile_sha')}</dt><dd><code>{current.analysis_tool_profile_sha256}</code></dd><dt>{t('original_sha')}</dt><dd><code>{current.original_output_sha256||t('not_reported')}</code></dd></dl>{current.original_output&&<details><summary>{t('original_output')}</summary><pre tabIndex={0}>{current.original_output}</pre></details>}</details>
      </>}
     </>}
-    <details><summary onClick={()=>{if(!historyOpen)setHistoryOpen(true);}}>{t('history')}</summary>{history.loading&&<Loading/>}{!!history.error&&<ErrorNotice error={toolError(history.error)} onRetry={()=>void history.read()}/>}<div className="dr-history">{history.value?.items.map(value=><button type="button" key={value.id} disabled={disabled||locked} aria-pressed={selected===value.id} onClick={()=>{if(canNavigate()){if(selected===value.id)void analysis.read();else select(value.id);}}}><span>{value.goal}</span><small>{t('state.'+value.state)} · {formatDateTime(value.created_at)}</small></button>)}</div>{history.value&&<p className="dr-muted">{t('history_scope',{loaded:formatNumber(history.value.items.length),total:formatNumber(history.value.total)})}</p>}{history.value?.next_cursor&&<button type="button" disabled={disabled||locked||history.loading} onClick={()=>setHistoryBefore(history.value!.next_cursor)}>{t('next')}</button>}</details>
+    <details data-recommendation-history open={historyOpen} onToggle={event=>{
+     const shown=event.currentTarget.open;
+     if(shown!==historyOpen){setHistoryOpen(shown);if(!shown)history.clear();}
+    }}><summary>{t('history')}</summary>
+     {historyOpen&&<div className="dr-history-content">
+      <DispatchPageNavigation label={t('history_pagination')} number={historyTrail.length} loading={history.loading} failed={!!history.error}
+       summary={historyPage&&t('history_scope',{loaded:formatNumber(historyPage.items.length),total:formatNumber(historyPage.total)})}
+       onFirst={canPageHistory&&historyTrail.length>1?()=>setHistoryTrail(firstDispatchPage):undefined}
+       onPrevious={canPageHistory&&historyTrail.length>1?()=>setHistoryTrail(historyTrail.slice(0,-1)):undefined}
+       onNext={canPageHistory&&historyPage?.next_cursor?()=>setHistoryTrail([...historyTrail,historyPage.next_cursor]):undefined}
+       onRefresh={canPageHistory?()=>void history.read():undefined}/>
+      {!!history.error&&<ErrorNotice error={toolError(history.error)}/>}
+      {historyPage&&(historyPage.items.length?<div className="dr-history">{historyPage.items.map(value=><button type="button" key={value.id} disabled={disabled||locked} aria-pressed={selected===value.id} onClick={()=>{if(canNavigate()){if(selected===value.id)void analysis.read();else select(value.id);}}}><span>{value.goal}</span><small>{t('state.'+value.state)} · {formatDateTime(value.created_at)}</small></button>)}</div>:<p className="dr-muted">{t('history_empty')}</p>)}
+     </div>}
+    </details>
     <div className="dr-actions"><button type="button" data-recommendation-manual disabled={disabled||locked} onClick={manual}>{t('manual')}</button></div>
    </>}
   </div>}

@@ -17,6 +17,7 @@
   "workbuddy-connections.desktop_manual": "无法使用剪贴板，已选中平台地址，请手动复制并在系统浏览器中打开。",
   "workbuddy-connections.desktop_unavailable": "当前平台地址不可用，请向管理员获取浏览器访问地址，然后在系统浏览器中打开并登录。",
   "workbuddy-connections.refresh_list": "刷新列表",
+  "workbuddy-connections.retry_check": "重新核对连接",
   "workbuddy-connections.invalid_response": "返回内容与当前项目、账号或支持的格式不符，请读取当前状态后再继续。",
   "workbuddy-connections.unknown": "操作结果未知。请读取当前状态，或恢复原操作；恢复时保留原账号、版本和操作标识。",
   "workbuddy-connections.pending": "原操作正在等待确认，请保持当前页面打开，直到回执被记录。",

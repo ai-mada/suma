@@ -28,7 +28,9 @@ export function WorkBuddyConnections({project,panel,openRequest}:{project:string
   {open&&<div id={id}><ConnectionManager key={disclosureKey} project={project} context={context} focusedID={focusedID}/></div>}
  </section>;
 }
-type Snapshot={caller:ApiCaller;revision:number;cursor:string;page?:WorkBuddyConnectionPage;focused?:WorkBuddyConnection;error?:unknown;loading:boolean};
+type ConnectionCheck={id:string;kind:'authorization'|'connection'|'operation'};
+type Snapshot={caller:ApiCaller;revision:number;cursor:string;page?:WorkBuddyConnectionPage;focused?:WorkBuddyConnection;error?:unknown;connectionCheck?:ConnectionCheck;loading:boolean};
+const accessDenied=(status:number|undefined)=>status===401||status===403||status===404;
 type Form={kind:'authorize';connection?:WorkBuddyConnection}|{kind:'disconnect';connection:WorkBuddyConnection};
 const firstAuthorization:Form={kind:'authorize'};
 type NativeAuthorizationBridge={openWorkBuddyAuthorization:(request:{project_id:string;authorization_id:string;user_id:string;tenant_id:string})=>Promise<unknown>};
@@ -44,7 +46,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
  const launch=useRef<AuthorizationLaunch|undefined>(undefined);
  const formHeading=useRef<HTMLHeadingElement>(null),focusForm=useRef(false);
  const authorizationActions=useRef<HTMLDivElement>(null),focusAuthorization=useRef('');
- const refreshButton=useRef<HTMLButtonElement>(null);
+ const refreshButton=useRef<HTMLButtonElement>(null),focusAfterCheck=useRef(false);
  const scopeOptions=useRef<HTMLDivElement>(null);
  const formID=useId();
  const historyID=useId(),[historyDisclosure,setHistoryDisclosure]=useState<boolean>();
@@ -52,7 +54,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
  const action=useWriteAction({scope,storage:toolSessionStorage(),validateRequest:request=>validWorkBuddyRecovery(request,project),validateResponse:(value,request)=>validWorkBuddyReceipt(value,request,project,owner)});
  const locked=action.busy||!!action.pending||action.persistenceBlocked||nativeBusy;
  const current=snapshot?.caller===caller&&snapshot.revision===revision&&snapshot.cursor===cursor?snapshot:undefined;
- const denied=action.errorStatus===403||action.errorStatus===404||current?.error instanceof ApiError&&[403,404].includes(current.error.status);
+ const denied=accessDenied(action.errorStatus)||current?.error instanceof ApiError&&accessDenied(current.error.status);
  const page=!denied&&!current?.loading?current?.page:undefined;
  const rows=page?(current?.focused?[current.focused,...page.items.filter(row=>row.id!==current.focused!.id)]:page.items):[];
  const authorizationRow=authorization&&rows.find(row=>row.id===authorization.connection.id);
@@ -85,6 +87,12 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
   formHeading.current?.focus();
  },[form,formAllowed]);
  useEffect(()=>{
+  const button=refreshButton.current;
+  if(!focusAfterCheck.current||!current||current.loading||!button||button.disabled)return;
+  focusAfterCheck.current=false;
+  if(document.activeElement===document.body)button.focus();
+ },[current,action.busy,nativeBusy,form]);
+ useEffect(()=>{
   if(editingScopes)scopeOptions.current?.querySelector('input')?.focus();
  },[editingScopes]);
  useEffect(()=>{
@@ -100,7 +108,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
   const read=(path:string)=>caller<unknown>(path,undefined,'GET',undefined,controller.signal).catch(error=>{
    // Each request owns its refusal: an earlier network failure from the other
    // read must never conceal a later authorization loss or preserve its URL.
-   if(generation===epoch.current&&alive.current&&activeCaller.current===caller&&!controller.signal.aborted&&error instanceof ApiError&&[403,404].includes(error.status)){
+   if(generation===epoch.current&&alive.current&&activeCaller.current===caller&&!controller.signal.aborted&&error instanceof ApiError&&accessDenied(error.status)){
     refusal=error;setSnapshot({caller,revision,cursor,loading:false,error});setAuthorization(undefined);setForm(undefined);setSelectedScopes([]);setConfirmed(false);
    }
    throw error;
@@ -112,7 +120,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
    const result=readWorkBuddyPage(value,project,owner),focused=detailID?readWorkBuddyConnection(focusedValue,project,owner):undefined;
    if(!result||detailID&&(!focused||focused.id!==detailID))throw new UiError('workbuddy-connections.invalid_response');
    setSnapshot({caller,revision,cursor,loading:false,page:result,focused});
-  }).catch(error=>{if(generation!==epoch.current||controller.signal.aborted||!alive.current)return;const failure=refusal??error;setSnapshot({caller,revision,cursor,loading:false,error:failure});if(failure instanceof ApiError&&[403,404].includes(failure.status)){setAuthorization(undefined);setForm(undefined);setSelectedScopes([]);setConfirmed(false);}});
+  }).catch(error=>{if(generation!==epoch.current||controller.signal.aborted||!alive.current)return;const failure=refusal??error;setSnapshot({caller,revision,cursor,loading:false,error:failure});if(failure instanceof ApiError&&accessDenied(failure.status)){setAuthorization(undefined);setForm(undefined);setSelectedScopes([]);setConfirmed(false);}});
   return()=>{++epoch.current;controller.abort();};
  },[caller,project,owner,cursor,revision,detailID]);
  useEffect(()=>{
@@ -177,30 +185,47 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
    setRevision(value=>value+1);
   }
  }
- async function checkCurrent(connection?:WorkBuddyConnection){
-  if(checkingCurrent.current)return;
+ function checkCurrent(connection?:WorkBuddyConnection,moveFocus=false){
   const request=connection?undefined:action.pending,originalAuthorization=connection?undefined:authorization;
   const id=connection?.id??(request?request.path==='/workbuddy-authorizations'?request.body.connection_id:request.path.split('/')[2]:originalAuthorization?.connection.id);
   if(typeof id!=='string'||!id){refresh();return;}
+  const connectionID=request&&request.path!=='/workbuddy-authorizations'?decodeURIComponent(id):id;
+  void checkConnection({id:connectionID,kind:connection?'connection':request?'operation':'authorization'},moveFocus);
+ }
+ function refreshCurrent(){
+  // A page without the checked connection cannot resolve a failed exact read.
+  if(current?.connectionCheck){void checkConnection(current.connectionCheck,true);return;}
+  refresh();
+ }
+ async function checkConnection(target:ConnectionCheck,moveFocus:boolean){
+  if(checkingCurrent.current||!alive.current||activeCaller.current!==caller)return;
+  const originalAuthorization=target.kind==='authorization'&&authorization?.connection.id===target.id?authorization:undefined;
+  focusAfterCheck.current=moveFocus;
   checkingCurrent.current=true;
-  const generation=++epoch.current;setSnapshot({caller,revision,cursor,loading:true});
+  const generation=++epoch.current;setSnapshot({caller,revision,cursor,loading:true,connectionCheck:target});
   try{
-   const connectionID=request&&request.path!=='/workbuddy-authorizations'?decodeURIComponent(id):id;
-   const value=await caller<unknown>('/workbuddy-connections/'+encodeURIComponent(connectionID)+'?project_id='+encodeURIComponent(project));
+   const value=await caller<unknown>('/workbuddy-connections/'+encodeURIComponent(target.id)+'?project_id='+encodeURIComponent(project));
    if(!alive.current||generation!==epoch.current||activeCaller.current!==caller)return;
-   const row=readWorkBuddyConnection(value,project,owner);if(!row||row.id!==connectionID)throw new UiError('workbuddy-connections.invalid_response');
+   const row=readWorkBuddyConnection(value,project,owner);if(!row||row.id!==target.id)throw new UiError('workbuddy-connections.invalid_response');
    if(originalAuthorization){
     const sameGrant=row.grant_generation===originalAuthorization.connection.grant_generation;
     const stillPending=sameGrant&&row.state==='authorizing'&&row.version===originalAuthorization.connection.version;
-    if(!stillPending)setAuthorization(undefined);
-    if(row.state==='disconnected'){
+    if(!stillPending){
+     setAuthorization(undefined);
      if(!rows.some(item=>item.id===row.id))setReturnConnectionID(row.id);
+    }
+    if(row.state==='disconnected'){
      setHistoryDisclosure(true);
      setNotice('authorization_disconnected');
     }else setNotice(sameGrant&&row.state==='connected'?'authorization_complete':stillPending?'authorization_pending':'authorization_changed');
-   }else setNotice(connection?'connection_checked':'status_checked');
+   }else setNotice(target.kind==='connection'?'connection_checked':'status_checked');
    setRevision(value=>value+1);
-  }catch(error){if(alive.current&&generation===epoch.current&&activeCaller.current===caller){setSnapshot({caller,revision,cursor,loading:false,error});if(error instanceof ApiError&&[403,404].includes(error.status))setAuthorization(undefined);}}
+  }catch(error){
+   if(!alive.current||generation!==epoch.current||activeCaller.current!==caller)return;
+   const refused=error instanceof ApiError&&accessDenied(error.status);
+   setSnapshot({caller,revision,cursor,loading:false,error,connectionCheck:refused?undefined:target});
+   if(refused)setAuthorization(undefined);
+  }
   finally{checkingCurrent.current=false;}
  }
  useEffect(()=>{
@@ -241,11 +266,11 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
   authorizationActions.current?.querySelector<HTMLElement>('.workbuddy-official-link')?.focus();
  });
  return <div className="workbuddy-manager">
-  <div className="workbuddy-toolbar"><p className="workbuddy-boundary"><ShieldCheck size={17} aria-hidden="true"/>{t('boundary')}</p><button type="button" ref={refreshButton} disabled={current?.loading||action.busy||nativeBusy||!!form} onClick={refresh}><RefreshCw size={16} aria-hidden="true"/>{t('refresh_list')}</button></div>
+  <div className="workbuddy-toolbar"><p className="workbuddy-boundary"><ShieldCheck size={17} aria-hidden="true"/>{t('boundary')}</p><button type="button" ref={refreshButton} disabled={current?.loading||action.busy||nativeBusy||!!form} onClick={refreshCurrent}><RefreshCw size={16} aria-hidden="true"/>{t(current?.connectionCheck?(current.loading?'check_current':'retry_check'):'refresh_list')}</button></div>
   {desktopUnavailable&&page?.can_authorize&&<DesktopAuthorizationGuide project={project}/>}
   <WriteNotice action={action} onRebase={async()=>{cancelForm();refresh();}}/>
-  {action.pending&&<div className="workbuddy-recovery" role="status"><p>{t(action.unknown?'unknown':'pending')}</p><div className="workbuddy-actions"><button type="button" disabled={action.busy||denied} onClick={()=>void checkCurrent()}>{t('check_current')}</button>{mayRecover&&(!desktopUnavailable||action.pending.path!=='/workbuddy-authorizations')&&<button type="button" disabled={action.busy} onClick={()=>{const request=action.pending!;void write(request.path,request.body,request.method);}}>{t('recover')}</button>}</div></div>}
-  {notice&&!denied&&<p className="workbuddy-notice" role="status" data-success={notice==='authorization_complete'} data-attention={notice==='refresh_unknown_notice'||notice==='reason.reauthorization_required'||notice==='link_expired'||notice==='browser_manual'}>{notice==='authorization_complete'&&<Check size={18} aria-hidden="true"/>}{t(notice)}</p>}
+  {action.pending&&<div className="workbuddy-recovery" role="status"><p>{t(action.unknown?'unknown':'pending')}</p><div className="workbuddy-actions">{!current?.connectionCheck&&<button type="button" disabled={action.busy||denied} onClick={()=>checkCurrent(undefined,true)}>{t('check_current')}</button>}{mayRecover&&(!desktopUnavailable||action.pending.path!=='/workbuddy-authorizations')&&<button type="button" disabled={action.busy} onClick={()=>{const request=action.pending!;void write(request.path,request.body,request.method);}}>{t('recover')}</button>}</div></div>}
+  {notice&&!denied&&!current?.connectionCheck&&<p className="workbuddy-notice" role="status" data-success={notice==='authorization_complete'} data-attention={notice==='refresh_unknown_notice'||notice==='reason.reauthorization_required'||notice==='link_expired'||notice==='browser_manual'}>{notice==='authorization_complete'&&<Check size={18} aria-hidden="true"/>}{t(notice)}</p>}
   {authorizationVisible&&authorization&&<section className="workbuddy-authorization" aria-labelledby={formID+'-ready'}>
    <div className="workbuddy-flow-heading">
     <span className="workbuddy-step" aria-hidden="true">2</span>
@@ -258,14 +283,14 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
       openedBrowserAuthorization.current=authorization.id;
       setNotice('browser_opened');
      }}>{t(awaitingConfirmation?'official_reopen':'official_link')}<ExternalLink size={16} aria-hidden="true"/></a>}
-    <button type="button" className={awaitingConfirmation?'primary':undefined} disabled={nativeBusy||current?.loading} onClick={()=>void checkCurrent()}>{t('check_authorization')}</button>
+    <button type="button" className={awaitingConfirmation?'primary':undefined} disabled={nativeBusy||current?.loading} onClick={()=>checkCurrent(undefined,true)}>{t('check_authorization')}</button>
    </div>
    <div className="workbuddy-flow-footer">
     <small>{t('link_expiry',{time:time(authorization.expires_at)})}</small>
     <button type="button" disabled={locked} onClick={()=>{if(!authorizationRow)setReturnConnectionID(authorization.connection.id);setAuthorization(undefined);setNotice('');refreshButton.current?.focus();}}>{t('return_to_connections')}</button>
    </div>
   </section>}
-  {denied?<><p className="muted">{t('access_lost')}</p>{current?.error&&<ErrorNotice error={current.error}/>}</>:!current||current.loading?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={refresh}/>:page&&<>
+  {denied?<><p className="muted">{t('access_lost')}</p>{current?.error&&<ErrorNotice error={current.error}/>}</>:!current||current.loading?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={current.connectionCheck?undefined:refresh}/>:page&&<>
    {!page.configured&&<div className="workbuddy-config">
     <div className="workbuddy-flow-heading">
      <span className="workbuddy-step" aria-hidden="true"><Link2 size={18}/></span>
@@ -336,7 +361,7 @@ function ConnectionManager({project,context,focusedID}:{project:string;context:s
    <button key="authorize" type="button" disabled={disabled} onClick={()=>openForm({kind:'authorize',connection:row})}>{t(row.state==='authorizing'?'replace_link':'reauthorize')}</button>;
   const [primary,...additional]=[
    row.state==='authorizing'&&authorize,
-   canCheck&&<button key="check" type="button" disabled={disabled} onClick={()=>void checkCurrent(row)}><Search size={16} aria-hidden="true"/>{t('check_connection')}</button>,
+   canCheck&&<button key="check" type="button" disabled={disabled} onClick={()=>checkCurrent(row,true)}><Search size={16} aria-hidden="true"/>{t('check_connection')}</button>,
    row.allowed_actions.includes('refresh')&&<button key="refresh" type="button" disabled={disabled} onClick={()=>{setAuthorization(undefined);void write('/workbuddy-connections/'+encodeURIComponent(row.id)+'/refresh',{project_id:project,expected_version:row.version});}}>{t('refresh_authorization')}</button>,
    row.state!=='authorizing'&&authorize,
    row.allowed_actions.includes('disconnect')&&<button key="disconnect" type="button" disabled={disabled} onClick={()=>openForm({kind:'disconnect',connection:row})}>{t('disconnect')}</button>,

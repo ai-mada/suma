@@ -111,6 +111,44 @@ it('reveals the original disconnected record even when it is outside the current
  expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);
 });
 
+it('retries an off-page authorization check without offering the old link again after its grant changes',async()=>{
+ const pending={...row,id:'outside-page',state:'authorizing',version:4,allowed_actions:['authorize','disconnect']};
+ const receipt={id:'outside-retry',version:1,connection:pending,authorization_url:'https://www.workbuddy.cn/openapi/v2/authorize?state=outside-retry',expires_at:'2099-01-01T00:00:00Z',state:'pending'};
+ const exact='/workbuddy-connections/outside-page?project_id=p-a';
+ const list='/workbuddy-connections?project_id=p-a&limit=20';
+ let rejectCheck!:(error:ApiError)=>void,checks=0;
+ call.mockImplementation(async(path:string,body?:unknown)=>{
+  if(body)return receipt;
+  if(path!==exact)return page();
+  checks++;
+  if(checks===1)return new Promise((_resolve,reject)=>{rejectCheck=reject;});
+  if(checks===2)throw new ApiError(503,'service_unavailable','Temporarily unavailable');
+  return {...pending,version:5,grant_generation:2};
+ });
+ await render();await open();await click('Connect WorkBuddy account');await chooseScope();
+ await click('Open WorkBuddy to authorize');
+ expect(host.querySelector<HTMLAnchorElement>('a[target="_blank"]')?.href).toBe(receipt.authorization_url);
+ expect(host.textContent).toContain('Your authorization link is ready');
+ [...host.querySelectorAll('button')].find(button=>button.textContent==='Check authorization result')?.focus();
+ await click('Check authorization result');
+ expect(host.querySelector('a[target="_blank"]')).toBeNull();
+ expect(host.querySelector('.workbuddy-notice')).toBeNull();
+ await act(async()=>rejectCheck(new ApiError(0,'network_error','Network unavailable')));
+ expect(document.activeElement?.textContent).toBe('Retry connection check');
+ expect(host.querySelector('.workbuddy-notice')).toBeNull();
+ expect(host.querySelector('[role="alert"] button')).toBeNull();
+ const retryAt=call.mock.calls.length;
+ await click('Retry connection check');
+ expect(call.mock.calls.slice(retryAt).map(([path])=>path)).toEqual([exact]);
+ expect(host.querySelector('a[target="_blank"]')).toBeNull();
+ const refreshAt=call.mock.calls.length;
+ await click('Retry connection check');
+ expect(call.mock.calls.slice(refreshAt).map(([path])=>path)).toEqual([exact,list,exact]);
+ expect(host.querySelector('[data-workbuddy-connection-id="outside-page"]')?.classList.contains('workbuddy-card-target')).toBe(true);
+ expect(host.querySelector('a[target="_blank"]')).toBeNull();
+ expect(call.mock.calls.filter(([,body])=>body)).toHaveLength(1);
+});
+
 it('reveals the original pending record when its off-page link expires',async()=>{
  await render();await open();await click('Connect WorkBuddy account');await chooseScope();
  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','Date']});

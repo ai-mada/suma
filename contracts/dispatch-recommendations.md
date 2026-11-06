@@ -16,6 +16,8 @@
 
 `tasks recommendations TASK` 与 `tasks recommendation ID` 可使用当前项目 API 凭证或已有登录会话，分别读取该任务的历史页和准确推荐。分页使用服务端返回的 `next_cursor` 作为下一次 `--before`。状态、当前依据、原提案及允许动作沿服务端响应，实际采用和启动由原领域合同处理。 [终端操作](../docs/operations/task-dispatch-options.md#在终端核对派发推荐)
 
+工作台按原游标重试、刷新和返回。历史页在当前项目和任务范围内读取，未确认的历史页不提供记录选择。翻页不改变已独立读取的推荐详情和草稿，权限失效时收起历史和详情。
+
 ## 固定协议与采用
 
 固定协议 `suma-dispatch-recommendation-v1`，提案包含schema_version=1、summary、rationale、1–3项recommendations、最多5项questions。每个选择严格只有candidate_id、max_steps、max_output_tokens、reasoning_effort、reason；三个可空参数必须显式null，拒绝重复键、别名和未知字段。原生类型使用数字步骤／输出和null effort；Codex使用明确effort及null数字；固定工具全部参数null。

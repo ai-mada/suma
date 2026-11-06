@@ -67,7 +67,16 @@ export function validRecommendation(value:unknown,project:string,task:string,exp
  return (!Object.hasOwn(value,'adopted_test_bindings')||value.state==='adopted'&&validTestBindingFields(value.adopted_test_bindings))&&
   (value.proposal===undefined||validRecommendationProposal(value.proposal,value.source))&&(!['ready','adopted'].includes(value.state)||!!value.proposal&&hash(value.original_output_sha256))&&(value.state!=='adopted'||id(value.plan_id));
 }
-export function validRecommendationPage(value:unknown,project:string,task:string):value is DispatchRecommendationPage{return object(value)&&Array.isArray(value.items)&&value.items.length<=100&&value.items.every(item=>validRecommendation(item,project,task))&&integer(value.total)&&value.total>=value.items.length&&typeof value.next_cursor==='string'&&value.next_cursor.length<=4096;}
+export const recommendationHistoryPageSize=10;
+export function validRecommendationPage(value:unknown,project:string,task:string,trail:readonly string[]):value is DispatchRecommendationPage{
+ if(!object(value)||!Array.isArray(value.items)||value.items.length>recommendationHistoryPageSize||
+  !value.items.every(item=>validRecommendation(item,project,task))||!integer(value.total)||value.total<value.items.length||typeof value.next_cursor!=='string')return false;
+ const ids=value.items.map(item=>item.id);
+ if(new Set(ids).size!==ids.length||ids.includes(trail[trail.length-1]))return false;
+ // History uses the final record ID of a full page as the next cursor.
+ return !value.next_cursor||(ids.length===recommendationHistoryPageSize&&value.total>ids.length&&
+  value.next_cursor===ids[ids.length-1]&&!trail.includes(value.next_cursor));
+}
 export function choiceDraft(choice:DispatchRecommendationChoice):ChoiceDraft{return {candidate:choice.candidate_id,steps:choice.max_steps===null?'':String(choice.max_steps),output:choice.max_output_tokens===null?'':String(choice.max_output_tokens),effort:choice.reasoning_effort||'',reason:choice.reason};}
 export function defaultChoice(source:DispatchRecommendationSource,id:string):ChoiceDraft{const c=source.candidates.find(item=>item.id===id);return {candidate:id,steps:c?.kind==='model'?String(Math.min(source.constraints.max_steps,c.model_selection!.parameters.max_steps)):'',output:c?.kind==='model'?String(Math.min(source.constraints.max_output_tokens,c.model_selection!.parameters.max_output_tokens)):'',effort:c?.codex_selection?.reasoning_effort||'',reason:''};}
 export function recommendationChoice(source:DispatchRecommendationSource,draft:ChoiceDraft):DispatchRecommendationChoice|undefined{

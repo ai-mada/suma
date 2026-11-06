@@ -42,6 +42,36 @@ async function click(selector:string){const node=host.querySelector<HTMLElement>
 async function change(selector:string,value:string){const node=host.querySelector<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(selector)!;expect(node,selector).not.toBeNull();const proto=node instanceof HTMLSelectElement?HTMLSelectElement.prototype:node instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(node,value);node.dispatchEvent(new Event(node instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});await settle();}
 function locate(){sessionStorage.setItem('suma-recommendation-locator-v1:'+JSON.stringify(['user-a','tenant-a','project-a','task-a']),'rec-a');}
 
+it('retries the exact history cursor, keeps the current recommendation, and returns to the earlier page',async()=>{
+ const normal=send,items=Array.from({length:10},(_,index)=>({...analysis(),id:`history-${index}`,goal:`History item ${index}`}));
+ const later={...analysis(),id:'history-older',goal:'Older recommendation'};
+ let attempt=0;
+ send=async(path,body)=>{
+  if(!path.startsWith('/dispatch-recommendations?'))return normal(path,body);
+  const before=new URLSearchParams(path.split('?')[1]).get('before');
+  if(!before)return Response.json({items,total:11,next_cursor:'history-9'});
+  if(++attempt===1)return Response.json({error:{code:'unavailable',message:'Temporarily unavailable'}},{status:503});
+  return Response.json({items:[later],total:11,next_cursor:''});
+ };
+ locate();await render(view());await click('[data-recommendation-toggle]');
+ const summary=host.querySelector<HTMLElement>('[data-recommendation-history] summary')!;
+ await act(async()=>summary.click());await settle();
+ const history=summary.parentElement!;
+ const next=history.querySelector<HTMLButtonElement>('[data-dispatch-page="next"]')!;
+ next.focus();await act(async()=>next.click());await settle();
+ expect(history.querySelector('.dr-history button')).toBeNull();expect(document.activeElement).toBe(next);
+ const retry=history.querySelector<HTMLButtonElement>('[data-dispatch-page="refresh"]')!;
+ retry.focus();await act(async()=>retry.click());await settle();
+ const cursors=()=>requests.filter(item=>item.path.startsWith('/dispatch-recommendations?')).map(item=>new URLSearchParams(item.path.split('?')[1]).get('before'));
+ expect(cursors()).toEqual([null,'history-9','history-9']);
+ expect(history.textContent).toContain('Older recommendation');expect(document.activeElement).toBe(retry);
+ await click('[data-dispatch-page="previous"]');
+ expect(cursors()).toEqual([null,'history-9','history-9',null]);
+ expect(history.textContent).toContain('History item 0');
+ expect(host.textContent).toContain('A bounded suggestion');
+ expect(requests.some(item=>item.body)).toBe(false);expect(prepared).not.toHaveBeenCalled();
+});
+
 const testSelection={node_id:'verify',tool_profile_id:'independent-tester',expected_tool_version:3};
 const selectedTests:RecommendationTestBindings={workflow_id:'flow-a',workflow_version:3,agent_node_id:'develop',ready:true,hasIntent:true,selections:[testSelection]};
 function testProfile(worker='worker-test'):ToolProfile{

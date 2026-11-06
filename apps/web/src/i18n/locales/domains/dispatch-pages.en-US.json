@@ -1,0 +1,10 @@
+{
+  "dispatch-pages.first": "First page",
+  "dispatch-pages.previous": "Previous page",
+  "dispatch-pages.next": "Next page",
+  "dispatch-pages.refresh": "Refresh this page",
+  "dispatch-pages.retry": "Retry this page",
+  "dispatch-pages.current": "Page {{page}}",
+  "dispatch-pages.loading": "Page {{page}} · loading",
+  "dispatch-pages.unconfirmed": "Page {{page}} · unavailable"
+}

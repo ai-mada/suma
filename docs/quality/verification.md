@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-DISPATCH-CONNECTION-RECOVERY 核验原游标重试、键盘焦点和 WorkBuddy 原连接核对。 [命令与证据](dispatch-connection-recovery-verification.md)
+
 T-CLI-DISPATCH-RECOMMENDATIONS 核验终端候选读取、项目授权、原推荐记录和分页恢复。 [命令与证据](cli-dispatch-recommendations-verification.md)
 
 T-TOOL-CLI-INVENTORY 核验节点上报的准确范围、有效期、配置复用和共享节点撤权。 [命令与证据](tool-cli-inventory-verification.md)

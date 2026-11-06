@@ -17,6 +17,7 @@
   "workbuddy-connections.desktop_manual": "Cannot access the clipboard. The platform address is selected; copy it manually and open it in your system browser.",
   "workbuddy-connections.desktop_unavailable": "The current platform address is unavailable. Ask an administrator for its browser address, then open it in your system browser and sign in.",
   "workbuddy-connections.refresh_list": "Refresh list",
+  "workbuddy-connections.retry_check": "Retry connection check",
   "workbuddy-connections.invalid_response": "The response does not match the current project, account or supported format. Read the current status before continuing.",
   "workbuddy-connections.unknown": "The operation outcome is unknown. Read its current status or recover the original operation. Recovery keeps its original account, version and operation ID.",
   "workbuddy-connections.pending": "The original operation is awaiting confirmation. Keep this page open until its receipt is recorded.",
