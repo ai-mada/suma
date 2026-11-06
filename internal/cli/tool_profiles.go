@@ -17,13 +17,13 @@ import (
 )
 
 const toolMatchesUsage = "tools matches requires --file REQUEST_JSON or --file -; use tools --help"
-const toolProfilesUsage = "tools requires list, doctor, matches, replace or replacements; use tools --help"
+const toolProfilesUsage = "tools requires list, catalog, doctor, matches, replace or replacements; use tools --help"
 const toolMatchesInvalid = "tool matches request requires the current project, worker_id and one complete exact profile"
 const toolMatchesResponseInvalid = "tool matches response must preserve the requested scope, complete profile and full result count"
 const toolMatchesInputLimit = 256 << 10
 
 func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
-	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[0] == "list" || args[0] == "matches" || args[0] == "doctor" || args[0] == "replace" || args[0] == "replacements") && (args[1] == "help" || args[1] == "--help") {
+	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[0] == "list" || args[0] == "catalog" || args[0] == "matches" || args[0] == "doctor" || args[0] == "replace" || args[0] == "replacements") && (args[1] == "help" || args[1] == "--help") {
 		text := toolProfilesHelpZH
 		if c.locale == localization.EnUS {
 			text = toolProfilesHelpEN
@@ -36,6 +36,9 @@ func toolProfilesCommand(ctx context.Context, c *client, args []string, in io.Re
 	}
 	if len(args) > 0 && args[0] == "list" {
 		return toolListCommand(ctx, c, args[1:], out)
+	}
+	if len(args) > 0 && args[0] == "catalog" {
+		return toolCatalogCommand(ctx, c, args[1:], out)
 	}
 	if len(args) > 0 && args[0] == "replace" {
 		return toolReplacementCommand(ctx, c, args[1:], in, out)
@@ -121,6 +124,12 @@ const toolProfilesHelpEN = `tools list — read current tool connections or thei
   Reuse the exact cursor with the same filters and original account/project view.
   Profile changes retain the explicit enable/pause/revoke command API; revoke keeps history.
 
+tools catalog — find adapter entry points for the current project
+  suma --project PROJECT tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query TEXT]
+  Default: both directions. Each search term must match the product, entry point,
+  ID, adapter or protocol, ignoring case. Query: at most 120 UTF-8 bytes.
+  JSON shows the catalog's implementation, capabilities and limits.
+
 tools doctor — read current tool profile diagnostics
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID [--format json|table]
   This GET reports four current facts and their display deadline of at most 60 seconds.
@@ -162,6 +171,11 @@ const toolProfilesHelpZH = `tools list — 查看当前工具接入或已移除�
   默认 active（已启用和暂停），每页 50 项；检索文本最多 120 个 UTF-8 字节。
   翻页保持原筛选、账号和项目，使用同一列表返回的原游标。
   配置变更仍使用原 enable/pause/revoke 命令 API；revoke 移除接入并保留历史。
+
+tools catalog — 查找当前项目的工具接入入口
+  suma --project 项目ID tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query 检索文本]
+  默认查询两个方向。每个检索词都须匹配产品、入口、ID、适配器或协议，忽略大小写。
+  检索文本最多 120 个 UTF-8 字节。JSON 保留目录中的实现状态、能力和限制。
 
 tools doctor — 读取当前工具档案体检
   suma --project PROJECT --expected-user USER [--expected-organization ORG] tools doctor --id PROFILE_ID [--format json|table]

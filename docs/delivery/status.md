@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-ADAPTER-DISCOVERY 工具目录默认浏览全部方向，支持按名称、入口和协议快速查找，并接回原配置流程。终端可用项目凭证查询同一目录。 [交互与命令](../design/adapter-connections.md#信息层级与异常恢复) · [验证](../quality/adapter-discovery-verification.md)
+
 T-SCHEDULING-READ-RECOVERY 调度队列可重试原续页，撤权后清理旧记录与计数。尝试详情在恢复访问后沿原深链重新读取。 [交互](../design/scheduling-workspace.md#队列与尝试读取恢复) · [验证](../quality/scheduling-read-recovery-verification.md)
 
 T-WORKBUDDY-CLI-PROGRESS 可用项目凭证在终端查询准确 WorkBuddy 节点的已保存进度。真实终端联调验证跨项目拒绝、撤权和零供应方调用。 [操作](../operations/task-dispatch-options.md#终端运行跟踪) · [验证](../quality/workbuddy-cli-progress-verification.md)

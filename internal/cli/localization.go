@@ -31,7 +31,9 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
-	toolProfilesUsage:              {"cli.tool_profiles.usage", "tools 需要 list、doctor、matches、replace 或 replacements，请查看 tools --help"},
+	toolProfilesUsage:              {"cli.tool_profiles.usage", "tools 需要 list、catalog、doctor、matches、replace 或 replacements，请查看 tools --help"},
+	toolCatalogUsage:               {"cli.tool_catalog.usage", "tools catalog 需要 --project，支持 --direction all|suma_to_tool|tool_to_suma 和 --query 检索文本，最多 120 个 UTF-8 字节"},
+	toolCatalogResponseInvalid:     {"cli.tool_catalog.response", "工具接入目录响应须保留请求项目并包含有效目录"},
 	toolReplacementUsage:           {"cli.tool_profiles.replacement_usage", "tools replace 需要 --id 原配置ID、--file JSON文件|- 和明确 --confirm；tools replacements 支持 --id 配置ID、--direction outgoing|incoming、--limit 1–100 及原 --cursor；请查看 tools --help"},
 	toolReplacementInputInvalid:    {"cli.tool_profiles.replacement_input", "配置换新需要准确项目与原版本、完整目标配置及节点、明确 pause_original、新建名称或准确嵌套 reuse，以及原稳定操作标识"},
 	toolReplacementBrowserRequired: {"cli.tool_profiles.replacement_browser", "tools replace 需要已有登录会话和捕获的原 --expected-user；服务端仍核验当前项目批准权限"},
@@ -319,6 +321,7 @@ const helpZH = `suma — 速码控制面客户端
   tasks dispatch-plan PLAN
   models options --tool 工具ID --expected-tool-version 当前版本
   tools list [--state 状态] [--query 检索文本] [--limit 1..200] [--cursor 原游标]
+  tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query 检索文本]
   tools matches --file JSON   使用登录会话查询完整匹配的已有工具档案（只读）
   developer check            验证当前项目的真实MCP连接（只读）
   workspace save-status ID [--wait]

@@ -1,8 +1,8 @@
-import {useEffect,useRef,useState} from 'react';
-import {ArrowDownToLine,ArrowUpFromLine,ChevronRight,RefreshCw,Search} from 'lucide-react';
+import {useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
+import {ArrowDownToLine,ArrowUpFromLine,ChevronRight,Layers3,RefreshCw,Search} from 'lucide-react';
 import {useApi,useApiView} from './api-context';
 import {type ApiCaller} from './api';
-import {tr,useLocale,UiError} from './i18n';
+import {formatNumber,tr,useLocale,UiError} from './i18n';
 import {Empty,ErrorNotice,Loading} from './ui';
 import './AdapterConnections.css';
 
@@ -18,27 +18,121 @@ export function readAdapterCatalog(value:unknown,project:string):AdapterCatalogP
  return page;
 }
 const message=(category:string,key:string)=>{const id='adapter-connections.'+category+'.'+key,value=tr(id);return value===id?tr('adapter-connections.unknown_detail',{value:key}):value;};
-type Snapshot={context:string;caller:ApiCaller;revision:number;page?:AdapterCatalogPage;error?:unknown};
+const directionChoices=[
+ {key:'all',Icon:Layers3},
+ {key:'suma_to_tool',Icon:ArrowUpFromLine},
+ {key:'tool_to_suma',Icon:ArrowDownToLine},
+] as const;
+
+type DirectionFilter=typeof directionChoices[number]['key'];
+type CatalogScope={project:string;caller:ApiCaller;userID?:string;organizationID?:string;revision:number};
+type Snapshot={scope:CatalogScope;page?:AdapterCatalogPage;error?:unknown};
+
+function matchesSearch(row:AdapterDescriptor,terms:string[]){
+ if(!terms.length)return true;
+ const searchable=[
+  row.id,row.product,row.entrypoint_kind,row.adapter,row.protocol,
+  message('entrypoint',row.entrypoint_kind),
+  tr('adapter-connections.direction.'+row.direction),
+ ].join(' ').toLowerCase();
+ return terms.every(term=>searchable.includes(term));
+}
+
 export function AdapterConnections({project,onSetup}:{project:string;onSetup:(descriptor:AdapterDescriptor)=>void}){
- useLocale();const caller=useApi(),view=useApiView(),context=JSON.stringify([project,view?.userID,view?.organizationID]);
- const [revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<Snapshot>(),[direction,setDirection]=useState<'suma_to_tool'|'tool_to_suma'>('suma_to_tool'),[search,setSearch]=useState(''),[selected,setSelected]=useState('');const epoch=useRef(0),detail=useRef<HTMLElement|null>(null);
- useEffect(()=>{const generation=++epoch.current,controller=new AbortController();setSnapshot(undefined);setSelected('');if(project)void caller<unknown>('/adapter-catalog?project_id='+encodeURIComponent(project),undefined,'GET',undefined,controller.signal).then(value=>{if(generation!==epoch.current)return;const page=readAdapterCatalog(value,project);setSnapshot({context,caller,revision,...(page?{page}:{error:new UiError('adapter-connections.invalid_response')})});}).catch(error=>{if(generation===epoch.current&&!controller.signal.aborted)setSnapshot({context,caller,revision,error});});return()=>{++epoch.current;controller.abort();};},[context,caller,revision,project]);
- const current=snapshot?.context===context&&snapshot.caller===caller&&snapshot.revision===revision?snapshot:undefined,page=current?.page,rows=page?.items.filter(row=>row.direction===direction&&(!search.trim()||(row.product+' '+row.entrypoint_kind+' '+(row.protocol||'')).toLowerCase().includes(search.trim().toLowerCase())))||[],active=rows.find(row=>row.id===selected);
- const choose=(row:AdapterDescriptor)=>{setSelected(row.id);if(typeof matchMedia==='function'&&matchMedia('(max-width:767px)').matches)requestAnimationFrame(()=>detail.current?.scrollIntoView({block:'start',behavior:'auto'}));};
+ useLocale();
+ const caller=useApi(),view=useApiView(),userID=view?.userID,organizationID=view?.organizationID;
+ const [revision,setRevision]=useState(0);
+ const scope=useMemo(()=>({project,caller,userID,organizationID,revision}),[project,caller,userID,organizationID,revision]);
+ const [snapshot,setSnapshot]=useState<Snapshot>();
+ const [direction,setDirection]=useState<DirectionFilter>('all');
+ const [search,setSearch]=useState('');
+ const [selection,setSelection]=useState<{scope:CatalogScope;id:string}>();
+ const searchInput=useRef<HTMLInputElement>(null);
+ const selectedCard=useRef<HTMLButtonElement>(null);
+ const detail=useRef<HTMLElement>(null),detailHeading=useRef<HTMLHeadingElement>(null),detailId=useId();
+
+ useEffect(()=>{
+  const controller=new AbortController();
+  setSnapshot(undefined);
+  setSelection(undefined);
+  selectedCard.current=null;
+  const headers=scope.userID&&scope.organizationID?{
+   'X-Suma-Expected-User':scope.userID,
+   'X-Suma-Expected-Organization':scope.organizationID,
+  }:undefined;
+  if(scope.project){
+   void scope.caller<unknown>('/adapter-catalog?project_id='+encodeURIComponent(scope.project),undefined,'GET',headers,controller.signal)
+    .then(value=>{
+     if(controller.signal.aborted)return;
+     const page=readAdapterCatalog(value,scope.project);
+     setSnapshot({scope,...(page?{page}:{error:new UiError('adapter-connections.invalid_response')})});
+    }).catch(error=>{
+     if(!controller.signal.aborted)setSnapshot({scope,error});
+    });
+  }
+  return()=>controller.abort();
+ },[scope]);
+
+ const current=snapshot?.scope===scope?snapshot:undefined;
+ const terms=search.toLowerCase().split(/\s+/u).filter(Boolean);
+ const rows=current?.page?.items.filter(row=>(direction==='all'||row.direction===direction)&&matchesSearch(row,terms))??[];
+ const active=selection?.scope===scope?rows.find(row=>row.id===selection.id):undefined;
+
+ useLayoutEffect(()=>{
+  if(!active)return;
+  const stacked=typeof matchMedia==='function'&&matchMedia('(max-width:1100px)').matches;
+  detailHeading.current?.focus({preventScroll:stacked});
+  if(stacked)detail.current?.scrollIntoView?.({block:'start'});
+ },[active,selection]);
+
+ function clearSelection(){
+  setSelection(undefined);
+  selectedCard.current=null;
+ }
+ function updateSearch(value:string){
+  setSearch(value);
+  clearSelection();
+ }
+ function closeDetails(){
+  const trigger=selectedCard.current;
+  clearSelection();
+  trigger?.focus();
+ }
+
  if(!project)return null;
  return <section className="adapter-connections" aria-label={tr('adapter-connections.title')}>
-  <header className="adapter-connections-heading"><div><h3>{tr('adapter-connections.title')}</h3><p>{tr('adapter-connections.intro')}</p></div><button type="button" disabled={!current} onClick={()=>setRevision(n=>n+1)}><RefreshCw size={16}/>{tr('adapter-connections.refresh')}</button></header>
-  <div className="adapter-connections-directions" role="group" aria-label={tr('adapter-connections.direction')}>{(['suma_to_tool','tool_to_suma'] as const).map(key=><button type="button" key={key} aria-pressed={direction===key} onClick={()=>{setDirection(key);setSelected('');}}>{key==='suma_to_tool'?<ArrowUpFromLine size={18}/>:<ArrowDownToLine size={18}/>}<span><strong>{tr('adapter-connections.direction.'+key)}</strong><small>{tr('adapter-connections.direction_hint.'+key)}</small></span></button>)}</div>
+  <header className="adapter-connections-heading"><div><h3>{tr('adapter-connections.title')}</h3><p>{tr('adapter-connections.intro')}</p></div><button type="button" disabled={!current} onClick={()=>setRevision(n=>n+1)}><RefreshCw size={16} aria-hidden="true"/>{tr('adapter-connections.refresh')}</button></header>
+  <div className="adapter-connections-directions" role="group" aria-label={tr('adapter-connections.direction')}>
+   {directionChoices.map(({key,Icon})=><button type="button" key={key} data-adapter-direction={key} aria-pressed={direction===key} onClick={()=>{
+    if(direction!==key){setDirection(key);clearSelection();}
+   }}><Icon size={18} aria-hidden="true"/><span><strong>{tr('adapter-connections.direction.'+key)}</strong><small>{tr('adapter-connections.direction_hint.'+key)}</small></span></button>)}
+  </div>
   {!current?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={()=>setRevision(n=>n+1)}/>:<>
-   <label className="adapter-connections-search"><Search size={16}/><span className="adapter-connections-search-label">{tr('adapter-connections.search')}</span><input value={search} maxLength={100} onChange={event=>{setSearch(event.target.value);setSelected('');}} placeholder={tr('adapter-connections.search_placeholder')}/></label>
+   <div className="adapter-connections-search-row">
+    <label className="adapter-connections-search"><Search size={16} aria-hidden="true"/><span className="adapter-connections-search-label">{tr('adapter-connections.search')}</span><input ref={searchInput} value={search} maxLength={100} onChange={event=>updateSearch(event.target.value)} placeholder={tr('adapter-connections.search_placeholder')}/></label>
+    {search&&<button type="button" className="adapter-connections-clear-search" onClick={()=>{updateSearch('');searchInput.current?.focus();}}>{tr('adapter-connections.clear_search')}</button>}
+   </div>
+   <p className="adapter-connections-results" role="status">{tr('adapter-connections.results',{count:formatNumber(rows.length)})}</p>
    <p className="adapter-connections-boundary">{tr('adapter-connections.boundary')}</p>
-   <div className={'adapter-connections-workspace'+(active?' has-detail':'')}><div className="adapter-connections-grid">{rows.map(row=><button type="button" key={row.id} className={'adapter-connection-card '+(active?.id===row.id?'selected':'')} aria-pressed={active?.id===row.id} data-adapter-id={row.id} onClick={()=>choose(row)}><span className="adapter-connection-card-top"><strong>{row.product}</strong><ChevronRight size={17}/></span><span>{message('entrypoint',row.entrypoint_kind)}</span><span className={'adapter-connection-state '+row.implementation}>{tr('adapter-connections.implementation.'+row.implementation)}</span></button>)}{!rows.length&&<Empty title={tr('adapter-connections.no_matches')} description={tr('adapter-connections.no_matches_hint')}/>}</div>
-   {active&&<aside ref={detail} className="adapter-connection-detail" aria-label={tr('adapter-connections.details')}><header><div><h4>{active.product}</h4><p>{message('entrypoint',active.entrypoint_kind)}</p></div><button type="button" onClick={()=>setSelected('')}>{tr('adapter-connections.close')}</button></header><p className={'adapter-connection-state '+active.implementation}>{tr('adapter-connections.implementation.'+active.implementation)}</p>
-    {active.implementation!=='planned'?<button type="button" className="primary adapter-connection-next" onClick={()=>onSetup(active)}>{tr(active.id==='workbuddy-cloud'?'adapter-connections.action.workbuddy_account':'adapter-connections.action.'+active.setup_kind)}<ChevronRight size={16}/></button>:<p className="adapter-connections-boundary">{tr('adapter-connections.planned_hint')}</p>}
-    <ul className="adapter-connection-limits">{active.limitations.map((key,index)=><li key={key+index}>{message('limit',key)}</li>)}</ul>
-    <details className="adapter-connection-capabilities"><summary>{tr('adapter-connections.capabilities')}</summary><p>{tr('adapter-connections.capabilities_hint')}</p><dl>{active.capabilities.map(cap=><div key={cap.key}><dt>{message('capability',cap.key)}</dt><dd><span className={'adapter-capability-'+cap.support}>{tr('adapter-connections.support.'+cap.support)}</span>{cap.limitations.map((key,index)=><small key={key+index}>{message('limit',key)}</small>)}</dd></div>)}</dl></details>
-    <details className="adapter-connection-sources"><summary>{tr('adapter-connections.sources')}</summary>{active.protocol&&<p>{tr('adapter-connections.protocol')}: <code>{active.protocol}</code></p>}<ul>{active.source_refs.map((source,index)=><li key={source+index}><code>{source}</code></li>)}</ul></details>
-   </aside>}
+   <div className={'adapter-connections-workspace'+(active?' has-detail':'')}>
+    <div className="adapter-connections-grid">
+     {rows.map(row=><button type="button" key={row.id} className={'adapter-connection-card '+(active?.id===row.id?'selected':'')}
+      aria-pressed={active?.id===row.id} aria-controls={active?.id===row.id?detailId:undefined} data-adapter-id={row.id}
+      onClick={event=>{selectedCard.current=event.currentTarget;setSelection({scope,id:row.id});}}>
+      <span className="adapter-connection-card-top"><strong>{row.product}</strong><ChevronRight size={17} aria-hidden="true"/></span>
+      <span className="adapter-connection-card-meta"><span>{message('entrypoint',row.entrypoint_kind)}</span><span className="adapter-connection-direction">{tr('adapter-connections.direction.'+row.direction)}</span></span>
+      <span className={'adapter-connection-state '+row.implementation}>{tr('adapter-connections.implementation.'+row.implementation)}</span>
+     </button>)}
+     {!rows.length&&<Empty title={tr('adapter-connections.no_matches')} description={tr('adapter-connections.no_matches_hint')}/>}
+    </div>
+    {active&&<aside ref={detail} id={detailId} className="adapter-connection-detail" aria-label={tr('adapter-connections.details')}>
+     <header><div><h4 ref={detailHeading} tabIndex={-1}>{active.product}</h4><p>{message('entrypoint',active.entrypoint_kind)}</p></div><button type="button" onClick={closeDetails}>{tr('adapter-connections.close')}</button></header>
+     <p className={'adapter-connection-state '+active.implementation}>{tr('adapter-connections.implementation.'+active.implementation)}</p>
+     {active.implementation!=='planned'?<button type="button" className="primary adapter-connection-next" onClick={()=>onSetup(active)}>{tr(active.id==='workbuddy-cloud'?'adapter-connections.action.workbuddy_account':'adapter-connections.action.'+active.setup_kind)}<ChevronRight size={16} aria-hidden="true"/></button>:<p className="adapter-connections-boundary">{tr('adapter-connections.planned_hint')}</p>}
+     <ul className="adapter-connection-limits">{active.limitations.map((key,index)=><li key={key+index}>{message('limit',key)}</li>)}</ul>
+     <details className="adapter-connection-capabilities"><summary>{tr('adapter-connections.capabilities')}</summary><p>{tr('adapter-connections.capabilities_hint')}</p><dl>{active.capabilities.map(cap=><div key={cap.key}><dt>{message('capability',cap.key)}</dt><dd><span className={'adapter-capability-'+cap.support}>{tr('adapter-connections.support.'+cap.support)}</span>{cap.limitations.map((key,index)=><small key={key+index}>{message('limit',key)}</small>)}</dd></div>)}</dl></details>
+     <details className="adapter-connection-sources"><summary>{tr('adapter-connections.sources')}</summary>{active.protocol&&<p>{tr('adapter-connections.protocol')}: <code>{active.protocol}</code></p>}<ul>{active.source_refs.map((source,index)=><li key={source+index}><code>{source}</code></li>)}</ul></details>
+    </aside>}
    </div>
   </>}
  </section>;

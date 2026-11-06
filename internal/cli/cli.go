@@ -42,6 +42,7 @@ Read commands:
   tasks dispatch-plan PLAN
   models options --tool ID --expected-tool-version N
   tools list [--state STATE] [--query TEXT] [--limit 1..200] [--cursor NEXT_CURSOR]
+  tools catalog [--direction all|suma_to_tool|tool_to_suma] [--query TEXT]
   tools matches --file JSON   Find exact existing profiles using a login session (no writes)
   workspace save-status ID [--wait]
   workspace targets | workspace observe --file request.json [--wait] | workspace observation ID [--wait]

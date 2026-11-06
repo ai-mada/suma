@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-ADAPTER-DISCOVERY 核验准确入口搜索、方向筛选、键盘焦点、当前访问拒绝及终端查询。 [命令与证据](adapter-discovery-verification.md)
+
 T-SCHEDULING-READ-RECOVERY 核验同项目身份切换、暂时失败续读、权限失效后的清理和原尝试恢复。 [命令与证据](scheduling-read-recovery-verification.md)
 
 T-WORKBUDDY-CLI-PROGRESS 核验闭合输出、项目授权与撤权，并通过实际终端和 SQLite 的四次只读查询。 [命令与证据](workbuddy-cli-progress-verification.md)
