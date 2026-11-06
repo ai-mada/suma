@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-DECISION-IMPACT 停用和移除工具前可在同一窗口核对当前配置与运行影响。版本冲突、过期或权限变化后须重新核对和确认。 [交互](../design/tool-management.md#停用与移除确认) · [验证](../quality/tool-decision-impact-verification.md)
+
 T-WORKBUDDY-DELIVERY-RETURN 从正式 WorkBuddy 云运行打开原任务的交付与质量面板。已授权团队成员可核对任务版本及当前运行关系。 [交互](../design/workbuddy-cloud-task.md#返回原任务交付) · [验证](../quality/workbuddy-delivery-return-verification.md)
 
 T-TEAM-PLAN-FILTER 团队执行可按准确团队查询、分享及续页，并从已加载计划筛选需处理和待验收。CLI 使用相同项目授权与团队条件。 [操作](../development/team-execution.md) · [验证](../quality/team-plan-filter-verification.md)

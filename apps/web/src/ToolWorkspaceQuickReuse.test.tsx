@@ -37,7 +37,7 @@ it('opens an exact enabled profile from quick connect in the original detail wit
   return Response.json({items:[]});
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);await act(async()=>root!.render(<View/>));await settle();
- const quick=host.querySelector<HTMLButtonElement>('.tool-list .list-toolbar button.primary');expect(quick).not.toBeNull();await act(async()=>quick!.click());await settle();
+ const quick=host.querySelector<HTMLButtonElement>('[data-tools-add]');expect(quick).not.toBeNull();await act(async()=>quick!.click());await settle();
  const select=document.querySelector<HTMLSelectElement>('[data-quick-tool]');expect(select).not.toBeNull();await act(async()=>{Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')!.set!.call(select,'codex-jsonl');select!.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
  const open=document.querySelector<HTMLButtonElement>('[data-existing-tool-open="existing"]');expect(open).not.toBeNull();expect(open!.disabled).toBe(false);
  expect(queries).toEqual([{project_id:'p',worker_id:'runner',profile:definition}]);expect(writes).toEqual([]);

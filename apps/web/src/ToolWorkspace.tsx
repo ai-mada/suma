@@ -61,6 +61,7 @@ import {ToolQuickConnect,type ToolConnectDraft} from './ToolQuickConnect';
 import {ToolInventoryConnectLink} from './ToolInventoryConnectLink';
 import {RemoteToolScanPanel} from './RemoteToolScanPanel';
 import {ToolProfileDoctor} from './ToolProfileDoctor';
+import {ProfileDecisionForm} from './ToolProfileDecision';
 import {ToolReinspectionPanel} from './ToolReinspectionPanel';
 import {hasToolInspectionLocalOperation,readToolInspectionTarget,toolInspectionPath,validToolInspectionLocator,type ToolInspectionLocator} from './tool-reinspection-model';
 import {readToolProfileDiagnostics} from './tool-profile-diagnostics-model';
@@ -1026,7 +1027,7 @@ function ScopedToolWorkspace({
                       </>
                     )}
                   </div>
-                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} autoRefresh={live} pending={pending} disabled={writeBlocked}
+                  <ToolProfileDoctor project={project} tool={current} confirmed={!stale} autoRefresh={live&&!(dialog?.kind==="decision"&&dialog.action!=="enable")} pending={pending} disabled={writeBlocked}
                     onReview={value=>{if(stale||writeBlocked||current.state==='revoked'||value.id!==current.id||value.project_id!==project||value.version!==current.version||value.worker_id!==current.worker_id)return;action.clearError();setDialog({kind:'decision',action:'enable',profile:current});}}
                     onRegister={value=>{if(!stale&&!writeBlocked)void configureProfile(value);}}
                     onInspect={inspectProfile}
@@ -1292,6 +1293,7 @@ function ScopedToolWorkspace({
         </>}
         {dialog?.kind === "decision" && (
           <ProfileDecisionForm
+            key={dialog.action+":"+dialog.profile.id}
             project={project}
             value={dialog.profile}
             decision={dialog.action}
@@ -1750,122 +1752,6 @@ function WorkerForm({
         >
           {t("development.tools.register_and_get_this_credential")}</button>
       </div>
-    </form>
-  );
-}
-function ProfileDecisionForm({
-  project,
-  value,
-  decision,
-  justSaved,
-  action,
-  onSaved,
-  onCancel,
-}: {
-  project: string;
-  value: ToolProfile;
-  decision: "enable" | "pause" | "revoke";
-  justSaved?:true;
-  action: ToolAction;
-  onSaved: (value: ToolProfile) => void;
-  onCancel: () => void;
-}) { const api=useApi(); useLocale();
-  const [current, setCurrent] = useState(value),
-    [confirmed, setConfirmed] = useState(false),
-    [error, setError] = useState<unknown>("");
-  const savedNotice=useRef<HTMLParagraphElement>(null);
-  const compactReview=justSaved&&current.state==='paused';
-  useLayoutEffect(()=>{if(justSaved)savedNotice.current?.focus();},[justSaved]);
-  return (
-    <form
-      className="tool-form"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        if(!confirmed||action.busy||action.pending||action.conflict)return;
-        const result = await action.run<ToolProfile>(
-          "/tool-profiles/" + encodeURIComponent(current.id) + "/commands",
-          {
-            project_id: project,
-            action: decision,
-            expected_version: current.version,
-          },
-        );
-        if (result) onSaved(result);
-      }}
-    >
-      {justSaved&&<p ref={savedNotice} tabIndex={-1} data-quick-paused-for-review>{t('tool-quick-connect.saved_for_review',{name:value.name})}</p>}
-      {compactReview?<dl className="tool-quick-review-facts">
-        <div><dt>{t('tool-quick-connect.node')}</dt><dd>{current.worker_id}</dd></div>
-        <div><dt>{t('tool-workspace.command')}</dt><dd>{current.profile.command_id}</dd></div>
-        <div><dt>{t('development.facts.fixed_version')}</dt><dd>{current.profile.tool_version}</dd></div>
-        <div><dt>{t('development.facts.execution_permission')}</dt><dd>{t(current.profile.read_only?'tool-quick-connect.access_read_only':'tool-quick-connect.access_write')}</dd></div>
-      </dl>:<ToolProfileFacts profile={current} />}
-      {decision==='enable'&&current.profile.adapter==='qoder'&&current.profile.protocol==='acp-stdio-v1'&&<p className="muted">{t('acp-runtime.setup_policy')}</p>}
-      {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
-      <p className={decision === "enable" ? "muted" : "warning"}>
-        {compactReview?t('tool-quick-connect.enable_review_hint'):decision === "enable"
-          ? t("development.tools.enabling_still_requires_matching_current_identity_live")
-          : decision === "pause"
-            ? t("development.tools.pausing_blocks_subsequent_dispatch_only_operations_already")
-            : t('tool-workspace.remove_hint')}
-      </p>
-      <label className="check">
-        <input
-          type="checkbox"
-          checked={confirmed}
-          disabled={action.busy || !!action.pending}
-          onChange={(event) => setConfirmed(event.target.checked)}
-        />
-        {decision==='revoke'?t('tool-workspace.remove_confirm',{version:current.version}):t("development.tools.confirm_"+decision,{version:current.version})}
-      </label>
-      {action.conflict && (
-        <div className="conflict-banner">
-          <p>{t("development.tools.the_state_changed_your_decision_is_retained")}</p>
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                setCurrent(
-                  await api<ToolProfile>(
-                    "/tool-profiles/" +
-                      encodeURIComponent(current.id) +
-                      query(project),
-                  ),
-                );
-                setConfirmed(false);
-                action.clearError();
-              } catch (error) {
-                setError(error);
-              }
-            }}
-          >
-            {t("development.tools.read_current_configuration_keep_decision")}</button>
-        </div>
-      )}
-      <div className="dialog-actions">
-        <button
-          type="button"
-          disabled={action.busy || !!action.pending}
-          onClick={onCancel}
-        >
-          {t("development.workflow.cancel")}</button>
-        <button
-          className="primary"
-          disabled={
-            action.busy || !!action.pending || action.conflict || !confirmed
-          }
-        >
-          {decision === "enable"
-            ? t("development.tools.confirm_enabling_this_configuration")
-            : decision === "pause"
-              ? t("development.tools.confirm_pausing_this_configuration")
-              : t('tool-workspace.remove')}
-        </button>
-      </div>
-      {compactReview&&<details className="tool-quick-review-details">
-        <summary>{t('tool-quick-connect.diagnostics')}</summary>
-        <ToolProfileFacts profile={current}/>
-      </details>}
     </form>
   );
 }

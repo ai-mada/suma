@@ -1,0 +1,10 @@
+.tool-decision-impact{display:grid;gap:12px;min-width:0}
+.tool-decision-review-header{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+.tool-decision-review-header>div{flex:1 1 210px;min-width:0}
+.tool-decision-review-header h3{font-size:16px;margin:0 0 4px}
+.tool-decision-review-header p{color:var(--muted);line-height:1.55}
+.tool-decision .tool-decision-refresh,.tool-decision .dialog-actions button{min-height:44px}
+.tool-decision .check{min-height:44px;align-items:center;overflow-wrap:anywhere}
+.tool-decision-facts dd{overflow-wrap:anywhere}
+.tool-decision .tool-profile-impact{margin:0}
+@media(max-width:480px){.tool-decision .tool-decision-refresh{width:100%}}
