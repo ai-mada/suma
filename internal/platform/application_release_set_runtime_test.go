@@ -157,7 +157,7 @@ func newActualReleaseSetFixture(t *testing.T, wrapControl, wrapManagement func(h
 func TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment(t *testing.T) {
 	p := newActualReleaseSetFixture(t, nil, nil)
 	h, candidates, registered, group := p.application, p.candidates, p.registered, p.group
-	f, provider, client, cfg, providerID := h.f, p.provider, p.client, p.config, p.providerID
+	f, provider, client, cfg := h.f, p.provider, p.client, p.config
 	providerKey, transportKey := p.providerKey, p.transportKey
 	ctx := context.Background()
 	var partial ApplicationReleaseSetView
@@ -187,7 +187,7 @@ func TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment(t *te
 		if err != nil {
 			t.Fatal(err)
 		}
-		a, err := client.Claim(ctx, "release-set-deployer124", []string{"external_workflow:" + providerID})
+		a, err := client.Claim(ctx, "release-set-deployer124", runner.ExternalCapabilities(cfg.External))
 		if err != nil || a == nil || a.ReleaseExecution == nil || a.ReleaseExecution.OperationID != deployment.OperationID {
 			t.Fatal("actual original deployment claim missing", err)
 		}

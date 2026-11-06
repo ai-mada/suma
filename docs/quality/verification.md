@@ -28,6 +28,8 @@ T-POOL-RUNNER-OCCUPANCY 核验拥有方当前授权、真实领取和待核对�
 
 T-PORTFOLIO-CAPACITY 核验可读项目负荷、组织日历加权、明确零与未知、任务扫描上限、原任务跳转和浏览器撤权。 [阶段验证](project-portfolio-capacity-verification.md)
 
+T-RELEASE-PROTOCOL-ADMISSION-259 实际本地部署、回滚、有序发布和原回执恢复通过定向验证。批量预览已检查中英文、窄屏和键盘操作。 [阶段报告](release-protocol-admission-verification.md)
+
 T-RELEASE-RUNNER-READINESS-258 认证领取、凭据轮换、过期重放和无上报排队通过定向验证。中英文界面验证覆盖回滚预览、计划详情和执行确认。 [阶段报告](release-runner-readiness-verification.md)
 
 T-MANAGED-RELEASE-RUNNER-LANE-257 在默认共享池下验证专用发布领取、拒绝共享池身份、独立回滚及有序发布子运行路由。 [阶段报告](managed-release-runner-lane-verification.md)

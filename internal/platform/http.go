@@ -1205,6 +1205,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 		defer authority.close()
 		cloud := s.Service.newCloudClaimAuthority(s.WorkBuddy)
 		hook := cloud.runnableHook()
+		hook.AdmitPrivateExternalCandidateTx = func(ctx context.Context, tx *sql.Tx, run, node string) (bool, error) {
+			return s.Service.admitReleaseCandidateTx(ctx, tx, authority.proof, run, node, claim.Capabilities)
+		}
 		hook.RecordPrivateClaimTx = func(ctx context.Context, tx *sql.Tx) error {
 			return s.Service.recordReleaseRunnerClaimTx(ctx, tx, authority.proof, claim.Capabilities)
 		}

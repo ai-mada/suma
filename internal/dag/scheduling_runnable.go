@@ -12,6 +12,10 @@ import (
 type RunnableHook struct {
 	BindAssignmentTx func(context.Context, *sql.Tx, *Assignment) error
 	ValidateReplayTx func(context.Context, *sql.Tx, Assignment) error
+	// AdmitPrivateExternalCandidateTx checks a fresh, capability-matching
+	// external workflow before the scheduler reserves resources or a lease.
+	// Existing receipts keep their original replay and authorization checks.
+	AdmitPrivateExternalCandidateTx func(ctx context.Context, tx *sql.Tx, run, node string) (bool, error)
 	// RecordPrivateClaimTx observes a newly recorded private claim, including
 	// an empty poll. Receipt replays and shared Pool claims never call it.
 	RecordPrivateClaimTx func(context.Context, *sql.Tx) error

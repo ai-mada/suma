@@ -155,6 +155,15 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 			if !capable(n, capabilities) {
 				continue
 			}
+			if n.Type == "external_workflow" && hook != nil && hook.AdmitPrivateExternalCandidateTx != nil {
+				allowed, err := hook.AdmitPrivateExternalCandidateTx(t.ctx, t.tx, r.ID, n.ID)
+				if err != nil {
+					return err
+				}
+				if !allowed {
+					continue
+				}
+			}
 			pin, err := candidateFor(r, n)
 			if err != nil {
 				if errors.Is(err, errCandidatePending) {

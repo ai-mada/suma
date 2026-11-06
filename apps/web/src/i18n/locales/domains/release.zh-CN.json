@@ -137,7 +137,7 @@
   "release.execution_readiness.capability_missing_help": "请核对专用 Runner 的发布协议和提供方 ID，确认 ID 一致后，待下一次上报再刷新。",
   "release.execution_readiness.capability_observed": "已观测到匹配的发布能力",
   "release.execution_readiness.capability_observed_help": "近期 Runner 上报包含发布协议。实际执行仍取决于领取资格和可用容量。",
-  "release.execution_readiness.advisory": "具备审批权限时可继续审批。排队中的部署将等待符合条件的 Runner。",
+  "release.execution_readiness.advisory": "具备审批权限时可继续审批。部署排队后会等待报告匹配发布协议的专用 Runner。",
   "release.execution_readiness.evidence": "查看观测详情",
   "release.execution_readiness.registered": "已登记的发布 Runner",
   "release.execution_readiness.checked_at": "核对时间",

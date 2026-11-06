@@ -130,7 +130,7 @@ func TestReleaseAndArtifactGateNeverAcquireEventSequenceBeforeDomainWork(t *test
 		t.Fatal(err)
 	}
 	worker := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "tail-deployer", "profiles": []any{}, "deployment": true}), 201)
-	claim := f.bearer("POST", "/runner/claim", worker["token"].(string), f.body(map[string]any{"worker_id": "tail-deployer", "capabilities": []string{"external_workflow:local-static-test"}}), 200)
+	claim := f.bearer("POST", "/runner/claim", worker["token"].(string), f.body(map[string]any{"worker_id": "tail-deployer", "capabilities": releaseTestCapabilities("local-static-test")}), 200)
 	if claim["assignment"] == nil {
 		t.Fatal("actual protected attempt was not dispatched")
 	}

@@ -43,6 +43,8 @@ Runner 的 `--external-config` 采用相同 provider ID；这是受信管理员�
 
 `SUMA_DEPLOY_WORKER_TOKEN` 是提供方识别固定 worker 的传输凭证，与 Runner 对控制面的 worker 凭证、provider 对控制面的凭证和只读 reconcile 凭证分开。它单独不能部署：Runner 从当前 managed assignment 的独立 HTTP 调用领取短期 opaque ticket，提供方向固定控制面在线 consume，并在激活前 begin-effect。ticket 只在内存传递，不进 Config、Assignment、journal、provider intent 或日志。
 
+发布或回滚排队后，如页面显示上报缺少发布能力，请核对专用项目 Runner 的配置键是否与环境绑定的 provider ID 相同，再核对 `protocol`、固定 URL 和进程传输凭证是否已加载。未匹配前，运行保留在队列。Runner 下一次新领取上报匹配能力后即可继续参与调度。使用普通外部流程的同名插件无需填写发布协议，`workbuddy-cloud` 保留给 WorkBuddy 云任务。
+
 ## 构建与包测试 profile
 
 命令许可表增加 `artifact_output` 或 `artifact_input`，二者互斥。以下仅演示字段结构；可执行文件和项目内构建/检查程序须由管理员实际准备、审查并登记同一 profile 摘要：

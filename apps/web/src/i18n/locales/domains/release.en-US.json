@@ -137,7 +137,7 @@
   "release.execution_readiness.capability_missing_help": "Verify the release protocol and the exact provider ID in the dedicated Runner configuration, then refresh after its next report.",
   "release.execution_readiness.capability_observed": "Matching release capability reported",
   "release.execution_readiness.capability_observed_help": "A recent Runner report includes the release protocol. Execution still depends on claim eligibility and capacity.",
-  "release.execution_readiness.advisory": "Approval can proceed when allowed. Queued deployment waits for an eligible Runner.",
+  "release.execution_readiness.advisory": "Approval can proceed when allowed. Queued deployments wait for a dedicated Runner that reports a matching release protocol.",
   "release.execution_readiness.evidence": "Observation details",
   "release.execution_readiness.registered": "Registered release Runners",
   "release.execution_readiness.checked_at": "Checked at",

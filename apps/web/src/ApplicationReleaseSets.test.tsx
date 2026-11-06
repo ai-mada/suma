@@ -62,6 +62,44 @@ it('T124 preserves deployment drafts across a generation conflict and creates on
  const prepared=writes.filter(write=>write.path.endsWith('/deployment-plans'));expect(prepared.map(write=>(write.body.environments as {expected_environment_generation:number}[])[0].expected_environment_generation)).toEqual([4,5]);expect(node('[role=dialog]')).toBeNull();expect(node('[data-release-set-group=group-a]')).not.toBeNull();expect(document.body.querySelector('a[href*="sub=release-plans"][href*="record=plan-a"]')).not.toBeNull();expect(document.body.textContent).toContain('Approved');expect(document.body.textContent).toContain('No actual deployment operation is reported');expect(writes.every(write=>/deployment-preview|deployment-plans/.test(write.path))).toBe(true);
 });
 
+it('shows each release-set member’s Runner observation without blocking plan preparation or sending a write',async()=>{
+ const secondMember={...server.set.members[0],application_id:'app-b',application_name:'Search app',candidate_id:'candidate-b'};
+ server=setView({...server.set,members:[...server.set.members,secondMember]});
+ const primary=environment(),secondary={...primary,id:'env-b',name:'Search staging',provider_id:'search-provider'};
+ const previous=send;
+ send=async(path,init)=>{
+  if(path.startsWith('/application-release-sets/options?'))return Response.json({...options(),environments:[primary,secondary],environment_total:2});
+  if(path==='/application-release-sets/set-a/deployment-preview'){
+   const response=deploymentPreview(JSON.parse(String(init?.body)));
+   const common=response.items[0].preview;
+   return Response.json({...response,items:[
+    {application_id:'app-a',candidate_id:'candidate-a',preview:{...common,environment:primary,execution_lane:'project_runner',execution_readiness:{state:'capability_observed',registered_count:1,checked_at:date,observed_at:date}}},
+    {application_id:'app-b',candidate_id:'candidate-b',preview:{...common,candidate_id:'candidate-b',environment:secondary,execution_lane:'project_runner',execution_readiness:{state:'capability_missing',registered_count:1,checked_at:date,observed_at:date}}},
+   ]});
+  }
+  return previous(path,init);
+ };
+ await render(<Harness/>);
+ await click('[data-release-set-deployment]');
+ await change('[name=release_set_environment_app-a]','env-a');
+ await change('[name=release_set_environment_app-b]','env-b');
+ await change('[name=release_set_deployment_reason]','Review each Runner report');
+ await click('[data-release-set-deployment-preview]');
+ const cards='[data-release-set-deployment-preview-result] article';
+ const store=node(cards+'[aria-label="Store app"]')!,search=node(cards+'[aria-label="Search app"]')!;
+ expect(store.querySelector('summary')?.textContent).toContain('Matching release capability reported');
+ expect(search.querySelector('summary')?.textContent).toContain('Release capability missing from reports');
+ expect(search.querySelector('.release-pill')?.classList.contains('warning')).toBe(true);
+ expect(search.querySelector('details')?.open).toBe(false);
+ await click(cards+'[aria-label="Search app"] summary');
+ expect(search.querySelector('details')?.open).toBe(true);
+ expect(search.querySelector('details code')?.textContent).toBe('search-provider');
+ expect(search.querySelectorAll('time[datetime]')).toHaveLength(2);
+ await click('[name=release_set_deployment_ack]');
+ expect((node('[data-release-set-deployment-preview-result] button') as HTMLButtonElement).disabled).toBe(false);
+ expect(writes.map(write=>write.path)).toEqual(['/application-release-sets/set-a/deployment-preview']);
+});
+
 it('T124 exposes exact signed reverse references and clears protected set facts after refusal despite a late response',async()=>{
  await render(<ApplicationReleaseSetReference project={project} reference={{release_set_id:'set-a',release_set_sha256:hash,application_id:'app-a',application_version_id:'code-a',application_version_sha256:hash}}/>);expect(document.body.querySelector('a[href*="layout=release-sets"][href*="record=set-a"]')).not.toBeNull();expect(document.body.querySelector('a[href*="layout=applications"][href*="record=code-a"]')).not.toBeNull();
  let refuse=false,resolve:(response:Response)=>void=()=>{};const previous=send;send=async(path,init)=>{if(path.startsWith('/application-release-sets/set-a?')&&refuse)return new Promise(done=>{resolve=done;});if(path.startsWith('/application-release-sets?')&&refuse)return Response.json({error:{code:'forbidden',message:'Access changed'}},{status:403});return previous(path,init);};await render(<Harness/>);expect(validReleaseSetView(server,project,'set-a')).toBe(true);expect(document.body.textContent).toContain('Store 1.2');refuse=true;await click('.rs-list-region .rs-actions button');await act(async()=>resolve(Response.json(server)));await settle();expect(document.body.textContent).not.toContain('Store 1.2');expect(document.body.textContent).not.toContain('Store app');expect(document.body.textContent).toContain('Protected release-set and plan facts have been cleared');

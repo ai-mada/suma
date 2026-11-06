@@ -290,15 +290,19 @@ func (s *Service) currentReleaseDeploymentTx(ctx context.Context, tx *sql.Tx, te
 	return s.releaseDeploymentReadTx(ctx, tx, tenant, project, id, true)
 }
 func (s *Service) releaseDeploymentReadTx(ctx context.Context, tx *sql.Tx, tenant, project, id string, current bool) (ReleaseDeployment, error) {
+	row := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT data,approved_by,executed_by FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND operation_id=?`, current)), tenant, project, id)
+	out, err := scanReleaseDeployment(row)
+	if err == sql.ErrNoRows {
+		return out, missing()
+	}
+	return out, err
+}
+func scanReleaseDeployment(row *sql.Row) (ReleaseDeployment, error) {
 	var out ReleaseDeployment
-	var raw string
-	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT data,approved_by,executed_by FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND operation_id=?`, current)), tenant, project, id).Scan(&raw, &out.ApprovedBy, &out.ExecutedBy); err != nil {
-		if err == sql.ErrNoRows {
-			return out, missing()
-		}
+	var raw, approved, executed string
+	if err := row.Scan(&raw, &approved, &executed); err != nil {
 		return out, err
 	}
-	approved, executed := out.ApprovedBy, out.ExecutedBy
 	err := json.Unmarshal([]byte(raw), &out)
 	out.ApprovedBy, out.ExecutedBy = approved, executed
 	return out, err

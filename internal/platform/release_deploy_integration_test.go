@@ -213,6 +213,9 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	defer management.Close()
 	f.s.ReleaseProviders[0].Origin = management.URL
 	f.s.ReleaseProviders[0].ReconcileToken = reconcilerToken
+	capabilities := runner.ExternalCapabilities(map[string]runner.ExternalSpec{
+		config.ProviderID: {URL: management.URL, TokenEnv: "SUMA_CONTROL_PROVIDER_TEST_WORKER", Protocol: rc.ReleaseProtocol},
+	})
 	callProvider := func(method, path string, body any) rc.DeploymentObservation {
 		t.Helper()
 		var reader io.Reader
@@ -250,7 +253,11 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 		if e != nil {
 			t.Fatal(e)
 		}
-		a, e := client.Claim(ctx, "actual-provider-worker", []string{"external_workflow:local-static-test"})
+		if incompatible, e := client.Claim(ctx, "actual-provider-worker", []string{"external_workflow:" + config.ProviderID}); e != nil || incompatible != nil {
+			t.Fatal("legacy generic claim acquired an actual protected release operation", e)
+		}
+		assertReleaseNodeUnleased(t, f, d.RunID, d.NodeID)
+		a, e := client.Claim(ctx, "actual-provider-worker", capabilities)
 		if e != nil || a == nil || a.ReleaseExecution == nil {
 			t.Fatal("claim protected actual deployment", e)
 		}

@@ -373,7 +373,7 @@ func TestReleaseFixedLocalActualAssignmentDrainsAfterDefaultPoolChange(t *testin
 	server := httptest.NewServer(f.handler)
 	defer server.Close()
 	client := &runner.Client{BaseURL: server.URL, Token: registration["token"].(string), ProjectID: f.project}
-	a, err := client.Claim(ctx, "route-local-deployer", []string{"external_workflow:local-static-test"})
+	a, err := client.Claim(ctx, "route-local-deployer", releaseTestCapabilities("local-static-test"))
 	if err != nil || a == nil || a.ReleaseExecution == nil {
 		t.Fatal("actual protected local assignment unavailable", err)
 	}

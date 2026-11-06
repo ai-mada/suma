@@ -28,6 +28,8 @@ T-POOL-RUNNER-OCCUPANCY 从共享资源池的执行节点页查看已保留槽�
 
 T-PORTFOLIO-CAPACITY 从项目管理按周对照已分摊任务工时与组织工作日历。可筛选已超配或待核对人员，展开任务依据，跳转原任务和有权工作日历。已验证跨周分摊、当前撤权和桌面／窄屏交互。 [交互](../design/project-portfolio.md#跨项目周负荷与容量) · [验证](../quality/project-portfolio-capacity-verification.md)
 
+T-RELEASE-PROTOCOL-ADMISSION-259 受管部署、回滚及有序发布子节点在新领取时核对准确提供方协议。批量预览按应用展示节点上报。 [合同](../../contracts/release-control.md#发布领取的协议匹配) · [验证](../quality/release-protocol-admission-verification.md)
+
 T-RELEASE-RUNNER-READINESS-258 发布与回滚可核对专用 Runner 的提供方能力上报，审批和排队规则保持独立。 [合同](../../contracts/release-control.md#发布节点能力观测) · [验证](../quality/release-runner-readiness-verification.md)
 
 T-MANAGED-RELEASE-RUNNER-LANE-257 项目可保留默认共享池承接开发与测试，受管部署、回滚和有序发布独立走项目发布 Runner。 [合同](../../contracts/release-control.md#专用项目发布执行通道) · [验证](../quality/managed-release-runner-lane-verification.md)

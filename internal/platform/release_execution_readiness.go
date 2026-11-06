@@ -27,6 +27,14 @@ type ReleaseExecutionReadiness struct {
 	ObservedAt      string `json:"observed_at,omitempty"`
 }
 
+// The same authenticated claim must advertise the generic scheduler
+// capability and the protected release protocol for this exact provider.
+func releaseProviderClaimed(provider string, capabilities []string) bool {
+	return provider != wbc.Plugin && rc.ValidProfileID(provider) &&
+		slices.Contains(capabilities, "external_workflow:"+provider) &&
+		slices.Contains(capabilities, rc.ReleaseProviderCapabilityPrefix+provider)
+}
+
 // recordReleaseRunnerClaimTx is called only for new authenticated private
 // claims. Persist one replaceable observation per deployment registration,
 // with the current version to invalidate earlier evidence on rotation.
@@ -55,8 +63,7 @@ func (s *Service) recordReleaseRunnerClaimTx(ctx context.Context, tx *sql.Tx, au
 	providers := []string{}
 	for _, capability := range caps {
 		provider, ok := strings.CutPrefix(capability, rc.ReleaseProviderCapabilityPrefix)
-		// The same claim must offer the scheduler capability for this provider.
-		if ok && provider != wbc.Plugin && rc.ValidProfileID(provider) && slices.Contains(caps, "external_workflow:"+provider) {
+		if ok && releaseProviderClaimed(provider, caps) {
 			providers = append(providers, provider)
 		}
 	}

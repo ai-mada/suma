@@ -7,7 +7,7 @@ import {Empty,ErrorNotice,Field,Loading,Modal} from './ui';
 import {toolError,toolSessionStorage} from './tool-hooks';
 import {useLeaveGuard,useWriteAction,WriteButton,WriteFields,WriteNotice,type WriteAction} from './write-action';
 import {applicationHref,applicationRunHref,applicationTaskHref} from './project-applications-model';
-import {ProofFacts,ReleaseBlockers} from './ReleaseFacts';
+import {ProofFacts,ReleaseBlockers,ReleaseExecutionLane} from './ReleaseFacts';
 import {ReleaseSetBlockers} from './ReleaseSetBlockers';
 import {deploymentFacts,planStateNames} from './release-model';
 import {useReleaseSetPreview,useReleaseSetRead} from './application-release-sets-hooks';
@@ -100,6 +100,22 @@ function DeploymentEditor({project,set,action,onSaved,onClose,onDenied}:FormProp
  return <Modal open title={t('prepare_deployment')} description={t('deployment_boundary')} onClose={()=>{if(!dirty&&!locked&&!preview.loading)onClose();else action.setError(new UiError('application-release-sets.draft_guard'));}}><form className="rs-modal" data-release-set-deployment-editor onSubmit={event=>{event.preventDefault();void prepare();}}><WriteNotice action={action} onRebase={async()=>{const latest=await options.read();if(!latest)throw new UiError('application-release-sets.refresh_failed');const environments=draft.environments.map(input=>{const current=latest.environments.find(environment=>environment.id===input.environment_id);if(!current)throw new UiError('application-release-sets.environment_not_loaded');return {...input,expected_environment_generation:current.generation};});update({environments});}}/><Recovery action={action} onCompleted={value=>void finish(value)}/>{options.loading&&<Loading/>}{!!options.error&&<ErrorNotice error={toolError(options.error)} onRetry={()=>void options.read()}/>}{!!preview.error&&<ErrorNotice error={toolError(preview.error)}/>}
   <WriteFields action={action}><div className="rs-members">{set.members.map(member=><article className="rs-member" key={member.application_id}><strong>{member.application_name||member.application_id} · {member.application_version_label||member.application_version_id}</strong><Field label={t('environment')}><select name={'release_set_environment_'+member.application_id} required value={draft.environments.find(input=>input.application_id===member.application_id)?.environment_id||''} onChange={event=>{const environment=options.value?.environments.find(environment=>environment.id===event.target.value);update({environments:draft.environments.map(input=>input.application_id===member.application_id?{...input,environment_id:event.target.value,expected_environment_generation:environment?.generation||0}:input)});}}><option value="">{t('choose_environment')}</option>{options.value?.environments.map(environment=><option value={environment.id} key={environment.id} disabled={environment.status!=='active'||draft.environments.some(input=>input.application_id!==member.application_id&&input.environment_id===environment.id)}>{environment.name}</option>)}<UnloadedOption value={draft.environments.find(input=>input.application_id===member.application_id)?.environment_id||''} loaded={!!options.value?.environments.some(item=>item.id===draft.environments.find(input=>input.application_id===member.application_id)?.environment_id)}/></select></Field></article>)}</div><Field label={t('reason')}><textarea name="release_set_deployment_reason" required maxLength={2000} rows={2} value={draft.reason} onChange={event=>update({reason:event.target.value})}/></Field>{options.value&&!options.value.complete&&<p className="rs-warning">{t('options_bounded')}</p>}</WriteFields>
   <div className="rs-actions"><button type="button" className="primary" data-release-set-deployment-preview disabled={locked||preview.loading||!validDeploymentRequest(draft,project)} onClick={()=>void preview.inspect(draft)}>{preview.loading?t('previewing'):t('preview')}</button><button type="button" disabled={locked||preview.loading} onClick={()=>{setDirty(false);onClose();}}>{t('discard')}</button></div>
-  {preview.value&&<section className="rs-section" data-release-set-deployment-preview-result><h4>{t('deployment_preview')}</h4><ReleaseSetBlockers items={preview.value.blockers}/>{preview.value.items.map(item=><article className="rs-member" key={item.application_id}><strong>{set.members.find(member=>member.application_id===item.application_id)?.application_name||item.application_id}</strong><p className="rs-muted">{item.preview.environment?.name||t('unknown')} · {t(item.preview.eligibility?'plan_preview_ready':'plan_preview_blocked')}</p><ReleaseBlockers items={item.preview.blockers}/></article>)}<label className="rs-check"><input type="checkbox" name="release_set_deployment_ack" checked={ack} disabled={!preview.value.can_prepare||locked} onChange={event=>setAck(event.target.checked)}/>{t('confirm_prepare')}</label><WriteButton action={action} disabled={locked||!ack||!preview.value.can_prepare||action.persistenceBlocked}>{t('prepare_plans')}</WriteButton></section>}
+  {preview.value&&<section className="rs-section rs-deployment-preview" data-release-set-deployment-preview-result>
+   <h4>{t('deployment_preview')}</h4>
+   <ReleaseSetBlockers items={preview.value.blockers}/>
+   {preview.value.items.length>0&&<div className="rs-members">
+    {preview.value.items.map(({application_id,preview:memberPreview})=>{
+     const name=set.members.find(member=>member.application_id===application_id)?.application_name||application_id;
+     return <article className="rs-member" aria-label={name} key={application_id}>
+      <strong>{name}</strong>
+      <p className="rs-muted">{memberPreview.environment?.name||t('unknown')} · {t(memberPreview.eligibility?'plan_preview_ready':'plan_preview_blocked')}</p>
+      <ReleaseBlockers items={memberPreview.blockers}/>
+      <ReleaseExecutionLane compact lane={memberPreview.execution_lane} readiness={memberPreview.execution_readiness} providerID={memberPreview.environment?.provider_id}/>
+     </article>;
+    })}
+   </div>}
+   <label className="rs-check"><input type="checkbox" name="release_set_deployment_ack" checked={ack} disabled={!preview.value.can_prepare||locked} onChange={event=>setAck(event.target.checked)}/>{t('confirm_prepare')}</label>
+   <WriteButton action={action} disabled={locked||!ack||!preview.value.can_prepare||action.persistenceBlocked}>{t('prepare_plans')}</WriteButton>
+  </section>}
  </form></Modal>;
 }

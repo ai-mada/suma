@@ -306,7 +306,7 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 	server := httptest.NewServer(f.handler)
 	defer server.Close()
 	builder := &runner.Client{BaseURL: server.URL, Token: builderToken, ProjectID: f.project}
-	a, err := builder.Claim(ctx, "release-fixture-worker", []string{"external_workflow:local-static-test", "release_deployment"})
+	a, err := builder.Claim(ctx, "release-fixture-worker", releaseTestCapabilities("local-static-test"))
 	if err != nil || a != nil {
 		t.Fatal("non-deployment worker consumed protected run", err)
 	}
@@ -320,7 +320,7 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 		t.Fatal(err)
 	}
 	client := &runner.Client{BaseURL: server.URL, Token: workerToken, ProjectID: f.project}
-	a, err = client.Claim(ctx, "protected-deployer", []string{"external_workflow:local-static-test"})
+	a, err = client.Claim(ctx, "protected-deployer", releaseTestCapabilities("local-static-test"))
 	if err != nil || a == nil || a.ReleaseExecution == nil {
 		t.Fatal("protected assignment missing server binding", err)
 	}

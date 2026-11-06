@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
@@ -13,6 +14,38 @@ import (
 func executionFromDeployment(d ReleaseDeployment, p ReleasePlan) rc.ReleaseExecution {
 	return rc.ReleaseExecution{Protocol: rc.ReleaseProtocol, OperationID: d.OperationID, PlanID: p.ID, PlanRevision: p.Revision, PlanSHA256: p.SHA256, EnvironmentID: d.EnvironmentID, ProviderID: d.ProviderID, ExpectedGeneration: p.Content.ExpectedGeneration, Generation: d.Generation, ArtifactID: d.ArtifactID, ArtifactSHA256: d.ArtifactSHA256}
 }
+
+// currentReleaseDeploymentForNodeTx resolves server-owned release bindings.
+// An ordinary external workflow can use the same plugin ID without a binding.
+func (s *Service) currentReleaseDeploymentForNodeTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string) (*ReleaseDeployment, error) {
+	row := tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT data,approved_by,executed_by FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=?`)), tenant, project, run, node)
+	d, err := scanReleaseDeployment(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if d.ProjectID != project || d.RunID != run || d.NodeID != node {
+		return nil, fmt.Errorf("inconsistent release deployment binding")
+	}
+	return &d, nil
+}
+
+func (s *Service) admitReleaseCandidateTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, run, node string, capabilities []string) (bool, error) {
+	if auth == nil || auth.actor.kind != actorProjectRunner {
+		return false, forbidden()
+	}
+	if err := auth.assertTx(tx, auth.target, purposeRunnerWrite); err != nil {
+		return false, err
+	}
+	d, err := s.currentReleaseDeploymentForNodeTx(ctx, tx, auth.target.tenantID, auth.target.projectID, run, node)
+	if err != nil {
+		return false, err
+	}
+	return d == nil || releaseProviderClaimed(d.ProviderID, capabilities), nil
+}
+
 func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, actor Actor, project string, a dag.Assignment) (out *rc.ReleaseExecution, err error) {
 	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeRunnerRead, func(auth *authorizedCommand) error {
 		if e := s.runnerIdentityBindingTx(ctx, auth.tx, auth, a.WorkerID); e != nil {
@@ -40,23 +73,15 @@ func (s *Service) readReleaseExecutionForAssignmentTx(ctx context.Context, auth 
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return nil, err
 	}
-	var operation string
-	err = tx.QueryRowContext(ctx, s.q(`SELECT operation_id FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=?`), p.TenantID, project, a.RunID, a.NodeID).Scan(&operation)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	d, err := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, operation)
-	if err != nil {
+	d, err := s.currentReleaseDeploymentForNodeTx(ctx, tx, p.TenantID, project, a.RunID, a.NodeID)
+	if err != nil || d == nil {
 		return nil, err
 	}
 	plan, err := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, d.PlanID)
 	if err != nil {
 		return nil, err
 	}
-	out := executionFromDeployment(d, plan)
+	out := executionFromDeployment(*d, plan)
 	return &out, nil
 
 }

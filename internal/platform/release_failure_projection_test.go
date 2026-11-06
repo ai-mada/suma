@@ -22,7 +22,7 @@ func TestReleaseManagedFailureProjectionUsesOperationIssue(t *testing.T) {
 	control := httptest.NewServer(f.handler)
 	defer control.Close()
 	client := &runner.Client{BaseURL: control.URL, Token: worker["token"].(string), ProjectID: f.project}
-	a, err := client.Claim(ctx, "failed-release-worker", []string{"external_workflow:local-static-test"})
+	a, err := client.Claim(ctx, "failed-release-worker", releaseTestCapabilities("local-static-test"))
 	if err != nil || a == nil {
 		t.Fatal("missing protected assignment", err)
 	}

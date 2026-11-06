@@ -757,6 +757,18 @@
     "full_platform_complete": false,
     "git_record": ".cache/portfolio-capacity/post-git.json"
   },
+  "release_protocol_admission": {
+    "stage": "T-RELEASE-PROTOCOL-ADMISSION-259",
+    "version": "1.0.0",
+    "classification": "progress",
+    "previous_commit": "d55e83973ecfdf45b57f9bf4229f719e0efcaa3f",
+    "report": "docs/quality/release-protocol-admission-verification.md",
+    "actual": "New protected deployment claims check the exact saved provider and same-claim protocol pair before lease. App release set preview shows observations per member. Existing approval, receipt recovery, and generic workflows keep their original authority.",
+    "verification": "Eight Windows SQLite/HTTP cases with the actual loopback static provider, nineteen frontend checks, and bilingual Chromium previews passed.",
+    "known_limitations": "Live production providers, cross-machine networking, and OceanBase are not verified in this stage.",
+    "full_platform_complete": false,
+    "git_record": ".cache/q259/post-git.json"
+  },
   "release_runner_readiness": {
     "stage": "T-RELEASE-RUNNER-READINESS-258",
     "version": "1.0.0",

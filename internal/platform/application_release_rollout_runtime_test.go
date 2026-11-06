@@ -220,15 +220,32 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 		}
 		return command(current, "resume", preview.PreviewSHA256)
 	}
-	claim := func() *runner.Assignment {
+	capabilities := runner.ExternalCapabilities(p.config.External)
+	claim := func(appID string) *runner.Assignment {
 		t.Helper()
 		for {
 			view = read()
-			a, err := p.client.Claim(ctx, "release-set-deployer124", []string{"external_workflow:" + p.providerID})
-			if err != nil {
-				t.Fatal("claim actual original release child", err)
-			}
-			if a != nil {
+			item := rolloutRuntimeItem(t, view, appID)
+			if item.DeploymentOperationID != "" && item.DeploymentState == "queued" {
+				deployment, err := f.s.ReleaseDeployment(ctx, f.actor, f.project, item.DeploymentOperationID)
+				if err != nil {
+					t.Fatal("read queued release child", err)
+				}
+				wrong := []string{"external_workflow:" + p.providerID, rc.ReleaseProviderCapabilityPrefix + "wrong-provider"}
+				if a, err := p.client.Claim(ctx, "release-set-deployer124", wrong); err != nil || a != nil {
+					t.Fatal("wrong provider marker acquired an actual ordered child", err)
+				}
+				assertReleaseNodeUnleased(t, f, deployment.RunID, deployment.NodeID)
+				faults.mu.Lock()
+				posts := faults.posts[deployment.OperationID]
+				faults.mu.Unlock()
+				if posts != 0 {
+					t.Fatal("provider called before exact runner capability", posts)
+				}
+				a, err := p.client.Claim(ctx, "release-set-deployer124", capabilities)
+				if err != nil || a == nil || a.RunID != deployment.RunID {
+					t.Fatal("claim actual original release child", err)
+				}
 				return a
 			}
 			select {
@@ -238,7 +255,7 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 			}
 		}
 	}
-	library := claim()
+	library := claim(h.library.ID)
 	assertDedicatedReleaseRun(t, ctx, f, library.RunID)
 	if library.ReleaseExecution == nil || library.ReleaseExecution.ArtifactID != p.candidates["library"].ArtifactID {
 		t.Fatal("dependent application started before its library")
@@ -258,7 +275,7 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 	if err != nil || webEnvironment.Generation != 0 || webEnvironment.BarrierOperationID != "" {
 		t.Fatal("unstarted downstream environment was reserved", err, webEnvironment)
 	}
-	if a, err := p.client.Claim(ctx, "release-set-deployer124", []string{"external_workflow:" + p.providerID}); err != nil || a != nil {
+	if a, err := p.client.Claim(ctx, "release-set-deployer124", capabilities); err != nil || a != nil {
 		t.Fatal("downstream child was claimable before prerequisite health", err)
 	}
 	view = command(view, "pause", "")
@@ -287,7 +304,7 @@ func TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery(t *testin
 	}
 	paused := view
 	view = resume(view)
-	web := claim()
+	web := claim(h.web.ID)
 	assertDedicatedReleaseRun(t, ctx, f, web.RunID)
 	if web.ReleaseExecution == nil || web.ReleaseExecution.ArtifactID != p.candidates["web"].ArtifactID {
 		t.Fatal("resume did not use the original dependent plan")

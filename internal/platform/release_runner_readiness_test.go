@@ -11,6 +11,21 @@ import (
 	"github.com/ai-mada/suma/internal/runner"
 )
 
+func releaseTestCapabilities(provider string) []string {
+	return []string{"external_workflow:" + provider, rc.ReleaseProviderCapabilityPrefix + provider}
+}
+
+func assertReleaseNodeUnleased(t *testing.T, f *fixture, runID, nodeID string) {
+	t.Helper()
+	var state, worker string
+	var attempt, fence, lease int64
+	err := f.s.DB.QueryRow(`SELECT state,attempt,fence,worker_id,lease_until FROM dag_nodes WHERE run_id=? AND id=?`, runID, nodeID).
+		Scan(&state, &attempt, &fence, &worker, &lease)
+	if err != nil || state != "ready" || attempt != 0 || fence != 0 || worker != "" || lease != 0 {
+		t.Fatalf("managed node acquired execution state before a compatible claim: state=%q attempt=%d fence=%d worker=%q lease=%d err=%v", state, attempt, fence, worker, lease, err)
+	}
+}
+
 func TestReleaseRunnerReadinessUsesCurrentDedicatedClaimAndDoesNotGateDeployment(t *testing.T) {
 	f, candidate, env, plan, builderToken, _ := verifiedReleaseDeploymentPlan(t)
 	const workerID, providerID = "readiness-deployer", "local-static-test"
@@ -150,9 +165,31 @@ func TestReleaseRunnerReadinessUsesCurrentDedicatedClaimAndDoesNotGateDeployment
 	assertDedicatedReleaseRun(t, context.Background(), f, queued["run_id"].(string))
 	poolClaim()
 	detail("unobserved", 1)
-	assignment := claim(newToken, workerID, matchingCaps, newID(), 200)["assignment"]
+	for _, rejected := range []struct {
+		name string
+		caps []string
+	}{
+		{"generic only", []string{matchingCaps[0]}},
+		{"wrong provider marker", otherCaps},
+		{"exact marker only", []string{matchingCaps[1]}},
+	} {
+		if got := claim(newToken, workerID, rejected.caps, newID(), 200)["assignment"]; got != nil {
+			t.Fatalf("%s acquired the managed deployment: %v", rejected.name, got)
+		}
+		assertReleaseNodeUnleased(t, f, queued["run_id"].(string), queued["node_id"].(string))
+		current := f.call("GET", "/deployments/"+queued["operation_id"].(string)+"?project_id="+f.project, nil, 200)
+		if current["state"] != "queued" || current["effect_state"] != "not_started" || current["assignment"] != nil {
+			t.Fatalf("%s advanced the operation: %v", rejected.name, current)
+		}
+		detail("capability_missing", 1)
+	}
+	claimOperation := newID()
+	assignment := claim(newToken, workerID, matchingCaps, claimOperation, 200)["assignment"]
 	if assignment, ok := assignment.(map[string]any); !ok || assignment["run_id"] != queued["run_id"] {
 		t.Fatal("current dedicated Runner could not claim the queued deployment")
+	}
+	if replay := claim(newToken, workerID, matchingCaps, claimOperation, 200)["assignment"]; !reflect.DeepEqual(assignment, replay) {
+		t.Fatal("replaying the matched claim changed the assignment")
 	}
 	detail("capability_observed", 1)
 	if replayed := f.call("POST", executePath, executeBody, 201); !reflect.DeepEqual(queued, replayed) {
